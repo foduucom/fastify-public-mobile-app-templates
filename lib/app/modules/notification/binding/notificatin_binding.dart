@@ -1,0 +1,11 @@
+import 'package:foduu_ecommerce/app/modules/notification/controller/notification_controller.dart';
+import 'package:get/get.dart';
+
+class NotificationsBinding extends Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<NotificationsController>(
+      () => NotificationsController(),
+    );
+  }
+}
