@@ -12,6 +12,7 @@ import 'package:foduu_ecommerce/components/commonWidgets/appbarIcons.dart';
 import 'package:foduu_ecommerce/components/gridviewproductcard.dart';
 import 'package:foduu_ecommerce/components/shopShimmer.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:get/get.dart';
@@ -19,6 +20,7 @@ import 'package:get/get.dart';
 class ShopView extends GetView<ShopController> {
   final shopController = Get.lazyPut<ShopController>(() => ShopController());
   final wishlistController = Get.find<WishlistController>();
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -37,7 +39,7 @@ class ShopView extends GetView<ShopController> {
               ),
               Obx(
                 () => Text(
-                  controller.allProductList.length.toString(),
+                  controller.allProductList.length.toString() + ' items',
                   style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontFamily: 'lato',
@@ -50,13 +52,6 @@ class ShopView extends GetView<ShopController> {
           titleSpacing: 0,
           elevation: 0,
           actions: [
-            // SizedBox(width: 14),
-            // Obx(() => Get.find<BottombarController>().cartbadge(
-            //     child: NotificationIcon(() {}),
-            //     badgeNumber: Get.find<NotificationsController>()
-            //         .allnotificationList
-            //         .length)),
-            // SizedBox(width: 14),
             Obx(() => Get.find<BottombarController>().cartbadge(
                 child: HeartIcon(() {
                   Get.toNamed(Routes.WISHLIST);
@@ -81,6 +76,146 @@ class ShopView extends GetView<ShopController> {
           child: CustomScrollView(
             controller: controller.scrollController,
             slivers: [
+              // Category Tabs Section (NEW)
+              SliverToBoxAdapter(
+                child: Obx(
+                  () => controller.subCategories.isEmpty
+                      ? SizedBox.shrink()
+                      : Container(
+                          height: 50,
+                          margin:
+                              EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: controller.subCategories.length,
+                            itemBuilder: (context, index) {
+                              final subCat = controller.subCategories[index];
+                              final isSelected = index ==
+                                  controller.selectedSubCategoryIndex.value;
+
+                              return GestureDetector(
+                                onTap: () async {
+                                  controller.selectedSubCategoryIndex.value =
+                                      index;
+                                  controller.selectedSubCategoryId.value =
+                                      subCat['_id'] ?? '';
+                                  controller.allProductList.clear();
+                                  controller.currentPage.value = 1;
+
+                                  // Check if this subcategory has children (like Footwear has Nike/Adidas)
+                                  if (subCat['children'] != null &&
+                                      subCat['children'].isNotEmpty) {
+                                    // Show deep category tabs
+                                    controller.deepCategories.value =
+                                        List.from(subCat['children']);
+                                    print(
+                                        "Print Sub Categories From If: ${controller.deepCategories.value}");
+                                    // Fetch products from all children
+                                    await controller
+                                        .fetchProductsForCategoryAndSubcategories(
+                                            subCat['_id']);
+                                  } else {
+                                    // ✅ FIXED: Use subCat['_id'] here, NOT deepCat
+                                    controller.deepCategories.clear();
+                                    await controller
+                                        .getProductsForCategory(subCat['_id']);
+                                  }
+                                },
+                                child: Container(
+                                  margin: EdgeInsets.only(right: 8),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? DefaultThemeColors.mainprimary
+                                        : Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      subCat['name'] ?? '',
+                                      style: TextStyle(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Colors.black,
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                ),
+              ),
+
+              // Deep Category Tabs (for Nike/Adidas under Footwear)
+              // SliverToBoxAdapter(
+              //   child: Obx(
+              //     () => controller.deepCategories.isEmpty
+              //         ? SizedBox.shrink()
+              //         : Container(
+              //             height: 40,
+              //             margin:
+              //                 EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+              //             child: ListView.builder(
+              //               scrollDirection: Axis.horizontal,
+              //               itemCount: controller.deepCategories.length,
+              //               itemBuilder: (context, index) {
+              //                 final deepCat = controller.deepCategories[index];
+              //                 final isSelected = index ==
+              //                     controller.selectedDeepCategoryIndex.value;
+
+              //                 return GestureDetector(
+              //                   onTap: () {
+              //                     controller.selectedDeepCategoryIndex.value =
+              //                         index;
+              //                     controller.allProductList.clear();
+              //                     controller.currentPage.value = 1;
+              //                     // ✅ FIX: Change this line from getCategoryWiseProduct to getProductsForCategory
+              //                     controller
+              //                         .getProductsForCategory(deepCat['_id']);
+              //                   },
+              //                   child: Container(
+              //                     margin: EdgeInsets.only(right: 6),
+              //                     padding: EdgeInsets.symmetric(
+              //                         horizontal: 12, vertical: 6),
+              //                     decoration: BoxDecoration(
+              //                       color: isSelected
+              //                           ? Colors.blue.shade100
+              //                           : Colors.grey.shade100,
+              //                       borderRadius: BorderRadius.circular(16),
+              //                       border: Border.all(
+              //                         color: isSelected
+              //                             ? Colors.blue
+              //                             : Colors.transparent,
+              //                         width: 1,
+              //                       ),
+              //                     ),
+              //                     child: Text(
+              //                       deepCat['name'] ?? '',
+              //                       style: TextStyle(
+              //                         fontWeight: isSelected
+              //                             ? FontWeight.w600
+              //                             : FontWeight.normal,
+              //                         fontSize: 13,
+              //                         color: isSelected
+              //                             ? Colors.blue.shade800
+              //                             : Colors.black87,
+              //                       ),
+              //                     ),
+              //                   ),
+              //                 );
+              //               },
+              //             ),
+              //           ),
+              //   ),
+              // ),
+
               SliverAppBar(
                 automaticallyImplyLeading: false,
                 expandedHeight: 50,
@@ -95,14 +230,11 @@ class ShopView extends GetView<ShopController> {
                             Get.toNamed(Routes.SEARCH);
                           },
                           readOnly: true,
-                          // cursorColor: themeSecondrytext,
                           decoration: InputDecoration(
                               filled: true,
-                              // fillColor: themegreyColor,
                               prefixIcon: Icon(
                                 Icons.search,
                                 size: 20,
-                                // color: themeSecondrytext,
                               ),
                               contentPadding: const EdgeInsets.fromLTRB(
                                   30.0, 15.0, 30.0, 10.0),
@@ -125,30 +257,15 @@ class ShopView extends GetView<ShopController> {
                   ],
                 ),
               ),
+
               SliverList(
                   delegate: SliverChildListDelegate([
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15),
                   child: Obx(() {
-                    // if (controller.allProductList.isEmpty) {
-                    //   return AlignedGridView.count(
-                    //     // cacheExtent: 9999,
-                    //     physics: NeverScrollableScrollPhysics(),
-                    //     itemCount: 6,
-                    //     crossAxisCount: 2,
-                    //     mainAxisSpacing: 20,
-                    //     crossAxisSpacing: 14,
-                    //     shrinkWrap: true,
-                    //     itemBuilder: (context, index) {
-                    //       return ShopShimmer();
-                    //     },
-                    //   );
-                    // }
-                    //  else {
                     return controller.isLoading.value &&
                             controller.allProductList.isEmpty
                         ? AlignedGridView.count(
-                            // cacheExtent: 9999,
                             physics: NeverScrollableScrollPhysics(),
                             itemCount: 6,
                             crossAxisCount: 2,
@@ -168,42 +285,231 @@ class ShopView extends GetView<ShopController> {
                             crossAxisSpacing: 14,
                             shrinkWrap: true,
                             itemBuilder: (context, index) {
+                              final product = controller.allProductList[index];
+
                               return Obx(() {
                                 if (controller.allProductList.isEmpty) {
                                   return HelperFunctions().loadingIndicator();
                                 }
-                                var lowest;
-                                var highest;
-                                if (controller.allProductList[index]['type'] ==
-                                    'variant') {
-                                  if (controller
-                                      .allProductList[index]['variant_ids']
-                                      .isNotEmpty) {
-                                    lowest = HelperFunctions.lowestPrice(
-                                        controller.allProductList[index]
-                                            ['variant_ids']);
-                                    highest = HelperFunctions.highestPrice(
-                                        controller.allProductList[index]
-                                            ['variant_ids']);
+
+                                // Handle different product types
+                                String productType =
+                                    product['type'] ?? 'simple';
+                                String lowestPrice = '0';
+                                String highestPrice = '0';
+                                String displayPrice = '0';
+                                String originalPrice = '';
+                                String discountRate = '';
+
+                                if (productType == 'variable') {
+                                  // Check if variants exist AND have data
+                                  final hasValidVariants =
+                                      product['variants'] != null &&
+                                          product['variants'] is List &&
+                                          (product['variants'] as List)
+                                              .isNotEmpty;
+
+                                  if (hasValidVariants) {
+                                    final variants =
+                                        product['variants'] as List;
+                                    final firstVariant = variants.first;
+
+                                    // Get prices from first variant
+                                    final price = firstVariant['price'] ?? 0;
+                                    final discountedPrice =
+                                        firstVariant['discounted_price'] ?? 0;
+
+                                    displayPrice = (discountedPrice > 0
+                                            ? discountedPrice
+                                            : price)
+                                        .toString();
+
+                                    if (discountedPrice > 0 &&
+                                        price > discountedPrice) {
+                                      originalPrice = price.toString();
+                                      final discount =
+                                          ((price - discountedPrice) /
+                                                  price *
+                                                  100)
+                                              .round();
+                                      discountRate = '$discount% off';
+                                    }
+
+                                    // For price range - check if we have multiple variants
+                                    if (variants.length >= 2) {
+                                      // Use HelperFunctions only when we have at least 2 variants
+                                      try {
+                                        lowestPrice =
+                                            HelperFunctions.lowestPrice(
+                                                    variants)
+                                                .toString();
+                                        highestPrice =
+                                            HelperFunctions.highestPrice(
+                                                    variants)
+                                                .toString();
+                                      } catch (e) {
+                                        // Fallback if HelperFunctions fails
+                                        lowestPrice = displayPrice;
+                                        highestPrice = displayPrice;
+                                        print(
+                                            '⚠️ Error calculating price range: $e');
+                                      }
+                                    } else {
+                                      // Only one variant - use same price for both
+                                      lowestPrice = displayPrice;
+                                      highestPrice = displayPrice;
+                                    }
                                   } else {
-                                    return Container(
-                                      color: Colors.grey,
-                                    );
+                                    // NO VARIANTS - treat as simple product
+                                    print(
+                                        '⚠️ Product ${product['_id']} is type "variable" but has no variants');
+
+                                    final salePrice =
+                                        product['sale_price'] ?? 0;
+                                    final regularPrice = product['price'] ?? 0;
+
+                                    displayPrice = (salePrice > 0
+                                            ? salePrice
+                                            : regularPrice)
+                                        .toString();
+
+                                    if (salePrice > 0 &&
+                                        regularPrice > salePrice) {
+                                      originalPrice = regularPrice.toString();
+                                      final discount =
+                                          (100 - salePrice * 100 / regularPrice)
+                                              .round();
+                                      discountRate = '$discount% off';
+                                    }
+
+                                    lowestPrice = displayPrice;
+                                    highestPrice = displayPrice;
+                                  }
+                                } else {
+                                  // Simple product
+                                  final salePrice = product['sale_price'] ?? 0;
+                                  final regularPrice = product['price'] ?? 0;
+
+                                  displayPrice =
+                                      (salePrice > 0 ? salePrice : regularPrice)
+                                          .toString();
+
+                                  if (salePrice > 0 &&
+                                      regularPrice > salePrice) {
+                                    originalPrice = regularPrice.toString();
+                                    final discount =
+                                        (100 - salePrice * 100 / regularPrice)
+                                            .round();
+                                    discountRate = '$discount% off';
+                                  }
+
+                                  lowestPrice = displayPrice;
+                                  highestPrice = displayPrice;
+                                }
+
+                                // Get product image with detailed debugging
+                                String imageUrl = HelperFunctions.getNoImage();
+                                print(
+                                    '🔍 Processing image for product: ${product['name']} (${product['_id']})');
+
+// Check featured_image
+                                if (product['featured_image'] != null) {
+                                  print(
+                                      '  - featured_image exists: ${product['featured_image'].runtimeType}');
+
+                                  if (product['featured_image'] is Map) {
+                                    print(
+                                        '  - featured_image is Map with keys: ${(product['featured_image'] as Map).keys}');
+
+                                    if (product['featured_image']['filepath'] !=
+                                        null) {
+                                      imageUrl = url +
+                                          'images/' +
+                                          product['featured_image']['filepath'];
+                                      print(
+                                          '  ✅ Using featured_image.filepath: $imageUrl');
+                                    } else if (product['featured_image']
+                                            ['_id'] !=
+                                        null) {
+                                      // Sometimes the image ID is stored, need to fetch or construct URL
+                                      print(
+                                          '  ⚠️ featured_image has ID but no filepath: ${product['featured_image']['_id']}');
+                                      // Try alternative: maybe it's just an ID reference
+                                      imageUrl = url +
+                                          'images/' +
+                                          product['featured_image']['_id'];
+                                      print(
+                                          '  🔄 Trying constructed URL: $imageUrl');
+                                    }
+                                  } else if (product['featured_image']
+                                      is String) {
+                                    print(
+                                        '  - featured_image is String: ${product['featured_image']}');
+                                    imageUrl = url +
+                                        'images/' +
+                                        product['featured_image'];
+                                    print(
+                                        '  ✅ Using string featured_image: $imageUrl');
                                   }
                                 }
+// Check variants for images
+                                else if (productType == 'variable' &&
+                                    product['variants'] != null &&
+                                    product['variants'].isNotEmpty) {
+                                  print('  - Checking variants for images');
+                                  final variants = product['variants'] as List;
+
+                                  for (int i = 0; i < variants.length; i++) {
+                                    if (variants[i]['images'] != null &&
+                                        variants[i]['images'].isNotEmpty) {
+                                      print(
+                                          '  - Variant $i has ${variants[i]['images'].length} images');
+                                      final firstImage =
+                                          variants[i]['images'].first;
+
+                                      if (firstImage is Map &&
+                                          firstImage['filepath'] != null) {
+                                        imageUrl = url + firstImage['filepath'];
+                                        print(
+                                            '  ✅ Using variant image: $imageUrl');
+                                        break;
+                                      } else if (firstImage is String) {
+                                        imageUrl = url + 'images/' + firstImage;
+                                        print(
+                                            '  ✅ Using variant string image: $imageUrl');
+                                        break;
+                                      }
+                                    }
+                                  }
+                                }
+
+                                print('  📸 Final imageUrl: $imageUrl');
+
+                                print(
+                                    '📦 Product data for ID ${product['_id']}:');
+                                print('  - price: ${product['price']}');
+                                print(
+                                    '  - sale_price: ${product['sale_price']}');
+                                print(
+                                    '  - variants exists? ${product.containsKey('variants')}');
+                                if (product.containsKey('variants')) {
+                                  print(
+                                      '  - variants is List? ${product['variants'] is List}');
+                                  print(
+                                      '  - variants length: ${product['variants']?.length}');
+                                }
+
                                 return gridProductCart(
                                   animationController: controller.controller,
                                   scaoleAnimation: controller.scaleAnimation,
-                                  highestPrice: highest.toString(),
-                                  lowestPrice: lowest.toString(),
-                                  productType: controller.allProductList[index]
-                                      ['type'],
+                                  highestPrice: highestPrice,
+                                  lowestPrice: lowestPrice,
+                                  productType: productType,
                                   liked: GetBuilder<WishlistController>(
                                     builder: (wishlistcontroller) {
                                       return wishlistcontroller
                                               .wishlistProductIds
-                                              .contains(controller
-                                                  .allProductList[index]['_id'])
+                                              .contains(product['_id'])
                                           ? SvgPicture.asset(
                                               'assets/icon/like.svg')
                                           : SvgPicture.asset(
@@ -213,73 +519,33 @@ class ShopView extends GetView<ShopController> {
                                   onLiked: () async {
                                     await wishlistController
                                         .addProductToWishlist(
-                                            productid: controller
-                                                .allProductList[index]['_id']);
+                                            productid: product['_id']);
                                     await wishlistController.getwishlist();
                                   },
                                   rating: double.parse(
-                                    controller.allProductList[index]
-                                                ['average_rating'] ==
-                                            null
-                                        ? '0'
-                                        : controller.allProductList[index]
-                                                ['average_rating']
-                                            .toString(),
+                                    product['average_rating']?.toString() ??
+                                        '0',
                                   ),
-                                  quantity: controller.allProductList[index]
-                                              ['variant_ids'][0]['quantity'] ==
-                                          null
-                                      ? "Out of stock"
-                                      : controller.allProductList[index]
-                                              ['variant_ids'][0]['quantity']
-                                          .toString(),
+                                  quantity:
+                                      "In Stock", // You might want to calculate this from variants
                                   keypressEvent: () {
-                                    controller.gotProductDetails(index);
+                                    Get.toNamed(Routes.PRODUCTDETAILS,
+                                        arguments: {
+                                          'productId': product['_id'],
+                                        });
                                   },
-                                  assetimage: controller.allProductList[index]
-                                              ['featured_image'] !=
-                                          null
-                                      ? url +
-                                          controller.allProductList[index]
-                                                  ['featured_image']['filepath']
-                                              .toString()
-                                      : HelperFunctions.getNoImage(),
-                                  productname: controller.allProductList[index]
-                                          ['name']
-                                      .toString(),
-                                  discountprice:
-                                      controller.allProductList[index]
-                                                      ['variant_ids'][0]
-                                                  ['sale_price'] ==
-                                              null
-                                          ? ''
-                                          : controller.allProductList[index]
-                                                  ['variant_ids'][0]['price']
-                                              .toString(),
-                                  productprice: controller.allProductList[index]
-                                                  ['variant_ids'][0]
-                                              ['sale_price'] ==
-                                          null
-                                      ? controller.allProductList[index]
-                                              ['variant_ids'][0]['price']
-                                          .toString()
-                                      : controller.allProductList[index]
-                                              ['variant_ids'][0]['sale_price']
-                                          .toString(),
-                                  discountrate: controller.allProductList[index]
-                                                  ['variant_ids'][0]
-                                              ['sale_price'] ==
-                                          null
-                                      ? ''
-                                      : " (${(100 - controller.allProductList[index]['variant_ids'][0]['sale_price'] * 100 / controller.allProductList[index]['variant_ids'][0]['price']).round()}" +
-                                          " %off)",
+                                  assetimage: imageUrl,
+                                  productname:
+                                      product['name']?.toString() ?? '',
+                                  discountprice: originalPrice,
+                                  productprice: displayPrice,
+                                  discountrate: discountRate,
                                   height: Get.height * 0.3,
                                   width: Get.width,
                                 );
                               });
                             },
                           );
-                    // }
                   }),
                 ),
                 const SizedBox(height: 20),

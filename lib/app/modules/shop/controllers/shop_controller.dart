@@ -37,8 +37,25 @@ class ShopController extends GetxController
   late AnimationController controller;
   late Animation<double> scaleAnimation;
 
+  // Add these to your ShopController
+  var categoryStructure = {}.obs;
+  var subCategories = <dynamic>[].obs;
+  var deepCategories = <dynamic>[].obs;
+  var selectedSubCategoryIndex = 0.obs;
+  var selectedDeepCategoryIndex = 0.obs;
+  var selectedSubCategoryId = ''.obs;
+
   @override
   Future<void> onInit() async {
+    // Initialize animation FIRST
+    controller = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 300),
+    );
+    scaleAnimation = Tween<double>(begin: 1.0, end: 1.5).animate(
+      CurvedAnimation(parent: controller, curve: Curves.easeInOut),
+    );
+
     scrollController = ScrollController();
 
     arguments.addAll(Get.arguments);
@@ -47,26 +64,21 @@ class ShopController extends GetxController
     if (source == 'offerCorner') {
       offerConrnerPrice = arguments['price'];
       collectionName = arguments['name'];
-
       getOfferConrnerProducts(offerConrnerPrice);
     } else if (source == 'dashboard') {
       productId = arguments['productId'];
       collectionName = arguments['name'];
       producttype = arguments['productype'];
       dashBoardproducts(productType: producttype);
-      // categoryId.addAll(productId);
     } else if (source == 'category') {
       productId = arguments['productId'];
       collectionName = arguments['name'];
-      getCategoryWiseProduct(productId);
+
+      // NEW: Fetch category structure first
+      await fetchCategoryStructure();
+      // Don't call getCategoryWiseProduct directly here anymore
+      // It's now called inside fetchCategoryStructure
     }
-
-    // if (producttype != null) {
-    // } else {
-    //   categoryId.add(productId);
-
-    //   await getCategoryWiseProduct(categoryId);
-    // }
 
     await fetchProductOnScroll();
     await getMaxMinPriceFilter();
@@ -82,13 +94,240 @@ class ShopController extends GetxController
   }
 
   Future<void> getMaxMinPriceFilter() async {
-    var response =
-        await BasicProvider('public/product/max-min-price').getRequest();
-    filterMaxPrice = 100000;
-    filterMinPrice = 0;
+    try {
+      // Use the existing category structure API to get price range
+      var response = await BasicProvider(
+              'category/get-first-parent/products?pagination=false')
+          .getRequest()
+          .catchError(handleError);
+
+      filterMaxPrice = 100000; // Default fallback
+      filterMinPrice = 0; // Default fallback
+
+      if (response == null || response['data'] == null) return;
+
+      // Extract price range from all products in the category structure
+      List<dynamic> allCategories = response['data'];
+      num maxPrice = 0;
+      num minPrice = double.infinity;
+
+      // Function to recursively extract products and find prices
+      void extractPricesFromCategories(List<dynamic> categories) {
+        for (var category in categories) {
+          // Check if category has products array (depends on your API structure)
+          if (category['products'] != null && category['products'] is List) {
+            for (var product in category['products']) {
+              // Handle variable products with variants
+              if (product['type'] == 'variable' &&
+                  product['variants'] != null) {
+                for (var variant in product['variants']) {
+                  num price =
+                      variant['discounted_price'] ?? variant['price'] ?? 0;
+                  if (price > maxPrice) maxPrice = price;
+                  if (price < minPrice && price > 0) minPrice = price;
+                }
+              }
+              // Handle simple products
+              else {
+                num price = product['sale_price'] ?? product['price'] ?? 0;
+                if (price > maxPrice) maxPrice = price;
+                if (price < minPrice && price > 0) minPrice = price;
+              }
+            }
+          }
+
+          // Recursively check children categories
+          if (category['children'] != null && category['children'].isNotEmpty) {
+            extractPricesFromCategories(category['children']);
+          }
+        }
+      }
+
+      extractPricesFromCategories(allCategories);
+
+      // Set the filter values
+      filterMaxPrice = maxPrice > 0 ? maxPrice.toInt() : 100000;
+      filterMinPrice = minPrice != double.infinity ? minPrice.toInt() : 0;
+
+      print(
+          '✅ Price range extracted: Min=$filterMinPrice, Max=$filterMaxPrice');
+    } catch (e) {
+      print('❌ Error in getMaxMinPriceFilter: $e');
+      filterMaxPrice = 100000;
+      filterMinPrice = 0;
+    }
+  }
+
+  // In ShopController, when a category/subcategory is selected:
+  getProductsForCategory(String categoryId) async {
+    isLoading(true);
+
+    try {
+      // Use the WORKING product API from your ProductController!
+      // This is the same pattern that works in ProductView
+      var response = await BasicProvider("products?category=$categoryId")
+          .getRequest()
+          .catchError(handleError);
+
+      if (response == null) {
+        isLoading(false);
+        return;
+      }
+
+      // The response structure should match what you use in ProductView
+      // Based on your earlier logs, it returns { "status": "success", "data": [...] }
+      allProductList.clear();
+
+      if (response['data'] != null) {
+        allProductList.addAll(response['data']);
+      } else if (response is List) {
+        allProductList.addAll(response);
+      }
+
+      maxPage.value = (allProductList.length / 10).ceil();
+
+      print(
+          '✅ Found ${allProductList.length} products for category $categoryId');
+    } catch (e) {
+      print('❌ Error fetching products: $e');
+    }
+
+    isLoading(false);
+    update();
+  }
+
+  Future<void> fetchCategoryStructure() async {
+    try {
+      isLoading(true);
+      print('🟡 fetchCategoryStructure STARTED for productId: $productId');
+
+      var response = await BasicProvider(
+              'category/get-first-parent/products?pagination=false')
+          .getRequest()
+          .catchError(handleError);
+
+      if (response == null) {
+        print('❌ Response is null');
+        return;
+      }
+
+      print('🟢 Category structure fetched successfully');
+      categoryStructure.value = response;
+
+      // RECURSIVE SEARCH FUNCTION
+      dynamic findCategoryById(List<dynamic> categories, String targetId) {
+        for (var category in categories) {
+          if (category['_id'] == targetId) {
+            return category;
+          }
+          if (category['children'] != null && category['children'].isNotEmpty) {
+            final found = findCategoryById(category['children'], targetId);
+            if (found != null) return found;
+          }
+        }
+        return null;
+      }
+
+      final selectedCategory =
+          findCategoryById(response['data'] ?? [], productId);
+
+      if (selectedCategory != null) {
+        print(
+            '✅ Selected category found: ${selectedCategory['name']} (${selectedCategory['_id']})');
+        collectionName = selectedCategory['name'];
+
+        // Extract subcategories
+        if (selectedCategory['children'] != null) {
+          subCategories.value = List.from(selectedCategory['children']);
+          print(
+              '📂 Found ${subCategories.length} subcategories: ${subCategories.map((c) => c['name']).toList()}');
+        }
+
+        // Fetch products for this category
+        if (subCategories.isNotEmpty) {
+          print(
+              '🟢 Calling getProductsForCategory for first subcategory: ${subCategories.first['name']} (${subCategories.first['_id']})');
+          //selectedSubCategoryId.value = subCategories.first['_id'];
+          selectedSubCategoryId.value = selectedCategory['_id'];
+          await getProductsForCategory(selectedSubCategoryId.value);
+        } else {
+          print(
+              '🟢 Calling getProductsForCategory for main category: $productId');
+          await getProductsForCategory(productId);
+        }
+        //await getProductsForCategory(productId);
+      } else {
+        print('❌ No category found with ID: $productId');
+      }
+
+      isLoading(false);
+    } catch (e) {
+      print('❌ Error in fetchCategoryStructure: $e');
+      isLoading(false);
+    }
+  }
+
+  // This will recursively find all subcategory IDs including nested ones
+  List<String> getAllSubCategoryIds(dynamic category) {
+    List<String> ids = [];
+
+    if (category['_id'] != null) {
+      ids.add(category['_id']);
+    }
+
+    if (category['children'] != null && category['children'].isNotEmpty) {
+      for (var child in category['children']) {
+        ids.addAll(getAllSubCategoryIds(child));
+      }
+    }
+
+    return ids;
+  }
+
+// Modified method to fetch products from main category and all subcategories
+  Future<void> fetchProductsForCategoryAndSubcategories(
+      String categoryId) async {
+    isLoading(true);
+
+    // Find the category from our stored structure
+    final allCategories = categoryStructure['data'] as List? ?? [];
+    dynamic targetCategory;
+
+    for (var cat in allCategories) {
+      if (cat['_id'] == categoryId) {
+        targetCategory = cat;
+        break;
+      }
+    }
+
+    if (targetCategory == null) return;
+
+    // Get all category IDs (main + all nested children)
+    List<String> allCategoryIds = getAllSubCategoryIds(targetCategory);
+
+    print('📦 Fetching products for categories: $allCategoryIds');
+
+    // Now fetch products using these IDs
+    var response = await BasicProvider(
+            'public/product/categorywise/?count=10&page=$currentPage')
+        .postRequest({
+      "categories": allCategoryIds, // Send ALL category IDs
+    }).catchError(handleError);
+
     if (response == null) return;
-    filterMaxPrice = response[0]['maxPrice'];
-    filterMinPrice = response[0]['minPrice'];
+
+    allProductList.addAll(response['data']);
+    maxPage(response["last_page"]);
+
+    // Right after allProductList.addAll(), add:
+    print('📦 First product keys: ${allProductList.first.keys}');
+    print('📦 Product type: ${allProductList.first['type']}');
+    print('📦 Has variants? ${allProductList.first.containsKey('variants')}');
+    if (allProductList.first.containsKey('variants')) {
+      print('📦 Variants length: ${allProductList.first['variants']?.length}');
+    }
+    isLoading(false);
+    update();
   }
 
   Future<void> filterProducts() async {
@@ -130,7 +369,7 @@ class ShopController extends GetxController
       } else if (source == 'category') {
         productId = arguments['productId'];
         collectionName = arguments['name'];
-        getCategoryWiseProduct(productId);
+        //getCategoryWiseProduct(productId);
       }
     }
   }
@@ -189,21 +428,21 @@ class ShopController extends GetxController
     update();
   }
 
-  Future<void> getCategoryWiseProduct(var categories) async {
-    isLoading(true);
-    var response = await BasicProvider(
-            'public/product/categorywise/?count=10&page=$currentPage')
-        .postRequest(
-      {
-        "categories": categories,
-      },
-    ).catchError(handleError);
-    if (response == null) return;
-    allProductList.addAll(response['data']);
-    maxPage(response["last_page"]);
-    isLoading(false);
-    update();
-  }
+  // Future<void> getCategoryWiseProduct(var categories) async {
+  //   isLoading(true);
+  //   var response = await BasicProvider(
+  //           'public/product/categorywise/?count=10&page=$currentPage')
+  //       .postRequest(
+  //     {
+  //       "categories": categories,
+  //     },
+  //   ).catchError(handleError);
+  //   if (response == null) return;
+  //   allProductList.addAll(response['data']);
+  //   maxPage(response["last_page"]);
+  //   isLoading(false);
+  //   update();
+  // }
 
   Future<void> fetchProductOnScroll() async {
     scrollController.addListener(() async {
@@ -219,7 +458,7 @@ class ShopController extends GetxController
             } else if (source == 'dashboard') {
               await dashBoardproducts(productType: producttype);
             } else if (source == 'category') {
-              await getCategoryWiseProduct(productId);
+              // await getCategoryWiseProduct(productId);
             }
           }
         }
