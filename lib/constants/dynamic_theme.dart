@@ -608,6 +608,9 @@ class ThemeController extends GetxController {
   final Rx<ThemeMode> _themeMode = ThemeMode.system.obs;
   ThemeMode get themeMode => _themeMode.value;
 
+  // Single instance of theme manager
+  final DynamicThemeManager _themeManager = DynamicThemeManager();
+
   final _box = GetStorage();
   static const String _themeModeKey = 'theme_mode';
 
@@ -615,6 +618,14 @@ class ThemeController extends GetxController {
   void onInit() {
     super.onInit();
     _loadThemeMode();
+
+    // Initialize theme manager
+    _themeManager.init();
+
+    // Listen to theme mode changes
+    ever(_themeMode, (_) {
+      update(); // Trigger rebuild when theme mode changes
+    });
   }
 
   void _loadThemeMode() {
@@ -627,34 +638,60 @@ class ThemeController extends GetxController {
     }
   }
 
-  /// Get current light theme
-  ThemeData get lightTheme => DynamicThemeManager().buildLightTheme();
+  /// Get current light theme - recomputed each time
+  ThemeData get lightTheme {
+    debugPrint('🎨 Building light theme for mode: ${_themeMode.value}');
+    return _themeManager.buildLightTheme();
+  }
 
-  /// Get current dark theme
-  ThemeData get darkTheme => DynamicThemeManager().buildDarkTheme();
+  /// Get current dark theme - recomputed each time
+  ThemeData get darkTheme {
+    debugPrint('🎨 Building dark theme for mode: ${_themeMode.value}');
+    return _themeManager.buildDarkTheme();
+  }
 
   /// Set theme mode (light, dark, or system)
   void setThemeMode(ThemeMode mode) {
     _themeMode.value = mode;
     _box.write(_themeModeKey, mode.name);
     Get.changeThemeMode(mode);
-    update();
+    update(); // Force update
   }
 
   /// Toggle between light and dark mode
   void toggleTheme() {
     if (_themeMode.value == ThemeMode.dark) {
       setThemeMode(ThemeMode.light);
-    } else {
+    } else if (_themeMode.value == ThemeMode.light) {
       setThemeMode(ThemeMode.dark);
+    } else {
+      // If system, check current brightness and toggle opposite
+      final brightness = Get.mediaQuery.platformBrightness;
+      if (brightness == Brightness.dark) {
+        setThemeMode(ThemeMode.light);
+      } else {
+        setThemeMode(ThemeMode.dark);
+      }
     }
+  }
+
+  /// Update theme from API
+  void updateThemeFromApi(Map<String, dynamic> appThemeColor) {
+    _themeManager.updateFromApi(appThemeColor);
+    refreshTheme();
   }
 
   /// Call this after updating theme from API to trigger rebuild
   void refreshTheme() {
     debugPrint('🔄 Refreshing app theme...');
-    Get.forceAppUpdate();
-    update();
+    update(); // This will trigger GetBuilder to rebuild
+    Get.forceAppUpdate(); // Force entire app to rebuild
+  }
+
+  /// Clear stored themes
+  void resetToDefault() {
+    _themeManager.clearTheme();
+    refreshTheme();
   }
 }
 
@@ -676,6 +713,10 @@ extension ThemeColorExtension on BuildContext {
   Color get onSurfaceColor => colorScheme.onSurface;
   Color get errorColor => colorScheme.error;
   Color get outlineColor => colorScheme.outline;
+
+  // 👇 ADD THESE TWO LINES 👇
+  Color get surfaceVariantColor => colorScheme.surfaceVariant;
+  Color get onSurfaceVariantColor => colorScheme.onSurfaceVariant;
 
   /// Check if current theme is dark
   bool get isDarkMode => Theme.of(this).brightness == Brightness.dark;

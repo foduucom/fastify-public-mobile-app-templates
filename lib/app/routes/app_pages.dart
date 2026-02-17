@@ -37,6 +37,8 @@ import 'package:foduu_ecommerce/app/modules/shop/bindings/shop_binding.dart';
 import 'package:foduu_ecommerce/app/modules/shop/views/shop_view.dart';
 import 'package:foduu_ecommerce/app/modules/splashscreen/bindings/splashscreen_binding.dart';
 import 'package:foduu_ecommerce/app/modules/splashscreen/view/splashscreen_view.dart';
+import 'package:foduu_ecommerce/app/modules/wishlist/bindings/wishlist_binding.dart';
+import 'package:foduu_ecommerce/app/modules/wishlist/views/wishlist_view.dart';
 import 'package:get/get.dart';
 part 'app_routes.dart';
 
@@ -161,6 +163,12 @@ class AppPages {
       name: _Paths.SHOPPRODUCTLISTVIEW,
       page: () => ShopView(),
       binding: ShopBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.WISHLIST,
+      page: () => WishlistView(),
+      binding: WishlistBinding(),
     ),
 
     // GetPage(

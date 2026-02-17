@@ -1,78 +1,212 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AppTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
+  final String? labelText;
   final TextInputType keyboardType;
   final bool enabled;
+  final bool obscureText;
   final IconData? prefixIcon;
-  final double fontSize;
-  final Color textColor;
-  final Color hintColor;
-  final Color borderColor;
-  final Color focusColor;
-  final Color disabledColor;
-  final Color fillColor;
+  final IconData? suffixIcon;
+  final VoidCallback? onSuffixIconPressed;
+  final int? maxLines;
+  final int? minLines;
+  final double? fontSize;
+  final Color? textColor;
+  final Color? hintColor;
+  final Color? labelColor;
+  final Color? borderColor;
+  final Color? focusColor;
+  final Color? errorColor;
+  final Color? disabledColor;
+  final Color? fillColor;
+  final Color? prefixIconColor;
+  final Color? suffixIconColor;
+  final EdgeInsetsGeometry? contentPadding;
   final String? Function(String?)? validator;
+  final void Function(String)? onChanged;
+  final TextInputAction? textInputAction;
+  final FocusNode? focusNode;
+  final bool autofocus;
+  final TextCapitalization textCapitalization;
+  final List<TextInputFormatter>? inputFormatters;
 
   const AppTextField({
     super.key,
     required this.controller,
     required this.hintText,
-    required this.fontSize,
-    required this.textColor,
-    required this.hintColor,
-    required this.borderColor,
-    required this.focusColor,
-    required this.disabledColor,
-    required this.fillColor,
+    this.labelText,
     this.keyboardType = TextInputType.text,
     this.enabled = true,
+    this.obscureText = false,
     this.prefixIcon,
+    this.suffixIcon,
+    this.onSuffixIconPressed,
+    this.maxLines = 1,
+    this.minLines,
+    this.fontSize,
+    this.textColor,
+    this.hintColor,
+    this.labelColor,
+    this.borderColor,
+    this.focusColor,
+    this.errorColor,
+    this.disabledColor,
+    this.fillColor,
+    this.prefixIconColor,
+    this.suffixIconColor,
+    this.contentPadding,
     this.validator,
+    this.onChanged,
+    this.textInputAction,
+    this.focusNode,
+    this.autofocus = false,
+    this.textCapitalization = TextCapitalization.none,
+    this.inputFormatters,
   });
 
-  OutlineInputBorder _border(Color color) => OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(width: 1, color: color),
-      );
+  OutlineInputBorder _border({
+    required Color color,
+    double width = 1.0,
+    double radius = 12.0,
+  }) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(radius),
+      borderSide: BorderSide(
+        width: width,
+        color: color,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: MediaQuery.of(context).size.height * 0.07,
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        enabled: enabled,
-        validator: validator,
-        style: TextStyle(
-          fontFamily: 'Plus Jakarta Sans',
-          fontWeight: FontWeight.w800,
-          fontSize: fontSize,
-          height: 1.43,
-          color: textColor,
-        ),
-        decoration: InputDecoration(
-          prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
-          hintText: hintText,
-          hintStyle: TextStyle(
-            fontFamily: 'Plus Jakarta Sans',
-            fontWeight: FontWeight.w800,
-            fontSize: fontSize,
-            height: 1.43,
-            color: hintColor,
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Smart default colors based on theme
+    final defaultTextColor = textColor ?? theme.colorScheme.onSurface;
+    final defaultHintColor =
+        hintColor ?? theme.colorScheme.onSurfaceVariant.withOpacity(0.6);
+    final defaultLabelColor = labelColor ?? theme.colorScheme.primary;
+    final defaultBorderColor = borderColor ?? theme.colorScheme.outline;
+    final defaultFocusColor = focusColor ?? theme.colorScheme.primary;
+    final defaultErrorColor = errorColor ?? theme.colorScheme.error;
+    final defaultDisabledColor =
+        disabledColor ?? theme.colorScheme.onSurface.withOpacity(0.1);
+    final defaultFillColor = fillColor ??
+        (isDark
+            ? theme.colorScheme.surfaceVariant.withOpacity(0.3)
+            : theme.colorScheme.surfaceVariant.withOpacity(0.5));
+    final defaultPrefixIconColor = prefixIconColor ?? theme.colorScheme.primary;
+    final defaultSuffixIconColor = suffixIconColor ?? theme.colorScheme.primary;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (labelText != null) ...[
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 6),
+            child: Text(
+              labelText!,
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: defaultLabelColor,
+              ),
+            ),
           ),
-          border: _border(borderColor),
-          enabledBorder: _border(borderColor),
-          focusedBorder: _border(focusColor),
-          disabledBorder: _border(disabledColor),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          filled: true,
-          fillColor: fillColor,
+        ],
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          enabled: enabled,
+          obscureText: obscureText,
+          validator: validator,
+          onChanged: onChanged,
+          maxLines: maxLines,
+          minLines: minLines,
+          textInputAction: textInputAction,
+          focusNode: focusNode,
+          autofocus: autofocus,
+          textCapitalization: textCapitalization,
+          inputFormatters: inputFormatters,
+          style: TextStyle(
+            fontFamily: 'Plus Jakarta Sans',
+            fontSize: fontSize ?? 14,
+            fontWeight: FontWeight.w500,
+            color: enabled ? defaultTextColor : defaultHintColor,
+          ),
+          decoration: InputDecoration(
+            // Prefix Icon
+            prefixIcon: prefixIcon != null
+                ? Icon(
+                    prefixIcon,
+                    size: 20,
+                    color: defaultPrefixIconColor,
+                  )
+                : null,
+
+            // Suffix Icon
+            suffixIcon: suffixIcon != null
+                ? IconButton(
+                    icon: Icon(
+                      suffixIcon,
+                      size: 20,
+                      color: defaultSuffixIconColor,
+                    ),
+                    onPressed: onSuffixIconPressed,
+                    splashRadius: 20,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  )
+                : null,
+
+            // Text Content
+            hintText: hintText,
+            hintStyle: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: fontSize ?? 14,
+              fontWeight: FontWeight.w400,
+              color: defaultHintColor,
+            ),
+
+            // Border Styling
+            border: _border(color: defaultBorderColor),
+            enabledBorder: _border(color: defaultBorderColor),
+            focusedBorder: _border(
+              color: defaultFocusColor,
+              width: 2.0,
+            ),
+            errorBorder: _border(color: defaultErrorColor),
+            focusedErrorBorder: _border(
+              color: defaultErrorColor,
+              width: 2.0,
+            ),
+            disabledBorder: _border(color: defaultDisabledColor),
+
+            // Background & Padding
+            filled: true,
+            fillColor: enabled
+                ? defaultFillColor
+                : defaultDisabledColor.withOpacity(0.1),
+            contentPadding: contentPadding ??
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+
+            // Error Style
+            errorStyle: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 11,
+              fontWeight: FontWeight.w400,
+              color: defaultErrorColor,
+              height: 0.8,
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }

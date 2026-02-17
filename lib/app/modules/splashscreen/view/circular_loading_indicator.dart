@@ -118,8 +118,8 @@ class _CircularLoadingIndicatorState extends State<CircularLoadingIndicator>
             widget.centerText ?? '${(widget.progress * 100).toInt()}%',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: Theme.of(context).brightness == Brightness.dark
-                      ? DefaultThemeColors.lightOnPrimary
-                      : DefaultThemeColors.darkOnPrimary,
+                      ? DefaultThemeColors.lightDarker
+                      : DefaultThemeColors.darklighter,
                   fontWeight: FontWeight.bold,
                 ),
           ),

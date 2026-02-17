@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/app/modules/Profie/profile/views/temprary_personal_info.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
@@ -30,6 +31,29 @@ class ProfileController extends GetxController with BaseController {
   var newPasswordObsecureValue = true.obs;
   var oldPasswordObsecureValue = true.obs;
   var comfirmPasswordObsecureValue = true.obs;
+
+  final RxList<Map<String, dynamic>> profileMenu = [
+    {
+      'icon': Icons.person_outline,
+      'title': 'Personal info',
+      'onPressed': () =>
+          Get.to(() => TempraryPersonalInfo()), // ✅ Fixed: Wrapped in function
+    },
+    {
+      'icon': Icons.lock,
+      'title': 'Change Password',
+      'onPressed': () => Get.to(() => TempraryPersonalInfo()), // ✅ Fixed
+    },
+    {
+      'icon': Icons.logout,
+      'title': 'Logout',
+      'onPressed': () {
+        // Add your logout logic here
+        print('Logout pressed');
+        // Get.to(() => TempraryPersonalInfo()); // Or whatever logout should do
+      },
+    },
+  ].obs;
 
   var selectNotification = 0.obs;
 
@@ -140,7 +164,6 @@ class ProfileController extends GetxController with BaseController {
       print('profile error $e');
     }
   }
- 
 
   @override
   void onClose() {

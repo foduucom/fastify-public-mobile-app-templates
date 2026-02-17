@@ -35,6 +35,8 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
                 icon: Icon(
                   Icons.arrow_back,
                   size: width * 0.06,
+                  color:
+                      context.onSurfaceColor, // Theme-aware back button color
                 ),
               ),
             ),
@@ -61,6 +63,8 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
                             fontSize: height * 0.03,
                             height: 1.1,
                             fontWeight: FontWeight.w700,
+                            color: context
+                                .onBackgroundColor, // Theme-aware title color
                           ),
                           const SizedBox(height: 8),
                           AppText(
@@ -69,7 +73,10 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
                             height: 1.4,
                             letterSpacing: 0,
                             maxLines: 3,
-                            color: DefaultThemeColors.darklighter,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? DefaultThemeColors.darklighter
+                                    : DefaultThemeColors.lightDarker,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -83,6 +90,7 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
                       "Email",
                       fontSize: height * 0.016,
                       fontWeight: FontWeight.w600,
+                      color: context.onSurfaceColor, // Theme-aware label color
                     ),
 
                     const SizedBox(height: 4),
@@ -93,12 +101,20 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
                       keyboardType: TextInputType.emailAddress,
                       prefixIcon: Icons.email_outlined,
                       fontSize: height * 0.0165,
-                      textColor: DefaultThemeColors.darklighter,
-                      hintColor: DefaultThemeColors.darklighter,
-                      borderColor: DefaultThemeColors.mainprimary!,
-                      focusColor: DefaultThemeColors.mainprimary!,
-                      disabledColor: DefaultThemeColors.darklighter,
-                      fillColor: DefaultThemeColors.lightOnPrimary,
+                      textColor: Theme.of(context).brightness == Brightness.dark
+                          ? DefaultThemeColors.darklighter
+                          : DefaultThemeColors.lightDarker,
+                      hintColor: Theme.of(context).brightness == Brightness.dark
+                          ? DefaultThemeColors.darklighter
+                          : DefaultThemeColors.lightDarker,
+                      borderColor: DefaultThemeColors.mainprimary,
+                      focusColor: DefaultThemeColors.mainprimary,
+                      disabledColor:
+                          Theme.of(context).brightness == Brightness.dark
+                              ? DefaultThemeColors.darklighter
+                              : DefaultThemeColors.lightDarker,
+                      fillColor:
+                          context.surfaceColor, // Theme-aware background color
                       validator: (value) {
                         if (value == null || value.isEmpty)
                           return 'Please enter your email';
@@ -115,7 +131,8 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
                             child: Text(
                               controller.errorMessage.value,
                               style: TextStyle(
-                                color: Colors.red,
+                                color: context
+                                    .errorColor, // Theme-aware error color
                                 fontSize: height * 0.014,
                               ),
                             ),

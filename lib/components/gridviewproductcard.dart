@@ -55,6 +55,7 @@ class _gridProductCartState extends State<gridProductCart>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
+  final ValueNotifier<bool> _isAnimating = ValueNotifier(false);
 
   @override
   void initState() {
@@ -66,11 +67,19 @@ class _gridProductCartState extends State<gridProductCart>
     _scaleAnimation = Tween<double>(begin: 1.0, end: 1.5).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
+
+    // Add listener to update ValueNotifier when animation changes
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        _isAnimating.value = false;
+      }
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _isAnimating.dispose();
     super.dispose();
   }
 
@@ -137,30 +146,40 @@ class _gridProductCartState extends State<gridProductCart>
                       ),
                     ),
                   ),
-                  // Like Button with Animation
+                  // In gridProductCart, update the like button section with ValueNotifier
                   Positioned(
                     left: 8,
                     top: 8,
                     child: GestureDetector(
                       onTap: () {
-                        _controller
-                            .forward(from: 0.0)
-                            .then((value) => _controller.reverse());
+                        // Start animation
+                        _isAnimating.value = true;
+                        _controller.forward(from: 0.0).then((value) {
+                          _isAnimating.value = false;
+                          _controller.reverse();
+                        });
+
+                        // Call the onLiked callback
                         widget.onLiked();
                       },
-                      child: AnimatedBuilder(
-                        animation: _controller,
-                        builder: (context, child) {
-                          return Transform.scale(
-                            scale: _scaleAnimation.value,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(50),
-                                color: Colors.white,
-                              ),
-                              padding: const EdgeInsets.all(8),
-                              child: widget.liked,
-                            ),
+                      child: ValueListenableBuilder<bool>(
+                        valueListenable: _isAnimating,
+                        builder: (context, isAnimating, child) {
+                          return AnimatedBuilder(
+                            animation: _controller,
+                            builder: (context, child) {
+                              return Transform.scale(
+                                scale: _scaleAnimation.value,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(50),
+                                    color: Colors.white,
+                                  ),
+                                  padding: const EdgeInsets.all(8),
+                                  child: widget.liked,
+                                ),
+                              );
+                            },
                           );
                         },
                       ),

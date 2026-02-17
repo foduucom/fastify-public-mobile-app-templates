@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_controller.dart';
@@ -52,11 +53,47 @@ class ShopView extends GetView<ShopController> {
           titleSpacing: 0,
           elevation: 0,
           actions: [
+            // Obx(() => Get.find<BottombarController>().cartbadge(
+            //     child: HeartIcon(() {
+            //       Get.toNamed(Routes.WISHLIST);
+            //     }),
+            //     badgeNumber: Get.find<WishlistController>().wishList.length)),
+            // In your shop_view.dart where you have the HeartIcon
             Obx(() => Get.find<BottombarController>().cartbadge(
-                child: HeartIcon(() {
-                  Get.toNamed(Routes.WISHLIST);
-                }),
-                badgeNumber: Get.find<WishlistController>().wishList.length)),
+                  child: HeartIcon(() {
+                    if (!AuthDetails.isUserLogin()) {
+                      // Show login dialog for non-logged in users
+                      Get.dialog(
+                        AlertDialog(
+                          title: Text('Login Required'),
+                          content: Text('Please login to view your wishlist'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Get.back(),
+                              child: Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Get.back();
+                                isOtpLogin
+                                    ? Get.toNamed(Routes.MOBILELOGIN)
+                                    : Get.toNamed(Routes.LOGIN);
+                              },
+                              child: Text('Login'),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      // Navigate to BottomBar's WishlistView (index 2)
+                      final bottomBarController =
+                          Get.find<BottombarController>();
+                      bottomBarController.pageController.jumpToPage(2);
+                      bottomBarController.currentPageIndex.value = 2;
+                    }
+                  }),
+                  badgeNumber: Get.find<WishlistController>().wishList.length,
+                )),
             SizedBox(width: 14),
             Obx(
               () => Get.find<BottombarController>().cartbadge(
@@ -506,21 +543,33 @@ class ShopView extends GetView<ShopController> {
                                   lowestPrice: lowestPrice,
                                   productType: productType,
                                   liked: GetBuilder<WishlistController>(
+                                    id: controller.allProductList[index][
+                                        '_id'], // Use product ID as unique identifier
                                     builder: (wishlistcontroller) {
-                                      return wishlistcontroller
-                                              .wishlistProductIds
-                                              .contains(product['_id'])
-                                          ? SvgPicture.asset(
-                                              'assets/icon/like.svg')
-                                          : SvgPicture.asset(
-                                              'assets/icon/unlike.svg');
+                                      return SvgPicture.asset(
+                                        wishlistcontroller.wishlistProductIds
+                                                .contains(controller
+                                                        .allProductList[index]
+                                                    ['_id'])
+                                            ? 'assets/icon/like.svg'
+                                            : 'assets/icon/unlike.svg',
+                                        width: 20,
+                                        height: 20,
+                                      );
                                     },
                                   ),
                                   onLiked: () async {
+                                    final productId =
+                                        controller.allProductList[index]['_id'];
+                                    final wishlistController =
+                                        Get.find<WishlistController>();
+
+                                    // Toggle wishlist status
                                     await wishlistController
-                                        .addProductToWishlist(
-                                            productid: product['_id']);
-                                    await wishlistController.getwishlist();
+                                        .toggleWishlist(productId);
+
+                                    // No need to call getwishlist() here as toggleWishlist already handles it
+                                    // and updates the specific button using the ID
                                   },
                                   rating: double.parse(
                                     product['average_rating']?.toString() ??
@@ -528,10 +577,18 @@ class ShopView extends GetView<ShopController> {
                                   ),
                                   quantity:
                                       "In Stock", // You might want to calculate this from variants
+                                  // keypressEvent: () {
+                                  //   Get.toNamed(Routes.PRODUCTDETAILS,
+                                  //       arguments: {
+                                  //         'productId': product['_id'],
+                                  //       });
+                                  // },
+                                  // In your gridProductCart call
                                   keypressEvent: () {
                                     Get.toNamed(Routes.PRODUCTDETAILS,
                                         arguments: {
-                                          'productId': product['_id'],
+                                          'productId': controller
+                                              .allProductList[index]['_id'],
                                         });
                                   },
                                   assetimage: imageUrl,

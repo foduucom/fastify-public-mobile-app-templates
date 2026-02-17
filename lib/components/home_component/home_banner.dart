@@ -31,8 +31,11 @@ class _HomeBannerState extends State<HomeBanner>
       print('featuredImage is null or empty');
       return ''; // Return empty string or a placeholder
     }
-    final fullUrl = 'https://testdemo.foduu.com/images/$featuredImage';
-    print('Constructed full URL: $fullUrl');
+
+    // ✅ Get the filepath from the featured_image object
+    final filepath = featuredImage['filepath'];
+    final fullUrl = 'https://testdemo.foduu.com/images/$filepath';
+    print('Constructed from filepath: $fullUrl');
     return fullUrl;
   }
 

@@ -1,3 +1,4 @@
+import 'package:foduu_ecommerce/app/modules/Profie/profile/controllers/profile_controller.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/controllers/homepage_controller.dart';
 import 'package:get/get.dart';
 
@@ -10,5 +11,6 @@ class BottombarBinding extends Bindings {
       () => BottombarController(),
     );
     Get.lazyPut<HomepageController>(() => HomepageController());
+    Get.lazyPut<ProfileController>(() => ProfileController());
   }
 }

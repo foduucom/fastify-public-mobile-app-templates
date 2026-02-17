@@ -65,7 +65,9 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
     }
 
     // Update OTP value
-    _otpValues[index] = value;
+    setState(() {
+      _otpValues[index] = value;
+    });
 
     // Update the controller text field
     _controllers[index].text = value;
@@ -98,6 +100,9 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
         _otpValues[charIndex] = textToPaste[i];
       }
     }
+
+    // Update UI
+    setState(() {});
 
     // Move focus to last filled field
     final lastFilledIndex = startIndex + textToPaste.length - 1;
@@ -133,12 +138,12 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
     var width = Get.width;
     var height = Get.height;
 
+    // Only observe the active index, not the entire controller
     return Obx(() => Container(
           width: width * 0.92,
           height: height * 0.08,
           padding: EdgeInsets.symmetric(horizontal: width * 0.04),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.onInverseSurface,
             borderRadius: BorderRadius.circular(height * 0.01),
           ),
           child: Row(
@@ -157,13 +162,11 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
                     vertical: height * 0.02,
                   ),
                   decoration: BoxDecoration(
-                    //color: Theme.of(context).colorScheme.onSurface,
-                    color: DefaultThemeColors.lightOnPrimary,
                     borderRadius: BorderRadius.circular(height * 0.01),
                     border: Border.all(
                       color: widget.controller.activeIndex.value == index
-                          ? DefaultThemeColors.darkdark
-                          : DefaultThemeColors.darklight,
+                          ? DefaultThemeColors.darkdark // Active border
+                          : context.outlineColor, // Inactive border
                       width: 2,
                     ),
                   ),
@@ -177,12 +180,14 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
                       style: TextStyle(
                         fontSize: height * 0.022,
                         fontWeight: FontWeight.w600,
-                        //color: Theme.of(context).colorScheme.onInverseSurface,
-                        color: DefaultThemeColors.darkdark,
+                        color: context.onSurfaceVariantColor,
                       ),
                       decoration: const InputDecoration(
                         counterText: '',
                         border: InputBorder.none,
+                        hintText: '0',
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
                       ),
                       onChanged: (value) => _handleTextChange(value, index),
                     ),

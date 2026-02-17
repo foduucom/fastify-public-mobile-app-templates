@@ -51,10 +51,14 @@ class HomepageController extends GetxController with BaseController {
     print('=== getWidgetbyCategory STARTED ===');
     print('Reading from box: homeComponent');
     final homeComponent = box.read('homeComponent') ?? [];
+    print('homeComponent length: ${homeComponent.length}'); // Add this debug
     widgetList.clear();
     for (int i = 0; i < homeComponent.length; i++) {
       var item = homeComponent[i];
+      print('Processing item ${i + 1}: type=${item['type']}');
       var contentJson = item['content_json'];
+      print("Inner data of Sections ContentType: ${item['content_json']}");
+      print("Inner data of Sections Type: ${item['type']}");
       switch (item['type']) {
         case 'search':
           widgetList.add(Padding(
@@ -131,7 +135,7 @@ class HomepageController extends GetxController with BaseController {
     print(
         'widgetList types: ${widgetList.map((w) => w.runtimeType.toString()).toList()}');
 
-    //update(); // Make sure to call update() to refresh the UI
+    update(); // Make sure to call update() to refresh the UI
   }
 
   Future<dynamic> getDashboardDesign(String name) async {
@@ -184,10 +188,12 @@ class HomepageController extends GetxController with BaseController {
       var response = await BasicProvider("mobile-app/69708c1b6968f244e799ea6a")
           .getRequest();
 
-      print('response $response');
+      print('✅ API Response received');
+      print(
+          'Response keys: ${response?.keys}'); // This will show all keys in the response
 
       if (response != null) {
-        var list = response['content_json'];
+        var list = response['sections'];
         if (list != null && list is List) {
           box.write('homeComponent', list);
           getWidgetbyCategory();
@@ -215,9 +221,11 @@ class HomepageController extends GetxController with BaseController {
       if (data != null) {
         dashboardDesign.value = data;
 
-        var list = data['content_json'];
-        if (list != null && list is List) {
-          box.write('homeComponent', list);
+        // ✅ FIX: Also use 'sections' here
+        var sections = data[
+            'sections']; // Changed from 'sections' to 'sections' (it was already correct)
+        if (sections != null && sections is List) {
+          box.write('homeComponent', sections);
           getWidgetbyCategory();
         }
       }

@@ -155,21 +155,41 @@ class WishlistView extends GetView<WishlistController> {
                                             "%off"
                                         : '',
                                     controller: controller,
-                                    onRemove: () async {
-                                      Get.back();
+                                    // onRemove: () async {
+                                    //   Get.back();
 
-                                      await controller.addProductToWishlist(
-                                          productid: controller.wishList[index]
-                                              ['product']['_id']);
-                                      await controller.getwishlist();
+                                    //   await controller.addProductToWishlist(
+                                    //       productid: controller.wishList[index]
+                                    //           ['product']['_id']);
+                                    //   await controller.getwishlist();
+                                    //   HelperFunctions.defaultdialogbox(
+                                    //     'The Product Has been removed from your Wishlist',
+                                    //   );
+                                    //   await Future.delayed(
+                                    //       Duration(seconds: 3));
+                                    //   Get.until((route) => !Get.isDialogOpen!);
+
+                                    //   // Get.back();
+                                    // },
+                                    // In your WishlistView where you have onRemove
+                                    onRemove: () async {
+                                      Get.back(); // Close dialog
+
+                                      final productId = controller
+                                          .wishList[index]['product']['_id'];
+
+                                      // Remove from wishlist using toggle method
+                                      await controller
+                                          .toggleWishlist(productId);
+
+                                      // Show success message
                                       HelperFunctions.defaultdialogbox(
-                                        'The Product Has been removed from your Wishlist',
+                                        'The Product has been removed from your Wishlist',
                                       );
+
                                       await Future.delayed(
                                           Duration(seconds: 3));
                                       Get.until((route) => !Get.isDialogOpen!);
-
-                                      // Get.back();
                                     },
                                     onAddToCart: () async {
                                       if (controller.wishList[index]['product']

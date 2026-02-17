@@ -74,7 +74,9 @@ class LoginView extends GetView<LoginController> {
                     height: 1.4,
                     letterSpacing: 0,
                     maxLines: 3,
-                    color: DefaultThemeColors.darklighter,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? DefaultThemeColors.darklighter
+                        : DefaultThemeColors.lightDarker,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -97,6 +99,7 @@ class LoginView extends GetView<LoginController> {
                       height: 1.5,
                       letterSpacing: 0,
                       fontWeight: FontWeight.w600,
+                      color: context.onSurfaceColor,
                     ),
                     SizedBox(height: 4),
                     AppTextField(
@@ -104,13 +107,14 @@ class LoginView extends GetView<LoginController> {
                       hintText: "Insert your email here",
                       keyboardType: TextInputType.emailAddress,
                       prefixIcon: Icons.email_outlined,
-                      fontSize: height * 0.0165,
-                      textColor: DefaultThemeColors.darklighter,
-                      hintColor: DefaultThemeColors.darklighter,
-                      borderColor: DefaultThemeColors.mainprimary!,
-                      focusColor: DefaultThemeColors.mainprimary!,
-                      disabledColor: DefaultThemeColors.darklighter,
-                      fillColor: DefaultThemeColors.lightOnPrimary,
+                      // Optional suffix for clear button
+                      suffixIcon: Icons.clear,
+                      onSuffixIconPressed: () {
+                        controller.emailController.clear();
+                      },
+                      fontSize: 14,
+                      // Colors will automatically adapt to theme!
+                      // You don't need all these manual color checks anymore
                       validator: (value) {
                         if (value == null || value.isEmpty)
                           return 'Please enter your email';
@@ -118,6 +122,12 @@ class LoginView extends GetView<LoginController> {
                           return 'Please enter a valid email';
                         return null;
                       },
+                      onChanged: (value) {
+                        // Optional: real-time validation or API calls
+                        print('Email changed: $value');
+                      },
+                      textInputAction: TextInputAction
+                          .next, // For better keyboard navigation
                     ),
                   ],
                 ),
@@ -134,6 +144,7 @@ class LoginView extends GetView<LoginController> {
                       fontSize: height * 0.016,
                       height: 1.5,
                       letterSpacing: 0,
+                      color: context.onSurfaceColor,
                     ),
                     SizedBox(height: 4),
                     AppPasswordField(
@@ -167,7 +178,7 @@ class LoginView extends GetView<LoginController> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: DefaultThemeColors.lightOnSecondary,
+                              color: context.outlineColor,
                               width: 1,
                             ),
                           ),
@@ -186,7 +197,7 @@ class LoginView extends GetView<LoginController> {
                             fontFamily: 'Plus Jakarta Sans',
                             fontWeight: FontWeight.w600,
                             fontSize: width * 0.035,
-                            color: DefaultThemeColors.darkmain,
+                            color: context.onSurfaceVariantColor,
                           ),
                         ),
                       ],
@@ -229,7 +240,7 @@ class LoginView extends GetView<LoginController> {
                   children: [
                     Expanded(
                       child: Divider(
-                        color: DefaultThemeColors.lightDarker,
+                        color: context.outlineColor,
                         thickness: 1,
                       ),
                     ),
@@ -241,13 +252,13 @@ class LoginView extends GetView<LoginController> {
                           fontFamily: 'Plus Jakarta Sans',
                           fontWeight: FontWeight.w500,
                           fontSize: 14,
-                          color: DefaultThemeColors.darklighter,
+                          color: context.onSurfaceVariantColor,
                         ),
                       ),
                     ),
                     Expanded(
                       child: Divider(
-                        color: DefaultThemeColors.lightDarker,
+                        color: context.outlineColor,
                         thickness: 1,
                       ),
                     ),
@@ -280,7 +291,7 @@ class LoginView extends GetView<LoginController> {
                         style: TextStyle(
                           fontFamily: 'Plus Jakarta Sans',
                           fontSize: width * 0.04,
-                          color: DefaultThemeColors.darklighter,
+                          color: context.onSurfaceVariantColor,
                         ),
                       ),
                       SizedBox(width: width * 0.01),

@@ -32,6 +32,7 @@ class OTPView extends GetView<OtpController> {
                 icon: Icon(
                   Icons.arrow_back,
                   size: width * 0.06,
+                  color: context.onSurfaceColor, // Theme-aware back button
                 ),
               ),
             ),
@@ -56,6 +57,7 @@ class OTPView extends GetView<OtpController> {
                           fontSize: height * 0.03,
                           height: 1.1,
                           fontWeight: FontWeight.w700,
+                          color: context.onBackgroundColor, // Theme-aware title
                         ),
                         const SizedBox(height: 8),
                         AppText(
@@ -64,7 +66,9 @@ class OTPView extends GetView<OtpController> {
                           height: 1.4,
                           letterSpacing: 0,
                           maxLines: 3,
-                          color: DefaultThemeColors.darklighter,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? DefaultThemeColors.darklighter
+                              : DefaultThemeColors.lightDarker,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -102,7 +106,8 @@ class OTPView extends GetView<OtpController> {
                                 style: TextStyle(
                                   fontFamily: 'Plus Jakarta Sans',
                                   fontSize: width * 0.04,
-                                  color: DefaultThemeColors.darklighter,
+                                  color: context
+                                      .onSurfaceVariantColor, // Theme-aware
                                 ),
                               ),
                               SizedBox(width: width * 0.01),
@@ -117,7 +122,8 @@ class OTPView extends GetView<OtpController> {
                                     fontFamily: 'Plus Jakarta Sans',
                                     fontSize: width * 0.04,
                                     fontWeight: FontWeight.bold,
-                                    color: DefaultThemeColors.mainprimary,
+                                    color: DefaultThemeColors
+                                        .mainprimary, // Brand color
                                   ),
                                 ),
                               ),
@@ -130,7 +136,7 @@ class OTPView extends GetView<OtpController> {
                           style: TextStyle(
                             fontFamily: 'Plus Jakarta Sans',
                             fontSize: width * 0.04,
-                            color: DefaultThemeColors.darklighter,
+                            color: context.onSurfaceVariantColor, // Theme-aware
                           ),
                         );
                       }

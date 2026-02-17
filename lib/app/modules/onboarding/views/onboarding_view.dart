@@ -78,7 +78,8 @@ class OnboardingView extends GetView<OnboardingController> {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).scaffoldBackgroundColor,
+                    color:
+                        context.surfaceColor, // Changed to theme surface color
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30),
@@ -124,7 +125,7 @@ class OnboardingView extends GetView<OnboardingController> {
             fontSize: 18,
             fontWeight: FontWeight.bold,
             height: 1.4,
-            color: Theme.of(context).colorScheme.onSurface,
+            color: context.onSurfaceColor, // Changed to theme-aware text color
           ),
         ),
       ),
@@ -145,8 +146,10 @@ class OnboardingView extends GetView<OnboardingController> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4),
               color: controller.currentIndex.value == index
-                  ? DefaultThemeColors.mainprimary
-                  : DefaultThemeColors.lightDarker,
+                  ? DefaultThemeColors.mainprimary // Keeping your primary color
+                  : Theme.of(Get.context!).brightness == Brightness.dark
+                      ? DefaultThemeColors.darklighter // Dark mode inactive
+                      : DefaultThemeColors.lightDarker, // Light mode inactive
             ),
           ),
         ),
