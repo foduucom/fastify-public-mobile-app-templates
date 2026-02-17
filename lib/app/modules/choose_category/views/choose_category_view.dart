@@ -32,6 +32,7 @@ class ChooseCategoryView extends GetView<ChooseCategoryController> {
                 icon: Icon(
                   Icons.arrow_back,
                   size: width * 0.06,
+                  color: context.onSurfaceColor, // Theme-aware back button
                 ),
               ),
             ),
@@ -56,6 +57,7 @@ class ChooseCategoryView extends GetView<ChooseCategoryController> {
                         fontSize: height * 0.03,
                         height: 1.1,
                         fontWeight: FontWeight.w700,
+                        color: context.onBackgroundColor, // Theme-aware title
                       ),
                       const SizedBox(height: 8),
                       AppText(
@@ -64,7 +66,9 @@ class ChooseCategoryView extends GetView<ChooseCategoryController> {
                         height: 1.4,
                         letterSpacing: 0,
                         maxLines: 3,
-                        color: DefaultThemeColors.darklighter,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? DefaultThemeColors.darklighter
+                            : DefaultThemeColors.lightDarker,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -108,7 +112,8 @@ class ChooseCategoryView extends GetView<ChooseCategoryController> {
                                 border: Border.all(
                                   color: isActive
                                       ? DefaultThemeColors.mainprimary
-                                      : DefaultThemeColors.darkOnSecondary,
+                                      : context
+                                          .outlineColor, // Theme-aware border
                                   width: 1,
                                 ),
                               ),
@@ -125,12 +130,10 @@ class ChooseCategoryView extends GetView<ChooseCategoryController> {
                                     height: 1.75,
                                     letterSpacing: 0,
                                     color: isActive
-                                        ? Theme.of(context)
-                                            .colorScheme
-                                            .onInverseSurface
-                                        : Theme.of(context)
-                                            .colorScheme
-                                            .onSurface,
+                                        ? context
+                                            .onPrimaryColor // White text on purple
+                                        : context
+                                            .onSurfaceColor, // Theme-aware text
                                   ),
                                 ),
                               ),
@@ -156,7 +159,7 @@ class ChooseCategoryView extends GetView<ChooseCategoryController> {
                 PrimaryActionButton(
                     text: "Skip",
                     backgroundColor:
-                        Theme.of(context).colorScheme.onInverseSurface,
+                        context.surfaceColor, // Theme-aware background
                     textColor: DefaultThemeColors.mainprimary,
                     onPressed: () {
                       print("Skip");

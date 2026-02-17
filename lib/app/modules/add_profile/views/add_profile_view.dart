@@ -30,6 +30,7 @@ class AddProfileView extends GetView<AddProfileController> {
                 icon: Icon(
                   Icons.arrow_back,
                   size: width * 0.06,
+                  color: context.onSurfaceColor, // Theme-aware back button
                 ),
               ),
             ),
@@ -54,6 +55,7 @@ class AddProfileView extends GetView<AddProfileController> {
                         fontSize: height * 0.03,
                         height: 1.1,
                         fontWeight: FontWeight.w700,
+                        color: context.onBackgroundColor, // Theme-aware title
                       ),
                       const SizedBox(height: 8),
                       AppText(
@@ -62,7 +64,9 @@ class AddProfileView extends GetView<AddProfileController> {
                         height: 1.4,
                         letterSpacing: 0,
                         maxLines: 3,
-                        color: DefaultThemeColors.darklighter,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? DefaultThemeColors.darklighter
+                            : DefaultThemeColors.lightDarker,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -101,13 +105,16 @@ class AddProfileView extends GetView<AddProfileController> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle, // radius ≈ 540
                             color:
-                                Theme.of(context).colorScheme.onInverseSurface,
+                                context.surfaceColor, // Theme-aware background
                           ),
                           child: Center(
                             child: Icon(
                               Icons.delete,
                               size: height * 0.03, // ≈ 24
-                              color: DefaultThemeColors.darkmain,
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? DefaultThemeColors.darklighter
+                                  : DefaultThemeColors.darkmain,
                             ),
                           ),
                         ),

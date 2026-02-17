@@ -104,17 +104,24 @@ class LoginView extends GetView<LoginController> {
                     SizedBox(height: 4),
                     AppTextField(
                       controller: controller.emailController,
-                      hintText: "Insert your email here",
+                      hintText: "Insert Your Email Here",
                       keyboardType: TextInputType.emailAddress,
                       prefixIcon: Icons.email_outlined,
-                      // Optional suffix for clear button
-                      suffixIcon: Icons.clear,
-                      onSuffixIconPressed: () {
-                        controller.emailController.clear();
-                      },
-                      fontSize: 14,
-                      // Colors will automatically adapt to theme!
-                      // You don't need all these manual color checks anymore
+                      fontSize: height * 0.0165,
+                      textColor: Theme.of(context).brightness == Brightness.dark
+                          ? DefaultThemeColors.darklighter
+                          : DefaultThemeColors.lightDarker,
+                      hintColor: Theme.of(context).brightness == Brightness.dark
+                          ? DefaultThemeColors.darklighter
+                          : DefaultThemeColors.lightDarker,
+                      borderColor: DefaultThemeColors.mainprimary,
+                      focusColor: DefaultThemeColors.mainprimary,
+                      disabledColor:
+                          Theme.of(context).brightness == Brightness.dark
+                              ? DefaultThemeColors.darklighter
+                              : DefaultThemeColors.lightDarker,
+                      fillColor:
+                          context.surfaceColor, // Theme-aware background color
                       validator: (value) {
                         if (value == null || value.isEmpty)
                           return 'Please enter your email';
@@ -122,12 +129,6 @@ class LoginView extends GetView<LoginController> {
                           return 'Please enter a valid email';
                         return null;
                       },
-                      onChanged: (value) {
-                        // Optional: real-time validation or API calls
-                        print('Email changed: $value');
-                      },
-                      textInputAction: TextInputAction
-                          .next, // For better keyboard navigation
                     ),
                   ],
                 ),

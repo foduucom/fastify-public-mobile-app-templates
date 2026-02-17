@@ -15,7 +15,7 @@ class TempraryPersonalInfo extends StatelessWidget {
       appBar: AppBar(
         centerTitle: true,
         title: SizedBox(
-          width: width * 0.26, // ≈ 97
+          width: width * 0.4, // ≈ 97
           child: Text(
             "Personal Info",
             textAlign: TextAlign.center,
@@ -140,11 +140,14 @@ class TempraryPersonalInfo extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: PrimaryActionButton(
-        text: "Update Profile",
-        onPressed: () {
-          print("Clicked On Update Profile");
-        },
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.only(bottom: 20.0, left: 16.0, right: 16.0),
+        child: PrimaryActionButton(
+          text: "Update Profile",
+          onPressed: () {
+            print("Clicked On Update Profile");
+          },
+        ),
       ),
     );
   }
@@ -158,9 +161,8 @@ class TempraryPersonalInfo extends StatelessWidget {
     final width = Get.width;
     final height = Get.height;
 
-    return SizedBox(
-      width: width * 0.86, // ≈ 321
-      height: height * 0.10, // ≈ 80
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 1.0), // Just 1 pixel is enough
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

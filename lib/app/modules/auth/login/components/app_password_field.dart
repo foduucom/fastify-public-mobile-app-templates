@@ -41,14 +41,23 @@ class AppPasswordField extends StatelessWidget {
             fontWeight: FontWeight.w500,
             fontSize: fontSize,
             height: 1.43,
-            color: DefaultThemeColors.darklighter,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? DefaultThemeColors.darklighter
+                : DefaultThemeColors.lightDarker,
           ),
           decoration: InputDecoration(
-            prefixIcon: const Icon(Icons.lock_outline),
+            prefixIcon: Icon(
+              Icons.lock_outline,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? DefaultThemeColors.darklighter
+                  : context.onSurfaceVariantColor,
+            ),
             suffixIcon: IconButton(
               icon: Icon(
                 isVisible.value ? Icons.visibility_off : Icons.visibility,
-                color: DefaultThemeColors.darklighter,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? DefaultThemeColors.darklighter
+                    : context.onSurfaceVariantColor,
               ),
               onPressed: onToggle,
             ),
@@ -58,16 +67,18 @@ class AppPasswordField extends StatelessWidget {
               fontWeight: FontWeight.w500,
               fontSize: fontSize,
               height: 1.43,
-              color: DefaultThemeColors.darklighter,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? DefaultThemeColors.darklighter
+                  : DefaultThemeColors.lightDarker,
             ),
-            border: _border(DefaultThemeColors.lightOnPrimary),
+            border: _border(context.outlineColor),
             enabledBorder: _border(DefaultThemeColors.mainprimary!),
             focusedBorder: _border(DefaultThemeColors.mainprimary!),
-            disabledBorder: _border(DefaultThemeColors.darklighter),
+            disabledBorder: _border(context.outlineColor),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             filled: true,
-            fillColor: DefaultThemeColors.lightOnPrimary,
+            fillColor: context.surfaceColor,
           ),
         ),
       ),

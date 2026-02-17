@@ -35,7 +35,7 @@ class SuccessDialog extends StatelessWidget {
           height * 0.02, // bottom 16
         ),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.onInverseSurface,
+          color: context.surfaceColor, // Theme-aware dialog background
           borderRadius: BorderRadius.circular(height * 0.025), // ≈ 20
         ),
         child: Column(
@@ -65,7 +65,9 @@ class SuccessDialog extends StatelessWidget {
                       title,
                       fontSize: height * 0.022,
                       fontWeight: FontWeight.w700,
-                      color: DefaultThemeColors.darkdark,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? DefaultThemeColors.darklighter
+                          : DefaultThemeColors.darkdark,
                       textAlign: TextAlign.center,
                       maxLines: 3,
                     ),
@@ -77,7 +79,9 @@ class SuccessDialog extends StatelessWidget {
                       description,
                       fontSize: height * 0.017,
                       fontWeight: FontWeight.w500,
-                      color: DefaultThemeColors.darklighter,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? DefaultThemeColors.lightDarker
+                          : DefaultThemeColors.darklighter,
                       textAlign: TextAlign.center,
                       maxLines: 5,
                     ),

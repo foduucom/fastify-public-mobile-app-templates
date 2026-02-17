@@ -32,6 +32,7 @@ class CreateNewPasswordView extends GetView<CreateNewPasswordController> {
                 icon: Icon(
                   Icons.arrow_back,
                   size: width * 0.06,
+                  color: context.onSurfaceColor, // Theme-aware back button
                 ),
               ),
             ),
@@ -56,6 +57,7 @@ class CreateNewPasswordView extends GetView<CreateNewPasswordController> {
                           fontSize: height * 0.03,
                           height: 1.1,
                           fontWeight: FontWeight.w700,
+                          color: context.onBackgroundColor, // Theme-aware title
                         ),
                         const SizedBox(height: 8),
                         AppText(
@@ -64,7 +66,9 @@ class CreateNewPasswordView extends GetView<CreateNewPasswordController> {
                           height: 1.4,
                           letterSpacing: 0,
                           maxLines: 3,
-                          color: DefaultThemeColors.darklighter,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? DefaultThemeColors.darklighter
+                              : DefaultThemeColors.lightDarker,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -84,6 +88,7 @@ class CreateNewPasswordView extends GetView<CreateNewPasswordController> {
                           fontSize: height * 0.016,
                           height: 1.5,
                           letterSpacing: 0,
+                          color: context.onSurfaceColor, // Theme-aware label
                         ),
 
                         const SizedBox(height: 4),
@@ -112,6 +117,7 @@ class CreateNewPasswordView extends GetView<CreateNewPasswordController> {
                           fontSize: height * 0.016,
                           height: 1.5,
                           letterSpacing: 0,
+                          color: context.onSurfaceColor, // Theme-aware label
                         ),
 
                         const SizedBox(height: 4),

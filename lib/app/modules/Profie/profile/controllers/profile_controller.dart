@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/app/modules/Profie/profile/views/temprary_change_password.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/profile/views/temprary_personal_info.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
@@ -42,7 +43,7 @@ class ProfileController extends GetxController with BaseController {
     {
       'icon': Icons.lock,
       'title': 'Change Password',
-      'onPressed': () => Get.to(() => TempraryPersonalInfo()), // ✅ Fixed
+      'onPressed': () => Get.to(() => TempraryChangePassword()), // ✅ Fixed
     },
     {
       'icon': Icons.logout,
