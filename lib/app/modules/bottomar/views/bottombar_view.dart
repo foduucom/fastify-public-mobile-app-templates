@@ -243,10 +243,10 @@ class BottombarView extends GetView<BottombarController> {
         height: Get.height,
         currentIndex: controller.currentPageIndex.value,
         onTap: controller.onTabChange,
-        backgroundColor: Theme.of(context).colorScheme.onInverseSurface,
-        activeColor: DefaultThemeColors.mainprimary,
-        inactiveColor: DefaultThemeColors.darkmain,
-        borderColor: DefaultThemeColors.darklight,
+        backgroundColor: context.surfaceColor, // Theme-aware background
+        activeColor: DefaultThemeColors.mainprimary, // Keep brand color
+        inactiveColor: context.onSurfaceVariantColor, // Theme-aware inactive
+        borderColor: context.outlineColor, // Theme-aware border
         items: const [
           BottomNavItem(
             activeIcon: Icons.home_filled,

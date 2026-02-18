@@ -57,10 +57,7 @@ class HomePageView extends GetView<HomepageController> {
 
     return SingleChildScrollView(
       child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: width * 0.05,
-          vertical: height * 0.02,
-        ),
+        padding: EdgeInsets.zero,
         child: Column(
           children: [
             // Instead of hardcoded banner, use:
@@ -137,6 +134,7 @@ class HomePageView extends GetView<HomepageController> {
                   ),
                 );
               }
+
               // Use the CategoryHome widget's buildListView method
               return categoryHomeWidget;
             }),
@@ -145,85 +143,6 @@ class HomePageView extends GetView<HomepageController> {
 
             // GridView for products - Wrap with Expanded
             Obx(() {
-              if (controller.isLoading.value) {
-                return Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Section title shimmer
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            left: 16, top: 16, bottom: 12),
-                        child: Container(
-                          width: 150,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(6),
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-
-                      // Horizontal categories shimmer
-                      SizedBox(
-                        height: 100, // Adjust based on your design
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: 6, // Show 6 shimmer items
-                          itemBuilder: (context, index) {
-                            return Container(
-                              width: 80,
-                              margin: EdgeInsets.only(right: 12),
-                              child: Column(
-                                children: [
-                                  // Category image
-                                  Container(
-                                    width: 60,
-                                    height: 60,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  SizedBox(height: 8),
-                                  // Category name - two lines for text
-                                  Column(
-                                    children: [
-                                      Container(
-                                        width: 50,
-                                        height: 10,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(4),
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Container(
-                                        width: 30,
-                                        height: 8,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(4),
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
               final hasProducts = controller.widgetList
                   .any((widget) => widget is TrendingProductSection);
 
@@ -299,30 +218,6 @@ class HomePageView extends GetView<HomepageController> {
               rating: 4.5,
               onTap: () {
                 print("Card tapped");
-
-                // Create the product object
-                // final product = Product(
-                //   id: "1",
-                //   imagePath: "assets/images/shopping_image_1.png",
-                //   title: "Oliver Blazer New Version",
-                //   storeName: "Agliza Store",
-                //   price: "\$85.23",
-                //   reviews: "48",
-                //   rating: 4.5,
-                //   description:
-                //       "Kahoona Crewneck Gray are a popular and versatile wardrobe staple...",
-                //   images: [
-                //     'assets/images/shopping_image_1.png',
-                //     'assets/images/women-1.png',
-                //     'assets/images/kidscard1.png',
-                //     'assets/images/flowerprint.png',
-                //     'assets/images/categeory.png',
-                //     'assets/images/categoryimg.png',
-                //     'assets/images/categerrybeauty.png',
-                //     'assets/images/shopping_image_1.png',
-                //   ],
-                // );
-
                 // Pass the product as argument to navigation
                 Get.toNamed(
                   Routes.PRODUCTDETAILS,

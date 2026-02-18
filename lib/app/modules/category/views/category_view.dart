@@ -28,13 +28,17 @@ class CategoryView extends GetView<CategoryController> {
           onPressed: () {
             controller.initFetchCategories();
           },
-          child: Icon(Icons.add),
+          child: Icon(
+            Icons.add,
+            color: context.onPrimaryColor, // Theme-aware icon color
+          ),
+          backgroundColor: context.primaryColor, // Theme-aware FAB color
         ),
         body: RefreshIndicator(
           onRefresh: () async {
             controller.onPullTorefresh();
           },
-          color: colorScheme.primary,
+          color: context.primaryColor, // Theme-aware refresh indicator
           child: SingleChildScrollView(
             controller: controller.scrollController,
             physics: const BouncingScrollPhysics(),
@@ -72,7 +76,8 @@ class CategoryView extends GetView<CategoryController> {
                           color: Colors.transparent,
                           child: InkWell(
                             onTap: () => hasChildren
-                                ? _showCategoryDialog(category)
+                                ? _showCategoryDialog(
+                                    context, category) // ← Pass context
                                 : Get.toNamed(Routes.SHOPPRODUCTLISTVIEW,
                                     arguments: {
                                         'productId': category['_id'],
@@ -80,8 +85,9 @@ class CategoryView extends GetView<CategoryController> {
                                         'source': 'category'
                                       }),
                             borderRadius: BorderRadius.circular(height * 0.015),
-                            splashColor: Colors.white.withOpacity(0.3),
-                            highlightColor: Colors.white.withOpacity(0.1),
+                            splashColor: context.primaryColor.withOpacity(0.3),
+                            highlightColor:
+                                context.primaryColor.withOpacity(0.1),
                             child: Container(
                               width: width * 0.92,
                               height: height * 0.12,
@@ -112,7 +118,8 @@ class CategoryView extends GetView<CategoryController> {
                                       fontSize: height * 0.025,
                                       fontWeight: FontWeight.w600,
                                       height: 1.6,
-                                      color: DefaultThemeColors.lightOnPrimary,
+                                      color: DefaultThemeColors
+                                          .lightOnPrimary, // White text
                                     ),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
@@ -134,7 +141,8 @@ class CategoryView extends GetView<CategoryController> {
     );
   }
 
-  void _showCategoryDialog(Map<String, dynamic> category) {
+  void _showCategoryDialog(
+      BuildContext context, Map<String, dynamic> category) {
     final width = Get.width;
     final height = Get.height;
     final children = category['children'] as List;
@@ -152,7 +160,7 @@ class CategoryView extends GetView<CategoryController> {
     // Use Get.dialog instead of Get.defaultDialog to have more control
     Get.dialog(
       Dialog(
-        backgroundColor: DefaultThemeColors.lightOnPrimary,
+        backgroundColor: context.surfaceColor, // Theme-aware dialog background
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(height * 0.015),
         ),
@@ -178,7 +186,7 @@ class CategoryView extends GetView<CategoryController> {
                         fontSize: height * 0.02,
                         fontWeight: FontWeight.w600,
                         height: 1.75,
-                        color: DefaultThemeColors.lightOnSecondary,
+                        color: context.onSurfaceColor, // Theme-aware title
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -189,7 +197,8 @@ class CategoryView extends GetView<CategoryController> {
                     child: Icon(
                       Icons.close,
                       size: height * 0.027,
-                      color: DefaultThemeColors.lightOnSecondary,
+                      color: context
+                          .onSurfaceVariantColor, // Theme-aware close icon
                     ),
                   ),
                 ],
@@ -221,7 +230,7 @@ class CategoryView extends GetView<CategoryController> {
                   fontFamily: 'Plus Jakarta Sans',
                   fontSize: height * 0.018,
                   fontWeight: FontWeight.w600,
-                  color: DefaultThemeColors.lightOnSecondary,
+                  color: context.onSurfaceColor, // Theme-aware section title
                 ),
               ),
 
@@ -259,7 +268,10 @@ class CategoryView extends GetView<CategoryController> {
                                   fontSize: height * 0.016,
                                   fontWeight: FontWeight.w500,
                                   height: 1.4,
-                                  color: DefaultThemeColors.darkmain,
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? DefaultThemeColors.lightDarker
+                                      : DefaultThemeColors.darkmain,
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -268,7 +280,10 @@ class CategoryView extends GetView<CategoryController> {
                             Icon(
                               Icons.chevron_right,
                               size: height * 0.022,
-                              color: DefaultThemeColors.darkmain,
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? DefaultThemeColors.lightDarker
+                                  : DefaultThemeColors.darkmain,
                             ),
                           ],
                         ),

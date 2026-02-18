@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 const appMode = "test";
 
 // var url = "http://mern.foduu.com:3044/";
-var url = "https://testdemo.foduu.com/";
+var url = "https://testdemo.vbought.com/";
 
-var socketUrl = "https://studio.foduu.com/";
+var socketUrl = "https://studio.vbought.com/";
 
 var ACCESS_KEY = 'c4144f5a5223976f79ac555d0a95e35f6dd9e34a69e0f935';
 

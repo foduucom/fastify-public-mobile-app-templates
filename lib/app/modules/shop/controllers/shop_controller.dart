@@ -46,7 +46,9 @@ class ShopController extends GetxController
   var selectedSubCategoryId = ''.obs;
 
   @override
-  Future<void> onInit() async {
+  void onInit() {
+    super.onInit();
+
     // Initialize animation FIRST
     controller = AnimationController(
       vsync: this,
@@ -58,6 +60,24 @@ class ShopController extends GetxController
 
     scrollController = ScrollController();
 
+    // DON'T assign arguments here
+    // arguments.addAll(Get.arguments); // REMOVE THIS LINE
+
+    // Other non-reactive initializations
+    controller = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 300),
+    );
+    scaleAnimation = Tween<double>(begin: 1.0, end: 1.5).animate(
+      CurvedAnimation(parent: controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+
+    // Move ALL reactive updates and API calls here
     arguments.addAll(Get.arguments);
     source = arguments['source'];
 
@@ -74,23 +94,17 @@ class ShopController extends GetxController
       productId = arguments['productId'];
       collectionName = arguments['name'];
 
-      // NEW: Fetch category structure first
-      await fetchCategoryStructure();
-      // Don't call getCategoryWiseProduct directly here anymore
-      // It's now called inside fetchCategoryStructure
+      // Fetch category structure
+      Future.microtask(() {
+        fetchCategoryStructure();
+      });
     }
 
-    await fetchProductOnScroll();
-    await getMaxMinPriceFilter();
+    fetchProductOnScroll();
+    Future.microtask(() {
+      getMaxMinPriceFilter();
+    });
     currentRangeValues.value.start.val(filterMaxPrice.toString());
-
-    controller = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 300),
-    );
-    scaleAnimation = Tween<double>(begin: 1.0, end: 1.5).animate(
-      CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-    );
   }
 
   Future<void> getMaxMinPriceFilter() async {
@@ -163,6 +177,7 @@ class ShopController extends GetxController
     isLoading(true);
 
     try {
+      print("Category Name: ${categoryId}");
       // Use the WORKING product API from your ProductController!
       // This is the same pattern that works in ProductView
       var response = await BasicProvider("products?category=$categoryId")
@@ -248,7 +263,7 @@ class ShopController extends GetxController
           print(
               '🟢 Calling getProductsForCategory for first subcategory: ${subCategories.first['name']} (${subCategories.first['_id']})');
           //selectedSubCategoryId.value = subCategories.first['_id'];
-          selectedSubCategoryId.value = selectedCategory['_id'];
+          selectedSubCategoryId.value = selectedCategory['name'];
           await getProductsForCategory(selectedSubCategoryId.value);
         } else {
           print(

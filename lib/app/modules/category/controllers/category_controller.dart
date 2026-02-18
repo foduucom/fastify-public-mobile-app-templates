@@ -16,7 +16,9 @@ class CategoryController extends GetxController with BaseController {
   Future<void> onInit() async {
     super.onInit();
     scrollController = ScrollController();
-    await initFetchCategories();
+    Future.microtask(() {
+      initFetchCategories();
+    });
     // await fetchMorePostOnScroll();
   }
 
