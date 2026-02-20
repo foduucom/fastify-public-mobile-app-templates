@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
-import 'package:get/get.dart'; 
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 class SearchsController extends GetxController with BaseController {
-  RxMap<dynamic, dynamic> serachData = {}.obs;
+  var serachData = {}.obs;
   var searchProduct = [].obs;
   var searchBlog = [].obs;
   var searchCategory = [].obs;
@@ -35,16 +37,44 @@ class SearchsController extends GetxController with BaseController {
 
   void getTrandingCategory() async {
     try {
-      var response =
-          await BasicProvider('mobile/public/categories/specific/product')
-              .getRequest()
-              .catchError(handleError);
+      var response = await BasicProvider('products?featured=true').getRequest();
+
       trendingCategoryProduct.clear();
 
-      trendingCategoryProduct.addAll(response);
+      // Handle different response types without using catchError
+      if (response is Map) {
+        if (response.containsKey('data') && response['data'] is List) {
+          trendingCategoryProduct.addAll(response['data']);
+        }
+      } else if (response is List) {
+        trendingCategoryProduct.addAll(response);
+      }
+
+      print('✅ Loaded ${trendingCategoryProduct.length} trending products');
+      update();
     } catch (e) {
       print('search error $e');
     }
+  }
+
+  // Add this helper method in the Controller to build image URLs
+  String getProductImage(dynamic product) {
+    try {
+      if (product == null) return HelperFunctions.getNoImage();
+
+      final featuredImage = product['featured_image'];
+      if (featuredImage != null && featuredImage is Map) {
+        String filepath = featuredImage['filepath'] ?? '';
+        if (filepath.isNotEmpty) {
+          // Use the existing url constant from constants.dart
+          print("We have Final Image Url ${url + filepath}");
+          return url + filepath;
+        }
+      }
+    } catch (e) {
+      print('Error building image URL: $e');
+    }
+    return HelperFunctions.getNoImage();
   }
 
   void getSearchSuggestion({required String text}) async {
@@ -61,5 +91,11 @@ class SearchsController extends GetxController with BaseController {
     } catch (e) {
       print('search error $e');
     }
+  }
+
+  @override
+  void onClose() {
+    searchTextController.dispose();
+    super.onClose();
   }
 }

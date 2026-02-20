@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
@@ -13,6 +15,7 @@ import 'package:foduu_ecommerce/components/home_component/home_common_widgets.da
 import 'package:foduu_ecommerce/components/home_component/home_price_filter.dart';
 import 'package:foduu_ecommerce/components/search_bar_rounded.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/helpers/socket_helper.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -51,85 +54,113 @@ class HomepageController extends GetxController with BaseController {
     print('=== getWidgetbyCategory STARTED ===');
     print('Reading from box: homeComponent');
     final homeComponent = box.read('homeComponent') ?? [];
-    print('homeComponent length: ${homeComponent.length}'); // Add this debug
+    print('homeComponent length: ${homeComponent.length}');
     widgetList.clear();
+
     for (int i = 0; i < homeComponent.length; i++) {
       var item = homeComponent[i];
       print('Processing item ${i + 1}: type=${item['type']}');
+
+      // Get content_json - it might be a Map or might need parsing
       var contentJson = item['content_json'];
-      print("Inner data of Sections ContentType: ${item['content_json']}");
+      print("Inner data of Sections ContentType: $contentJson");
       print("Inner data of Sections Type: ${item['type']}");
+
+      // If contentJson is a String (JSON string), parse it
+      if (contentJson is String) {
+        try {
+          contentJson = jsonDecode(contentJson);
+        } catch (e) {
+          print('Error parsing content_json: $e');
+        }
+      }
+
+      // Convert to Map<String, dynamic> if it's a Map
+      Map<String, dynamic> typedContentJson = {};
+      if (contentJson is Map) {
+        // Cast to Map<String, dynamic>
+        typedContentJson = Map<String, dynamic>.from(contentJson);
+      }
+
       switch (item['type']) {
         case 'search':
+          // Search type doesn't have content_json in your API
+          // It just has an id and type
           widgetList.add(Padding(
             padding: pageSurroundingPadding,
             child: GestureDetector(
-              behavior: HitTestBehavior.translucent, // o
+              behavior: HitTestBehavior.translucent,
               onTap: () {
                 Get.toNamed(Routes.SEARCH);
-                // print('sarch ... ${contentJson['placeholder']}');
               },
               child: AbsorbPointer(
                 child: SearchBarRounded(
-                    onChanged: (p0) {
-                      print('sarch ... ${contentJson}');
-                    },
-                    searchHintText: contentJson['placeholder'] ?? 'Search...',
-                    SearchsController: SearchController()),
+                  onChanged: (p0) {
+                    print('search ...');
+                  },
+                  searchHintText: typedContentJson['placeholder'] ??
+                      'Search...', // Default placeholder
+                  SearchsController: SearchController(),
+                ),
               ),
             ),
           ));
           break;
+
         case 'slider':
-          var sliderData = {};
-          if (contentJson != null) {
-            sliderData = contentJson;
-          }
-          widgetList.add(FoduuSlider(sliderData: sliderData));
+          widgetList.add(FoduuSlider(sliderData: typedContentJson));
           break;
+
         case 'categories':
-          var categoryData = contentJson ?? {};
           widgetList.add(CategoryHome(
-            categoryData: categoryData,
+            categoryData: typedContentJson,
           ));
           break;
+
         case 'blog':
           widgetList.add(BlogSection(
-            blogData: contentJson,
+            blogData: typedContentJson,
           ));
           break;
 
         case 'banner':
-          if (contentJson != null) {
-            widgetList.add(HomeBanner(bannerContent: contentJson));
+          if (typedContentJson.isNotEmpty) {
+            widgetList.add(HomeBanner(bannerContent: typedContentJson));
             print('HomeBanner added to widgetList');
           }
           break;
+
         case 'price_filter':
-          widgetList.add(PriceFilter(contentJson: contentJson));
+          widgetList.add(PriceFilter(contentJson: typedContentJson));
           break;
+
         case 'spacer':
-          widgetList.add(SpacerComponent(contentJson: contentJson));
+          widgetList.add(SpacerComponent(contentJson: typedContentJson));
           break;
 
         case 'divider':
-          widgetList.add(DividerComponent(contentJson: contentJson));
+          widgetList.add(DividerComponent(contentJson: typedContentJson));
           break;
 
         case 'text_block':
-          widgetList.add(TextBlockComponent(contentJson: contentJson));
+          widgetList.add(TextBlockComponent(contentJson: typedContentJson));
           break;
 
         case 'products':
           widgetList.add(TrendingProductSection(
-            contentJson: contentJson,
+            contentJson: typedContentJson,
           ));
           break;
+
         case 'rich_text':
-          widgetList.add(RichTextComponent(contentJson: contentJson));
+          widgetList.add(RichTextComponent(contentJson: typedContentJson));
           break;
+
+        default:
+          print('Unknown type: ${item['type']}');
       }
     }
+
     print('=== getWidgetbyCategory COMPLETED ===');
     print('widgetList length: ${widgetList.length}');
     print(
@@ -189,16 +220,38 @@ class HomepageController extends GetxController with BaseController {
           .getRequest();
 
       print('✅ API Response received');
-      print(
-          'Response keys: ${response?.keys}'); // This will show all keys in the response
+      print('Response keys: ${response?.keys}');
 
       if (response != null) {
-        var list = response['sections'];
-        if (list != null && list is List) {
-          box.write('homeComponent', list);
+        // Handle theme colors
+        if (response['theme_color'] != null) {
+          print('🎨 Theme colors found in API response');
+          // Update your theme manager with the colors
+          DynamicThemeManager().updateFromApi(response['theme_color']);
+
+          // Trigger theme refresh
+          Get.find<ThemeController>().refreshTheme();
+        }
+
+        // Handle sections
+        var sections = response['sections'];
+        if (sections != null && sections is List) {
+          // Make sure to handle any JSON strings in content_json
+          for (var section in sections) {
+            if (section['content_json'] is String) {
+              try {
+                section['content_json'] = jsonDecode(section['content_json']);
+              } catch (e) {
+                print('Error parsing section content_json: $e');
+              }
+            }
+          }
+
+          box.write('homeComponent', sections);
           getWidgetbyCategory();
         }
       }
+
       if (kIsWeb) {
         _setupSocketListener("69708c1b6968f244e799ea6a");
       }
@@ -206,7 +259,7 @@ class HomepageController extends GetxController with BaseController {
     } catch (e) {
       print('home page controller error $e');
     } finally {
-      isLoading(false); // Stop loading regardless of success/failure
+      isLoading(false);
     }
   }
 

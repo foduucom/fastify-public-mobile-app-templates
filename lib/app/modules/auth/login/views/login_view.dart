@@ -53,6 +53,9 @@ class LoginView extends GetView<LoginController> {
                           height: 1.1,
                           letterSpacing: 0,
                           fontWeight: FontWeight.w700,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? DefaultThemeColors.lightDarker
+                              : DefaultThemeColors.lightOnBackground,
                         ),
                       ),
                       SizedBox(width: 8),
@@ -99,7 +102,10 @@ class LoginView extends GetView<LoginController> {
                       height: 1.5,
                       letterSpacing: 0,
                       fontWeight: FontWeight.w600,
-                      color: context.onSurfaceColor,
+                      //color: context.onSurfaceColor,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? DefaultThemeColors.lightDarker
+                          : DefaultThemeColors.lightOnBackground,
                     ),
                     SizedBox(height: 4),
                     AppTextField(
@@ -145,7 +151,10 @@ class LoginView extends GetView<LoginController> {
                       fontSize: height * 0.016,
                       height: 1.5,
                       letterSpacing: 0,
-                      color: context.onSurfaceColor,
+                      //color: context.onSurfaceColor,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? DefaultThemeColors.lightDarker
+                          : DefaultThemeColors.lightOnBackground,
                     ),
                     SizedBox(height: 4),
                     AppPasswordField(

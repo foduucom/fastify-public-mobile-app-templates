@@ -621,6 +621,7 @@ class ThemeController extends GetxController {
 
     // Initialize theme manager
     _themeManager.init();
+    debugPrint("we are gettinmg this after debugg");
 
     // Listen to theme mode changes
     ever(_themeMode, (_) {

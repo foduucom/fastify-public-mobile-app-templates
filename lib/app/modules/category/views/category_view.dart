@@ -150,7 +150,7 @@ class CategoryView extends GetView<CategoryController> {
     // If no children, don't show dialog, navigate directly
     if (children.isEmpty) {
       Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-        'productId': category['_id'],
+        'productId': category['slug'],
         'name': category['name'],
         'source': 'category'
       });

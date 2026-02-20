@@ -38,19 +38,6 @@ class HomePageView extends GetView<HomepageController> {
     );
   }
 
-  // Placeholder for other pages - replace with your actual pages
-  Widget _placeholderPage(String title) {
-    return Center(
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
   Widget _homeBody(BuildContext context) {
     var width = Get.width;
     var height = Get.height;
@@ -60,101 +47,35 @@ class HomePageView extends GetView<HomepageController> {
         padding: EdgeInsets.zero,
         child: Column(
           children: [
-            // Instead of hardcoded banner, use:
             Obx(() {
               print(
                   'HomePage rebuilding... isLoading: ${controller.isLoading.value}');
+              print('widgetList length: ${controller.widgetList.length}');
 
               if (controller.widgetList.isEmpty || controller.isLoading.value) {
-                // Show loading or fallback
-                print('widgetList is empty, showing fallback');
-                return Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                  child: Container(
-                    width: double.infinity,
-                    height: height * 0.18,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      color: Colors.white,
-                    ),
-                  ),
-                );
+                // Show loading shimmer for entire page
+                return _buildLoadingShimmer(context, width, height);
               }
 
-              for (int i = 0; i < controller.widgetList.length; i++) {
-                var widget = controller.widgetList[i];
-                print('$i: ${widget.runtimeType}');
-
-                if (widget is HomeBanner) {
-                  print('Found HomeBanner at index $i!');
-                  return widget;
-                }
-              }
-
-              // If no banner found, show fallback or empty
-              return SizedBox.shrink();
-            }),
-
-            SizedBox(height: height * 0.01),
-
-            Obx(() {
-              // Find the CategoryHome widget in widgetList
-              var categoryHomeWidget = controller.widgetList.firstWhere(
-                (widget) => widget is CategoryHome,
-                orElse: () => null,
-              );
-
-              if (controller.isLoading.value || categoryHomeWidget == null) {
-                return SizedBox(
-                  height: height * 0.06, // Adjust based on your category height
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: 6, // Show 6 shimmer category items
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          right: width * 0.03,
-                          left: index == 0 ? width * 0.05 : 0,
-                        ),
-                        child: Shimmer.fromColors(
-                          baseColor: Colors.grey[300]!,
-                          highlightColor: Colors.grey[100]!,
-                          child: Container(
-                            width: width * 0.25, // Adjust width as needed
-                            height: height * 0.045,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              }
-
-              // Use the CategoryHome widget's buildListView method
-              return categoryHomeWidget;
-            }),
-
-            SizedBox(height: height * 0.02),
-
-            // GridView for products - Wrap with Expanded
-            Obx(() {
-              final hasProducts = controller.widgetList
-                  .any((widget) => widget is TrendingProductSection);
-
-              if (!hasProducts) {
-                return _buildStaticProducts(width, height);
-              }
-
+              // Build the entire UI by iterating through widgetList in order
               return Column(
-                children: controller.widgetList
-                    .where((widget) => widget is TrendingProductSection)
-                    .map<Widget>((dynamic item) => item as Widget)
-                    .toList(),
+                children: controller.widgetList.map((widget) {
+                  // You can add spacing between different widget types if needed
+                  return Column(
+                    children: [
+                      widget,
+                      // Add spacing after certain widget types
+                      if (widget is HomeBanner)
+                        SizedBox(height: height * 0.01)
+                      else if (widget is CategoryHome)
+                        SizedBox(height: height * 0.02)
+                      else if (widget is TrendingProductSection)
+                        SizedBox(height: height * 0.02)
+                      else
+                        SizedBox(height: height * 0.01),
+                    ],
+                  );
+                }).toList(),
               );
             }),
           ],
@@ -163,70 +84,165 @@ class HomePageView extends GetView<HomepageController> {
     );
   }
 
-  // Fallback method for static products (can be removed once API is confirmed working)
-  Widget _buildStaticProducts(double width, double height) {
+  // Helper method to build loading shimmer
+  Widget _buildLoadingShimmer(
+      BuildContext context, double width, double height) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header Row
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              "Featured Product",
-              style: TextStyle(
-                fontFamily: 'Plus Jakarta Sans',
-                fontWeight: FontWeight.w700,
-                fontSize: height * 0.02,
-                height: 1.75,
-              ),
+        // Banner shimmer
+        Shimmer.fromColors(
+          baseColor: Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey[800]!
+              : Colors.grey[300]!,
+          highlightColor: Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey[700]!
+              : Colors.grey[100]!,
+          child: Container(
+            width: double.infinity,
+            height: height * 0.18,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              color: Theme.of(context).cardColor,
             ),
-            Text(
-              "See More",
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                fontFamily: 'Plus Jakarta Sans',
-                fontWeight: FontWeight.w600,
-                fontSize: height * 0.018,
-                height: 1.85,
-                color: DefaultThemeColors.secondarymain,
-              ),
-            ),
-          ],
+          ),
         ),
 
         SizedBox(height: height * 0.02),
 
+        // Categories shimmer
+        SizedBox(
+          height: height * 0.06,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: 6,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: EdgeInsets.only(
+                  right: width * 0.03,
+                  left: index == 0 ? width * 0.05 : 0,
+                ),
+                child: Shimmer.fromColors(
+                  baseColor: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[800]!
+                      : Colors.grey[300]!,
+                  highlightColor:
+                      Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey[700]!
+                          : Colors.grey[100]!,
+                  child: Container(
+                    width: width * 0.25,
+                    height: height * 0.045,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Theme.of(context).cardColor,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+
+        SizedBox(height: height * 0.03),
+
+        // Products grid shimmer
         GridView.builder(
           shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+          physics: NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            mainAxisSpacing: height * 0.015,
-            crossAxisSpacing: width * 0.03,
-            childAspectRatio: (width * 0.406) / (height * 0.310),
+            childAspectRatio: 0.65,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
           ),
-          itemCount: 6,
+          itemCount: 4,
           itemBuilder: (context, index) {
-            return ShoppingCard(
-              width: width,
-              height: height,
-              imagePath: "assets/images/shopping_image_1.png",
-              title: "Oliver Blazer New Version",
-              storeName: "Agliza Store",
-              price: "\$85.23",
-              rating: 4.5,
-              onTap: () {
-                print("Card tapped");
-                // Pass the product as argument to navigation
-                Get.toNamed(
-                  Routes.PRODUCTDETAILS,
-                );
-              },
+            return Shimmer.fromColors(
+              baseColor: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey[800]!
+                  : Colors.grey[300]!,
+              highlightColor: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey[700]!
+                  : Colors.grey[100]!,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: Theme.of(context).cardColor,
+                ),
+              ),
             );
           },
         ),
       ],
     );
   }
+
+  // Fallback method for static products (can be removed once API is confirmed working)
+  // Widget _buildStaticProducts(
+  //     BuildContext context, double width, double height) {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       // Header Row
+  //       Row(
+  //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //         children: [
+  //           Text(
+  //             "Featured Product",
+  //             style: TextStyle(
+  //               fontFamily: 'Plus Jakarta Sans',
+  //               fontWeight: FontWeight.w700,
+  //               fontSize: height * 0.02,
+  //               height: 1.75,
+  //               color: context.onBackgroundColor, // Theme-aware title
+  //             ),
+  //           ),
+  //           Text(
+  //             "See More",
+  //             textAlign: TextAlign.right,
+  //             style: TextStyle(
+  //               fontFamily: 'Plus Jakarta Sans',
+  //               fontWeight: FontWeight.w600,
+  //               fontSize: height * 0.018,
+  //               height: 1.85,
+  //               color: DefaultThemeColors.secondarymain, // Brand color
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+
+  //       SizedBox(height: height * 0.02),
+
+  //       GridView.builder(
+  //         shrinkWrap: true,
+  //         physics: const NeverScrollableScrollPhysics(),
+  //         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+  //           crossAxisCount: 2,
+  //           mainAxisSpacing: height * 0.015,
+  //           crossAxisSpacing: width * 0.03,
+  //           childAspectRatio: (width * 0.406) / (height * 0.310),
+  //         ),
+  //         itemCount: 6,
+  //         itemBuilder: (context, index) {
+  //           return ShoppingCard(
+  //             width: width,
+  //             height: height,
+  //             imagePath: "assets/images/shopping_image_1.png",
+  //             title: "Oliver Blazer New Version",
+  //             storeName: "Agliza Store",
+  //             price: "\$85.23",
+  //             rating: 4.5,
+  //             onTap: () {
+  //               print("Card tapped");
+  //               // Pass the product as argument to navigation
+  //               Get.toNamed(
+  //                 Routes.PRODUCTDETAILS,
+  //               );
+  //             },
+  //           );
+  //         },
+  //       ),
+  //     ],
+  //   );
+  // }
 }

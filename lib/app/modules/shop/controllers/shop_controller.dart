@@ -25,7 +25,7 @@ class ShopController extends GetxController
   var arguments = {}.obs;
   var producttype;
   var productId;
-  var collectionName;
+  var collectionName = ''.obs;
   var categoryId = [];
   var source;
   var isFilter = false.obs;
@@ -41,7 +41,16 @@ class ShopController extends GetxController
   var categoryStructure = {}.obs;
   var subCategories = <dynamic>[].obs;
   var deepCategories = <dynamic>[].obs;
-  var selectedSubCategoryIndex = 0.obs;
+  var _selectedSubCategoryIndex = 0.obs;
+
+  int get selectedSubCategoryIndex => _selectedSubCategoryIndex.value;
+
+  set selectedSubCategoryIndex(int value) {
+    _selectedSubCategoryIndex.value = value;
+    update(); // Force update
+    print("🎯 Index set to: $value");
+  }
+
   var selectedDeepCategoryIndex = 0.obs;
   var selectedSubCategoryId = ''.obs;
 
@@ -83,16 +92,16 @@ class ShopController extends GetxController
 
     if (source == 'offerCorner') {
       offerConrnerPrice = arguments['price'];
-      collectionName = arguments['name'];
+      collectionName.value = arguments['name'];
       getOfferConrnerProducts(offerConrnerPrice);
     } else if (source == 'dashboard') {
       productId = arguments['productId'];
-      collectionName = arguments['name'];
+      collectionName.value = arguments['name'];
       producttype = arguments['productype'];
       dashBoardproducts(productType: producttype);
     } else if (source == 'category') {
       productId = arguments['productId'];
-      collectionName = arguments['name'];
+      collectionName.value = arguments['name'];
 
       // Fetch category structure
       Future.microtask(() {
@@ -172,14 +181,12 @@ class ShopController extends GetxController
     }
   }
 
-  // In ShopController, when a category/subcategory is selected:
   getProductsForCategory(String categoryId) async {
     isLoading(true);
 
     try {
-      print("Category Name: ${categoryId}");
-      // Use the WORKING product API from your ProductController!
-      // This is the same pattern that works in ProductView
+      print("🔍 Fetching products for category: ${categoryId}");
+
       var response = await BasicProvider("products?category=$categoryId")
           .getRequest()
           .catchError(handleError);
@@ -189,22 +196,88 @@ class ShopController extends GetxController
         return;
       }
 
-      // The response structure should match what you use in ProductView
-      // Based on your earlier logs, it returns { "status": "success", "data": [...] }
+      print("📦 Response type: ${response.runtimeType}");
+      print(
+          "📦 Response keys: ${response is Map ? response.keys : 'Not a Map'}");
+
       allProductList.clear();
 
-      if (response['data'] != null) {
-        allProductList.addAll(response['data']);
-      } else if (response is List) {
-        allProductList.addAll(response);
+      // FIX: Check the actual response structure
+      if (response is Map) {
+        // If response has 'data' key and it's a List
+        if (response['data'] != null && response['data'] is List) {
+          allProductList.addAll(List.from(response['data']));
+          print(
+              "✅ Added ${response['data'].length} products from response['data']");
+        }
+        // If response has 'products' key and it's a List
+        else if (response['products'] != null && response['products'] is List) {
+          allProductList.addAll(List.from(response['products']));
+          print(
+              "✅ Added ${response['products'].length} products from response['products']");
+        }
+        // If response has 'data' that contains another 'data' (like nested)
+        else if (response['data'] != null &&
+            response['data'] is Map &&
+            response['data']['data'] != null &&
+            response['data']['data'] is List) {
+          allProductList.addAll(List.from(response['data']['data']));
+          print(
+              "✅ Added ${response['data']['data'].length} products from response['data']['data']");
+        }
+        // Try to find any list in the response
+        else {
+          bool foundList = false;
+          response.forEach((key, value) {
+            if (!foundList && value is List && value.isNotEmpty) {
+              print("🔍 Found list in key: $key with ${value.length} items");
+              allProductList.addAll(List.from(value));
+              foundList = true;
+            }
+          });
+
+          if (!foundList) {
+            print("⚠️ No product list found in response");
+          }
+        }
+      }
+      // If response is directly a List
+      else if (response is List) {
+        allProductList.addAll(List.from(response));
+        print("✅ Added ${response.length} products from direct list");
       }
 
-      maxPage.value = (allProductList.length / 10).ceil();
+      // Calculate max page based on your pagination
+      if (response is Map) {
+        if (response['total'] != null) {
+          if (response['total'] is int) {
+            maxPage.value = (response['total'] / 10).ceil();
+          } else if (response['total'] is String) {
+            maxPage.value = (int.parse(response['total']) / 10).ceil();
+          }
+        } else if (response['last_page'] != null) {
+          if (response['last_page'] is int) {
+            maxPage.value = response['last_page'];
+          } else if (response['last_page'] is String) {
+            maxPage.value = int.parse(response['last_page']);
+          }
+        } else {
+          maxPage.value = (allProductList.length / 10).ceil();
+        }
+      } else {
+        maxPage.value = (allProductList.length / 10).ceil();
+      }
 
-      print(
-          '✅ Found ${allProductList.length} products for category $categoryId');
-    } catch (e) {
+      print("✅ Final product count: ${allProductList.length}");
+      print("✅ Max page: ${maxPage.value}");
+
+      // Print first product as sample if available
+      if (allProductList.isNotEmpty) {
+        print("📦 Sample product: ${allProductList.first['name']}");
+      }
+    } catch (e, stackTrace) {
       print('❌ Error fetching products: $e');
+      print('📚 Stack trace: $stackTrace');
     }
 
     isLoading(false);
@@ -249,7 +322,10 @@ class ShopController extends GetxController
       if (selectedCategory != null) {
         print(
             '✅ Selected category found: ${selectedCategory['name']} (${selectedCategory['_id']})');
-        collectionName = selectedCategory['name'];
+        // FIX: Update collectionName with the actual category name
+        collectionName.value = selectedCategory['name'];
+
+        print('📝 Updated collectionName to: $collectionName');
 
         // Extract subcategories
         if (selectedCategory['children'] != null) {
@@ -261,7 +337,7 @@ class ShopController extends GetxController
         // Fetch products for this category
         if (subCategories.isNotEmpty) {
           print(
-              '🟢 Calling getProductsForCategory for first subcategory: ${subCategories.first['name']} (${subCategories.first['_id']})');
+              '🟢 Calling getProductsForCategory for first subcategory: ${subCategories.first['name']} (${subCategories.first['slug']})');
           //selectedSubCategoryId.value = subCategories.first['_id'];
           selectedSubCategoryId.value = selectedCategory['name'];
           await getProductsForCategory(selectedSubCategoryId.value);

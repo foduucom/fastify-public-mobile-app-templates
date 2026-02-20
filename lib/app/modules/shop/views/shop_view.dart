@@ -31,46 +31,59 @@ class ShopView extends GetView<ShopController> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                controller.collectionName.toString() + ' Collection',
-                style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'lato',
-                    fontSize: 15),
-              ),
+              Obx(() => Text(
+                    controller.collectionName.value.toString() + ' Collection',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'lato',
+                      fontSize: 15,
+                      color: context.onSurfaceColor, // Theme-aware title
+                    ),
+                  )),
               Obx(
                 () => Text(
                   controller.allProductList.length.toString() + ' items',
                   style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'lato',
-                      fontSize: 12,
-                      color: Color.fromRGBO(119, 119, 119, 1)),
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'lato',
+                    fontSize: 12,
+                    color:
+                        context.onSurfaceVariantColor, // Theme-aware subtitle
+                  ),
                 ),
               ),
             ],
           ),
           titleSpacing: 0,
           elevation: 0,
+          backgroundColor:
+              context.surfaceColor, // Theme-aware app bar background
           actions: [
-            // Obx(() => Get.find<BottombarController>().cartbadge(
-            //     child: HeartIcon(() {
-            //       Get.toNamed(Routes.WISHLIST);
-            //     }),
-            //     badgeNumber: Get.find<WishlistController>().wishList.length)),
-            // In your shop_view.dart where you have the HeartIcon
             Obx(() => Get.find<BottombarController>().cartbadge(
                   child: HeartIcon(() {
                     if (!AuthDetails.isUserLogin()) {
                       // Show login dialog for non-logged in users
                       Get.dialog(
                         AlertDialog(
-                          title: Text('Login Required'),
-                          content: Text('Please login to view your wishlist'),
+                          backgroundColor:
+                              context.surfaceColor, // Theme-aware dialog
+                          title: Text(
+                            'Login Required',
+                            style: TextStyle(color: context.onSurfaceColor),
+                          ),
+                          content: Text(
+                            'Please login to view your wishlist',
+                            style:
+                                TextStyle(color: context.onSurfaceVariantColor),
+                          ),
                           actions: [
                             TextButton(
                               onPressed: () => Get.back(),
-                              child: Text('Cancel'),
+                              child: Text(
+                                'Cancel',
+                                style: TextStyle(
+                                    color: context.onSurfaceVariantColor),
+                              ),
                             ),
                             TextButton(
                               onPressed: () {
@@ -79,7 +92,10 @@ class ShopView extends GetView<ShopController> {
                                     ? Get.toNamed(Routes.MOBILELOGIN)
                                     : Get.toNamed(Routes.LOGIN);
                               },
-                              child: Text('Login'),
+                              child: Text(
+                                'Login',
+                                style: TextStyle(color: context.primaryColor),
+                              ),
                             ),
                           ],
                         ),
@@ -110,153 +126,150 @@ class ShopView extends GetView<ShopController> {
           onRefresh: () async {
             controller.onPullTorefresh();
           },
+          color: context.primaryColor, // Theme-aware refresh indicator
+          backgroundColor: context.surfaceColor, // Theme-aware background
           child: CustomScrollView(
             controller: controller.scrollController,
             slivers: [
-              // Category Tabs Section (NEW)
               SliverToBoxAdapter(
-                child: Obx(
-                  () => controller.subCategories.isEmpty
-                      ? SizedBox.shrink()
-                      : Container(
-                          height: 50,
-                          margin:
-                              EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: controller.subCategories.length,
-                            itemBuilder: (context, index) {
-                              final subCat = controller.subCategories[index];
-                              final isSelected = index ==
-                                  controller.selectedSubCategoryIndex.value;
+                child: GetBuilder<ShopController>(
+                  builder: (controller) {
+                    return controller.subCategories.isEmpty
+                        ? SizedBox.shrink()
+                        : Container(
+                            height: 50,
+                            margin: EdgeInsets.symmetric(
+                                horizontal: 15, vertical: 8),
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              // Add +1 to itemCount for the "All" button
+                              itemCount: controller.subCategories.length + 1,
+                              itemBuilder: (context, index) {
+                                // Handle the "All" button (index 0)
+                                if (index == 0) {
+                                  final isSelected = index ==
+                                      controller.selectedSubCategoryIndex;
 
-                              return GestureDetector(
-                                onTap: () async {
-                                  controller.selectedSubCategoryIndex.value =
-                                      index;
-                                  controller.selectedSubCategoryId.value =
-                                      subCat['_id'] ?? '';
-                                  controller.allProductList.clear();
-                                  controller.currentPage.value = 1;
+                                  return GestureDetector(
+                                    onTap: () {
+                                      print("🔹 Tapped All button");
+                                      controller.selectedSubCategoryIndex =
+                                          index;
+                                      controller.selectedSubCategoryId.value =
+                                          '';
+                                      controller.allProductList.clear();
+                                      controller.currentPage.value = 1;
+                                      controller.update();
 
-                                  // Check if this subcategory has children (like Footwear has Nike/Adidas)
-                                  if (subCat['children'] != null &&
-                                      subCat['children'].isNotEmpty) {
-                                    // Show deep category tabs
-                                    controller.deepCategories.value =
-                                        List.from(subCat['children']);
-                                    print(
-                                        "Print Sub Categories From If: ${controller.deepCategories.value}");
-                                    // Fetch products from all children
-                                    await controller
-                                        .fetchProductsForCategoryAndSubcategories(
-                                            subCat['_id']);
-                                  } else {
-                                    // ✅ FIXED: Use subCat['_id'] here, NOT deepCat
-                                    controller.deepCategories.clear();
-                                    await controller
-                                        .getProductsForCategory(subCat['_id']);
-                                  }
-                                },
-                                child: Container(
-                                  margin: EdgeInsets.only(right: 8),
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? DefaultThemeColors.mainprimary
-                                        : Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      subCat['name'] ?? '',
-                                      style: TextStyle(
+                                      // Clear deep categories
+                                      controller.deepCategories.clear();
+
+                                      // Pass collectionName to get all products
+                                      controller.getProductsForCategory(
+                                          controller.collectionName.value
+                                              .toString());
+                                    },
+                                    child: Container(
+                                      margin: EdgeInsets.only(right: 8),
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 8),
+                                      decoration: BoxDecoration(
                                         color: isSelected
-                                            ? Colors.white
-                                            : Colors.black,
-                                        fontWeight: isSelected
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
-                                        fontSize: 14,
+                                            ? DefaultThemeColors.mainprimary
+                                            : context
+                                                .surfaceVariantColor, // Theme-aware
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          'All',
+                                          style: TextStyle(
+                                            color: isSelected
+                                                ? context
+                                                    .onPrimaryColor // White when selected
+                                                : context
+                                                    .onSurfaceColor, // Theme-aware
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                // Handle regular subcategories (index-1 to account for All button)
+                                final subCat =
+                                    controller.subCategories[index - 1];
+                                final isSelected = index ==
+                                    controller.selectedSubCategoryIndex;
+
+                                return GestureDetector(
+                                  onTap: () {
+                                    print("🔹 Tapped index: $index");
+                                    controller.selectedSubCategoryIndex = index;
+                                    controller.selectedSubCategoryId.value =
+                                        subCat['slug'] ?? '';
+                                    controller.allProductList.clear();
+                                    controller.currentPage.value = 1;
+                                    controller.update();
+
+                                    // Handle deep categories
+                                    if (subCat['children'] != null &&
+                                        subCat['children'].isNotEmpty) {
+                                      controller.deepCategories.value =
+                                          List.from(subCat['children']);
+                                      controller
+                                          .fetchProductsForCategoryAndSubcategories(
+                                              subCat['slug']);
+                                    } else {
+                                      controller.deepCategories.clear();
+                                      controller.getProductsForCategory(
+                                          subCat['slug']);
+                                    }
+                                  },
+                                  child: Container(
+                                    margin: EdgeInsets.only(right: 8),
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? DefaultThemeColors.mainprimary
+                                          : context
+                                              .surfaceVariantColor, // Theme-aware
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        subCat['name'] ?? '',
+                                        style: TextStyle(
+                                          color: isSelected
+                                              ? context
+                                                  .onPrimaryColor // White when selected
+                                              : context
+                                                  .onSurfaceColor, // Theme-aware
+                                          fontWeight: isSelected
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                          fontSize: 14,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
+                                );
+                              },
+                            ),
+                          );
+                  },
                 ),
               ),
-
-              // Deep Category Tabs (for Nike/Adidas under Footwear)
-              // SliverToBoxAdapter(
-              //   child: Obx(
-              //     () => controller.deepCategories.isEmpty
-              //         ? SizedBox.shrink()
-              //         : Container(
-              //             height: 40,
-              //             margin:
-              //                 EdgeInsets.symmetric(horizontal: 15, vertical: 4),
-              //             child: ListView.builder(
-              //               scrollDirection: Axis.horizontal,
-              //               itemCount: controller.deepCategories.length,
-              //               itemBuilder: (context, index) {
-              //                 final deepCat = controller.deepCategories[index];
-              //                 final isSelected = index ==
-              //                     controller.selectedDeepCategoryIndex.value;
-
-              //                 return GestureDetector(
-              //                   onTap: () {
-              //                     controller.selectedDeepCategoryIndex.value =
-              //                         index;
-              //                     controller.allProductList.clear();
-              //                     controller.currentPage.value = 1;
-              //                     // ✅ FIX: Change this line from getCategoryWiseProduct to getProductsForCategory
-              //                     controller
-              //                         .getProductsForCategory(deepCat['_id']);
-              //                   },
-              //                   child: Container(
-              //                     margin: EdgeInsets.only(right: 6),
-              //                     padding: EdgeInsets.symmetric(
-              //                         horizontal: 12, vertical: 6),
-              //                     decoration: BoxDecoration(
-              //                       color: isSelected
-              //                           ? Colors.blue.shade100
-              //                           : Colors.grey.shade100,
-              //                       borderRadius: BorderRadius.circular(16),
-              //                       border: Border.all(
-              //                         color: isSelected
-              //                             ? Colors.blue
-              //                             : Colors.transparent,
-              //                         width: 1,
-              //                       ),
-              //                     ),
-              //                     child: Text(
-              //                       deepCat['name'] ?? '',
-              //                       style: TextStyle(
-              //                         fontWeight: isSelected
-              //                             ? FontWeight.w600
-              //                             : FontWeight.normal,
-              //                         fontSize: 13,
-              //                         color: isSelected
-              //                             ? Colors.blue.shade800
-              //                             : Colors.black87,
-              //                       ),
-              //                     ),
-              //                   ),
-              //                 );
-              //               },
-              //             ),
-              //           ),
-              //   ),
-              // ),
-
               SliverAppBar(
                 automaticallyImplyLeading: false,
                 expandedHeight: 50,
                 floating: true,
+                backgroundColor: context.surfaceColor, // Theme-aware
                 title: Row(
                   children: [
                     Expanded(
@@ -269,19 +282,32 @@ class ShopView extends GetView<ShopController> {
                           readOnly: true,
                           decoration: InputDecoration(
                               filled: true,
+                              fillColor:
+                                  context.surfaceVariantColor, // Theme-aware
                               prefixIcon: Icon(
                                 Icons.search,
-                                size: 20,
+                                color: context
+                                    .onSurfaceVariantColor, // Theme-aware
                               ),
                               contentPadding: const EdgeInsets.fromLTRB(
                                   30.0, 15.0, 30.0, 10.0),
                               focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(width: 1),
+                                borderSide: BorderSide(
+                                  width: 1,
+                                  color: context.primaryColor, // Theme-aware
+                                ),
                               ),
-                              enabledBorder: const OutlineInputBorder(
-                                  borderSide: BorderSide(width: 1)),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  width: 1,
+                                  color: context.outlineColor, // Theme-aware
+                                ),
+                              ),
                               hintText: "Search",
-                              hintStyle: txtTheme().titleLarge!.copyWith()),
+                              hintStyle: txtTheme().titleLarge!.copyWith(
+                                    color: context
+                                        .onSurfaceVariantColor, // Theme-aware
+                                  )),
                         ),
                       ),
                     ),
@@ -289,12 +315,24 @@ class ShopView extends GetView<ShopController> {
                     GestureDetector(
                       onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(builder: (_) => FilterPage())),
-                      child: SvgPicture.asset('assets/icon/filter.svg'),
+                      child: Container(
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: DefaultThemeColors
+                              .mainprimary, // Brand color background
+                          shape: BoxShape.circle,
+                        ),
+                        child: SvgPicture.asset(
+                          'assets/icon/filter.svg',
+                          // color: context.onPrimaryColor, // White icon
+                          width: 20,
+                          height: 20,
+                        ),
+                      ),
                     )
                   ],
                 ),
               ),
-
               SliverList(
                   delegate: SliverChildListDelegate([
                 Padding(
@@ -555,6 +593,15 @@ class ShopView extends GetView<ShopController> {
                                             : 'assets/icon/unlike.svg',
                                         width: 20,
                                         height: 20,
+                                        color: wishlistcontroller
+                                                .wishlistProductIds
+                                                .contains(controller
+                                                        .allProductList[index]
+                                                    ['_id'])
+                                            ? context
+                                                .errorColor // Red when liked
+                                            : context
+                                                .onSurfaceVariantColor, // Gray when not liked
                                       );
                                     },
                                   ),
@@ -627,13 +674,18 @@ class FilterPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           elevation: 0,
-          backgroundColor: Colors.transparent,
-          title: Text("Filters",
-              style: txtTheme()
-                  .titleLarge!
-                  .copyWith(fontSize: 18, fontWeight: FontWeight.bold)),
+          backgroundColor: context.surfaceColor, // Theme-aware
+          title: Text(
+            "Filters",
+            style: txtTheme().titleLarge!.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: context.onSurfaceColor, // Theme-aware
+                ),
+          ),
         ),
         body: Stack(
           children: [
@@ -648,11 +700,15 @@ class FilterPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Brand: ",
-                          style: TextStyle(
-                              fontFamily: 'lato',
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400)),
+                      Text(
+                        "Brand: ",
+                        style: TextStyle(
+                          fontFamily: 'lato',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: context.onSurfaceColor, // Theme-aware
+                        ),
+                      ),
                       const SizedBox(height: 15),
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.25,
@@ -667,32 +723,53 @@ class FilterPage extends StatelessWidget {
                           itemCount: controller.brads.length,
                           itemBuilder: ((context, index) {
                             return Obx(() {
+                              final isSelected =
+                                  controller.selectBrand.value == index;
                               return GestureDetector(
                                 onTap: () {
                                   controller.selectBrand.value = index;
                                 },
                                 child: Container(
                                   decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(5)),
+                                    borderRadius: BorderRadius.circular(5),
+                                    color: isSelected
+                                        ? context.primaryColor.withOpacity(0.1)
+                                        : context.surfaceVariantColor,
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? context.primaryColor
+                                          : context.outlineColor,
+                                      width: 1,
+                                    ),
+                                  ),
                                   child: Center(
-                                      child: Text(
-                                          controller.brads[index]['brandname']
-                                              .toString(),
-                                          style: TextStyle(
-                                            fontFamily: 'lato',
-                                            fontSize: 14,
-                                          ))),
+                                    child: Text(
+                                      controller.brads[index]['brandname']
+                                          .toString(),
+                                      style: TextStyle(
+                                        fontFamily: 'lato',
+                                        fontSize: 14,
+                                        color: isSelected
+                                            ? context.primaryColor
+                                            : context.onSurfaceColor,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               );
                             });
                           }),
                         ),
                       ),
-                      const Text("Size:",
-                          style: TextStyle(
-                              fontFamily: 'lato',
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400)),
+                      Text(
+                        "Size:",
+                        style: TextStyle(
+                          fontFamily: 'lato',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: context.onSurfaceColor, // Theme-aware
+                        ),
+                      ),
                       const SizedBox(height: 15),
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.15,
@@ -707,32 +784,52 @@ class FilterPage extends StatelessWidget {
                           itemCount: controller.size.length,
                           itemBuilder: ((context, index) {
                             return Obx(() {
+                              final isSelected =
+                                  controller.selectSize.value == index;
                               return GestureDetector(
                                 onTap: () {
                                   controller.selectSize.value = index;
                                 },
                                 child: Container(
                                   decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(5)),
+                                    borderRadius: BorderRadius.circular(5),
+                                    color: isSelected
+                                        ? context.primaryColor.withOpacity(0.1)
+                                        : context.surfaceVariantColor,
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? context.primaryColor
+                                          : context.outlineColor,
+                                      width: 1,
+                                    ),
+                                  ),
                                   child: Center(
-                                      child: Text(
-                                          controller.size[index]['size']
-                                              .toString(),
-                                          style: TextStyle(
-                                            fontFamily: 'lato',
-                                            fontSize: 14,
-                                          ))),
+                                    child: Text(
+                                      controller.size[index]['size'].toString(),
+                                      style: TextStyle(
+                                        fontFamily: 'lato',
+                                        fontSize: 14,
+                                        color: isSelected
+                                            ? context.primaryColor
+                                            : context.onSurfaceColor,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               );
                             });
                           }),
                         ),
                       ),
-                      const Text("Price:",
-                          style: TextStyle(
-                              fontFamily: 'lato',
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400)),
+                      Text(
+                        "Price:",
+                        style: TextStyle(
+                          fontFamily: 'lato',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: context.onSurfaceColor, // Theme-aware
+                        ),
+                      ),
                       Obx(() {
                         return RangeSlider(
                           values: controller.currentRangeValues.value,
@@ -750,13 +847,19 @@ class FilterPage extends StatelessWidget {
                           onChanged: (RangeValues values) {
                             controller.updateSlider(values);
                           },
+                          activeColor: context.primaryColor, // Theme-aware
+                          inactiveColor: context.outlineColor, // Theme-aware
                         );
                       }),
-                      const Text("Colors:",
-                          style: TextStyle(
-                              fontFamily: 'lato',
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400)),
+                      Text(
+                        "Colors:",
+                        style: TextStyle(
+                          fontFamily: 'lato',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: context.onSurfaceColor, // Theme-aware
+                        ),
+                      ),
                       const SizedBox(height: 15),
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.15,
@@ -771,17 +874,29 @@ class FilterPage extends StatelessWidget {
                           itemCount: controller.colorList.length,
                           itemBuilder: ((context, index) {
                             return Obx(() {
+                              final isSelected =
+                                  controller.selectedColor.value == index;
                               return GestureDetector(
                                 onTap: () {
                                   controller.selectedColor.value = index;
                                 },
                                 child: Container(
                                   decoration: BoxDecoration(
-                                      color: controller.colorList[index]
-                                          ['color'],
-                                      borderRadius: BorderRadius.circular(50)),
-                                  child: controller.selectedColor.value == index
-                                      ? Icon(Icons.check)
+                                    color: controller.colorList[index]['color'],
+                                    borderRadius: BorderRadius.circular(50),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? context.primaryColor
+                                          : Colors.transparent,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: isSelected
+                                      ? Icon(
+                                          Icons.check,
+                                          color: context.onPrimaryColor,
+                                          size: 16,
+                                        )
                                       : SizedBox(),
                                 ),
                               );

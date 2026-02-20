@@ -52,7 +52,10 @@ class RegisterView extends GetView<RegisterController> {
                   height: 1.1,
                   letterSpacing: 0,
                   fontWeight: FontWeight.w700,
-                  color: context.onBackgroundColor, // Theme-aware title
+                  //color: context.onBackgroundColor, // Theme-aware title
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? DefaultThemeColors.lightDarker
+                      : DefaultThemeColors.lightOnBackground,
                 ),
 
                 const SizedBox(height: 8),
@@ -92,7 +95,10 @@ class RegisterView extends GetView<RegisterController> {
                       height: 1.5,
                       letterSpacing: 0,
                       fontWeight: FontWeight.w600,
-                      color: context.onSurfaceColor, // Theme-aware label
+                      //color: context.onSurfaceColor, // Theme-aware label
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? DefaultThemeColors.lightDarker
+                          : DefaultThemeColors.lightOnBackground,
                     ),
                     SizedBox(height: 4),
                     AppTextField(
@@ -135,7 +141,10 @@ class RegisterView extends GetView<RegisterController> {
                       height: 1.5,
                       letterSpacing: 0,
                       fontWeight: FontWeight.w600,
-                      color: context.onSurfaceColor, // Theme-aware label
+                      //color: context.onSurfaceColor, // Theme-aware label
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? DefaultThemeColors.lightDarker
+                          : DefaultThemeColors.lightOnBackground,
                     ),
                     SizedBox(height: 4),
                     AppTextField(
@@ -180,7 +189,10 @@ class RegisterView extends GetView<RegisterController> {
                       fontSize: height * 0.016,
                       height: 1.5,
                       letterSpacing: 0,
-                      color: context.onSurfaceColor, // Theme-aware label
+                      //color: context.onSurfaceColor, // Theme-aware label
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? DefaultThemeColors.lightDarker
+                          : DefaultThemeColors.lightOnBackground,
                     ),
                     SizedBox(height: 4),
                     AppPasswordField(
@@ -212,7 +224,10 @@ class RegisterView extends GetView<RegisterController> {
                       height: 1.5,
                       letterSpacing: 0,
                       fontWeight: FontWeight.w600,
-                      color: context.onSurfaceColor, // Theme-aware label
+                      //color: context.onSurfaceColor, // Theme-aware label
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? DefaultThemeColors.lightDarker
+                          : DefaultThemeColors.lightOnBackground,
                     ),
                     SizedBox(height: 4),
                     AppTextField(
@@ -325,7 +340,8 @@ class RegisterView extends GetView<RegisterController> {
                 PrimaryActionButton(
                   text: "Sign Up",
                   backgroundColor: DefaultThemeColors.mainprimary,
-                  textColor: context.onPrimaryColor, // Theme-aware text color
+                  textColor: DefaultThemeColors
+                      .lightOnPrimary, // Theme-aware text color
                   isLoading: controller.isLoading.value,
                   onPressed: () {
                     if (controller.formKey.currentState!.validate() &&

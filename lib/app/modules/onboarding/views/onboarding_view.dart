@@ -125,7 +125,11 @@ class OnboardingView extends GetView<OnboardingController> {
             fontSize: 18,
             fontWeight: FontWeight.bold,
             height: 1.4,
-            color: context.onSurfaceColor, // Changed to theme-aware text color
+            // Force rebuild with Obx if needed
+            //color: Theme.of(context).colorScheme.onSurface,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? DefaultThemeColors.lightDarker
+                : DefaultThemeColors.lightOnBackground,
           ),
         ),
       ),

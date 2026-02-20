@@ -14,13 +14,24 @@ import '../controllers/search_controller.dart';
 class SearchView extends GetView<SearchsController> {
   const SearchView({Key? key}) : super(key: key);
 
+  // In SearchView.dart, update the getImage method to use controller
   String getImage(int index) {
-    final featuredImage =
-        controller.trendingCategoryProduct[index]['featured_image'];
-    if (featuredImage != null) {
-      return url + featuredImage['filepath'];
+    try {
+      if (index < 0 || index >= controller.trendingCategoryProduct.length) {
+        return HelperFunctions.getNoImage();
+      }
+
+      final product = controller.trendingCategoryProduct[index];
+      return controller.getProductImage(product);
+    } catch (e) {
+      print('Error in getImage: $e');
+      return HelperFunctions.getNoImage();
     }
-    return '';
+  }
+
+// Also update the _buildImageUrl method
+  String _buildImageUrl(dynamic item) {
+    return controller.getProductImage(item);
   }
 
   @override
@@ -81,7 +92,6 @@ class SearchView extends GetView<SearchsController> {
                                       controller.recentSearchList.length >= 4
                                           ? 4
                                           : controller.recentSearchList.length,
-                                  // itemCount: controller.recentSearchList.length ,
                                   itemBuilder: (context, index) => Column(
                                     children: [
                                       Container(
@@ -159,23 +169,12 @@ class SearchView extends GetView<SearchsController> {
                                                   Icons
                                                       .highlight_remove_outlined,
                                                   size: 24,
-                                                  // color: themeSecondrytext,
                                                 ),
                                               )
                                             ],
                                           ),
                                         ),
                                       ),
-                                      // ListTile(
-                                      //   contentPadding: EdgeInsets.zero,
-                                      //   horizontalTitleGap: 0,
-                                      //   leading: const Icon(Iconsax.clock, size: 20),
-                                      //   title: Text('Party Wear Jumpshuit',
-                                      //       style: txtTheme()
-                                      //           .titleLarge!
-                                      //           .copyWith(color: themeSecondrytext)),
-                                      //   trailing: const Icon(Icons.remove),
-                                      // ),
                                     ],
                                   ),
                                 ),
@@ -188,7 +187,7 @@ class SearchView extends GetView<SearchsController> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          controller.searchProduct.length > 0
+                          controller.searchProduct.isNotEmpty
                               ? Text(
                                   "Products",
                                   style: txtTheme()
@@ -239,13 +238,8 @@ class SearchView extends GetView<SearchsController> {
                                         child: Icon(Icons.error),
                                       );
                                     }),
-                                    imageUrl: controller.searchProduct[index]
-                                                ['featured_image'] ==
-                                            null
-                                        ? HelperFunctions.getNoImage()
-                                        : url +
-                                            controller.searchProduct[index]
-                                                ['featured_image']['filepath'],
+                                    imageUrl: _buildImageUrl(
+                                        controller.searchProduct[index]),
                                   ),
                                 ),
                                 title: Text(
@@ -323,13 +317,8 @@ class SearchView extends GetView<SearchsController> {
                                         child: Icon(Icons.error),
                                       );
                                     }),
-                                    imageUrl: controller.searchCategory[index]
-                                                ['featured_image'] ==
-                                            null
-                                        ? HelperFunctions.getNoImage()
-                                        : url +
-                                            controller.searchCategory[index]
-                                                ['featured_image']['filepath'],
+                                    imageUrl: _buildImageUrl(
+                                        controller.searchCategory[index]),
                                   ),
                                 ),
                                 title: Text(
@@ -353,7 +342,7 @@ class SearchView extends GetView<SearchsController> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          controller.searchBlog.length > 0
+                          controller.searchBlog.isNotEmpty
                               ? Text(
                                   "Blogs",
                                   style: txtTheme()
@@ -401,13 +390,8 @@ class SearchView extends GetView<SearchsController> {
                                       );
                                     }),
                                     filterQuality: FilterQuality.low,
-                                    imageUrl: controller.searchBlog[index]
-                                                ['featured_image'] ==
-                                            null
-                                        ? ''
-                                        : url +
-                                            controller.searchBlog[index]
-                                                ['featured_image']['filepath'],
+                                    imageUrl: _buildImageUrl(
+                                        controller.searchBlog[index]),
                                   ),
                                 ),
                                 title: Text(
@@ -426,6 +410,114 @@ class SearchView extends GetView<SearchsController> {
                       );
                     },
                   ),
+                  // Uncomment and fix the Trending Category section
+                  const SizedBox(height: 15),
+                  Obx(
+                    () => controller.trendingCategoryProduct.isEmpty
+                        ? Container()
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Trending Category",
+                                style: txtTheme()
+                                    .headlineSmall!
+                                    .copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 15),
+                              GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                  crossAxisSpacing: 10,
+                                  childAspectRatio: 1.5 / 2,
+                                ),
+                                itemCount: controller
+                                            .trendingCategoryProduct.length >=
+                                        3
+                                    ? 3
+                                    : controller.trendingCategoryProduct.length,
+                                itemBuilder: ((context, index) {
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW,
+                                          arguments: {
+                                            'productId': controller
+                                                    .trendingCategoryProduct[
+                                                index]['_id'],
+                                            'name': controller
+                                                    .trendingCategoryProduct[
+                                                index]['name']
+                                          });
+                                    },
+                                    child: Column(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                          child: CachedNetworkImage(
+                                            errorWidget:
+                                                (context, url, error) =>
+                                                    Container(
+                                              decoration: BoxDecoration(
+                                                  color: Colors.grey.shade300),
+                                              child: const Center(
+                                                child: Icon(Icons.error),
+                                              ),
+                                            ),
+                                            height: 110,
+                                            width: 90,
+                                            fit: BoxFit.cover,
+                                            imageUrl: getImage(index),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4.0),
+                                        Text(
+                                          controller.trendingCategoryProduct[
+                                                  index]['name'] ??
+                                              '',
+                                          style: txtTheme().titleLarge,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.center,
+                                        )
+                                      ],
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ],
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+//   String _buildImageUrl(dynamic item) {
+//     try {
+//       if (item['featured_image'] != null &&
+//           item['featured_image'] is Map &&
+//           item['featured_image']['filepath'] != null) {
+//         String filepath = item['featured_image']['filepath'];
+//         if (filepath.startsWith('http')) {
+//           return filepath;
+//         } else {
+//           return url + filepath;
+//         }
+//       }
+//     } catch (e) {
+//       print('Error building image URL: $e');
+//     }
+//     return HelperFunctions.getNoImage();
+//   }
+}
                   // const SizedBox(height: 10),
                   // Text(
                   //   "Recommended for you",
@@ -555,15 +647,15 @@ class SearchView extends GetView<SearchsController> {
                   //         ));
                   //   }),
                   // ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+//                 ],
+//               ),
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
                                       // onTap: () {
                                       //   // controller.recentSearchList.add({
                                       //   //   'productId': controller

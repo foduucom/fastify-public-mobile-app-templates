@@ -24,11 +24,30 @@ Future<void> main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ThemeController>(
       builder: (themeController) {
+        final systemBrightness =
+            WidgetsBinding.instance.platformDispatcher.platformBrightness;
+
+        final effectiveBrightness =
+            themeController.themeMode == ThemeMode.system
+                ? systemBrightness
+                : (themeController.themeMode == ThemeMode.dark
+                    ? Brightness.dark
+                    : Brightness.light);
+
+        debugPrint('────────────────────────────');
+        debugPrint('ThemeMode = ${themeController.themeMode}');
+        debugPrint('SystemBrightness = $systemBrightness');
+        debugPrint('EffectiveBrightness = $effectiveBrightness');
+        debugPrint(
+          effectiveBrightness == Brightness.dark
+              ? '🌙 APP USING DARK THEME'
+              : '☀️ APP USING LIGHT THEME',
+        );
+        debugPrint('────────────────────────────');
         return GetMaterialApp(
           debugShowCheckedModeBanner: false,
           title: "Application",

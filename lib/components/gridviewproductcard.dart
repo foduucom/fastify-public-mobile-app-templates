@@ -95,7 +95,10 @@ class _gridProductCartState extends State<gridProductCart>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: DefaultThemeColors.darklight,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? DefaultThemeColors
+                      .darklight // Keep your original for dark mode
+                  : context.outlineColor, // Use theme outline for light mode
               width: 1,
             ),
           ),
@@ -117,11 +120,16 @@ class _gridProductCartState extends State<gridProductCart>
                         height: widget.height,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
+                          color: context
+                              .surfaceVariantColor, // Theme-aware error background
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Center(
-                          child: Icon(Icons.error, size: 30),
+                        child: Center(
+                          child: Icon(
+                            Icons.error,
+                            size: 30,
+                            color: context.errorColor, // Theme-aware error icon
+                          ),
                         ),
                       ),
                       progressIndicatorBuilder: (context, url, progress) =>
@@ -129,7 +137,8 @@ class _gridProductCartState extends State<gridProductCart>
                         height: widget.height,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
+                          color: context
+                              .surfaceVariantColor, // Theme-aware progress background
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Center(
@@ -139,14 +148,17 @@ class _gridProductCartState extends State<gridProductCart>
                             child: CircularProgressIndicator(
                               value: progress.progress,
                               strokeWidth: 2,
-                              color: DefaultThemeColors.mainprimary,
+                              color:
+                                  DefaultThemeColors.mainprimary, // Brand color
+                              backgroundColor: context
+                                  .surfaceVariantColor, // Theme-aware background
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                  // In gridProductCart, update the like button section with ValueNotifier
+                  // Like button
                   Positioned(
                     left: 8,
                     top: 8,
@@ -173,7 +185,8 @@ class _gridProductCartState extends State<gridProductCart>
                                 child: Container(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(50),
-                                    color: Colors.white,
+                                    color: context
+                                        .surfaceColor, // Theme-aware background
                                   ),
                                   padding: const EdgeInsets.all(8),
                                   child: widget.liked,
@@ -195,9 +208,9 @@ class _gridProductCartState extends State<gridProductCart>
                 children: [
                   RatingBarIndicator(
                     rating: widget.rating,
-                    itemBuilder: (context, index) => const Icon(
+                    itemBuilder: (context, index) => Icon(
                       Icons.star,
-                      color: Colors.amber,
+                      color: Colors.amber, // Keep amber for stars
                     ),
                     itemCount: 5,
                     itemSize: 16,
@@ -213,10 +226,10 @@ class _gridProductCartState extends State<gridProductCart>
                 widget.productname,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Lato',
                   fontSize: 15,
-                  color: Color.fromRGBO(34, 34, 34, 1),
+                  color: context.onSurfaceColor, // Theme-aware text
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -233,7 +246,11 @@ class _gridProductCartState extends State<gridProductCart>
                     fontFamily: 'Lato',
                     fontWeight: FontWeight.w400,
                     fontSize: 13,
-                    color: DefaultThemeColors.darklighter,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? DefaultThemeColors
+                            .lightDarker // Light color for dark mode
+                        : DefaultThemeColors
+                            .darklighter, // Dark color for light mode
                   ),
                 ),
 
@@ -246,17 +263,17 @@ class _gridProductCartState extends State<gridProductCart>
                         Icon(
                           Icons.sell_outlined,
                           size: 16,
-                          color: DefaultThemeColors.mainprimary,
+                          color: DefaultThemeColors.mainprimary, // Brand color
                         ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             '\u{20B9}${widget.lowestPrice} - \u{20B9}${widget.highestPrice}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               fontFamily: 'Lato',
-                              color: Color.fromRGBO(34, 34, 34, 1),
+                              color: context.onSurfaceColor, // Theme-aware text
                             ),
                           ),
                         ),
@@ -265,29 +282,31 @@ class _gridProductCartState extends State<gridProductCart>
                   : RichText(
                       text: TextSpan(
                         text: '\u{20B9}${widget.productprice}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           fontFamily: 'Lato',
-                          color: Color.fromRGBO(34, 34, 34, 1),
+                          color: context.onSurfaceColor, // Theme-aware text
                         ),
                         children: [
                           if (widget.discountrate.isNotEmpty) ...[
                             const TextSpan(text: '  '),
                             TextSpan(
                               text: '\u{20B9}${widget.discountprice}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w400,
                                 fontSize: 13,
                                 decoration: TextDecoration.lineThrough,
-                                color: Colors.grey,
+                                color: context
+                                    .onSurfaceVariantColor, // Theme-aware strikethrough
                               ),
                             ),
                             const TextSpan(text: ' '),
                             TextSpan(
                               text: widget.discountrate,
-                              style: const TextStyle(
-                                color: Colors.red,
+                              style: TextStyle(
+                                color: context
+                                    .errorColor, // Theme-aware discount color (red)
                                 fontWeight: FontWeight.w500,
                                 fontSize: 12,
                               ),

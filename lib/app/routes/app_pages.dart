@@ -33,6 +33,8 @@ import 'package:foduu_ecommerce/app/modules/onboarding/bindings/onboarding_bindi
 import 'package:foduu_ecommerce/app/modules/onboarding/views/onboarding_view.dart';
 import 'package:foduu_ecommerce/app/modules/product/bindings/product_binding.dart';
 import 'package:foduu_ecommerce/app/modules/product/views/product_view.dart';
+import 'package:foduu_ecommerce/app/modules/search/bindings/search_binding.dart';
+import 'package:foduu_ecommerce/app/modules/search/views/search_view.dart';
 import 'package:foduu_ecommerce/app/modules/shop/bindings/shop_binding.dart';
 import 'package:foduu_ecommerce/app/modules/shop/views/shop_view.dart';
 import 'package:foduu_ecommerce/app/modules/splashscreen/bindings/splashscreen_binding.dart';
@@ -86,6 +88,12 @@ class AppPages {
     //   page: () => const SignupView(),
     //   binding: SignupBinding(),
     // ),
+
+    GetPage(
+      name: _Paths.SEARCH,
+      page: () => SearchView(),
+      binding: SearchBinding(),
+    ),
 
     GetPage(
       name: _Paths.FOREGETPASSWORD,

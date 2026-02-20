@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 
 class AppTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -100,8 +101,14 @@ class AppTextField extends StatelessWidget {
         (isDark
             ? theme.colorScheme.surfaceVariant.withOpacity(0.3)
             : theme.colorScheme.surfaceVariant.withOpacity(0.5));
-    final defaultPrefixIconColor = prefixIconColor ?? theme.colorScheme.primary;
-    final defaultSuffixIconColor = suffixIconColor ?? theme.colorScheme.primary;
+    final defaultPrefixIconColor =
+        Theme.of(context).brightness == Brightness.dark
+            ? DefaultThemeColors.lightDarker
+            : DefaultThemeColors.lightOnBackground;
+    final defaultSuffixIconColor =
+        Theme.of(context).brightness == Brightness.dark
+            ? DefaultThemeColors.lightDarker
+            : DefaultThemeColors.lightOnBackground;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
