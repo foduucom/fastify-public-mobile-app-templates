@@ -28,6 +28,36 @@ class LoginView extends GetView<LoginController> {
     var height = Get.height;
 
     return Scaffold(
+      appBar: AppBar(
+        elevation: 0.0,
+        // leading: Transform.translate(
+        //   offset: Offset(15, 0),
+        //   child: Image.asset('assets/images/logo.png'),
+        // ),
+        leadingWidth: 77,
+        actions: [
+          InkWell(
+            onTap: () {
+              controller.box.write('isLogin', false);
+              Get.offAllNamed(Routes.BOTTOMBAR);
+            },
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.only(right: 10),
+                child: Text(
+                  'SKIP',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 16,
+                    fontFamily: 'Lato',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: ListView(
           physics: const BouncingScrollPhysics(),

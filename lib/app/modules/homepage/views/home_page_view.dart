@@ -13,6 +13,7 @@ import 'package:foduu_ecommerce/components/home_component/home_category.dart';
 import 'package:foduu_ecommerce/components/home_component/home_products.dart';
 import 'package:foduu_ecommerce/constants/app_loader.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
+import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -21,159 +22,14 @@ class HomePageView extends GetView<HomepageController> {
 
   @override
   Widget build(BuildContext context) {
-    var width = Get.width;
-    var height = Get.height;
-
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // MAIN CONTENT AREA - Use Expanded to fill remaining space
-            Expanded(
-              child: _homeBody(context),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _homeBody(BuildContext context) {
-    var width = Get.width;
-    var height = Get.height;
-
-    return SingleChildScrollView(
-      child: Padding(
-        padding: EdgeInsets.zero,
-        child: Column(
-          children: [
-            Obx(() {
-              print(
-                  'HomePage rebuilding... isLoading: ${controller.isLoading.value}');
-              print('widgetList length: ${controller.widgetList.length}');
-
-              if (controller.widgetList.isEmpty || controller.isLoading.value) {
-                // Show loading shimmer for entire page
-                return _buildLoadingShimmer(context, width, height);
-              }
-
-              // Build the entire UI by iterating through widgetList in order
-              return Column(
-                children: controller.widgetList.map((widget) {
-                  // You can add spacing between different widget types if needed
-                  return Column(
-                    children: [
-                      widget,
-                      // Add spacing after certain widget types
-                      if (widget is HomeBanner)
-                        SizedBox(height: height * 0.01)
-                      else if (widget is CategoryHome)
-                        SizedBox(height: height * 0.02)
-                      else if (widget is TrendingProductSection)
-                        SizedBox(height: height * 0.02)
-                      else
-                        SizedBox(height: height * 0.01),
-                    ],
-                  );
-                }).toList(),
-              );
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Helper method to build loading shimmer
-  Widget _buildLoadingShimmer(
-      BuildContext context, double width, double height) {
-    return Column(
-      children: [
-        // Banner shimmer
-        Shimmer.fromColors(
-          baseColor: Theme.of(context).brightness == Brightness.dark
-              ? Colors.grey[800]!
-              : Colors.grey[300]!,
-          highlightColor: Theme.of(context).brightness == Brightness.dark
-              ? Colors.grey[700]!
-              : Colors.grey[100]!,
-          child: Container(
-            width: double.infinity,
-            height: height * 0.18,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              color: Theme.of(context).cardColor,
-            ),
-          ),
-        ),
-
-        SizedBox(height: height * 0.02),
-
-        // Categories shimmer
-        SizedBox(
-          height: height * 0.06,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: 6,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.only(
-                  right: width * 0.03,
-                  left: index == 0 ? width * 0.05 : 0,
-                ),
-                child: Shimmer.fromColors(
-                  baseColor: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey[800]!
-                      : Colors.grey[300]!,
-                  highlightColor:
-                      Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey[700]!
-                          : Colors.grey[100]!,
-                  child: Container(
-                    width: width * 0.25,
-                    height: height * 0.045,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: Theme.of(context).cardColor,
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-
-        SizedBox(height: height * 0.03),
-
-        // Products grid shimmer
-        GridView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.65,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-          ),
-          itemCount: 4,
-          itemBuilder: (context, index) {
-            return Shimmer.fromColors(
-              baseColor: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey[800]!
-                  : Colors.grey[300]!,
-              highlightColor: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey[700]!
-                  : Colors.grey[100]!,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: Theme.of(context).cardColor,
-                ),
-              ),
-            );
-          },
-        ),
-      ],
+      body: FoduuStudioLayoutView(
+      widgetList: controller.widgetList,
+      isLoading: controller.isLoading,
+      onRefresh: () async {
+        await controller.getDashboardDesign(controller.pageSlug);
+      },
+     ),
     );
   }
 

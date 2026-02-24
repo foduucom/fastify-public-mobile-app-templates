@@ -1,37 +1,26 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
-import 'package:foduu_ecommerce/app/routes/app_pages.dart';
-import 'package:foduu_ecommerce/components/home_component/home_products.dart';
-import 'package:foduu_ecommerce/components/home_component/home_rich_text_component.dart';
-import 'package:foduu_ecommerce/components/home_component/home_slider.dart';
-import 'package:foduu_ecommerce/components/home_component/home_banner.dart';
-import 'package:foduu_ecommerce/components/home_component/home_blogs.dart';
-import 'package:foduu_ecommerce/components/home_component/home_category.dart';
-import 'package:foduu_ecommerce/components/home_component/home_common_widgets.dart';
-import 'package:foduu_ecommerce/components/home_component/home_price_filter.dart';
-import 'package:foduu_ecommerce/components/search_bar_rounded.dart';
-import 'package:foduu_ecommerce/constants/constants.dart';
-import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/helpers/socket_helper.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_mixin.dart';
 
-class HomepageController extends GetxController with BaseController {
+class HomepageController extends GetxController
+    with BaseController, FoduuStudioLayoutMixin {
   var selectcategory = 0.obs;
   var isLoading = true.obs;
   var box = GetStorage();
   final isLogin = false.obs;
-  var widgetList = [].obs;
   var blogList = [].obs;
   var notificatoinCount = 0.obs;
   var isDrawerNavigationLoading = false.obs;
   var drawernavigationItems = [].obs;
   final _socketHelper = SocketHelper();
   var dashboardDesign = {}.obs;
+  var pageSlug = 'home';
 
   // Created By
   RxInt currentIndex = 0.obs;
@@ -44,245 +33,25 @@ class HomepageController extends GetxController with BaseController {
   Future<void> onInit() async {
     super.onInit();
     getDrawerNavigation();
-    await getDashboardDesign('home');
+    await getDashboardDesign(pageSlug);
     if (kIsWeb) {
       _socketHelper.connect();
     }
   }
 
-  void getWidgetbyCategory() {
-    print('=== getWidgetbyCategory STARTED ===');
-    print('Reading from box: homeComponent');
-    final homeComponent = box.read('homeComponent') ?? [];
-    print('homeComponent length: ${homeComponent.length}');
-    widgetList.clear();
-
-    for (int i = 0; i < homeComponent.length; i++) {
-      var item = homeComponent[i];
-      print('Processing item ${i + 1}: type=${item['type']}');
-
-      // Get content_json - it might be a Map or might need parsing
-      var contentJson = item['content_json'];
-      print("Inner data of Sections ContentType: $contentJson");
-      print("Inner data of Sections Type: ${item['type']}");
-
-      // If contentJson is a String (JSON string), parse it
-      if (contentJson is String) {
-        try {
-          contentJson = jsonDecode(contentJson);
-        } catch (e) {
-          print('Error parsing content_json: $e');
-        }
-      }
-
-      // Convert to Map<String, dynamic> if it's a Map
-      Map<String, dynamic> typedContentJson = {};
-      if (contentJson is Map) {
-        // Cast to Map<String, dynamic>
-        typedContentJson = Map<String, dynamic>.from(contentJson);
-      }
-
-      switch (item['type']) {
-        case 'search':
-          // Search type doesn't have content_json in your API
-          // It just has an id and type
-          widgetList.add(Padding(
-            padding: pageSurroundingPadding,
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () {
-                Get.toNamed(Routes.SEARCH);
-              },
-              child: AbsorbPointer(
-                child: SearchBarRounded(
-                  onChanged: (p0) {
-                    print('search ...');
-                  },
-                  searchHintText: typedContentJson['placeholder'] ??
-                      'Search...', // Default placeholder
-                  SearchsController: SearchController(),
-                ),
-              ),
-            ),
-          ));
-          break;
-
-        case 'slider':
-          widgetList.add(FoduuSlider(sliderData: typedContentJson));
-          break;
-
-        case 'categories':
-          widgetList.add(CategoryHome(
-            categoryData: typedContentJson,
-          ));
-          break;
-
-        case 'blog':
-          widgetList.add(BlogSection(
-            blogData: typedContentJson,
-          ));
-          break;
-
-        case 'banner':
-          if (typedContentJson.isNotEmpty) {
-            widgetList.add(HomeBanner(bannerContent: typedContentJson));
-            print('HomeBanner added to widgetList');
-          }
-          break;
-
-        case 'price_filter':
-          widgetList.add(PriceFilter(contentJson: typedContentJson));
-          break;
-
-        case 'spacer':
-          widgetList.add(SpacerComponent(contentJson: typedContentJson));
-          break;
-
-        case 'divider':
-          widgetList.add(DividerComponent(contentJson: typedContentJson));
-          break;
-
-        case 'text_block':
-          widgetList.add(TextBlockComponent(contentJson: typedContentJson));
-          break;
-
-        case 'products':
-          widgetList.add(TrendingProductSection(
-            contentJson: typedContentJson,
-          ));
-          break;
-
-        case 'rich_text':
-          widgetList.add(RichTextComponent(contentJson: typedContentJson));
-          break;
-
-        default:
-          print('Unknown type: ${item['type']}');
-      }
-    }
-
-    print('=== getWidgetbyCategory COMPLETED ===');
-    print('widgetList length: ${widgetList.length}');
-    print(
-        'widgetList types: ${widgetList.map((w) => w.runtimeType.toString()).toList()}');
-
-    update(); // Make sure to call update() to refresh the UI
-  }
-
-  Future<dynamic> getDashboardDesign(String name) async {
+  Future<dynamic> getDashboardDesign(String slug,
+      {dynamic? requestBody}) async {
     try {
-      // var response = {
-      //   "content_json": [
-      //     {
-      //       "type": "banner",
-      //       "content_json": {
-      //         "banners": [
-      //           {
-      //             "id": "test_carousel",
-      //             "type": "horizontal_scroll",
-      //             "layout": "card_peek",
-      //             "items": [
-      //               {
-      //                 "featured_image":
-      //                     "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200&h=600&fit=crop",
-      //                 "link_type": "product",
-      //                 "link": {"value": "prod_001", "label": "Test Product"}
-      //               },
-      //               {
-      //                 "featured_image":
-      //                     "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1200&h=600&fit=crop",
-      //                 "link_type": "category",
-      //                 "link": {"value": "cat_002", "label": "Test Category"}
-      //               }
-      //             ],
-      //             "config": {
-      //               // "auto_play": true,
-      //               // "auto_play_interval": 3000,
-      //               // "show_indicators": true,
-      //               // "height": 200,
-      //               // "border_radius": 02
-      //               "card_width": 0.85,
-      //               "card_height": 180,
-      //               "peek_amount": 40,
-      //               "spacing": 12,
-      //               "border_radius": 16
-      //             }
-      //           }
-      //         ]
-      //       }
-      //     }
-      //   ]
-      // };
+      isLoading.value = true;
 
-      isLoading(true);
+      var response = await fetchLayout(slug, requestBody: requestBody);
 
-      var response = await BasicProvider("mobile-app/69708c1b6968f244e799ea6a")
-          .getRequest();
-
-      print('✅ API Response received');
-      print('Response keys: ${response?.keys}');
-
-      if (response != null) {
-        // Handle theme colors
-        if (response['theme_color'] != null) {
-          print('🎨 Theme colors found in API response');
-          // Update your theme manager with the colors
-          DynamicThemeManager().updateFromApi(response['theme_color']);
-
-          // Trigger theme refresh
-          Get.find<ThemeController>().refreshTheme();
-        }
-
-        // Handle sections
-        var sections = response['sections'];
-        if (sections != null && sections is List) {
-          // Make sure to handle any JSON strings in content_json
-          for (var section in sections) {
-            if (section['content_json'] is String) {
-              try {
-                section['content_json'] = jsonDecode(section['content_json']);
-              } catch (e) {
-                print('Error parsing section content_json: $e');
-              }
-            }
-          }
-
-          box.write('homeComponent', sections);
-          getWidgetbyCategory();
-        }
-      }
-
-      if (kIsWeb) {
-        _setupSocketListener("69708c1b6968f244e799ea6a");
-      }
       return response;
     } catch (e) {
-      print('home page controller error $e');
+      print('home page controller getDashboardDesign error $e');
     } finally {
-      isLoading(false);
+      isLoading.value = false;
     }
-  }
-
-  void _setupSocketListener(String slug) {
-    final eventName = 'dashboard-update-$slug';
-
-    _socketHelper.off(eventName);
-
-    _socketHelper.on(eventName, (data) {
-      print('Received socket update for $eventName: $data');
-
-      if (data != null) {
-        dashboardDesign.value = data;
-
-        // ✅ FIX: Also use 'sections' here
-        var sections = data[
-            'sections']; // Changed from 'sections' to 'sections' (it was already correct)
-        if (sections != null && sections is List) {
-          box.write('homeComponent', sections);
-          getWidgetbyCategory();
-        }
-      }
-    });
   }
 
   Future<dynamic> getDrawerNavigation() async {
@@ -293,12 +62,14 @@ class HomepageController extends GetxController with BaseController {
           .getRequest()
           .catchError(handleError);
 
-      var list = response['value'];
-      drawernavigationItems.assignAll(list);
+      if (response != null) {
+        var list = response['value'];
+        drawernavigationItems.assignAll(list);
+      }
 
       return response;
     } catch (e) {
-      print('home page controller error $e');
+      print('home page controller getDrawerNavigation error $e');
     } finally {
       isDrawerNavigationLoading.value = false;
     }

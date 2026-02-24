@@ -4,8 +4,8 @@ import 'package:foduu_ecommerce/components/drawerList.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 // import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:get/get.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:font_awesome_flutter/name_icon_mapping.dart';
+// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+// import 'package:font_awesome_flutter/name_icon_mapping.dart';
 
 class CustomDrawer extends GetView<HomepageController> {
   const CustomDrawer({super.key});
@@ -59,14 +59,14 @@ class CustomDrawer extends GetView<HomepageController> {
     final iconName = item['icon'] ?? '';
     final children = item['children'] ?? [];
 
-    final icon = FaIcon(
-      faIconNameMapping[iconName],
-      size: 18,
-    );
+    // final icon = FaIcon(
+    //   faIconNameMapping[iconName],
+    //   size: 18,
+    // );
 
     if (children.isNotEmpty) {
       return ExpansionTile(
-        leading: icon,
+        leading: Icon(Icons.arrow_forward_ios),
         title: Text(
           text,
           style: const TextStyle(
@@ -88,7 +88,7 @@ class CustomDrawer extends GetView<HomepageController> {
     }
 
     return DrawerTile(
-      icon: icon,
+      icon: Icon(Icons.arrow_forward_ios),
       title: text,
       onTap: () {
         Get.back();

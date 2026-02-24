@@ -191,32 +191,25 @@ class BottombarController extends GetxController with BaseController {
         : Get.offAllNamed(Routes.LOGIN);
   }
 
-  // getUserDetails() async {
-  //   // var details = AuthDetails.getUserDetails();
-  //   // if (details != null) {
-  //   //   var usertoken = AuthDetails.getUserDetails();
-  //   //   final f = await AuthDetails().updateUserDetailsFromServer();
-  //   //   print(f);
-  //   //   // authDetails.addAll();
-  //   // }
+  getUserDetails() async {
+    // var details = AuthDetails.getUserDetails();
+    // if (details != null) {
+    //   var usertoken = AuthDetails.getUserDetails();
+    //   final f = await AuthDetails().updateUserDetailsFromServer();
+    //   print(f);
+    //   // authDetails.addAll();
+    // }
 
-  //   try {
-  //     if (AuthDetails.isUserLogin()) {
-  //       var userBoxData = box.read('userData');
-  //       if (userBoxData != null) {
-  //         var userDetails = await AuthDetails().updateUserDetailsFromServer();
-  //         authDetails.addAll(userDetails);
-  //       }
-  //     }
-  //   } catch (e) {
-  //     print('bottom bar controller error $e');
-  //   }
-  // }
-
-  List appTitle = [
-    {"name": "Category"},
-    {"name": "Shop"},
-    {"name": "Wishlist"},
-    {"name": "Profile"},
-  ].obs;
+    try {
+      if (AuthDetails.isUserLogin()) {
+        var userBoxData = box.read('userData');
+        if (userBoxData != null) {
+          var userDetails = await AuthDetails().updateUserDetailsFromServer();
+          authDetails.addAll(userDetails);
+        }
+      }
+    } catch (e) {
+      print('bottom bar controller error $e');
+    }
+  }
 }

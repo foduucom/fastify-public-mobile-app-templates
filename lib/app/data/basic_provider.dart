@@ -96,6 +96,10 @@ class BasicProvider {
       return null;
     }
 
+    print('Request headers: ${headerType()}'); // This will show auth tokens
+    print('Request body: ${jsonEncode(form)}');
+    print('Request url: ${fetchUrl()}');
+
     try {
       final client = CookieClientManager.getClient();
 
