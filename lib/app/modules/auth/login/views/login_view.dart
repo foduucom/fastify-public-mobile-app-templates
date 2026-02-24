@@ -12,7 +12,6 @@ import 'package:foduu_ecommerce/app/modules/auth/login/components/app_password_f
 import 'package:foduu_ecommerce/app/modules/auth/login/components/app_social_button.dart';
 import 'package:foduu_ecommerce/app/modules/auth/login/components/app_text.dart';
 import 'package:foduu_ecommerce/app/modules/auth/login/components/app_text_field.dart';
-import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/buttons/primary_action_button.dart';
 import 'package:get/get.dart';
 import '../controllers/login_controller.dart';
@@ -30,10 +29,6 @@ class LoginView extends GetView<LoginController> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0.0,
-        // leading: Transform.translate(
-        //   offset: Offset(15, 0),
-        //   child: Image.asset('assets/images/logo.png'),
-        // ),
         leadingWidth: 77,
         actions: [
           InkWell(
@@ -119,244 +114,264 @@ class LoginView extends GetView<LoginController> {
             SizedBox(height: height * 0.05),
 
             // Form Section
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Email Field
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AppText(
-                      "Email",
-                      fontSize: height * 0.016,
-                      height: 1.5,
-                      letterSpacing: 0,
-                      fontWeight: FontWeight.w600,
-                      //color: context.onSurfaceColor,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.lightDarker
-                          : DefaultThemeColors.lightOnBackground,
-                    ),
-                    SizedBox(height: 4),
-                    AppTextField(
-                      controller: controller.emailController,
-                      hintText: "Insert Your Email Here",
-                      keyboardType: TextInputType.emailAddress,
-                      prefixIcon: Icons.email_outlined,
-                      fontSize: height * 0.0165,
-                      textColor: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.darklighter
-                          : DefaultThemeColors.lightDarker,
-                      hintColor: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.darklighter
-                          : DefaultThemeColors.lightDarker,
-                      borderColor: DefaultThemeColors.mainprimary,
-                      focusColor: DefaultThemeColors.mainprimary,
-                      disabledColor:
-                          Theme.of(context).brightness == Brightness.dark
-                              ? DefaultThemeColors.darklighter
-                              : DefaultThemeColors.lightDarker,
-                      fillColor:
-                          context.surfaceColor, // Theme-aware background color
-                      validator: (value) {
-                        if (value == null || value.isEmpty)
-                          return 'Please enter your email';
-                        if (!value.contains('@'))
-                          return 'Please enter a valid email';
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
+            Form(
+              key: controller.formKey,
+              child: Column(
+                children: [
+                  // Email Field
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppText(
+                        "Email",
+                        fontSize: height * 0.016,
+                        height: 1.5,
+                        letterSpacing: 0,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? DefaultThemeColors.lightDarker
+                            : DefaultThemeColors.lightOnBackground,
+                      ),
+                      SizedBox(height: 4),
+                      AppTextField(
+                        controller: controller.emailController,
+                        hintText: "Insert Your Email Here",
+                        keyboardType: TextInputType.emailAddress,
+                        prefixIcon: Icons.email_outlined,
+                        fontSize: height * 0.0165,
+                        textColor:
+                            Theme.of(context).brightness == Brightness.dark
+                                ? DefaultThemeColors.darklighter
+                                : DefaultThemeColors.lightDarker,
+                        hintColor:
+                            Theme.of(context).brightness == Brightness.dark
+                                ? DefaultThemeColors.darklighter
+                                : DefaultThemeColors.lightDarker,
+                        borderColor: DefaultThemeColors.mainprimary,
+                        focusColor: DefaultThemeColors.mainprimary,
+                        disabledColor:
+                            Theme.of(context).brightness == Brightness.dark
+                                ? DefaultThemeColors.darklighter
+                                : DefaultThemeColors.lightDarker,
+                        fillColor: Theme.of(context).colorScheme.surface,
+                        validator: (value) {
+                          if (value == null || value.isEmpty)
+                            return 'Please enter your email';
+                          if (!value.contains('@'))
+                            return 'Please enter a valid email';
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
 
-                SizedBox(height: height * 0.02),
+                  SizedBox(height: height * 0.02),
 
-                // Password Field
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AppText(
-                      "Password",
-                      fontWeight: FontWeight.w600,
-                      fontSize: height * 0.016,
-                      height: 1.5,
-                      letterSpacing: 0,
-                      //color: context.onSurfaceColor,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.lightDarker
-                          : DefaultThemeColors.lightOnBackground,
-                    ),
-                    SizedBox(height: 4),
-                    AppPasswordField(
-                      controller: controller.passwordController,
-                      isVisible: controller.obsecuretext,
-                      onToggle: controller.togglePasswordVisibility,
-                      fontSize: height * 0.0165,
-                      hintText: "Insert your password",
-                      validator: (value) {
-                        if (value == null || value.isEmpty)
-                          return 'Please enter your password';
-                        if (value.length < 6)
-                          return 'Password must be at least 6 characters';
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
+                  // Password Field
+                  Obx(
+                    () => controller.isOtpMode.value
+                        ? SizedBox()
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AppText(
+                                "Password",
+                                fontWeight: FontWeight.w600,
+                                fontSize: height * 0.016,
+                                height: 1.5,
+                                letterSpacing: 0,
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? DefaultThemeColors.lightDarker
+                                    : DefaultThemeColors.lightOnBackground,
+                              ),
+                              SizedBox(height: 4),
+                              AppPasswordField(
+                                controller: controller.passwordController,
+                                isVisible: controller.obsecuretext,
+                                onToggle: controller.togglePasswordVisibility,
+                                fontSize: height * 0.0165,
+                                hintText: "Insert your password",
+                                validator: (value) {
+                                  if (value == null || value.isEmpty)
+                                    return 'Please enter your password';
+                                  if (value.length < 6)
+                                    return 'Password must be at least 6 characters';
+                                  return null;
+                                },
+                              ),
+                            ],
+                          ),
+                  ),
 
-                SizedBox(height: height * 0.02),
+                  SizedBox(height: height * 0.02),
 
-                // Remember Me & Forgot Password
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: width * 0.05,
-                          height: width * 0.05,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: context.outlineColor,
-                              width: 1,
+                  // Remember Me & Forgot Password
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: width * 0.05,
+                            height: width * 0.05,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outline,
+                                width: 1,
+                              ),
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.check,
+                                size: width * 0.025,
+                                color: Colors.transparent,
+                              ),
                             ),
                           ),
-                          child: Center(
-                            child: Icon(
-                              Icons.check,
-                              size: width * 0.025,
-                              color: Colors.transparent,
+                          SizedBox(width: width * 0.02),
+                          Text(
+                            "Remember me",
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontWeight: FontWeight.w600,
+                              fontSize: width * 0.035,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                           ),
-                        ),
-                        SizedBox(width: width * 0.02),
-                        Text(
-                          "Remember me",
+                        ],
+                      ),
+                      InkWell(
+                        onTap: () {
+                          print('CLICKED ON Submit Button');
+                          Get.toNamed(Routes.FORGETPASSWORD);
+                        },
+                        child: Text(
+                          "Forgot Password",
                           style: TextStyle(
                             fontFamily: 'Plus Jakarta Sans',
                             fontWeight: FontWeight.w600,
                             fontSize: width * 0.035,
-                            color: context.onSurfaceVariantColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    InkWell(
-                      onTap: () {
-                        print('CLICKED ON Submit Button');
-                        Get.toNamed(Routes.FORGETPASSWORD);
-                      },
-                      child: Text(
-                        "Forgot Password",
-                        style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontWeight: FontWeight.w600,
-                          fontSize: width * 0.035,
-                          color: DefaultThemeColors.alertErrorLighter,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                SizedBox(height: height * 0.03),
-
-                // Sign In Button
-                PrimaryActionButton(
-                  text: "Sign In",
-                  backgroundColor: DefaultThemeColors.mainprimary,
-                  textColor: DefaultThemeColors.lightOnPrimary,
-                  onPressed: () {
-                    //controller.signIn();
-                    Get.toNamed(Routes.BOTTOMBAR);
-                  },
-                ),
-
-                SizedBox(height: height * 0.03),
-
-                // Divider with "Or sign in with"
-                Row(
-                  children: [
-                    Expanded(
-                      child: Divider(
-                        color: context.outlineColor,
-                        thickness: 1,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        "Or sign in with :",
-                        style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                          color: context.onSurfaceVariantColor,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Divider(
-                        color: context.outlineColor,
-                        thickness: 1,
-                      ),
-                    ),
-                  ],
-                ),
-
-                SizedBox(height: height * 0.03),
-
-                // Social Login Buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    AppSocialButton(imagePath: 'assets/images/google.png'),
-                    SizedBox(width: width * 0.05),
-                    AppSocialButton(imagePath: 'assets/images/apple.png'),
-                    SizedBox(width: width * 0.05),
-                    AppSocialButton(imagePath: 'assets/images/facebook.png'),
-                  ],
-                ),
-
-                SizedBox(height: height * 0.04),
-
-                // Sign Up Link
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Don\'t have an account?',
-                        style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontSize: width * 0.04,
-                          color: context.onSurfaceVariantColor,
-                        ),
-                      ),
-                      SizedBox(width: width * 0.01),
-                      InkWell(
-                        onTap: () {
-                          print('CLICKED ON CREATE AN ACCOUNT');
-                          Get.toNamed(Routes.REGISTER);
-                        },
-                        child: Text(
-                          'Sign up',
-                          style: TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            fontSize: width * 0.04,
-                            fontWeight: FontWeight.bold,
-                            color: DefaultThemeColors.mainprimary,
+                            color: DefaultThemeColors.alertErrorLighter,
                           ),
                         ),
                       ),
                     ],
                   ),
-                ),
 
-                // Extra space at bottom for keyboard
-                SizedBox(height: height * 0.05),
-              ],
+                  SizedBox(height: height * 0.03),
+
+                  // Sign In Button
+                  Obx(() {
+                    if (controller.isLoading.value) {
+                      return Center(
+                        child: const CircularProgressIndicator(),
+                      );
+                    } else {
+                      return PrimaryActionButton(
+                        text:
+                            controller.isOtpMode.value ? 'Send OTP' : 'Sign In',
+                        backgroundColor: DefaultThemeColors.mainprimary,
+                        textColor: DefaultThemeColors.lightOnPrimary,
+                        onPressed: () {
+                          print('Login click click click lickc ');
+                          HelperFunctions().closeKeyboard(context);
+                          controller.onSubmit();
+                        },
+                      );
+                    }
+                  }),
+
+                  SizedBox(height: height * 0.03),
+
+                  // Divider with "Or sign in with"
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Divider(
+                          color: Theme.of(context).colorScheme.outline,
+                          thickness: 1,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          "Or sign in with :",
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Divider(
+                          color: Theme.of(context).colorScheme.outline,
+                          thickness: 1,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: height * 0.03),
+
+                  // Social Login Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AppSocialButton(imagePath: 'assets/images/google.png'),
+                      SizedBox(width: width * 0.05),
+                      AppSocialButton(imagePath: 'assets/images/apple.png'),
+                      SizedBox(width: width * 0.05),
+                      AppSocialButton(imagePath: 'assets/images/facebook.png'),
+                    ],
+                  ),
+
+                  SizedBox(height: height * 0.04),
+
+                  // Sign Up Link
+                  Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Don\'t have an account?',
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: width * 0.04,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        SizedBox(width: width * 0.01),
+                        InkWell(
+                          onTap: () {
+                            print('CLICKED ON CREATE AN ACCOUNT');
+                            Get.toNamed(Routes.REGISTER);
+                          },
+                          child: Text(
+                            'Sign up',
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: width * 0.04,
+                              fontWeight: FontWeight.bold,
+                              color: DefaultThemeColors.mainprimary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Extra space at bottom for keyboard
+                  SizedBox(height: height * 0.05),
+                ],
+              ),
             ),
           ],
         ),

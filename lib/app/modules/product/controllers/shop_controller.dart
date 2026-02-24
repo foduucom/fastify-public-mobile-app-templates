@@ -34,43 +34,43 @@ class ShopController extends GetxController
 
   var offerConrnerPrice;
 
+  // Add these variables to your ShopController
+  var childCategories = <String>[].obs; // Store child category IDs
+  var isLoadingCategories = false.obs;
+  var parentCategoryName = ''.obs;
+
   late AnimationController controller;
   late Animation<double> scaleAnimation;
 
+  // Update onInit method
   @override
   Future<void> onInit() async {
     scrollController = ScrollController();
-
     arguments.addAll(Get.arguments);
     source = arguments['source'];
 
     if (source == 'offerCorner') {
       offerConrnerPrice = arguments['price'];
       collectionName = arguments['name'];
-
       getOfferConrnerProducts(offerConrnerPrice);
     } else if (source == 'dashboard') {
       productId = arguments['productId'];
       collectionName = arguments['name'];
       producttype = arguments['productype'];
       dashBoardproducts(productType: producttype);
-      // categoryId.addAll(productId);
     } else if (source == 'category') {
-      productId = arguments['productId'];
-      collectionName = arguments['name'];
-      getCategoryWiseProduct(productId);
+      productId = arguments[
+          'productId']; // This is "699d60029883b0f8f191f668" (T-shirts)
+      collectionName = arguments['name']; // This is "T-shirts"
+
+      // Extract children IDs first
+      await fetchCategoryChildren(productId);
+      // Then fetch products using the children IDs
+      await getCategoryWiseProduct(productId);
     }
-
-    // if (producttype != null) {
-    // } else {
-    //   categoryId.add(productId);
-
-    //   await getCategoryWiseProduct(categoryId);
-    // }
 
     await fetchProductOnScroll();
     await getMaxMinPriceFilter();
-    currentRangeValues.value.start.val(filterMaxPrice.toString());
 
     controller = AnimationController(
       vsync: this,
@@ -189,20 +189,156 @@ class ShopController extends GetxController
     update();
   }
 
+// Add this method to fetch and extract children IDs - FIXED VERSION
+  Future<void> fetchCategoryChildren(String targetCategoryId) async {
+    try {
+      isLoadingCategories(true);
+      print(
+          '🟡 fetchCategoryChildren STARTED for categoryId: $targetCategoryId');
+
+      // Use the correct endpoint that returns the full category structure
+      var response = await BasicProvider('mobile-app/category')
+          .getRequest()
+          .catchError(handleError);
+
+      print('📦 Full API Response received');
+
+      if (response == null) {
+        print('❌ Response is null');
+        return;
+      }
+
+      print('📦 Response keys: ${response.keys}');
+
+      if (response['data'] == null) {
+        print('❌ response["data"] is null');
+        return;
+      }
+
+      // Parse the response to find the category and extract its children
+      if (response['data']['sections'] != null) {
+        print('✅ Found sections in response');
+
+        for (var section in response['data']['sections']) {
+          print('📂 Section type: ${section['type']}');
+
+          if (section['type'] == 'categories' &&
+              section['content_json'] != null) {
+            print('✅ Found categories section');
+
+            var contentJson = section['content_json'];
+            print('📄 content_json keys: ${contentJson.keys}');
+
+            if (contentJson['categories'] != null) {
+              var categories = contentJson['categories'];
+              print('📋 Total categories found: ${categories.length}');
+
+              // Search through all categories recursively
+              await _searchCategoryTree(categories, targetCategoryId);
+            }
+          }
+        }
+      } else {
+        print('❌ No sections found in response');
+      }
+
+      if (childCategories.isEmpty) {
+        print(
+            '❌ No category found with ID: $targetCategoryId or it has no children');
+        // Fallback: use the target ID itself
+        childCategories.add(targetCategoryId);
+      }
+
+      print('✅ Final childCategories: $childCategories');
+    } catch (e) {
+      print('❌ Error in fetchCategoryChildren: $e');
+      print('❌ Stack trace: ${StackTrace.current}');
+    } finally {
+      isLoadingCategories(false);
+    }
+  }
+
+// Helper method to recursively search through category tree
+  Future<void> _searchCategoryTree(List categories, String targetId) async {
+    for (var category in categories) {
+      String currentId = category['_id'] ?? category['id'] ?? '';
+
+      // Check if this is the category we're looking for
+      if (currentId == targetId) {
+        parentCategoryName.value = category['name'] ?? 'Unknown';
+        print('✅ Found target category: ${parentCategoryName.value}');
+
+        // EXTRACT CHILDREN IDs
+        if (category['children'] != null && category['children'].isNotEmpty) {
+          // Handle both formats: array of strings or array of objects
+          if (category['children'].first is String) {
+            // Children are stored as strings (IDs)
+            childCategories.value = List<String>.from(category['children']);
+          } else {
+            // Children are stored as objects, extract their IDs
+            childCategories.value = category['children'].map<String>((child) {
+              return child['_id'] ?? child['id'] ?? '';
+            }).toList();
+          }
+          print('📋 Extracted CHILDREN IDs: $childCategories');
+        } else {
+          print('ℹ️ No children found for this category');
+        }
+        return;
+      }
+
+      // If this category has children, search through them recursively
+      if (category['children'] != null && category['children'].isNotEmpty) {
+        await _searchCategoryTree(category['children'], targetId);
+        if (childCategories.isNotEmpty) return; // Found it, stop searching
+      }
+    }
+  }
+
+// Modified getCategoryWiseProduct
   Future<void> getCategoryWiseProduct(var categories) async {
     isLoading(true);
-    var response = await BasicProvider(
-            'public/product/categorywise/?count=10&page=$currentPage')
-        .postRequest(
-      {
-        "categories": categories,
-      },
-    ).catchError(handleError);
-    if (response == null) return;
-    allProductList.addAll(response['data']);
-    maxPage(response["last_page"]);
-    isLoading(false);
-    update();
+
+    try {
+      // First, fetch children for this category
+      if (categories is String) {
+        await fetchCategoryChildren(categories);
+      }
+
+      List<String> categoriesToFetch = [];
+
+      // Use child categories if available
+      if (childCategories.isNotEmpty) {
+        categoriesToFetch = childCategories;
+        print('📦 Using CHILDREN category IDs: $categoriesToFetch');
+      } else {
+        // Fallback to the original category
+        categoriesToFetch = [categories is String ? categories : categories[0]];
+        print('📦 Using parent category ID as fallback: $categoriesToFetch');
+      }
+
+      // Fetch products using the categories
+      if (categoriesToFetch.isNotEmpty) {
+        print('🚀 Fetching products for categories: $categoriesToFetch');
+
+        var response = await BasicProvider(
+                'public/product/categorywise/?count=10&page=$currentPage')
+            .postRequest({
+          "categories": categoriesToFetch,
+        }).catchError(handleError);
+
+        if (response == null) return;
+
+        allProductList.addAll(response['data']);
+        maxPage(response["last_page"]);
+        print('✅ Loaded ${response['data'].length} products');
+      }
+    } catch (e) {
+      print('❌ Error in getCategoryWiseProduct: $e');
+    } finally {
+      isLoading(false);
+      update();
+    }
   }
 
   Future<void> fetchProductOnScroll() async {
@@ -225,47 +361,6 @@ class ShopController extends GetxController
         }
       }
     });
-  }
-  // Future<void> fetchProductOnScroll() async {
-  //   scrollController.addListener(() async {
-  //     if (scrollController.position.pixels ==
-  //         scrollController.position.minScrollExtent) {
-
-  //     }
-
-  //     if (scrollController.position.pixels >=
-  //         scrollController.position.maxScrollExtent - 50.0) {
-  //       if (currentPage.value < maxPage.value) {
-  //         currentPage(currentPage.value + 1);
-  //         print('Fetching next page');
-  //         if (isFilter.value == true) {
-  //           filterProducts();
-  //         } else {
-  //           if (source == 'offerCorner') {
-  //             await getOfferConrnerProducts(offerConrnerPrice);
-  //           } else if (source == 'dashboard') {
-  //             await dashBoardproducts(productType: producttype);
-  //           } else if (source == 'category') {
-  //             await getCategoryWiseProduct(productId);
-  //           }
-  //         }
-  //       }
-  //     }
-  //   });
-  // }
-
-  void gotProductDetails(item) {
-    // if (allProductList[item]['type'] == "simple") {
-    // Get.to(() => ProductdetailView(),
-    //     binding: ShopBinding(),
-    //     arguments: {'productId': allProductList[item]['_id']});
-    // }
-    // Get.to(() => ProductdetailView(),
-    //     arguments: {'productId': allProductList[item]['_id']});
-    // if (allProductList[item]['type'] == "variant") {
-    //   Get.to(() => ProductvariantView(),
-    //       binding: ShopBinding(), arguments: allProductList[item]);
-    // }
   }
 
   @override

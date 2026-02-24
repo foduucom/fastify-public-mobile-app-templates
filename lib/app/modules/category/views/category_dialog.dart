@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
-import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_navigation/src/extension_navigation.dart';
 
 class CategoryDialog extends StatelessWidget {
   final Map<String, dynamic> category;
@@ -34,15 +34,17 @@ class CategoryDialog extends StatelessWidget {
         ),
         padding: EdgeInsets.all(width * 0.053),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.min, // This is important!
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header with title and close button
             _buildHeader(context, height),
+
             SizedBox(height: height * 0.02),
 
             // Category image
             _buildCategoryImage(context, height),
+
             SizedBox(height: height * 0.02),
 
             // Subcategories list
@@ -105,6 +107,7 @@ class CategoryDialog extends StatelessWidget {
   Widget _buildSubcategoriesSection(
       BuildContext context, double height, List children) {
     return Column(
+      mainAxisSize: MainAxisSize.min, // Add this
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -117,11 +120,16 @@ class CategoryDialog extends StatelessWidget {
           ),
         ),
         SizedBox(height: height * 0.001),
-        Flexible(
+
+        // Use Container with constraints instead of Flexible
+        Container(
+          constraints: BoxConstraints(
+            maxHeight: height * 0.4, // Limit the height of the list
+          ),
           child: ListView.separated(
             physics: const BouncingScrollPhysics(),
             itemCount: children.length,
-            shrinkWrap: true,
+            shrinkWrap: true, // Important for ListView in Column
             separatorBuilder: (_, __) => SizedBox(height: height * 0.005),
             itemBuilder: (context, index) {
               final childCategory = children[index];

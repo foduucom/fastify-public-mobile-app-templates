@@ -239,7 +239,8 @@ class OtpController extends GetxController with BaseController {
       // Navigate
       isLoading(false);
       HelperFunctions().showSnackBarSuccess('Welcome to Foduu Cart!');
-      Get.toNamed(Routes.CREATENEWPASSWORD);
+      //Get.toNamed(Routes.CREATENEWPASSWORD);
+      Get.offAllNamed(Routes.BOTTOMBAR);
     } catch (e, stackTrace) {
       print('Error in _handleSuccessResponse: $e');
       print('Stack trace: $stackTrace');

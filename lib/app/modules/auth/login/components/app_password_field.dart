@@ -9,6 +9,7 @@ class AppPasswordField extends StatelessWidget {
   final String hintText;
   final double fontSize;
   final String? Function(String?)? validator;
+  final bool enableInteractiveSelection; // ADD THIS
 
   const AppPasswordField({
     super.key,
@@ -18,6 +19,7 @@ class AppPasswordField extends StatelessWidget {
     required this.fontSize,
     required this.hintText,
     this.validator,
+    this.enableInteractiveSelection = true, // ADD THIS WITH DEFAULT
   });
 
   OutlineInputBorder _border(Color color) => OutlineInputBorder(
@@ -34,6 +36,7 @@ class AppPasswordField extends StatelessWidget {
         height: height * 0.07,
         child: TextFormField(
           controller: controller,
+          enableInteractiveSelection: enableInteractiveSelection,
           obscureText: !isVisible.value,
           validator: validator,
           style: TextStyle(

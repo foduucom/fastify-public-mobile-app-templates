@@ -10,8 +10,8 @@ var socketUrl = "https://studio.vbought.com/";
 //var ACCESS_KEY = '3220a65ef5a53f06d689f394fd17da90cd04e25fa2c7f073';
 
 // BY ONE GET ONE FREE API KEY
-// 53b2b97b6a31dbdc644321261f63bb7be1b251dddc211bbe
-var ACCESS_KEY = '53b2b97b6a31dbdc644321261f63bb7be1b251dddc211bbe';
+// f9f6040c1bcafe23210613993a7acf3b8b87d5972cbff49a
+var ACCESS_KEY = 'f9f6040c1bcafe23210613993a7acf3b8b87d5972cbff49a';
 
 var assetURL = "${url}images/";
 var apiURL = "${url}api/";

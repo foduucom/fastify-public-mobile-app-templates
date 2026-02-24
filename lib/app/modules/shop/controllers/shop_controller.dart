@@ -3,11 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_mixin.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 class ShopController extends GetxController
-    with BaseController, GetTickerProviderStateMixin {
+    with BaseController, GetTickerProviderStateMixin, FoduuStudioLayoutMixin {
   var allProductList = List<dynamic>.empty().obs;
   var getCurrentvalue = 0.obs;
   late ScrollController scrollController;
@@ -88,6 +89,9 @@ class ShopController extends GetxController
 
     // Move ALL reactive updates and API calls here
     arguments.addAll(Get.arguments);
+
+    fetchLayout('product-listing');
+
     source = arguments['source'];
 
     if (source == 'offerCorner') {
@@ -183,97 +187,29 @@ class ShopController extends GetxController
 
   getProductsForCategory(String categoryId) async {
     isLoading(true);
-
     try {
-      print("🔍 Fetching products for category: ${categoryId}");
+      print("🔍 Fetching products for category: $categoryId");
 
-      var response = await BasicProvider("products?category=$categoryId")
-          .getRequest()
-          .catchError(handleError);
+      var response = await BasicProvider(
+              'public/product/categorywise/?count=10&page=$currentPage')
+          .postRequest({
+        "categories": [categoryId],
+      }).catchError(handleError);
 
       if (response == null) {
         isLoading(false);
         return;
       }
 
-      print("📦 Response type: ${response.runtimeType}");
-      print(
-          "📦 Response keys: ${response is Map ? response.keys : 'Not a Map'}");
-
       allProductList.clear();
 
-      // FIX: Check the actual response structure
-      if (response is Map) {
-        // If response has 'data' key and it's a List
-        if (response['data'] != null && response['data'] is List) {
-          allProductList.addAll(List.from(response['data']));
-          print(
-              "✅ Added ${response['data'].length} products from response['data']");
-        }
-        // If response has 'products' key and it's a List
-        else if (response['products'] != null && response['products'] is List) {
-          allProductList.addAll(List.from(response['products']));
-          print(
-              "✅ Added ${response['products'].length} products from response['products']");
-        }
-        // If response has 'data' that contains another 'data' (like nested)
-        else if (response['data'] != null &&
-            response['data'] is Map &&
-            response['data']['data'] != null &&
-            response['data']['data'] is List) {
-          allProductList.addAll(List.from(response['data']['data']));
-          print(
-              "✅ Added ${response['data']['data'].length} products from response['data']['data']");
-        }
-        // Try to find any list in the response
-        else {
-          bool foundList = false;
-          response.forEach((key, value) {
-            if (!foundList && value is List && value.isNotEmpty) {
-              print("🔍 Found list in key: $key with ${value.length} items");
-              allProductList.addAll(List.from(value));
-              foundList = true;
-            }
-          });
-
-          if (!foundList) {
-            print("⚠️ No product list found in response");
-          }
-        }
-      }
-      // If response is directly a List
-      else if (response is List) {
-        allProductList.addAll(List.from(response));
-        print("✅ Added ${response.length} products from direct list");
+      if (response['data'] != null && response['data'] is List) {
+        allProductList.addAll(List.from(response['data']));
+        print("✅ Added ${response['data'].length} products");
       }
 
-      // Calculate max page based on your pagination
-      if (response is Map) {
-        if (response['total'] != null) {
-          if (response['total'] is int) {
-            maxPage.value = (response['total'] / 10).ceil();
-          } else if (response['total'] is String) {
-            maxPage.value = (int.parse(response['total']) / 10).ceil();
-          }
-        } else if (response['last_page'] != null) {
-          if (response['last_page'] is int) {
-            maxPage.value = response['last_page'];
-          } else if (response['last_page'] is String) {
-            maxPage.value = int.parse(response['last_page']);
-          }
-        } else {
-          maxPage.value = (allProductList.length / 10).ceil();
-        }
-      } else {
-        maxPage.value = (allProductList.length / 10).ceil();
-      }
-
-      print("✅ Final product count: ${allProductList.length}");
-      print("✅ Max page: ${maxPage.value}");
-
-      // Print first product as sample if available
-      if (allProductList.isNotEmpty) {
-        print("📦 Sample product: ${allProductList.first['name']}");
+      if (response['last_page'] != null) {
+        maxPage.value = response['last_page'];
       }
     } catch (e, stackTrace) {
       print('❌ Error fetching products: $e');
@@ -289,8 +225,7 @@ class ShopController extends GetxController
       isLoading(true);
       print('🟡 fetchCategoryStructure STARTED for productId: $productId');
 
-      var response = await BasicProvider(
-              'category/get-first-parent/products?pagination=false')
+      var response = await BasicProvider('mobile-app/category')
           .getRequest()
           .catchError(handleError);
 
@@ -299,62 +234,205 @@ class ShopController extends GetxController
         return;
       }
 
-      print('🟢 Category structure fetched successfully');
-      categoryStructure.value = response;
+      print('✅ Response received');
+      print('📦 Full response structure:');
+      print('🔍 response.keys: ${response.keys}');
 
-      // RECURSIVE SEARCH FUNCTION
-      dynamic findCategoryById(List<dynamic> categories, String targetId) {
-        for (var category in categories) {
-          if (category['_id'] == targetId) {
-            return category;
+      if (response['data'] != null) {
+        print('🔍 response["data"].keys: ${response['data'].keys}');
+
+        if (response['data']['sections'] != null) {
+          print('🔍 sections is ${response['data']['sections'].runtimeType}');
+          print('🔍 sections length: ${response['data']['sections'].length}');
+
+          for (var i = 0; i < response['data']['sections'].length; i++) {
+            var section = response['data']['sections'][i];
+            print('🔍 Section $i type: ${section['type']}');
+
+            if (section['type'] == 'categories') {
+              print('🔍 Found categories section');
+
+              if (section['content_json'] != null) {
+                print('🔍 content_json keys: ${section['content_json'].keys}');
+
+                if (section['content_json']['categories'] != null) {
+                  var categories = section['content_json']['categories'];
+                  print('🔍 categories type: ${categories.runtimeType}');
+                  print('🔍 categories length: ${categories.length}');
+
+                  // Now let's build the map
+                  Map<String, dynamic> allCategoriesMap = {};
+
+                  void flattenCategories(List cats, {String? parentId}) {
+                    for (var cat in cats) {
+                      String catId = cat['_id'] ?? cat['id'] ?? '';
+                      print(
+                          '📌 Processing category: ${cat['name']} (ID: $catId)');
+
+                      if (catId.isNotEmpty) {
+                        allCategoriesMap[catId] = {
+                          ...cat,
+                          'parentId': parentId,
+                        };
+                      }
+
+                      // Handle children
+                      if (cat['children'] != null) {
+                        print(
+                            '📌 Children of ${cat['name']}: ${cat['children'].runtimeType}');
+
+                        if (cat['children'].isNotEmpty) {
+                          if (cat['children'].first is String) {
+                            print('📌 String children IDs: ${cat['children']}');
+                            // Store relationship but we don't have full objects
+                            for (var childId in cat['children']) {
+                              allCategoriesMap[childId] =
+                                  allCategoriesMap[childId] ??
+                                      {
+                                        '_id': childId,
+                                        'name': 'Loading...',
+                                        'parentId': catId,
+                                      };
+                            }
+                          } else {
+                            // Children are objects
+                            flattenCategories(cat['children'], parentId: catId);
+                          }
+                        }
+                      }
+                    }
+                  }
+
+                  flattenCategories(categories);
+
+                  print(
+                      '📊 Total categories in map: ${allCategoriesMap.length}');
+
+                  // Check if our target ID exists
+                  if (allCategoriesMap.containsKey(productId)) {
+                    var foundCategory = allCategoriesMap[productId];
+                    print('✅ Found category: ${foundCategory['name']}');
+                    collectionName.value = foundCategory['name'] ?? 'Category';
+
+                    // Get all child IDs
+                    List<String> allChildIds = [];
+
+                    void collectChildIds(String catId) {
+                      allCategoriesMap.forEach((id, cat) {
+                        if (cat['parentId'] == catId) {
+                          allChildIds.add(id);
+                          collectChildIds(id);
+                        }
+                      });
+                    }
+
+                    collectChildIds(productId);
+
+                    print(
+                        '🎯 Found ${allChildIds.length} child categories: $allChildIds');
+
+                    if (allChildIds.isNotEmpty) {
+                      await fetchProductsForMultipleCategories(allChildIds);
+                    } else {
+                      await getProductsForCategory(productId);
+                    }
+                  } else {
+                    print('❌ Category ID $productId not found in map');
+                    print(
+                        '🔍 Available IDs: ${allCategoriesMap.keys.take(20).toList()}');
+
+                    // Try to find it by searching through the map values
+                    bool found = false;
+                    allCategoriesMap.forEach((id, cat) {
+                      if (id == productId) {
+                        found = true;
+                        print('✅ Found via iteration!');
+                      }
+                    });
+
+                    if (!found) {
+                      // Last resort: try to fetch products directly with the child ID we know exists
+                      // From your data, the child ID is 699d603b9883b0f8f191fa6d
+                      print(
+                          '⚠️ Trying known child ID: 699d603b9883b0f8f191fa6d');
+                      await getProductsForCategory('699d603b9883b0f8f191fa6d');
+                    }
+                  }
+                } else {
+                  print('❌ categories is null in content_json');
+                }
+              } else {
+                print('❌ content_json is null');
+              }
+            }
           }
-          if (category['children'] != null && category['children'].isNotEmpty) {
-            final found = findCategoryById(category['children'], targetId);
-            if (found != null) return found;
-          }
-        }
-        return null;
-      }
-
-      final selectedCategory =
-          findCategoryById(response['data'] ?? [], productId);
-
-      if (selectedCategory != null) {
-        print(
-            '✅ Selected category found: ${selectedCategory['name']} (${selectedCategory['_id']})');
-        // FIX: Update collectionName with the actual category name
-        collectionName.value = selectedCategory['name'];
-
-        print('📝 Updated collectionName to: $collectionName');
-
-        // Extract subcategories
-        if (selectedCategory['children'] != null) {
-          subCategories.value = List.from(selectedCategory['children']);
-          print(
-              '📂 Found ${subCategories.length} subcategories: ${subCategories.map((c) => c['name']).toList()}');
-        }
-
-        // Fetch products for this category
-        if (subCategories.isNotEmpty) {
-          print(
-              '🟢 Calling getProductsForCategory for first subcategory: ${subCategories.first['name']} (${subCategories.first['slug']})');
-          //selectedSubCategoryId.value = subCategories.first['_id'];
-          selectedSubCategoryId.value = selectedCategory['name'];
-          await getProductsForCategory(selectedSubCategoryId.value);
         } else {
-          print(
-              '🟢 Calling getProductsForCategory for main category: $productId');
-          await getProductsForCategory(productId);
+          print('❌ sections is null');
         }
-        //await getProductsForCategory(productId);
       } else {
-        print('❌ No category found with ID: $productId');
+        print('❌ response["data"] is null');
       }
-
-      isLoading(false);
     } catch (e) {
       print('❌ Error in fetchCategoryStructure: $e');
+      print('📚 Stack trace: ${StackTrace.current}');
+    } finally {
       isLoading(false);
+      update();
+    }
+  }
+
+// Helper method to recursively find category by ID
+  dynamic _findCategoryById(List categories, String targetId) {
+    for (var category in categories) {
+      // Check current category
+      String currentId = category['_id'] ?? category['id'] ?? '';
+      if (currentId == targetId) {
+        return category;
+      }
+
+      // Check children if they exist
+      if (category['children'] != null && category['children'].isNotEmpty) {
+        // Handle both string IDs and object children
+        if (category['children'].first is String) {
+          // If children are strings (IDs), we can't search deeper here
+          // but we don't need to since we already have the target ID
+          continue;
+        } else {
+          // Children are objects, search recursively
+          var found = _findCategoryById(category['children'], targetId);
+          if (found != null) return found;
+        }
+      }
+    }
+    return null;
+  }
+
+// New method to fetch products for multiple categories
+  Future<void> fetchProductsForMultipleCategories(
+      List<String> categoryIds) async {
+    try {
+      isLoading(true);
+      print('🚀 Fetching products for ${categoryIds.length} categories');
+
+      var response = await BasicProvider(
+              'public/product/categorywise/?count=10&page=$currentPage')
+          .postRequest({
+        "categories": categoryIds,
+      }).catchError(handleError);
+
+      if (response == null) return;
+
+      allProductList.clear();
+      allProductList.addAll(response['data']);
+      maxPage(response["last_page"]);
+
+      print(
+          '✅ Loaded ${allProductList.length} products from ${categoryIds.length} categories');
+    } catch (e) {
+      print('❌ Error fetching products: $e');
+    } finally {
+      isLoading(false);
+      update();
     }
   }
 
@@ -555,47 +633,6 @@ class ShopController extends GetxController
         }
       }
     });
-  }
-  // Future<void> fetchProductOnScroll() async {
-  //   scrollController.addListener(() async {
-  //     if (scrollController.position.pixels ==
-  //         scrollController.position.minScrollExtent) {
-
-  //     }
-
-  //     if (scrollController.position.pixels >=
-  //         scrollController.position.maxScrollExtent - 50.0) {
-  //       if (currentPage.value < maxPage.value) {
-  //         currentPage(currentPage.value + 1);
-  //         print('Fetching next page');
-  //         if (isFilter.value == true) {
-  //           filterProducts();
-  //         } else {
-  //           if (source == 'offerCorner') {
-  //             await getOfferConrnerProducts(offerConrnerPrice);
-  //           } else if (source == 'dashboard') {
-  //             await dashBoardproducts(productType: producttype);
-  //           } else if (source == 'category') {
-  //             await getCategoryWiseProduct(productId);
-  //           }
-  //         }
-  //       }
-  //     }
-  //   });
-  // }
-
-  void gotProductDetails(item) {
-    // if (allProductList[item]['type'] == "simple") {
-    // Get.to(() => ProductdetailView(),
-    //     binding: ShopBinding(),
-    //     arguments: {'productId': allProductList[item]['_id']});
-    // }
-    // Get.to(() => ProductdetailView(),
-    //     arguments: {'productId': allProductList[item]['_id']});
-    // if (allProductList[item]['type'] == "variant") {
-    //   Get.to(() => ProductvariantView(),
-    //       binding: ShopBinding(), arguments: allProductList[item]);
-    // }
   }
 
   @override

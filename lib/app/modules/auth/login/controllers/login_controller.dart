@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
+import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_settings_helper.dart';
-import 'package:foduu_ecommerce/app/modules/auth/login/provider/provider.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
-class LoginController extends GetxController {
+class LoginController extends GetxController with BaseController {
   var obsecuretext = true.obs;
   var isLoading = false.obs;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -14,7 +16,7 @@ class LoginController extends GetxController {
   var password = "";
 
   final box = GetStorage();
-  final AuthProvider authProvider = AuthProvider();
+  //final AuthProvider authProvider = AuthProvider();
 
   // Auth type from settings
   var isOtpMode = false.obs;
@@ -64,26 +66,32 @@ class LoginController extends GetxController {
     try {
       var form = {
         'email': emailController.text,
-        // 'device_details': await HelperFunctions.getDeviceDetails(),
+        'device_details': await HelperFunctions.getDeviceDetails(),
       };
 
-      if (isOtpMode.value) {
-        // form['otp'] = passwordController.text;
-      } else {
+      if (!isOtpMode.value) {
         form['password'] = passwordController.text;
       }
+
       print('form form form ${form.toString()}');
 
-      var response = await authProvider.sendLoginRequest(form);
+      var response = await BasicProvider('auth/login')
+          .postRequest(form)
+          .catchError(handleError);
 
       if (response != null) {
-        // _handleLoginSuccess(response);
-        // AuthDetails().
-        box.write('isLogin', true);
-        Get.offAllNamed(Routes.BOTTOMBAR);
+        if (!isOtpMode.value) {
+          HelperFunctions().showSnackBarSuccess(response);
+          Get.toNamed(Routes.OTP, arguments: {'email': emailController.text});
+        } else {
+          // Get.toNamed(Routes.BOTTOMBAR);
+          HelperFunctions().showSnackBarSuccess(response);
+          Get.toNamed(Routes.OTP, arguments: {'email': emailController.text});
+        }
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('Login error: $e');
+      print('Login stackTrace: $stackTrace');
     } finally {
       isLoading(false);
     }

@@ -33,6 +33,7 @@ class AppTextField extends StatelessWidget {
   final bool autofocus;
   final TextCapitalization textCapitalization;
   final List<TextInputFormatter>? inputFormatters;
+  final bool enableInteractiveSelection; // ADD THIS
 
   const AppTextField({
     super.key,
@@ -66,6 +67,7 @@ class AppTextField extends StatelessWidget {
     this.autofocus = false,
     this.textCapitalization = TextCapitalization.none,
     this.inputFormatters,
+    this.enableInteractiveSelection = true, // ADD THIS WITH DEFAULT
   });
 
   OutlineInputBorder _border({
@@ -141,6 +143,7 @@ class AppTextField extends StatelessWidget {
           autofocus: autofocus,
           textCapitalization: textCapitalization,
           inputFormatters: inputFormatters,
+          enableInteractiveSelection: enableInteractiveSelection,
           style: TextStyle(
             fontFamily: 'Plus Jakarta Sans',
             fontSize: fontSize ?? 14,

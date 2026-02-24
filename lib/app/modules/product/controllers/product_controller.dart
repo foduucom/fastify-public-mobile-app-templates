@@ -144,43 +144,63 @@ class ProductController extends GetxController
     }
   }
 
-  // Update selected variant when size/color changes
   void updateSelectedVariant() {
-    // Case 1: Both color and size exist
+    // Case 1: Both colors and sizes exist
     if (colors.isNotEmpty && sizes.isNotEmpty) {
-      String variantName =
-          '${colors[selectedColorIndex.value]} / ${sizes[selectedSizeIndex.value]}';
+      String selectedColor = colors[selectedColorIndex.value];
+      String selectedSize = sizes[selectedSizeIndex.value];
 
-      int variantIndex = productDetials['variants']
-          .indexWhere((variant) => variant['variant_name'] == variantName);
+      // Try different possible formats for combined variant
+      List<String> possibleFormats = [
+        '$selectedColor / $selectedSize', // "Red / L"
+        '$selectedColor/$selectedSize', // "Red/L"
+        '$selectedColor - $selectedSize', // "Red - L"
+        '$selectedColor $selectedSize', // "Red L"
+        '${selectedColor.toLowerCase()} / ${selectedSize.toLowerCase()}', // "red / l"
+        '${selectedColor.toLowerCase()}/${selectedSize.toLowerCase()}', // "red/l"
+      ];
+
+      int variantIndex = -1;
+      for (String format in possibleFormats) {
+        variantIndex = productDetials['variants'].indexWhere((variant) =>
+            variant['variant_name']?.toString().toLowerCase() ==
+            format.toLowerCase());
+        if (variantIndex != -1) break;
+      }
 
       if (variantIndex != -1) {
         selectedVariantIndex.value = variantIndex;
         selectedImageIndex.value = 0;
+        print(
+            "Selected combined variant: ${productDetials['variants'][variantIndex]}");
       }
     }
-    // Case 2: Only color exists
+    // Case 2: Only colors exist
     else if (colors.isNotEmpty && sizes.isEmpty) {
-      String variantName = colors[selectedColorIndex.value];
+      String selectedColor = colors[selectedColorIndex.value].toLowerCase();
 
-      int variantIndex = productDetials['variants']
-          .indexWhere((variant) => variant['variant_name'] == variantName);
+      int variantIndex = productDetials['variants'].indexWhere((variant) =>
+          variant['variant_name']?.toString().toLowerCase() == selectedColor);
 
       if (variantIndex != -1) {
         selectedVariantIndex.value = variantIndex;
         selectedImageIndex.value = 0;
+        print(
+            "Selected color variant: ${productDetials['variants'][variantIndex]}");
       }
     }
-    // Case 3: Only size exists
+    // Case 3: Only sizes exist (your current case)
     else if (colors.isEmpty && sizes.isNotEmpty) {
-      String variantName = sizes[selectedSizeIndex.value];
+      String selectedSize = sizes[selectedSizeIndex.value].toLowerCase();
 
-      int variantIndex = productDetials['variants']
-          .indexWhere((variant) => variant['variant_name'] == variantName);
+      int variantIndex = productDetials['variants'].indexWhere((variant) =>
+          variant['variant_name']?.toString().toLowerCase() == selectedSize);
 
       if (variantIndex != -1) {
         selectedVariantIndex.value = variantIndex;
         selectedImageIndex.value = 0;
+        print(
+            "Selected size variant: ${productDetials['variants'][variantIndex]}");
       }
     }
   }
@@ -200,14 +220,14 @@ class ProductController extends GetxController
     }
   }
 
-  dynamic validCheck() {
-    if (checkController.text.isEmpty) {
-      return 'Please enter a PIN code';
-    } else if (checkController.text.length < 6) {
-      return 'PIN code must be at least 6 characters';
-    }
-    return null;
-  }
+  // dynamic validCheck() {
+  //   if (checkController.text.isEmpty) {
+  //     return 'Please enter a PIN code';
+  //   } else if (checkController.text.length < 6) {
+  //     return 'PIN code must be at least 6 characters';
+  //   }
+  //   return null;
+  // }
 
   List color = [
     const Color(0xFFE6E6FA),
@@ -257,9 +277,88 @@ class ProductController extends GetxController
     isLoading.value = false;
 
     productDetials.value = response;
+
     if (productDetials['gallery'] != null) {
       productGallery.value = productDetials['gallery'];
     }
+
+    // First try to extract from attributes (more reliable)
+    if (productDetials['attributes'] != null &&
+        productDetials['attributes'].isNotEmpty) {
+      var attributes = productDetials['attributes'];
+
+      for (var attr in attributes) {
+        String attrName = attr['name']?.toString().toLowerCase() ?? '';
+
+        if (attrName.contains('color')) {
+          // Extract colors from attributes
+          List<String> colorValues = List<String>.from(attr['values'] ?? []);
+          colors.assignAll(colorValues);
+          print("Extracted colors from attributes: $colors");
+        } else if (attrName.contains('size')) {
+          // Extract sizes from attributes
+          List<String> sizeValues = List<String>.from(attr['values'] ?? []);
+          sizes.assignAll(sizeValues);
+          print("Extracted sizes from attributes: $sizes");
+        }
+      }
+    }
+
+    // If attributes didn't have data, extract from variants
+    if (sizes.isEmpty && colors.isEmpty) {
+      if (productDetials['variants'] != null) {
+        List<dynamic> variants = productDetials['variants'];
+
+        Set<String> uniqueSizes = {};
+        Set<String> uniqueColors = {};
+
+        for (var variant in variants) {
+          String variantName =
+              variant['variant_name']?.toString().toLowerCase() ?? '';
+
+          // Check if it's a size
+          if (variantName.contains('s') ||
+              variantName.contains('m') ||
+              variantName.contains('l') ||
+              variantName.contains('xl') ||
+              variantName.contains('xxl') ||
+              variantName.contains('xs')) {
+            uniqueSizes.add(variantName.toUpperCase());
+          }
+          // Check if it's a color (common color names)
+          else if (variantName.contains('red') ||
+              variantName.contains('blue') ||
+              variantName.contains('green') ||
+              variantName.contains('black') ||
+              variantName.contains('white') ||
+              variantName.contains('yellow') ||
+              variantName.contains('purple') ||
+              variantName.contains('pink') ||
+              variantName.contains('brown') ||
+              variantName.contains('gray') ||
+              variantName.contains('grey')) {
+            uniqueColors
+                .add(variantName[0].toUpperCase() + variantName.substring(1));
+          }
+          // If it's not clearly a size or color, check the variant's attributes if available
+          else if (variant['attributes'] != null) {
+            // You can add logic here to check variant-specific attributes
+            // For now, just add to colors
+            uniqueColors
+                .add(variantName[0].toUpperCase() + variantName.substring(1));
+          }
+        }
+
+        sizes.assignAll(uniqueSizes.toList());
+        colors.assignAll(uniqueColors.toList());
+
+        print("Extracted sizes from variants: $sizes");
+        print("Extracted colors from variants: $colors");
+      }
+    }
+
+    // Initialize selectors with the extracted data
+    initializeSelectors();
   }
 
   // void getVariantDetails() {
