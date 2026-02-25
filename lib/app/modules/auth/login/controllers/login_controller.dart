@@ -99,8 +99,6 @@ class LoginController extends GetxController with BaseController {
 
   @override
   void onClose() {
-    emailController.dispose();
-    passwordController.dispose();
     super.onClose();
   }
 }

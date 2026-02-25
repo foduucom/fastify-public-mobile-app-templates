@@ -24,12 +24,12 @@ class HomePageView extends GetView<HomepageController> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: FoduuStudioLayoutView(
-      widgetList: controller.widgetList,
-      isLoading: controller.isLoading,
-      onRefresh: () async {
-        await controller.getDashboardDesign(controller.pageSlug);
-      },
-     ),
+        widgetList: controller.widgetList,
+        isLoading: controller.isLoading,
+        onRefresh: () async {
+          await controller.getDashboardDesign(controller.pageSlug);
+        },
+      ),
     );
   }
 

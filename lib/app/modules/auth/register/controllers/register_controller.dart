@@ -88,6 +88,10 @@ class RegisterController extends GetxController {
     }
 
     print('Form submitted with checkbox: ${isChecked.value}');
+
+    // Hide keyboard before starting the registration process
+    FocusManager.instance.primaryFocus?.unfocus();
+
     isLoading(true);
 
     try {
@@ -218,6 +222,15 @@ class RegisterController extends GetxController {
 
       HelperFunctions().showSnackBarSuccess(message.toString());
 
+      // HIDE KEYBOARD FIRST - This is crucial
+      FocusManager.instance.primaryFocus?.unfocus();
+
+      // Wait for the next frame to ensure everything is settled
+      await WidgetsBinding.instance.endOfFrame;
+
+      // Add another small delay
+      await Future.delayed(const Duration(milliseconds: 50));
+
       // Directly navigate to add profile
       print('Registration successful, navigating to add profile');
       Get.toNamed(Routes.ADDPROFILE);
@@ -228,6 +241,11 @@ class RegisterController extends GetxController {
     } else {
       // Handle unexpected success structure
       HelperFunctions().showSnackBarSuccess('Registration Successful!');
+
+      // HIDE KEYBOARD FIRST
+      FocusManager.instance.primaryFocus?.unfocus();
+      await Future.delayed(const Duration(milliseconds: 100));
+
       Get.toNamed(Routes.ADDPROFILE);
     }
   }
