@@ -24,30 +24,14 @@ class _HomeBannerState extends State<HomeBanner>
 
   String getImage(Map<String, dynamic> bannerItem) {
     final featuredImage = bannerItem['featured_image'];
-    print('getImage called with: $featuredImage');
-    // return HelperFunctions().getImage(featuredImage);
-    // Check if featuredImage is null or empty
-    if (featuredImage == null || featuredImage.isEmpty) {
-      print('featuredImage is null or empty');
-      return ''; // Return empty string or a placeholder
-    }
-
-    // ✅ Get the filepath from the featured_image object
-    final filepath = featuredImage['filepath'];
-    final fullUrl = 'https://testdemo.foduu.com/images/$filepath';
-    print('Constructed from filepath: $fullUrl');
-    return fullUrl;
+    return HelperFunctions().getImage(featuredImage);
   }
 
   @override
   void initState() {
-    print('HomeBanner initState called');
-    print('bannerContent: ${widget.bannerContent}');
     homeController = Get.find<HomepageController>();
     if (widget.bannerContent['banners'] != null) {
       banners = widget.bannerContent['banners'];
-      print('banners count: ${banners.length}');
-      print('banners data: $banners');
     }
     super.initState();
   }
@@ -55,9 +39,6 @@ class _HomeBannerState extends State<HomeBanner>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    print('HomeBanner build called');
-    print('banners.isEmpty: ${banners.isEmpty}');
-
     if (banners.isEmpty) return const SizedBox();
 
     return Column(
@@ -68,16 +49,9 @@ class _HomeBannerState extends State<HomeBanner>
   }
 
   Widget _buildBannerByType(Map<String, dynamic> banner) {
-    print('_buildBannerByType called');
-    print('banner data: $banner');
-
     final type = banner['type'] ?? 'single';
     final items = banner['items'] ?? [];
     final config = banner['config'] ?? {};
-
-    print('Type: $type');
-    print('Items count: ${items.length}');
-    print('Config: $config');
 
     if (items.isEmpty) return const SizedBox();
 
@@ -89,10 +63,8 @@ class _HomeBannerState extends State<HomeBanner>
       case 'grid':
         return _buildGridBanner(items, config);
       case 'stacked_cards':
-        print('Building stacked cards banner');
         return _buildStackedCardsBanner(items, config);
       case 'single':
-        print('Building single banner');
         return _buildSingleBanner(items, config);
       default:
         return _buildSingleBanner(items, config);
@@ -175,9 +147,6 @@ class _HomeBannerState extends State<HomeBanner>
 
   // Stacked Cards Banner
   Widget _buildStackedCardsBanner(List items, Map<String, dynamic> config) {
-    print('🖼️ _buildStackedCards called');
-    print('📋 Item: $items');
-
     final visibleCards = config['visible_cards'] ?? 2;
     final cardHeight = config['card_height']?.toDouble() ?? 200.0;
     final overlapOffset = config['overlap_offset']?.toDouble() ?? 20.0;
@@ -227,15 +196,8 @@ class _HomeBannerState extends State<HomeBanner>
 
   // Single Banner
   Widget _buildSingleBanner(List items, Map<String, dynamic> config) {
-    print('_buildSingleBanner called');
-    print('Items: $items');
-    print('Config: $config');
-
     final height = config['height']?.toDouble() ?? 150.0;
     final borderRadius = config['border_radius']?.toDouble() ?? 10.0;
-
-    print('Height: $height');
-    print('Border radius: $borderRadius');
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
@@ -254,9 +216,6 @@ class _HomeBannerState extends State<HomeBanner>
   }
 
   Widget _buildCachedImage(Map<String, dynamic> item) {
-    print('🖼️ _buildCachedImage called');
-    print('📋 Item: $item');
-
     return CachedNetworkImage(
       fit: BoxFit.cover,
       imageUrl: getImage(item),

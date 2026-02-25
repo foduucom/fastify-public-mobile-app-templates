@@ -20,13 +20,17 @@ class SocketHelper {
       return;
     }
 
-    _socket = IO.io(socketUrl, {
+    _socket = IO.io(
+      socketUrl,
       IO.OptionBuilder()
           .setTransports(['websocket'])
           .disableAutoConnect()
-          .setExtraHeaders({'access_key': ACCESS_KEY, 'roomid': ''})
-          .build()
-    });
+          .setExtraHeaders({
+            'access_key': ACCESS_KEY,
+            'roomid': '',
+          })
+          .build(),
+    );
 
     _socket!.connect();
 

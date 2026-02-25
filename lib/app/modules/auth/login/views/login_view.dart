@@ -1,25 +1,18 @@
 // ignore_for_file: prefer_const_constructors
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
-import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
-import 'package:foduu_ecommerce/components/foduuformtextfield.dart';
-import 'package:foduu_ecommerce/constants/constants.dart';
-import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
-import 'package:foduu_ecommerce/constants/helper_functions.dart';
-import 'package:foduu_ecommerce/app/modules/auth/login/components/app_password_field.dart';
 import 'package:foduu_ecommerce/app/modules/auth/login/components/app_social_button.dart';
 import 'package:foduu_ecommerce/app/modules/auth/login/components/app_text.dart';
 import 'package:foduu_ecommerce/app/modules/auth/login/components/app_text_field.dart';
 import 'package:foduu_ecommerce/components/buttons/primary_action_button.dart';
+import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import '../controllers/login_controller.dart';
 
 class LoginView extends GetView<LoginController> {
-  LoginView({Key? key}) : super(key: key);
-
-  final loginController = Get.put(LoginController());
+  const LoginView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +59,6 @@ class LoginView extends GetView<LoginController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // First Row
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -92,10 +84,7 @@ class LoginView extends GetView<LoginController> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 8),
-
-                  // Description
                   AppText(
                     "Log in to Mono and experience a faster, easier way to send and receive money.",
                     fontSize: height * 0.018,
@@ -113,12 +102,12 @@ class LoginView extends GetView<LoginController> {
 
             SizedBox(height: height * 0.05),
 
-            // Form Section
+            // Form Section - OTP Only (No Password Field)
             Form(
               key: controller.formKey,
               child: Column(
                 children: [
-                  // Email Field
+                  // Email Field Only
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -135,7 +124,7 @@ class LoginView extends GetView<LoginController> {
                       SizedBox(height: 4),
                       AppTextField(
                         controller: controller.emailController,
-                        hintText: "Insert Your Email Here",
+                        hintText: "Enter your email",
                         keyboardType: TextInputType.emailAddress,
                         prefixIcon: Icons.email_outlined,
                         fontSize: height * 0.0165,
@@ -154,130 +143,28 @@ class LoginView extends GetView<LoginController> {
                                 ? DefaultThemeColors.darklighter
                                 : DefaultThemeColors.lightDarker,
                         fillColor: Theme.of(context).colorScheme.surface,
-                        validator: (value) {
-                          if (value == null || value.isEmpty)
-                            return 'Please enter your email';
-                          if (!value.contains('@'))
-                            return 'Please enter a valid email';
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: height * 0.02),
-
-                  // Password Field
-                  Obx(
-                    () => controller.isOtpMode.value
-                        ? SizedBox()
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              AppText(
-                                "Password",
-                                fontWeight: FontWeight.w600,
-                                fontSize: height * 0.016,
-                                height: 1.5,
-                                letterSpacing: 0,
-                                color: Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? DefaultThemeColors.lightDarker
-                                    : DefaultThemeColors.lightOnBackground,
-                              ),
-                              SizedBox(height: 4),
-                              AppPasswordField(
-                                controller: controller.passwordController,
-                                isVisible: controller.obsecuretext,
-                                onToggle: controller.togglePasswordVisibility,
-                                fontSize: height * 0.0165,
-                                hintText: "Insert your password",
-                                validator: (value) {
-                                  if (value == null || value.isEmpty)
-                                    return 'Please enter your password';
-                                  if (value.length < 6)
-                                    return 'Password must be at least 6 characters';
-                                  return null;
-                                },
-                              ),
-                            ],
-                          ),
-                  ),
-
-                  SizedBox(height: height * 0.02),
-
-                  // Remember Me & Forgot Password
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: width * 0.05,
-                            height: width * 0.05,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Theme.of(context).colorScheme.outline,
-                                width: 1,
-                              ),
-                            ),
-                            child: Center(
-                              child: Icon(
-                                Icons.check,
-                                size: width * 0.025,
-                                color: Colors.transparent,
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: width * 0.02),
-                          Text(
-                            "Remember me",
-                            style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontWeight: FontWeight.w600,
-                              fontSize: width * 0.035,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                      InkWell(
-                        onTap: () {
-                          print('CLICKED ON Submit Button');
-                          Get.toNamed(Routes.FORGETPASSWORD);
-                        },
-                        child: Text(
-                          "Forgot Password",
-                          style: TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            fontWeight: FontWeight.w600,
-                            fontSize: width * 0.035,
-                            color: DefaultThemeColors.alertErrorLighter,
-                          ),
-                        ),
+                        //validator: controller.validEmail,
                       ),
                     ],
                   ),
 
                   SizedBox(height: height * 0.03),
 
-                  // Sign In Button
+                  // Send OTP Button
                   Obx(() {
                     if (controller.isLoading.value) {
                       return Center(
-                        child: const CircularProgressIndicator(),
+                        child: CircularProgressIndicator(
+                          color: DefaultThemeColors.mainprimary,
+                        ),
                       );
                     } else {
                       return PrimaryActionButton(
-                        text:
-                            controller.isOtpMode.value ? 'Send OTP' : 'Sign In',
+                        text: 'Send OTP',
                         backgroundColor: DefaultThemeColors.mainprimary,
                         textColor: DefaultThemeColors.lightOnPrimary,
                         onPressed: () {
-                          print('Login click click click lickc ');
+                          print('Send OTP button clicked');
                           HelperFunctions().closeKeyboard(context);
                           controller.onSubmit();
                         },
@@ -324,11 +211,20 @@ class LoginView extends GetView<LoginController> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      AppSocialButton(imagePath: 'assets/images/google.png'),
+                      AppSocialButton(
+                        imagePath: 'assets/images/google.png',
+                        //onPressed: controller.handleGoogleSignIn,
+                      ),
                       SizedBox(width: width * 0.05),
-                      AppSocialButton(imagePath: 'assets/images/apple.png'),
+                      AppSocialButton(
+                        imagePath: 'assets/images/apple.png',
+                        //onPressed: controller.handleAppleSignIn,
+                      ),
                       SizedBox(width: width * 0.05),
-                      AppSocialButton(imagePath: 'assets/images/facebook.png'),
+                      AppSocialButton(
+                        imagePath: 'assets/images/facebook.png',
+                        //onPressed: controller.handleFacebookSignIn,
+                      ),
                     ],
                   ),
 
@@ -351,7 +247,7 @@ class LoginView extends GetView<LoginController> {
                         SizedBox(width: width * 0.01),
                         InkWell(
                           onTap: () {
-                            print('CLICKED ON CREATE AN ACCOUNT');
+                            print('Sign up clicked');
                             Get.toNamed(Routes.REGISTER);
                           },
                           child: Text(
@@ -368,7 +264,6 @@ class LoginView extends GetView<LoginController> {
                     ),
                   ),
 
-                  // Extra space at bottom for keyboard
                   SizedBox(height: height * 0.05),
                 ],
               ),

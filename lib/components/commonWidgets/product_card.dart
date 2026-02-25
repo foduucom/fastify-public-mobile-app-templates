@@ -1,12 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:foduu_ecommerce/app/modules/product/views/product_view.dart';
-import 'package:foduu_ecommerce/app/modules/wishlist/controllers/wishlist_controller.dart';
-import 'package:foduu_ecommerce/components/commonWidgets/simple_price_text.dart';
-import 'package:foduu_ecommerce/components/commonWidgets/variable_price_text.dart';
-import 'package:foduu_ecommerce/constants/helper_functions.dart';
-import 'package:foduu_ecommerce/constants/product_helper.dart';
+import '/app/modules/product/views/product_view.dart';
+import '/app/modules/wishlist/controllers/wishlist_controller.dart';
+import '/constants/helper_functions.dart';
+import '/constants/product_helper.dart';
+import '/constants/dynamic_theme.dart';
 import 'package:get/get.dart';
 
 /// Reusable Product Card Widget
@@ -23,8 +22,8 @@ class ProductCard extends StatefulWidget {
     required this.product,
     this.onTap,
     this.onWishlistToggle,
-    this.width = 160,
-    this.imageHeight = 180,
+    this.width,
+    this.imageHeight,
   });
 
   @override
@@ -83,8 +82,9 @@ class _ProductCardState extends State<ProductCard>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final height = Get.height;
+    final width = widget.width ?? Get.width * 0.4;
+    final imageHeight = widget.imageHeight ?? height * 0.18;
 
     // Get product information using helper
     final productName = ProductHelper.getProductName(widget.product);
@@ -93,35 +93,58 @@ class _ProductCardState extends State<ProductCard>
     final priceInfo = ProductHelper.calculatePriceInfo(widget.product);
     final productType = priceInfo['productType'];
 
-    return GestureDetector(
+    // Get store name (you'll need to adjust this based on your data structure)
+    final storeName = widget.product['storeName'] ?? 'Store Name';
+
+    // Get rating (you'll need to adjust this based on your data structure)
+    final rating = widget.product['rating'] ?? 4.5;
+
+    // Get theme data explicitly to avoid extension conflicts
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(height * 0.015),
       onTap: _handleProductTap,
-      child: SizedBox(
-        width: widget.width,
+      child: Container(
+        padding: EdgeInsets.all(width * 0.02),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(height * 0.015),
+          border: Border.all(
+            color: colorScheme.outline, // Using colorScheme directly
+            width: 1,
+          ),
+        ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Product Image with Wishlist Icon
             Stack(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(5),
-                  child: CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    height: widget.imageHeight,
-                    width: widget.width,
-                    fit: BoxFit.cover,
-                    progressIndicatorBuilder: (context, url, progress) =>
-                        HelperFunctions().loadingIndicator(),
-                    errorWidget: (context, url, error) {
-                      return Container(
-                        color: colorScheme.surfaceVariant,
-                        child: Icon(
-                          Icons.error,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      );
-                    },
+                Container(
+                  width: double.infinity,
+                  height: imageHeight,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(height * 0.012),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(height * 0.012),
+                    child: CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      progressIndicatorBuilder: (context, url, progress) =>
+                          HelperFunctions().loadingIndicator(),
+                      errorWidget: (context, url, error) {
+                        return Container(
+                          color: colorScheme.surfaceVariant,
+                          child: Icon(
+                            Icons.error,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
                 // Wishlist Button
@@ -150,6 +173,12 @@ class _ProductCardState extends State<ProductCard>
                                   isInWishlist
                                       ? 'assets/icon/like.svg'
                                       : 'assets/icon/unlike.svg',
+                                  colorFilter: ColorFilter.mode(
+                                    isInWishlist
+                                        ? colorScheme.error
+                                        : colorScheme.onSurfaceVariant,
+                                    BlendMode.srcIn,
+                                  ),
                                 );
                               },
                             ),
@@ -161,29 +190,115 @@ class _ProductCardState extends State<ProductCard>
                 ),
               ],
             ),
-            const SizedBox(height: 6),
-            // Product Name
+
+            SizedBox(height: height * 0.01),
+
+            // Product Title
             Text(
               productName,
-              overflow: TextOverflow.ellipsis,
               maxLines: 2,
-              style: textTheme.titleMedium!.copyWith(
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
+                fontSize: height * 0.018,
+                height: 1.4,
               ),
             ),
-            const SizedBox(height: 4),
-            // Product Price
-            if (productType == 'variable')
-              VariablePriceText(
-                lowestPrice: priceInfo['lowestPrice'],
-                highestPrice: priceInfo['highestPrice'],
-              )
-            else
-              SimplePriceText(
-                price: priceInfo['productPrice'],
-                originalPrice: priceInfo['discountPrice'],
-                discountLabel: priceInfo['discountRate'],
-              )
+
+            SizedBox(height: height * 0.004),
+
+            // Store Name
+            Text(
+              storeName,
+              style: textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w400,
+                fontSize: height * 0.015,
+                height: 2,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+
+            const Spacer(),
+
+            // Price & Rating
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Price
+                Row(
+                  children: [
+                    Icon(
+                      Icons.sell_outlined,
+                      size: height * 0.02,
+                      color: colorScheme.primary,
+                    ),
+                    SizedBox(width: width * 0.005),
+                    // Product Price based on type
+                    if (productType == 'variable')
+                      Text(
+                        '₹${priceInfo['lowestPrice']} - ₹${priceInfo['highestPrice']}',
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: height * 0.018,
+                          color: colorScheme.primary,
+                        ),
+                      )
+                    else
+                      RichText(
+                        text: TextSpan(
+                          text: '₹${priceInfo['productPrice']}',
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            fontSize: height * 0.018,
+                            color: colorScheme.primary,
+                          ),
+                          children: [
+                            if (priceInfo['discountRate'].isNotEmpty) ...[
+                              const TextSpan(text: '  '),
+                              TextSpan(
+                                text: '₹${priceInfo['discountPrice']}',
+                                style: textTheme.bodySmall?.copyWith(
+                                  fontSize: height * 0.014,
+                                  decoration: TextDecoration.lineThrough,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const TextSpan(text: ' '),
+                              TextSpan(
+                                text: priceInfo['discountRate'],
+                                style: textTheme.bodySmall?.copyWith(
+                                  fontSize: height * 0.014,
+                                  color: colorScheme.error,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+
+                // Rating
+                Row(
+                  children: [
+                    Icon(
+                      Icons.star,
+                      size: height * 0.02,
+                      color: DefaultThemeColors.alertWarninglight,
+                    ),
+                    SizedBox(width: width * 0.005),
+                    Text(
+                      rating.toString(),
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontSize: height * 0.018,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ],
         ),
       ),

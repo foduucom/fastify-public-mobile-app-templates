@@ -3,9 +3,10 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:foduu_ecommerce/constants/constants.dart';
+import '/constants/constants.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -303,7 +304,16 @@ class HelperFunctions {
   static Future<Map<String, dynamic>> getDeviceDetails() async {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
 
-    if (Platform.isAndroid) {
+    if (kIsWeb) {
+      var webBrowserInfo = await deviceInfo.webBrowserInfo;
+      return {
+        'type': 'web',
+        'mobile_name': webBrowserInfo.browserName.toString(),
+        'brand': webBrowserInfo.vendor ?? 'Unknown',
+        'version': webBrowserInfo.appVersion ?? 'Unknown',
+        'device_identifier': webBrowserInfo.userAgent ?? 'Unknown',
+      };
+    } else if (Platform.isAndroid) {
       var androidInfo = await deviceInfo.androidInfo;
       return {
         'type': Platform.operatingSystem,
