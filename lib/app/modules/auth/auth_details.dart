@@ -1,6 +1,5 @@
-import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
-import 'package:foduu_ecommerce/app/data/basic_provider.dart';
-import 'package:foduu_ecommerce/app/modules/auth/token_manager.dart';
+import '/app/controllers/api_exception_handle_controller.dart';
+import '/app/data/basic_provider.dart';
 import 'package:get_storage/get_storage.dart';
 
 class AuthDetails with BaseController {
@@ -35,10 +34,19 @@ class AuthDetails with BaseController {
 
   static bool isUserLogin() {
     var isLogin = box.read('isLogin');
-    if (isLogin == true) {
+    if (isLogin == true || isLogin == 'true') {
       return true;
     } else {
       return false;
+    }
+  }
+
+  static String? getToken() {
+    var token = box.read('token');
+    if (token != null) {
+      return token;
+    } else {
+      return null;
     }
   }
 
@@ -61,6 +69,22 @@ class AuthDetails with BaseController {
   //   }
   // }
 
+  static void saveLoginResponse(dynamic response) {
+    if (response != null) {
+      box.write('userData', response);
+      box.write('isLogin', true);
+
+      if (response['token'] != null) {
+        if (response['token'] is Map) {
+          box.write('token', response['token']['value']);
+          box.write('tokenExpiry', response['token']['expiry']);
+        } else {
+          box.write('token', response['token']);
+        }
+      }
+    }
+  }
+
   static dynamic getUserDetails() {
     var userDetails = box.read("userData");
     if (userDetails != null) {
@@ -70,18 +94,15 @@ class AuthDetails with BaseController {
 
   dynamic updateUserDetailsFromServer() async {
     if (isUserLogin()) {
-      String? userToken = TokenManager.accessToken;
-      if (userToken != null) {
-        var response = await BasicProvider("public/customer/profile")
-            .getRequest()
-            .catchError(handleError);
-        if (response != null) {
-          var userDetails = response;
+      var response = await BasicProvider("public/customer/profile")
+          .getRequest()
+          .catchError(handleError);
+      if (response != null) {
+        var userDetails = response;
 
-          box.write('userData', userDetails);
+        box.write('userData', userDetails);
 
-          return userDetails;
-        }
+        return userDetails;
       }
     }
   }

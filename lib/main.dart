@@ -1,22 +1,28 @@
 // import 'package:flutter_stripe/flutter_stripe.dart';
+
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:foduu_ecommerce/app/data/basic_provider.dart';
-import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
-import 'package:foduu_ecommerce/constants/constants.dart';
-import 'package:foduu_ecommerce/constants/internet_controller.dart';
-import 'package:foduu_ecommerce/core/foduuStudio/register_default_widgets.dart';
+import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import 'package:foduu_ecommerce/core/studio_socket_routing.dart';
+import '/constants/constants.dart';
+import '/core/services/cartServcie.dart';
+import '/constants/dynamic_theme.dart';
+import '/app/data/basic_provider.dart';
+import 'core/foduuStudio/register_default_widgets.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'app/routes/app_pages.dart';
+import '/app/routes/app_pages.dart';
 
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   await GetStorage.init();
+
+  // Register CartService as a permanent singleton
+  // Get.put(CartService());
+  // Get.put(WishListService());
 
   if (kIsWeb) {
     var accessKey = Uri.base.queryParameters['api_key'];
@@ -44,14 +50,12 @@ Future<void> main() async {
       websiteDomain = domain;
     }
 
-    print('swapnil Initial slug: $slug');
     Get.put(StudioSocketRouting(initialSlug: slug));
   }
 
   // Initialize dynamic theme from storage
   await DynamicThemeManager().init();
 
-  Get.put(InternetController(), permanent: true);
   // Register ThemeController globally
   Get.put(ThemeController());
 
@@ -59,8 +63,7 @@ Future<void> main() async {
   registerDefaultWidgets();
 
   // Initialize App and get initial route
-  late String initialRoute;
-  initialRoute = await _initApp();
+  String initialRoute = await _initApp();
 
   runApp(MyApp(initialRoute: initialRoute));
 
@@ -78,9 +81,8 @@ Future<String> _initApp() async {
       box.write('auth_preference', authPreference);
 
       if (response['storeSettings']['app_theme_color'] != null) {
-        DynamicThemeManager().updateFromApi(
-          response['storeSettings']['app_theme_color'],
-        );
+        DynamicThemeManager()
+            .updateFromApi(response['storeSettings']['app_theme_color']);
         Get.find<ThemeController>().refreshTheme();
       }
 
@@ -101,29 +103,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<ThemeController>(
       builder: (themeController) {
-        final systemBrightness =
-            WidgetsBinding.instance.platformDispatcher.platformBrightness;
-
-        final effectiveBrightness =
-            themeController.themeMode == ThemeMode.system
-                ? systemBrightness
-                : (themeController.themeMode == ThemeMode.dark
-                    ? Brightness.dark
-                    : Brightness.light);
-
-        debugPrint('────────────────────────────');
-        debugPrint('ThemeMode = ${themeController.themeMode}');
-        debugPrint('SystemBrightness = $systemBrightness');
-        debugPrint('EffectiveBrightness = $effectiveBrightness');
-        debugPrint(
-          effectiveBrightness == Brightness.dark
-              ? '🌙 APP USING DARK THEME'
-              : '☀️ APP USING LIGHT THEME',
-        );
-        debugPrint('────────────────────────────');
         return GetMaterialApp(
           debugShowCheckedModeBanner: false,
-          title: "Application",
+          title: "My App",
           initialRoute: initialRoute,
           getPages: AppPages.routes,
           theme: themeController.lightTheme,

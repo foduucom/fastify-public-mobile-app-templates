@@ -47,6 +47,13 @@ mixin FoduuStudioLayoutMixin on GetxController {
   String? _currentDomain;
   String? _currentSlug;
 
+  // ─── Static registry: slug → mixin instance ─────────────────
+  // Keeps one socket listener per event name.  When the event fires
+  // it broadcasts to ALL registered controllers instead of only the
+  // last one that called enableSocketUpdates().
+  static final Map<String, FoduuStudioLayoutMixin> _slugHandlers = {};
+  static String? _registeredEventName;
+
   // ─── Static block types that can be updated without API call ─
   static const _localUpdateOnlyTypes = [
     'spacer',
@@ -80,22 +87,24 @@ mixin FoduuStudioLayoutMixin on GetxController {
       dynamic response;
 
       // Ensure socket is connected and listener is enabled on web
-      if (kIsWeb) {
-        if (!_layoutSocketHelper.isConnected) {
-          _layoutSocketHelper.connect();
-        }
-        enableSocketUpdates(domain: websiteDomain, slug: slug);
-      }
+      // if (kIsWeb) {
+      //   if (!_layoutSocketHelper.isConnected) {
+      //     _layoutSocketHelper.connect();
+      //   }
+      //   enableSocketUpdates(domain: websiteDomain, slug: slug);
+      // }
 
       if (requestBody != null) {
         response = await BasicProvider("mobile-app/by-json")
             .postRequest(requestBody)
-            .catchError((e) => _handleApiError(e));
+            .catchError((e, stackTrace) => _handleApiError(e, stackTrace));
       } else {
         response = await BasicProvider("mobile-app/$slug")
             .getRequest()
-            .catchError((e) => _handleApiError(e));
+            .catchError((e, stackTrace) => _handleApiError(e, stackTrace));
       }
+
+      printInfo(info: 'swapnil reponse response ${response}');
 
       if (response != null) {
         var list = response['sections'];
@@ -106,8 +115,9 @@ mixin FoduuStudioLayoutMixin on GetxController {
       }
 
       return response;
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('DynamicLayoutMixin fetchLayout error: $e');
+      print('DynamicLayoutMixin fetchLayout stackTrace: $stackTrace');
     } finally {
       isLayoutLoading.value = false;
     }
@@ -115,7 +125,10 @@ mixin FoduuStudioLayoutMixin on GetxController {
 
   /// Enable real-time socket-driven layout updates.
   ///
-  /// Typically called from the homepage controller for web.
+  /// Registers this controller for socket events. Multiple controllers
+  /// can coexist — the socket listener is registered ONCE. When a socket
+  /// event fires, the `slug` in the data payload determines which
+  /// controller handles it.
   void enableSocketUpdates({
     required String domain,
     required String slug,
@@ -126,30 +139,53 @@ mixin FoduuStudioLayoutMixin on GetxController {
       _currentDomain = domain;
       _currentSlug = slug;
 
+      // Register this controller for the given slug
+      _slugHandlers[slug] = this;
+
       final eventName = '${domain}:mobileapp';
-      print('🟢 DynamicLayout: Socket listener for event: $eventName');
 
-      _layoutSocketHelper.off(eventName);
+      // Only set up the socket listener ONCE across all controllers
+      if (_registeredEventName != eventName) {
+        if (_registeredEventName != null) {
+          _layoutSocketHelper.off(_registeredEventName!);
+        }
 
-      _layoutSocketHelper.on(eventName, (data) {
-        print('📩 DynamicLayout: Socket event received for $eventName');
-        _handleSocketEvent(data, slug);
-      });
+        print(
+            '🟢 DynamicLayout: Setting up SHARED socket listener for: $eventName');
+        _layoutSocketHelper.on(eventName, (data) {
+          _dispatchSocketEvent(data);
+        });
+
+        _registeredEventName = eventName;
+      } else {
+        print(
+            '🟢 DynamicLayout: Registered slug "$slug" on existing listener ($eventName)');
+      }
     } catch (e) {
       print('❌ DynamicLayout: enableSocketUpdates error: $e');
     }
   }
 
-  /// Stop listening for socket updates.
+  /// Stop listening for socket updates for this controller's slug.
   void disableSocketUpdates(String domain, String slug) {
-    _layoutSocketHelper.off('${domain}:mobileapp-${slug}');
+    _slugHandlers.remove(slug);
+    print(
+        '🔴 DynamicLayout: Unregistered slug "$slug" (${_slugHandlers.length} remaining)');
+
+    // If no more handlers, remove the socket listener entirely
+    if (_slugHandlers.isEmpty && _registeredEventName != null) {
+      _layoutSocketHelper.off(_registeredEventName!);
+      _registeredEventName = null;
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════
-  //  SOCKET INTERNALS (extracted from HomepageController)
+  //  SOCKET INTERNALS
   // ═══════════════════════════════════════════════════════════════
 
-  void _handleSocketEvent(dynamic data, String slug) {
+  /// Central dispatch — parses the slug from the socket data and routes
+  /// the event ONLY to the controller registered for that slug.
+  static void _dispatchSocketEvent(dynamic data) {
     if (data == null) {
       print('⚠️ DynamicLayout: Socket data is null');
       return;
@@ -162,15 +198,29 @@ mixin FoduuStudioLayoutMixin on GetxController {
       decodedData = data;
     }
 
-    var contentJson = decodedData['content_json'];
-    if (contentJson is String) {
-      contentJson = json.decode(contentJson);
+    // ── Resolve the content payload ──
+    // Format 1 (new): slug, theme_color, sections at root level
+    // Format 2 (legacy): nested inside decodedData['content_json']
+    dynamic contentPayload;
+    if (decodedData.containsKey('content_json')) {
+      contentPayload = decodedData['content_json'];
+      if (contentPayload is String) {
+        contentPayload = json.decode(contentPayload);
+      }
+    } else {
+      contentPayload = decodedData;
     }
 
-    var themeData = contentJson['theme_color'];
-    var newSections = contentJson['sections'];
+    // ── Extract slug from data ──
+    // slug can be at root level or inside content_json
+    final String? dataSlug =
+        decodedData['slug']?.toString() ?? contentPayload['slug']?.toString();
 
-    // 1️⃣ Handle Theme Update
+    print('📩 DynamicLayout: Socket event received for slug: "$dataSlug"');
+    print('   Registered slugs: ${_slugHandlers.keys.toList()}');
+
+    // ── Handle Theme Update (applies globally) ──
+    var themeData = contentPayload['theme_color'];
     if (themeData != null) {
       print('🎨 DynamicLayout: Theme update detected');
       DynamicThemeManager().updateFromApi(themeData);
@@ -180,9 +230,17 @@ mixin FoduuStudioLayoutMixin on GetxController {
       }
     }
 
-    // 2️⃣ Handle Content/Widget Update
-    if (newSections != null && newSections is List) {
-      _handleSectionUpdate(newSections, slug);
+    // ── Handle Section Update (slug-specific) ──
+    var newSections = contentPayload['sections'];
+    if (newSections != null && newSections is List && dataSlug != null) {
+      final handler = _slugHandlers[dataSlug];
+      if (handler != null) {
+        print('   ✅ Dispatching sections to slug: "$dataSlug"');
+        handler._handleSectionUpdate(newSections, dataSlug);
+      } else {
+        print(
+            '   ⚠️ No controller registered for slug: "$dataSlug" — ignoring sections');
+      }
     }
   }
 
@@ -266,9 +324,8 @@ mixin FoduuStudioLayoutMixin on GetxController {
   }
 
   // ─── Error handling (delegates to BaseController if available) ─
-  dynamic _handleApiError(dynamic error) {
+  dynamic _handleApiError(dynamic error, StackTrace stackTrace) {
     print('DynamicLayoutMixin API error: $error');
-    // If the controller also mixes in BaseController, you can call handleError
-    // here. For now we just print and swallow.
+    print('DynamicLayoutMixin API stackTrace: $stackTrace');
   }
 }

@@ -1,12 +1,10 @@
-import 'dart:convert';
+// ignore_for_file: avoid_print
 
-import 'package:flutter/foundation.dart';
-import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
-import 'package:foduu_ecommerce/app/data/basic_provider.dart';
-import 'package:foduu_ecommerce/helpers/socket_helper.dart';
+import '/app/controllers/api_exception_handle_controller.dart';
+import '/app/data/basic_provider.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_mixin.dart';
+import '../../../../core/foduuStudio/foduu_studio_layout_mixin.dart';
 
 class HomepageController extends GetxController
     with BaseController, FoduuStudioLayoutMixin {
@@ -18,25 +16,15 @@ class HomepageController extends GetxController
   var notificatoinCount = 0.obs;
   var isDrawerNavigationLoading = false.obs;
   var drawernavigationItems = [].obs;
-  final _socketHelper = SocketHelper();
   var dashboardDesign = {}.obs;
-  var pageSlug = 'home';
 
-  // Created By
-  RxInt currentIndex = 0.obs;
-  // Created By
-  void changeTab(int index) {
-    currentIndex.value = index;
-  }
+  var pageSlug = 'home';
 
   @override
   Future<void> onInit() async {
     super.onInit();
     getDrawerNavigation();
     await getDashboardDesign(pageSlug);
-    if (kIsWeb) {
-      _socketHelper.connect();
-    }
   }
 
   Future<dynamic> getDashboardDesign(String slug,
@@ -77,9 +65,6 @@ class HomepageController extends GetxController
 
   @override
   void onClose() {
-    if (kIsWeb) {
-      _socketHelper.off('dashboard-update-69708c1b6968f244e799ea6a');
-    }
     super.onClose();
   }
 }

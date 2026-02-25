@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/helpers/socket_helper.dart';
@@ -10,6 +11,16 @@ class StudioSocketRouting extends GetxController {
 
   final SocketHelper _socketHelper = SocketHelper();
 
+  // Map of bottom bar slugs to their tab indices
+  // Index 0=Home, 1=Category, 2=Cart, 3=Wishlist, 4=Profile
+  static const Map<String, int> _bottomBarTabs = {
+    'home': 0,
+    'category': 1,
+    'cart': 2,
+    'wishlist': 3,
+    'profile': 4,
+  };
+
   @override
   void onInit() {
     super.onInit();
@@ -19,14 +30,8 @@ class StudioSocketRouting extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    print('swapnil Initial slug Sutdio socket routing : $initialSlug');
-    // if (initialSlug != null &&
-    //     initialSlug != 'home' &&
-    //     initialSlug!.isNotEmpty) {
-    print(
-        '🚀 StudioSocketRouting: Initial slug found, navigating: $initialSlug');
+
     navigateToSlug(initialSlug ?? 'home');
-    // }
   }
 
   void _connectAndListen() {
@@ -70,26 +75,46 @@ class StudioSocketRouting extends GetxController {
     }
   }
 
+  /// Navigates to the bottom bar and switches to the given tab index.
+  /// Handles two scenarios:
+  /// 1. Already on the bottom bar screen → just switch the tab.
+  /// 2. On a different screen → navigate to bottom bar first, then switch tab.
+  void _navigateToBottomBarTab(int tabIndex) {
+    // Check if BottombarController is already registered (we're on the bottom bar screen)
+    if (Get.isRegistered<BottombarController>()) {
+      final controller = Get.find<BottombarController>();
+      controller.onTabChange(tabIndex);
+      // Pop any screens stacked on top of the bottom bar
+      Get.until((route) => route.settings.name == Routes.BOTTOMBAR);
+    } else {
+      // Navigate to bottom bar first, then switch tab after it's ready
+      Get.offAllNamed(Routes.BOTTOMBAR);
+      // Use a slight delay to ensure the controller is initialized
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (Get.isRegistered<BottombarController>()) {
+          Get.find<BottombarController>().onTabChange(tabIndex);
+        }
+      });
+    }
+  }
+
   void navigateToSlug(String slug) {
-    switch (slug.toLowerCase()) {
-      case 'home':
-        Get.offAllNamed(Routes.BOTTOMBAR);
-        break;
-      case 'category':
-        Get.toNamed(Routes.CATEGORY);
-        break;
+    // Normalize: lowercase and strip leading slash so both "home" and "/home" work
+    String normalizedSlug = slug.toLowerCase().replaceFirst(RegExp(r'^/'), '');
+
+    // Check if the slug corresponds to a bottom bar tab
+    final tabIndex = _bottomBarTabs[normalizedSlug];
+    if (tabIndex != null) {
+      print(
+          '🔄 StudioSocketRouting: Switching to bottom bar tab $tabIndex for slug: $slug');
+      _navigateToBottomBarTab(tabIndex);
+      return;
+    }
+
+    // Non-bottom-bar routes: push as standalone screens
+    switch (normalizedSlug) {
       case 'detailcategory':
         Get.toNamed(Routes.DETAILCATEGORY);
-        break;
-      case 'wishlist':
-        Get.toNamed(Routes.WISHLIST);
-        break;
-      case 'cart':
-        Get.toNamed(Routes.CART);
-        break;
-
-      case 'profile':
-        Get.toNamed(Routes.PROFILE);
         break;
       case 'search':
         Get.toNamed(Routes.SEARCH);
@@ -98,13 +123,15 @@ class StudioSocketRouting extends GetxController {
         Get.toNamed(Routes.SHOPPRODUCTLISTVIEW);
         break;
       default:
-        print(
-            'ℹ️ StudioSocketRouting: Attempting direct navigation for: $slug');
-        if (slug.startsWith('/')) {
-          Get.toNamed(slug);
-        } else {
-          print('⚠️ StudioSocketRouting: No specific handler for slug: $slug');
-        }
+      // Get.toNamed(Routes.CUSTOMPAGE,
+      //     arguments: {'slug': slug, 'label': 'No lable'});
+      // print(
+      //     'ℹ️ StudioSocketRouting: Attempting direct navigation for: $slug');
+      // if (slug.startsWith('/')) {
+      //   Get.toNamed(slug);
+      // } else {
+      //   print('⚠️ StudioSocketRouting: No specific handler for slug: $slug');
+      // }
     }
   }
 

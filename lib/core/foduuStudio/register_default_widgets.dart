@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/components/home_component/icon_button_section.dart';
 import 'package:foduu_ecommerce/components/search_bar_rounded.dart';
 import '/app/routes/app_pages.dart';
 import '/components/home_component/home_products.dart';
@@ -17,11 +18,7 @@ import 'widget_registry.dart';
 /// Register all default section widget builders.
 ///
 /// Call this once in `main()` before `runApp(...)`.
-///
-/// To add a new widget type, just add one line here:
-/// ```dart
-/// r.register('countdown_timer', (json) => CountdownTimer(data: json));
-/// ```
+
 void registerDefaultWidgets() {
   final r = WidgetRegistry();
 
@@ -95,4 +92,12 @@ void registerDefaultWidgets() {
   r.register('rich_text', (json) {
     return RichTextComponent(contentJson: json ?? {});
   });
+
+  r.register('countdown', (json) {
+    return Text('Count down timeer maintendedddd ');
+  });
+
+  // r.register('icon_button', (json) {
+  //   return IconButtonComponent(contentJson: json ?? {});
+  // });
 }

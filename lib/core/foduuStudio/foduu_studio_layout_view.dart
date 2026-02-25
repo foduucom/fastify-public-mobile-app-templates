@@ -58,8 +58,15 @@ class FoduuStudioLayoutView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
+      print("widgetList.length: ${widgetList.length}");
+
       if (isLoading.value) {
-        return Center(child: HelperFunctions().loadingIndicator());
+        return Column(
+          children: [
+            Text(widgetList.toString()),
+            Center(child: HelperFunctions().loadingIndicator()),
+          ],
+        );
       }
 
       if (widgetList.isEmpty) {

@@ -64,38 +64,6 @@ class BottombarController extends GetxController with BaseController {
     }
   }
 
-  // void onRefreshToken() {
-  //   FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
-
-  //   firebaseMessaging.onTokenRefresh.listen((newToken) async {
-  //     try {
-  //       var form = {'notification_token': newToken};
-  //       var response = await BasicProvider("frontend/notifications/token/")
-  //           .postRequest(form)
-  //           .catchError(handleError);
-  //       if (response == null) return;
-  //     } catch (e) {
-  //       print('get firebase refresh token error $e');
-  //     }
-  //   });
-  // }
-
-  // void updateFirebaseToken() async {
-  //   try {
-  //     FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
-  //     var deviceFcmToken = await firebaseMessaging.getToken();
-
-  //     var form = {'notification_token': deviceFcmToken};
-  //     var response = await BasicProvider("frontend/notifications/token/")
-  //         .postRequest(form)
-  //         .catchError(handleError);
-
-  //     if (response == null) return;
-  //   } catch (e) {
-  //     print('get firebase token error $e');
-  //   }
-  // }
-
   Future<void> addToWishList(item, selectedVariation) async {
     HelperFunctions().showOverlayLoader();
     var strVariation = "";
