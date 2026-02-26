@@ -16,6 +16,7 @@ import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
+import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import 'package:get/get.dart';
 
 class ShopView extends GetView<ShopController> {
@@ -66,8 +67,13 @@ class ShopView extends GetView<ShopController> {
               //     badgeNumber: Get.find<WishlistController>().wishList.length)),
 
               // In your shop_view.dart where you have the HeartIcon
-              Obx(() => Get.find<BottombarController>().cartbadge(
-                    child: HeartIcon(() {
+              Obx(() {
+                final wishlistService = Get.find<WishListService>();
+                final bottomBarController = Get.find<BottombarController>();
+
+                return bottomBarController.cartbadge(
+                  child: HeartIcon(
+                    () {
                       if (!AuthDetails.isUserLogin()) {
                         // Show login dialog for non-logged in users
                         Get.dialog(
@@ -93,14 +99,15 @@ class ShopView extends GetView<ShopController> {
                         );
                       } else {
                         // Navigate to BottomBar's WishlistView (index 2)
-                        final bottomBarController =
-                            Get.find<BottombarController>();
                         bottomBarController.pageController.jumpToPage(2);
                         bottomBarController.currentPageIndex.value = 2;
                       }
-                    }),
-                    badgeNumber: Get.find<WishlistController>().wishList.length,
-                  )),
+                    },
+                  ),
+                  badgeNumber: wishlistService
+                      .wishListItemCount, // Using wishListItemCount from service
+                );
+              }),
 
               SizedBox(width: 14),
               Obx(

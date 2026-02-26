@@ -1,17 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
-import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
-import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
-import 'package:foduu_ecommerce/app/modules/home_wishlist/views/home_wishlist_empty_view.dart';
+import 'package:foduu_ecommerce/app/modules/wishlist/views/home_wishlist_empty_view.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
-import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
-import 'package:foduu_ecommerce/components/commonWidgets/appbarIcons.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
-import 'package:foduu_ecommerce/constants/theme.dart';
+import 'package:foduu_ecommerce/constants/product_helper.dart';
+import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
+import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import 'package:get/get.dart';
-
-import '../../../../../constants/constants.dart';
 import '../controllers/wishlist_controller.dart';
 
 class WishlistView extends GetView<WishlistController> {
@@ -20,519 +16,281 @@ class WishlistView extends GetView<WishlistController> {
 
   @override
   Widget build(BuildContext context) {
-    return !AuthDetails.isUserLogin()
-        ? SafeArea(
-            child: Scaffold(
-              // appBar: AppBar(title: Text('Wishlist'.tr), elevation: 0.0),
-              body: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Center(
-                      child: Text(
-                    'Login to View Wishlist',
-                    style: txtTheme().displayMedium,
-                  )),
-                  const SizedBox(height: 15),
-                  SizedBox(
-                    width: Get.width * 0.6,
-                    child: AppButton(
-                        itemText: 'Login',
-                        keypressEvent: () {
-                          controller.box.erase();
-                          isOtpLogin
-                              ? Get.offAllNamed(Routes.MOBILELOGIN)
-                              : Get.offAllNamed(Routes.LOGIN);
-                        }),
-                  ),
-                ],
-              ),
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          controller.fetchWishlist();
+        },
+      ),
+      appBar: AppBar(
+        title: Obx(() {
+          final colors = Theme.of(context).colorScheme;
+          final wishlistService = Get.find<WishListService>();
+          String titleText = controller.wishlistItems.isEmpty
+              ? 'Wishlist ${wishlistService.wishListItemCount}'
+              : 'Wishlist (${controller.wishlistItems.length})';
+
+          return Text(
+            titleText,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: colors.onSurface, // Using theme color
             ),
-          )
-        : Obx(
-            () => controller.wishList.isEmpty
-                ? HomeWishlistEmptyView()
-                : SafeArea(
-                    child: Scaffold(
-                      appBar: AppBar(
-                        title: const Text('Wishlist',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        titleSpacing: 0,
-                        elevation: 0,
-                        centerTitle: true,
-                        actions: [
-                          // Obx(() =>
-                          //     Get.find<BottombarController>().cartbadge(child: HeartIcon(() {
-                          //       // Get.toNamed(Routes.WISHLIST);
-                          //     }))),
-                          const SizedBox(width: 14),
-                          Obx(
-                            () => Get.find<BottombarController>().cartbadge(
-                                child: CartIcon(() {
-                                  Get.find<BottombarController>()
-                                      .pageController
-                                      .jumpToPage(2);
-                                  Get.find<BottombarController>()
-                                      .currentPageIndex
-                                      .value = 2;
-                                }),
-                                badgeNumber: Get.find<CartController>()
-                                    .productDetails
-                                    .length),
-                          ),
-                          const SizedBox(width: 15)
-                        ],
-                      ),
-                      body: RefreshIndicator(
-                        onRefresh: () async {
-                          // controller.wishList.clear();
-                          return await controller.getwishlist();
-                        },
-                        child: Obx(
-                          () => ListView.separated(
-                              // physics: const NeverScrollableScrollPhysics(),
-                              separatorBuilder: (context, index) =>
-                                  const Divider(
-                                    thickness: 10,
-                                    // color: themegreyColor,
-                                    height: 20,
-                                  ),
-                              itemCount: controller.wishList.length,
-                              shrinkWrap: true,
-                              itemBuilder: ((context, index) {
-                                var lowest;
-                                var highest;
-                                if (controller.wishList[index]['product']
-                                        ['type'] ==
-                                    'variant') {
-                                  lowest = HelperFunctions.lowestPrice(
-                                      controller.wishList[index]['product']
-                                          ['variant_ids']);
-                                  highest = HelperFunctions.highestPrice(
-                                      controller.wishList[index]['product']
-                                          ['variant_ids']);
-                                }
-                                return Padding(
-                                  padding: pageSurroundingPadding,
-                                  child: WishListCard(
-                                    highestPrice: highest.toString(),
-                                    lowestPrice: lowest.toString(),
-                                    productType: controller.wishList[index]
-                                        ['product']['type'],
-                                    assetImage: controller.wishList[index]
-                                                ['product']['featured_image'] ==
-                                            null
-                                        ? HelperFunctions.getNoImage()
-                                        : url +
-                                            controller.wishList[index]
-                                                    ['product']
-                                                ['featured_image']['filepath'],
-                                    name: controller.wishList[index]['product']
-                                        ['name'],
-                                    category: '',
-                                    price: controller.wishList[index]['product']
-                                                    ['variant_ids'][0]
-                                                ['sale_price'] ==
-                                            null
-                                        ? ''
-                                        : controller.wishList[index]['product']
-                                                ['variant_ids'][0]['price']
-                                            .toString(),
-                                    discountPrice: controller.wishList[index]
-                                                    ['product']['variant_ids']
-                                                [0]['sale_price'] ==
-                                            null
-                                        ? controller.wishList[index]['product']
-                                                ['variant_ids'][0]['price']
-                                            .toString()
-                                        : controller.wishList[index]['product']
-                                                ['variant_ids'][0]['sale_price']
-                                            .toString(),
-                                    discountRate: controller.wishList[index]
-                                                    ['product']['variant_ids']
-                                                [0]['sale_price'] !=
-                                            null
-                                        ? "${(100 - controller.wishList[index]['product']['variant_ids'][0]['sale_price'] * 100 / controller.wishList[index]['product']['variant_ids'][0]['price']).round()}" +
-                                            "%off"
-                                        : '',
-                                    controller: controller,
-                                    // onRemove: () async {
-                                    //   Get.back();
-
-                                    //   await controller.addProductToWishlist(
-                                    //       productid: controller.wishList[index]
-                                    //           ['product']['_id']);
-                                    //   await controller.getwishlist();
-                                    //   HelperFunctions.defaultdialogbox(
-                                    //     'The Product Has been removed from your Wishlist',
-                                    //   );
-                                    //   await Future.delayed(
-                                    //       Duration(seconds: 3));
-                                    //   Get.until((route) => !Get.isDialogOpen!);
-
-                                    //   // Get.back();
-                                    // },
-                                    // In your WishlistView where you have onRemove
-                                    onRemove: () async {
-                                      Get.back(); // Close dialog
-
-                                      final productId = controller
-                                          .wishList[index]['product']['_id'];
-
-                                      // Remove from wishlist using toggle method
-                                      await controller
-                                          .toggleWishlist(productId);
-
-                                      // Show success message
-                                      HelperFunctions.defaultdialogbox(
-                                        'The Product has been removed from your Wishlist',
-                                      );
-
-                                      await Future.delayed(
-                                          Duration(seconds: 3));
-                                      Get.until((route) => !Get.isDialogOpen!);
-                                    },
-                                    onAddToCart: () async {
-                                      if (controller.wishList[index]['product']
-                                              ['type'] ==
-                                          'simple') {
-                                        HelperFunctions.defaultdialogbox(
-                                          'The Product Has been added to your cart successfully',
-                                        );
-                                        Get.find<CartController>().addToCart(
-                                            productId:
-                                                controller.wishList[index]
-                                                    ['product']['_id'],
-                                            quantity: 1,
-                                            variantName: 'null',
-                                            productType: 'simple');
-                                        controller.addProductToWishlist(
-                                            productid: controller
-                                                .wishlistProductIds[index]);
-                                        controller.wishlistProductIds
-                                            .removeAt(index);
-                                        controller.wishList.removeAt(index);
-                                        await Future.delayed(
-                                            Duration(seconds: 3));
-
-                                        Get.until(
-                                            (route) => !Get.isDialogOpen!);
-                                        // Get.toNamed(Routes.CART);
-                                      } else {
-                                        // Get.to(() => ProductView(),
-                                        //     binding: ShopBinding(),
-                                        //     arguments: {
-                                        //       'productId':
-                                        //           controller.wishList[index]
-                                        //               ['product']['_id']
-                                        //     });
-                                      }
-                                    },
-                                    goToProductDetails: () {
-                                      // Get.to(ProductdetailView(),
-                                      //     binding: ShopBinding(),
-                                      //     arguments: {
-                                      //       'productId':
-                                      //           controller.wishList[index]
-                                      //               ['product']['_id']
-                                      //     });
-                                    },
-                                  ),
-                                );
-                              })),
-                        ),
-                      ),
-                    ),
-                  ),
           );
+        }),
+        centerTitle: false,
+        backgroundColor:
+            Theme.of(context).colorScheme.surface, // Theme-aware background
+        iconTheme: IconThemeData(
+          color:
+              Theme.of(context).colorScheme.onSurface, // Theme-aware icon color
+        ),
+      ),
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return Center(child: HelperFunctions().loadingIndicator());
+        }
+
+        if (controller.wishlistItems.isEmpty) {
+          return _buildEmptyWishlist(context, colorScheme, textTheme);
+        }
+
+        return _buildWishlistContent(context, colorScheme, textTheme);
+      }),
+    );
+  }
+
+  Widget _buildEmptyWishlist(
+      BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
+    return HomeWishlistEmptyView(
+      colorScheme: colorScheme,
+      textTheme: textTheme,
+      onShoppingPressed: () {
+        Get.back();
+        // Your navigation logic here
+      },
+      title: "Your wishlist is empty",
+      description:
+          "Start adding your favorite items to create your personalized shopping list.",
+      icon: Icons.inventory_2_outlined,
+    );
+  }
+
+  Widget _buildWishlistContent(
+      BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
+    return RefreshIndicator(
+      onRefresh: controller.onRefresh,
+      child: ListView(
+        controller: controller.scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 120),
+        children: [
+          // ── Cart Items ──
+          Obx(() => ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: controller.wishlistItems.length,
+                separatorBuilder: (_, __) => Divider(
+                  thickness: 1,
+                  color: colorScheme.outline.withOpacity(0.3),
+                ),
+                itemBuilder: (context, index) {
+                  return _WishListItemCard(
+                    controller: controller,
+                    index: index,
+                  );
+                },
+              )),
+
+          const Divider(thickness: 8),
+
+          // ── Dynamic Layout Widgets ──
+          Obx(() => controller.widgetList.isNotEmpty
+              ? FoduuStudioLayoutView.embedded(
+                  widgetList: controller.widgetList,
+                  isLoading: controller.isLayoutLoading)
+              : const SizedBox.shrink()),
+
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
   }
 }
 
-class WishListCard extends StatelessWidget {
-  WishListCard(
-      {Key? key,
-      required this.assetImage,
-      required this.name,
-      required this.category,
-      required this.price,
-      required this.discountPrice,
-      required this.discountRate,
-      required this.onRemove,
-      required this.onAddToCart,
-      required this.productType,
-      required this.lowestPrice,
-      required this.highestPrice,
-      required this.goToProductDetails,
-      required this.controller})
-      : super(key: key);
-  String assetImage;
-  String name;
-  String category;
+class _WishListItemCard extends StatelessWidget {
+  final WishlistController controller;
+  final int index;
 
-  String price;
-  String discountPrice;
-  String discountRate;
-
-  final String productType;
-  final String lowestPrice;
-  final String highestPrice;
-  WishlistController controller;
-  VoidCallback onRemove;
-  VoidCallback onAddToCart;
-  VoidCallback goToProductDetails;
+  const _WishListItemCard({
+    required this.controller,
+    required this.index,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: goToProductDetails,
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final product = controller.getProduct(index);
+    final variant = controller.getVariant(index);
+    final productId = controller.getProductId(index);
+    final variantSlug = controller.getVariantSlug(index);
+
+    final imageUrl = ProductHelper.getProductImage(product);
+
+    final variantPrice = variant['sale_price'] ?? variant['price'] ?? 0;
+    final variantRegularPrice = variant['price'] ?? 0;
+    final hasDiscount = variant['sale_price'] != null &&
+        variant['sale_price'] > 0 &&
+        variantRegularPrice > variant['sale_price'];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            flex: 2,
+          // ── Product Image ──
+          GestureDetector(
+            onTap: () => _navigateToProduct(productId),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(5.0),
-              // child: Image.asset(assetImage, height: 110, fit: BoxFit.cover),
+              borderRadius: BorderRadius.circular(8),
               child: CachedNetworkImage(
-                progressIndicatorBuilder: (context, url, progress) {
-                  return HelperFunctions().loadingIndicator();
-                },
-                errorWidget: (context, url, error) => Container(
-                  decoration: BoxDecoration(color: Colors.grey.shade300),
-                  child: const Center(
-                    child: Icon(Icons.error),
+                imageUrl: imageUrl,
+                width: 100,
+                height: 110,
+                fit: BoxFit.cover,
+                errorWidget: (_, __, ___) => Container(
+                  width: 100,
+                  height: 110,
+                  color: colorScheme.surfaceVariant,
+                  child: Icon(Icons.image_not_supported_outlined,
+                      color: colorScheme.onSurfaceVariant),
+                ),
+                progressIndicatorBuilder: (_, __, progress) => Container(
+                  width: 100,
+                  height: 110,
+                  color: colorScheme.surfaceVariant,
+                  child: Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        value: progress.progress,
+                        color: colorScheme.primary,
+                      ),
+                    ),
                   ),
                 ),
-                imageUrl: assetImage,
-                height: 100,
-                fit: BoxFit.cover,
               ),
             ),
           ),
-          const SizedBox(width: 10),
+
+          const SizedBox(width: 12),
+
+          // ── Product Details ──
           Expanded(
-            flex: 5,
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(name, style: txtTheme().titleLarge),
-              // const SizedBox(height: 5.0),
-              // Text(category,
-              //     style: txtTheme()
-              //         .titleLarge!
-              //         .copyWith(fontSize: 13, color: themeSecondrytext)),
-              const SizedBox(height: 5.0),
-              productType == 'variant'
-                  ? Row(
-                      children: [
-                        Text(
-                          '\u{20B9}${lowestPrice.toString()} - \u{20B9}${highestPrice.toString()}',
-                          style: txtTheme()
-                              .titleLarge!
-                              .copyWith(fontSize: 12, fontFamily: 'Lato'),
-                        ),
-                      ],
-                    )
-                  : RichText(
-                      text: TextSpan(
-                          text: '\u{20B9}${discountPrice.toString()} ',
-                          style: txtTheme()
-                              .titleLarge!
-                              .copyWith(fontSize: 12, fontFamily: 'Lato'),
-                          children: [
-                            if (price != '')
-                              TextSpan(
-                                  text: '\u{20B9}$price',
-                                  style: const TextStyle(
-                                    decoration: TextDecoration.lineThrough,
-                                  )),
-                            if (discountRate != '')
-                              TextSpan(
-                                  text: ' ($discountRate)',
-                                  style: txtTheme()
-                                      .titleLarge!
-                                      .copyWith(fontSize: 12)),
-                          ]),
-                    ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0),
-                child: Divider(
-                  height: 1.0,
-                ),
-              ),
-              SizedBox(
-                child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Product Name
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      flex: 5,
                       child: GestureDetector(
-                        onTap: () {
-                          onAddToCart();
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 0),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.shopping_bag,
-                                size: 15,
-                              ),
-                              const SizedBox(width: 4.0),
-                              Text('Add to Cart',
-                                  style: txtTheme()
-                                      .titleLarge!
-                                      .copyWith(fontSize: 13))
-                            ],
+                        onTap: () => _navigateToProduct(productId),
+                        child: Text(
+                          product['name'] ?? 'ff',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ),
-                    Container(
-                      width: 1.1,
-                      height: 15,
-                    ),
-                    Expanded(
-                      flex: 4,
-                      child: GestureDetector(
-                        onTap: () {
-                          removeItemModel(context: context, onRemove: onRemove);
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.delete,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 4.0),
-                              Text('Remove',
-                                  style: txtTheme()
-                                      .titleLarge!
-                                      .copyWith(fontSize: 13))
-                            ],
-                          ),
-                        ),
+                    GestureDetector(
+                      onTap: () {
+                        WishListService.to.removeFromWishlist(
+                          productId: productId,
+                          variantSlug: variantSlug,
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 8.0, right: 4.0),
+                        child: Icon(Icons.close,
+                            size: 20, color: colorScheme.onSurfaceVariant),
                       ),
-                    )
+                    ),
                   ],
                 ),
-              ),
-            ]),
+
+                const SizedBox(height: 4),
+
+                // Variant Name
+                if (variant['variant_name'] != null &&
+                    variant['variant_name'].toString().isNotEmpty)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceVariant.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      variant['variant_name'],
+                      style: textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+
+                const SizedBox(height: 8),
+
+                // Price Row
+                Row(
+                  children: [
+                    Text(
+                      '₹$variantPrice',
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                    if (hasDiscount) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        '₹$variantRegularPrice',
+                        style: textTheme.bodySmall?.copyWith(
+                          decoration: TextDecoration.lineThrough,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${(100 - (variantPrice * 100 / variantRegularPrice)).round()}% off',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: Colors.green.shade700,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  removeItemModel(
-      {required BuildContext context, required VoidCallback onRemove}) {
-    return Get.dialog(
-      AlertDialog(
-        actionsPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10)
-            .copyWith(top: 0),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Remove Item',
-              style: txtTheme().headlineSmall,
-            ),
-            Text(
-              "Are you sure you want to remove product from you wishlist?",
-              style: txtTheme().titleLarge!,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Add logic for going back
-              Get.back();
-            },
-            child: const Text(
-              'Back',
-              style: const TextStyle(color: Colors.grey),
-            ),
-          ),
-          TextButton(
-            onPressed: onRemove,
-            child: const Text(
-              'Remove',
-              style: TextStyle(),
-            ),
-          ),
-        ],
-      ),
-    );
-    // removeItemModel(BuildContext context, VoidCallback onremove) {
-    //   return Get.defaultDialog(
-    //       title: "",
-    //       titleStyle: const TextStyle(height: 0.0),
-    //       contentPadding: EdgeInsets.zero,
-    //       content: Padding(
-    //         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-    //         child: SizedBox(
-    //           child: Column(
-    //             crossAxisAlignment: CrossAxisAlignment.start,
-    //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    //             children: [
-    //               Text(
-    //                 'Remove Item',
-    //                 style: txtTheme().headlineSmall,
-    //               ),
-    //               Text(
-    //                 "Are you sure you want to remove or move this item from the cart?",
-    //                 style:
-    //                     txtTheme().titleLarge!.copyWith(color: themeSecondrytext),
-    //               ),
-    //             ],
-    //           ),
-    //         ),
-    //       ),
-    //       actions: [
-    //         Material(
-    //           elevation: 05,
-    //           child: SizedBox(
-    //               width: Get.width,
-    //               height: 50,
-    //               child: Row(
-    //                 children: [
-    //                   Expanded(
-    //                     flex: 1,
-    //                     child: GestureDetector(
-    //                       onTap: () {
-    //                         Get.back();
-    //                       },
-    //                       child: Center(
-    //                         child: Text("Back",
-    //                             style:
-    //                                 txtTheme().headlineSmall!.copyWith(fontSize: 16)),
-    //                       ),
-    //                     ),
-    //                   ),
-    //                   const VerticalDivider(
-    //                     width: 20,
-    //                     thickness: 1.5,
-    //                     indent: 10,
-    //                     endIndent: 10,
-    //                     color: themegreyColor,
-    //                   ),
-    //                   Expanded(
-    //                     flex: 1,
-    //                     child: GestureDetector(
-    //                       onTap: onremove,
-    //                       child: Center(
-    //                         child: Text("Remove".toUpperCase(),
-    //                             style: txtTheme().headlineSmall!.copyWith(
-    //                                 color: themeRedColor, fontSize: 16)),
-    //                       ),
-    //                     ),
-    //                   ),
-    //                 ],
-    //               )),
-    //         )
-    //       ],
-    //       radius: 0.0);
-    // }
+  void _navigateToProduct(String productId) {
+    Get.toNamed(Routes.PRODUCTDETAILS, arguments: {'productId': productId});
   }
 }

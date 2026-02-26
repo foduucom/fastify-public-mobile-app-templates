@@ -20,6 +20,7 @@ import 'package:foduu_ecommerce/components/productcard.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/theme.dart';
+import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -317,11 +318,11 @@ class CartView extends GetView<CartController> {
                                             controller.removeCartProduct(
                                                 productId: product['_id'],
                                                 index: index);
-                                            await Get.find<WishlistController>()
-                                                .addProductToWishlist(
-                                                    productid: product['_id']);
-                                            await Get.find<WishlistController>()
-                                                .getwishlist();
+                                            // await Get.find<WishlistController>()
+                                            //     .addProductToWishlist(
+                                            //         productid: product['_id']);
+                                            // await Get.find<WishlistController>()
+                                            //     .getwishlist();
                                             HelperFunctions.defaultdialogbox(
                                               'The Product Has been successfully added to Wishlist',
                                             );
@@ -334,18 +335,18 @@ class CartView extends GetView<CartController> {
                                             //     .jumpToPage(3);
                                             // Get.back();
                                           },
-                                          likeWidget:
-                                              GetBuilder<WishlistController>(
-                                            builder: (controller) {
-                                              return controller
-                                                      .wishlistProductIds
-                                                      .contains(product['_id'])
-                                                  ? SvgPicture.asset(
-                                                      'assets/icon/like.svg')
-                                                  : SvgPicture.asset(
-                                                      'assets/icon/unlike.svg');
-                                            },
-                                          ),
+                                          likeWidget: Obx(() {
+                                            final wishlistService =
+                                                Get.find<WishListService>();
+                                            final productId = product['_id'];
+
+                                            return wishlistService
+                                                    .isInWishlist(productId)
+                                                ? SvgPicture.asset(
+                                                    'assets/icon/like.svg')
+                                                : SvgPicture.asset(
+                                                    'assets/icon/unlike.svg');
+                                          }),
                                         );
                                         //  cartController
                                         //     .showPrice(
@@ -426,33 +427,41 @@ class CartView extends GetView<CartController> {
                                                           productType: controller
                                                                   .similarProduct[
                                                               index]['type'],
-                                                          like: GetBuilder<
-                                                              WishlistController>(
-                                                            builder:
-                                                                (wishlistcontroller) {
-                                                              return wishlistcontroller
-                                                                      .wishlistProductIds
-                                                                      .contains(
-                                                                          controller.similarProduct[index]
-                                                                              [
-                                                                              '_id'])
-                                                                  ? SvgPicture
-                                                                      .asset(
-                                                                          'assets/icon/like.svg')
-                                                                  : SvgPicture
-                                                                      .asset(
-                                                                          'assets/icon/unlike.svg');
-                                                            },
-                                                          ),
+                                                          like: Obx(() {
+                                                            final wishlistService =
+                                                                Get.find<
+                                                                    WishListService>();
+                                                            // Optional: Add refresh trigger if you have one
+                                                            // final _ = wishlistService.refreshTrigger.value;
+
+                                                            return wishlistService
+                                                                    .isInWishlist(
+                                                                        controller.similarProduct[index]
+                                                                            [
+                                                                            '_id'])
+                                                                ? SvgPicture.asset(
+                                                                    'assets/icon/like.svg')
+                                                                : SvgPicture.asset(
+                                                                    'assets/icon/unlike.svg');
+                                                          }),
                                                           onLike: () async {
-                                                            await wishListController
-                                                                .addProductToWishlist(
-                                                                    productid: controller
-                                                                            .similarProduct[index]
-                                                                        [
-                                                                        '_id']);
-                                                            await wishListController
-                                                                .getwishlist();
+                                                            final wishlistService =
+                                                                Get.find<
+                                                                    WishListService>();
+                                                            await wishlistService
+                                                                .toggleWishlist(
+                                                              productId: controller
+                                                                      .similarProduct[
+                                                                  index]['_id'],
+                                                              variantSlug: controller
+                                                                              .similarProduct[
+                                                                          index]
+                                                                      [
+                                                                      'variant_slug'] ??
+                                                                  '', // Add variant slug if available
+                                                            );
+                                                            await wishlistService
+                                                                .fetchWishList();
                                                           },
                                                           averageRating:
                                                               double.parse(

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:foduu_ecommerce/app/data/cookie_client_manager.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/constants/app_exceptions.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
@@ -33,6 +34,9 @@ class OtpProvider extends GetConnect {
       print('Response Body: $responseBody');
 
       if (response.statusCode == 200) {
+        // Save the login response including token using AuthDetails
+        AuthDetails.saveLoginResponse(responseBody);
+
         // Return both response body and headers (for cookies)
         return {
           'body': responseBody,
@@ -40,22 +44,20 @@ class OtpProvider extends GetConnect {
           'statusCode': response.statusCode,
         };
       } else if (response.statusCode == 422) {
-        final errorMessage = responseBody['message']?.toString() ??
-            'Invalid OTP'; // Add ?.toString()
+        final errorMessage =
+            responseBody['message']?.toString() ?? 'Invalid OTP';
         throw FormatException(errorMessage);
       } else if (response.statusCode == 401) {
-        final errorMessage = responseBody['message']?.toString() ??
-            'Invalid credentials'; // Add ?.toString()
-        throw UnAuthorizedException(errorMessage); // Pass string directly
+        final errorMessage =
+            responseBody['message']?.toString() ?? 'Invalid credentials';
+        throw UnAuthorizedException(errorMessage);
       } else {
-        // FIX HERE: Convert null to string properly
         final errorMessage =
             responseBody['message']?.toString() ?? 'OTP verification failed';
         throw Exception(errorMessage);
       }
     } on FormatException catch (e) {
-      HelperFunctions().showSnackBarError(
-          e.message ?? 'Invalid OTP format'); // Handle null message
+      HelperFunctions().showSnackBarError(e.message ?? 'Invalid OTP format');
       rethrow;
     } on UnAuthorizedException catch (e) {
       HelperFunctions().showSnackBarError(e.toString());

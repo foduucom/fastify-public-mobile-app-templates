@@ -70,17 +70,48 @@ class AuthDetails with BaseController {
   // }
 
   static void saveLoginResponse(dynamic response) {
+    print('OTP VERIFICATION RESPONSE: $response');
     if (response != null) {
-      box.write('userData', response);
+      // Check if the actual user data is nested inside a 'data' field
+      dynamic userData;
+
+      if (response['data'] != null) {
+        // If response has a 'data' field, use that as user data
+        userData = response['data'];
+
+        // Also save the full response if needed
+        box.write('fullResponse', response);
+      } else {
+        // Otherwise use the response directly
+        userData = response;
+      }
+
+      // Save the user data
+      box.write('userData', userData);
       box.write('isLogin', true);
 
-      if (response['token'] != null) {
-        if (response['token'] is Map) {
-          box.write('token', response['token']['value']);
-          box.write('tokenExpiry', response['token']['expiry']);
+      // Extract token from the correct location
+      String? tokenValue;
+      String? tokenExpiry;
+
+      if (userData['token'] != null) {
+        if (userData['token'] is Map) {
+          tokenValue = userData['token']['value'];
+          tokenExpiry = userData['token']['expiry'];
         } else {
-          box.write('token', response['token']);
+          tokenValue = userData['token'];
         }
+      }
+
+      // Save token if found
+      if (tokenValue != null) {
+        box.write('token', tokenValue);
+        if (tokenExpiry != null) {
+          box.write('tokenExpiry', tokenExpiry);
+        }
+        print('Token saved successfully: $tokenValue');
+      } else {
+        print('WARNING: No token found in response');
       }
     }
   }

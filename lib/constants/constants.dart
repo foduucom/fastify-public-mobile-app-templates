@@ -12,16 +12,11 @@ const appMode = "test";
 // var ACCESS_KEY =
 //     isWeb ? 'c4144f5a5223976f79ac555d0a95e35f6dd9e34a69e0f935' : 'Not Provided';
 
-var websiteDomain = "shoponline.vbought.com";
+var websiteDomain = "byonegetonefree.vbought.com";
 var url = "https://${websiteDomain}/";
-var socketUrl = "https://studio.vbought.com/";
+var socketUrl = "https://byonegetonefree.vbought.com/";
 
-var ACCESS_KEY = '3220a65ef5a53f06d689f394fd17da90cd04e25fa2c7f073';
-// var websiteDomain = "Not Provided";
-// var url = "https://${websiteDomain}/";
-// var socketUrl = "https://studio.vbought.com/";
-
-// var ACCESS_KEY = 'Not provided';
+var ACCESS_KEY = 'f9f6040c1bcafe23210613993a7acf3b8b87d5972cbff49a';
 
 var assetURL = "${url}images/";
 var apiURL = "${url}api/";

@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/core/services/wishlistService.dart'
+    show WishListService;
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/modules/product/views/product_view.dart';
 import '/app/modules/wishlist/controllers/wishlist_controller.dart';
@@ -114,6 +116,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   /// Route to the correct style builder
   Widget _buildProductLayout(String style) {
+    print("style Of Product: $style");
     switch (style) {
       case 'horizontal':
         return _buildHorizontalStyleList();
@@ -126,13 +129,13 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // STYLE 1 — STANDARD (Vertical Card, Image on Top)
-  // ═══════════════════════════════════════════════════════════════════════════
+// STYLE 1 — STANDARD (Vertical Card, Image on Top)
+// ═══════════════════════════════════════════════════════════════════════════
   Widget _buildStandardStyleList() {
     return Padding(
       padding: const EdgeInsets.only(left: 6.0),
       child: SizedBox(
-        height: 300,
+        height: 230, // Reduced from 300 to 260 for better compactness
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(
             dragDevices: {
@@ -168,11 +171,20 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final productName = ProductHelper.getProductName(product);
     final imageUrl = ProductHelper.getProductImage(product);
     final productType = priceInfo['productType'];
+    final storeName = product['storeName'] ?? 'Store Name';
 
-    return GestureDetector(
+    return InkWell(
       onTap: () => _navigateToProduct(product),
-      child: SizedBox(
-        width: 160,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: 150, // Slightly reduced from 160 for better fit
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: colorScheme.outline,
+            width: 1,
+          ),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,17 +193,18 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(8)),
                   child: CachedNetworkImage(
                     imageUrl: imageUrl,
-                    height: 180,
-                    width: 160,
+                    height: 150, // Reduced from 180 to 150
+                    width: 150,
                     fit: BoxFit.cover,
                     progressIndicatorBuilder: (_, __, ___) =>
                         HelperFunctions().loadingIndicator(),
                     errorWidget: (_, __, ___) => Container(
-                      height: 180,
-                      width: 160,
+                      height: 150,
+                      width: 150,
                       color: colorScheme.surfaceVariant,
                       child: Icon(Icons.image_outlined,
                           color: colorScheme.onSurfaceVariant),
@@ -199,7 +212,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                   ),
                 ),
                 // Wishlist Button
-                _buildWishlistButton(product),
+                Positioned(
+                  left: 6,
+                  top: 6,
+                  child: _buildWishlistButton(product),
+                ),
                 // Discount Badge
                 if (priceInfo['discountRate'] != null &&
                     priceInfo['discountRate'].toString().isNotEmpty)
@@ -208,7 +225,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                     top: 6,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 3),
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: colorScheme.error,
                         borderRadius: BorderRadius.circular(4),
@@ -218,37 +235,59 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                         style: textTheme.labelSmall?.copyWith(
                           color: colorScheme.onError,
                           fontWeight: FontWeight.w600,
+                          fontSize: 10,
                         ),
                       ),
                     ),
                   ),
               ],
             ),
-            const SizedBox(height: 8),
-            // Product Name
-            Text(
-              productName,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 2,
-              style: textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+            // Content Section - Compact padding
+            Padding(
+              padding: const EdgeInsets.all(8.0), // Reduced from 10 to 8
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Product Name
+                  Text(
+                    productName,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13, // Slightly smaller font
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 2), // Reduced from 4 to 2
+                  // Store Name
+                  Text(
+                    storeName,
+                    style: textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w400,
+                      fontSize: 11,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 4), // Reduced from 8 to 4
+                  // Price at bottom left
+                  if (productType == 'variable')
+                    _buildVariablePrice(priceInfo)
+                  else
+                    _buildSimplePrice(priceInfo),
+                ],
               ),
             ),
-            const SizedBox(height: 4),
-            // Price
-            if (productType == 'variable')
-              _buildVariablePrice(priceInfo)
-            else
-              _buildSimplePrice(priceInfo),
           ],
         ),
       ),
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // STYLE 2 — HORIZONTAL (Image Left, Info Right Card)
-  // ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// STYLE 2 — HORIZONTAL (Image Left, Info Right Card)
+// ═══════════════════════════════════════════════════════════════════════════
   Widget _buildHorizontalStyleList() {
     return Padding(
       padding: pageSurroundingPadding,
@@ -274,9 +313,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final productName = ProductHelper.getProductName(product);
     final imageUrl = ProductHelper.getProductImage(product);
     final productType = priceInfo['productType'];
+    final storeName = product['storeName'] ?? 'Store Name';
 
-    return GestureDetector(
+    return InkWell(
       onTap: () => _navigateToProduct(product),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         height: 120,
         decoration: BoxDecoration(
@@ -284,6 +325,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: colorScheme.outline.withOpacity(0.15),
+            width: 1,
           ),
         ),
         child: Row(
@@ -319,7 +361,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                     top: 0,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 3),
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: colorScheme.error,
                         borderRadius: const BorderRadius.only(
@@ -342,7 +384,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             Expanded(
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -351,17 +393,27 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                       productName,
                       style: textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w600,
+                        fontSize: 14,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 2),
+                    Text(
+                      storeName,
+                      style: textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
                     if (productType == 'variable')
                       _buildVariablePrice(priceInfo)
                     else
                       _buildSimplePrice(priceInfo),
                     const Spacer(),
-                    // Add to cart hint
+                    // Add to cart hint (Horizontal style unique feature)
                     Row(
                       children: [
                         Icon(
@@ -375,6 +427,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                           style: textTheme.labelSmall?.copyWith(
                             color: colorScheme.primary,
                             fontWeight: FontWeight.w500,
+                            fontSize: 11,
                           ),
                         ),
                       ],
@@ -383,7 +436,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 ),
               ),
             ),
-            // Wishlist on the right
+            // Wishlist on the right (Horizontal style unique feature)
             Padding(
               padding: const EdgeInsets.only(right: 8.0, top: 8.0),
               child: Align(
@@ -397,9 +450,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // STYLE 3 — OVERLAY (Full Image Card with Overlay Text)
-  // ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// STYLE 3 — OVERLAY (Full Image Card with Overlay Text)
+// ═══════════════════════════════════════════════════════════════════════════
   Widget _buildOverlayStyleList() {
     return Padding(
       padding: const EdgeInsets.only(left: 6.0),
@@ -440,9 +493,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final productName = ProductHelper.getProductName(product);
     final imageUrl = ProductHelper.getProductImage(product);
     final productType = priceInfo['productType'];
+    final storeName = product['storeName'] ?? 'Store Name';
 
-    return GestureDetector(
+    return InkWell(
       onTap: () => _navigateToProduct(product),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
         width: 180,
         decoration: BoxDecoration(
@@ -460,7 +515,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Full background image
+              // Full background image (Overlay style unique feature)
               CachedNetworkImage(
                 imageUrl: imageUrl,
                 fit: BoxFit.cover,
@@ -472,7 +527,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                       color: colorScheme.onSurfaceVariant, size: 40),
                 ),
               ),
-              // Gradient overlay at bottom
+              // Gradient overlay at bottom (Overlay style unique feature)
               Positioned(
                 left: 0,
                 right: 0,
@@ -491,7 +546,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                     ),
                   ),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -500,10 +555,20 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                         productName,
                         style: textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w700,
+                          fontSize: 14,
                           color: colorScheme.onSurface,
                         ),
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        storeName,
+                        style: textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 12,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       if (productType == 'variable')
@@ -516,21 +581,22 @@ class _TrendingProductCardState extends State<TrendingProductSection>
               ),
               // Wishlist at top-left
               Positioned(
-                left: 6,
-                top: 6,
+                left: 8,
+                top: 8,
                 child: _buildWishlistButton(product),
               ),
-              // Discount badge at top-right
+              // Discount badge at top-right (Overlay style unique feature - uses primary color)
               if (priceInfo['discountRate'] != null &&
                   priceInfo['discountRate'].toString().isNotEmpty)
                 Positioned(
-                  right: 6,
-                  top: 6,
+                  right: 8,
+                  top: 8,
                   child: Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: colorScheme.primary,
+                      color: colorScheme
+                          .primary, // Overlay style uses primary color
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -538,6 +604,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                       style: textTheme.labelSmall?.copyWith(
                         color: colorScheme.onPrimary,
                         fontWeight: FontWeight.w700,
+                        fontSize: 12,
                       ),
                     ),
                   ),
@@ -549,9 +616,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // SHARED WIDGETS
-  // ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// SHARED WIDGETS
+// ═══════════════════════════════════════════════════════════════════════════
 
   /// Navigate to product detail page
   void _navigateToProduct(Map<String, dynamic> product) {
@@ -563,7 +630,87 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     );
   }
 
-  /// Wishlist button with background circle (for Standard & Overlay styles)
+  /// Wishlist icon without background (for Horizontal style)
+  Widget _buildWishlistIcon(Map<String, dynamic> product) {
+    final productId = ProductHelper.getProductId(product);
+
+    return GestureDetector(
+      onTap: () => _handleWishlistTap(product),
+      child: Obx(() {
+        final isInWishlist = WishListService.to.isInWishlist(productId);
+        return SvgPicture.asset(
+          isInWishlist ? 'assets/icon/like.svg' : 'assets/icon/unlike.svg',
+          width: 20,
+          height: 20,
+        );
+      }),
+    );
+  }
+
+  /// Handle wishlist tap
+  void _handleWishlistTap(Map<String, dynamic> product) async {
+    print("Wishlist Product Tapped: $product");
+    final productId = ProductHelper.getProductId(product);
+    final variantSlug = product['variant_slug'] ?? '';
+    await WishListService.to
+        .toggleWishlist(productId: productId, variantSlug: variantSlug);
+  }
+
+  /// Variable product price display (compact version)
+  Widget _buildVariablePrice(Map<String, dynamic> priceInfo) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Text(
+      '₹${priceInfo['lowestPrice']} - ₹${priceInfo['highestPrice']}',
+      style: textTheme.bodyMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+        fontSize: 12, // Reduced from 13
+        color: colorScheme.primary,
+      ),
+    );
+  }
+
+  /// Simple product price display with discount (compact version)
+  Widget _buildSimplePrice(Map<String, dynamic> priceInfo) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return RichText(
+      text: TextSpan(
+        text: '₹${priceInfo['productPrice']}',
+        style: textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          fontSize: 12, // Reduced from 13
+          color: colorScheme.primary,
+        ),
+        children: [
+          if (priceInfo['discountRate'] != null &&
+              priceInfo['discountRate'].toString().isNotEmpty) ...[
+            const TextSpan(text: '  '),
+            TextSpan(
+              text: '₹${priceInfo['discountPrice']}',
+              style: textTheme.bodySmall?.copyWith(
+                fontSize: 10, // Reduced from 11
+                decoration: TextDecoration.lineThrough,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const TextSpan(text: ' '),
+            TextSpan(
+              text: priceInfo['discountRate'],
+              style: textTheme.bodySmall?.copyWith(
+                fontSize: 10, // Reduced from 11
+                color: colorScheme.error,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Wishlist button with background circle (compact for Standard & Overlay)
   Widget _buildWishlistButton(Map<String, dynamic> product) {
     final colorScheme = Theme.of(context).colorScheme;
     final productId = ProductHelper.getProductId(product);
@@ -576,88 +723,14 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           color: colorScheme.surface.withOpacity(0.85),
         ),
         padding: const EdgeInsets.all(6.0),
-        child: GetBuilder<WishlistController>(
-          builder: (controller) {
-            final isInWishlist =
-                controller.wishlistProductIds.contains(productId);
-            return SvgPicture.asset(
-              isInWishlist ? 'assets/icon/like.svg' : 'assets/icon/unlike.svg',
-              width: 16,
-              height: 16,
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  /// Wishlist icon without background (for Horizontal style)
-  Widget _buildWishlistIcon(Map<String, dynamic> product) {
-    final productId = ProductHelper.getProductId(product);
-
-    return GestureDetector(
-      onTap: () => _handleWishlistTap(product),
-      child: GetBuilder<WishlistController>(
-        builder: (controller) {
-          final isInWishlist =
-              controller.wishlistProductIds.contains(productId);
+        child: Obx(() {
+          final isInWishlist = WishListService.to.isInWishlist(productId);
           return SvgPicture.asset(
             isInWishlist ? 'assets/icon/like.svg' : 'assets/icon/unlike.svg',
-            width: 20,
-            height: 20,
+            width: 16,
+            height: 16,
           );
-        },
-      ),
-    );
-  }
-
-  /// Handle wishlist tap
-  void _handleWishlistTap(Map<String, dynamic> product) async {
-    final WishlistController wishlistCtrl = Get.find<WishlistController>();
-    final productId = ProductHelper.getProductId(product);
-    await wishlistCtrl.addProductToWishlist(productid: productId);
-    await wishlistCtrl.getwishlist();
-  }
-
-  /// Variable product price display
-  Widget _buildVariablePrice(Map<String, dynamic> priceInfo) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Text(
-      '₹${priceInfo['lowestPrice']} - ₹${priceInfo['highestPrice']}',
-      style: textTheme.bodyMedium?.copyWith(
-        fontWeight: FontWeight.w600,
-        color: colorScheme.primary,
-      ),
-    );
-  }
-
-  /// Simple product price display with discount
-  Widget _buildSimplePrice(Map<String, dynamic> priceInfo) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return RichText(
-      text: TextSpan(
-        text: '₹${priceInfo['productPrice']}',
-        style: textTheme.bodyMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: colorScheme.primary,
-        ),
-        children: [
-          if (priceInfo['discountRate'] != null &&
-              priceInfo['discountRate'].toString().isNotEmpty) ...[
-            const TextSpan(text: '  '),
-            TextSpan(
-              text: '₹${priceInfo['discountPrice']}',
-              style: textTheme.bodySmall?.copyWith(
-                decoration: TextDecoration.lineThrough,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ],
+        }),
       ),
     );
   }
@@ -676,65 +749,79 @@ class TrendingProductsShimmer extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Shimmer.fromColors(
-        enabled: true,
-        direction: ShimmerDirection.ltr,
-        loop: 0,
-        period: const Duration(seconds: 1),
-        baseColor: colorScheme.surfaceVariant,
-        highlightColor: colorScheme.onSurfaceVariant.withOpacity(0.3),
-        child: ListView.separated(
-          itemCount: 10,
-          scrollDirection: Axis.horizontal,
-          separatorBuilder: (context, index) {
-            return const SizedBox(
-              width: 10,
-            );
-          },
-          itemBuilder: (context, index) {
-            return Column(
+      enabled: true,
+      direction: ShimmerDirection.ltr,
+      loop: 0,
+      period: const Duration(seconds: 1),
+      baseColor: colorScheme.surfaceVariant,
+      highlightColor: colorScheme.onSurfaceVariant.withOpacity(0.3),
+      child: ListView.separated(
+        itemCount: 10,
+        scrollDirection: Axis.horizontal,
+        separatorBuilder: (context, index) {
+          return const SizedBox(width: 10);
+        },
+        itemBuilder: (context, index) {
+          return Container(
+            width: 160,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: colorScheme.outline,
+                width: 1,
+              ),
+            ),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
                   decoration: BoxDecoration(
                     color: colorScheme.surfaceVariant,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(10)),
                   ),
                   height: 180,
                   width: 160,
                 ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                      color: colorScheme.surfaceVariant,
-                      borderRadius: BorderRadius.circular(10)),
-                  height: 11,
-                  width: 150,
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                      color: colorScheme.surfaceVariant,
-                      borderRadius: BorderRadius.circular(10)),
-                  height: 11,
-                  width: 50,
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                      color: colorScheme.surfaceVariant,
-                      borderRadius: BorderRadius.circular(10)),
-                  height: 11,
-                  width: 100,
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceVariant,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        height: 14,
+                        width: 140,
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceVariant,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        height: 12,
+                        width: 100,
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceVariant,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        height: 13,
+                        width: 80,
+                      ),
+                    ],
+                  ),
                 ),
               ],
-            );
-          },
-        ));
+            ),
+          );
+        },
+      ),
+    );
   }
 }

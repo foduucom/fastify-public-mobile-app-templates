@@ -21,8 +21,8 @@ Future<void> main() async {
   await GetStorage.init();
 
   // Register CartService as a permanent singleton
-  // Get.put(CartService());
-  // Get.put(WishListService());
+  Get.put(CartService());
+  Get.put(WishListService());
 
   if (kIsWeb) {
     var accessKey = Uri.base.queryParameters['api_key'];

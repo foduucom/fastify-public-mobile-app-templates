@@ -3,26 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
-import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
-import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import 'package:foduu_ecommerce/app/modules/product/controllers/product_controller.dart';
 import 'package:foduu_ecommerce/app/modules/wishlist/controllers/wishlist_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/ImagePreviewMultipleView.dart';
 import 'package:foduu_ecommerce/components/buttons/primary_action_button.dart';
-import 'package:foduu_ecommerce/components/commonWidgets/appbarIcons.dart';
 import 'package:foduu_ecommerce/components/commonWidgets/secondary_app_header.dart';
 import 'package:foduu_ecommerce/components/commonWidgets/simple_price_text.dart';
 import 'package:foduu_ecommerce/components/commonWidgets/variable_price_text.dart';
-import 'package:foduu_ecommerce/components/gridviewproductcard.dart';
-import 'package:foduu_ecommerce/components/review.dart';
 import 'package:foduu_ecommerce/components/shimmer_effects.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/product_helper.dart';
 import 'package:foduu_ecommerce/constants/theme.dart';
+import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -50,24 +45,33 @@ class ProductView extends GetView<ProductController> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    SizedBox(height: height * 0.02),
+                    SizedBox(height: height * 0.005),
                     SecondaryAppHeader(
                       title: "Product Detail",
                       rightIcon: Icons.favorite_outline,
                     ),
-                    SizedBox(height: height * 0.02),
+                    SizedBox(height: height * 0.005),
+                    // In your product details screen where you call ProductGallery
                     Obx(
-                      () {
-                        return ProductGallery(
-                          controller: controller,
-                          productGallery: controller.productDetials['type'] ==
-                                  'variable' // Your API says "type":"variable"
-                              ? controller.productDetials['variants']
-                                      [controller.selectedVariantIndex.value][
-                                  'images'] // Change from 'gallery' to 'images'
-                              : controller.productGallery,
-                        );
-                      },
+                      () => ProductGallery(
+                        controller: controller,
+                        productGallery: controller.productDetials['type'] ==
+                                'variable'
+                            ? (controller.productDetials['variants'] != null &&
+                                    controller.selectedVariantIndex.value <
+                                        controller
+                                            .productDetials['variants'].length)
+                                ? (controller.productDetials['variants'][
+                                            controller.selectedVariantIndex
+                                                .value]['images'] !=
+                                        null
+                                    ? controller.productDetials['variants'][
+                                        controller.selectedVariantIndex
+                                            .value]['images']
+                                    : [])
+                                : []
+                            : controller.productGallery,
+                      ),
                     ),
                     const SizedBox(height: 8.0),
                     Obx(() {
@@ -328,106 +332,6 @@ class ProductView extends GetView<ProductController> {
                                   ],
                                 ),
                               ),
-                              // Obx(
-                              //   () => Row(
-                              //     children: [
-                              //       RatingBarIndicator(
-                              //         rating: controller.productDetials[
-                              //                     'average_rating'] ==
-                              //                 null
-                              //             ? 0.0
-                              //             : double.parse(controller
-                              //                 .productDetials['average_rating']
-                              //                 .toString()),
-                              //         itemBuilder: (context, index) => const Icon(
-                              //           Icons.star,
-                              //           color: Colors.amber,
-                              //         ),
-                              //         itemCount: 5,
-                              //         itemSize: 18.0,
-                              //         direction: Axis.horizontal,
-                              //       ),
-                              //       const SizedBox(width: 10),
-                              //       Text(
-                              //         controller.productDetials['rating_count'] ==
-                              //                 null
-                              //             ? '0'
-                              //             : controller
-                              //                 .productDetials['rating_count']
-                              //                 .toString(),
-                              //         style: txtTheme().titleLarge!.copyWith(
-
-                              //         ),
-                              //       )
-                              //     ],
-                              //   ),
-                              // ),
-                              // const SizedBox(height: 10),
-                              // Obx(() {
-                              //   if (controller.productDetials['variant_ids'] ==
-                              //       null) {
-                              //     return const ShimmerEffect(
-                              //         height: 10, width: 50);
-                              //   } else {
-                              //     var productPrice = controller
-                              //                     .productDetials['variant_ids'][
-                              //                 controller.selectedVariantIndex
-                              //                     .value]['sale_price'] ==
-                              //             null
-                              //         ? controller.productDetials['variant_ids']
-                              //                 [controller.selectedVariantIndex.value]
-                              //                 ['price']
-                              //             .toString()
-                              //         : controller.productDetials['variant_ids']
-                              //                 [controller.selectedVariantIndex.value]
-                              //                 ['sale_price']
-                              //             .toString();
-                              //     var sale_price = controller
-                              //                     .productDetials['variant_ids'][
-                              //                 controller.selectedVariantIndex
-                              //                     .value]['sale_price'] ==
-                              //             null
-                              //         ? null
-                              //         : controller.productDetials['variant_ids'][
-                              //                 controller.selectedVariantIndex
-                              //                     .value]['price']
-                              //             .toString();
-                              //     return Row(
-                              //       crossAxisAlignment: CrossAxisAlignment.end,
-                              //       children: [
-                              //         Text(
-                              //           "₹${productPrice}",
-                              //           style: txtTheme().titleLarge,
-                              //         ),
-                              //         const SizedBox(width: 04),
-                              //         sale_price == null
-                              //             ? Container()
-                              //             : Text(
-                              //                 "₹${sale_price}",
-                              //                 style: txtTheme()
-                              //                     .titleLarge!
-                              //                     .copyWith(
-                              //                         decoration: TextDecoration
-                              //                             .lineThrough),
-                              //               ),
-                              //         Text(
-                              //           controller.productDetials['variant_ids'][
-                              //                       controller
-                              //                           .selectedVariantIndex
-                              //                           .value]['sale_price'] ==
-                              //                   null
-                              //               ? ''
-                              //               // : " ${(100 - controller.productDetials['variant_ids'][controller.selectedVariantIndex.value]['sale_price'] * 100 / controller.productDetials['variant_ids'][controller.selectedVariantIndex.value]['price']).round()}" +
-                              //               //     "%off",
-                              //               : ' (${(((controller.productDetials['variant_ids'][controller.selectedVariantIndex.value]['price'] - controller.productDetials['variant_ids'][controller.selectedVariantIndex.value]['sale_price']) / controller.productDetials['variant_ids'][controller.selectedVariantIndex.value]['price']) * 100).toStringAsFixed(2)}% off)',
-                              //           style: txtTheme().titleLarge!.copyWith(),
-                              //         )
-                              //       ],
-                              //     );
-                              //   }
-                              // }),
-                              // Text("Inclusive of all taxes",
-                              //     style: txtTheme().titleLarge!.copyWith()),
                             ],
                           ),
                         ),
@@ -619,125 +523,6 @@ class ProductView extends GetView<ProductController> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Obx(
-                              //   () {
-                              //     return Column(
-                              //       children: [
-                              //         ListView.separated(
-                              //             physics:
-                              //                 const NeverScrollableScrollPhysics(),
-                              //             shrinkWrap: true,
-                              //             itemBuilder: (context, parentIndex) {
-                              //               return Column(
-                              //                 crossAxisAlignment:
-                              //                     CrossAxisAlignment.start,
-                              //                 children: [
-                              //                   Text(
-                              //                       'Select ${controller.labels[parentIndex]}',
-                              //                       style: txtTheme()
-                              //                           .titleLarge!
-                              //                           .copyWith(
-                              //                               fontWeight:
-                              //                                   FontWeight.bold)),
-                              //                   Padding(
-                              //                     padding: const EdgeInsets.only(
-                              //                         top: 8.0),
-                              //                     child: SizedBox(
-                              //                       height: 40,
-                              //                       child: ListView.builder(
-                              //                         shrinkWrap: true,
-                              //                         scrollDirection:
-                              //                             Axis.horizontal,
-                              //                         itemCount: controller
-                              //                             .labelVariant[
-                              //                                 parentIndex]
-                              //                             .length,
-                              //                         itemBuilder:
-                              //                             (context, index) {
-                              //                           return GestureDetector(
-                              //                             onTap: () {
-                              //                               controller.onSelectVariant(
-                              //                                   controller.labels[
-                              //                                       parentIndex],
-                              //                                   controller.labelVariant[
-                              //                                           parentIndex]
-                              //                                       [index]);
-                              //                               print(
-                              //                                   controller.labels[
-                              //                                       parentIndex]);
-                              //                               print(
-                              //                                   'label variant ${controller.labelVariant}');
-                              //                               print(
-                              //                                   'parent index index  ${controller.labelVariant[parentIndex][index]}');
-                              //                             },
-                              //                             child: Obx(
-                              //                               () {
-                              //                                 print(
-                              //                                     '${controller.labelVariant[parentIndex][index]} = ${controller.joinedVariants.contains(controller.labelVariant[parentIndex][index])}');
-                              //                                 return Container(
-                              //                                   margin:
-                              //                                       const EdgeInsets
-                              //                                           .only(
-                              //                                           right:
-                              //                                               10),
-                              //                                   padding:
-                              //                                       const EdgeInsets
-                              //                                           .symmetric(
-                              //                                           horizontal:
-                              //                                               15,
-                              //                                           vertical:
-                              //                                               2),
-                              //                                   decoration:
-                              //                                       BoxDecoration(
-                              //                                     border: Border.all(
-                              //                                         width: 1.5,
-                              //                                         // color: controller
-                              //                                         //         .joinedVariants
-                              //                                         //         .contains(controller.labelVariant[parentIndex][
-                              //                                         //             index])
-                              //                                         //     ? Colors
-                              //                                         //         .red
-                              //                                         //         .shade300
-                              //                                         //     : themegreyColor),
-                              //                                         color: controller.containsExactSize(controller.joinedVariants.value, controller.labelVariant[parentIndex][index]) ? Colors.red.shade300 : Colors.red),
-                              //                                     borderRadius:
-                              //                                         BorderRadius
-                              //                                             .circular(
-                              //                                                 08),
-                              //                                   ),
-                              //                                   child: Center(
-                              //                                     child: Text(
-                              //                                       controller.labelVariant[
-                              //                                               parentIndex]
-                              //                                           [index],
-                              //                                       style: const TextStyle(
-                              //                                           color: Colors
-                              //                                               .black),
-                              //                                     ),
-                              //                                   ),
-                              //                                 );
-                              //                               },
-                              //                             ),
-                              //                           );
-                              //                         },
-                              //                       ),
-                              //                     ),
-                              //                   )
-                              //                 ],
-                              //               );
-                              //             },
-                              //             separatorBuilder: (context, index) {
-                              //               return const SizedBox(
-                              //                 height: 10,
-                              //               );
-                              //             },
-                              //             itemCount: controller.labels.length)
-                              //       ],
-                              //     );
-                              //   },
-                              // ),
-                              //const SizedBox(height: 10),
-
                               Padding(
                                   padding: EdgeInsets
                                       .zero, // Add your desired padding here
@@ -755,7 +540,7 @@ class ProductView extends GetView<ProductController> {
                                               "Description",
                                               style: TextStyle(
                                                 fontFamily: 'Plus Jakarta Sans',
-                                                fontSize: height * 0.02, // ≈ 16
+                                                fontSize: 14, // ≈ 16
                                                 fontWeight:
                                                     FontWeight.w700, // Bold
                                                 height: 1.75, // ≈ 28
@@ -856,264 +641,6 @@ class ProductView extends GetView<ProductController> {
                             ],
                           ),
                         ),
-                        // const Divider(
-                        //   thickness: 10,
-                        // ),
-                        // Padding(
-                        //   padding: pageSurroundingPadding,
-                        //   child: Column(
-                        //     children: [
-                        // Row(
-                        //   mainAxisAlignment:
-                        //       MainAxisAlignment.spaceBetween,
-                        //   children: [
-                        //     Obx(
-                        //       () => Text(
-                        //           "Customer Reviews  ${controller.productReview.length}",
-                        //           style: txtTheme().titleLarge!.copyWith(
-                        //               fontWeight: FontWeight.bold)),
-                        //     ),
-                        //     InkWell(
-                        //       onTap: () {},
-                        //       child: Padding(
-                        //         padding: const EdgeInsets.all(8.0),
-                        //         child: Text("All Reviews",
-                        //             style: txtTheme()
-                        //                 .titleLarge!
-                        //                 .copyWith(
-                        //                     fontWeight: FontWeight.bold)),
-                        //       ),
-                        //     ),
-                        //   ],
-                        // ),
-                        // const SizedBox(height: 10),
-                        //       Obx(
-                        //         () => ListView.separated(
-                        //             shrinkWrap: true,
-                        //             physics:
-                        //                 const NeverScrollableScrollPhysics(),
-                        //             separatorBuilder: (context, index) =>
-                        //                 const Divider(
-                        //                   thickness: 0.9,
-                        //                 ),
-                        //             itemCount: controller
-                        //                         .productReview.value.length >
-                        //                     2
-                        //                 ? 2
-                        //                 : controller.productReview.value.length,
-                        //             itemBuilder: (context, index) {
-                        //               return customerReview(
-                        //                 profileimage: controller.productReview[
-                        //                                 index]['customer']
-                        //                             ['featured_image'] ==
-                        //                         null
-                        //                     ? HelperFunctions.getNoImage()
-                        //                     : url +
-                        //                         controller.productReview[index]
-                        //                                     ['customer']
-                        //                                 ['featured_image']
-                        //                             ['filepath'],
-                        //                 name:
-                        //                     "${controller.productReview[index]['customer']['name'].toString()} | ${controller.getDate(controller.productReview[index]['updated_at'])}",
-                        //                 review: controller.productReview[index]
-                        //                     ['summary'],
-                        //                 rating: controller.productReview[index]
-                        //                     ['rating'],
-                        //               );
-                        //             }),
-                        //       ),
-                        //       const SizedBox(
-                        //         height: 10,
-                        //       ),
-                        //     ],
-                        //   ),
-                        // ),
-                        // const Divider(
-                        //   thickness: 10,
-                        // ),
-                        // Obx(() => controller.similarProduct.isNotEmpty
-                        //     ? Column(
-                        //         crossAxisAlignment: CrossAxisAlignment.start,
-                        //         children: [
-                        //           Padding(
-                        //             padding: pageSurroundingPadding,
-                        //             child: Text("Similar Products",
-                        //                 style: txtTheme().titleLarge!.copyWith(
-                        //                     fontWeight: FontWeight.bold)),
-                        //           ),
-                        //           Obx(
-                        //             () {
-                        // print(
-                        // 'djdjdj ${shopController.allProductList.length}');
-                        // return SizedBox(
-                        //   height: 240,
-                        //   child: ListView.separated(
-                        //       separatorBuilder:
-                        //           (context, index) =>
-                        //               const SizedBox(width: 10),
-                        //       scrollDirection: Axis.horizontal,
-                        //       itemCount: controller
-                        //           .similarProduct.length,
-                        //       itemBuilder: (context, index) {
-                        //         var lowest;
-                        //         var highest;
-                        //         if (controller
-                        //                     .similarProduct[index]
-                        //                 ['type'] ==
-                        //             'variant') {
-                        //           // for (var item in trendingList) {
-                        //           lowest = HelperFunctions
-                        //               .lowestPrice(controller
-                        //                       .similarProduct[
-                        //                   index]['variant_ids']);
-                        //           highest = HelperFunctions
-                        //               .highestPrice(controller
-                        //                       .similarProduct[
-                        //                   index]['variant_ids']);
-
-                        // }
-                        //                   }
-                        //                   return Padding(
-                        //                     padding: const EdgeInsets.only(
-                        //                         left: 05),
-                        //                     child: gridProductCart(
-                        //                       animationController:
-                        //                           controller.controller,
-                        //                       scaoleAnimation:
-                        //                           controller.scaleAnimation,
-                        //                       highestPrice:
-                        //                           highest.toString(),
-                        //                       lowestPrice:
-                        //                           lowest.toString(),
-                        //                       productType: controller
-                        //                               .similarProduct[index]
-                        //                           ['type'],
-                        //                       liked: GetBuilder<
-                        //                           WishlistController>(
-                        //                         builder:
-                        //                             (wishlistcontroller) {
-                        //                           return wishlistcontroller
-                        //                                   .wishlistProductIds
-                        //                                   .contains(controller
-                        //                                           .similarProduct[
-                        //                                       index]['_id'])
-                        //                               ? SvgPicture.asset(
-                        //                                   'assets/icon/like.svg')
-                        //                               : SvgPicture.asset(
-                        //                                   'assets/icon/unlike.svg');
-                        //                         },
-                        //                       ),
-
-                        //                       onLiked: () async {
-                        //                         print('object');
-                        //                         await wishListController
-                        //                             .addProductToWishlist(
-                        //                                 productid: controller
-                        //                                         .similarProduct[
-                        //                                     index]['_id']);
-                        //                         await wishListController
-                        //                             .getwishlist();
-                        //                       },
-                        //                       rating: double.parse(
-                        //                         controller.similarProduct[
-                        //                                         index][
-                        //                                     'average_rating'] ==
-                        //                                 null
-                        //                             ? '0'
-                        //                             : controller
-                        //                                 .similarProduct[
-                        //                                     index][
-                        //                                     'average_rating']
-                        //                                 .toString(),
-                        //                       ),
-                        //                       // rating: 3.3,
-                        //                       quantity: controller.similarProduct[
-                        //                                           index][
-                        //                                       'variant_ids']
-                        //                                   [0]['quantity'] ==
-                        //                               null
-                        //                           ? "Out of stock"
-                        //                           : controller
-                        //                               .similarProduct[index]
-                        //                                   ['variant_ids'][0]
-                        //                                   ['quantity']
-                        //                               .toString(),
-                        //                       keypressEvent: () {
-                        //                         Get.toNamed(
-                        //                             Routes.PRODUCTDETAILS,
-                        //                             preventDuplicates:
-                        //                                 false,
-                        //                             arguments: {
-                        //                               'productId': controller
-                        //                                       .similarProduct[
-                        //                                   index]['_id']
-                        //                             });
-                        //                       },
-                        //                       assetimage: controller
-                        //                                       .similarProduct[index]
-                        //                                   [
-                        //                                   'featured_image'] ==
-                        //                               null
-                        //                           ? ''
-                        //                           : url +
-                        //                               controller.similarProduct[
-                        //                                           index][
-                        //                                       'featured_image']
-                        //                                   ['filepath'],
-                        //                       // 'https://www.babycouture.in/blog/wp-content/uploads/2016/04/elegant-summers-yellow-blue-kids-dress.jpg',
-                        //                       productname: controller
-                        //                           .similarProduct[index]
-                        //                               ['name']
-                        //                           .toString(),
-                        //                       productprice: controller.similarProduct[
-                        //                                           index]
-                        //                                       ['variant_ids'][0]
-                        //                                   ['sale_price'] ==
-                        //                               null
-                        //                           ? controller
-                        //                               .similarProduct[index]
-                        //                                   ['variant_ids'][0]
-                        //                                   ['price']
-                        //                               .toString()
-                        //                           : controller
-                        //                               .similarProduct[index]
-                        //                                   ['variant_ids'][0]
-                        //                                   ['sale_price']
-                        //                               .toString(),
-                        //                       discountprice:
-                        //                           controller.similarProduct[
-                        //                                               index]
-                        //                                           [
-                        //                                           'variant_ids'][0]
-                        //                                       [
-                        //                                       'sale_price'] ==
-                        //                                   null
-                        //                               ? ''
-                        //                               : controller
-                        //                                   .similarProduct[
-                        //                                       index][
-                        //                                       'variant_ids']
-                        //                                       [0]['price']
-                        //                                   .toString(),
-                        //                       discountrate: controller.similarProduct[
-                        //                                           index][
-                        //                                       'variant_ids'][0]
-                        //                                   ['sale_price'] ==
-                        //                               null
-                        //                           ? ''
-                        //                           : " ${(100 - controller.similarProduct[index]['variant_ids'][0]['sale_price'] * 100 / controller.similarProduct[index]['variant_ids'][0]['price']).round()}" +
-                        //                               "%off",
-                        //                       height: Get.width * 0.41,
-                        //                       width: Get.width * 0.40,
-                        //                     ),
-                        //                   );
-                        //                 }),
-                        //           );
-                        //         },
-                        //       ),
-                        //     ],
-                        //   )
-                        // : Container()),
                         const SizedBox(height: 50)
                       ],
                     ),
@@ -1121,40 +648,6 @@ class ProductView extends GetView<ProductController> {
                 ),
               ),
             ),
-            // Positioned(
-            //     bottom: 0,
-            //     child: Obx(
-            //       () => OrderButton(
-            //         btntext: controller.isAlreadyInCart.value
-            //             ? 'Already in cart'
-            //             : 'Add to Bag',
-            //         controller: controller,
-            //         wishListTap: () async {
-            //           await wishListController.addProductToWishlist(
-            //               productid: controller.productId);
-            //           await wishListController.getwishlist();
-            //         },
-            //         addToCartTap: () async {
-            //           if (controller.isAlreadyInCart.value) {
-            //             HelperFunctions.defaultdialogbox(
-            //                 'Product Already Added In Cart');
-            //             Future.delayed(const Duration(seconds: 2))
-            //                 .then((value) => Get.back());
-            //           } else {
-            //             HelperFunctions().showOverlayLoader();
-            //             if (wishListController.wishlistProductIds
-            //                 .contains(controller.productId)) {
-            //               await wishListController.addProductToWishlist(
-            //                   productid: controller.productId);
-            //             }
-            //             await controller.addToCart().then((value) {
-            //               Get.until((route) => !Get.isDialogOpen!);
-            //               return Get.toNamed(Routes.CART);
-            //             });
-            //           }
-            //         },
-            //       ),
-            //     )),
           ],
         ),
         bottomNavigationBar: _addToCartFooter(width: width, height: height),
@@ -1444,10 +937,12 @@ class _OrderButtonState extends State<OrderButton>
                       children: [
                         Transform.scale(
                           scale: _scaleAnimation.value,
-                          child: GetBuilder<WishlistController>(
-                            builder: (wishListController) {
-                              return wishListController.wishlistProductIds
-                                      .contains(widget.controller.productId)
+                          child: Obx(
+                            () {
+                              final wishlistService =
+                                  Get.find<WishListService>();
+                              return wishlistService
+                                      .isInWishlist(widget.controller.productId)
                                   ? SvgPicture.asset('assets/icon/like.svg')
                                   : SvgPicture.asset('assets/icon/unlike.svg');
                             },
@@ -1498,8 +993,11 @@ class ProductGallery extends StatelessWidget {
   final ProductController controller;
   final List productGallery;
 
-  ProductGallery(
-      {super.key, required this.controller, required this.productGallery});
+  const ProductGallery({
+    super.key,
+    required this.controller,
+    required this.productGallery,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1507,6 +1005,9 @@ class ProductGallery extends StatelessWidget {
     final width = MediaQuery.of(context).size.width;
 
     return Obx(() {
+      // Force rebuild when selectedImageIndex or selectedVariantIndex changes
+      print("Gallery rebuilding with ${productGallery.length} images");
+
       if (productGallery.isEmpty) {
         return _buildShimmerLoading(height, width);
       } else {
@@ -1541,91 +1042,128 @@ class ProductGallery extends StatelessWidget {
 
   Widget _buildGalleryWithThumbnails(
       BuildContext context, double height, double width) {
-    // Extract image paths safely
-    List<String> imagePaths = productGallery.map<String>((item) {
-      return url + "images/" + (item['filepath'] ?? '');
-    }).toList();
+    // Extract image paths safely with null checks
+    List<String> imagePaths = [];
+
+    try {
+      imagePaths = productGallery.map<String>((item) {
+        String imagePath = '';
+
+        // Handle different image structures
+        if (item is String) {
+          // If it's directly a string URL
+          imagePath = item;
+        } else if (item is Map) {
+          // If it's a map with filepath
+          imagePath = item['filepath'] ?? item['image'] ?? item['url'] ?? '';
+        }
+
+        // Add base URL if needed and not already a full URL
+        if (imagePath.isNotEmpty && !imagePath.startsWith('http')) {
+          return url + "images/" + imagePath;
+        }
+
+        return imagePath;
+      }).toList();
+    } catch (e) {
+      print("Error parsing gallery images: $e");
+      return SizedBox.shrink();
+    }
+
+    // Ensure selectedImageIndex is valid
+    if (controller.selectedImageIndex.value >= imagePaths.length) {
+      controller.selectedImageIndex.value = 0;
+    }
 
     return Container(
       width: width * 0.92,
       height: height * 0.47,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(height * 0.028),
-        image: DecorationImage(
-          image: CachedNetworkImageProvider(
-            imagePaths[controller.selectedImageIndex.value],
-          ),
-          fit: BoxFit.cover,
-        ),
+        image: imagePaths.isNotEmpty
+            ? DecorationImage(
+                image: CachedNetworkImageProvider(
+                  imagePaths[controller.selectedImageIndex.value],
+                ),
+                fit: BoxFit.cover,
+              )
+            : null,
+        color: Colors.grey.shade200, // Fallback color
       ),
-      child: Stack(
-        children: [
-          Positioned(
-            left: width * 0.037,
-            bottom: height * 0.02,
-            child: Container(
-              width: width * 0.845,
-              height: height * 0.085,
-              padding: EdgeInsets.symmetric(
-                horizontal: width * 0.02,
-              ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(height * 0.02),
-              ),
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                itemCount: imagePaths.length,
-                separatorBuilder: (_, __) => SizedBox(width: width * 0.02),
-                itemBuilder: (context, index) {
-                  final isActive = controller.selectedImageIndex.value == index;
-
-                  return GestureDetector(
-                    onTap: () {
-                      controller.selectedImageIndex.value = index;
-                    },
-                    child: Container(
-                      width: height * 0.085,
-                      height: height * 0.085,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(height * 0.02),
-                        border: isActive
-                            ? Border.all(
-                                color: DefaultThemeColors.mainprimary,
-                                width: 2,
-                              )
-                            : null,
-                        image: DecorationImage(
-                          image: CachedNetworkImageProvider(
-                            imagePaths[index],
-                          ),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+      child: imagePaths.isEmpty
+          ? Center(child: Text('No images available'))
+          : Stack(
+              children: [
+                // Thumbnails
+                Positioned(
+                  left: width * 0.037,
+                  bottom: height * 0.02,
+                  child: Container(
+                    width: width * 0.845,
+                    height: height * 0.085,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: width * 0.02,
                     ),
-                  );
-                },
-              ),
-            ),
-          ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(height * 0.02),
+                    ),
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: imagePaths.length,
+                      separatorBuilder: (_, __) =>
+                          SizedBox(width: width * 0.02),
+                      itemBuilder: (context, index) {
+                        final isActive =
+                            controller.selectedImageIndex.value == index;
 
-          // Optional: Add tap to view full screen
-          Positioned.fill(
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () {
-                  Get.to(
-                    () => ImageSlider(),
-                    arguments: {"images": productGallery},
-                  );
-                },
-                borderRadius: BorderRadius.circular(height * 0.028),
-              ),
+                        return GestureDetector(
+                          onTap: () {
+                            controller.selectedImageIndex.value = index;
+                          },
+                          child: Container(
+                            width: height * 0.085,
+                            height: height * 0.085,
+                            decoration: BoxDecoration(
+                              borderRadius:
+                                  BorderRadius.circular(height * 0.02),
+                              border: isActive
+                                  ? Border.all(
+                                      color: DefaultThemeColors.mainprimary,
+                                      width: 2,
+                                    )
+                                  : null,
+                              image: DecorationImage(
+                                image: CachedNetworkImageProvider(
+                                  imagePaths[index],
+                                ),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+
+                // Full screen tap
+                Positioned.fill(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Get.to(
+                          () => ImageSlider(),
+                          arguments: {"images": productGallery},
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(height * 0.028),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

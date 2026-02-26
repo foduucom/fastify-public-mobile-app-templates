@@ -36,6 +36,7 @@ class WishListService extends GetxService with BaseController {
   }
 
   // ── Add  ──────────────────────────
+  // In WishListService class
   Future<Map<String, dynamic>?> addWishlist({
     required String productId,
     required String variantSlug,
@@ -44,16 +45,27 @@ class WishListService extends GetxService with BaseController {
       'product_id': productId,
       'variant_slug': variantSlug,
     };
+
     var response = await BasicProvider("wishlist/add")
         .postRequest(form)
         .catchError(handleError);
+
+    // Handle both Map and String responses
     if (response != null) {
-      parseWishListResponse(response);
+      if (response is Map<String, dynamic>) {
+        parseWishListResponse(response);
+        return response;
+      } else if (response is String) {
+        // If response is just a success message, fetch the updated wishlist
+        printInfo(info: 'Wishlist add response: $response');
+        await fetchWishList(); // Fetch updated wishlist
+        return {'message': response};
+      }
     }
-    return response;
+    return null;
   }
 
-  // ── Remove item ──────────────────────────────────────────
+// Similarly update removeFromWishlist
   Future<Map<String, dynamic>?> removeFromWishlist({
     required String productId,
     required String variantSlug,
@@ -62,13 +74,24 @@ class WishListService extends GetxService with BaseController {
       'product_id': productId,
       'variant_slug': variantSlug,
     };
+
     var response = await BasicProvider("wishlist/remove")
         .postRequest(form)
         .catchError(handleError);
+
+    // Handle both Map and String responses
     if (response != null) {
-      parseWishListResponse(response);
+      if (response is Map<String, dynamic>) {
+        parseWishListResponse(response);
+        return response;
+      } else if (response is String) {
+        // If response is just a success message, fetch the updated wishlist
+        printInfo(info: 'Wishlist remove response: $response');
+        await fetchWishList(); // Fetch updated wishlist
+        return {'message': response};
+      }
     }
-    return response;
+    return null;
   }
 
   bool isInWishlist(String productId) {
@@ -86,10 +109,16 @@ class WishListService extends GetxService with BaseController {
     required String productId,
     required String variantSlug,
   }) async {
-    if (isInWishlist(productId)) {
-      await removeFromWishlist(productId: productId, variantSlug: variantSlug);
-    } else {
-      await addWishlist(productId: productId, variantSlug: variantSlug);
+    try {
+      if (isInWishlist(productId)) {
+        await removeFromWishlist(
+            productId: productId, variantSlug: variantSlug);
+      } else {
+        await addWishlist(productId: productId, variantSlug: variantSlug);
+      }
+      await fetchWishList();
+    } catch (e) {
+      printError(info: 'Error toggling wishlist: $e');
     }
   }
 

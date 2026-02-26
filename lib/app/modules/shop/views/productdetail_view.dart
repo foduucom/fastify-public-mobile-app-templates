@@ -17,6 +17,7 @@ import 'package:foduu_ecommerce/components/shimmer_effects.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/theme.dart';
+import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -906,13 +907,13 @@ class ProductdetailView extends GetView<ProductdetialController> {
                                                 productType: controller
                                                         .similarProduct[index]
                                                     ['type'],
-                                                liked: GetBuilder<
-                                                    WishlistController>(
-                                                  builder:
-                                                      (wishlistcontroller) {
-                                                    return wishlistcontroller
-                                                            .wishlistProductIds
-                                                            .contains(controller
+                                                liked: Obx(
+                                                  () {
+                                                    final wishlistService =
+                                                        Get.find<
+                                                            WishListService>();
+                                                    return wishlistService
+                                                            .isInWishlist(controller
                                                                     .similarProduct[
                                                                 index]['_id'])
                                                         ? SvgPicture.asset(
@@ -921,16 +922,21 @@ class ProductdetailView extends GetView<ProductdetialController> {
                                                             'assets/icon/unlike.svg');
                                                   },
                                                 ),
-
                                                 onLiked: () async {
                                                   print('object');
-                                                  await wishListController
-                                                      .addProductToWishlist(
-                                                          productid: controller
-                                                                  .similarProduct[
-                                                              index]['_id']);
-                                                  await wishListController
-                                                      .getwishlist();
+                                                  await WishListService()
+                                                      .toggleWishlist(
+                                                    productId: controller
+                                                            .similarProduct[
+                                                        index]['_id'],
+                                                    variantSlug: controller
+                                                                    .similarProduct[
+                                                                index]
+                                                            ['variant_slug'] ??
+                                                        '', // Make sure to provide the variant slug
+                                                  );
+                                                  await WishListService()
+                                                      .fetchWishList(); // This refreshes the wishlist
                                                 },
                                                 rating: double.parse(
                                                   controller.similarProduct[
@@ -964,29 +970,6 @@ class ProductdetailView extends GetView<ProductdetialController> {
                                                                 .similarProduct[
                                                             index]['_id']
                                                       });
-                                                  // Get.toNamed(Routes.INTRO);
-
-                                                  // Get.to(
-                                                  //     () =>
-                                                  //         ProductdetailView(),
-                                                  // arguments: {
-                                                  //   'productId':
-                                                  //       controller
-                                                  //               .similarProduct[index]
-                                                  //           [
-                                                  //           '_id']
-                                                  // });
-                                                  // Get.toNamed(
-                                                  //     Routes
-                                                  //         .PRODUCTDETAILS,
-                                                  //     preventDuplicates: false,
-                                                  //     arguments: {
-                                                  //       'productId':
-                                                  //           controller
-                                                  //                   .similarProduct[index]
-                                                  //               [
-                                                  //               '_id']
-                                                  //     });
                                                 },
                                                 assetimage: controller
                                                                 .similarProduct[index]
@@ -1061,128 +1044,60 @@ class ProductdetailView extends GetView<ProductdetialController> {
             ),
           ),
           Positioned(
-              bottom: 0,
-              child: Obx(
-                () => OrderButton(
-                  btntext: controller.isAlreadyInCart.value
-                      ? 'Already in cart'
-                      : 'Add to Bag',
-                  controller: controller,
-                  wishListTap: () async {
-                    await wishListController.addProductToWishlist(
-                        productid: controller.productId);
-                    await wishListController.getwishlist();
-                  },
-                  addToCartTap: () async {
-                    if (controller.isAlreadyInCart.value) {
-                      HelperFunctions.defaultdialogbox(
-                          'Product Already Added In Cart');
-                      Future.delayed(const Duration(seconds: 2))
-                          .then((value) => Get.back());
-                    } else {
-                      HelperFunctions().showOverlayLoader();
-                      if (wishListController.wishlistProductIds
-                          .contains(controller.productId)) {
-                        await wishListController.addProductToWishlist(
-                            productid: controller.productId);
-                      }
-                      await controller.addToCart().then((value) {
-                        Get.until((route) => !Get.isDialogOpen!);
-                        return Get.toNamed(Routes.CART);
-                      });
+            bottom: 0,
+            child: Obx(
+              () => OrderButton(
+                btntext: controller.isAlreadyInCart.value
+                    ? 'Already in cart'
+                    : 'Add to Bag',
+                controller: controller,
+                wishListTap: () async {
+                  final wishListService = Get.find<WishListService>();
+                  // Get variant slug from your product data
+                  String variantSlug =
+                      controller.productDetials['variant_slug'] ??
+                          ''; // Adjust based on your data structure
+
+                  await wishListService.toggleWishlist(
+                    productId: controller.productId,
+                    variantSlug: variantSlug,
+                  );
+                  await wishListService.fetchWishList();
+                },
+                addToCartTap: () async {
+                  if (controller.isAlreadyInCart.value) {
+                    HelperFunctions.defaultdialogbox(
+                        'Product Already Added In Cart');
+                    Future.delayed(const Duration(seconds: 2))
+                        .then((value) => Get.back());
+                  } else {
+                    HelperFunctions().showOverlayLoader();
+
+                    final wishListService = Get.find<WishListService>();
+                    // Get variant slug here too
+                    String variantSlug =
+                        controller.productDetials['variant_slug'] ?? '';
+
+                    if (wishListService.isInWishlist(controller.productId)) {
+                      await wishListService.toggleWishlist(
+                        productId: controller.productId,
+                        variantSlug: variantSlug,
+                      );
                     }
-                  },
-                ),
-              )),
+
+                    await controller.addToCart().then((value) {
+                      Get.until((route) => !Get.isDialogOpen!);
+                      return Get.toNamed(Routes.CART);
+                    });
+                  }
+                },
+              ),
+            ),
+          ),
         ],
       ),
     ));
   }
-
-//   Widget commentReviewButton(
-//       {required BuildContext context,
-//       required TextEditingController? messageController,
-//       TextEditingController? ratingController,
-//       required Function()? onPressed}) {
-//     return SizedBox(
-//       width: Get.width * 0.46,
-//       child: ElevatedButton(
-//           onPressed: () {
-//             showModalBottomSheet(
-//               context: context,
-//               isScrollControlled:
-//                   true, // Ensure the BottomSheet takes the full screen height
-//               shape: const RoundedRectangleBorder(
-//                 borderRadius: BorderRadius.only(
-//                   topLeft: Radius.circular(30),
-//                   topRight: Radius.circular(30),
-//                 ),
-//               ),
-//               builder: (context) {
-//                 return Container(
-//                   height: Get.height * 0.65,
-//                   // height: MediaQuery.of(context).size.height * 0.85,
-//                   child: Column(
-//                     crossAxisAlignment: CrossAxisAlignment.start,
-//                     children: [
-//                       Padding(
-//                         padding: const EdgeInsets.symmetric(
-//                             horizontal: 20, vertical: 15),
-//                         child: Text('leave_a_comment'.tr,
-//                             style: TextStyle(
-//                               fontWeight: FontWeight.w600,
-//                               fontSize: 20,
-//                               color: themeRedColor,
-//                             )),
-//                       ),
-//                       Padding(
-//                         padding: const EdgeInsets.only(
-//                             right: 10, left: 10, bottom: 10),
-//                         child: Obx(
-//                           () => RatingBar(
-//                             initialRating: 3,
-//                             direction: Axis.horizontal,
-//                             itemCount: 5,
-//                             ratingWidget: RatingWidget(
-//                               full: const Icon(Icons.star, color: Colors.amber),
-//                               half: const Icon(Icons.star_half,
-//                                   color: Colors.amber),
-//                               empty: const Icon(Icons.star_border,
-//                                   color: Colors.amber),
-//                             ),
-//                             itemSize: 40.0,
-//                             onRatingUpdate: (rating) {
-//                               // controller.updateRating(rating);
-//                             },
-//                           ),
-//                         ),
-//                       ),
-//                       Padding(
-//                         padding: const EdgeInsets.all(10),
-//                         child: TextFormField(
-//                           controller: messageController,
-//                           maxLines: 6,
-//                           decoration: InputDecoration(
-//                             hintStyle: const TextStyle(
-//                                 fontSize: 16, color: Color(0xffABAFB5)),
-//                             hintText: 'add_your_comment'.tr,
-//                           ),
-//                         ),
-//                       ),
-//                       const SizedBox(height: 10),
-//                       const SizedBox(height: 10),
-//                       // postCommentButton(onPressed),
-//                     ],
-//                   ),
-//                 );
-//               },
-//             );
-//           },
-//           child: Text('leave_a_comment'.tr,
-//               style: const TextStyle(fontWeight: FontWeight.w600))),
-//     );
-//   }
-// }
 }
 
 reviewModal(ProductdetialController controller) {
@@ -1554,10 +1469,12 @@ class _OrderButtonState extends State<OrderButton>
                       children: [
                         Transform.scale(
                           scale: _scaleAnimation.value,
-                          child: GetBuilder<WishlistController>(
-                            builder: (wishListController) {
-                              return wishListController.wishlistProductIds
-                                      .contains(widget.controller.productId)
+                          child: Obx(
+                            () {
+                              final wishlistService =
+                                  Get.find<WishListService>();
+                              return wishlistService
+                                      .isInWishlist(widget.controller.productId)
                                   ? SvgPicture.asset('assets/icon/like.svg')
                                   : SvgPicture.asset('assets/icon/unlike.svg');
                             },

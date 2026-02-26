@@ -6,7 +6,22 @@ import 'package:foduu_ecommerce/components/buttons/primary_action_button.dart';
 import 'package:get/get.dart';
 
 class HomeWishlistEmptyView extends GetView<HomeWishlistControllers> {
-  const HomeWishlistEmptyView({super.key});
+  final VoidCallback? onShoppingPressed;
+  final String? title;
+  final String? description;
+  final IconData? icon;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+
+  const HomeWishlistEmptyView({
+    super.key,
+    required this.colorScheme,
+    required this.textTheme,
+    this.onShoppingPressed,
+    this.title,
+    this.description,
+    this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,37 +38,40 @@ class HomeWishlistEmptyView extends GetView<HomeWishlistControllers> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Icon Container
               Container(
                 width: width * 0.33, // ≈ 124
                 height: height * 0.155, // ≈ 125
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(height * 0.12), // ≈ 100
-                  color: const Color(0xFFF5F5F5),
+                  color: colorScheme.surfaceVariant.withOpacity(0.3),
                 ),
                 child: Center(
                   child: Icon(
-                    Icons.inventory_2_outlined, // BOX icon
+                    icon ?? Icons.inventory_2_outlined, // BOX icon
                     size: height * 0.087, // ≈ 70
-                    color: const Color(0xFF666666),
+                    color: colorScheme.onSurface.withOpacity(0.6),
                   ),
                 ),
               ),
 
               SizedBox(height: height * 0.025), // gap 20
+
+              // Text Section
               SizedBox(
                 width: width * 0.73, // ≈ 273
                 child: Column(
                   children: [
                     // Title
                     Text(
-                      "Your wishlist is empty",
+                      title ?? "Your wishlist is empty",
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: textTheme.titleMedium?.copyWith(
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: height * 0.022, // ≈ 18
                         fontWeight: FontWeight.w700,
                         height: 1.66, // ≈ 30
-                        color: const Color(0xFF232323),
+                        color: colorScheme.onSurface,
                       ),
                     ),
 
@@ -61,15 +79,16 @@ class HomeWishlistEmptyView extends GetView<HomeWishlistControllers> {
 
                     // Description
                     Text(
-                      "Start adding your favorite items to create your personalized shopping list.",
+                      description ??
+                          "Start adding your favorite items to create your personalized shopping list.",
                       maxLines: 3,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: textTheme.bodyMedium?.copyWith(
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: height * 0.018, // ≈ 14
                         fontWeight: FontWeight.w500,
                         height: 1.43, // ≈ 20
-                        color: const Color(0xFF858585),
+                        color: colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
                   ],
@@ -78,11 +97,16 @@ class HomeWishlistEmptyView extends GetView<HomeWishlistControllers> {
 
               SizedBox(height: height * 0.025), // gap 20
 
+              // Action Button
               PrimaryActionButton(
                 text: "Start Shopping",
-                onPressed: () {
-                  // navigation later
-                },
+                onPressed: onShoppingPressed ??
+                    () {
+                      // Default navigation
+                      Get.back();
+                      // Navigate to shopping page
+                      // Get.toNamed(Routes.SHOP);
+                    },
               ),
             ],
           ),

@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:foduu_ecommerce/app/modules/home_wishlist/views/home_wishlist_empty_view.dart';
+import 'package:foduu_ecommerce/app/modules/wishlist/views/home_wishlist_empty_view.dart';
 import 'package:foduu_ecommerce/app/modules/home_wishlist/views/home_wishlist_view.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/controllers/homepage_controller.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/views/material/responsive_bottom_nav.dart';

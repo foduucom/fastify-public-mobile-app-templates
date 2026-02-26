@@ -7,6 +7,7 @@ import 'package:foduu_ecommerce/app/modules/wishlist/controllers/wishlist_contro
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/commonWidgets/appbarIcons.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import 'package:get/get.dart';
 import '../../../../../constants/constants.dart';
 import '../controllers/categorydetial_controller.dart';
@@ -62,16 +63,26 @@ class CategeorydetailView extends GetView<CategeorydetaiController> {
         // backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          Obx(() => Get.find<BottombarController>().cartbadge(
+          Obx(() {
+            final bottomBarController = Get.find<BottombarController>();
+            final wishlistService = Get.find<WishListService>();
+
+            // Optional: Add refresh trigger if you have one
+            // final _ = wishlistService.refreshTrigger.value;
+
+            return bottomBarController.cartbadge(
               onTap: () {
-                Get.find<BottombarController>().currentPageIndex.value = 3;
-                Get.find<BottombarController>().pageController.jumpToPage(3);
+                bottomBarController.currentPageIndex.value = 3;
+                bottomBarController.pageController.jumpToPage(3);
               },
               child: HeartIcon(() {
                 Get.toNamed(Routes.WISHLIST);
               }),
-              badgeNumber: Get.find<WishlistController>().wishList.length)),
-          SizedBox(width: 14),
+              badgeNumber: wishlistService
+                  .wishListItemCount, // Changed from wishList.length to wishListItemCount
+            );
+          }),
+          const SizedBox(width: 14),
           // Padding(
           //   padding: const EdgeInsets.only(right: 12.0),
           //   child: InkWell(
