@@ -100,7 +100,22 @@ class _TopCategoryHomeState extends State<CategoryHome>
   Widget _buildCategoryItem(dynamic category, String style,
       {bool isVerticalList = false, bool isGrid = false}) {
     return GestureDetector(
-      onTap: () => {},
+      onTap: () {
+        List children = category['children'] ?? [];
+
+        if (children.isNotEmpty) {
+          // Instead of navigating to DETAILCATEGORY, show the dialog
+          _showCategoryDialog(Get.context!, category);
+        } else {
+          // If no children, navigate directly to product list
+          Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+            'productId': category['_id'],
+            'categorySlug': category['slug'],
+            'name': category['name'],
+            'source': 'category'
+          });
+        }
+      },
       child: style == 'rectangular'
           ? _buildRectangularItem(category, isVerticalList)
           : _buildCircularItem(category, isGrid),
@@ -145,22 +160,12 @@ class _TopCategoryHomeState extends State<CategoryHome>
       BuildContext context, Map<String, dynamic> category) {
     final children = category['children'] as List;
 
-    // If no children, don't show dialog, navigate directly
-    if (children.isEmpty) {
-      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-        'productId': category['slug'],
-        'name': category['name'],
-        'source': 'category'
-      });
-      return;
-    }
-
-    // Show the dialog using the new CategoryDialog class
+    // Show the dialog using the updated CategoryDialog class
     Get.dialog(
       CategoryDialog(
         category: category,
-        //controller: controller, // Pass your controller if needed
       ),
+      barrierDismissible: true, // Allow tapping outside to close
     );
   }
 
