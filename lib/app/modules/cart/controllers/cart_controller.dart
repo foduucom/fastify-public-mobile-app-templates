@@ -421,12 +421,11 @@ class CartController extends GetxController
       'value': {
         productId: {
           'quantity': quantity,
-          'variant_name': variantName,
+          'variant_name': variantName.toString(),
           'producttype': productType
         }
       }
     };
-    print('form $form');
 
     if (AuthDetails.isUserLogin()) {
       var response = await BasicProvider("public/cart/create")
@@ -442,42 +441,58 @@ class CartController extends GetxController
       await getCartProduct();
       getSimilarProduct(categoriesID);
     } else {
-      // var form = {
-      //   'value': {
-      //     productId: {
-      //       'quantity': quantity,
-      //       'variant_name': variantName == null ? ' ' : variantName,
-      //       'producttype': productType
-      //     }
-      //   }
-      // };
-
-      var form = {
+      var guestForm = {
         '_id': productId,
         'quantity': quantity,
-        'variant_name': variantName == 'null' ? null : variantName,
+        'variant_name': variantName.toString() == 'null' ? null : variantName,
         'producttype': productType
-      }
-          // 'value': {
-          //   productId: {
-          //     'quantity': quantity,
-          //     'variant_name': variantName == null ? ' ' : variantName,
-          //     'producttype': productType
-          //   }
-          // }
-          ;
+      };
       guestUserCartList = box.read('guestUserCartList') ?? [];
+      bool found = false;
       for (var i = 0; i < guestUserCartList.length; i++) {
-        if (guestUserCartList[i]['_id'] == form['_id']) {
-          return;
-          // break;
+        if (guestUserCartList[i]['_id'] == guestForm['_id']) {
+          guestUserCartList[i]['quantity'] = quantity;
+          found = true;
+          break;
         }
       }
-      guestUserCartList.add(form);
+      if (!found) {
+        guestUserCartList.add(guestForm);
+      }
       List<dynamic> cartList = guestUserCartList.toList();
       box.write('guestUserCartList', cartList);
       getCartProduct();
     }
+  }
+
+  Future<void> updateQuantity(int index, int quantity) async {
+    if (quantity < 1) return;
+    var product = productDetails[index];
+    var variantName = AuthDetails.isUserLogin()
+        ? cartProducts[index]['value']['variant_name'] ?? ''
+        : guestUserCartList[index]['variant_name'] ?? '';
+    var productType = AuthDetails.isUserLogin()
+        ? cartProducts[index]['value']['producttype'] ?? 'simple'
+        : guestUserCartList[index]['producttype'] ?? 'simple';
+
+    await addToCart(
+      productId: product['_id'],
+      quantity: quantity,
+      variantName: variantName,
+      productType: productType,
+    );
+  }
+
+  dynamic getVariantPrice(int index) {
+    var product = productDetails[index];
+    var variantIndex = getVariantIndex(index);
+    if (product['variant_ids'] == null ||
+        product['variant_ids'].isEmpty ||
+        variantIndex >= product['variant_ids'].length) {
+      return 0;
+    }
+    var variant = product['variant_ids'][variantIndex];
+    return variant['sale_price'] ?? variant['price'] ?? 0;
   }
 
   Future<void> onRefresh() async {

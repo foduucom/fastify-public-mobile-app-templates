@@ -27,8 +27,8 @@ class WishListService extends GetxService with BaseController {
         return;
       }
 
+      print("In WishlistService fetchWishList response: $response");
       printInfo(info: response.toString());
-
       parseWishListResponse(response);
     } catch (e, stackTrack) {
       debugPrint('WishlistService.fetchWishList error: $e');
@@ -97,11 +97,13 @@ class WishListService extends GetxService with BaseController {
   bool isInWishlist(String productId) {
     return wishListItems.any((item) {
       final product = item['product_id'];
+      String? id;
       if (product is Map) {
-        return (product['_id'] ?? product['id']).toString() ==
-            productId.toString();
+        id = (product['_id'] ?? product['id'])?.toString();
+      } else {
+        id = (item['_id'] ?? item['id'])?.toString();
       }
-      return product?.toString() == productId.toString();
+      return id == productId.toString();
     });
   }
 

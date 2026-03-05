@@ -1,21 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:foduu_ecommerce/app/modules/wishlist/views/home_wishlist_empty_view.dart';
-import 'package:foduu_ecommerce/app/modules/home_wishlist/views/home_wishlist_view.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/controllers/homepage_controller.dart';
-import 'package:foduu_ecommerce/app/modules/homepage/views/material/responsive_bottom_nav.dart';
-import 'package:foduu_ecommerce/app/modules/homepage/views/material/responsive_circle_icon.dart';
-import 'package:foduu_ecommerce/app/modules/homepage/views/material/responsive_common_header.dart';
-import 'package:foduu_ecommerce/app/modules/homepage/views/material/shopping_card.dart';
-import 'package:foduu_ecommerce/app/routes/app_pages.dart';
-import 'package:foduu_ecommerce/components/home_component/home_banner.dart';
-import 'package:foduu_ecommerce/components/home_component/home_category.dart';
-import 'package:foduu_ecommerce/components/home_component/home_products.dart';
-import 'package:foduu_ecommerce/constants/app_loader.dart';
-import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
 import 'package:get/get.dart';
-import 'package:shimmer/shimmer.dart';
 
 class HomePageView extends GetView<HomepageController> {
   const HomePageView({Key? key}) : super(key: key);

@@ -87,12 +87,12 @@ mixin FoduuStudioLayoutMixin on GetxController {
       dynamic response;
 
       // Ensure socket is connected and listener is enabled on web
-      // if (kIsWeb) {
-      //   if (!_layoutSocketHelper.isConnected) {
-      //     _layoutSocketHelper.connect();
-      //   }
-      //   enableSocketUpdates(domain: websiteDomain, slug: slug);
-      // }
+      if (kIsWeb) {
+        if (!_layoutSocketHelper.isConnected) {
+          _layoutSocketHelper.connect();
+        }
+        enableSocketUpdates(domain: websiteDomain, slug: slug);
+      }
 
       if (requestBody != null) {
         response = await BasicProvider("mobile-app/by-json")
@@ -103,8 +103,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
             .getRequest()
             .catchError((e, stackTrace) => _handleApiError(e, stackTrace));
       }
-
-      printInfo(info: 'swapnil reponse response ${response}');
+      print('Hi Fetch Layout Response $response');
 
       if (response != null) {
         var list = response['sections'];
@@ -115,9 +114,8 @@ mixin FoduuStudioLayoutMixin on GetxController {
       }
 
       return response;
-    } catch (e, stackTrace) {
+    } catch (e) {
       print('DynamicLayoutMixin fetchLayout error: $e');
-      print('DynamicLayoutMixin fetchLayout stackTrace: $stackTrace');
     } finally {
       isLayoutLoading.value = false;
     }

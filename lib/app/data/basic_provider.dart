@@ -17,6 +17,7 @@ class BasicProvider {
   var box = GetStorage();
 
   String fetchUrl() {
+    print('fetchUrl $apiURL + $custom_url');
     return apiURL + custom_url;
   }
 
@@ -54,6 +55,7 @@ class BasicProvider {
       final response = await http
           .get(uri, headers: headerType())
           .timeout(const Duration(seconds: 60));
+      print('GET API RESONSE ${response.body}');
 
       return _processResponse(response, fetchUrl());
     } on SocketException {
@@ -160,12 +162,14 @@ class BasicProvider {
         "accept": "application/json",
         'access_key': ACCESS_KEY,
         "Content-Type": "application/json",
-        // 'Authorization': 'Bearer ${AuthDetails.box.read('token')}',
+        //'Authorization': 'Bearer ${AuthDetails.getToken()}',
       };
 
       if (AuthDetails.getToken() != null) {
         userHeader['Authorization'] = 'Bearer ${AuthDetails.getToken()}';
       }
+
+      print("userHeader: $userHeader");
 
       return userHeader;
     } catch (e) {

@@ -75,11 +75,8 @@ class FoduuStudioLayoutView extends StatelessWidget {
 
       // ── Embedded mode: just a shrinkWrap list, no scroll wrapper ──
       if (embedded) {
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: widgetList.length,
-          itemBuilder: (_, index) => widgetList[index],
+        return Column(
+          children: widgetList.toList(),
         );
       }
 
@@ -88,11 +85,8 @@ class FoduuStudioLayoutView extends StatelessWidget {
         onRefresh: onRefresh!,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: widgetList.length,
-            itemBuilder: (_, index) => widgetList[index],
+          child: Column(
+            children: widgetList.toList(),
           ),
         ),
       );

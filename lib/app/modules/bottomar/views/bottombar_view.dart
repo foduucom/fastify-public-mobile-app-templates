@@ -42,7 +42,7 @@ class BottombarView extends GetView<BottombarController> {
                   width: width,
                   height: height,
                   onSearchTap: () => print("Search tapped"),
-                  onCartTap: () => print("Cart tapped"),
+                  onCartTap: () => Get.toNamed(Routes.CART),
                   onMessageTap: () => print("Message tapped"),
                   onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),
                 );

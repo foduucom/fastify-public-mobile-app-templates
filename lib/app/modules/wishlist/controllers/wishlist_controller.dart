@@ -32,11 +32,19 @@ class WishlistController extends GetxController
   }
 
   Map<String, dynamic> getProduct(int index) {
-    return Map<String, dynamic>.from(wishlistItems[index]['product_id'] ?? {});
+    final item = wishlistItems[index];
+    if (item.containsKey('product_id') && item['product_id'] is Map) {
+      return Map<String, dynamic>.from(item['product_id']);
+    }
+    return Map<String, dynamic>.from(item);
   }
 
   Map<String, dynamic> getVariant(int index) {
-    return Map<String, dynamic>.from(wishlistItems[index]['variant_id'] ?? {});
+    final item = wishlistItems[index];
+    if (item.containsKey('variant_id') && item['variant_id'] is Map) {
+      return Map<String, dynamic>.from(item['variant_id']);
+    }
+    return Map<String, dynamic>.from(item);
   }
 
   int getQuantity(int index) {
@@ -44,14 +52,24 @@ class WishlistController extends GetxController
   }
 
   String getVariantSlug(int index) {
-    return wishlistItems[index]['variant_slug'] ?? '';
+    final item = wishlistItems[index];
+    return (item['variant_slug'] ??
+            item['variant_id']?['slug'] ??
+            item['product_id']?['slug'] ??
+            item['slug'] ??
+            '')
+        .toString();
   }
 
   String getProductId(int index) {
-    final product = wishlistItems[index]['product_id'];
+    final item = wishlistItems[index];
+    final product = item['product_id'];
+
     if (product is Map) {
-      return product['_id'] ?? product['id'] ?? '';
+      return (product['_id'] ?? product['id'] ?? '').toString();
     }
-    return product?.toString() ?? '';
+
+    // Fallback: check if the item itself has the ID (flattened structure)
+    return (item['_id'] ?? item['id'] ?? '').toString();
   }
 }

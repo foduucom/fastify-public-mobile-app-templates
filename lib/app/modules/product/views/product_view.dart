@@ -53,41 +53,85 @@ class ProductView extends GetView<ProductController> {
                     SizedBox(height: height * 0.005),
                     // In your product details screen where you call ProductGallery
                     Obx(
-                      () => ProductGallery(
-                        controller: controller,
-                        productGallery: controller.productDetials['type'] ==
-                                'variable'
-                            ? (controller.productDetials['variants'] != null &&
-                                    controller.selectedVariantIndex.value <
-                                        controller
-                                            .productDetials['variants'].length)
-                                ? (controller.productDetials['variants'][
-                                            controller.selectedVariantIndex
-                                                .value]['images'] !=
-                                        null
-                                    ? controller.productDetials['variants'][
-                                        controller.selectedVariantIndex
-                                            .value]['images']
-                                    : [])
-                                : []
-                            : controller.productGallery,
-                      ),
+                      () {
+                        List gallery = [];
+
+                        if (controller.productDetials['type'] == 'variable') {
+                          var variants = controller.productDetials['variants'];
+                          int selectedIdx =
+                              controller.selectedVariantIndex.value;
+
+                          if (variants != null &&
+                              variants is List &&
+                              selectedIdx < variants.length) {
+                            var variant = variants[selectedIdx];
+
+                            // 1. Add variant's featured image
+                            if (variant['featured_image'] != null) {
+                              gallery.add(variant['featured_image']);
+                            }
+
+                            // 2. Add variant's gallery/images
+                            var variantGallery =
+                                variant['gallery'] ?? variant['images'];
+                            if (variantGallery != null &&
+                                variantGallery is List) {
+                              gallery.addAll(variantGallery);
+                            }
+                          }
+                        }
+
+                        // If gallery is still empty (simple product or variant has no images), use product-level gallery
+                        if (gallery.isEmpty) {
+                          if (controller.productDetials['featured_image'] !=
+                              null) {
+                            gallery.add(
+                                controller.productDetials['featured_image']);
+                          }
+                          gallery.addAll(controller.productGallery);
+                        }
+
+                        return ProductGallery(
+                          controller: controller,
+                          productGallery: gallery,
+                        );
+                      },
                     ),
                     const SizedBox(height: 8.0),
                     Obx(() {
-                      return controller.productGallery.length == 1
+                      int galleryLength = 0;
+                      if (controller.productDetials['type'] == 'variable') {
+                        var variants = controller.productDetials['variants'];
+                        int selectedIdx = controller.selectedVariantIndex.value;
+
+                        if (variants != null &&
+                            variants is List &&
+                            selectedIdx < variants.length) {
+                          var variant = variants[selectedIdx];
+                          var variantGallery =
+                              variant['gallery'] ?? variant['images'];
+                          if (variantGallery != null &&
+                              variantGallery is List) {
+                            galleryLength = variantGallery.length +
+                                (variant['featured_image'] != null ? 1 : 0);
+                          }
+                        }
+                      }
+
+                      if (galleryLength == 0) {
+                        galleryLength = controller.productGallery.length +
+                            (controller.productDetials['featured_image'] != null
+                                ? 1
+                                : 0);
+                      }
+
+                      return galleryLength <= 1
                           ? Container()
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: List.generate(
-                                controller.productDetials['type'] == 'variant'
-                                    ? controller
-                                        .productDetials['variant_ids'][
-                                            controller.selectedVariantIndex
-                                                .value]['gallery']
-                                        .length
-                                    : controller.productGallery.length,
+                                galleryLength,
                                 (index) => Obx(() {
                                   return Container(
                                     width: controller.selectedPageIndex.value ==
@@ -97,6 +141,11 @@ class ProductView extends GetView<ProductController> {
                                     height: 9,
                                     margin: const EdgeInsets.all(4),
                                     decoration: BoxDecoration(
+                                      color:
+                                          controller.selectedPageIndex.value ==
+                                                  index
+                                              ? DefaultThemeColors.mainprimary
+                                              : Colors.grey.shade400,
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                   );
@@ -338,8 +387,11 @@ class ProductView extends GetView<ProductController> {
 
                         // COLOR SELECTOR - Make it reactive
                         Obx(
-                          () => controller.colors.isEmpty
-                              ? SizedBox.shrink() // Hide if no colors
+                          () => (controller.colors.isEmpty ||
+                                  controller.productDetials['type'] !=
+                                      'variable')
+                              ? SizedBox
+                                  .shrink() // Hide if no colors or not variable
                               : Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -433,12 +485,15 @@ class ProductView extends GetView<ProductController> {
                                 ),
                         ),
 
-                        SizedBox(height: height * 0.02),
+                        SizedBox(height: height * 0.01),
 
                         // SIZE SELECTOR - Make it reactive
                         Obx(
-                          () => controller.sizes.isEmpty
-                              ? SizedBox.shrink() // Hide if no sizes
+                          () => (controller.sizes.isEmpty ||
+                                  controller.productDetials['type'] !=
+                                      'variable')
+                              ? SizedBox
+                                  .shrink() // Hide if no sizes or not variable
                               : Container(
                                   width: width * 0.90,
                                   height: height * 0.045,
@@ -594,13 +649,14 @@ class ProductView extends GetView<ProductController> {
                                                 data: description,
                                                 style: {
                                                   "body": Style(
+                                                    fontSize: FontSize(12),
                                                     fontWeight: FontWeight.w700,
                                                     color: DefaultThemeColors
                                                         .darklighter,
                                                     maxLines: controller
                                                             .isDescriptionExpanded
                                                             .value
-                                                        ? 3
+                                                        ? 2
                                                         : 10,
                                                     textOverflow:
                                                         TextOverflow.ellipsis,
@@ -742,7 +798,7 @@ class ProductView extends GetView<ProductController> {
               onPressed: () {
                 // add to cart logic later
                 print("Clicked on Add to Cart Functionality");
-                Get.toNamed(Routes.ADDTOCART);
+                Get.toNamed(Routes.CART);
               },
             ),
           ),
@@ -1005,7 +1061,10 @@ class ProductGallery extends StatelessWidget {
     final width = MediaQuery.of(context).size.width;
 
     return Obx(() {
-      // Force rebuild when selectedImageIndex or selectedVariantIndex changes
+      // Touch an observable to satisfy GetX requirement that at least one observable is used,
+      // even if productGallery is initially empty.
+      controller.selectedImageIndex.value;
+
       print("Gallery rebuilding with ${productGallery.length} images");
 
       if (productGallery.isEmpty) {
@@ -1054,13 +1113,17 @@ class ProductGallery extends StatelessWidget {
           // If it's directly a string URL
           imagePath = item;
         } else if (item is Map) {
-          // If it's a map with filepath
-          imagePath = item['filepath'] ?? item['image'] ?? item['url'] ?? '';
+          // If it's a map with filepath or filename
+          imagePath = item['filepath'] ??
+              item['filename'] ??
+              item['image'] ??
+              item['url'] ??
+              '';
         }
 
         // Add base URL if needed and not already a full URL
         if (imagePath.isNotEmpty && !imagePath.startsWith('http')) {
-          return url + "images/" + imagePath;
+          return assetURL + imagePath;
         }
 
         return imagePath;
@@ -1094,6 +1157,22 @@ class ProductGallery extends StatelessWidget {
           ? Center(child: Text('No images available'))
           : Stack(
               children: [
+                // Full screen tap (Move this BEFORE thumbnails so thumbnails are clickable)
+                Positioned.fill(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Get.to(
+                          () => ImageSlider(),
+                          arguments: {"images": productGallery},
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(height * 0.028),
+                    ),
+                  ),
+                ),
+
                 // Thumbnails
                 Positioned(
                   left: width * 0.037,
@@ -1143,22 +1222,6 @@ class ProductGallery extends StatelessWidget {
                           ),
                         );
                       },
-                    ),
-                  ),
-                ),
-
-                // Full screen tap
-                Positioned.fill(
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        Get.to(
-                          () => ImageSlider(),
-                          arguments: {"images": productGallery},
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(height * 0.028),
                     ),
                   ),
                 ),

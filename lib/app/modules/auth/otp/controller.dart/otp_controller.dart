@@ -180,6 +180,7 @@ class OtpController extends GetxController with BaseController {
     try {
       final responseBody = response['body'];
       final headers = response['headers'];
+      AuthDetails.saveLoginResponse(responseBody);
 
       print('Full Response Body: ${jsonEncode(responseBody)}');
       print('User Data Type: ${responseBody['data'].runtimeType}');

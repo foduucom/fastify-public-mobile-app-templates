@@ -27,7 +27,17 @@ class ImagePreviewMultipleView extends GetView {
   Widget build(BuildContext context) {
     if (sliderList.isEmpty) {
       for (var item in Get.arguments["images"]) {
-        sliderList.add({"id": item["id"], "image": item["filepath"]});
+        String imagePath = '';
+        if (item is String) {
+          imagePath = item;
+        } else if (item is Map) {
+          imagePath = item['filepath'] ??
+              item['filename'] ??
+              item['image'] ??
+              item['url'] ??
+              '';
+        }
+        sliderList.add({"id": item["id"], "image": imagePath});
       }
     }
 
@@ -101,7 +111,9 @@ class ImagePreviewMultipleView extends GetView {
                               height: Get.height * 0.8,
                               width: Get.width,
                               alignment: Alignment.center,
-                              imageUrl: url + item["image"],
+                              imageUrl: item["image"].startsWith('http')
+                                  ? item["image"]
+                                  : assetURL + item["image"],
                               fit: BoxFit.cover,
                               progressIndicatorBuilder:
                                   (context, url, downloadProgress) => Container(
@@ -191,7 +203,7 @@ class ImagePreviewMultipleView extends GetView {
 //               return PhotoViewGalleryPageOptions(
 //                 // imageProvider: AssetImage('assets/' + widget.imageList[index]),
 //                 imageProvider:
-//                     CachedNetworkImageProvider(url + sliderList[index]),
+//                     CachedNetworkImageProvider(sliderList[index].startsWith('http') ? sliderList[index] : assetURL + sliderList[index]),
 //                 initialScale: PhotoViewComputedScale.contained * 0.8,
 //                 // heroAttributes: PhotoViewHeroAttributes(tag: galleryItems[index].id),
 //               );
@@ -244,14 +256,27 @@ class _ImageSliderState extends State<ImageSlider> {
     super.initState();
     if (sliderList.isEmpty) {
       for (var item in Get.arguments["images"]) {
-        sliderList.add({"id": item["id"], "image": item["filepath"]});
+        String imagePath = '';
+        if (item is String) {
+          imagePath = item;
+        } else if (item is Map) {
+          imagePath = item['filepath'] ??
+              item['filename'] ??
+              item['image'] ??
+              item['url'] ??
+              '';
+        }
+        sliderList.add({"id": item["id"], "image": imagePath});
         print('slider list $sliderList');
       }
       setState(() {});
     }
 
     for (int i = 0; i < sliderList.length; i++) {
-      imagelist.add(CachedNetworkImageProvider(url + sliderList[i]['image']));
+      imagelist.add(CachedNetworkImageProvider(
+          sliderList[i]['image'].startsWith('http')
+              ? sliderList[i]['image']
+              : assetURL + sliderList[i]['image']));
     }
   }
 
@@ -289,7 +314,9 @@ class _ImageSliderState extends State<ImageSlider> {
                       heroAttributes:
                           PhotoViewHeroAttributes(tag: 'image$index'),
                       imageProvider: CachedNetworkImageProvider(
-                        url + sliderList[index]['image'],
+                        sliderList[index]['image'].startsWith('http')
+                            ? sliderList[index]['image']
+                            : assetURL + sliderList[index]['image'],
                       ),
                       initialScale: PhotoViewComputedScale.contained,
                     );

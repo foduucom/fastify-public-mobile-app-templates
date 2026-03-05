@@ -15,6 +15,8 @@ import 'package:foduu_ecommerce/app/modules/auth/register/bindings/register_bind
 import 'package:foduu_ecommerce/app/modules/auth/register/views/register_view.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/bindings/bottombar_binding.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/views/bottombar_view.dart';
+import 'package:foduu_ecommerce/app/modules/cart/bindings/cart_binding.dart';
+import 'package:foduu_ecommerce/app/modules/cart/views/cart_view.dart';
 import 'package:foduu_ecommerce/app/modules/category/bindings/category_binding.dart';
 import 'package:foduu_ecommerce/app/modules/category/views/categorydetail_view.dart';
 import 'package:foduu_ecommerce/app/modules/checkout/bindings/checkout_bindings.dart';
@@ -147,6 +149,12 @@ class AppPages {
       name: _Paths.ADDTOCART,
       page: () => const AddToCartViews(),
       binding: AddToCartBindings(),
+    ),
+
+    GetPage(
+      name: _Paths.CART,
+      page: () => CartView(),
+      binding: CartBinding(),
     ),
 
     GetPage(
