@@ -3,6 +3,7 @@ import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_mixin.dart';
 import 'package:foduu_ecommerce/core/services/wishlistService.dart';
+import 'package:foduu_ecommerce/constants/product_helper.dart';
 import 'package:get/get.dart';
 
 class WishlistController extends GetxController
@@ -32,19 +33,37 @@ class WishlistController extends GetxController
   }
 
   Map<String, dynamic> getProduct(int index) {
+    if (index >= wishlistItems.length) return {};
     final item = wishlistItems[index];
-    if (item.containsKey('product_id') && item['product_id'] is Map) {
+    if (item['product_id'] != null && item['product_id'] is Map) {
       return Map<String, dynamic>.from(item['product_id']);
     }
-    return Map<String, dynamic>.from(item);
+    return {};
   }
 
   Map<String, dynamic> getVariant(int index) {
+    if (index >= wishlistItems.length) return {};
     final item = wishlistItems[index];
-    if (item.containsKey('variant_id') && item['variant_id'] is Map) {
+    if (item['variant_id'] != null && item['variant_id'] is Map) {
       return Map<String, dynamic>.from(item['variant_id']);
     }
-    return Map<String, dynamic>.from(item);
+    // Fallback: Use the product itself as the variant (for simple products)
+    return getProduct(index);
+  }
+
+  Map<String, dynamic> getPriceInfo(int index) {
+    final product = getProduct(index);
+    return ProductHelper.calculatePriceInfo(product);
+  }
+
+  String getStoreName(int index) {
+    if (index >= wishlistItems.length) return 'Store Name';
+    final product = getProduct(index);
+    return (product['shop_id']?['name'] ??
+            product['storeName'] ??
+            product['shop_name'] ??
+            'Store Name')
+        .toString();
   }
 
   int getQuantity(int index) {
@@ -62,6 +81,7 @@ class WishlistController extends GetxController
   }
 
   String getProductId(int index) {
+    if (index >= wishlistItems.length) return '';
     final item = wishlistItems[index];
     final product = item['product_id'];
 
@@ -69,7 +89,6 @@ class WishlistController extends GetxController
       return (product['_id'] ?? product['id'] ?? '').toString();
     }
 
-    // Fallback: check if the item itself has the ID (flattened structure)
-    return (item['_id'] ?? item['id'] ?? '').toString();
+    return '';
   }
 }

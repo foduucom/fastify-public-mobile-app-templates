@@ -136,155 +136,216 @@ class _WishListItemCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     final product = controller.getProduct(index);
-    final variant = controller.getVariant(index);
     final productId = controller.getProductId(index);
     final variantSlug = controller.getVariantSlug(index);
 
+    final productName = ProductHelper.getProductName(product);
     final imageUrl = ProductHelper.getProductImage(product);
+    final storeName = controller.getStoreName(index);
+    final priceInfo = controller.getPriceInfo(index);
+    final productType = priceInfo['productType'];
 
-    final variantPrice = variant['sale_price'] ?? variant['price'] ?? 0;
-    final variantRegularPrice = variant['price'] ?? 0;
-    final hasDiscount = variant['sale_price'] != null &&
-        variant['sale_price'] > 0 &&
-        variantRegularPrice > variant['sale_price'];
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Product Image ──
-          GestureDetector(
-            onTap: () => _navigateToProduct(productId),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: CachedNetworkImage(
-                imageUrl: imageUrl,
-                width: 100,
-                height: 110,
-                fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => Container(
-                  width: 100,
-                  height: 110,
-                  color: colorScheme.surfaceVariant,
-                  child: Icon(Icons.image_not_supported_outlined,
-                      color: colorScheme.onSurfaceVariant),
+    return InkWell(
+      onTap: () => _navigateToProduct(productId),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        height: 120,
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: colorScheme.outline.withOpacity(0.15),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            // Product Image
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(12),
+                  ),
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.cover,
+                    progressIndicatorBuilder: (_, __, ___) =>
+                        HelperFunctions().loadingIndicator(),
+                    errorWidget: (_, __, ___) => Container(
+                      width: 120,
+                      height: 120,
+                      color: colorScheme.surfaceVariant,
+                      child: Icon(Icons.image_outlined,
+                          color: colorScheme.onSurfaceVariant),
+                    ),
+                  ),
                 ),
-                progressIndicatorBuilder: (_, __, progress) => Container(
-                  width: 100,
-                  height: 110,
-                  color: colorScheme.surfaceVariant,
-                  child: Center(
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        value: progress.progress,
-                        color: colorScheme.primary,
+                // Discount Badge
+                if (priceInfo['discountRate'] != null &&
+                    priceInfo['discountRate'].toString().isNotEmpty)
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: colorScheme.error,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          bottomRight: Radius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        priceInfo['discountRate'],
+                        style: textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onError,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
+                  ),
+              ],
+            ),
+
+            // Product Info
+            Expanded(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      productName,
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      storeName,
+                      style: textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    if (productType == 'variable')
+                      _buildVariablePrice(context, priceInfo)
+                    else
+                      _buildSimplePrice(context, priceInfo),
+                    const Spacer(),
+                    // Add to cart hint
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.shopping_bag_outlined,
+                          size: 14,
+                          color: colorScheme.primary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'View Product',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Close/Remove from wishlist button on the right
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0, top: 8.0),
+              child: Align(
+                alignment: Alignment.topRight,
+                child: GestureDetector(
+                  onTap: () {
+                    WishListService.to.removeFromWishlist(
+                      productId: productId,
+                      variantSlug: variantSlug,
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(Icons.close,
+                        size: 18,
+                        color: colorScheme.onSurfaceVariant.withOpacity(0.6)),
                   ),
                 ),
               ),
             ),
-          ),
+          ],
+        ),
+      ),
+    );
+  }
 
-          const SizedBox(width: 12),
+  /// Variable product price display (compact version from HomeProducts)
+  Widget _buildVariablePrice(
+      BuildContext context, Map<String, dynamic> priceInfo) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
-          // ── Product Details ──
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Product Name
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => _navigateToProduct(productId),
-                        child: Text(
-                          product['name'] ?? 'ff',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        WishListService.to.removeFromWishlist(
-                          productId: productId,
-                          variantSlug: variantSlug,
-                        );
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 8.0, right: 4.0),
-                        child: Icon(Icons.close,
-                            size: 20, color: colorScheme.onSurfaceVariant),
-                      ),
-                    ),
-                  ],
-                ),
+    return Text(
+      '₹${priceInfo['lowestPrice']} - ₹${priceInfo['highestPrice']}',
+      style: textTheme.bodyMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+        fontSize: 12,
+        color: colorScheme.primary,
+      ),
+    );
+  }
 
-                const SizedBox(height: 4),
+  /// Simple product price display with discount (compact version from HomeProducts)
+  Widget _buildSimplePrice(
+      BuildContext context, Map<String, dynamic> priceInfo) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
-                // Variant Name
-                if (variant['variant_name'] != null &&
-                    variant['variant_name'].toString().isNotEmpty)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceVariant.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      variant['variant_name'],
-                      style: textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-
-                const SizedBox(height: 8),
-
-                // Price Row
-                Row(
-                  children: [
-                    Text(
-                      '₹$variantPrice',
-                      style: textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    if (hasDiscount) ...[
-                      const SizedBox(width: 6),
-                      Text(
-                        '₹$variantRegularPrice',
-                        style: textTheme.bodySmall?.copyWith(
-                          decoration: TextDecoration.lineThrough,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '${(100 - (variantPrice * 100 / variantRegularPrice)).round()}% off',
-                        style: textTheme.labelSmall?.copyWith(
-                          color: Colors.green.shade700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
+    return RichText(
+      text: TextSpan(
+        text: '₹${priceInfo['productPrice']}',
+        style: textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+          color: colorScheme.primary,
+        ),
+        children: [
+          if (priceInfo['discountRate'] != null &&
+              priceInfo['discountRate'].toString().isNotEmpty) ...[
+            const TextSpan(text: '  '),
+            TextSpan(
+              text: '₹${priceInfo['discountPrice']}',
+              style: textTheme.bodySmall?.copyWith(
+                fontSize: 10,
+                decoration: TextDecoration.lineThrough,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
-          ),
+            const TextSpan(text: ' '),
+            TextSpan(
+              text: priceInfo['discountRate'],
+              style: textTheme.bodySmall?.copyWith(
+                fontSize: 10,
+                color: colorScheme.error,
+              ),
+            ),
+          ],
         ],
       ),
     );

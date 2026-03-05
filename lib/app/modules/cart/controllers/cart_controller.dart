@@ -14,6 +14,7 @@ class CartController extends GetxController
   var cartProducts = [].obs;
   var productDetails = [].obs;
   var variantDetails = [].obs;
+  var cartManageItems = [].obs; // Renamed from items to avoid shadowing
   // var productQuntity = 0.obs;
   var productQuntity = [].obs;
   var otherCartDetails = {}.obs;
@@ -31,9 +32,9 @@ class CartController extends GetxController
   var demoProductDetails = [];
   var demoCartProduct = [];
 
-  var bagpriceAmount = 0.obs;
-  var discountAmount = 0.obs;
-  var totalAmount = 0.obs;
+  var bagpriceAmount = 0.0.obs;
+  var discountAmount = 0.0.obs;
+  var totalAmount = 0.0.obs;
 
   var similarProduct = [].obs;
   var categoriesID = [].obs;
@@ -64,9 +65,9 @@ class CartController extends GetxController
     // if (!AuthDetails.isUserLogin()) {
     //   // boxProductRead();
     // }
-    // couponController = TextEditingController();
-    // await getCartProduct();
-    // gettotalAmount();
+    couponController = TextEditingController();
+    await getCartProduct();
+    gettotalAmount();
     // getSimilarProduct(categoriesID);
     // totalAmount();
     // await productsAddedToCart();
@@ -115,9 +116,9 @@ class CartController extends GetxController
 
   void gettotalAmount() {
     if (!AuthDetails.isUserLogin()) {
-      bagpriceAmount.value = 0;
-      discountAmount.value = 0;
-      totalAmount.value = 0;
+      bagpriceAmount.value = 0.0;
+      discountAmount.value = 0.0;
+      totalAmount.value = 0.0;
       var savingtemp = 0;
       for (var i = 0; i < productDetails.length; i++) {
         var product = productDetails[i];
@@ -125,7 +126,7 @@ class CartController extends GetxController
         bagpriceAmount.value = (bagpriceAmount.value +
                 (product['variant_ids'][variantIndex]['price'] *
                     productQuntity[i]))
-            .toInt();
+            .toDouble();
         savingtemp = (savingtemp +
                 ((product['variant_ids'][variantIndex]['sale_price'] *
                     productQuntity[i])))
@@ -133,7 +134,7 @@ class CartController extends GetxController
 
         discountAmount.value = bagpriceAmount.value - savingtemp;
         // totalAmount.value = bagpriceAmount.value - discountAmount.value;
-        totalAmount.value = savingtemp;
+        totalAmount.value = savingtemp.toDouble();
         getOrderDetails();
         // totalAmount.value = 55;
       }
@@ -468,22 +469,193 @@ class CartController extends GetxController
   Future<void> updateQuantity(int index, int quantity) async {
     if (quantity < 1) return;
     var product = productDetails[index];
-    var variantName = AuthDetails.isUserLogin()
-        ? cartProducts[index]['value']['variant_name'] ?? ''
-        : guestUserCartList[index]['variant_name'] ?? '';
-    var productType = AuthDetails.isUserLogin()
-        ? cartProducts[index]['value']['producttype'] ?? 'simple'
-        : guestUserCartList[index]['producttype'] ?? 'simple';
 
-    await addToCart(
-      productId: product['_id'],
-      quantity: quantity,
-      variantName: variantName,
-      productType: productType,
-    );
+    if (AuthDetails.isUserLogin()) {
+      // Use the new manageCart API for logged in users
+      String productId = product['_id'].toString();
+      String? variantId = cartProducts[index]['value']['variant_id'];
+
+      await manageCart(
+        productId: productId,
+        variantId: variantId,
+        quantity: quantity,
+        isAbsolute: true,
+      );
+    } else {
+      // Original logic for guest users
+      var variantName = guestUserCartList[index]['variant_name'] ?? '';
+      var productType = guestUserCartList[index]['producttype'] ?? 'simple';
+
+      await addToCart(
+        productId: product['_id'],
+        quantity: quantity,
+        variantName: variantName,
+        productType: productType,
+      );
+    }
+  }
+
+  Future<void> manageCart({
+    required String productId,
+    String? variantId,
+    required int quantity,
+    bool isAbsolute = false,
+  }) async {
+    try {
+      if (!AuthDetails.isUserLogin()) {
+        HelperFunctions()
+            .showSnackBarError("Please login to add items to cart");
+        return;
+      }
+
+      int finalQuantity = quantity;
+
+      // If isAbsolute is true, calculate the delta
+      if (isAbsolute) {
+        num existingQuantityValue = 0;
+        var existingItem = cartManageItems.firstWhereOrNull((item) {
+          var pId = item['product_id'];
+          String? pIdString;
+          if (pId is Map) {
+            pIdString = pId['_id']?.toString();
+          } else {
+            pIdString = pId?.toString();
+          }
+
+          bool idMatch = pIdString == productId;
+          bool variantMatch = true;
+          if (variantId != null) {
+            var vId = item['variant_id'];
+            String? vIdString;
+            if (vId is Map) {
+              vIdString = vId['_id']?.toString();
+            } else {
+              vIdString = vId?.toString();
+            }
+            variantMatch = vIdString == variantId;
+          }
+          return idMatch && variantMatch;
+        });
+
+        if (existingItem != null) {
+          existingQuantityValue = existingItem['quantity'] ?? 0;
+        }
+
+        finalQuantity = quantity - existingQuantityValue.toInt();
+      }
+
+      if (finalQuantity == 0 && isAbsolute) {
+        print("Quantity already at target. Skipping API call.");
+        return;
+      }
+
+      Map<String, dynamic> body = {
+        "product_id": productId,
+        "quantity": finalQuantity,
+      };
+      if (variantId != null) {
+        body["variant_id"] = variantId;
+      }
+
+      var response = await BasicProvider("cart/manage")
+          .postRequest(body)
+          .catchError(handleError);
+
+      if (response == null) {
+        // Get.until((route) => !Get.isDialogOpen!);
+        return;
+      }
+
+      // Update local state with the new response format
+      await _updateCartFromManageApi(response);
+
+      // Get.until((route) => !Get.isDialogOpen!);
+      HelperFunctions.defaultdialogbox(
+          quantity > 0 ? "Added to Cart" : "Cart Updated");
+      await Future.delayed(const Duration(seconds: 1));
+      Get.until((route) => !Get.isDialogOpen!);
+    } catch (e) {
+      print('manageCart error: $e');
+      // Get.until((route) => !Get.isDialogOpen!);
+    }
+  }
+
+  Future<void> _updateCartFromManageApi(Map<String, dynamic> data) async {
+    // data is response['data'] from BasicProvider
+    // Structure: { _id, items: [ { product_id: {}, variant_id: {}, quantity, ... } ], sub_total, total }
+
+    otherCartDetails.value = data;
+    cartManageItems.value = data['items'] ?? [];
+
+    List<dynamic> newProducts = [];
+    List<dynamic> newCartItems = [];
+
+    for (var item in cartManageItems) {
+      print("Processing item in _updateCartFromManageApi: $item");
+      var product = item['product_id'];
+      var variant = item['variant_id'];
+
+      String pId;
+      if (product is Map) {
+        pId = product['_id']?.toString() ?? '';
+        newProducts.add(product);
+      } else {
+        pId = product?.toString() ?? '';
+        // If it's a string, we need to fetch the details to avoid View errors
+        // Note: getProductDetials adds to demoProductDetails
+        int prevLen = demoProductDetails.length;
+        await getProductDetials(id: pId);
+        if (demoProductDetails.length > prevLen) {
+          newProducts.add(demoProductDetails.last);
+        } else {
+          // Fallback to ID if fetch failed (still risky for view)
+          newProducts.add(pId);
+        }
+      }
+
+      // Map to cartProducts structure: {'productId': key, 'value': value}
+      // Old value structure: { 'quantity', 'variant_name', 'producttype' }
+      dynamic price = 0;
+      if (variant != null && variant is Map) {
+        price = (variant['sale_price'] ?? variant['price'] ?? 0);
+      } else if (product != null && product is Map) {
+        price = (product['sale_price'] ?? product['price'] ?? 0);
+      }
+
+      newCartItems.add({
+        'productId': pId,
+        'value': {
+          'quantity': (item['quantity'] ?? 0).toInt(),
+          'variant_name': (variant is Map) ? (variant['name'] ?? '') : '',
+          'producttype':
+              (product is Map) ? (product['type'] ?? 'simple') : 'simple',
+          'variant_id': (variant is Map)
+              ? variant['_id']
+              : (variant?.toString()), // Extra info
+          'price': price, // Cache price for display
+        }
+      });
+    }
+
+    productDetails.assignAll(newProducts);
+    cartProducts.assignAll(newCartItems);
+
+    // Update prices for display
+    totalAmount.value = (data['total'] ?? 0).toDouble();
+    bagpriceAmount.value = (data['sub_total'] ?? 0).toDouble();
+
+    update();
   }
 
   dynamic getVariantPrice(int index) {
+    if (index >= cartProducts.length) return 0;
+
+    // Check if price is already cached in cartProducts (from manageCart API)
+    if (cartProducts[index]['value'] != null &&
+        cartProducts[index]['value']['price'] != null) {
+      return cartProducts[index]['value']['price'];
+    }
+
     var product = productDetails[index];
     var variantIndex = getVariantIndex(index);
     if (product['variant_ids'] == null ||

@@ -5,7 +5,6 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:foduu_ecommerce/app/modules/product/controllers/product_controller.dart';
 import 'package:foduu_ecommerce/app/modules/wishlist/controllers/wishlist_controller.dart';
-import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/ImagePreviewMultipleView.dart';
 import 'package:foduu_ecommerce/components/buttons/primary_action_button.dart';
 import 'package:foduu_ecommerce/components/commonWidgets/secondary_app_header.dart';
@@ -30,8 +29,8 @@ class ProductView extends GetView<ProductController> {
   Widget build(BuildContext context) {
     var width = Get.width;
     var height = Get.height;
-    Get.create(() => ProductController(), permanent: false);
-    final controller = Get.find<ProductController>();
+    // Removed redundant Get.create which was causing an infinite loop of API calls
+    // ProductView is a GetView<ProductController>, so it already has access to 'controller'
 
     return SafeArea(
       child: Scaffold(
@@ -793,14 +792,13 @@ class ProductView extends GetView<ProductController> {
           SizedBox(
             height: height * 0.06, // ≈ 48
             width: width * 0.45,
-            child: PrimaryActionButton(
-              text: "Add Cart",
-              onPressed: () {
-                // add to cart logic later
-                print("Clicked on Add to Cart Functionality");
-                Get.toNamed(Routes.CART);
-              },
-            ),
+            child: Obx(() => PrimaryActionButton(
+                  text: "Add Cart",
+                  isLoading: controller.isLoading.value,
+                  onPressed: () {
+                    controller.addToCart();
+                  },
+                )),
           ),
         ],
       ),

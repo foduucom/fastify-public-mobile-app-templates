@@ -1,7 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:foduu_ecommerce/app/modules/product/views/product_view.dart';
-import 'package:foduu_ecommerce/app/modules/shop/bindings/shop_binding.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/search_bar_rounded.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
@@ -216,8 +214,7 @@ class SearchView extends GetView<SearchsController> {
                                       controller.recentSearchList
                                           .toSet()
                                           .toList());
-                                  Get.to(() => ProductView(),
-                                      binding: ShopBinding(),
+                                  Get.toNamed(Routes.PRODUCTDETAILS,
                                       arguments: {
                                         'productId': controller
                                             .searchProduct[index]['_id']

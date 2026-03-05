@@ -30,7 +30,7 @@ class CartView extends GetView<CartController> {
           ),
           child: Column(
             children: [
-              SizedBox(height: height * 0.01),
+              SizedBox(height: height * 0.001),
               SecondaryAppHeader(
                 title: "My Cart",
               ),
@@ -99,8 +99,8 @@ class CartView extends GetView<CartController> {
         children: [
           Container(
             width: width * 0.90,
-            height: height * 0.06,
-            padding: EdgeInsets.all(width * 0.025),
+            constraints: BoxConstraints(minHeight: height * 0.055),
+            padding: EdgeInsets.symmetric(horizontal: width * 0.025),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(height * 0.01),
               border: Border.all(color: DefaultThemeColors.darklight),
@@ -115,6 +115,7 @@ class CartView extends GetView<CartController> {
                       hintText: "Enter Promo Code",
                       border: InputBorder.none,
                       isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 10),
                     ),
                     style: TextStyle(
                       fontFamily: 'Plus Jakarta Sans',
@@ -130,6 +131,11 @@ class CartView extends GetView<CartController> {
                           coupon: controller.couponController.text);
                     }
                   },
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: width * 0.02),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                   child: Text(
                     "Apply",
                     style: TextStyle(
@@ -217,8 +223,8 @@ class CartView extends GetView<CartController> {
 
     var price = controller.getVariantPrice(index);
     var quantity = AuthDetails.isUserLogin()
-        ? controller.cartProducts[index]['value']['quantity']
-        : controller.guestUserCartList[index]['quantity'];
+        ? (controller.cartProducts[index]['value']['quantity'] ?? 0).toInt()
+        : (controller.guestUserCartList[index]['quantity'] ?? 0).toInt();
 
     return Container(
       width: width * 0.92,
@@ -238,14 +244,22 @@ class CartView extends GetView<CartController> {
               Get.toNamed(Routes.PRODUCTDETAILS,
                   arguments: {'productId': product['_id']});
             },
-            child: Container(
-              width: height * 0.085,
-              height: height * 0.085,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(height * 0.012),
-                image: DecorationImage(
-                  image: CachedNetworkImageProvider(imageUrl),
-                  fit: BoxFit.cover,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(height * 0.012),
+              child: CachedNetworkImage(
+                imageUrl: imageUrl,
+                width: height * 0.085,
+                height: height * 0.085,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: Colors.grey[200],
+                  child: const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2)),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: Colors.grey[200],
+                  child: Icon(Icons.image_not_supported_outlined,
+                      color: Colors.grey[400]),
                 ),
               ),
             ),

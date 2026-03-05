@@ -97,13 +97,11 @@ class WishListService extends GetxService with BaseController {
   bool isInWishlist(String productId) {
     return wishListItems.any((item) {
       final product = item['product_id'];
-      String? id;
       if (product is Map) {
-        id = (product['_id'] ?? product['id'])?.toString();
-      } else {
-        id = (item['_id'] ?? item['id'])?.toString();
+        final id = (product['_id'] ?? product['id'])?.toString();
+        return id == productId.toString();
       }
-      return id == productId.toString();
+      return false;
     });
   }
 
@@ -126,8 +124,10 @@ class WishListService extends GetxService with BaseController {
 
   void parseWishListResponse(dynamic data) {
     if (data is List) {
-      wishListItems.value =
-          data.map((e) => Map<String, dynamic>.from(e)).toList();
+      wishListItems.value = data
+          .where((e) => e is Map && e['product_id'] != null)
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
     } else {
       wishListItems.clear();
     }

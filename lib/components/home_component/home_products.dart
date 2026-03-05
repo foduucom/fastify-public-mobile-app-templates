@@ -5,7 +5,6 @@ import 'package:foduu_ecommerce/core/services/wishlistService.dart'
     show WishListService;
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
-import '/app/modules/product/views/product_view.dart';
 import '/app/routes/app_pages.dart';
 import '/constants/constants.dart';
 import '/constants/helper_functions.dart';
@@ -942,9 +941,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   /// Navigate to product detail page
   void _navigateToProduct(Map<String, dynamic> product) {
     final productId = ProductHelper.getProductId(product);
-    Get.to(
-      () => ProductView(),
-      preventDuplicates: false,
+    Get.toNamed(
+      Routes.PRODUCTDETAILS,
       arguments: {'productId': productId},
     );
   }

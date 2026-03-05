@@ -5,6 +5,7 @@ import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
@@ -83,7 +84,10 @@ class ProductController extends GetxController
 
     await getProductDetials(id: productId);
 
-    categoriesId.addAll(productDetials['categories']);
+    if (productDetials.containsKey('categories') &&
+        productDetials['categories'] != null) {
+      categoriesId.addAll(productDetials['categories']);
+    }
 
     if (AuthDetails.isUserLogin()) {
       isAlreadyInCart.value = Get.find<CartController>()
@@ -286,7 +290,10 @@ class ProductController extends GetxController
     var response = await BasicProvider("products/$id")
         .getRequest()
         .catchError(handleError);
-    if (response == null) return;
+    if (response == null) {
+      isLoading.value = false;
+      return;
+    }
     isLoading.value = false;
 
     productDetials.value = response;
@@ -375,59 +382,28 @@ class ProductController extends GetxController
     initializeSelectors();
   }
 
-  // void getVariantDetails() {
-  //   if (productDetials['type'] == 'variant') {
-  //     if (productDetials['variant_options'] != null) {
-  //       productVariantOption = jsonDecode(productDetials['variant_options']);
-  //     }
-  //     print("=-----------------");
-  //     print(productVariantOption);
-  //     List<String> labels = [];
-
-  //     for (var option in productVariantOption) {
-  //       labels.add(option['label']);
-  //     }
-  //     for (var i = 0; i < productVariantOption.length; i++) {
-  //       if (labels.contains(productVariantOption[i]['label'])) {
-  //         variantOption.add({
-  //           productVariantOption[i]['label']: productVariantOption[i]
-  //               ['variants']
-  //         });
-  //         print('################ ${variantOption}');
-  //       }
-  //       if (productVariantOption[i]['label'] == 'colour') {
-  //         colorList = productVariantOption[i]['variants'];
-  //       }
-  //       if (productVariantOption[i]['label'] == 'size') {
-  //         sizeList = productVariantOption[i]['variants'];
-  //       }
-  //     }
-
-  //     print(variantOption);
-
-  //     selectedColor.value = colorList.isNotEmpty ? colorList[0] : '-1';
-  //     selectedSize.value = sizeList.isNotEmpty ? sizeList[0] : '-1';
-  //   }
-  // }String joinedVariants
-
   void getVariantDetails() {
-    if (productDetials['type'] == 'variant') {
+    if (productDetials['type'] == 'variable' ||
+        productDetials['type'] == 'variant') {
       if (productDetials['variant_options'] != null) {
-        productVariantOption = json.decode(productDetials['variant_options']);
-        List<String> selectedVariants = [];
+        var options = productDetials['variant_options'];
+        if (options is String) {
+          productVariantOption = json.decode(options);
+        } else {
+          productVariantOption = options;
+        }
+
+        List<String> selectedVariantList = [];
         for (var item in productVariantOption) {
           labels.add(item['label']);
           labelVariant.add(item['variants']);
-          if (labelVariant.isNotEmpty) {
-            selectedVariants.add(item['variants'][0].toString());
-            selectedVariant
-                .addAll({item['label']: item['variants'][0].toString()});
+          if (item['variants'] != null && item['variants'].isNotEmpty) {
+            String initialVariant = item['variants'][0].toString();
+            selectedVariantList.add(initialVariant);
+            selectedVariant[item['label']] = initialVariant;
           }
         }
-        joinedVariants.value = selectedVariants.join('/');
-
-        // selectedColor.value = colorList.isNotEmpty ? colorList[0] : '-1';
-        // selectedSize.value = sizeList.isNotEmpty ? sizeList[0] : '-1';
+        joinedVariants.value = selectedVariantList.join('/');
       }
     }
   }
@@ -464,22 +440,35 @@ class ProductController extends GetxController
   }
 
   Future<void> addToCart() async {
-    // Get.find<BottombarController>().addToCart(productDetials);
-    // Get.put(CartController()).
     isLoading.value = true;
 
-    await Get.find<CartController>()
-        .addToCart(
-            productId: productId,
-            quantity: count.value,
-            variantName: joinedVariants.value,
-            productType: productDetials['type'])
+    final cartController = Get.find<CartController>();
+    final product = productDetials;
+    final String productId = this.productId.toString();
+
+    String? variantId;
+    if (product['type'] == 'variable') {
+      List variants = product['variants'];
+      int index = selectedVariantIndex.value;
+      if (index < variants.length) {
+        variantId = variants[index]['_id']?.toString();
+      }
+    }
+
+    await cartController
+        .manageCart(
+      productId: productId,
+      variantId: variantId,
+      quantity: count.value,
+      isAbsolute: true, // Use absolute sync to match product view counter
+    )
         .then((value) {
       isLoading.value = false;
-      return;
+      // Navigate to Cart page as requested
+      Get.toNamed(Routes.CART);
+    }).catchError((error) {
+      isLoading.value = false;
     });
-    // Get.find<BottombarController>().currentPageIndex.value = 2;
-    // Get.find<BottombarController>().pageController.jumpToPage(2);
   }
 
   @override
