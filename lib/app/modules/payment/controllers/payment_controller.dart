@@ -80,7 +80,7 @@ class PaymentController extends GetxController with BaseController {
         "cod": paymentName == 'Cash On Delivery' ? 1 : 0
       });
 
-      var response = await BasicProvider("public/orders/serviceability")
+      var response = await BasicProvider("orders/serviceability")
           .postRequest(form)
           .catchError(handleError);
 
@@ -105,7 +105,7 @@ class PaymentController extends GetxController with BaseController {
 
   Future<void> getAddressbyId({required String id}) async {
     try {
-      var response = await BasicProvider("public/customer/address/show/$id")
+      var response = await BasicProvider("address/show/$id")
           .getRequest()
           .catchError(handleError);
       if (response == null) return;
@@ -195,7 +195,7 @@ class PaymentController extends GetxController with BaseController {
         "coupon_code":
             couponCode.value == 'Apply Coupon' ? null : couponCode.value
       });
-      var response = await BasicProvider("public/orders/create")
+      var response = await BasicProvider("orders/create")
           .postRequest(form)
           .catchError(handleError);
       if (response == null) return "";
@@ -238,7 +238,7 @@ class PaymentController extends GetxController with BaseController {
             couponCode.value == 'Apply Coupon' ? '' : couponCode.value
       });
 
-      var response = await BasicProvider("public/orders/create")
+      var response = await BasicProvider("orders/create")
           .postRequest(form)
           .catchError(handleError);
 

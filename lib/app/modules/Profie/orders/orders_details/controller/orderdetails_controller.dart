@@ -32,7 +32,7 @@ class OrderdetailController extends GetxController with BaseController {
 
   Future<void> OrderDetail() async {
     isLoading.value = true;
-    var response = await BasicProvider("public/orders/show/$id")
+    var response = await BasicProvider("orders/show/$id")
         .getRequest()
         .catchError(handleError);
 
@@ -191,7 +191,7 @@ class OrderdetailController extends GetxController with BaseController {
       'rating': rating,
       'summary': summary,
     };
-    var response = await BasicProvider("public/reviews/product")
+    var response = await BasicProvider("reviews/product")
         .postRequest(form)
         .catchError(handleError);
     print('$response     $id');

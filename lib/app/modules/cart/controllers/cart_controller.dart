@@ -3,20 +3,19 @@ import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 class CartController extends GetxController
     with BaseController, SingleGetTickerProviderMixin {
-  var addToProductsLIst = List<dynamic>.empty().obs;
+  final CartService _cartService = Get.find<CartService>();
   var box = GetStorage();
 
-  var cartProducts = [].obs;
-  var productDetails = [].obs;
-  var variantDetails = [].obs;
-  var cartManageItems = [].obs; // Renamed from items to avoid shadowing
-  // var productQuntity = 0.obs;
-  var productQuntity = [].obs;
+  // These will be derived from CartService
+  var cartProducts = [].obs; // Formatted cart items for UI
+  var productDetails = [].obs; // Product details
+  var productQuntity = [].obs; // ADD THIS - Product quantities
   var otherCartDetails = {}.obs;
   var couponDetails = {}.obs;
   var guestUserCartList = [];
@@ -29,16 +28,12 @@ class CartController extends GetxController
   late AnimationController couponeMessageAnimationController;
   var guestUserCartWeight;
 
-  var demoProductDetails = [];
-  var demoCartProduct = [];
-
   var bagpriceAmount = 0.0.obs;
   var discountAmount = 0.0.obs;
   var totalAmount = 0.0.obs;
 
   var similarProduct = [].obs;
   var categoriesID = [].obs;
-  var demoCategoriesId = [];
 
   var viewCouponPrefix = ''.obs;
   var viewprice = ''.obs;
@@ -51,27 +46,91 @@ class CartController extends GetxController
   final GlobalKey targetKey = GlobalKey();
 
   ScrollController scrollController = ScrollController();
-
   FocusNode targetFocusNode = FocusNode();
 
   @override
   Future<void> onInit() async {
     super.onInit();
-
-    // couponeMessageAnimationController = AnimationController(
-    //   vsync: this,
-    //   duration: const Duration(milliseconds: 500),
-    // );
-    // if (!AuthDetails.isUserLogin()) {
-    //   // boxProductRead();
-    // }
     couponController = TextEditingController();
+
+    // Listen to cart service changes
+    ever(_cartService.cartItems, (_) => _updateFromService());
+    ever(_cartService.subTotal, (_) => _updateFromService());
+    ever(_cartService.total, (_) => _updateFromService());
+
     await getCartProduct();
-    gettotalAmount();
-    // getSimilarProduct(categoriesID);
-    // totalAmount();
-    // await productsAddedToCart();
-    // subTotal.value = ShoppingCartController().subTotal();
+    getOrderDetails();
+  }
+
+  void _updateFromService() {
+    // Transform service cart items to UI format
+    _transformCartItems();
+    getOrderDetails();
+    update();
+  }
+
+  void _transformCartItems() {
+    if (AuthDetails.isUserLogin()) {
+      // Transform service cart items to the format expected by UI
+      List<dynamic> newProducts = [];
+      List<dynamic> newCartItems = [];
+      List<dynamic> newQuantities = []; // ADD THIS
+
+      for (var item in _cartService.cartItems) {
+        // Handle product_id being either a Map or a String (ID)
+        var rawProduct = item['product_id'];
+        var product = rawProduct is Map
+            ? rawProduct as Map<String, dynamic>
+            : {'_id': rawProduct?.toString() ?? ''};
+
+        // Handle variant being either a Map or a String (ID)
+        var variant = item['variant'] is Map
+            ? item['variant'] as Map<String, dynamic>
+            : (item['variant_id'] is Map
+                ? item['variant_id'] as Map<String, dynamic>
+                : null);
+
+        // If variant object is missing but we have a variant_id string, use it
+        String vId = variant?['_id']?.toString() ?? '';
+        if (vId.isEmpty && item['variant_id'] is String) {
+          vId = item['variant_id'];
+        }
+
+        newProducts.add(product);
+        newCartItems.add({
+          'productId': product['_id']?.toString() ?? '',
+          'value': {
+            'quantity': item['quantity'] ?? 1,
+            'variant_name': variant?['name'] ?? '',
+            'producttype': product['type'] ?? 'simple',
+            'variant_id': vId,
+            'price': variant?['sale_price'] ?? variant?['price'] ?? 0,
+          }
+        });
+        newQuantities.add(item['quantity'] ?? 1); // ADD THIS
+      }
+
+      productDetails.assignAll(newProducts);
+      cartProducts.assignAll(newCartItems);
+      productQuntity.assignAll(newQuantities); // ADD THIS
+
+      // Update totals
+      bagpriceAmount.value = _cartService.subTotal.value;
+      totalAmount.value = _cartService.total.value;
+      discountAmount.value = bagpriceAmount.value - totalAmount.value;
+    } else {
+      // For guest users, use local cart data
+      _loadGuestCartData();
+    }
+  }
+
+  void _loadGuestCartData() {
+    guestUserCartList = box.read('guestUserCartList') ?? [];
+    // Initialize quantities for guest users
+    productQuntity.clear();
+    for (var item in guestUserCartList) {
+      productQuntity.add(item['quantity'] ?? 1);
+    }
   }
 
   void getOrderDetails() {
@@ -81,37 +140,27 @@ class CartController extends GetxController
               ? '(\u{20B9}${couponDetails['discount_value']})'
               : '(${couponDetails['discount_value'].toString()}%)'
           : '';
-      viewprice.value = AuthDetails.isUserLogin()
-          ? otherCartDetails['total'].toString()
-          : bagpriceAmount.value.toString();
-      viewTotalAmount.value = AuthDetails.isUserLogin()
-          ? ((((otherCartDetails['total'] ?? 0) -
-                      ((otherCartDetails['total'] ?? 0) -
-                          (otherCartDetails['subtotal'] ?? 0))) -
-                  (couponDetails.containsKey('discount_amount')
-                      ? (couponDetails['discount_amount'] ?? 0.00)
-                      : 0.00)))
-              .toString()
-          : totalAmount.toString();
-      // totalAmount.value = 'testing';
+
+      viewprice.value = bagpriceAmount.value.toStringAsFixed(2);
+      viewTotalAmount.value = totalAmount.value.toStringAsFixed(2);
+
       viewcouponCode.value = couponDetails['message'] == 'Applyed'
           ? couponController.text.toString()
           : 'Apply Coupon';
       viewCouponAmount.value = couponDetails['message'] == 'Applyed'
           ? '-\u{20B9}${couponDetails['discount_amount'].toString()}'
           : 'Apply Coupon';
-      viewsavedPrice.value = AuthDetails.isUserLogin()
-          ? (otherCartDetails['total'] - otherCartDetails['subtotal'])
-              .toString()
-          : discountAmount.value.toString();
+
+      viewsavedPrice.value = discountAmount.value.toStringAsFixed(2);
     } else {
       viewCouponPrefix.value = '';
-      viewprice.value = bagpriceAmount.value.toString();
-      viewTotalAmount.value = totalAmount.value.toString();
+      viewprice.value = bagpriceAmount.value.toStringAsFixed(2);
+      viewTotalAmount.value = totalAmount.value.toStringAsFixed(2);
       viewcouponCode.value = '';
       viewCouponAmount.value = 'Apply Coupon';
-      viewsavedPrice.value = discountAmount.value.toString();
+      viewsavedPrice.value = discountAmount.value.toStringAsFixed(2);
     }
+    update();
   }
 
   void gettotalAmount() {
@@ -120,46 +169,34 @@ class CartController extends GetxController
       discountAmount.value = 0.0;
       totalAmount.value = 0.0;
       var savingtemp = 0;
+
       for (var i = 0; i < productDetails.length; i++) {
         var product = productDetails[i];
         var variantIndex = getVariantIndex(i);
-        bagpriceAmount.value = (bagpriceAmount.value +
-                (product['variant_ids'][variantIndex]['price'] *
-                    productQuntity[i]))
-            .toDouble();
-        savingtemp = (savingtemp +
-                ((product['variant_ids'][variantIndex]['sale_price'] *
-                    productQuntity[i])))
-            .toInt();
 
-        discountAmount.value = bagpriceAmount.value - savingtemp;
-        // totalAmount.value = bagpriceAmount.value - discountAmount.value;
-        totalAmount.value = savingtemp.toDouble();
-        getOrderDetails();
-        // totalAmount.value = 55;
+        if (variantIndex >= 0 && variantIndex < product['variant_ids'].length) {
+          bagpriceAmount.value = (bagpriceAmount.value +
+                  (product['variant_ids'][variantIndex]['price'] *
+                      (productQuntity[i] ?? 1)))
+              .toDouble();
+
+          savingtemp = (savingtemp +
+                  (product['variant_ids'][variantIndex]['sale_price'] *
+                      (productQuntity[i] ?? 1)))
+              .toInt();
+        }
       }
-    }
-    // subTotal.value = subTotal.value + amount;
-  }
 
-  // Future<void> boxProductRead() async {
-  //   var boxProductDetails = box.read('cartProducts');
-  //   var boxCartProductId = box.read('cartProductId');
-  //   otherCartDetails.value = box.read('otherCartDetails');
-  //   if (boxProductDetails != null && boxCartProductId != null) {
-  //     productDetails.clear();
-  //     for (int i = 0; i < cartProducts.length; i++) {
-  //       addToProductsLIst.add(cartProducts[i]);
-  //     }
-  //     productDetails.addAll(boxProductDetails);
-  //     cartProducts.addAll(boxCartProductId);
-  //   }
-  // }
+      discountAmount.value = bagpriceAmount.value - savingtemp;
+      totalAmount.value = savingtemp.toDouble();
+      getOrderDetails();
+    }
+  }
 
   void calculateWeight() {
     List<String> productTypes = [];
     List<String?> variantNames = [];
-    // print('get variant index  $cartProducts');
+
     var list = box.read('guestUserCartList');
 
     if (list != null) {
@@ -177,52 +214,53 @@ class CartController extends GetxController
 
       guestUserCartWeight = 0.00;
       for (var index = 0; index < list.length; index++) {
-        if (productTypes[index] == 'variant') {
-          List productallvariant = productDetails[index]['variant_ids'];
-          for (int i = 0; i < productallvariant.length; i++) {
-            if (variantNames[index] ==
-                productDetails[index]['variant_ids'][i]['variant']) {
-              var weightUnit =
-                  productDetails[index]['variant_ids'][i]['weight_unit'];
-              var weight = productDetails[index]['variant_ids'][i]['weight'];
+        if (index < productDetails.length && index < productQuntity.length) {
+          if (productTypes[index] == 'variant') {
+            List productallvariant = productDetails[index]['variant_ids'];
+            for (int i = 0; i < productallvariant.length; i++) {
+              if (variantNames[index] ==
+                  productDetails[index]['variant_ids'][i]['variant']) {
+                var weightUnit =
+                    productDetails[index]['variant_ids'][i]['weight_unit'];
+                var weight = productDetails[index]['variant_ids'][i]['weight'];
 
+                if (weightUnit == 'gm') {
+                  guestUserCartWeight +=
+                      (double.parse(weight) * (productQuntity[index] ?? 1)) /
+                          1000;
+                } else if (weightUnit == 'kg') {
+                  guestUserCartWeight +=
+                      (double.parse(weight) * (productQuntity[index] ?? 1));
+                } else {
+                  guestUserCartWeight += 0.5;
+                }
+              }
+            }
+          } else {
+            var weightUnit =
+                productDetails[index]['variant_ids'][0]['weight_unit'];
+            if (weightUnit != null) {
+              var weight = productDetails[index]['variant_ids'][0]['weight'];
               if (weightUnit == 'gm') {
-                guestUserCartWeight +=
-                    (double.parse(weight) * productQuntity[index]) / 1000;
+                guestUserCartWeight += double.parse(weight) / 1000;
               } else if (weightUnit == 'kg') {
-                guestUserCartWeight +=
-                    (double.parse(weight) * productQuntity[index]);
-              } else {
+                guestUserCartWeight += double.parse(weight);
+              } else if (weightUnit == null) {
                 guestUserCartWeight += 0.5;
               }
             }
           }
-        } else {
-          print('<<<<<<<<<<<<<<<<<<<<<<<<$index>>>>>>>>>>>>>>>>>>>>>>>>');
-          print(productDetails);
-          var weightUnit =
-              productDetails[index]['variant_ids'][0]['weight_unit'];
-          if (weightUnit != null) {
-            var weight = productDetails[index]['variant_ids'][0]['weight'];
-            if (weightUnit == 'gm') {
-              guestUserCartWeight += double.parse(weight) / 1000;
-            } else if (weightUnit == 'kg') {
-              guestUserCartWeight += double.parse(weight);
-            } else if (weightUnit == null) {
-              guestUserCartWeight += 0.5;
-            }
-          } else {}
         }
       }
-
-      // return 0;
     }
-    // return 0;
   }
 
   int getVariantIndex(int index) {
+    if (index >= productDetails.length) return 0;
+
     if (AuthDetails.isUserLogin()) {
-      if (cartProducts[index]['value']['producttype'] == 'variant') {
+      if (index < cartProducts.length &&
+          cartProducts[index]['value']['producttype'] == 'variant') {
         for (int i = 0; i < productDetails[index]['variant_ids'].length; i++) {
           if (cartProducts[index]['value']['variant_name'] ==
               productDetails[index]['variant_ids'][i]['variant']) {
@@ -234,10 +272,9 @@ class CartController extends GetxController
     } else {
       List<String> productTypes = [];
       List<String?> variantNames = [];
-      // print('get variant index  $cartProducts');
       var list = box.read('guestUserCartList');
 
-      if (list != null) {
+      if (list != null && index < list.length) {
         for (int i = 0; i < list.length; i++) {
           String? productType = list[i]['producttype'];
           String? variantName = list[i]['variant_name'];
@@ -250,12 +287,12 @@ class CartController extends GetxController
           }
         }
 
-        guestUserCartWeight = 0.00;
-        if (productTypes[index] == 'variant') {
+        if (index < productTypes.length && productTypes[index] == 'variant') {
           List productallvariant = productDetails[index]['variant_ids'];
           for (int i = 0; i < productallvariant.length; i++) {
-            if (variantNames[index] ==
-                productDetails[index]['variant_ids'][i]['variant']) {
+            if (index < variantNames.length &&
+                variantNames[index] ==
+                    productDetails[index]['variant_ids'][i]['variant']) {
               return i;
             }
           }
@@ -264,8 +301,6 @@ class CartController extends GetxController
       }
       return 0;
     }
-
-    // return 0;
   }
 
   Future<void> removeCartProduct(
@@ -274,30 +309,50 @@ class CartController extends GetxController
       if (AuthDetails.isUserLogin()) {
         HelperFunctions().showOverlayLoader();
 
-        var response = await BasicProvider("public/cart/delete/$productId")
-            .getRequest()
-            .catchError(handleError);
-        if (response == null) return;
+        var variantId = '';
+        if (index < cartProducts.length) {
+          variantId = cartProducts[index]['value']['variant_id'] ?? '';
+        }
+
+        // Fallback: If variant_id is missing, try to find it
+        if (variantId.isEmpty && index < productDetails.length) {
+          var product = productDetails[index];
+          if (product['type'] == 'variable') {
+            int vIdx = getVariantIndex(index);
+            if (product['variant_ids'] != null &&
+                vIdx < product['variant_ids'].length) {
+              variantId = product['variant_ids'][vIdx]['_id'] ?? '';
+            }
+          }
+        }
+
+        var response = await _cartService.removeFromCart(
+          productId: productId,
+          variantSlug: variantId,
+        );
+
+        if (response == null) {
+          Get.until((route) => !Get.isDialogOpen!);
+          return;
+        }
 
         couponDetails.value = {};
         isCouponApply.value = false;
         couponController.text = '';
 
-        getCartProduct();
-        update();
         Get.until((route) => !Get.isDialogOpen!);
         HelperFunctions.defaultdialogbox('Remove Product From Cart');
         await Future.delayed(const Duration(seconds: 2));
         Get.until((route) => !Get.isDialogOpen!);
-        // box.write('cartProductId', cartProducts);
-        // box.write('cartProducts', productDetails);
       } else {
         guestUserCartList = box.read('guestUserCartList');
-        if (guestUserCartList.isNotEmpty) {
+        if (guestUserCartList.isNotEmpty && index < guestUserCartList.length) {
           guestUserCartList.removeAt(index);
-          cartProducts.removeAt(index);
-          productDetails.removeAt(index);
-          // box.write('cartProductId', cartProducts);
+          if (index < cartProducts.length) cartProducts.removeAt(index);
+          if (index < productDetails.length) productDetails.removeAt(index);
+          if (index < productQuntity.length)
+            productQuntity.removeAt(index); // ADD THIS
+
           box.write('cartProducts', productDetails);
           gettotalAmount();
           List<dynamic> cartList = guestUserCartList.toList();
@@ -306,20 +361,29 @@ class CartController extends GetxController
       }
     } catch (e) {
       print('cart controller error $e');
+      Get.until((route) => !Get.isDialogOpen!);
     }
   }
 
   Future<dynamic> applyCoupon({required String coupon}) async {
     HelperFunctions().showOverlayLoader();
     var form = {'coupon': coupon};
-    Map<String, dynamic> response =
-        await BasicProvider("public/cart/apply/coupon")
-            .postRequest(form)
-            .catchError(handleError);
 
-    if (response.isEmpty) return;
+    Map<String, dynamic>? response = await BasicProvider("cart/apply/coupon")
+        .postRequest(form)
+        .catchError(handleError);
+
+    if (response == null || response.isEmpty) {
+      Get.until((route) => !Get.isDialogOpen!);
+      return;
+    }
+
     couponDetails.clear();
     couponDetails.addAll(response);
+
+    // Refresh cart after coupon apply
+    await getCartProduct();
+
     Get.until((route) => !Get.isDialogOpen!);
     getOrderDetails();
     return response;
@@ -327,58 +391,19 @@ class CartController extends GetxController
 
   Future<void> getCartProduct({String? coupon}) async {
     if (AuthDetails.isUserLogin()) {
-      Map<String, dynamic>? response = await BasicProvider("public/cart")
-          .getRequest(queryParams: {'coupon': coupon}).catchError(handleError);
-
-      if (response != null && response.containsKey('cartitems')) {
-        otherCartDetails.value = response;
-
-        Map<String, dynamic> json = response['cartitems']['value'];
-
-        demoCartProduct.clear();
-        demoProductDetails = [];
-        json.forEach((key, value) {
-          demoCartProduct.add({'productId': key, 'value': value});
-        });
-
-        cartProducts.value = demoCartProduct;
-        for (int i = 0; i < demoCartProduct.length; i++) {
-          if (demoCartProduct[i]['productId'] != null) {
-            await getProductDetials(id: demoCartProduct[i]['productId']);
-          }
-        }
-        productDetails.value = demoProductDetails;
-
-        getOrderDetails();
-        getSimilarProduct(categoriesID);
-        gettotalAmount();
-        update();
-        // Get.until((route) => !Get.isDialogOpen!);
-      } else {
-        productDetails.clear();
-        cartProducts.clear();
-        demoCartProduct.clear();
-        demoProductDetails.clear();
-      }
+      await _cartService.fetchCart();
+      // The transformation happens automatically via ever listener
     } else {
       guestUserCartList = box.read('guestUserCartList');
 
-      if (guestUserCartList != null) {
+      if (guestUserCartList != null && guestUserCartList.isNotEmpty) {
         cartProducts.clear();
         productDetails.clear();
+        productQuntity.clear(); // ADD THIS
 
-        // list.forEach((item) {
-        //   Map<String, dynamic> valueMap = item['value'];
-        //   cartProducts.add(valueMap);
-        // });
-
-        // for (int i = 0; i < cartProducts.length; i++) {
-        //   await getProductDetials(id: cartProducts[i].keys.first);
-        // }
         for (int i = 0; i < guestUserCartList.length; i++) {
           await getProductDetials(id: guestUserCartList[i]['_id']);
         }
-        // box.write('cartProductId', cartProducts);
         box.write('cartProducts', productDetails);
         gettotalAmount();
       } else {
@@ -389,10 +414,11 @@ class CartController extends GetxController
 
   dynamic getProductDetials({required String id}) async {
     try {
-      var response = await BasicProvider("public/product/show/$id")
+      var response = await BasicProvider("product/show/$id")
           .getRequest()
           .catchError(handleError);
       if (response == null) return;
+
       List list = response['categories'];
       categoriesID.clear();
       if (list.isNotEmpty) {
@@ -400,12 +426,12 @@ class CartController extends GetxController
           categoriesID.add(list[i]['_id']);
         }
       }
+
       if (AuthDetails.isUserLogin()) {
-        demoProductDetails.add(response);
         return;
       } else {
         productDetails.add(response);
-        productQuntity.add(1);
+        productQuntity.add(1); // NOW THIS WILL WORK
         cartProducts.add(response);
       }
     } catch (e) {
@@ -413,25 +439,31 @@ class CartController extends GetxController
     }
   }
 
-  Future<void> addToCart(
-      {required String productId,
-      required int quantity,
-      required String variantName,
-      required String productType}) async {
-    var form = {
-      'value': {
-        productId: {
-          'quantity': quantity,
-          'variant_name': variantName.toString(),
-          'producttype': productType
+  Future<void> addToCart({
+    required String productId,
+    required int quantity,
+    required String variantName,
+    required String productType,
+    Map<String, dynamic>? product,
+  }) async {
+    if (AuthDetails.isUserLogin()) {
+      // Find variant ID from product data
+      String variantId = '';
+      if (product != null && product['variants'] != null) {
+        for (var v in product['variants']) {
+          if (v['name'] == variantName) {
+            variantId = v['_id'] ?? '';
+            break;
+          }
         }
       }
-    };
 
-    if (AuthDetails.isUserLogin()) {
-      var response = await BasicProvider("public/cart/create")
-          .postRequest(form)
-          .catchError(handleError);
+      var response = await _cartService.manageCart(
+        productId: productId,
+        variantId: variantId,
+        quantity: quantity,
+        product: product,
+      );
 
       if (response == null) return;
 
@@ -448,18 +480,26 @@ class CartController extends GetxController
         'variant_name': variantName.toString() == 'null' ? null : variantName,
         'producttype': productType
       };
+
       guestUserCartList = box.read('guestUserCartList') ?? [];
       bool found = false;
+
       for (var i = 0; i < guestUserCartList.length; i++) {
         if (guestUserCartList[i]['_id'] == guestForm['_id']) {
           guestUserCartList[i]['quantity'] = quantity;
+          if (i < productQuntity.length) {
+            productQuntity[i] = quantity; // UPDATE QUANTITY
+          }
           found = true;
           break;
         }
       }
+
       if (!found) {
         guestUserCartList.add(guestForm);
+        productQuntity.add(quantity); // ADD QUANTITY FOR NEW ITEM
       }
+
       List<dynamic> cartList = guestUserCartList.toList();
       box.write('guestUserCartList', cartList);
       getCartProduct();
@@ -468,189 +508,71 @@ class CartController extends GetxController
 
   Future<void> updateQuantity(int index, int quantity) async {
     if (quantity < 1) return;
+
+    if (index >= productDetails.length || index >= productQuntity.length)
+      return;
+
     var product = productDetails[index];
+    int currentQty = productQuntity[index];
+    int delta = quantity - currentQty;
+
+    if (delta == 0) return;
 
     if (AuthDetails.isUserLogin()) {
-      // Use the new manageCart API for logged in users
       String productId = product['_id'].toString();
-      String? variantId = cartProducts[index]['value']['variant_id'];
+      String variantId = '';
 
-      await manageCart(
+      if (index < cartProducts.length) {
+        variantId = cartProducts[index]['value']['variant_id'] ?? '';
+      }
+
+      // Fallback: If variant_id is missing, try to find it
+      if (variantId.isEmpty && product['type'] == 'variable') {
+        int vIdx = getVariantIndex(index);
+        if (product['variant_ids'] != null &&
+            vIdx < product['variant_ids'].length) {
+          variantId = product['variant_ids'][vIdx]['_id'] ?? '';
+        }
+      }
+
+      await _cartService.manageCart(
         productId: productId,
         variantId: variantId,
-        quantity: quantity,
-        isAbsolute: true,
+        quantity: delta,
+        product: product,
       );
+
+      // Update local quantity immediately for better UX
+      if (index < productQuntity.length) {
+        productQuntity[index] = quantity;
+      }
     } else {
-      // Original logic for guest users
-      var variantName = guestUserCartList[index]['variant_name'] ?? '';
-      var productType = guestUserCartList[index]['producttype'] ?? 'simple';
+      if (index < guestUserCartList.length) {
+        var variantName = guestUserCartList[index]['variant_name'] ?? '';
+        var productType = guestUserCartList[index]['producttype'] ?? 'simple';
 
-      await addToCart(
-        productId: product['_id'],
-        quantity: quantity,
-        variantName: variantName,
-        productType: productType,
-      );
-    }
-  }
+        await addToCart(
+          productId: product['_id'],
+          quantity: quantity,
+          variantName: variantName,
+          productType: productType,
+          product: product,
+        );
 
-  Future<void> manageCart({
-    required String productId,
-    String? variantId,
-    required int quantity,
-    bool isAbsolute = false,
-  }) async {
-    try {
-      if (!AuthDetails.isUserLogin()) {
-        HelperFunctions()
-            .showSnackBarError("Please login to add items to cart");
-        return;
-      }
-
-      int finalQuantity = quantity;
-
-      // If isAbsolute is true, calculate the delta
-      if (isAbsolute) {
-        num existingQuantityValue = 0;
-        var existingItem = cartManageItems.firstWhereOrNull((item) {
-          var pId = item['product_id'];
-          String? pIdString;
-          if (pId is Map) {
-            pIdString = pId['_id']?.toString();
-          } else {
-            pIdString = pId?.toString();
-          }
-
-          bool idMatch = pIdString == productId;
-          bool variantMatch = true;
-          if (variantId != null) {
-            var vId = item['variant_id'];
-            String? vIdString;
-            if (vId is Map) {
-              vIdString = vId['_id']?.toString();
-            } else {
-              vIdString = vId?.toString();
-            }
-            variantMatch = vIdString == variantId;
-          }
-          return idMatch && variantMatch;
-        });
-
-        if (existingItem != null) {
-          existingQuantityValue = existingItem['quantity'] ?? 0;
-        }
-
-        finalQuantity = quantity - existingQuantityValue.toInt();
-      }
-
-      if (finalQuantity == 0 && isAbsolute) {
-        print("Quantity already at target. Skipping API call.");
-        return;
-      }
-
-      Map<String, dynamic> body = {
-        "product_id": productId,
-        "quantity": finalQuantity,
-      };
-      if (variantId != null) {
-        body["variant_id"] = variantId;
-      }
-
-      var response = await BasicProvider("cart/manage")
-          .postRequest(body)
-          .catchError(handleError);
-
-      if (response == null) {
-        // Get.until((route) => !Get.isDialogOpen!);
-        return;
-      }
-
-      // Update local state with the new response format
-      await _updateCartFromManageApi(response);
-
-      // Get.until((route) => !Get.isDialogOpen!);
-      HelperFunctions.defaultdialogbox(
-          quantity > 0 ? "Added to Cart" : "Cart Updated");
-      await Future.delayed(const Duration(seconds: 1));
-      Get.until((route) => !Get.isDialogOpen!);
-    } catch (e) {
-      print('manageCart error: $e');
-      // Get.until((route) => !Get.isDialogOpen!);
-    }
-  }
-
-  Future<void> _updateCartFromManageApi(Map<String, dynamic> data) async {
-    // data is response['data'] from BasicProvider
-    // Structure: { _id, items: [ { product_id: {}, variant_id: {}, quantity, ... } ], sub_total, total }
-
-    otherCartDetails.value = data;
-    cartManageItems.value = data['items'] ?? [];
-
-    List<dynamic> newProducts = [];
-    List<dynamic> newCartItems = [];
-
-    for (var item in cartManageItems) {
-      print("Processing item in _updateCartFromManageApi: $item");
-      var product = item['product_id'];
-      var variant = item['variant_id'];
-
-      String pId;
-      if (product is Map) {
-        pId = product['_id']?.toString() ?? '';
-        newProducts.add(product);
-      } else {
-        pId = product?.toString() ?? '';
-        // If it's a string, we need to fetch the details to avoid View errors
-        // Note: getProductDetials adds to demoProductDetails
-        int prevLen = demoProductDetails.length;
-        await getProductDetials(id: pId);
-        if (demoProductDetails.length > prevLen) {
-          newProducts.add(demoProductDetails.last);
-        } else {
-          // Fallback to ID if fetch failed (still risky for view)
-          newProducts.add(pId);
+        // Update local quantity
+        if (index < productQuntity.length) {
+          productQuntity[index] = quantity;
         }
       }
-
-      // Map to cartProducts structure: {'productId': key, 'value': value}
-      // Old value structure: { 'quantity', 'variant_name', 'producttype' }
-      dynamic price = 0;
-      if (variant != null && variant is Map) {
-        price = (variant['sale_price'] ?? variant['price'] ?? 0);
-      } else if (product != null && product is Map) {
-        price = (product['sale_price'] ?? product['price'] ?? 0);
-      }
-
-      newCartItems.add({
-        'productId': pId,
-        'value': {
-          'quantity': (item['quantity'] ?? 0).toInt(),
-          'variant_name': (variant is Map) ? (variant['name'] ?? '') : '',
-          'producttype':
-              (product is Map) ? (product['type'] ?? 'simple') : 'simple',
-          'variant_id': (variant is Map)
-              ? variant['_id']
-              : (variant?.toString()), // Extra info
-          'price': price, // Cache price for display
-        }
-      });
     }
-
-    productDetails.assignAll(newProducts);
-    cartProducts.assignAll(newCartItems);
-
-    // Update prices for display
-    totalAmount.value = (data['total'] ?? 0).toDouble();
-    bagpriceAmount.value = (data['sub_total'] ?? 0).toDouble();
-
     update();
   }
 
   dynamic getVariantPrice(int index) {
-    if (index >= cartProducts.length) return 0;
+    if (index >= cartProducts.length || index >= productDetails.length)
+      return 0;
 
-    // Check if price is already cached in cartProducts (from manageCart API)
+    // Check if price is already cached
     if (cartProducts[index]['value'] != null &&
         cartProducts[index]['value']['price'] != null) {
       return cartProducts[index]['value']['price'];
@@ -658,11 +580,13 @@ class CartController extends GetxController
 
     var product = productDetails[index];
     var variantIndex = getVariantIndex(index);
+
     if (product['variant_ids'] == null ||
         product['variant_ids'].isEmpty ||
         variantIndex >= product['variant_ids'].length) {
       return 0;
     }
+
     var variant = product['variant_ids'][variantIndex];
     return variant['sale_price'] ?? variant['price'] ?? 0;
   }
@@ -675,9 +599,8 @@ class CartController extends GetxController
 
   void getCoupn() async {
     try {
-      var response = await BasicProvider("public/coupons")
-          .getRequest()
-          .catchError(handleError);
+      var response =
+          await BasicProvider("coupons").getRequest().catchError(handleError);
       if (response == null) return;
       allCoupon.clear();
       allCoupon.addAll(response['data']);
@@ -687,32 +610,31 @@ class CartController extends GetxController
   }
 
   void increment(int index) {
-    if (productQuntity[index] != 10) {
+    if (index < productQuntity.length && productQuntity[index] != 10) {
       productQuntity[index]++;
-      guestUserCartList[index]['quantity']++;
+      if (index < guestUserCartList.length) {
+        guestUserCartList[index]['quantity']++;
+      }
       gettotalAmount();
       update();
     }
   }
 
   void decrement(int index) {
-    if (productQuntity[index] > 1) {
+    if (index < productQuntity.length && productQuntity[index] > 1) {
       productQuntity[index]--;
-      // totalAmount();
+      if (index < guestUserCartList.length) {
+        guestUserCartList[index]['quantity']--;
+      }
       gettotalAmount();
-      guestUserCartList[index]['quantity']--;
-
       update();
     }
   }
 
   Future<void> getSimilarProduct(List category) async {
     try {
-      // similarProduct.clear();
-      var response =
-          await BasicProvider("public/product/categorywise").postRequest(
-        {"categories": category},
-      ).catchError(handleError);
+      var response = await BasicProvider("product/categorywise")
+          .postRequest({"categories": category}).catchError(handleError);
       if (response == null) return;
       similarProduct.clear();
       similarProduct.addAll(response['data']);

@@ -26,6 +26,9 @@ class AppText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Safety check for fontSize
+    final double safeFontSize = fontSize > 0 ? fontSize : 14.0;
+
     return Text(
       text,
       maxLines: maxLines,
@@ -34,7 +37,7 @@ class AppText extends StatelessWidget {
       style: TextStyle(
         fontFamily: 'Plus Jakarta Sans',
         fontWeight: fontWeight,
-        fontSize: fontSize,
+        fontSize: safeFontSize,
         height: height,
         letterSpacing: letterSpacing,
         color: color,

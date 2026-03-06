@@ -87,6 +87,7 @@ Future<String> _initApp() async {
       }
 
       bool isLogin = box.read('isLogin') ?? false;
+      print('isLogin: $isLogin');
       return isLogin ? Routes.BOTTOMBAR : Routes.LOGIN;
     }
   } catch (e) {

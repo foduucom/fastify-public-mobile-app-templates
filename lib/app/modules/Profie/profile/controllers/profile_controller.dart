@@ -101,7 +101,7 @@ class ProfileController extends GetxController with BaseController {
         "confirm_password": comfirmPasswordController.text
       };
       print(form);
-      var response = await BasicProvider("public/customer/change/password")
+      var response = await BasicProvider("change-password")
           .postRequest(form)
           .catchError(handleError);
       if (response == null) return;
@@ -143,9 +143,8 @@ class ProfileController extends GetxController with BaseController {
 
   Future<void> fetchDataFromServer() async {
     try {
-      var response = await BasicProvider("public/customer/profile")
-          .getRequest()
-          .catchError(handleError);
+      var response =
+          await BasicProvider("profile").getRequest().catchError(handleError);
       if (response == null) return;
 
       profiledata.clear();
@@ -220,7 +219,7 @@ class ProfileController extends GetxController with BaseController {
       });
 
       try {
-        var response = await BasicProvider("public/customer/profile/update")
+        var response = await BasicProvider("profile/update")
             .postRequest(form)
             .catchError(handleError);
         Get.until((route) => !Get.isDialogOpen!);

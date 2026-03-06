@@ -40,14 +40,17 @@ class CartView extends GetView<CartController> {
                   if (controller.productDetails.isEmpty) {
                     return _buildEmptyCart(width, height);
                   }
-                  return ListView.separated(
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: controller.productDetails.length,
-                    separatorBuilder: (_, __) =>
-                        SizedBox(height: height * 0.025),
-                    itemBuilder: (context, index) {
-                      return _cartItemRow(index);
-                    },
+                  return RefreshIndicator(
+                    onRefresh: () => controller.onRefresh(),
+                    child: ListView.separated(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: controller.productDetails.length,
+                      separatorBuilder: (_, __) =>
+                          SizedBox(height: height * 0.025),
+                      itemBuilder: (context, index) {
+                        return _cartItemRow(index);
+                      },
+                    ),
                   );
                 }),
               ),
@@ -97,6 +100,7 @@ class CartView extends GetView<CartController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Coupon Section
           Container(
             width: width * 0.90,
             constraints: BoxConstraints(minHeight: height * 0.055),
@@ -124,32 +128,63 @@ class CartView extends GetView<CartController> {
                     ),
                   ),
                 ),
-                TextButton(
-                  onPressed: () {
-                    if (controller.couponController.text.isNotEmpty) {
-                      controller.applyCoupon(
-                          coupon: controller.couponController.text);
-                    }
-                  },
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: width * 0.02),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: Text(
-                    "Apply",
-                    style: TextStyle(
-                      fontFamily: 'Plus Jakarta Sans',
-                      fontSize: height * 0.018,
-                      fontWeight: FontWeight.w600,
-                      color: Get.theme.primaryColor,
-                    ),
-                  ),
-                ),
+                Obx(() => TextButton(
+                      onPressed: controller.isClicked.value
+                          ? null
+                          : () {
+                              if (controller.couponController.text.isNotEmpty) {
+                                controller.isClicked.value = true;
+                                controller
+                                    .applyCoupon(
+                                        coupon:
+                                            controller.couponController.text)
+                                    .then((_) {
+                                  controller.isClicked.value = false;
+                                }).catchError((e) {
+                                  controller.isClicked.value = false;
+                                });
+                              }
+                            },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(horizontal: width * 0.02),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        controller.isClicked.value ? "Applying..." : "Apply",
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: height * 0.018,
+                          fontWeight: FontWeight.w600,
+                          color: controller.isClicked.value
+                              ? Colors.grey
+                              : Get.theme.primaryColor,
+                        ),
+                      ),
+                    )),
               ],
             ),
           ),
+
+          // Coupon Message
+          Obx(() => controller.couponeMessage.value.isNotEmpty
+              ? Padding(
+                  padding: EdgeInsets.only(top: height * 0.01),
+                  child: Text(
+                    controller.couponeMessage.value,
+                    style: TextStyle(
+                      color: controller.couponeMessage.value.contains('success')
+                          ? Colors.green
+                          : Colors.red,
+                      fontSize: height * 0.014,
+                    ),
+                  ),
+                )
+              : const SizedBox.shrink()),
+
           SizedBox(height: height * 0.015),
+
+          // Price Details
           SizedBox(
             width: width * 0.90,
             height: height * 0.18,
@@ -158,15 +193,20 @@ class CartView extends GetView<CartController> {
               children: [
                 _priceRow("Subtotal", "₹${controller.viewprice.value}"),
                 _priceRow("Delivery Fee", "Free"),
-                _priceRow("Discount", "₹${controller.viewsavedPrice.value}"),
+                _priceRow("Discount", "- ₹${controller.viewsavedPrice.value}",
+                    color: Colors.green),
+                const Divider(),
                 _priceRow("Total", "₹${controller.viewTotalAmount.value}",
-                    isBold: true),
+                    isBold: true, fontSize: height * 0.022),
               ],
             ),
           ),
+
           SizedBox(height: height * 0.015),
+
+          // Checkout Button
           PrimaryActionButton(
-            text: "CheckOut",
+            text: "Proceed to Checkout",
             onPressed: () {
               Get.toNamed(Routes.CHECKOUT);
             },
@@ -176,7 +216,8 @@ class CartView extends GetView<CartController> {
     );
   }
 
-  Widget _priceRow(String title, String value, {bool isBold = false}) {
+  Widget _priceRow(String title, String value,
+      {bool isBold = false, Color? color, double? fontSize}) {
     final height = Get.height;
     final width = Get.width;
 
@@ -190,9 +231,9 @@ class CartView extends GetView<CartController> {
             title,
             style: TextStyle(
               fontFamily: 'Plus Jakarta Sans',
-              fontSize: height * 0.02,
-              fontWeight: FontWeight.w500,
-              color: DefaultThemeColors.darklighter,
+              fontSize: fontSize ?? height * 0.018,
+              fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
+              color: color ?? DefaultThemeColors.darklighter,
             ),
           ),
           Text(
@@ -200,8 +241,9 @@ class CartView extends GetView<CartController> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Plus Jakarta Sans',
-              fontSize: height * 0.02,
-              fontWeight: isBold ? FontWeight.w700 : FontWeight.w700,
+              fontSize: fontSize ?? height * 0.018,
+              fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
+              color: color,
             ),
           ),
         ],
@@ -212,156 +254,245 @@ class CartView extends GetView<CartController> {
   Widget _cartItemRow(int index) {
     final width = Get.width;
     final height = Get.height;
-    var product = controller.productDetails[index];
-    var variantName = AuthDetails.isUserLogin()
-        ? controller.cartProducts[index]['value']['variant_name'] ?? ''
-        : controller.guestUserCartList[index]['variant_name'] ?? '';
 
-    var imageUrl = product['featured_image'] == null
-        ? HelperFunctions.getNoImage()
-        : url + product['featured_image']['filepath'];
+    return Obx(() {
+      var product = controller.productDetails[index];
 
-    var price = controller.getVariantPrice(index);
-    var quantity = AuthDetails.isUserLogin()
-        ? (controller.cartProducts[index]['value']['quantity'] ?? 0).toInt()
-        : (controller.guestUserCartList[index]['quantity'] ?? 0).toInt();
+      // Get variant name safely
+      String variantName = '';
+      if (AuthDetails.isUserLogin()) {
+        variantName =
+            controller.cartProducts[index]['value']['variant_name'] ?? '';
+      } else {
+        variantName = controller.guestUserCartList.isNotEmpty &&
+                index < controller.guestUserCartList.length
+            ? controller.guestUserCartList[index]['variant_name'] ?? ''
+            : '';
+      }
 
-    return Container(
-      width: width * 0.92,
-      height: height * 0.11,
-      padding: EdgeInsets.all(width * 0.026),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(height * 0.015),
-        border: Border.all(
-          color: DefaultThemeColors.darklight,
+      // Get image URL
+      var imageUrl = HelperFunctions.getNoImage();
+      if (product is Map && product['featured_image'] != null) {
+        if (product['featured_image'] is Map) {
+          if (product['featured_image']['download_url'] != null) {
+            imageUrl = product['featured_image']['download_url'];
+          } else if (product['featured_image']['filepath'] != null) {
+            imageUrl = url + product['featured_image']['filepath'];
+          }
+        }
+      }
+
+      // Get price
+      var price = controller.getVariantPrice(index);
+
+      // Get quantity safely
+      int quantity = 1;
+      if (AuthDetails.isUserLogin()) {
+        quantity =
+            (controller.cartProducts[index]['value']['quantity'] ?? 1).toInt();
+      } else {
+        quantity = controller.guestUserCartList.isNotEmpty &&
+                index < controller.guestUserCartList.length
+            ? (controller.guestUserCartList[index]['quantity'] ?? 1).toInt()
+            : 1;
+      }
+
+      return Container(
+        width: width * 0.92,
+        height: height * 0.13,
+        padding: EdgeInsets.all(width * 0.026),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(height * 0.015),
+          border: Border.all(
+            color: DefaultThemeColors.darklight,
+          ),
         ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          GestureDetector(
-            onTap: () {
-              Get.toNamed(Routes.PRODUCTDETAILS,
-                  arguments: {'productId': product['_id']});
-            },
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(height * 0.012),
-              child: CachedNetworkImage(
-                imageUrl: imageUrl,
-                width: height * 0.085,
-                height: height * 0.085,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: Colors.grey[200],
-                  child: const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2)),
-                ),
-                errorWidget: (context, url, error) => Container(
-                  color: Colors.grey[200],
-                  child: Icon(Icons.image_not_supported_outlined,
-                      color: Colors.grey[400]),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Product Image
+            GestureDetector(
+              onTap: () {
+                Get.toNamed(Routes.PRODUCTDETAILS,
+                    arguments: {'productId': product['_id']});
+              },
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(height * 0.012),
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  width: height * 0.09,
+                  height: height * 0.09,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[200],
+                    child: const Center(
+                        child: CircularProgressIndicator(strokeWidth: 2)),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey[200],
+                    child: Icon(Icons.image_not_supported_outlined,
+                        color: Colors.grey[400]),
+                  ),
                 ),
               ),
             ),
-          ),
-          SizedBox(width: width * 0.025),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  product['name'] ?? '',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: height * 0.018,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                if (variantName.isNotEmpty && variantName != 'null')
+
+            SizedBox(width: width * 0.025),
+
+            // Product Details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
                   Text(
-                    variantName,
+                    product['name'] ?? 'Product Name',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontFamily: 'Plus Jakarta Sans',
-                      fontSize: height * 0.014,
-                      fontWeight: FontWeight.w400,
-                      color: DefaultThemeColors.darklight,
+                      fontSize: height * 0.016,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                Text(
-                  "₹$price",
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: height * 0.016,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: width * 0.015),
-          Container(
-            width: height * 0.115,
-            height: height * 0.035,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    controller.updateQuantity(index, quantity - 1);
-                  },
-                  child: Container(
-                    width: height * 0.035,
-                    height: height * 0.035,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: DefaultThemeColors.darklight,
+                  if (variantName.isNotEmpty && variantName != 'null')
+                    Text(
+                      variantName,
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: height * 0.014,
+                        fontWeight: FontWeight.w500,
+                        color: DefaultThemeColors.lightDarker,
                       ),
                     ),
-                    child: Icon(
-                      Icons.remove,
-                      size: height * 0.018,
+                  SizedBox(height: height * 0.005),
+                  Text(
+                    "₹${price.toStringAsFixed(2)}",
+                    style: TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontSize: height * 0.016,
+                      fontWeight: FontWeight.w700,
+                      color: Get.theme.primaryColor,
                     ),
                   ),
-                ),
-                Text(
-                  "$quantity",
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: height * 0.015,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    controller.updateQuantity(index, quantity + 1);
-                  },
-                  child: Container(
-                    width: height * 0.035,
-                    height: height * 0.035,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: DefaultThemeColors.darklight),
-                    ),
-                    child: Icon(
-                      Icons.add,
-                      size: height * 0.018,
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
+
+            SizedBox(width: width * 0.015),
+
+            // Quantity Controls
+            Container(
+              width: height * 0.12,
+              height: height * 0.04,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(height * 0.02),
+                border: Border.all(color: DefaultThemeColors.darklight),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      if (quantity > 1) {
+                        controller.updateQuantity(index, quantity - 1);
+                      }
+                    },
+                    child: Container(
+                      width: height * 0.03,
+                      height: height * 0.03,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: quantity > 1
+                            ? Get.theme.primaryColor.withOpacity(0.1)
+                            : Colors.transparent,
+                      ),
+                      child: Icon(
+                        Icons.remove,
+                        size: height * 0.016,
+                        color:
+                            quantity > 1 ? Get.theme.primaryColor : Colors.grey,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    "$quantity",
+                    style: TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontSize: height * 0.015,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      if (quantity < 10) {
+                        controller.updateQuantity(index, quantity + 1);
+                      }
+                    },
+                    child: Container(
+                      width: height * 0.03,
+                      height: height * 0.03,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: quantity < 10
+                            ? Get.theme.primaryColor.withOpacity(0.1)
+                            : Colors.transparent,
+                      ),
+                      child: Icon(
+                        Icons.add,
+                        size: height * 0.016,
+                        color: quantity < 10
+                            ? Get.theme.primaryColor
+                            : Colors.grey,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(width: width * 0.01),
+
+            // Delete Button
+            IconButton(
+              onPressed: () {
+                _showDeleteConfirmation(index, product['_id']);
+              },
+              icon: Icon(
+                Icons.delete_outline,
+                size: height * 0.022,
+                color: Colors.red,
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  void _showDeleteConfirmation(int index, String productId) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Remove Product'),
+        content: const Text(
+            'Are you sure you want to remove this product from cart?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancel'),
           ),
-          IconButton(
+          TextButton(
             onPressed: () {
+              Get.back();
               controller.removeCartProduct(
-                  productId: product['_id'], index: index);
+                productId: productId,
+                index: index,
+              );
             },
-            icon: Icon(Icons.delete_outline,
-                size: height * 0.024, color: Colors.red),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Remove'),
           ),
         ],
       ),

@@ -20,7 +20,7 @@ class OrdersController extends GetxController with BaseController {
 
   Future<void> Orders() async {
     isLoading.value = true;
-    var response = await BasicProvider("public/orders/get/all")
+    var response = await BasicProvider("orders/get/all")
         .getRequest()
         .catchError(handleError);
     if (response == null) return;

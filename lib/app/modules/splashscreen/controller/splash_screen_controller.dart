@@ -57,10 +57,9 @@ class SplashScreenController extends GetxController with BaseController {
 
         if (isLogin) {
           // User is logged in, go to bottom bar
-          //Get.offAllNamed(Routes.BOTTOMBAR);
-          Get.offAllNamed(Routes.ONBOARDING);
+          Get.offAllNamed(Routes.BOTTOMBAR);
         } else {
-          // User not logged in, go to login screen
+          // User not logged in, go to onboarding/login
           Get.offAllNamed(Routes.ONBOARDING);
         }
 

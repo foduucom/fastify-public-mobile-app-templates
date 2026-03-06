@@ -30,6 +30,8 @@ class AppPasswordField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
+    // Safety check for fontSize
+    final double safeFontSize = fontSize > 0 ? fontSize : 14.0;
 
     return Obx(
       () => SizedBox(
@@ -42,7 +44,7 @@ class AppPasswordField extends StatelessWidget {
           style: TextStyle(
             fontFamily: 'Plus Jakarta Sans',
             fontWeight: FontWeight.w500,
-            fontSize: fontSize,
+            fontSize: safeFontSize,
             height: 1.43,
             color: Theme.of(context).brightness == Brightness.dark
                 ? DefaultThemeColors.darklighter

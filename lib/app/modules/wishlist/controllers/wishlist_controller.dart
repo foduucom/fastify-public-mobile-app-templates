@@ -91,4 +91,18 @@ class WishlistController extends GetxController
 
     return '';
   }
+
+  String? getVariantId(int index) {
+    if (index >= wishlistItems.length) return null;
+    final item = wishlistItems[index];
+    final variant = item['variant_id'];
+
+    if (variant is Map) {
+      return (variant['_id'] ?? variant['id'] ?? '').toString();
+    }
+
+    return (item['variant_id'] ?? '').toString().isNotEmpty
+        ? item['variant_id'].toString()
+        : null;
+  }
 }

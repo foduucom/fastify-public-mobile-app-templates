@@ -6,6 +6,7 @@ import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
@@ -440,35 +441,16 @@ class ProductController extends GetxController
   }
 
   Future<void> addToCart() async {
-    isLoading.value = true;
+    final variants = productDetials['variants'];
+    if (variants == null || (variants as List).isEmpty) return;
 
-    final cartController = Get.find<CartController>();
-    final product = productDetials;
-    final String productId = this.productId.toString();
-
-    String? variantId;
-    if (product['type'] == 'variable') {
-      List variants = product['variants'];
-      int index = selectedVariantIndex.value;
-      if (index < variants.length) {
-        variantId = variants[index]['_id']?.toString();
-      }
-    }
-
-    await cartController
-        .manageCart(
-      productId: productId,
-      variantId: variantId,
-      quantity: count.value,
-      isAbsolute: true, // Use absolute sync to match product view counter
-    )
-        .then((value) {
-      isLoading.value = false;
-      // Navigate to Cart page as requested
-      Get.toNamed(Routes.CART);
-    }).catchError((error) {
-      isLoading.value = false;
-    });
+    await CartService.to.manageCart(
+        productId: productId,
+        variantId: variants[selectedVariantIndex.value]['_id'],
+        quantity: count.value,
+        product: Map<String, dynamic>.from(productDetials));
+    isLoading.value = false;
+    Get.until((route) => !Get.isDialogOpen!);
   }
 
   @override

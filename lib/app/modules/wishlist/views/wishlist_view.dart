@@ -138,6 +138,7 @@ class _WishListItemCard extends StatelessWidget {
     final product = controller.getProduct(index);
     final productId = controller.getProductId(index);
     final variantSlug = controller.getVariantSlug(index);
+    final variantId = controller.getVariantId(index);
 
     final productName = ProductHelper.getProductName(product);
     final imageUrl = ProductHelper.getProductImage(product);
@@ -273,19 +274,21 @@ class _WishListItemCard extends StatelessWidget {
               padding: const EdgeInsets.only(right: 8.0, top: 8.0),
               child: Align(
                 alignment: Alignment.topRight,
-                child: GestureDetector(
-                  onTap: () {
+                child: ElevatedButton(
+                  onPressed: () {
                     WishListService.to.removeFromWishlist(
                       productId: productId,
                       variantSlug: variantSlug,
+                      variantId: variantId,
                     );
                   },
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(Icons.close,
-                        size: 18,
-                        color: colorScheme.onSurfaceVariant.withOpacity(0.6)),
+                  style: ElevatedButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
+                  child: const Text("Remove"),
                 ),
               ),
             ),

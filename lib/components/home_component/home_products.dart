@@ -968,8 +968,18 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   void _handleWishlistTap(Map<String, dynamic> product) async {
     final productId = ProductHelper.getProductId(product);
     final variantSlug = product['variant_slug'] ?? '';
-    await WishListService.to
-        .toggleWishlist(productId: productId, variantSlug: variantSlug);
+    final variantId = product['variant_id']?.toString() ??
+        ((product['variant_ids'] != null &&
+                product['variant_ids'] is List &&
+                product['variant_ids'].isNotEmpty)
+            ? product['variant_ids'][0]['_id']?.toString()
+            : null);
+
+    await WishListService.to.toggleWishlist(
+      productId: productId,
+      variantSlug: variantSlug,
+      variantId: variantId,
+    );
   }
 
   /// Variable product price display (compact version)

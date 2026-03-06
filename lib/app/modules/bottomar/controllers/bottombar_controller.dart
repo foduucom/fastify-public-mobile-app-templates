@@ -47,15 +47,14 @@ class BottombarController extends GetxController with BaseController {
 
   void getShippingSetting() async {
     try {
-      var response = await BasicProvider("public/shipping-detail")
-          .getRequest()
-          .catchError(handleError);
+      var response =
+          await BasicProvider("shipping").getRequest().catchError(handleError);
       if (response == null) return;
       var form = {
         'email': response['value']['email'],
         'password': response['value']['password']
       };
-      var response2 = await BasicProvider("public/orders/shippinglogin")
+      var response2 = await BasicProvider("orders/shippinglogin")
           .postRequest(form)
           .catchError(handleError);
       if (response2 == null) return;
@@ -84,7 +83,7 @@ class BottombarController extends GetxController with BaseController {
       'variant': strVariation
     });
 
-    var response = await BasicProvider('public/product/add-to-wishlist')
+    var response = await BasicProvider('product/add-to-wishlist')
         .postRequest(form)
         .catchError(handleError);
     print(response);

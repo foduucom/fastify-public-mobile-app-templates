@@ -112,6 +112,10 @@ class AppTextField extends StatelessWidget {
             ? DefaultThemeColors.lightDarker
             : DefaultThemeColors.lightOnBackground;
 
+    // Safety check for fontSize
+    final double safeFontSize =
+        (fontSize != null && fontSize! > 0) ? fontSize! : 14.0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -146,7 +150,7 @@ class AppTextField extends StatelessWidget {
           enableInteractiveSelection: enableInteractiveSelection,
           style: TextStyle(
             fontFamily: 'Plus Jakarta Sans',
-            fontSize: fontSize ?? 14,
+            fontSize: safeFontSize,
             fontWeight: FontWeight.w500,
             color: enabled ? defaultTextColor : defaultHintColor,
           ),
@@ -179,7 +183,7 @@ class AppTextField extends StatelessWidget {
             hintText: hintText,
             hintStyle: TextStyle(
               fontFamily: 'Plus Jakarta Sans',
-              fontSize: fontSize ?? 14,
+              fontSize: safeFontSize,
               fontWeight: FontWeight.w400,
               color: defaultHintColor,
             ),

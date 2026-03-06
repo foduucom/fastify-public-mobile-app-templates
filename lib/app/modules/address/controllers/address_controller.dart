@@ -91,9 +91,8 @@ class AddressController extends GetxController with BaseController {
     HelperFunctions().showOverlayLoader();
     try {
       shippingDetails.value = {"is_shipping": true};
-      var response = await BasicProvider("public/shipping-detail")
-          .getRequest()
-          .catchError(handleError);
+      var response =
+          await BasicProvider("shipping").getRequest().catchError(handleError);
 
       if (response == null) return;
       pickup_postcode = response['value']['pincode'];
@@ -107,7 +106,7 @@ class AddressController extends GetxController with BaseController {
 
       print('<<<><><>< ${userAddressList[selectAddress.value]['pincode']}');
 
-      var response2 = await BasicProvider("public/orders/serviceability")
+      var response2 = await BasicProvider("orders/serviceability")
           .postRequest(form)
           .catchError(handleError);
 
@@ -244,9 +243,8 @@ class AddressController extends GetxController with BaseController {
       isLoading.value = true;
       addressLoading.value = true;
       if (AuthDetails.isUserLogin()) {
-        var response = await BasicProvider("public/customer/address")
-            .getRequest()
-            .catchError(handleError);
+        var response =
+            await BasicProvider("address").getRequest().catchError(handleError);
         print('adress $response');
         addressLoading.value = false;
         isLoading.value = false;
@@ -288,10 +286,9 @@ class AddressController extends GetxController with BaseController {
       };
 
       if (AuthDetails.isUserLogin()) {
-        var response =
-            await BasicProvider("public/customer/address/multi/delete")
-                .postRequest(form)
-                .catchError(handleError);
+        var response = await BasicProvider("address/multi/delete")
+            .postRequest(form)
+            .catchError(handleError);
         if (response == null) return;
 
         userAddressList.removeAt(index);
@@ -325,7 +322,7 @@ class AddressController extends GetxController with BaseController {
             'address_type': selectAddressType.value,
             'is_default': selectDefaultAdd.value == true ? 1 : 0
           };
-          var response = await BasicProvider("public/customer/address/create")
+          var response = await BasicProvider("address/create")
               .postRequest(form)
               .catchError(handleError);
           isLoading.value = false;
@@ -401,7 +398,7 @@ class AddressController extends GetxController with BaseController {
       };
 
       if (AuthDetails.isUserLogin()) {
-        var response = await BasicProvider("public/customer/address/update/$id")
+        var response = await BasicProvider("address/update/$id")
             .patchRequest(form)
             .catchError(handleError);
         addressLoading.value = false;
@@ -430,7 +427,7 @@ class AddressController extends GetxController with BaseController {
 
   Future<void> getAddressbyId({required String id}) async {
     try {
-      var response = await BasicProvider("public/customer/address/show/$id")
+      var response = await BasicProvider("address/show/$id")
           .getRequest()
           .catchError(handleError);
       if (response == null) return;

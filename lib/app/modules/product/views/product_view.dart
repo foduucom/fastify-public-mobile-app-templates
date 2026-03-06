@@ -5,6 +5,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:foduu_ecommerce/app/modules/product/controllers/product_controller.dart';
 import 'package:foduu_ecommerce/app/modules/wishlist/controllers/wishlist_controller.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/ImagePreviewMultipleView.dart';
 import 'package:foduu_ecommerce/components/buttons/primary_action_button.dart';
 import 'package:foduu_ecommerce/components/commonWidgets/secondary_app_header.dart';
@@ -380,323 +381,322 @@ class ProductView extends GetView<ProductController> {
                                   ],
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-
-                        // COLOR SELECTOR - Make it reactive
-                        Obx(
-                          () => (controller.colors.isEmpty ||
-                                  controller.productDetials['type'] !=
-                                      'variable')
-                              ? SizedBox
-                                  .shrink() // Hide if no colors or not variable
-                              : Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Color',
-                                      style: TextStyle(
-                                        fontFamily: 'Plus Jakarta Sans',
-                                        fontSize: height * 0.018,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    SizedBox(height: height * 0.01),
-                                    Container(
-                                      width: width * 0.90,
-                                      height: height * 0.045,
-                                      child: Row(
-                                        children: List.generate(
-                                            controller.colors.length, (index) {
-                                          final bool isActive = index ==
-                                              controller
-                                                  .selectedColorIndex.value;
-                                          print(
-                                              "Selected Color Index: ${controller.selectedColorIndex.value}");
-                                          return Padding(
-                                            padding: EdgeInsets.only(
-                                              right: index !=
-                                                      controller.colors.length -
-                                                          1
-                                                  ? width * 0.02
-                                                  : 0,
-                                            ),
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                controller.selectedColorIndex
-                                                    .value = index;
-                                                print(
-                                                    "Pressed Color Index: ${controller.selectedColorIndex.value}");
-                                                controller
-                                                    .updateSelectedVariant();
-                                              },
-                                              child: Container(
-                                                width: width * 0.162,
-                                                height: height * 0.045,
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: width * 0.032,
-                                                  vertical: height * 0.0075,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: isActive
-                                                      ? DefaultThemeColors
-                                                          .lightOnSecondary
-                                                      : DefaultThemeColors
-                                                          .darklight,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          height * 2),
-                                                  border: Border.all(
-                                                    color: isActive
-                                                        ? DefaultThemeColors
-                                                            .darklight
-                                                        : DefaultThemeColors
-                                                            .lightOnSecondary,
-                                                    width: 1,
-                                                  ),
-                                                ),
-                                                child: Center(
-                                                  child: Text(
-                                                    controller.colors[index],
-                                                    textAlign: TextAlign.center,
-                                                    style: TextStyle(
-                                                      fontFamily:
-                                                          'Plus Jakarta Sans',
-                                                      fontSize: height * 0.015,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      color: isActive
-                                                          ? DefaultThemeColors
-                                                              .lightOnPrimary
-                                                          : DefaultThemeColors
-                                                              .lightOnSecondary,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        }),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                        ),
-
-                        SizedBox(height: height * 0.01),
-
-                        // SIZE SELECTOR - Make it reactive
-                        Obx(
-                          () => (controller.sizes.isEmpty ||
-                                  controller.productDetials['type'] !=
-                                      'variable')
-                              ? SizedBox
-                                  .shrink() // Hide if no sizes or not variable
-                              : Container(
-                                  width: width * 0.90,
-                                  height: height * 0.045,
-                                  child: Row(
-                                    children: List.generate(
-                                        controller.sizes.length, (index) {
-                                      // ✅ FIXED: Change from activeIndex to selectedSizeIndex
-                                      final bool isActive = index ==
-                                          controller.selectedSizeIndex.value;
-                                      print(
-                                          "Selected Size Index: ${controller.selectedSizeIndex.value}");
-                                      return Padding(
-                                        padding: EdgeInsets.only(
-                                          right: index !=
-                                                  controller.sizes.length - 1
-                                              ? width * 0.02
-                                              : 0,
-                                        ),
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            // ✅ FIXED: Change from activeIndex to selectedSizeIndex
-                                            controller.selectedSizeIndex.value =
-                                                index;
-                                            print(
-                                                "Pressed Size Index: ${controller.selectedSizeIndex.value}");
-                                            controller.updateSelectedVariant();
-                                          },
-                                          child: Container(
-                                            width: width * 0.162,
-                                            height: height * 0.045,
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: width * 0.032,
-                                              vertical: height * 0.0075,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: isActive
-                                                  ? DefaultThemeColors
-                                                      .lightOnBackground
-                                                  : DefaultThemeColors
-                                                      .darklight,
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                      height * 2),
-                                              border: Border.all(
-                                                color: isActive
-                                                    ? DefaultThemeColors
-                                                        .darklight
-                                                    : DefaultThemeColors
-                                                        .lightOnBackground,
-                                                width: 1,
-                                              ),
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                controller.sizes[index],
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  fontFamily:
-                                                      'Plus Jakarta Sans',
-                                                  fontSize: height * 0.015,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: isActive
-                                                      ? DefaultThemeColors
-                                                          .lightOnPrimary
-                                                      : DefaultThemeColors
-                                                          .lightOnSecondary,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    }),
-                                  ),
-                                ),
-                        ),
-
-                        SizedBox(height: height * 0.01),
-
-                        Padding(
-                          padding: pageSurroundingPadding,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                  padding: EdgeInsets
-                                      .zero, // Add your desired padding here
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                              // COLOR SELECTOR - Make it reactive
+                              Obx(
+                                () => (controller.colors.isEmpty ||
+                                        controller.productDetials['type'] !=
+                                            'variable')
+                                    ? SizedBox
+                                        .shrink() // Hide if no colors or not variable
+                                    : Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          SizedBox(
-                                            width: width * 0.535, // ≈ 200.15
-                                            child: Text(
-                                              "Description",
-                                              style: TextStyle(
-                                                fontFamily: 'Plus Jakarta Sans',
-                                                fontSize: 14, // ≈ 16
-                                                fontWeight:
-                                                    FontWeight.w700, // Bold
-                                                height: 1.75, // ≈ 28
-                                              ),
+                                          SizedBox(height: height * 0.01),
+                                          Text(
+                                            'Color',
+                                            style: TextStyle(
+                                              fontFamily: 'Plus Jakarta Sans',
+                                              fontSize: height * 0.018,
+                                              fontWeight: FontWeight.w600,
                                             ),
                                           ),
-                                          ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                side: const BorderSide(
-                                                    color: Color.fromARGB(
-                                                        255, 216, 216, 216)),
-                                                shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8)),
-                                                elevation: 0,
-                                                backgroundColor:
-                                                    Colors.transparent,
-                                              ),
-                                              onPressed: () {
-                                                reviewModal(controller);
-                                              },
-                                              child: Text('Add Review',
-                                                  style: txtTheme()
-                                                      .titleLarge!
-                                                      .copyWith(
-                                                          fontWeight: FontWeight
-                                                              .bold))),
-                                        ],
-                                      ),
-
-                                      SizedBox(
-                                          height:
-                                              height * 0.004), // ≈ gap 10.46
-
-                                      // Remove the Expanded widget
-                                      Container(
-                                        width: width * 0.92,
-                                        child: Obx(() {
-                                          final description =
-                                              controller.productDetials[
-                                                      'long_content'] ??
-                                                  "";
-                                          return Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisSize:
-                                                MainAxisSize.min, // Add this
-                                            children: [
-                                              Html(
-                                                data: description,
-                                                style: {
-                                                  "body": Style(
-                                                    fontSize: FontSize(12),
-                                                    fontWeight: FontWeight.w700,
-                                                    color: DefaultThemeColors
-                                                        .darklighter,
-                                                    maxLines: controller
-                                                            .isDescriptionExpanded
-                                                            .value
-                                                        ? 2
-                                                        : 10,
-                                                    textOverflow:
-                                                        TextOverflow.ellipsis,
+                                          SizedBox(height: height * 0.01),
+                                          Container(
+                                            width: width * 0.90,
+                                            height: height * 0.045,
+                                            child: Row(
+                                              children: List.generate(
+                                                  controller.colors.length,
+                                                  (index) {
+                                                final bool isActive = index ==
+                                                    controller
+                                                        .selectedColorIndex
+                                                        .value;
+                                                return Padding(
+                                                  padding: EdgeInsets.only(
+                                                    right: index !=
+                                                            controller.colors
+                                                                    .length -
+                                                                1
+                                                        ? width * 0.02
+                                                        : 0,
                                                   ),
-                                                },
-                                              ),
-                                              if (description.length > 150)
-                                                GestureDetector(
-                                                  onTap: () => controller
-                                                      .toggleDescription(),
-                                                  child: Padding(
-                                                    padding: EdgeInsets.only(
-                                                        top: height * 0.01),
-                                                    child: Text(
+                                                  child: GestureDetector(
+                                                    onTap: () {
                                                       controller
-                                                              .isDescriptionExpanded
-                                                              .value
-                                                          ? 'Read less'
-                                                          : 'Read more',
-                                                      style: TextStyle(
-                                                        fontSize:
-                                                            height * 0.016,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                        color:
-                                                            DefaultThemeColors
-                                                                .mainprimary,
+                                                          .selectedColorIndex
+                                                          .value = index;
+                                                      controller
+                                                          .updateSelectedVariant();
+                                                    },
+                                                    child: Container(
+                                                      width: width * 0.162,
+                                                      height: height * 0.045,
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                        horizontal:
+                                                            width * 0.032,
+                                                        vertical:
+                                                            height * 0.0075,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        color: isActive
+                                                            ? DefaultThemeColors
+                                                                .lightOnSecondary
+                                                            : DefaultThemeColors
+                                                                .darklight,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(
+                                                                    height * 2),
+                                                        border: Border.all(
+                                                          color: isActive
+                                                              ? DefaultThemeColors
+                                                                  .darklight
+                                                              : DefaultThemeColors
+                                                                  .lightOnSecondary,
+                                                          width: 1,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: Text(
+                                                          controller
+                                                              .colors[index],
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: TextStyle(
+                                                            fontFamily:
+                                                                'Plus Jakarta Sans',
+                                                            fontSize:
+                                                                height * 0.015,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                            color: isActive
+                                                                ? DefaultThemeColors
+                                                                    .lightOnPrimary
+                                                                : DefaultThemeColors
+                                                                    .lightOnSecondary,
+                                                          ),
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
-                                                ),
-                                            ],
-                                          );
-                                        }),
+                                                );
+                                              }),
+                                            ),
+                                          ),
+                                        ],
                                       ),
+                              ),
+
+                              // SIZE SELECTOR - Make it reactive
+                              Obx(
+                                () => (controller.sizes.isEmpty ||
+                                        controller.productDetials['type'] !=
+                                            'variable')
+                                    ? SizedBox
+                                        .shrink() // Hide if no sizes or not variable
+                                    : Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          SizedBox(height: height * 0.01),
+                                          Container(
+                                            width: width * 0.90,
+                                            height: height * 0.045,
+                                            child: Row(
+                                              children: List.generate(
+                                                  controller.sizes.length,
+                                                  (index) {
+                                                final bool isActive = index ==
+                                                    controller.selectedSizeIndex
+                                                        .value;
+                                                return Padding(
+                                                  padding: EdgeInsets.only(
+                                                    right: index !=
+                                                            controller.sizes
+                                                                    .length -
+                                                                1
+                                                        ? width * 0.02
+                                                        : 0,
+                                                  ),
+                                                  child: GestureDetector(
+                                                    onTap: () {
+                                                      controller
+                                                          .selectedSizeIndex
+                                                          .value = index;
+                                                      controller
+                                                          .updateSelectedVariant();
+                                                    },
+                                                    child: Container(
+                                                      width: width * 0.162,
+                                                      height: height * 0.045,
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                        horizontal:
+                                                            width * 0.032,
+                                                        vertical:
+                                                            height * 0.0075,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        color: isActive
+                                                            ? DefaultThemeColors
+                                                                .lightOnBackground
+                                                            : DefaultThemeColors
+                                                                .darklight,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(
+                                                                    height * 2),
+                                                        border: Border.all(
+                                                          color: isActive
+                                                              ? DefaultThemeColors
+                                                                  .darklight
+                                                              : DefaultThemeColors
+                                                                  .lightOnBackground,
+                                                          width: 1,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: Text(
+                                                          controller
+                                                              .sizes[index],
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: TextStyle(
+                                                            fontFamily:
+                                                                'Plus Jakarta Sans',
+                                                            fontSize:
+                                                                height * 0.015,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                            color: isActive
+                                                                ? DefaultThemeColors
+                                                                    .lightOnPrimary
+                                                                : DefaultThemeColors
+                                                                    .lightOnSecondary,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              }),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+
+                              SizedBox(height: height * 0.01),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  SizedBox(
+                                    width: width * 0.535, // ≈ 200.15
+                                    child: Text(
+                                      "Description",
+                                      style: TextStyle(
+                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontSize: 14, // ≈ 16
+                                        fontWeight: FontWeight.w700, // Bold
+                                        height: 1.75, // ≈ 28
+                                      ),
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        side: const BorderSide(
+                                            color: Color.fromARGB(
+                                                255, 216, 216, 216)),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8)),
+                                        elevation: 0,
+                                        backgroundColor: Colors.transparent,
+                                      ),
+                                      onPressed: () {
+                                        reviewModal(controller);
+                                      },
+                                      child: Text('Add Review',
+                                          style: txtTheme()
+                                              .titleLarge!
+                                              .copyWith(
+                                                  fontWeight:
+                                                      FontWeight.bold))),
+                                ],
+                              ),
+
+                              SizedBox(height: height * 0.004), // ≈ gap 10.46
+
+                              // Remove the Expanded widget
+                              Container(
+                                width: width * 0.92,
+                                child: Obx(() {
+                                  final description = controller
+                                          .productDetials['long_content'] ??
+                                      controller.productDetials['content'] ??
+                                      "";
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min, // Add this
+                                    children: [
+                                      Html(
+                                        data: description,
+                                        style: {
+                                          "body": Style(
+                                            fontSize: FontSize(12),
+                                            fontWeight: FontWeight.w700,
+                                            color:
+                                                DefaultThemeColors.darklighter,
+                                            maxLines: controller
+                                                    .isDescriptionExpanded.value
+                                                ? 100
+                                                : 2,
+                                            textOverflow: TextOverflow.ellipsis,
+                                          ),
+                                          "span": Style(
+                                            color:
+                                                DefaultThemeColors.darklighter,
+                                          ),
+                                          "font": Style(
+                                            color:
+                                                DefaultThemeColors.darklighter,
+                                          ),
+                                        },
+                                      ),
+                                      if (description.length > 150)
+                                        GestureDetector(
+                                          onTap: () =>
+                                              controller.toggleDescription(),
+                                          child: Padding(
+                                            padding: EdgeInsets.only(
+                                                top: height * 0.01),
+                                            child: Text(
+                                              controller.isDescriptionExpanded
+                                                      .value
+                                                  ? 'Read less'
+                                                  : 'Read more',
+                                              style: TextStyle(
+                                                fontSize: height * 0.016,
+                                                fontWeight: FontWeight.w700,
+                                                color: DefaultThemeColors
+                                                    .mainprimary,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                     ],
-                                  )),
+                                  );
+                                }),
+                              ),
+                              const SizedBox(height: 50),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 50)
                       ],
                     ),
                   ],
@@ -795,8 +795,13 @@ class ProductView extends GetView<ProductController> {
             child: Obx(() => PrimaryActionButton(
                   text: "Add Cart",
                   isLoading: controller.isLoading.value,
-                  onPressed: () {
-                    controller.addToCart();
+                  onPressed: () async {
+                    HelperFunctions().showOverlayLoader();
+
+                    await controller.addToCart().then((value) {
+                      Get.until((route) => !Get.isDialogOpen!);
+                      return Get.toNamed(Routes.CART);
+                    });
                   },
                 )),
           ),

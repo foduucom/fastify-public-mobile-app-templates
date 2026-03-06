@@ -40,10 +40,12 @@ class WishListService extends GetxService with BaseController {
   Future<Map<String, dynamic>?> addWishlist({
     required String productId,
     required String variantSlug,
+    String? variantId,
   }) async {
     var form = {
       'product_id': productId,
       'variant_slug': variantSlug,
+      if (variantId != null) 'variant_id': variantId,
     };
 
     var response = await BasicProvider("wishlist/add")
@@ -69,11 +71,15 @@ class WishListService extends GetxService with BaseController {
   Future<Map<String, dynamic>?> removeFromWishlist({
     required String productId,
     required String variantSlug,
+    String? variantId,
   }) async {
     var form = {
       'product_id': productId,
       'variant_slug': variantSlug,
+      if (variantId != null) 'variant_id': variantId,
     };
+
+    print("In WishlistService removeFromWishlist form: $form");
 
     var response = await BasicProvider("wishlist/remove")
         .postRequest(form)
@@ -108,13 +114,21 @@ class WishListService extends GetxService with BaseController {
   Future<void> toggleWishlist({
     required String productId,
     required String variantSlug,
+    String? variantId,
   }) async {
     try {
       if (isInWishlist(productId)) {
         await removeFromWishlist(
-            productId: productId, variantSlug: variantSlug);
+          productId: productId,
+          variantSlug: variantSlug,
+          variantId: variantId,
+        );
       } else {
-        await addWishlist(productId: productId, variantSlug: variantSlug);
+        await addWishlist(
+          productId: productId,
+          variantSlug: variantSlug,
+          variantId: variantId,
+        );
       }
       await fetchWishList();
     } catch (e) {

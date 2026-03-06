@@ -21,7 +21,7 @@ class OrderSuccessController extends GetxController with BaseController {
 
   Future<void> OrderDetail() async {
     isLoading.value = true;
-    var response = await BasicProvider("public/orders/show/$id")
+    var response = await BasicProvider("orders/show/$id")
         .getRequest()
         .catchError(handleError);
 

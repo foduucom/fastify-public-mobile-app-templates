@@ -44,7 +44,7 @@ class AuthDetails with BaseController {
   static String? getToken() {
     var token = box.read('token');
     if (token != null) {
-      print('token $token');
+      //print('token $token');
       return token;
     } else {
       return null;
@@ -126,9 +126,8 @@ class AuthDetails with BaseController {
 
   dynamic updateUserDetailsFromServer() async {
     if (isUserLogin()) {
-      var response = await BasicProvider("public/customer/profile")
-          .getRequest()
-          .catchError(handleError);
+      var response =
+          await BasicProvider("profile").getRequest().catchError(handleError);
       if (response != null) {
         var userDetails = response;
 
