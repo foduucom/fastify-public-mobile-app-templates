@@ -94,11 +94,12 @@ class RegisterProvider extends GetConnect {
   }
 
   // Register the user via password-based method
-  Future<dynamic> passwordRegister(
-      String name, String mobile, String email, String password) async {
+  Future<dynamic> passwordRegister(String name, String countryCode,
+      String mobile, String email, String password) async {
     try {
       final form = {
         'name': name,
+        'country_code': countryCode,
         'mobile': mobile,
         'email': email,
         'password': password,

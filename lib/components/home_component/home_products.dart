@@ -973,7 +973,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 product['variant_ids'] is List &&
                 product['variant_ids'].isNotEmpty)
             ? product['variant_ids'][0]['_id']?.toString()
-            : null);
+            : (product['variants'] != null &&
+                    product['variants'] is List &&
+                    product['variants'].isNotEmpty)
+                ? product['variants'][0]['_id']?.toString()
+                : null);
 
     await WishListService.to.toggleWishlist(
       productId: productId,

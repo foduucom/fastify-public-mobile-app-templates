@@ -33,13 +33,12 @@ class ProductHelper {
     }
 
     // Calculate lowest and highest prices from variants
-    num minPrice =
-        variants.first['discounted_price'] ?? variants.first['price'] ?? 0;
+    num minPrice = variants.first['sale_price'] ?? variants.first['price'] ?? 0;
 
     num maxPrice = minPrice;
 
     for (var variant in variants) {
-      final variantPrice = variant['discounted_price'] ?? variant['price'] ?? 0;
+      final variantPrice = variant['sale_price'] ?? variant['price'] ?? 0;
       if (variantPrice < minPrice && variantPrice > 0) minPrice = variantPrice;
       if (variantPrice > maxPrice) maxPrice = variantPrice;
     }
@@ -58,16 +57,36 @@ class ProductHelper {
   /// Calculate prices for simple products
   static Map<String, dynamic> _calculateSimpleProductPrice(
       Map<String, dynamic> product) {
-    final salePrice = product['sale_price'] ?? 0;
-    final regularPrice = product['price'] ?? 0;
+    // Robust price extraction with multiple fallbacks
+    num salePrice = _parseNum(product['sale_price'] ??
+        product['discount_price'] ??
+        product['discounted_price']);
 
-    num productPrice = salePrice;
-    num discountPrice = regularPrice;
+    num regularPrice = _parseNum(
+        product['price'] ?? product['regular_price'] ?? product['mrp']);
+
+    // BI-99: Fallback to variants if top-level prices are 0 (e.g., "pajama" product)
+    if (salePrice == 0 && regularPrice == 0) {
+      final variants = product['variants'];
+      if (variants is List && variants.isNotEmpty) {
+        final defaultVariant = variants.firstWhere(
+            (v) => v['is_default'] == true,
+            orElse: () => variants.first);
+        if (defaultVariant != null) {
+          salePrice = _parseNum(defaultVariant['sale_price']);
+          regularPrice = _parseNum(defaultVariant['price']);
+        }
+      }
+    }
+
+    num productPrice = (salePrice > 0) ? salePrice : regularPrice;
+    num discountPrice =
+        (salePrice > 0 && regularPrice > salePrice) ? regularPrice : 0;
     String discountRate = "";
 
     if (salePrice > 0 && regularPrice > salePrice) {
-      final discount = (100 - salePrice * 100 / regularPrice).round();
-      discountRate = " $discount% off";
+      final discount = (100 - (salePrice * 100 / regularPrice)).round();
+      if (discount > 0) discountRate = " $discount% off";
     }
 
     return {
@@ -79,6 +98,13 @@ class ProductHelper {
       'highestPrice': '0',
       'hasValidVariants': true,
     };
+  }
+
+  static num _parseNum(dynamic value) {
+    if (value == null) return 0;
+    if (value is num) return value;
+    if (value is String) return num.tryParse(value) ?? 0;
+    return 0;
   }
 
   /// Get product image URL

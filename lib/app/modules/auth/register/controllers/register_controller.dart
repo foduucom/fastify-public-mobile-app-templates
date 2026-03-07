@@ -19,6 +19,7 @@ class RegisterController extends GetxController {
   var isLoading = false.obs;
   var showPassword = false.obs;
   var isChecked = false.obs;
+  var countryCode = "91".obs; // Default country code
 
   // Auth settings
   var isOtpMode = false.obs;
@@ -183,15 +184,18 @@ class RegisterController extends GetxController {
         return;
       }
 
+      var code = countryCode.value.replaceAll('+', '');
+
       print('Attempting registration with:');
       print('Name: $name');
       print('Mobile: $mobile');
+      print('Country Code: $code');
       print('Email: $email');
       print('Password Length: ${password.length}');
 
       // FIX: Handle the Map response properly
       final Map<String, dynamic> response = await registerProvider
-          .passwordRegister(name, mobile, email, password);
+          .passwordRegister(name, code, mobile, email, password);
 
       // Check if response is successful
       if (response['statusCode'] == 200 || response['statusCode'] == 201) {

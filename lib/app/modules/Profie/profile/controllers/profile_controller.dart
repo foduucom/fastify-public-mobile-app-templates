@@ -229,8 +229,10 @@ class ProfileController extends GetxController with BaseController {
         isLoading(false);
 
         Get.until((route) => !Get.isDialogOpen!);
-        var updatedprofile = AuthDetails().updateUserDetailsFromServer();
-        Get.find<BottombarController>().authDetails.value = updatedprofile;
+        var updatedprofile = await AuthDetails.updateUserDetailsFromServer();
+        if (updatedprofile != null && updatedprofile is Map) {
+          Get.find<BottombarController>().authDetails.addAll(updatedprofile);
+        }
         // HelperFunctions().showSnackBarSuccess(response["status"]);
         Get.until((route) => !Get.isDialogOpen!);
         // Get.back();

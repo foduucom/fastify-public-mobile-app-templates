@@ -106,6 +106,17 @@ mixin FoduuStudioLayoutMixin on GetxController {
       print('Hi Fetch Layout Response $response');
 
       if (response != null) {
+        // Handle Theme Update if present in the response
+        var themeData = response['theme_color'] ?? response['app_theme_color'];
+        if (themeData != null) {
+          print('🎨 DynamicLayout: Theme found in API response');
+          DynamicThemeManager().updateFromApi(themeData);
+
+          if (Get.isRegistered<ThemeController>()) {
+            Get.find<ThemeController>().refreshTheme();
+          }
+        }
+
         var list = response['sections'];
         if (list != null && list is List) {
           _initialComponents = list;

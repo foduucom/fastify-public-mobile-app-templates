@@ -23,8 +23,6 @@ import 'package:foduu_ecommerce/app/modules/checkout/bindings/checkout_bindings.
 import 'package:foduu_ecommerce/app/modules/checkout/views/checkout_views.dart';
 import 'package:foduu_ecommerce/app/modules/choose_category/bindings/choose_category_binding.dart';
 import 'package:foduu_ecommerce/app/modules/choose_category/views/choose_category_view.dart';
-import 'package:foduu_ecommerce/app/modules/home_wishlist/bindings/home_wishlist_bindings.dart';
-import 'package:foduu_ecommerce/app/modules/home_wishlist/views/home_wishlist_view.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/bindings/homepage_binding.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/views/home_page_view.dart';
 import 'package:foduu_ecommerce/app/modules/intro/bindings/intro_binding.dart';
@@ -131,12 +129,6 @@ class AppPages {
       name: _Paths.CHOOSECATEGORY,
       page: () => const ChooseCategoryView(),
       binding: ChooseCategoryBinding(),
-    ),
-
-    GetPage(
-      name: _Paths.HOMEWISH,
-      page: () => const HomeWishlistView(),
-      binding: HomeWishlistBindings(),
     ),
 
     // GetPage(

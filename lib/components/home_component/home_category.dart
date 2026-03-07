@@ -60,7 +60,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
       );
     } else {
       return SizedBox(
-        height: style == 'circular' ? 100 : 140, // Adjust height based on style
+        height: style == 'circular' ? 120 : 140, // Adjust height based on style
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(
             dragDevices: {
@@ -282,7 +282,7 @@ class CategoryHomeShimmer extends StatelessWidget {
         baseColor: Theme.of(context).colorScheme.surfaceVariant,
         highlightColor: Theme.of(context).colorScheme.surface,
         child: SizedBox(
-          height: 100,
+          height: 120,
           child: ListView.separated(
             itemCount: 10,
             scrollDirection: Axis.horizontal,

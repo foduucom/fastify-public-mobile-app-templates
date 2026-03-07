@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 class SecondaryAppHeader extends StatelessWidget {
   final String title;
   final VoidCallback? onBack;
+  final VoidCallback? onRightIconTap;
   final bool showBack;
   final bool showRight;
   final IconData rightIcon;
@@ -13,6 +14,7 @@ class SecondaryAppHeader extends StatelessWidget {
     Key? key,
     required this.title,
     this.onBack,
+    this.onRightIconTap,
     this.showRight = true,
     this.showBack = true,
     this.rightIcon = Icons.more,
@@ -65,6 +67,7 @@ class SecondaryAppHeader extends StatelessWidget {
                       width: width,
                       height: height,
                       icon: rightIcon,
+                      onTap: onRightIconTap,
                       diameter: height * 0.022)
                   : SizedBox(width: height * 0.055),
             ],

@@ -8,6 +8,7 @@ import 'package:foduu_ecommerce/app/modules/auth/login/components/app_social_but
 import 'package:foduu_ecommerce/app/modules/auth/login/components/app_text.dart';
 import 'package:foduu_ecommerce/app/modules/auth/login/components/app_text_field.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
 import 'package:foduu_ecommerce/components/buttons/primary_action_button.dart';
 import 'package:foduu_ecommerce/components/foduuformtextfield.dart';
@@ -219,39 +220,62 @@ class RegisterView extends GetView<RegisterController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppText(
-                      "Phone Number(Don't Use Country Code)",
+                      "Phone Number",
                       fontSize: height * 0.016,
                       height: 1.5,
                       letterSpacing: 0,
                       fontWeight: FontWeight.w600,
-                      //color: context.onSurfaceColor, // Theme-aware label
                       color: Theme.of(context).brightness == Brightness.dark
                           ? DefaultThemeColors.lightDarker
                           : DefaultThemeColors.lightOnBackground,
                     ),
                     SizedBox(height: 4),
-                    AppTextField(
+                    IntlPhoneField(
                       controller: controller.mobileController,
-                      hintText: "9876543210",
-                      keyboardType: TextInputType.phone,
-                      prefixIcon: Icons.phone_android_outlined,
-                      fontSize: height * 0.0165,
-                      textColor: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.darklighter
-                          : DefaultThemeColors.lightDarker,
-                      hintColor: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.darklighter
-                          : DefaultThemeColors.lightDarker,
-                      borderColor: DefaultThemeColors.mainprimary!,
-                      focusColor: DefaultThemeColors.mainprimary!,
-                      disabledColor:
-                          Theme.of(context).brightness == Brightness.dark
+                      decoration: InputDecoration(
+                        hintText: 'Phone Number',
+                        hintStyle: TextStyle(
+                          color: Theme.of(context).brightness == Brightness.dark
                               ? DefaultThemeColors.darklighter
                               : DefaultThemeColors.lightDarker,
-                      fillColor: context.surfaceColor, // Theme-aware background
+                        ),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: DefaultThemeColors.mainprimary!),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: DefaultThemeColors.mainprimary!),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: DefaultThemeColors.mainprimary!),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        fillColor: context.surfaceColor,
+                        filled: true,
+                        prefixIcon: Icon(
+                          Icons.phone_android_outlined,
+                          color: DefaultThemeColors.mainprimary,
+                        ),
+                      ),
+                      initialCountryCode: 'IN',
+                      languageCode: "en",
+                      onChanged: (phone) {
+                        print(phone.completeNumber);
+                        controller.countryCode.value = phone.countryCode;
+                      },
+                      onCountryChanged: (country) {
+                        controller.countryCode.value = country.dialCode;
+                      },
                       validator: (value) {
-                        if (value == null || value.isEmpty)
+                        if (value == null || value.number.isEmpty) {
                           return 'Please enter your Phone No';
+                        }
                         return null;
                       },
                     ),

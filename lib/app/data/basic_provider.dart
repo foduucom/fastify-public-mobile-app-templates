@@ -169,7 +169,7 @@ class BasicProvider {
         userHeader['Authorization'] = 'Bearer ${AuthDetails.getToken()}';
       }
 
-      //print("userHeader: $userHeader");
+      print("userHeader: $userHeader");
 
       return userHeader;
     } catch (e) {

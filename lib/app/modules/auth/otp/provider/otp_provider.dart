@@ -12,9 +12,19 @@ class OtpProvider extends GetConnect {
     return apiURL + path;
   }
 
-  Future<Map<String, dynamic>> verifyOtp(String email, String otp) async {
+  Future<Map<String, dynamic>> verifyOtp(
+      {String? email,
+      String? mobile,
+      String? countryCode,
+      required String otp}) async {
     try {
-      final form = {"email": email, "otp": otp};
+      final Map<String, dynamic> form = {"otp": otp};
+      if (email != null && email.isNotEmpty) {
+        form["email"] = email;
+      } else if (mobile != null && mobile.isNotEmpty) {
+        form["mobile"] = mobile;
+        if (countryCode != null) form["country_code"] = countryCode;
+      }
       final client = CookieClientManager.getClient();
       final response = await client.post(
         Uri.parse(fetchUrl("auth/verify-otp")),
@@ -68,9 +78,16 @@ class OtpProvider extends GetConnect {
     }
   }
 
-  Future<Map<String, dynamic>> resendOtp(String email) async {
+  Future<Map<String, dynamic>> resendOtp(
+      {String? email, String? mobile, String? countryCode}) async {
     try {
-      final form = {"email": email};
+      final Map<String, dynamic> form = {};
+      if (email != null && email.isNotEmpty) {
+        form["email"] = email;
+      } else if (mobile != null && mobile.isNotEmpty) {
+        form["mobile"] = mobile;
+        if (countryCode != null) form["country_code"] = countryCode;
+      }
       final client = CookieClientManager.getClient();
       final response = await client.post(
         Uri.parse(fetchUrl("auth/resend-otp")),

@@ -97,6 +97,30 @@ class CartController extends GetxController
         }
 
         newProducts.add(product);
+
+        // Calculate price for the item (handle simple product fallback)
+        num itemPrice = 0;
+        if (variant != null) {
+          itemPrice = variant['sale_price'] ?? variant['price'] ?? 0;
+        } else {
+          itemPrice = product['sale_price'] ?? product['price'] ?? 0;
+
+          // BI-99: Fallback to variants if top-level price is 0 for simple product
+          if (itemPrice == 0 &&
+              product['variants'] != null &&
+              product['variants'] is List &&
+              product['variants'].isNotEmpty) {
+            final variants = product['variants'] as List;
+            final defaultVariant = variants.firstWhere(
+                (v) => v['is_default'] == true,
+                orElse: () => variants.first);
+            if (defaultVariant != null) {
+              itemPrice =
+                  defaultVariant['sale_price'] ?? defaultVariant['price'] ?? 0;
+            }
+          }
+        }
+
         newCartItems.add({
           'productId': product['_id']?.toString() ?? '',
           'value': {
@@ -104,7 +128,7 @@ class CartController extends GetxController
             'variant_name': variant?['name'] ?? '',
             'producttype': product['type'] ?? 'simple',
             'variant_id': vId,
-            'price': variant?['sale_price'] ?? variant?['price'] ?? 0,
+            'price': itemPrice,
           }
         });
         newQuantities.add(item['quantity'] ?? 1); // ADD THIS
@@ -172,19 +196,44 @@ class CartController extends GetxController
 
       for (var i = 0; i < productDetails.length; i++) {
         var product = productDetails[i];
-        var variantIndex = getVariantIndex(i);
 
-        if (variantIndex >= 0 && variantIndex < product['variant_ids'].length) {
-          bagpriceAmount.value = (bagpriceAmount.value +
-                  (product['variant_ids'][variantIndex]['price'] *
-                      (productQuntity[i] ?? 1)))
-              .toDouble();
+        num priceVal = 0;
+        num salePriceVal = 0;
 
-          savingtemp = (savingtemp +
-                  (product['variant_ids'][variantIndex]['sale_price'] *
-                      (productQuntity[i] ?? 1)))
-              .toInt();
+        if (product['type'] == 'variant' &&
+            product['variant_ids'] != null &&
+            product['variant_ids'].isNotEmpty) {
+          var variantIndex = getVariantIndex(i);
+          if (variantIndex >= 0 &&
+              variantIndex < product['variant_ids'].length) {
+            priceVal = product['variant_ids'][variantIndex]['price'] ?? 0;
+            salePriceVal =
+                product['variant_ids'][variantIndex]['sale_price'] ?? 0;
+          }
+        } else {
+          priceVal = product['price'] ?? 0;
+          salePriceVal = product['sale_price'] ?? 0;
+
+          // BI-99: Fallback to variants if top-level price is 0 for simple product
+          if (priceVal == 0 &&
+              salePriceVal == 0 &&
+              product['variants'] != null &&
+              product['variants'] is List &&
+              product['variants'].isNotEmpty) {
+            final variants = product['variants'] as List;
+            final defaultVariant = variants.firstWhere(
+                (v) => v['is_default'] == true,
+                orElse: () => variants.first);
+            if (defaultVariant != null) {
+              priceVal = defaultVariant['price'] ?? 0;
+              salePriceVal = defaultVariant['sale_price'] ?? 0;
+            }
+          }
         }
+
+        bagpriceAmount.value +=
+            (priceVal * (productQuntity[i] ?? 1)).toDouble();
+        savingtemp += (salePriceVal * (productQuntity[i] ?? 1)).toInt();
       }
 
       discountAmount.value = bagpriceAmount.value - savingtemp;
@@ -237,15 +286,32 @@ class CartController extends GetxController
               }
             }
           } else {
-            var weightUnit =
-                productDetails[index]['variant_ids'][0]['weight_unit'];
-            if (weightUnit != null) {
+            if (productDetails[index]['variant_ids'] != null &&
+                productDetails[index]['variant_ids'] is List &&
+                productDetails[index]['variant_ids'].isNotEmpty) {
+              var weightUnit =
+                  productDetails[index]['variant_ids'][0]['weight_unit'];
               var weight = productDetails[index]['variant_ids'][0]['weight'];
-              if (weightUnit == 'gm') {
-                guestUserCartWeight += double.parse(weight) / 1000;
-              } else if (weightUnit == 'kg') {
-                guestUserCartWeight += double.parse(weight);
-              } else if (weightUnit == null) {
+              if (weightUnit != null && weight != null) {
+                if (weightUnit == 'gm') {
+                  guestUserCartWeight += double.parse(weight.toString()) / 1000;
+                } else if (weightUnit == 'kg') {
+                  guestUserCartWeight += double.parse(weight.toString());
+                }
+              } else {
+                guestUserCartWeight += 0.5;
+              }
+            } else {
+              // Fallback for flat product structure if no variants
+              var weight = productDetails[index]['weight'];
+              var weightUnit = productDetails[index]['weight_unit'];
+              if (weight != null && weightUnit != null) {
+                if (weightUnit == 'gm') {
+                  guestUserCartWeight += double.parse(weight.toString()) / 1000;
+                } else {
+                  guestUserCartWeight += double.parse(weight.toString());
+                }
+              } else {
                 guestUserCartWeight += 0.5;
               }
             }

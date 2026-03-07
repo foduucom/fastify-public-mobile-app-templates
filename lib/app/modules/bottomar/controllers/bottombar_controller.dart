@@ -27,7 +27,7 @@ class BottombarController extends GetxController with BaseController {
     // box.erase();
     // key = GlobalKey();
     super.onInit();
-    await AuthDetails().updateUserDetailsFromServer();
+    await AuthDetails.updateUserDetailsFromServer();
     // var user = box.read('userDetails')['userData'];
     // if (authDetails['userData'] != null) {
     //   isLogin(true);
@@ -171,7 +171,7 @@ class BottombarController extends GetxController with BaseController {
       if (AuthDetails.isUserLogin()) {
         var userBoxData = box.read('userData');
         if (userBoxData != null) {
-          var userDetails = await AuthDetails().updateUserDetailsFromServer();
+          var userDetails = await AuthDetails.updateUserDetailsFromServer();
           authDetails.addAll(userDetails);
         }
       }

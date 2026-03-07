@@ -27,13 +27,14 @@ class AuthSettingsHelper {
   }
 
   /// Check if mobile authentication is enabled
-  static bool isEmailMobileEnabled() {
+  static bool isMobileOtpEnabled() {
     final authPref = getAuthPreference();
-    return authPref?['email_mobile'] ?? false;
+    return authPref?['mobile_otp'] ?? false;
   }
 
   /// Get the current authentication type
   static String getAuthType() {
+    if (isMobileOtpEnabled()) return 'mobile_otp';
     if (isEmailOtpEnabled()) return 'otp';
     if (isEmailPasswordEnabled()) return 'password';
     return 'password'; // default fallback

@@ -71,48 +71,65 @@ class AuthDetails with BaseController {
   // }
 
   static void saveLoginResponse(dynamic response) {
-    print('OTP VERIFICATION RESPONSE: $response');
-    if (response != null) {
-      // Check if the actual user data is nested inside a 'data' field
+    if (response != null && response is Map) {
+      print('Processing Login Response: $response');
+
+      // Mark as logged in
+      box.write('isLogin', true);
+      box.write('fullResponse', response);
+
+      // Extract user data
       dynamic userData;
-
       if (response['data'] != null) {
-        // If response has a 'data' field, use that as user data
         userData = response['data'];
-
-        // Also save the full response if needed
-        box.write('fullResponse', response);
+      } else if (response['user'] != null) {
+        userData = response['user'];
       } else {
-        // Otherwise use the response directly
         userData = response;
       }
 
-      // Save the user data
-      box.write('userData', userData);
-      box.write('isLogin', true);
+      // Only process as userData Map if it actually is one
+      if (userData != null && userData is Map) {
+        box.write('userData', userData);
 
-      // Extract token from the correct location
-      String? tokenValue;
-      String? tokenExpiry;
+        // Extract token from various possible locations
+        String? tokenValue;
+        String? tokenExpiry;
 
-      if (userData['token'] != null) {
-        if (userData['token'] is Map) {
-          tokenValue = userData['token']['value'];
-          tokenExpiry = userData['token']['expiry'];
+        // Check in userData
+        if (userData['token'] != null) {
+          if (userData['token'] is Map) {
+            tokenValue = userData['token']['value']?.toString();
+            tokenExpiry = userData['token']['expiry']?.toString();
+          } else {
+            tokenValue = userData['token'].toString();
+          }
+        }
+
+        // Check in response root if not found in userData
+        if (tokenValue == null && response['token'] != null) {
+          tokenValue = response['token'].toString();
+        }
+
+        if (tokenValue == null && response['access_token'] != null) {
+          tokenValue = response['access_token'].toString();
+        }
+
+        // Save token if found
+        if (tokenValue != null) {
+          box.write('token', tokenValue);
+          if (tokenExpiry != null) {
+            box.write('tokenExpiry', tokenExpiry);
+          }
+          print('Token saved successfully');
         } else {
-          tokenValue = userData['token'];
+          print(
+              'INFO: No token found in response body (might be using cookies)');
         }
-      }
-
-      // Save token if found
-      if (tokenValue != null) {
-        box.write('token', tokenValue);
-        if (tokenExpiry != null) {
-          box.write('tokenExpiry', tokenExpiry);
-        }
-        print('Token saved successfully: $tokenValue');
       } else {
-        print('WARNING: No token found in response');
+        print(
+            'INFO: response data is not a Map (likely a success message): $userData');
+        // If it's a string, we still consider it a success since we set isLogin=true above
       }
     }
   }
@@ -124,17 +141,19 @@ class AuthDetails with BaseController {
     }
   }
 
-  dynamic updateUserDetailsFromServer() async {
+  static Future<dynamic> updateUserDetailsFromServer() async {
     if (isUserLogin()) {
-      var response =
-          await BasicProvider("profile").getRequest().catchError(handleError);
-      if (response != null) {
-        var userDetails = response;
-
-        box.write('userData', userDetails);
-
-        return userDetails;
+      try {
+        var response = await BasicProvider("profile").getRequest();
+        if (response != null) {
+          box.write('userData', response);
+          print('Successfully updated user details from server');
+          return response;
+        }
+      } catch (e) {
+        print('Error updating user details from server: $e');
       }
     }
+    return null;
   }
 }

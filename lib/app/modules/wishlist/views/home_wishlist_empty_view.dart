@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:foduu_ecommerce/app/modules/home_wishlist/controllers/home_wishlist_controllers.dart';
-import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/app/modules/wishlist/controllers/wishlist_controller.dart';
 import 'package:foduu_ecommerce/components/buttons/primary_action_button.dart';
 import 'package:get/get.dart';
 
-class HomeWishlistEmptyView extends GetView<HomeWishlistControllers> {
+class HomeWishlistEmptyView extends GetView<WishlistController> {
   final VoidCallback? onShoppingPressed;
   final String? title;
   final String? description;

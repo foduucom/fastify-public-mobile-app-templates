@@ -3,8 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/app/modules/auth/login/components/app_social_button.dart';
+import 'package:foduu_ecommerce/app/modules/auth/login/components/app_password_field.dart';
 import 'package:foduu_ecommerce/app/modules/auth/login/components/app_text.dart';
 import 'package:foduu_ecommerce/app/modules/auth/login/components/app_text_field.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:foduu_ecommerce/components/buttons/primary_action_button.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
@@ -104,49 +106,160 @@ class LoginView extends GetView<LoginController> {
 
             // Form Section - OTP Only (No Password Field)
             Form(
-              key: controller.formKey,
+              key: controller.loginFormKey,
               child: Column(
                 children: [
-                  // Email Field Only
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppText(
-                        "Email",
-                        fontSize: height * 0.016,
-                        height: 1.5,
-                        letterSpacing: 0,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? DefaultThemeColors.lightDarker
-                            : DefaultThemeColors.lightOnBackground,
-                      ),
-                      SizedBox(height: 4),
-                      AppTextField(
-                        controller: controller.emailController,
-                        hintText: "Enter your email",
-                        keyboardType: TextInputType.emailAddress,
-                        prefixIcon: Icons.email_outlined,
-                        fontSize: height * 0.0165,
-                        textColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? DefaultThemeColors.darklighter
-                                : DefaultThemeColors.lightDarker,
-                        hintColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? DefaultThemeColors.darklighter
-                                : DefaultThemeColors.lightDarker,
-                        borderColor: DefaultThemeColors.mainprimary,
-                        focusColor: DefaultThemeColors.mainprimary,
-                        disabledColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? DefaultThemeColors.darklighter
-                                : DefaultThemeColors.lightDarker,
-                        fillColor: Theme.of(context).colorScheme.surface,
-                        //validator: controller.validEmail,
-                      ),
-                    ],
-                  ),
+                  // Email or Phone Field
+                  Obx(() => controller.isMobileOtpMode.value
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AppText(
+                              "Phone Number",
+                              fontSize: height * 0.016,
+                              height: 1.5,
+                              letterSpacing: 0,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? DefaultThemeColors.lightDarker
+                                  : DefaultThemeColors.lightOnBackground,
+                            ),
+                            SizedBox(height: 4),
+                            IntlPhoneField(
+                              controller: controller.mobileController,
+                              decoration: InputDecoration(
+                                hintText: 'Phone Number',
+                                hintStyle: TextStyle(
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? DefaultThemeColors.darklighter
+                                      : DefaultThemeColors.lightDarker,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: DefaultThemeColors.mainprimary!),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: DefaultThemeColors.mainprimary!),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: DefaultThemeColors.mainprimary!),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 12),
+                                fillColor:
+                                    Theme.of(context).colorScheme.surface,
+                                filled: true,
+                                prefixIcon: Icon(
+                                  Icons.phone_android_outlined,
+                                  color: DefaultThemeColors.mainprimary,
+                                ),
+                              ),
+                              initialCountryCode: 'IN',
+                              languageCode: "en",
+                              onChanged: (phone) {
+                                controller.countryCode.value =
+                                    phone.countryCode;
+                              },
+                              onCountryChanged: (country) {
+                                controller.countryCode.value = country.dialCode;
+                              },
+                              validator: (value) {
+                                if (value == null || value.number.isEmpty) {
+                                  return 'Please enter your Phone No';
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AppText(
+                              "Email",
+                              fontSize: height * 0.016,
+                              height: 1.5,
+                              letterSpacing: 0,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? DefaultThemeColors.lightDarker
+                                  : DefaultThemeColors.lightOnBackground,
+                            ),
+                            SizedBox(height: 4),
+                            AppTextField(
+                              controller: controller.emailController,
+                              hintText: "Enter your email",
+                              keyboardType: TextInputType.emailAddress,
+                              prefixIcon: Icons.email_outlined,
+                              fontSize: height * 0.0165,
+                              textColor: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? DefaultThemeColors.darklighter
+                                  : DefaultThemeColors.lightDarker,
+                              hintColor: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? DefaultThemeColors.darklighter
+                                  : DefaultThemeColors.lightDarker,
+                              borderColor: DefaultThemeColors.mainprimary,
+                              focusColor: DefaultThemeColors.mainprimary,
+                              disabledColor: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? DefaultThemeColors.darklighter
+                                  : DefaultThemeColors.lightDarker,
+                              fillColor: Theme.of(context).colorScheme.surface,
+                              //validator: controller.validEmail,
+                            ),
+                          ],
+                        )),
+
+                  Obx(() => controller.isPasswordMode.value
+                      ? Column(
+                          children: [
+                            SizedBox(height: height * 0.02),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AppText(
+                                  "Password",
+                                  fontSize: height * 0.016,
+                                  height: 1.5,
+                                  letterSpacing: 0,
+                                  fontWeight: FontWeight.w600,
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? DefaultThemeColors.lightDarker
+                                      : DefaultThemeColors.lightOnBackground,
+                                ),
+                                SizedBox(height: 4),
+                                AppPasswordField(
+                                  controller: controller.passwordController,
+                                  isVisible: controller.obsecuretext,
+                                  onToggle: controller.togglePasswordVisibility,
+                                  fontSize: height * 0.0165,
+                                  hintText: "Enter your password",
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Please enter your password";
+                                    }
+                                    if (value.length < 6) {
+                                      return "Password must be at least 6 characters";
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        )
+                      : const SizedBox.shrink()),
 
                   SizedBox(height: height * 0.03),
 
@@ -160,11 +273,14 @@ class LoginView extends GetView<LoginController> {
                       );
                     } else {
                       return PrimaryActionButton(
-                        text: 'Send OTP',
+                        text: controller.isPasswordMode.value
+                            ? 'Login'
+                            : 'Send OTP',
                         backgroundColor: DefaultThemeColors.mainprimary,
                         textColor: DefaultThemeColors.lightOnPrimary,
                         onPressed: () {
-                          print('Send OTP button clicked');
+                          print(
+                              '${controller.isPasswordMode.value ? 'Login' : 'Send OTP'} button clicked');
                           HelperFunctions().closeKeyboard(context);
                           controller.onSubmit();
                         },

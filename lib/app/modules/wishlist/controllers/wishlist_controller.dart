@@ -3,6 +3,7 @@ import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_mixin.dart';
 import 'package:foduu_ecommerce/core/services/wishlistService.dart';
+import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:foduu_ecommerce/constants/product_helper.dart';
 import 'package:get/get.dart';
 
@@ -11,7 +12,9 @@ class WishlistController extends GetxController
   RxList<Map<String, dynamic>> get wishlistItems =>
       WishListService.to.wishListItems;
   var isLoading = false.obs;
+  var isCartLoading = false.obs;
   var scrollController = ScrollController();
+  var itemQuantities = <String, int>{}.obs;
 
   @override
   Future<void> onInit() async {
@@ -52,8 +55,8 @@ class WishlistController extends GetxController
   }
 
   Map<String, dynamic> getPriceInfo(int index) {
-    final product = getProduct(index);
-    return ProductHelper.calculatePriceInfo(product);
+    final variant = getVariant(index);
+    return ProductHelper.calculatePriceInfo(variant);
   }
 
   String getStoreName(int index) {
@@ -104,5 +107,70 @@ class WishlistController extends GetxController
     return (item['variant_id'] ?? '').toString().isNotEmpty
         ? item['variant_id'].toString()
         : null;
+  }
+
+  String _getItemKey(int index) {
+    return "${getProductId(index)}_${getVariantId(index) ?? 'no_variant'}";
+  }
+
+  int getItemQuantity(int index) {
+    return itemQuantities[_getItemKey(index)] ?? 1;
+  }
+
+  void incrementItemQuantity(int index) {
+    String key = _getItemKey(index);
+    int current = itemQuantities[key] ?? 1;
+    if (current < 10) {
+      itemQuantities[key] = current + 1;
+    }
+  }
+
+  void decrementItemQuantity(int index) {
+    String key = _getItemKey(index);
+    int current = itemQuantities[key] ?? 1;
+    if (current > 1) {
+      itemQuantities[key] = current - 1;
+    }
+  }
+
+  Future<void> addToCart(int index) async {
+    isCartLoading.value = true;
+    try {
+      final product = getProduct(index);
+      final productId = getProductId(index);
+      final variantId = getVariantId(index);
+      final quantity = getItemQuantity(index);
+
+      if (productId.isEmpty) return;
+
+      // In this app, CartService.manageCart is used
+      // Simple products might not have a variantId in the wishlist,
+      // but manageCart expects one. Fallback to productId if needed or check how it's handled in ProductController.
+      await Get.find<CartService>().manageCart(
+        productId: productId,
+        variantId: variantId ?? productId, // Fallback if no variant
+        quantity: quantity,
+        product: product,
+      );
+
+      Get.snackbar(
+        "Success",
+        "Added to cart successfully",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green.withOpacity(0.7),
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      print("Error adding to cart from wishlist: $e");
+      Get.snackbar(
+        "Error",
+        "Failed to add to cart",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.7),
+        colorText: Colors.white,
+      );
+    } finally {
+      isCartLoading.value = false;
+    }
   }
 }

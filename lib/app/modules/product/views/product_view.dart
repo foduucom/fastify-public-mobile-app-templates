@@ -46,10 +46,37 @@ class ProductView extends GetView<ProductController> {
                 child: Column(
                   children: [
                     SizedBox(height: height * 0.005),
-                    SecondaryAppHeader(
-                      title: "Product Detail",
-                      rightIcon: Icons.favorite_outline,
-                    ),
+                    Obx(() {
+                      final isInWishlist =
+                          WishListService.to.isInWishlist(controller.productId);
+                      return SecondaryAppHeader(
+                        title: "Product Detail",
+                        rightIcon: isInWishlist
+                            ? Icons.favorite
+                            : Icons.favorite_outline,
+                        onRightIconTap: () async {
+                          String? variantId;
+                          if (controller.productDetials['type'] == 'variable') {
+                            final variants =
+                                controller.productDetials['variants'];
+                            if (variants != null &&
+                                variants is List &&
+                                controller.selectedVariantIndex.value <
+                                    variants.length) {
+                              variantId = variants[
+                                  controller.selectedVariantIndex.value]['_id'];
+                            }
+                          }
+
+                          await WishListService.to.toggleWishlist(
+                            productId: controller.productId,
+                            variantSlug:
+                                controller.productDetials['variant_slug'] ?? '',
+                            variantId: variantId,
+                          );
+                        },
+                      );
+                    }),
                     SizedBox(height: height * 0.005),
                     // In your product details screen where you call ProductGallery
                     Obx(
@@ -212,8 +239,7 @@ class ProductView extends GetView<ProductController> {
                                           final price =
                                               selectedVariant['price'] ?? 0;
                                           final discountedPrice =
-                                              selectedVariant[
-                                                      'discounted_price'] ??
+                                              selectedVariant['sale_price'] ??
                                                   0;
 
                                           String discountRate = '';
@@ -252,8 +278,8 @@ class ProductView extends GetView<ProductController> {
                                       // Fallback
                                       final priceInfo =
                                           ProductHelper.calculatePriceInfo(
-                                              controller.productDetials
-                                                  .toJson());
+                                              Map<String, dynamic>.from(
+                                                  controller.productDetials));
 
                                       if (productType == 'variable') {
                                         return VariablePriceText(

@@ -149,7 +149,7 @@ class ShopController extends GetxController
 //                   product['variants'] != null) {
 //                 for (var variant in product['variants']) {
 //                   num price =
-//                       variant['discounted_price'] ?? variant['price'] ?? 0;
+//                       variant['sale_price'] ?? variant['price'] ?? 0;
 //                   if (price > maxPrice) maxPrice = price;
 //                   if (price < minPrice && price > 0) minPrice = price;
 //                 }

@@ -31,6 +31,8 @@ class OtpController extends GetxController with BaseController {
 
   // Context-specific variables
   var email = "".obs;
+  var mobile = "".obs;
+  var countryCode = "".obs;
   var otpContext = OtpContext.login.obs;
 
   //final AuthProvider authProvider = AuthProvider();
@@ -45,13 +47,14 @@ class OtpController extends GetxController with BaseController {
     final args = Get.arguments;
     if (args != null) {
       email.value = args['email'] ?? '';
-      //String contextStr = args['context'] ?? 'login';
-      //otpContext.value =
-      //  contextStr == 'register' ? OtpContext.register : OtpContext.login;
+      mobile.value = args['mobile'] ?? '';
+      countryCode.value = args['country_code'] ?? '';
+
       String contextStr =
           args['context'] ?? 'forgot_password'; // Default to forgot_password
       otpContext.value = _getOtpContext(contextStr);
-      print('OTP Screen - Email: ${email.value}, Context: ${otpContext.value}');
+      print(
+          'OTP Screen - Email: ${email.value}, Mobile: ${mobile.value}, Context: ${otpContext.value}');
     } else {
       // Fallback - try to get from storage or previous screen
       email.value = box.read('userEmail') ?? '';
@@ -104,8 +107,8 @@ class OtpController extends GetxController with BaseController {
       return;
     }
 
-    if (email.value.isEmpty) {
-      HelperFunctions().showSnackBarError("Email is required");
+    if (email.value.isEmpty && mobile.value.isEmpty) {
+      HelperFunctions().showSnackBarError("Email or Mobile is required");
       return;
     }
 
@@ -129,7 +132,12 @@ class OtpController extends GetxController with BaseController {
 // For forgot password verification
   Future<void> _verifyForgotPasswordOtp(String otp) async {
     try {
-      final response = await otpProvider.verifyOtp(email.value, otp);
+      final response = await otpProvider.verifyOtp(
+        email: email.value.isNotEmpty ? email.value : null,
+        mobile: mobile.value.isNotEmpty ? mobile.value : null,
+        countryCode: countryCode.value.isNotEmpty ? countryCode.value : null,
+        otp: otp,
+      );
 
       if (response != null && response['statusCode'] == 200) {
         await _handleSuccessResponse(response);
@@ -163,7 +171,12 @@ class OtpController extends GetxController with BaseController {
 // For login/register verification
   Future<void> _verifyAuthOtp(String otp) async {
     try {
-      final response = await otpProvider.verifyOtp(email.value, otp);
+      final response = await otpProvider.verifyOtp(
+        email: email.value.isNotEmpty ? email.value : null,
+        mobile: mobile.value.isNotEmpty ? mobile.value : null,
+        countryCode: countryCode.value.isNotEmpty ? countryCode.value : null,
+        otp: otp,
+      );
 
       if (response != null && response['statusCode'] == 200) {
         await _handleSuccessResponse(response);
@@ -372,7 +385,11 @@ class OtpController extends GetxController with BaseController {
       isLoading(true);
 
       try {
-        await otpProvider.resendOtp(email.value);
+        await otpProvider.resendOtp(
+          email: email.value.isNotEmpty ? email.value : null,
+          mobile: mobile.value.isNotEmpty ? mobile.value : null,
+          countryCode: countryCode.value.isNotEmpty ? countryCode.value : null,
+        );
         HelperFunctions().showSnackBarSuccess('OTP resent successfully');
         isLoading(false);
       } catch (error) {
