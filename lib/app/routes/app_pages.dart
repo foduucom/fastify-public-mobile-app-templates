@@ -222,6 +222,18 @@ class AppPages {
     // ),
 
     GetPage(
+      name: _Paths.PAYMENT,
+      page: () => CheckoutViews(),
+      binding: CheckoutBindings(),
+    ),
+
+    GetPage(
+      name: _Paths.ADDRESS_FORM,
+      page: () => AddressListView(),
+      binding: AddressListBinding(),
+    ),
+
+    GetPage(
       name: _Paths.BOTTOMBAR,
       page: () => BottombarView(),
       binding: BottombarBinding(),
