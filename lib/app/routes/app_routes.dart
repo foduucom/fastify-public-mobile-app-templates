@@ -31,6 +31,8 @@ abstract class Routes {
   static const MOBILELOGIN = _Paths.MOBILELOGIN;
   static const MOBILELOGINOTP = _Paths.MOBILELOGINOTP;
   static const MOBILEREGISTER = _Paths.MOBILEREGISTER;
+  static const ADDRESS_LIST = _Paths.ADDRESS_LIST;
+  static const ADDRESS_FORM = _Paths.ADDRESS_FORM;
 
   static const BOTTOMBAR = _Paths.BOTTOMBAR;
   static const HOME = _Paths.HOME;
@@ -71,6 +73,8 @@ abstract class _Paths {
   static const ONBOARDING = '/onboarding';
   //static const SIGNIN = '/signin';
   //static const SIGNUP = '/signup';
+  static const ADDRESS_LIST = '/address-list';
+  static const ADDRESS_FORM = '/address-form';
   static const OTP = '/otp';
   static const FOREGETPASSWORD = '/forgetpassword';
   static const CREATENEWPASSWORD = '/createnewpassword';

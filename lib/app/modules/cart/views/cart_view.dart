@@ -208,7 +208,7 @@ class CartView extends GetView<CartController> {
           PrimaryActionButton(
             text: "Proceed to Checkout",
             onPressed: () {
-              Get.toNamed(Routes.CHECKOUT);
+              Get.toNamed(Routes.ADDRESS_LIST);
             },
           ),
         ],

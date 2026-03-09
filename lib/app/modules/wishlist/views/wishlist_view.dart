@@ -50,6 +50,29 @@ class WishlistView extends GetView<WishlistController> {
           color:
               Theme.of(context).colorScheme.onSurface, // Theme-aware icon color
         ),
+        actions: [
+          // List View Icon
+          Obx(() => IconButton(
+                icon: Icon(Icons.list),
+                onPressed: () {
+                  controller.setViewMode('list');
+                },
+                color: controller.viewMode.value == 'list'
+                    ? Colors.black
+                    : Colors.grey,
+              )),
+
+          // Grid View Icon
+          Obx(() => IconButton(
+                icon: Icon(Icons.grid_on), // or Icons.grid_view
+                onPressed: () {
+                  controller.setViewMode('grid');
+                },
+                color: controller.viewMode.value == 'grid'
+                    ? Colors.black
+                    : Colors.grey,
+              )),
+        ],
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -90,25 +113,27 @@ class WishlistView extends GetView<WishlistController> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 120),
         children: [
-          // ── Cart Items ──
-          Obx(() => ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: controller.wishlistItems.length,
-                separatorBuilder: (_, __) => Divider(
-                  thickness: 1,
-                  color: colorScheme.outline.withOpacity(0.3),
-                ),
-                itemBuilder: (context, index) {
-                  if (index >= controller.wishlistItems.length) {
-                    return const SizedBox.shrink();
-                  }
-                  return _WishListItemCard(
-                    controller: controller,
-                    index: index,
-                  );
-                },
-              )),
+          // ── Wishlist Items (List or Grid) ──
+          Obx(() => controller.viewMode.value == 'list'
+              ? ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: controller.wishlistItems.length,
+                  separatorBuilder: (_, __) => Divider(
+                    thickness: 1,
+                    color: colorScheme.outline.withOpacity(0.3),
+                  ),
+                  itemBuilder: (context, index) {
+                    if (index >= controller.wishlistItems.length) {
+                      return const SizedBox.shrink();
+                    }
+                    return _WishListItemCard(
+                      controller: controller,
+                      index: index,
+                    );
+                  },
+                )
+              : _buildGridView(context, colorScheme, textTheme)),
 
           const Divider(thickness: 8),
 
@@ -120,6 +145,302 @@ class WishlistView extends GetView<WishlistController> {
               : const SizedBox.shrink()),
 
           const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGridView(
+      BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
+    return GridView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.60, // Balanced for content vs spacing
+      ),
+      itemCount: controller.wishlistItems.length,
+      itemBuilder: (context, index) {
+        if (index >= controller.wishlistItems.length) {
+          return const SizedBox.shrink();
+        }
+        return _WishListGridItem(
+          controller: controller,
+          index: index,
+        );
+      },
+    );
+  }
+}
+
+class _WishListGridItem extends StatelessWidget {
+  final WishlistController controller;
+  final int index;
+
+  const _WishListGridItem({
+    required this.controller,
+    required this.index,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final product = controller.getProduct(index);
+    final productId = controller.getProductId(index);
+    final variantId = controller.getVariantId(index);
+
+    final productName = ProductHelper.getProductName(product);
+    final imageUrl = ProductHelper.getProductImage(product);
+    final storeName = controller.getStoreName(index);
+    final priceInfo = controller.getPriceInfo(index);
+    final productType = priceInfo['productType'];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(0.15),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Product Image
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(12)),
+                child: AspectRatio(
+                  aspectRatio: 185 / 205, // Match home standard style
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    fit: BoxFit.cover,
+                    progressIndicatorBuilder: (_, __, ___) =>
+                        HelperFunctions().loadingIndicator(),
+                    errorWidget: (_, __, ___) => Container(
+                      color: colorScheme.surfaceVariant,
+                      child: Icon(
+                        Icons.image_outlined,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Discount Badge
+              if (priceInfo['discountRate'] != null &&
+                  priceInfo['discountRate'].toString().isNotEmpty)
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colorScheme.error,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        bottomRight: Radius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      priceInfo['discountRate'].toString(),
+                      style: textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onError,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              // Remove Button
+              Positioned(
+                right: 5,
+                top: 5,
+                child: InkWell(
+                  onTap: () {
+                    WishListService.to.removeFromWishlist(
+                      productId: productId,
+                      variantId: variantId,
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(15),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface.withOpacity(0.8),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.close,
+                      size: 16,
+                      color: colorScheme.error,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          // Info Section
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min, // Keep content tight
+                children: [
+                  Text(
+                    productName,
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      height: 1.1, // Tighter line height
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    storeName,
+                    style: textTheme.bodySmall?.copyWith(
+                      fontSize: 11,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  if (productType == 'variable')
+                    _buildVariablePrice(context, priceInfo)
+                  else
+                    _buildSimplePrice(context, priceInfo),
+                  const Spacer(), // Use Spacer to push buttons to the very bottom
+                  // Add to Cart Section
+                  Row(
+                    children: [
+                      Container(
+                        height: 28,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: colorScheme.outline.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              onPressed: () =>
+                                  controller.decrementItemQuantity(index),
+                              icon: const Icon(Icons.remove, size: 14),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4),
+                              child: Obx(() => Text(
+                                    controller
+                                        .getItemQuantity(index)
+                                        .toString(),
+                                    style: textTheme.labelLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  )),
+                            ),
+                            IconButton(
+                              onPressed: () =>
+                                  controller.incrementItemQuantity(index),
+                              icon: const Icon(Icons.add, size: 14),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: SizedBox(
+                          height: 28, // Matches quantity selector height
+                          child: PrimaryActionButton(
+                            onPressed: () => controller.addToCart(index),
+                            text: 'Add',
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Variable product price display
+  Widget _buildVariablePrice(
+      BuildContext context, Map<String, dynamic> priceInfo) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Text(
+      '₹${priceInfo['lowestPrice']} - ₹${priceInfo['highestPrice']}',
+      style: textTheme.bodyMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+        fontSize: 12,
+        color: colorScheme.primary,
+      ),
+    );
+  }
+
+  /// Simple product price display with discount
+  Widget _buildSimplePrice(
+      BuildContext context, Map<String, dynamic> priceInfo) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return RichText(
+      text: TextSpan(
+        text: '₹${priceInfo['productPrice']}',
+        style: textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+          color: colorScheme.primary,
+        ),
+        children: [
+          if (priceInfo['discountRate'] != null &&
+              priceInfo['discountRate'].toString().isNotEmpty) ...[
+            const TextSpan(text: '  '),
+            TextSpan(
+              text: '₹${priceInfo['discountPrice']}',
+              style: textTheme.bodySmall?.copyWith(
+                fontSize: 10,
+                decoration: TextDecoration.lineThrough,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const TextSpan(text: ' '),
+            TextSpan(
+              text: priceInfo['discountRate'],
+              style: textTheme.bodySmall?.copyWith(
+                fontSize: 10,
+                color: colorScheme.error,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -226,7 +547,7 @@ class _WishListItemCard extends StatelessWidget {
                 // Product Info
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -312,7 +633,7 @@ class _WishListItemCard extends StatelessWidget {
                               child: PrimaryActionButton(
                                 onPressed: () => controller.addToCart(index),
                                 text: 'Add Cart',
-                                height: 0.05, // Compact height
+                                height: 0.045, // Compact height
                                 fontSize: 12, // Smaller font for consistency
                               ),
                             ),

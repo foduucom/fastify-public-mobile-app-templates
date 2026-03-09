@@ -444,11 +444,21 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final productType = priceInfo['productType'];
     final storeName = product['storeName'] ?? 'Store Name';
 
+    // Calculate responsive width based on screen size
+    final screenWidth = MediaQuery.of(context).size.width;
+    // For mobile: ~160-185, for tablet: larger
+    final itemWidth = screenWidth > 600
+        ? screenWidth * 0.25 // Tablet: 25% of screen width
+        : screenWidth * 0.45; // Mobile: 45% of screen width (adjust as needed)
+
+    // Cap the width between 150 and 220 for consistency
+    final clampedWidth = itemWidth.clamp(150.0, 220.0);
+
     return InkWell(
       onTap: () => _navigateToProduct(product),
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        width: 150, // Slightly reduced from 160 for better fit
+        width: clampedWidth, // Responsive width
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
@@ -457,7 +467,6 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           ),
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Product Image
@@ -466,19 +475,20 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 ClipRRect(
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(8)),
-                  child: CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    height: 150, // Reduced from 180 to 150
-                    width: 150,
-                    fit: BoxFit.cover,
-                    progressIndicatorBuilder: (_, __, ___) =>
-                        HelperFunctions().loadingIndicator(),
-                    errorWidget: (_, __, ___) => Container(
-                      height: 150,
-                      width: 150,
-                      color: colorScheme.surfaceVariant,
-                      child: Icon(Icons.image_outlined,
-                          color: colorScheme.onSurfaceVariant),
+                  child: AspectRatio(
+                    aspectRatio: 185 / 195, // Maintain original aspect ratio
+                    child: CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      width: clampedWidth,
+                      fit: BoxFit.cover,
+                      progressIndicatorBuilder: (_, __, ___) =>
+                          HelperFunctions().loadingIndicator(),
+                      errorWidget: (_, __, ___) => Container(
+                        width: clampedWidth,
+                        color: colorScheme.surfaceVariant,
+                        child: Icon(Icons.image_outlined,
+                            color: colorScheme.onSurfaceVariant),
+                      ),
                     ),
                   ),
                 ),
@@ -514,40 +524,41 @@ class _TrendingProductCardState extends State<TrendingProductSection>
               ],
             ),
             // Content Section - Compact padding
-            Padding(
-              padding: const EdgeInsets.all(8.0), // Reduced from 10 to 8
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Product Name
-                  Text(
-                    productName,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13, // Slightly smaller font
-                      height: 1.2,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Product Name
+                    Text(
+                      productName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        height: 1.2,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2), // Reduced from 4 to 2
-                  // Store Name
-                  Text(
-                    storeName,
-                    style: textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w400,
-                      fontSize: 11,
-                      color: colorScheme.onSurfaceVariant,
+                    const SizedBox(height: 2),
+                    // Store Name
+                    Text(
+                      storeName,
+                      style: textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 11,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4), // Reduced from 8 to 4
-                  // Price at bottom left
-                  if (productType == 'variable')
-                    _buildVariablePrice(priceInfo)
-                  else
-                    _buildSimplePrice(priceInfo),
-                ],
+                    const Spacer(), // Pushes price to the bottom
+                    // Price at bottom left
+                    if (productType == 'variable')
+                      _buildVariablePrice(priceInfo)
+                    else
+                      _buildSimplePrice(priceInfo),
+                  ],
+                ),
               ),
             ),
           ],

@@ -1,5 +1,9 @@
 import 'package:foduu_ecommerce/app/modules/add_profile/bindings/add_profile_binding.dart';
 import 'package:foduu_ecommerce/app/modules/add_profile/views/add_profile_view.dart';
+import 'package:foduu_ecommerce/app/modules/address/bindings/address_form_binding.dart';
+import 'package:foduu_ecommerce/app/modules/address/bindings/address_list_binding.dart';
+import 'package:foduu_ecommerce/app/modules/address/views/address_form_view.dart';
+import 'package:foduu_ecommerce/app/modules/address/views/address_list_view.dart';
 import 'package:foduu_ecommerce/app/modules/addtocart/bindings/add_to_cart_bindings.dart';
 import 'package:foduu_ecommerce/app/modules/addtocart/views/add_to_cart_views.dart';
 import 'package:foduu_ecommerce/app/modules/auth/createnewpassword/bindings/create_new_password__bindings.dart';
@@ -69,6 +73,17 @@ class AppPages {
       name: _Paths.REGISTER,
       page: () => RegisterView(),
       binding: RegisterBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.ADDRESS_LIST,
+      page: () => AddressListView(),
+      binding: AddressListBinding(),
+    ),
+    GetPage(
+      name: _Paths.ADDRESS_FORM,
+      page: () => AddressFormView(),
+      binding: AddressFormBinding(),
     ),
 
     // GetPage(

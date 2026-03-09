@@ -15,6 +15,11 @@ class WishlistController extends GetxController
   var isCartLoading = false.obs;
   var scrollController = ScrollController();
   var itemQuantities = <String, int>{}.obs;
+  var viewMode = 'list'.obs; // or 'grid' as default
+
+  void setViewMode(String mode) {
+    viewMode.value = mode;
+  }
 
   @override
   Future<void> onInit() async {
@@ -156,7 +161,6 @@ class WishlistController extends GetxController
       Get.snackbar(
         "Success",
         "Added to cart successfully",
-        snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green.withOpacity(0.7),
         colorText: Colors.white,
       );
