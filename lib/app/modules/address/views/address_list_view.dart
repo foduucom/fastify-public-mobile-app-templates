@@ -18,6 +18,7 @@ class AddressListView extends GetView<AddressListController> {
     return SafeArea(
       child: Scaffold(
         floatingActionButton: FloatingActionButton(
+          heroTag: 'address_list_fab',
           onPressed: () {
             controller.refreshAddresses();
           },
@@ -35,9 +36,9 @@ class AddressListView extends GetView<AddressListController> {
             return HelperFunctions().loadingIndicator();
           }
 
-          return Column(
+          return Stack(
             children: [
-              Expanded(
+              Positioned.fill(
                 child: SingleChildScrollView(
                   padding: pageSurroundingPadding,
                   child: Column(
@@ -154,13 +155,15 @@ class AddressListView extends GetView<AddressListController> {
                                                 Text(
                                                   [
                                                         if (userAddress[
-                                                                    'city'] !=
-                                                                null &&
-                                                            userAddress['city']
-                                                                    ['name'] !=
-                                                                null)
-                                                          userAddress['city']
-                                                              ['name'],
+                                                                'city'] !=
+                                                            null)
+                                                          (userAddress['city']
+                                                                  is Map
+                                                              ? userAddress[
+                                                                      'city']
+                                                                  ['name']
+                                                              : userAddress[
+                                                                  'city']),
                                                         if (userAddress[
                                                                     'state'] !=
                                                                 null &&
@@ -177,7 +180,10 @@ class AddressListView extends GetView<AddressListController> {
                                                                 null)
                                                           userAddress['country']
                                                               ['name'],
-                                                      ].join(', ') +
+                                                      ]
+                                                          .where(
+                                                              (e) => e != null)
+                                                          .join(', ') +
                                                       (userAddress[
                                                                   'postal_code'] !=
                                                               null
@@ -350,7 +356,7 @@ class AddressListView extends GetView<AddressListController> {
                             Get.toNamed(Routes.ADDRESS_FORM);
                           },
                           itemText: 'Add New Address'),
-                      const SizedBox(height: 50),
+                      const SizedBox(height: 80), // Increased to avoid overlap
                     ],
                   ),
                 ),
@@ -358,11 +364,13 @@ class AddressListView extends GetView<AddressListController> {
               bottomButton(
                   buttonText: 'Continue',
                   priceText: controller.total.toString(),
-                  keypressEvent: () {
-                    Get.toNamed(Routes.PAYMENT);
-                  },
+                  keypressEvent: controller.userAddressList.isEmpty
+                      ? null
+                      : () {
+                          Get.toNamed(Routes.PAYMENT);
+                        },
                   otherText: 'Details',
-                  opacity: 1,
+                  opacity: controller.userAddressList.isEmpty ? 0.5 : 1,
                   deliveryAmount: '0')
             ],
           );

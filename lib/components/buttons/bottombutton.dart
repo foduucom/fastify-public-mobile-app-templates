@@ -22,7 +22,7 @@ class bottomButton extends StatefulWidget {
   String? totalAmount;
   String otherText;
   String deliveryAmount;
-  VoidCallback keypressEvent;
+  VoidCallback? keypressEvent;
 
   @override
   State<bottomButton> createState() => _bottomButtonState();

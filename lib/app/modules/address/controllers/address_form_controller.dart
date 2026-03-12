@@ -110,6 +110,7 @@ class AddressFormController extends GetxController with BaseController {
           .getRequest()
           .catchError(handleError);
       if (response != null) {
+        print('city response ${response}');
         cityList.assignAll(response['data']);
       }
     } catch (e) {
