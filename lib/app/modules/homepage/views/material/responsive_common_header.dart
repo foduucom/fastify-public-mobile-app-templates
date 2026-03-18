@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/views/material/responsive_circle_icon.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
+import '/helpers/socket_helper.dart';
+import 'package:flutter/foundation.dart';
+import 'package:get/get.dart'; // ✅ ADD THIS
 
 class ResponsiveCommonHeader extends StatelessWidget {
   final VoidCallback? onSearchTap;
@@ -86,8 +89,22 @@ class ResponsiveCommonHeader extends StatelessWidget {
             width: width,
             onTap: onCartTap,
           ),
+          if (kIsWeb)
+          Obx(
+            () => Container(
+              margin: const EdgeInsets.only(right: 8),
+                height: 10,
+                width: 10,
+                decoration: BoxDecoration(
+                color: SocketHelper().isConnectedObs.value
+                ? Colors.green
+                : Colors.red,
+                shape: BoxShape.circle,
+                ),
+              ),
+            ),
 
-          SizedBox(width: width * 0.02),
+          SizedBox(width: width * 0.01),
 
           /// 💬 Messages
           ResponsiveCircleIcon(
