@@ -1,0 +1,313 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+
+import '/constants/helper_functions.dart';
+
+/// Helper class for product-related calculations and utilities
+class ProductHelper {
+  /// Calculate price information for a product
+  /// Returns a map with productPrice, discountPrice, discountRate, lowestPrice, highestPrice
+  static Map<String, dynamic> calculatePriceInfo(Map<String, dynamic> product,
+      {int? variantIndex}) {
+    final productType = product['type'] ?? 'simple';
+
+    if (productType == 'variable') {
+      if (variantIndex != null) {
+        return _calculateVariantPrice(product, variantIndex);
+      }
+      return _calculateVariableProductPrice(product);
+    } else {
+      return _calculateSimpleProductPrice(product);
+    }
+  }
+
+  /// Calculate prices for a specific variant
+  static Map<String, dynamic> _calculateVariantPrice(
+      Map<String, dynamic> product, int variantIndex) {
+    final variants = product['variants'] ?? [];
+    if (variants.isEmpty || variantIndex >= variants.length) {
+      return _calculateSimpleProductPrice(product);
+    }
+
+    final variant = variants[variantIndex];
+    final salePrice = variant['sale_price'] ?? variant['price'] ?? 0;
+    final regularPrice = variant['price'] ?? 0;
+
+    String productPrice = salePrice.toString();
+    String discountPrice = regularPrice.toString();
+    String discountRate = '';
+
+    if (regularPrice > salePrice && salePrice > 0) {
+      final discount = (100 - (salePrice * 100 / regularPrice)).round();
+      discountRate = " $discount% off";
+    }
+
+    return {
+      'productType': 'variable',
+      'productPrice': productPrice,
+      'salePrice': discountPrice,
+      'discountRate': discountRate,
+      'lowestPrice': '0',
+      'highestPrice': '0',
+      'hasValidVariants': true,
+    };
+  }
+
+  /// Calculate prices for variable products (range)
+  static Map<String, dynamic> _calculateVariableProductPrice(
+      Map<String, dynamic> product) {
+    final List variants = product['variants'] ?? [];
+
+    if (variants.isEmpty) {
+      return {
+        'productType': 'variable',
+        'lowestPrice': '0',
+        'highestPrice': '0',
+        'productPrice': '0',
+        'salePrice': '0',
+        'discountRate': '',
+        'hasValidVariants': false,
+      };
+    }
+
+    double minPrice = double.infinity;
+    double maxPrice = 0;
+    double minOriginalPrice = double.infinity;
+
+    for (var variant in variants) {
+      double price = (variant['price'] ?? 0).toDouble();
+      double salePrice = (variant['sale_price'] ?? 0).toDouble();
+
+      // Use sale price only if > 0
+      double effectivePrice =
+          (salePrice > 0 && salePrice < price) ? salePrice : price;
+
+      if (effectivePrice > 0 && effectivePrice < minPrice) {
+        minPrice = effectivePrice;
+      }
+
+      if (effectivePrice > maxPrice) {
+        maxPrice = effectivePrice;
+      }
+
+      if (price > 0 && price < minOriginalPrice) {
+        minOriginalPrice = price;
+      }
+    }
+
+    if (minPrice == double.infinity) minPrice = 0;
+    if (minOriginalPrice == double.infinity) minOriginalPrice = minPrice;
+
+    // Calculate discount if applicable
+    String discountRate = '';
+    if (minOriginalPrice > minPrice) {
+      double discount =
+          ((minOriginalPrice - minPrice) / minOriginalPrice) * 100;
+      discountRate = "${discount.toStringAsFixed(0)}% off";
+    }
+
+    return {
+      'productType': 'variable',
+      'lowestPrice': minPrice.toStringAsFixed(0),
+      'highestPrice': maxPrice.toStringAsFixed(0),
+      'productPrice': minPrice.toStringAsFixed(0),
+      'salePrice': minPrice < minOriginalPrice
+          ? minOriginalPrice.toStringAsFixed(0)
+          : '0',
+      'discountRate': discountRate,
+      'hasValidVariants': true,
+    };
+  }
+
+  /// Calculate prices for simple products
+  static Map<String, dynamic> _calculateSimpleProductPrice(
+      Map<String, dynamic> product) {
+    var source = product;
+
+    // If variants exist, prioritize the first variant for pricing
+    if (product['variants'] != null &&
+        (product['variants'] as List).isNotEmpty) {
+      source = product['variants'][0];
+    }
+
+    final salePrice = source['sale_price'] ?? 0;
+    final regularPrice = source['price'] ?? 0;
+
+    String productPrice = (salePrice > 0 && salePrice < regularPrice)
+        ? salePrice.toString()
+        : regularPrice.toString();
+    String discountPrice = (salePrice > 0 && salePrice < regularPrice)
+        ? regularPrice.toString()
+        : "";
+    String discountRate = '';
+
+    if (salePrice > 0 && regularPrice > salePrice) {
+      final discount = (100 - (salePrice * 100 / regularPrice)).round();
+      discountRate = " $discount% off";
+    }
+
+    return {
+      'productType': 'simple',
+      'productPrice': productPrice,
+      'salePrice': discountPrice,
+      'discountRate': discountRate,
+      'lowestPrice': '0',
+      'highestPrice': '0',
+      'hasValidVariants': true,
+    };
+  }
+
+  /// Get product images based on variant
+  static List<dynamic> getProductGallery(Map<String, dynamic> product,
+      {int? variantIndex}) {
+    if (product['type'] == 'variable' && variantIndex != null) {
+      final variants = product['variants'];
+      if (variants is List &&
+          variantIndex >= 0 &&
+          variantIndex < variants.length) {
+        final variantImages = variants[variantIndex]['gallery'];
+        if (variantImages is List && variantImages.isNotEmpty) {
+          return variantImages;
+        }
+      }
+    }
+    // return product['gallery'] ?? [];
+    final gallery = product['gallery'];
+
+    if (gallery is List && gallery.isNotEmpty) {
+      return gallery;
+    }
+
+    // Fallback to featured_image
+    final featuredImage = product['featured_image'];
+    if (featuredImage != null && featuredImage.toString().isNotEmpty) {
+      return [featuredImage]; // return as list
+    }
+
+    return [];
+  }
+
+  /// Get product image URL
+  /// Handles both featured_image and variant images
+  static String getProductImage(Map<String, dynamic> product,
+      {int? variantIndex}) {
+    if (variantIndex != null) {
+      final gallery = getProductGallery(product, variantIndex: variantIndex);
+      if (gallery.isNotEmpty) {
+        final firstImage = gallery.first;
+        if (firstImage is Map) {
+          return HelperFunctions().getImage(
+            firstImage,
+            isLog: false,
+            moduleName: 'ProductHelper',
+          );
+        }
+      }
+    }
+
+    final featuredImage = product['featured_image'];
+    if (featuredImage != null) {
+      return HelperFunctions().getImage(
+        featuredImage,
+        isLog: false,
+        moduleName: 'ProductHelper',
+      );
+    }
+
+    return HelperFunctions.getNoImage();
+  }
+
+  /// Check if product is in stock
+  static bool isInStock(Map<String, dynamic> product, {int? variantIndex}) {
+    final productType = product['type'] ?? 'simple';
+
+    if (productType == 'variable') {
+      final variants = product['variants'] ?? [];
+      if (variantIndex != null && variantIndex < variants.length) {
+        return (variants[variantIndex]['quantity'] ?? 0) > 0;
+      }
+      for (var variant in variants) {
+        final quantity = variant['quantity'] ?? 0;
+        if (quantity > 0) return true;
+      }
+      return false;
+    } else {
+      final quantity = product['quantity'] ?? 0;
+      return quantity > 0;
+    }
+  }
+
+  /// Get product name
+  static String getProductName(Map<String, dynamic> product) {
+    return product['name'] ?? '';
+  }
+
+  /// Get product ID
+  static String getProductId(Map<String, dynamic> product) {
+    return product['_id'] ?? product['id'] ?? '';
+  }
+
+  static Widget buildPriceWidget(
+      {required var product, required BuildContext context}) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    var priceInfo = calculatePriceInfo(product);
+
+    if (product['type'] == 'variable') {
+      _buildVariablePrice(priceInfo, textTheme, colorScheme);
+    } else {
+      _buildSimplePrice(priceInfo, textTheme, colorScheme);
+    }
+
+    return SizedBox();
+  }
+
+  static Widget _buildVariablePrice(
+    Map<String, dynamic> priceInfo,
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+  ) {
+    return Text(
+      '₹${priceInfo['lowestPrice']} - ₹${priceInfo['highestPrice']}',
+      style: textTheme.bodyMedium!.copyWith(
+        fontWeight: FontWeight.w600,
+        color: colorScheme.primary,
+      ),
+    );
+  }
+
+  static Widget _buildSimplePrice(
+    Map<String, dynamic> priceInfo,
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+  ) {
+    return RichText(
+      text: TextSpan(
+        text: '₹${priceInfo['productPrice']}',
+        style: textTheme.bodyMedium!.copyWith(
+          fontWeight: FontWeight.w600,
+          color: colorScheme.primary,
+        ),
+        children: [
+          if (priceInfo['discountRate'].isNotEmpty) ...[
+            const TextSpan(text: '  '),
+            TextSpan(
+              text: '₹${priceInfo['discountPrice']}',
+              style: textTheme.bodySmall!.copyWith(
+                decoration: TextDecoration.lineThrough,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const TextSpan(text: ' '),
+            TextSpan(
+              text: priceInfo['discountRate'],
+              style: textTheme.bodySmall!.copyWith(
+                color: colorScheme.error,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
