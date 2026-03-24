@@ -69,6 +69,18 @@ class CartController extends GetxController
     update();
   }
 
+  // Add this helper function at the class level or as a local function
+double _parsePrice(dynamic price) {
+  if (price == null) return 0.0;
+  if (price is String) {
+    return double.tryParse(price) ?? 0.0;
+  }
+  if (price is num) {
+    return price.toDouble();
+  }
+  return 0.0;
+}
+
   void _transformCartItems() {
     if (AuthDetails.isUserLogin()) {
       // Transform service cart items to the format expected by UI
@@ -98,28 +110,43 @@ class CartController extends GetxController
 
         newProducts.add(product);
 
-        // Calculate price for the item (handle simple product fallback)
-        num itemPrice = 0;
-        if (variant != null) {
-          itemPrice = variant['sale_price'] ?? variant['price'] ?? 0;
-        } else {
-          itemPrice = product['sale_price'] ?? product['price'] ?? 0;
+         // Calculate price for the item (handle simple product fallback)
+      // FIXED: Use _parsePrice helper for safe conversion
+      double itemPrice = 0.0;
+      if (variant != null) {
+        // Safely parse sale_price or price from variant
+        itemPrice = _parsePrice(variant['sale_price'] ?? variant['price']);
+      } else {
+        // Safely parse sale_price or price from product
+        itemPrice = _parsePrice(product['sale_price'] ?? product['price']);
 
-          // BI-99: Fallback to variants if top-level price is 0 for simple product
-          if (itemPrice == 0 &&
-              product['variants'] != null &&
-              product['variants'] is List &&
-              product['variants'].isNotEmpty) {
-            final variants = product['variants'] as List;
-            final defaultVariant = variants.firstWhere(
-                (v) => v['is_default'] == true,
-                orElse: () => variants.first);
-            if (defaultVariant != null) {
-              itemPrice =
-                  defaultVariant['sale_price'] ?? defaultVariant['price'] ?? 0;
-            }
+        // BI-99: Fallback to variants if top-level price is 0 for simple product
+        if (itemPrice == 0 &&
+            product['variants'] != null &&
+            product['variants'] is List &&
+            product['variants'].isNotEmpty) {
+          final variants = product['variants'] as List;
+          final defaultVariant = variants.firstWhere(
+              (v) => v['is_default'] == true,
+              orElse: () => variants.first);
+          if (defaultVariant != null) {
+            // Safely parse from default variant
+            itemPrice = _parsePrice(
+                defaultVariant['sale_price'] ?? defaultVariant['price']);
           }
         }
+      }
+
+            // Safely parse quantity as well
+      int quantity = 1;
+      var rawQuantity = item['quantity'];
+      if (rawQuantity is String) {
+        quantity = int.tryParse(rawQuantity) ?? 1;
+      } else if (rawQuantity is num) {
+        quantity = rawQuantity.toInt();
+      } else if (rawQuantity != null) {
+        quantity = int.tryParse(rawQuantity.toString()) ?? 1;
+      }
 
         newCartItems.add({
           'productId': product['_id']?.toString() ?? '',

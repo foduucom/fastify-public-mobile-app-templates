@@ -17,7 +17,7 @@ class BasicProvider {
   var box = GetStorage();
 
   String fetchUrl() {
-    print('fetchUrl $apiURL + $custom_url');
+    //print('fetchUrl $apiURL + $custom_url');
     return apiURL + custom_url;
   }
 
@@ -48,6 +48,7 @@ class BasicProvider {
 
       // Build URL with query parameters
       var uri = Uri.parse(fetchUrl());
+      print("Uri Get Request $uri");
       if (queryParams != null) {
         uri = uri.replace(queryParameters: queryParams);
       }

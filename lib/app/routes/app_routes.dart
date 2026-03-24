@@ -20,6 +20,7 @@ abstract class Routes {
   static const PRODUCTDETAILS = _Paths.PRODUCTDETAILS;
   static const ADDTOCART = _Paths.ADDTOCART;
   static const CHECKOUT = _Paths.CHECKOUT;
+  static const ORDER_PRODUCTS = _Paths.ORDER_PRODUCTS;
 
   // -------------X-----------------
   static const PROFILE = _Paths.PROFILE;
@@ -85,6 +86,7 @@ abstract class _Paths {
   static const PRODUCTDETAILS = '/productdetails';
   static const ADDTOCART = '/addtocart';
   static const CHECKOUT = '/checkout';
+  static const ORDER_PRODUCTS = '/orderproducts';
   //static const RESETPASSWORD = '/resetpassword';
 
   static const LOGIN = '/login';

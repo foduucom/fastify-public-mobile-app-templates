@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
-import 'package:foduu_ecommerce/app/data/basic_provider.dart';
-import 'package:foduu_ecommerce/app/modules/Profie/profile/views/temprary_change_password.dart';
-import 'package:foduu_ecommerce/app/modules/Profie/profile/views/temprary_personal_info.dart';
-import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
-import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
-import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import '/app/controllers/api_exception_handle_controller.dart';
+import '/app/data/basic_provider.dart';
+import '/app/modules/auth/auth_details.dart';
+import '/app/modules/bottomar/controllers/bottombar_controller.dart';
+import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
@@ -32,29 +30,6 @@ class ProfileController extends GetxController with BaseController {
   var newPasswordObsecureValue = true.obs;
   var oldPasswordObsecureValue = true.obs;
   var comfirmPasswordObsecureValue = true.obs;
-
-  final RxList<Map<String, dynamic>> profileMenu = [
-    {
-      'icon': Icons.person_outline,
-      'title': 'Personal info',
-      'onPressed': () =>
-          Get.to(() => TempraryPersonalInfo()), // ✅ Fixed: Wrapped in function
-    },
-    {
-      'icon': Icons.lock,
-      'title': 'Change Password',
-      'onPressed': () => Get.to(() => TempraryChangePassword()), // ✅ Fixed
-    },
-    {
-      'icon': Icons.logout,
-      'title': 'Logout',
-      'onPressed': () {
-        // Add your logout logic here
-        print('Logout pressed');
-        // Get.to(() => TempraryPersonalInfo()); // Or whatever logout should do
-      },
-    },
-  ].obs;
 
   var selectNotification = 0.obs;
 
@@ -101,7 +76,7 @@ class ProfileController extends GetxController with BaseController {
         "confirm_password": comfirmPasswordController.text
       };
       print(form);
-      var response = await BasicProvider("change-password")
+      var response = await BasicProvider("public/customer/change/password")
           .postRequest(form)
           .catchError(handleError);
       if (response == null) return;
@@ -143,25 +118,28 @@ class ProfileController extends GetxController with BaseController {
 
   Future<void> fetchDataFromServer() async {
     try {
-      var response =
-          await BasicProvider("profile").getRequest().catchError(handleError);
-      if (response == null) return;
+      isLoading(true);
+      var response = await BasicProvider("public/customer/profile")
+          .getRequest()
+          .catchError(handleError);
 
-      profiledata.clear();
-      profiledata.addAll(response);
+      if (response != null) {
+        profiledata.clear();
+        profiledata.addAll(response);
 
-      nameController.text = response["name"];
-      emailController.text = response["email"] ?? "";
-      phoneController.text = response["mobile"].toString();
-      DateTime? dob =
-          response['dob'] != null ? DateTime.parse(response['dob']) : null;
-      dobController.text =
-          dob != null ? DateFormat('dd-MM-yyyy').format(dob) : '';
-      genderController.text = response["gender"] ?? 'female';
+        nameController.text = response["name"]?.toString() ?? "";
+        emailController.text = response["email"]?.toString() ?? "";
+        phoneController.text = response["mobile"]?.toString() ?? "";
+        DateTime? dob =
+            response['dob'] != null ? DateTime.tryParse(response['dob']) : null;
+        dobController.text =
+            dob != null ? DateFormat('dd-MM-yyyy').format(dob) : '';
+        genderController.text = response["gender"]?.toString() ?? 'female';
+      }
     } catch (e) {
+      debugPrint('profile error $e');
+    } finally {
       isLoading(false);
-
-      print('profile error $e');
     }
   }
 
@@ -219,7 +197,7 @@ class ProfileController extends GetxController with BaseController {
       });
 
       try {
-        var response = await BasicProvider("profile/update")
+        var response = await BasicProvider("public/customer/profile/update")
             .postRequest(form)
             .catchError(handleError);
         Get.until((route) => !Get.isDialogOpen!);
@@ -229,10 +207,8 @@ class ProfileController extends GetxController with BaseController {
         isLoading(false);
 
         Get.until((route) => !Get.isDialogOpen!);
-        var updatedprofile = await AuthDetails.updateUserDetailsFromServer();
-        if (updatedprofile != null && updatedprofile is Map) {
-          Get.find<BottombarController>().authDetails.addAll(updatedprofile);
-        }
+        var updatedprofile = await AuthDetails().updateUserDetailsFromServer();
+        Get.find<BottombarController>().authDetails.value = updatedprofile;
         // HelperFunctions().showSnackBarSuccess(response["status"]);
         Get.until((route) => !Get.isDialogOpen!);
         // Get.back();
@@ -273,24 +249,24 @@ class ProfileController extends GetxController with BaseController {
     },
     {
       "icon": "assets/icon/profilesetting.svg",
-      "title": "Settings",
-      "subtitle": "App settings, Dark mode"
-    },
-    {
-      "icon": "assets/icon/profileoption1.svg",
-      "title": "Profile setting",
-      "subtitle": "Full Name, Password.."
-    },
-    {
-      "icon": "assets/icon/profiletandc.svg",
-      "title": "Terms & Conditions",
-      "subtitle": "T&C for use of Platform"
-    },
-    {
-      "icon": "assets/icon/profilecall.svg",
-      "title": "Help/Customer Care",
+      "title": "Contact Us",
       "subtitle": "Customer Support, FAQs"
     },
+    // {
+    //   "icon": "assets/icon/profileoption1.svg",
+    //   "title": "Profile setting",
+    //   "subtitle": "Full Name, Password.."
+    // },
+    // {
+    //   "icon": "assets/icon/profiletandc.svg",
+    //   "title": "Terms & Conditions",
+    //   "subtitle": "T&C for use of Platform"
+    // },
+    // {
+    //   "icon": "assets/icon/profilecall.svg",
+    //   "title": "Help/Customer Care",
+    //   "subtitle": "Customer Support, FAQs"
+    // },
   ];
   var gender = 'male'.obs;
   // var dropdownGender = 'Male'.obs;

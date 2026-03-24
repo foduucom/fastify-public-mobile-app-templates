@@ -1,3 +1,5 @@
+import 'package:foduu_ecommerce/app/modules/Profie/orders/order_products/binding/order_products_binding.dart';
+import 'package:foduu_ecommerce/app/modules/Profie/orders/order_products/view/order_view.dart';
 import 'package:foduu_ecommerce/app/modules/add_profile/bindings/add_profile_binding.dart';
 import 'package:foduu_ecommerce/app/modules/add_profile/views/add_profile_view.dart';
 import 'package:foduu_ecommerce/app/modules/address/bindings/address_form_binding.dart';
@@ -35,6 +37,8 @@ import 'package:foduu_ecommerce/app/modules/notification/binding/notificatin_bin
 import 'package:foduu_ecommerce/app/modules/notification/views/notification_view.dart';
 import 'package:foduu_ecommerce/app/modules/onboarding/bindings/onboarding_binding.dart';
 import 'package:foduu_ecommerce/app/modules/onboarding/views/onboarding_view.dart';
+import 'package:foduu_ecommerce/app/modules/orderResponse/bindings/checkout_binding.dart';
+import 'package:foduu_ecommerce/app/modules/orderResponse/views/ordersucess_view.dart';
 import 'package:foduu_ecommerce/app/modules/product/bindings/product_binding.dart';
 import 'package:foduu_ecommerce/app/modules/product/views/product_view.dart';
 import 'package:foduu_ecommerce/app/modules/search/bindings/search_binding.dart';
@@ -158,11 +162,22 @@ class AppPages {
       binding: AddToCartBindings(),
     ),
 
-    GetPage(
-      name: _Paths.CART,
-      page: () => CartView(),
-      binding: CartBinding(),
-    ),
+       GetPage(
+        name: _Paths.CART,
+        page: () => CartView(),
+        binding: CartBinding(),
+        children: [
+          GetPage(
+            name: _Paths.PAYMENT,
+            page: () => CheckoutViews(),
+            binding: CheckoutBindings(),
+          ),
+          GetPage(
+            name: _Paths.ORDERSUCCESS,
+            page: () => OrdersucessView(),
+            binding: OrderResponseBinding(),
+          ),
+        ]),
 
     GetPage(
       name: _Paths.PRODUCTDETAILS,
@@ -248,6 +263,17 @@ class AppPages {
       page: () => NotificationsView(),
       binding: NotificationsBinding(),
     ),
+
+     GetPage(
+      name: _Paths.ORDER_PRODUCTS,
+      page: () => const OrderProductsView(),
+      binding: OrderProductsBinding(),
+    ),
+    
+    // GetPage(
+    //   name: _Paths.PAYMENT, 
+    //   page: () => 
+    // ),
     // GetPage(
     //   name: _Paths.BLOG,
     //   page: () => BlogView(),

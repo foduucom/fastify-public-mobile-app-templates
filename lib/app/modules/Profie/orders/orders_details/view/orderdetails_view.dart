@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:foduu_ecommerce/app/modules/Profie/orders/orders_details/controller/orderdetails_controller.dart';
-import 'package:foduu_ecommerce/app/routes/app_pages.dart';
-import 'package:foduu_ecommerce/components/order_detail.dart';
-import 'package:foduu_ecommerce/constants/constants.dart';
-import 'package:foduu_ecommerce/constants/helper_functions.dart';
-import 'package:foduu_ecommerce/constants/theme.dart';
+import '/app/modules/Profie/orders/orders_details/controller/orderdetails_controller.dart';
+import '/app/routes/app_pages.dart';
+import '/components/order_detail.dart';
+import '/constants/constants.dart';
+import '/constants/helper_functions.dart';
+import '/constants/theme.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:timeline_tile/timeline_tile.dart';
@@ -31,9 +31,10 @@ class OrderdetailView extends GetView<OrderdetailController> {
       child: Scaffold(
           appBar: AppBar(
               title: Obx(
-                () => Text(controller.item["id"] == null
-                    ? 'order details'.tr
-                    : 'Order Details'.tr + '#${controller.item["id"]}'),
+                () => Text(
+                    controller.item.isEmpty || controller.item["id"] == null
+                        ? 'order details'.tr
+                        : 'Order Details'.tr + '#${controller.item["id"]}'),
               ),
               elevation: 0.0),
           body: Stack(
@@ -168,9 +169,14 @@ class OrderdetailView extends GetView<OrderdetailController> {
                       height: 10,
                     ),
                     const SizedBox(height: 10),
-                    Obx(() => controller.item.isNotEmpty
+                    Obx(() => controller.item.isNotEmpty &&
+                            controller.item['customer'] != null &&
+                            controller.item['customer'] is Map &&
+                            controller.item['address'] != null
                         ? ShippingAddress(
-                            mobileNo: controller.item['customer']['mobile'],
+                            mobileNo: controller.item['customer']['mobile']
+                                    ?.toString() ??
+                                '',
                             address: controller.item['address'])
                         : const ShippingAddressShimmer()),
                     const SizedBox(height: 20),
@@ -459,28 +465,28 @@ class PriceDetails extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           const Divider(),
-          OrderDetail(
-              title: 'sub total'.tr,
-              amount: Text('\u{20B9}${item['subtotal'].toStringAsFixed(2)}',
-                  style: txtTheme().displaySmall)),
-          item['discount'] != 0 && item['discount'] != null
-              ? OrderDetail(
-                  title: 'coupon Discount'.tr,
-                  amount: Text(
-                      '- \u{20B9}${item['discount'].toStringAsFixed(2)}',
-                      style: const TextStyle(
-                          color: Colors.green,
-                          fontWeight: FontWeight.w400,
-                          fontSize: 14)))
-              : Container(),
-          OrderDetail(
-              title: "Tax".tr + "",
-              amount: Text('\u{20B9} ${19.toStringAsFixed(2)}',
-                  style: txtTheme().displaySmall)),
-          OrderDetail(
-              title: 'Delivery'.tr,
-              amount: Text('\u{20B9}${item['shipping'].toStringAsFixed(2)}',
-                  style: txtTheme().displaySmall)),
+          // OrderDetail(
+          //     title: 'sub total'.tr,
+          //     amount: Text('\u{20B9}${item['subtotal'].toStringAsFixed(2)}',
+          //         style: txtTheme().displaySmall)),
+          // item['discount'] != 0 && item['discount'] != null
+          //     ? OrderDetail(
+          //         title: 'coupon Discount'.tr,
+          //         amount: Text(
+          //             '- \u{20B9}${item['discount'].toStringAsFixed(2)}',
+          //             style: const TextStyle(
+          //                 color: Colors.green,
+          //                 fontWeight: FontWeight.w400,
+          //                 fontSize: 14)))
+          //     : Container(),
+          // OrderDetail(
+          //     title: "Tax".tr + "",
+          //     amount: Text('\u{20B9} ${19.toStringAsFixed(2)}',
+          //         style: txtTheme().displaySmall)),
+          // OrderDetail(
+          //     title: 'Delivery'.tr,
+          //     amount: Text('\u{20B9}${item['shipping'].toStringAsFixed(2)}',
+          //         style: txtTheme().displaySmall)),
           const Divider(thickness: 1.5),
           const SizedBox(height: 10),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [

@@ -94,15 +94,15 @@ class OtpController extends GetxController with BaseController {
 
   void updateOtp(String otp) {
     otpCode.value = otp;
-    if (otp.length < 4) {
+    if (otp.length < 6) {
       activeIndex.value = otp.length;
     } else {
-      activeIndex.value = 3;
+      activeIndex.value = 5;
     }
   }
 
   Future<void> verifyOtp({required String otp}) async {
-    if (otp.isEmpty || otp.length < 4) {
+    if (otp.isEmpty || otp.length < 6) {
       HelperFunctions().showSnackBarError("Please enter 4-digit OTP");
       return;
     }

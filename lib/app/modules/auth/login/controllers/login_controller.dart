@@ -253,7 +253,8 @@ class LoginController extends GetxController with BaseController {
         HelperFunctions().showSnackBarSuccess(successMessage);
 
         // Fetch profile data from server since login body might be empty
-        await AuthDetails.updateUserDetailsFromServer();
+        // Create an instance of AuthDetails first
+        await AuthDetails().updateUserDetailsFromServer();       
 
         // Clear password for security
         passwordController.clear();

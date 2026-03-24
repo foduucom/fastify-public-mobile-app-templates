@@ -344,25 +344,25 @@ class ChangePasswordView extends GetView<ProfileController> {
               ),
             ),
           ),
-          bottomNavigationBar: Container(
-            margin: const EdgeInsets.only(
-              bottom: 20.0,
-              left: 16.0,
-              right: 16.0,
-            ),
-            child: Obx(
-                  () => AppButton(
-                itemText: 'Update Password',
-                keypressEvent: controller.isLoading.value
-                    ? null
-                    : () {
-                  if (controller.formKey.currentState!.validate()) {
-                    controller.changePassword();
-                  }
-                },
-              ),
-            ),
-          ),
+          // bottomNavigationBar: Container(
+          //   margin: const EdgeInsets.only(
+          //     bottom: 20.0,
+          //     left: 16.0,
+          //     right: 16.0,
+          //   ),
+          //   child: Obx(
+          //         () => AppButton(
+          //       itemText: 'Update Password',
+          //       keypressEvent: controller.isLoading.value
+          //           ? null
+          //           : () {
+          //         if (controller.formKey.currentState!.validate()) {
+          //           controller.changePassword();
+          //         }
+          //       },
+          //     ),
+          //   ),
+          // ),
         ),
       ),
     );

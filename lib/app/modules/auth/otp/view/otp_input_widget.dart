@@ -12,7 +12,7 @@ class OtpInputWidget extends StatefulWidget {
 
   const OtpInputWidget({
     Key? key,
-    this.length = 4,
+    this.length = 6,
     required this.onCompleted,
     this.focusNode,
     required this.controller,
@@ -142,12 +142,12 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
     return Obx(() => Container(
           width: width * 0.92,
           height: height * 0.08,
-          padding: EdgeInsets.symmetric(horizontal: width * 0.04),
+          padding: EdgeInsets.symmetric(horizontal: width * 0.02),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(height * 0.01),
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: List.generate(widget.length, (index) {
               return GestureDetector(
                 onTap: () {
@@ -155,7 +155,7 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
                   widget.controller.setActive(index);
                 },
                 child: Container(
-                  width: width * 0.18,
+                  width: widget.length == 4 ? width * 0.18 : width * 0.14, // Responsive width
                   height: height * 0.08,
                   padding: EdgeInsets.symmetric(
                     horizontal: width * 0.04,

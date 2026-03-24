@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:foduu_ecommerce/app/modules/Profie/profile/views/temprary_profile_view.dart';
 import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import 'package:foduu_ecommerce/app/modules/cart/views/cart_view.dart';
 import 'package:foduu_ecommerce/app/modules/category/views/category_view.dart';
@@ -61,8 +60,8 @@ class BottombarView extends GetView<BottombarController> {
                   HomePageView(),
                   CategoryView(),
                   WishlistView(),
-                  //ProfileView(),
-                  TempraryProfileView(),
+                  ProfileView(),
+                  //TempraryProfileView(),
                 ],
               ),
             ),

@@ -111,7 +111,7 @@ class ProfileView extends GetView<ProfileController> {
                             shape: BoxShape.circle,
                             image: DecorationImage(
                               image: controller.profiledata['featured_image'] == null
-                                  ? const AssetImage('assets/images/user.png')
+                                  ? const AssetImage('assets/images/men.png')
                                   : NetworkImage(
                                   HelperFunctions().getImage(
                                       controller.profiledata['featured_image']
@@ -204,7 +204,7 @@ class ProfileView extends GetView<ProfileController> {
                                 Get.toNamed(Routes.WISHLIST);
                                 break;
                               case 2:
-                              // Get.toNamed(Routes.PAYMENT);
+                                Get.toNamed(Routes.PAYMENT);
                                 break;
                               case 3:
                                 Get.toNamed(Routes.MANAGEADDRESS);

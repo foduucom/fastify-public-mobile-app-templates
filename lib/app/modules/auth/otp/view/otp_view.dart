@@ -80,11 +80,11 @@ class OTPView extends GetView<OtpController> {
                   // OTP Input Widget
                   Center(
                     child: OtpInputWidget(
-                      length: 4,
+                      length: 6,
                       controller: controller,
                       onCompleted: (otp) {
                         // Auto-verify when OTP is complete
-                        if (otp.length == 4) {
+                        if (otp.length == 6) {
                           controller.verifyOtp(otp: otp);
                         }
                       },
@@ -148,7 +148,7 @@ class OTPView extends GetView<OtpController> {
                   // OTP
                   Obx(() => PrimaryActionButton(
                         text: "Submit",
-                        onPressed: controller.otpCode.value.length == 4 &&
+                        onPressed: controller.otpCode.value.length == 6 &&
                                 !controller.isLoading.value
                             ? () {
                                 controller.verifyOtp(

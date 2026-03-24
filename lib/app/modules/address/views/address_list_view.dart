@@ -367,6 +367,7 @@ class AddressListView extends GetView<AddressListController> {
                   keypressEvent: controller.userAddressList.isEmpty
                       ? null
                       : () {
+                          print("Payment Triggered");
                           Get.toNamed(Routes.PAYMENT);
                         },
                   otherText: 'Details',
