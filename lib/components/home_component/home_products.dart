@@ -244,45 +244,45 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     return Obx(() => Column(
           children: [
             // ─── Section Header ───
-            if (!_infiniteScroll)
-              Padding(
-                padding: pageSurroundingPadding,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(heading, style: textTheme.titleLarge),
-                          subheading.isEmpty
-                              ? Container()
-                              : Text(subheading,
-                                  style: textTheme.titleSmall!.copyWith(
-                                      color: colorScheme.onSurfaceVariant)),
-                        ],
+            //if (!_infiniteScroll)
+            Padding(
+              padding: pageSurroundingPadding,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(heading, style: textTheme.titleLarge),
+                        subheading.isEmpty
+                            ? Container()
+                            : Text(subheading,
+                                style: textTheme.titleSmall!.copyWith(
+                                    color: colorScheme.onSurfaceVariant)),
+                      ],
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+                        'productId': categoryIds,
+                        'name': heading,
+                        'productype': categoryType,
+                        'source': 'dashboard'
+                      });
+                    },
+                    child: Text(
+                      'See all',
+                      style: textTheme.labelMedium?.copyWith(
+                        color: colorScheme.primary,
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-                          'productId': categoryIds,
-                          'name': heading,
-                          'productype': categoryType,
-                          'source': 'dashboard'
-                        });
-                      },
-                      child: Text(
-                        'See all',
-                        style: textTheme.labelMedium?.copyWith(
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
             const SizedBox(height: 4),
             // ─── Product Cards ───
             trendingList.isEmpty
@@ -411,142 +411,145 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // STYLE 1 — STANDARD (Vertical Card, Image on Top)
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildStandardStyleList() {
-  final itemCount =
-      _infiniteScroll ? trendingList.length + 1 : trendingList.length;
+    final itemCount =
+        _infiniteScroll ? trendingList.length + 1 : trendingList.length;
 
-  return Padding(
-    padding: const EdgeInsets.only(left: 6.0),
-    child: SizedBox(
-      height: 280, // Increased height to accommodate content
-      child: ScrollConfiguration(
-        behavior: ScrollConfiguration.of(context).copyWith(
-          dragDevices: {
-            PointerDeviceKind.touch,
-            PointerDeviceKind.mouse,
-            PointerDeviceKind.trackpad,
-          },
-        ),
-        child: ListView.separated(
-          controller: _scrollController,
-          separatorBuilder: (context, index) => const SizedBox(width: 10),
-          shrinkWrap: false,
-          cacheExtent: 9999,
-          physics: const AlwaysScrollableScrollPhysics(),
-          scrollDirection: Axis.horizontal,
-          itemCount: itemCount,
-          itemBuilder: (context, index) {
-            if (index >= trendingList.length) {
-              return _buildLoadingIndicator();
-            }
-            final product = trendingList[index];
-            final priceInfo = ProductHelper.calculatePriceInfo(product);
-            if (!priceInfo['hasValidVariants']) return const SizedBox.shrink();
-            return ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: 270, // Max height for each card
-                minWidth: 150,
-                maxWidth: 220,
-              ),
-              child: _buildStandardItem(product, priceInfo),
-            );
-          },
+    return Padding(
+      padding: const EdgeInsets.only(left: 6.0),
+      child: SizedBox(
+        height: 280, // Increased height to accommodate content
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(
+            dragDevices: {
+              PointerDeviceKind.touch,
+              PointerDeviceKind.mouse,
+              PointerDeviceKind.trackpad,
+            },
+          ),
+          child: ListView.separated(
+            controller: _scrollController,
+            separatorBuilder: (context, index) => const SizedBox(width: 10),
+            shrinkWrap: false,
+            cacheExtent: 9999,
+            physics: const AlwaysScrollableScrollPhysics(),
+            scrollDirection: Axis.horizontal,
+            itemCount: itemCount,
+            itemBuilder: (context, index) {
+              if (index >= trendingList.length) {
+                return _buildLoadingIndicator();
+              }
+              final product = trendingList[index];
+              final priceInfo = ProductHelper.calculatePriceInfo(product);
+              if (!priceInfo['hasValidVariants'])
+                return const SizedBox.shrink();
+              return ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: 270, // Max height for each card
+                  minWidth: 150,
+                  maxWidth: 220,
+                ),
+                child: _buildStandardItem(product, priceInfo),
+              );
+            },
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-Widget _buildStandardItem(
-    Map<String, dynamic> product, Map<String, dynamic> priceInfo) {
-  final colorScheme = Theme.of(context).colorScheme;
-  final textTheme = Theme.of(context).textTheme;
-  final productName = ProductHelper.getProductName(product);
-  final imageUrl = ProductHelper.getProductImage(product);
-  final productType = priceInfo['productType'];
-  final storeName = product['storeName'] ?? 'Store Name';
+  Widget _buildStandardItem(
+      Map<String, dynamic> product, Map<String, dynamic> priceInfo) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final productName = ProductHelper.getProductName(product);
+    final imageUrl = ProductHelper.getProductImage(product);
+    final productType = priceInfo['productType'];
+    final storeName = product['storeName'] ?? 'Store Name';
 
-  // Calculate responsive width based on screen size
-  final screenWidth = MediaQuery.of(context).size.width;
-  final itemWidth = screenWidth > 600
-      ? screenWidth * 0.25 // Tablet: 25% of screen width
-      : screenWidth * 0.45; // Mobile: 45% of screen width
-  final clampedWidth = itemWidth.clamp(150.0, 220.0);
+    // Calculate responsive width based on screen size
+    final screenWidth = MediaQuery.of(context).size.width;
+    final itemWidth = screenWidth > 600
+        ? screenWidth * 0.25 // Tablet: 25% of screen width
+        : screenWidth * 0.45; // Mobile: 45% of screen width
+    final clampedWidth = itemWidth.clamp(150.0, 220.0);
 
-  return GestureDetector(
-    onTap: () => _navigateToProduct(product),
-    child: SizedBox(
-      width: clampedWidth,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Alternative image widget that fills width while maintaining aspect ratio
-ClipRRect(
-  borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-  child: SizedBox(
-    width: double.infinity,
-    child: CachedNetworkImage(
-      imageUrl: imageUrl,
-      fit: BoxFit.cover,
-      height: 180, // Fixed height, but maintains aspect ratio through fit
-      width: double.infinity,
-      progressIndicatorBuilder: (_, __, ___) =>
-          HelperFunctions().loadingIndicator(),
-      errorWidget: (_, __, ___) => Container(
-        height: 180,
-        color: colorScheme.surfaceVariant,
-        child: Icon(Icons.image_outlined,
-            color: colorScheme.onSurfaceVariant),
-      ),
-    ),
-  ),
-),
-          // Content Section - Use Flexible to take remaining space but not overflow
-          Flexible(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Product Name
-                  Text(
-                    productName,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                      height: 1.2,
-                    ),
+    return GestureDetector(
+      onTap: () => _navigateToProduct(product),
+      child: SizedBox(
+        width: clampedWidth,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Alternative image widget that fills width while maintaining aspect ratio
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(8)),
+              child: SizedBox(
+                width: double.infinity,
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.cover,
+                  height:
+                      180, // Fixed height, but maintains aspect ratio through fit
+                  width: double.infinity,
+                  progressIndicatorBuilder: (_, __, ___) =>
+                      HelperFunctions().loadingIndicator(),
+                  errorWidget: (_, __, ___) => Container(
+                    height: 180,
+                    color: colorScheme.surfaceVariant,
+                    child: Icon(Icons.image_outlined,
+                        color: colorScheme.onSurfaceVariant),
                   ),
-                  const SizedBox(height: 4),
-                  // Store Name
-                  Text(
-                    storeName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w400,
-                      fontSize: 10,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  // Price - Ensure it stays at bottom
-                  if (productType == 'variable')
-                    _buildVariablePrice(priceInfo)
-                  else
-                    _buildSimplePrice(priceInfo),
-                ],
+                ),
               ),
             ),
-          ),
-        ],
+            // Content Section - Use Flexible to take remaining space but not overflow
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Product Name
+                    Text(
+                      productName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    // Store Name
+                    Text(
+                      storeName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 10,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    // Price - Ensure it stays at bottom
+                    if (productType == 'variable')
+                      _buildVariablePrice(priceInfo)
+                    else
+                      _buildSimplePrice(priceInfo),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   // ═══════════════════════════════════════════════════════════════════════════
   // STYLE 2 — HORIZONTAL (Image Left, Info Right Card)
@@ -999,62 +1002,62 @@ ClipRRect(
   }
 
   /// Variable product price display (compact version)
-Widget _buildVariablePrice(Map<String, dynamic> priceInfo) {
-  final colorScheme = Theme.of(context).colorScheme;
-  final textTheme = Theme.of(context).textTheme;
+  Widget _buildVariablePrice(Map<String, dynamic> priceInfo) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
-  return Text(
-    '₹${priceInfo['lowestPrice']} - ₹${priceInfo['highestPrice']}',
-    style: textTheme.bodyMedium?.copyWith(
-      fontWeight: FontWeight.w600,
-      fontSize: 11, // Reduced from 12
-      color: colorScheme.primary,
-    ),
-    maxLines: 1,
-    overflow: TextOverflow.ellipsis,
-  );
-}
-
-/// Simple product price display with discount (compact version)
-Widget _buildSimplePrice(Map<String, dynamic> priceInfo) {
-  final colorScheme = Theme.of(context).colorScheme;
-  final textTheme = Theme.of(context).textTheme;
-
-  return RichText(
-    maxLines: 1,
-    overflow: TextOverflow.ellipsis,
-    text: TextSpan(
-      text: '₹${priceInfo['productPrice']}',
+    return Text(
+      '₹${priceInfo['lowestPrice']} - ₹${priceInfo['highestPrice']}',
       style: textTheme.bodyMedium?.copyWith(
         fontWeight: FontWeight.w600,
         fontSize: 11, // Reduced from 12
         color: colorScheme.primary,
       ),
-      children: [
-        if (priceInfo['discountRate'] != null &&
-            priceInfo['discountRate'].toString().isNotEmpty) ...[
-          const TextSpan(text: '  '),
-          TextSpan(
-            text: '₹${priceInfo['discountPrice']}',
-            style: textTheme.bodySmall?.copyWith(
-              fontSize: 9, // Reduced from 10
-              decoration: TextDecoration.lineThrough,
-              color: colorScheme.onSurfaceVariant,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  /// Simple product price display with discount (compact version)
+  Widget _buildSimplePrice(Map<String, dynamic> priceInfo) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return RichText(
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        text: '₹${priceInfo['productPrice']}',
+        style: textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          fontSize: 11, // Reduced from 12
+          color: colorScheme.primary,
+        ),
+        children: [
+          if (priceInfo['discountRate'] != null &&
+              priceInfo['discountRate'].toString().isNotEmpty) ...[
+            const TextSpan(text: '  '),
+            TextSpan(
+              text: '₹${priceInfo['discountPrice']}',
+              style: textTheme.bodySmall?.copyWith(
+                fontSize: 9, // Reduced from 10
+                decoration: TextDecoration.lineThrough,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
-          ),
-          const TextSpan(text: ' '),
-          TextSpan(
-            text: priceInfo['discountRate'],
-            style: textTheme.bodySmall?.copyWith(
-              fontSize: 9, // Reduced from 10
-              color: colorScheme.error,
+            const TextSpan(text: ' '),
+            TextSpan(
+              text: priceInfo['discountRate'],
+              style: textTheme.bodySmall?.copyWith(
+                fontSize: 9, // Reduced from 10
+                color: colorScheme.error,
+              ),
             ),
-          ),
+          ],
         ],
-      ],
-    ),
-  );
-}
+      ),
+    );
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

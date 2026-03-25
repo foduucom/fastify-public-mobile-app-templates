@@ -155,16 +155,6 @@ class AddressListView extends GetView<AddressListController> {
                                                 Text(
                                                   [
                                                         if (userAddress[
-                                                                'city'] !=
-                                                            null)
-                                                          (userAddress['city']
-                                                                  is Map
-                                                              ? userAddress[
-                                                                      'city']
-                                                                  ['name']
-                                                              : userAddress[
-                                                                  'city']),
-                                                        if (userAddress[
                                                                     'state'] !=
                                                                 null &&
                                                             userAddress['state']

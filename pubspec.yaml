@@ -38,7 +38,7 @@ dependencies:
   flutter_html: ^3.0.0-alpha.2
   dotted_border: ^2.0.0+3
   google_fonts: ^4.0.4
-  dio: ^4.0.0
+  dio: ^5.3.3
   path_provider: ^2.0.2
   cached_network_image: ^3.3.1
   expansion_tile_card: ^3.0.0
@@ -52,6 +52,9 @@ dependencies:
   socket_io_client: ^3.1.4
   flutter_native_splash: ^2.4.4
   intl_phone_field: ^3.2.0
+  flutter_paypal_payment: ^1.0.8
+  razorpay_flutter: ^1.4.1
+  flutter_stripe: ^12.4.0
 
 flutter_native_splash:
   image: assets/images/app_logo.png

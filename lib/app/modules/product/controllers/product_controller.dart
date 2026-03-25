@@ -90,16 +90,6 @@ class ProductController extends GetxController
       categoriesId.addAll(productDetials['categories']);
     }
 
-    if (AuthDetails.isUserLogin()) {
-      isAlreadyInCart.value = Get.find<CartController>()
-          .cartProducts
-          .any((element) => element['productId'] == productId);
-    } else {
-      isAlreadyInCart.value = Get.find<CartController>()
-          .cartProducts
-          .any((element) => element['_id'] == productId);
-    }
-
     categoriesId.forEach((element) {
       cateogries.add("${element['_id']}");
     });

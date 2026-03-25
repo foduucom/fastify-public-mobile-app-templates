@@ -162,7 +162,7 @@ class AppPages {
       binding: AddToCartBindings(),
     ),
 
-       GetPage(
+    GetPage(
         name: _Paths.CART,
         page: () => CartView(),
         binding: CartBinding(),
@@ -170,7 +170,7 @@ class AppPages {
           GetPage(
             name: _Paths.PAYMENT,
             page: () => CheckoutViews(),
-            binding: CheckoutBindings(),
+            binding: CheckOutBinding(),
           ),
           GetPage(
             name: _Paths.ORDERSUCCESS,
@@ -188,7 +188,7 @@ class AppPages {
     GetPage(
       name: _Paths.CHECKOUT,
       page: () => CheckoutViews(),
-      binding: CheckoutBindings(),
+      binding: CheckOutBinding(),
     ),
 
     GetPage(
@@ -239,7 +239,7 @@ class AppPages {
     GetPage(
       name: _Paths.PAYMENT,
       page: () => CheckoutViews(),
-      binding: CheckoutBindings(),
+      binding: CheckOutBinding(),
     ),
 
     GetPage(
@@ -264,15 +264,15 @@ class AppPages {
       binding: NotificationsBinding(),
     ),
 
-     GetPage(
+    GetPage(
       name: _Paths.ORDER_PRODUCTS,
       page: () => const OrderProductsView(),
       binding: OrderProductsBinding(),
     ),
-    
+
     // GetPage(
-    //   name: _Paths.PAYMENT, 
-    //   page: () => 
+    //   name: _Paths.PAYMENT,
+    //   page: () =>
     // ),
     // GetPage(
     //   name: _Paths.BLOG,

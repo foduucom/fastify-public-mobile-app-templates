@@ -7,10 +7,13 @@ import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
 import 'package:foduu_ecommerce/components/buttons/primary_action_button.dart';
 import 'package:foduu_ecommerce/components/commonWidgets/secondary_app_header.dart';
+import 'package:foduu_ecommerce/components/shimmer/cart_shimmer.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/constants/product_helper.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:lottie/lottie.dart';
 
 class CartView extends GetView<CartController> {
@@ -18,11 +21,18 @@ class CartView extends GetView<CartController> {
 
   @override
   Widget build(BuildContext context) {
-    var width = MediaQuery.of(context).size.width;
-    var height = MediaQuery.of(context).size.height;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
 
     return SafeArea(
       child: Scaffold(
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            GetStorage().erase();
+          },
+        ),
         body: Padding(
           padding: EdgeInsets.symmetric(
             horizontal: width * 0.05,
@@ -30,65 +40,100 @@ class CartView extends GetView<CartController> {
           ),
           child: Column(
             children: [
-              SizedBox(height: height * 0.001),
               SecondaryAppHeader(
                 title: "My Cart",
               ),
               SizedBox(height: height * 0.001),
               Expanded(
                 child: Obx(() {
-                  if (controller.productDetails.isEmpty) {
-                    return _buildEmptyCart(width, height);
+                  if (controller.isLoading.value) {
+                    return const CartShimmer();
                   }
-                  return RefreshIndicator(
-                    onRefresh: () => controller.onRefresh(),
-                    child: ListView.separated(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      itemCount: controller.productDetails.length,
-                      separatorBuilder: (_, __) =>
-                          SizedBox(height: height * 0.025),
-                      itemBuilder: (context, index) {
-                        return _cartItemRow(index);
-                      },
-                    ),
-                  );
+
+                  if (controller.cartItems.isEmpty) {
+                    return _buildEmptyCart(
+                        context, colorScheme, textTheme, width, height);
+                  }
+
+                  return _buildCartContent(
+                      context, colorScheme, textTheme, width, height);
                 }),
               ),
             ],
           ),
         ),
-        bottomNavigationBar: Obx(() => controller.productDetails.isEmpty
+        bottomNavigationBar: Obx(() => controller.cartItems.isEmpty
             ? const SizedBox.shrink()
             : _bottombar(width: width, height: height)),
       ),
     );
   }
 
-  Widget _buildEmptyCart(double width, double height) {
+  Widget _buildEmptyCart(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+    double width,
+    double height,
+  ) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Lottie.asset('assets/lotti/emptyanimation.json', height: height * 0.3),
+        Lottie.asset(
+          'assets/lotti/emptyanimation.json',
+          height: height * 0.3,
+        ),
         const SizedBox(height: 20),
-        const Text('Whoops !! Cart is Empty',
-            style: TextStyle(
-                fontFamily: 'lato', fontSize: 18, fontWeight: FontWeight.w600)),
+        Text(
+          'Whoops !! Cart is Empty',
+          style: textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(height: 20),
-        const SizedBox(
-            width: 320,
-            child: Text(
-                'Looks like you haven’t added anything to your cart yet. You will find a lot of interesting products on our “Shop” page',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontFamily: 'lato', fontSize: 16))),
+        SizedBox(
+          width: 320,
+          child: Text(
+            'Looks like you haven\'t added anything to your cart yet. You will find a lot of interesting products on our "Shop" page',
+            textAlign: TextAlign.center,
+            style: textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
         const SizedBox(height: 20),
         AppButton(
-            itemText: 'START SHOPPING',
-            keypressEvent: () {
-              Get.back();
+          itemText: 'START SHOPPING',
+          keypressEvent: () {
+            if (Get.isRegistered<BottombarController>()) {
               Get.find<BottombarController>().currentPageIndex.value = 0;
               Get.find<BottombarController>().pageController.jumpToPage(0);
-            })
+            }
+            Get.back();
+          },
+        ),
       ],
+    );
+  }
+
+  Widget _buildCartContent(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+    double width,
+    double height,
+  ) {
+    return RefreshIndicator(
+      onRefresh: controller.onRefresh,
+      child: ListView.separated(
+        controller: controller.scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: controller.cartItems.length,
+        separatorBuilder: (_, __) => SizedBox(height: height * 0.025),
+        itemBuilder: (context, index) {
+          return _cartItemRow(index);
+        },
+      ),
     );
   }
 
@@ -191,12 +236,14 @@ class CartView extends GetView<CartController> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _priceRow("Subtotal", "₹${controller.viewprice.value}"),
+                _priceRow("Subtotal", "₹${controller.subTotal.value}"),
                 _priceRow("Delivery Fee", "Free"),
-                _priceRow("Discount", "- ₹${controller.viewsavedPrice.value}",
+                _priceRow("Discount",
+                    "- ₹${(controller.subTotal.value - controller.total.value).toStringAsFixed(2)}",
                     color: Colors.green),
                 const Divider(),
-                _priceRow("Total", "₹${controller.viewTotalAmount.value}",
+                _priceRow(
+                    "Total", "₹${controller.total.value.toStringAsFixed(2)}",
                     isBold: true, fontSize: height * 0.022),
               ],
             ),
@@ -256,46 +303,28 @@ class CartView extends GetView<CartController> {
     final height = Get.height;
 
     return Obx(() {
-      var product = controller.productDetails[index];
+      final product = controller.getProduct(index);
+      final variant = controller.getVariant(index);
+      final quantity = controller.getQuantity(index);
+      final productId = controller.getProductId(index);
+      final variantId = controller.getVariantId(index);
 
-      // Get variant name safely
-      String variantName = '';
-      if (AuthDetails.isUserLogin()) {
-        variantName =
-            controller.cartProducts[index]['value']['variant_name'] ?? '';
-      } else {
-        variantName = controller.guestUserCartList.isNotEmpty &&
-                index < controller.guestUserCartList.length
-            ? controller.guestUserCartList[index]['variant_name'] ?? ''
-            : '';
-      }
+      // Use ProductHelper to get image and price info
+      final imageUrl = ProductHelper.getProductImage(product);
+      debugPrint("------------------------------------OOOO-----");
+      debugPrint('--------------------------------------------------');
+      debugPrint('🛒 CART IMAGE HIT -> Product: ${product['name']}');
+      debugPrint('🔗 URL: $imageUrl');
+      debugPrint('--------------------------------------------------');
 
-      // Get image URL
-      var imageUrl = HelperFunctions.getNoImage();
-      if (product is Map && product['featured_image'] != null) {
-        if (product['featured_image'] is Map) {
-          if (product['featured_image']['download_url'] != null) {
-            imageUrl = product['featured_image']['download_url'];
-          } else if (product['featured_image']['filepath'] != null) {
-            imageUrl = url + product['featured_image']['filepath'];
-          }
-        }
-      }
-
-      // Get price
-      var price = controller.getVariantPrice(index);
-
-      // Get quantity safely
-      int quantity = 1;
-      if (AuthDetails.isUserLogin()) {
-        quantity =
-            (controller.cartProducts[index]['value']['quantity'] ?? 1).toInt();
-      } else {
-        quantity = controller.guestUserCartList.isNotEmpty &&
-                index < controller.guestUserCartList.length
-            ? (controller.guestUserCartList[index]['quantity'] ?? 1).toInt()
-            : 1;
-      }
+      // Get variant's effective price
+      final variantPrice = HelperFunctions.parseAmount(
+          variant['sale_price'] ?? variant['price']);
+      final variantRegularPrice = HelperFunctions.parseAmount(variant['price']);
+      final hasDiscount =
+          HelperFunctions.parseAmount(variant['sale_price']) > 0 &&
+              variantRegularPrice >
+                  HelperFunctions.parseAmount(variant['sale_price']);
 
       return Container(
         width: width * 0.92,
@@ -310,28 +339,32 @@ class CartView extends GetView<CartController> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Product Image
-            GestureDetector(
-              onTap: () {
-                Get.toNamed(Routes.PRODUCTDETAILS,
-                    arguments: {'productId': product['_id']});
-              },
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(height * 0.012),
-                child: CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  width: height * 0.09,
-                  height: height * 0.09,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey[200],
-                    child: const Center(
-                        child: CircularProgressIndicator(strokeWidth: 2)),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.grey[200],
-                    child: Icon(Icons.image_not_supported_outlined,
-                        color: Colors.grey[400]),
+            // Product Image - Fixed width
+            SizedBox(
+              width: height * 0.09,
+              height: height * 0.09,
+              child: GestureDetector(
+                onTap: () {
+                  Get.toNamed(Routes.PRODUCTDETAILS,
+                      arguments: {'productId': product['_id']});
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(height * 0.012),
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    width: height * 0.09,
+                    height: height * 0.09,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      color: Colors.grey[200],
+                      child: const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2)),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: Colors.grey[200],
+                      child: Icon(Icons.image_not_supported_outlined,
+                          color: Colors.grey[400]),
+                    ),
                   ),
                 ),
               ),
@@ -339,7 +372,7 @@ class CartView extends GetView<CartController> {
 
             SizedBox(width: width * 0.025),
 
-            // Product Details
+            // Product Details - Takes remaining space
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,9 +388,12 @@ class CartView extends GetView<CartController> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  if (variantName.isNotEmpty && variantName != 'null')
+                  if (variant['name'] != null &&
+                      variant['name'].toString().isNotEmpty)
                     Text(
-                      variantName,
+                      variant['name'],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: height * 0.014,
@@ -366,103 +402,144 @@ class CartView extends GetView<CartController> {
                       ),
                     ),
                   SizedBox(height: height * 0.005),
-                  Text(
-                    "₹${price.toStringAsFixed(2)}",
-                    style: TextStyle(
-                      fontFamily: 'Plus Jakarta Sans',
-                      fontSize: height * 0.016,
-                      fontWeight: FontWeight.w700,
-                      color: Get.theme.primaryColor,
-                    ),
+                  // Price Row - Keep Row but let it shrink properly
+                  Row(
+                    children: [
+                      Text(
+                        "₹${variantPrice.toStringAsFixed(2)}",
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: height * 0.016,
+                          fontWeight: FontWeight.w700,
+                          color: Get.theme.primaryColor,
+                        ),
+                      ),
+                      if (hasDiscount) ...[
+                        const SizedBox(width: 6),
+                        Text(
+                          "₹${variantRegularPrice.toStringAsFixed(2)}",
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: height * 0.014,
+                            fontWeight: FontWeight.w500,
+                            decoration: TextDecoration.lineThrough,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            "${(100 - (variantPrice * 100 / variantRegularPrice)).round()}% off",
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: height * 0.0125,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.green.shade700,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),
             ),
 
-            SizedBox(width: width * 0.015),
+            // Right side controls - Fixed width group
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Quantity Controls
+                Container(
+                  width: height * 0.12,
+                  height: height * 0.04,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(height * 0.02),
+                    border: Border.all(color: DefaultThemeColors.darklight),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Decrement
+                      GestureDetector(
+                        onTap: () {
+                          if (quantity > 1) {
+                            controller.decrementItem(
+                                productId, variantId, quantity);
+                          }
+                        },
+                        child: Container(
+                          width: height * 0.03,
+                          height: height * 0.03,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: quantity > 1
+                                ? Get.theme.primaryColor.withOpacity(0.1)
+                                : Colors.transparent,
+                          ),
+                          child: Icon(
+                            Icons.remove,
+                            size: height * 0.016,
+                            color: quantity > 1
+                                ? Get.theme.primaryColor
+                                : Colors.grey,
+                          ),
+                        ),
+                      ),
 
-            // Quantity Controls
-            Container(
-              width: height * 0.12,
-              height: height * 0.04,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(height * 0.02),
-                border: Border.all(color: DefaultThemeColors.darklight),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      if (quantity > 1) {
-                        controller.updateQuantity(index, quantity - 1);
-                      }
+                      // Quantity Text
+                      Text(
+                        "$quantity",
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: height * 0.015,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+
+                      // Increment
+                      GestureDetector(
+                        onTap: () {
+                          controller.incrementItem(productId, variantId);
+                        },
+                        child: Container(
+                          width: height * 0.03,
+                          height: height * 0.03,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Get.theme.primaryColor.withOpacity(0.1),
+                          ),
+                          child: Icon(
+                            Icons.add,
+                            size: height * 0.016,
+                            color: Get.theme.primaryColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: width * 0.01),
+                // Delete Button - Fixed width
+                SizedBox(
+                  width: height * 0.032,
+                  height: height * 0.032,
+                  child: IconButton(
+                    onPressed: () {
+                      _showDeleteConfirmation(
+                          index, product['_id'], variant['_id']);
                     },
-                    child: Container(
-                      width: height * 0.03,
-                      height: height * 0.03,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: quantity > 1
-                            ? Get.theme.primaryColor.withOpacity(0.1)
-                            : Colors.transparent,
-                      ),
-                      child: Icon(
-                        Icons.remove,
-                        size: height * 0.016,
-                        color:
-                            quantity > 1 ? Get.theme.primaryColor : Colors.grey,
-                      ),
+                    icon: Icon(
+                      Icons.delete_outline,
+                      size: height * 0.022,
+                      color: Colors.red,
                     ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
-                  Text(
-                    "$quantity",
-                    style: TextStyle(
-                      fontFamily: 'Plus Jakarta Sans',
-                      fontSize: height * 0.015,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      if (quantity < 10) {
-                        controller.updateQuantity(index, quantity + 1);
-                      }
-                    },
-                    child: Container(
-                      width: height * 0.03,
-                      height: height * 0.03,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: quantity < 10
-                            ? Get.theme.primaryColor.withOpacity(0.1)
-                            : Colors.transparent,
-                      ),
-                      child: Icon(
-                        Icons.add,
-                        size: height * 0.016,
-                        color: quantity < 10
-                            ? Get.theme.primaryColor
-                            : Colors.grey,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            SizedBox(width: width * 0.01),
-
-            // Delete Button
-            IconButton(
-              onPressed: () {
-                _showDeleteConfirmation(index, product['_id']);
-              },
-              icon: Icon(
-                Icons.delete_outline,
-                size: height * 0.022,
-                color: Colors.red,
-              ),
+                ),
+              ],
             ),
           ],
         ),
@@ -470,7 +547,7 @@ class CartView extends GetView<CartController> {
     });
   }
 
-  void _showDeleteConfirmation(int index, String productId) {
+  void _showDeleteConfirmation(int index, String productId, String variantId) {
     Get.dialog(
       AlertDialog(
         title: const Text('Remove Product'),
@@ -484,10 +561,7 @@ class CartView extends GetView<CartController> {
           TextButton(
             onPressed: () {
               Get.back();
-              controller.removeCartProduct(
-                productId: productId,
-                index: index,
-              );
+              controller.removeItem(productId, variantId);
             },
             style: TextButton.styleFrom(
               foregroundColor: Colors.red,

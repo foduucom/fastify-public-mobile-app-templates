@@ -254,7 +254,7 @@ class LoginController extends GetxController with BaseController {
 
         // Fetch profile data from server since login body might be empty
         // Create an instance of AuthDetails first
-        await AuthDetails().updateUserDetailsFromServer();       
+        await AuthDetails().updateUserDetailsFromServer();
 
         // Clear password for security
         passwordController.clear();

@@ -12,6 +12,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class HelperFunctions {
+  static double parseAmount(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? 0.0;
+  }
+
   static String getNoImage() {
     // return 'https://st4.depositphotos.com/14953852/24787/v/450/depositphotos_247872612-stock-illustration-no-image-available-icon-vector.jpg';
     return 'https://static.vecteezy.com/system/resources/thumbnails/004/141/669/small/no-photo-or-blank-image-icon-loading-images-or-missing-image-mark-image-not-available-or-image-coming-soon-sign-simple-nature-silhouette-in-frame-isolated-illustration-vector.jpg';
@@ -281,21 +287,26 @@ class HelperFunctions {
     return formattedDate;
   }
 
-  static int lowestPrice(List<dynamic> variantIds) {
-    int minPrice = variantIds.isEmpty ? null : variantIds.first['sale_price'];
+  static double lowestPrice(List<dynamic> variantIds) {
+    if (variantIds.isEmpty) return 0.0;
+    double? minPrice;
     for (var variant in variantIds) {
-      if (variant['sale_price'] < minPrice) {
-        minPrice = variant['sale_price'];
+      double currentPrice =
+          parseAmount(variant['sale_price'] ?? variant['price']);
+      if (minPrice == null || currentPrice < minPrice) {
+        minPrice = currentPrice;
       }
     }
-    return minPrice;
+    return minPrice ?? 0.0;
   }
 
-  static int highestPrice(List<dynamic> variantIds) {
-    int maxPrice = 0;
+  static double highestPrice(List<dynamic> variantIds) {
+    double maxPrice = 0;
     for (var variant in variantIds) {
-      if (variant['sale_price'] > maxPrice) {
-        maxPrice = variant['sale_price'];
+      double currentPrice =
+          parseAmount(variant['sale_price'] ?? variant['price']);
+      if (currentPrice > maxPrice) {
+        maxPrice = currentPrice;
       }
     }
     return maxPrice;
@@ -335,9 +346,16 @@ class HelperFunctions {
   }
 
   String getImage(dynamic featuredImage, {bool? isLog, String? moduleName}) {
+    // Case 0: featuredImage is a List
+    if (featuredImage is List && featuredImage.isNotEmpty) {
+      featuredImage = featuredImage.first;
+    }
+
     // Case 1: featuredImage is a Map
     if (featuredImage is Map) {
-      final path = featuredImage['filePath'] ?? featuredImage['filepath'];
+      final path = featuredImage['filePath'] ??
+          featuredImage['filepath'] ??
+          featuredImage['filename'];
 
       if (path != null && path.toString().isNotEmpty) {
         final imageUrl = '${url}images/$path';

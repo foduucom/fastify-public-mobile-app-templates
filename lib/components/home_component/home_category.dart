@@ -86,8 +86,8 @@ class _TopCategoryHomeState extends State<CategoryHome>
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: columns,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
+        mainAxisSpacing: 6, //12 FROM
+        crossAxisSpacing: 6, //12 FROM
         childAspectRatio: style == 'circular' ? 0.8 : 1.1,
       ),
       itemCount: categories.length,
@@ -142,8 +142,10 @@ class _TopCategoryHomeState extends State<CategoryHome>
               color: Theme.of(context).colorScheme.surfaceVariant,
               child: CachedNetworkImage(
                 fit: BoxFit.cover,
-                imageUrl: HelperFunctions().getImage(category['featured_image']),
-                errorWidget: (_, __, ___) => const Icon(Icons.category_outlined),
+                imageUrl:
+                    HelperFunctions().getImage(category['featured_image']),
+                errorWidget: (_, __, ___) =>
+                    const Icon(Icons.category_outlined),
                 progressIndicatorBuilder: (_, __, ___) =>
                     HelperFunctions().loadingIndicator(),
               ),
@@ -187,7 +189,8 @@ class _TopCategoryHomeState extends State<CategoryHome>
           borderRadius: BorderRadius.circular(Get.height * 0.015),
           color: Colors.transparent,
           child: InkWell(
-            onTap: () => category['children'] != null && (category['children'] as List).isNotEmpty
+            onTap: () => category['children'] != null &&
+                    (category['children'] as List).isNotEmpty
                 ? _showCategoryDialog(context, category)
                 : Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
                     'productId': category['_id'],

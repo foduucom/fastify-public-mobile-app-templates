@@ -74,17 +74,17 @@ class _bottomButtonState extends State<bottomButton> {
                                     fontWeight: FontWeight.w600),
                               ),
                               const SizedBox(height: 20),
-                              orderDetial(
-                                couponPrefix:
-                                    cartController.viewCouponPrefix.value,
-                                price: cartController.viewprice.value,
-                                savedPrice: cartController.viewsavedPrice.value,
-                                cuponValue:
-                                    cartController.viewCouponAmount.value,
-                                deliveryStatus:
-                                    widget.deliveryAmount.toString(),
-                                totalAmount: '${widget.totalAmount}',
-                              ),
+                              // orderDetial(
+                              //   couponPrefix:
+                              //       cartController.viewCouponPrefix.value,
+                              //   price: cartController.viewprice.value,
+                              //   savedPrice: cartController.viewsavedPrice.value,
+                              //   cuponValue:
+                              //       cartController.viewCouponAmount.value,
+                              //   deliveryStatus:
+                              //       widget.deliveryAmount.toString(),
+                              //   totalAmount: '${widget.totalAmount}',
+                              // ),
                               const SizedBox(height: 10),
                               // Container(
                               //   height: 40,

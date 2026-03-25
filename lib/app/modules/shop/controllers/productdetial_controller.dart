@@ -70,15 +70,15 @@ class ProductdetialController extends GetxController
 
     categoriesId.addAll(productDetials['categories']);
 
-    if (AuthDetails.isUserLogin()) {
-      isAlreadyInCart.value = Get.find<CartController>()
-          .cartProducts
-          .any((element) => element['productId'] == productId);
-    } else {
-      isAlreadyInCart.value = Get.find<CartController>()
-          .cartProducts
-          .any((element) => element['_id'] == productId);
-    }
+    // if (AuthDetails.isUserLogin()) {
+    //   isAlreadyInCart.value = Get.find<CartController>()
+    //       .cartProducts
+    //       .any((element) => element['productId'] == productId);
+    // } else {
+    //   isAlreadyInCart.value = Get.find<CartController>()
+    //       .cartProducts
+    //       .any((element) => element['_id'] == productId);
+    // }
 
     categoriesId.forEach((element) {
       cateogries.add("${element['_id']}");
@@ -255,27 +255,28 @@ class ProductdetialController extends GetxController
     }
   }
 
-bool containsExactSize(String variants, String target) {
+  bool containsExactSize(String variants, String target) {
     // Split the string into parts based on the delimiter
     List<String> parts = variants.split('/');
     // Check if any part matches the target size
     return parts.contains(target);
   }
+
   Future<void> addToCart() async {
     // Get.find<BottombarController>().addToCart(productDetials);
     // Get.put(CartController()).
     isLoading.value = true;
 
-    await Get.find<CartController>()
-        .addToCart(
-            productId: productId,
-            quantity: count.value,
-            variantName: joinedVariants.value,
-            productType: productDetials['type'])
-        .then((value) {
-      isLoading.value = false;
-      return;
-    });
+    // await Get.find<CartController>()
+    //     .addToCart(
+    //         productId: productId,
+    //         quantity: count.value,
+    //         variantName: joinedVariants.value,
+    //         productType: productDetials['type'])
+    //     .then((value) {
+    //   isLoading.value = false;
+    //   return;
+    // });
     // Get.find<BottombarController>().currentPageIndex.value = 2;
     // Get.find<BottombarController>().pageController.jumpToPage(2);
   }
