@@ -57,47 +57,60 @@ class HelperFunctions {
     ));
   }
 
-  void showOverlayLoader({barrierDismissible = false}) {
-    bool isKeyboardOpen() {
-      return WidgetsBinding.instance.focusManager.primaryFocus?.hasFocus ??
-          false;
-    }
+  // Add this to track the loading dialog
+  static bool _isLoadingShowing = false;
 
-    if (isKeyboardOpen()) {
-      Get.dialog(
-        Center(
-          child: Container(
-            height: 130,
-            width: 100,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 30,
-                      width: 30,
-                      child: HelperFunctions().loadingIndicator(),
+  // Fix the showOverlayLoader method
+  void showOverlayLoader({bool barrierDismissible = false}) {
+    // Don't show if already showing
+    if (_isLoadingShowing) return;
+
+    // Remove the keyboard check - it should show regardless of keyboard
+    Get.dialog(
+      Center(
+        child: Container(
+          height: 130,
+          width: 100,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: Center(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    height: 30,
+                    width: 30,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
                     ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      "Loading...",
-                      style: TextStyle(fontSize: 14, color: Colors.black),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Loading...",
+                    style: TextStyle(fontSize: 14, color: Colors.black),
+                  ),
+                ],
               ),
             ),
           ),
         ),
-        barrierDismissible: barrierDismissible,
-      );
+      ),
+      barrierDismissible: barrierDismissible,
+    );
+
+    _isLoadingShowing = true;
+  }
+
+  // Add this method to hide the loading overlay
+  void hideOverlayLoader() {
+    if (_isLoadingShowing && Get.isDialogOpen == true) {
+      Get.back();
+      _isLoadingShowing = false;
     }
   }
 

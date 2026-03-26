@@ -51,7 +51,7 @@ class AuthDetails with BaseController {
 
   static String? getToken() {
     var token = box.read('token');
-    print("Get Token: $token");
+    //print("Get Token: $token");
     if (token != null) {
       return token;
     } else {

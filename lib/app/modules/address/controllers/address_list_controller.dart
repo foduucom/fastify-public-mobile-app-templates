@@ -45,6 +45,11 @@ class AddressListController extends GetxController with BaseController {
         userAddressList.clear();
         userAddressList.addAll(response);
 
+        // In AddressListController, in refreshAddresses method, after setting userAddressList:
+        print('User address list: $userAddressList');
+        print(
+            'First address type: ${userAddressList.isNotEmpty ? userAddressList[0].runtimeType : 'empty'}');
+
         // Find default address
         selectAddress.value = 0;
         for (var i = 0; i < userAddressList.length; i++) {

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/app/modules/address/controllers/address_list_controller.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shimmer/shimmer.dart';
@@ -103,104 +105,108 @@ class CheckoutViews extends GetView<CheckOutController> {
                 ),
                 SizedBox(height: height * 0.004),
 
-                // Use Obx to handle editing state
-                Obx(() {
-                  if (controller.isEditingAddress.value) {
-                    // Show TextFormField and Update button when editing
-                    return Column(
-                      children: [
-                        TextFormField(
-                          initialValue: controller.tempAddress.value,
-                          onChanged: (value) {
-                            controller.tempAddress.value = value;
-                          },
-                          decoration: InputDecoration(
-                            hintText: "Enter your address",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                          ),
-                          style: TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            fontSize: height * 0.015,
-                            fontWeight: FontWeight.w500,
-                            height: 1.5,
-                          ),
-                        ),
-                        SizedBox(height: height * 0.008),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              if (controller.tempAddress.value.isNotEmpty) {
-                                controller.updateAddress(
-                                    controller.tempAddress.value);
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: DefaultThemeColors.secondarymain,
-                              padding: EdgeInsets.symmetric(vertical: 8),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: Text(
-                              "Update Address",
-                              style: TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontSize: height * 0.014,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  } else {
-                    // Show normal address text
-                    return Text(
-                      controller.selectedAddress.value.isNotEmpty
-                          ? controller.selectedAddress.value
-                          : "Historical st, West Anderson 43. CA",
-                      maxLines: 1,
+                // Use selectedAddressString instead of selectedAddress
+                Obx(() => Text(
+                      controller.selectedAddressString.value.isNotEmpty
+                          ? controller.selectedAddressString.value
+                          : "No address selected. Please add an address.",
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
-                        fontSize: height * 0.015,
+                        fontSize: height * 0.013,
                         fontWeight: FontWeight.w500,
-                        height: 2,
-                        color: DefaultThemeColors.lightDarker,
+                        height: 1.4,
+                        color: controller.selectedAddressString.value.isNotEmpty
+                            ? DefaultThemeColors.lightDarker
+                            : Colors.red,
                       ),
-                    );
-                  }
-                }),
+                    )),
               ],
             ),
           ),
 
-          // Edit icon - now triggers editing mode
+          // Edit icon - opens address form for editing
           GestureDetector(
             onTap: () {
-              controller.toggleAddressEdit();
+              if (controller.selectedAddressString.value.isNotEmpty) {
+                _showEditAddressBottomSheet(width, height);
+              } else {
+                // If no address selected, navigate to address list
+                Get.toNamed(Routes.ADDRESS_LIST)?.then((_) {
+                  // Refresh address when coming back
+                  controller.refreshAddress();
+                });
+              }
             },
             child: SizedBox(
               width: height * 0.035,
               height: height * 0.035,
-              child: Icon(
-                Icons.edit_outlined,
-                size: height * 0.02,
-                color: DefaultThemeColors.lightPrimary,
-              ),
+              child: Obx(() => Icon(
+                    controller.selectedAddressString.value.isNotEmpty
+                        ? Icons.edit_outlined
+                        : Icons.add_location_alt_outlined,
+                    size: height * 0.02,
+                    color: DefaultThemeColors.lightPrimary,
+                  )),
             ),
           ),
         ],
       ),
     );
+  }
+
+  // ── Edit Address Bottom Sheet Method ───────────────────────────────────
+  void _showEditAddressBottomSheet(double width, double height) {
+    // Get the selected address data from controller
+    final selectedAddressMap = controller.selectedAddressData.value;
+
+    print('Selected Address Map: $selectedAddressMap'); // Debug print
+    print(
+        'Selected Address Map Type: ${selectedAddressMap.runtimeType}'); // Debug print
+
+    if (selectedAddressMap.isEmpty) {
+      Get.snackbar(
+        "Error",
+        "No address selected to edit",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    // Make sure we're passing the address as a Map
+    final addressData = Map<String, dynamic>.from(selectedAddressMap);
+
+    print('Address Data to pass: $addressData'); // Debug print
+
+    // Navigate to AddressFormView in edit mode
+    Get.toNamed(
+      Routes.ADDRESS_FORM,
+      arguments: {'isEdit': true, 'address': addressData},
+    )?.then((result) {
+      // Refresh address when coming back from edit
+      if (result == true) {
+        controller.refreshAddress();
+
+        // Also refresh the address list controller to ensure data is in sync
+        if (Get.isRegistered<AddressListController>()) {
+          final addressController = Get.find<AddressListController>();
+          addressController.refreshAddresses();
+        }
+
+        Get.snackbar(
+          "Success",
+          "Address updated successfully",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: Duration(seconds: 2),
+        );
+      }
+    });
   }
 
   // ── Payment Methods Section (integrated from second design) ──────────────
@@ -656,6 +662,7 @@ class CheckoutViews extends GetView<CheckOutController> {
   }
 
   // ── Bottom Navigation Bar (from first design, integrated with order summary) ──
+  // ── Bottom Navigation Bar (from first design, integrated with order summary) ──
   Widget _buildBottomBar(double width, double height) {
     return Container(
       width: width,
@@ -677,17 +684,21 @@ class CheckoutViews extends GetView<CheckOutController> {
             child: PrimaryActionButton(
               text: "Pay Now",
               onPressed: () {
+                // Remove the immediate success dialog
+                // The success dialog should only show after payment is successful
                 controller.processOrder();
-                DialogHelper.showSuccessDialog(
-                  title: "Payment Successfully Processed",
-                  description:
-                      "Thank you for your purchase! Your payment has been successfully processed. Sit back, relax, and enjoy your new items.",
-                  imagePath: "assets/images/success.png",
-                  buttonText: "Continue",
-                  onPressed: () {
-                    Get.back();
-                  },
-                );
+
+                // ❌ REMOVE THIS - it's causing the issue
+                // DialogHelper.showSuccessDialog(
+                //   title: "Payment Successfully Processed",
+                //   description:
+                //       "Thank you for your purchase! Your payment has been successfully processed. Sit back, relax, and enjoy your new items.",
+                //   imagePath: "assets/images/success.png",
+                //   buttonText: "Continue",
+                //   onPressed: () {
+                //     Get.back();
+                //   },
+                // );
               },
             ),
           ),

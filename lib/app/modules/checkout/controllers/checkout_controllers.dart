@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:foduu_ecommerce/helpers/dialog_helper.dart';
 import '../widgets/paypal_view.dart';
 import '/app/routes/app_pages.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
@@ -19,7 +21,7 @@ class CheckOutController extends GetxController with BaseController {
   var deliveryOption = {}.obs;
   RxInt selectedIndex = 0.obs;
   var paymentOptions = [].obs;
-  var selectedAddress = "".obs;
+  //var selectedAddress = "".obs;
   var savedCards = <String>[].obs;
   var selectedCardIndex = 0.obs;
 
@@ -27,26 +29,118 @@ class CheckOutController extends GetxController with BaseController {
   /// (e.g. "stripe", "razorpay"). Empty when not applicable.
   var secondaryPaymentGateway = ''.obs;
 
-  // Add this to CheckOutController class
+  // Add these to CheckOutController
+  var selectedAddressString = "".obs; // For displaying in UI
+  var selectedAddressData = {}.obs; // For storing the full address object
+
   var isEditingAddress = false.obs;
-  var newAddressText = "".obs;
   var tempAddress = "".obs;
 
-  void updateAddress(String newAddress) {
-    selectedAddress.value = newAddress;
-    isEditingAddress.value = false;
-    tempAddress.value = "";
+  // Method to load selected address from AddressListController
+  // In CheckOutController, make sure loadSelectedAddress is properly setting selectedAddressData
+  void loadSelectedAddress() {
+    print('Loading selected address...'); // Debug print
+
+    if (Get.isRegistered<AddressListController>()) {
+      final addressController = Get.find<AddressListController>();
+      final int selectedAddrIndex = addressController.selectAddress.value;
+
+      print('Selected index: $selectedAddrIndex');
+      print('Address list length: ${addressController.userAddressList.length}');
+
+      if (addressController.userAddressList.isNotEmpty &&
+          selectedAddrIndex < addressController.userAddressList.length) {
+        // Store the full address data
+        final addressData =
+            addressController.userAddressList[selectedAddrIndex];
+        print('Address data type: ${addressData.runtimeType}');
+        print('Address data: $addressData');
+
+        // Make sure we're storing it as a Map
+        if (addressData is Map) {
+          selectedAddressData.value = Map.from(addressData);
+        } else if (addressData is Map<String, dynamic>) {
+          selectedAddressData.value = addressData;
+        } else {
+          print('Error: addressData is not a Map');
+          selectedAddressData.value = {};
+        }
+
+        final userAddress = selectedAddressData.value;
+
+        // Build the full address string
+        String fullAddress = "";
+
+        // Add name if exists
+        if (userAddress['name'] != null &&
+            userAddress['name'].toString().isNotEmpty) {
+          fullAddress = userAddress['name'].toString().capitalizeFirst ?? '';
+        }
+
+        // Add street and landmark
+        List<String> addressParts = [];
+        if (userAddress['street'] != null &&
+            userAddress['street'].toString().isNotEmpty) {
+          addressParts.add(userAddress['street']);
+        }
+        if (userAddress['landmark'] != null &&
+            userAddress['landmark'].toString().isNotEmpty) {
+          addressParts.add(userAddress['landmark']);
+        }
+
+        if (addressParts.isNotEmpty) {
+          if (fullAddress.isNotEmpty) fullAddress += ", ";
+          fullAddress += addressParts.join(', ');
+        }
+
+        // Add state and country
+        List<String> locationParts = [];
+        if (userAddress['state'] != null &&
+            userAddress['state'] is Map &&
+            userAddress['state']['name'] != null) {
+          locationParts.add(userAddress['state']['name']);
+        }
+        if (userAddress['country'] != null &&
+            userAddress['country'] is Map &&
+            userAddress['country']['name'] != null) {
+          locationParts.add(userAddress['country']['name']);
+        }
+
+        if (locationParts.isNotEmpty) {
+          if (fullAddress.isNotEmpty) fullAddress += ", ";
+          fullAddress += locationParts.join(', ');
+        }
+
+        // Add postal code/pincode
+        if (userAddress['postal_code'] != null &&
+            userAddress['postal_code'].toString().isNotEmpty) {
+          if (fullAddress.isNotEmpty) fullAddress += " - ";
+          fullAddress += userAddress['postal_code'];
+        } else if (userAddress['pincode'] != null &&
+            userAddress['pincode'].toString().isNotEmpty) {
+          if (fullAddress.isNotEmpty) fullAddress += " - ";
+          fullAddress += userAddress['pincode'];
+        }
+
+        selectedAddressString.value = fullAddress;
+        print('Full address string: $fullAddress');
+      } else {
+        print('No address found');
+        selectedAddressData.value = {};
+        selectedAddressString.value = "";
+      }
+    } else {
+      print('AddressListController not registered');
+    }
   }
 
-  void toggleAddressEdit() {
-    if (isEditingAddress.value) {
-      // If currently editing, reset temp address
-      tempAddress.value = "";
-    } else {
-      // Start editing with current address
-      tempAddress.value = selectedAddress.value;
-    }
-    isEditingAddress.value = !isEditingAddress.value;
+  void refreshAddress() {
+    loadSelectedAddress();
+  }
+
+  void updateAddressFromForm(Map<String, dynamic> updatedAddress) {
+    selectedAddressData.value = updatedAddress;
+    loadSelectedAddress(); // This will rebuild the display string
   }
 
   final box = GetStorage();
@@ -83,6 +177,10 @@ class CheckOutController extends GetxController with BaseController {
   void onInit() async {
     super.onInit();
     await getPaymentOption();
+    // Use a short delay to ensure AddressListController has loaded data
+    Future.delayed(Duration(milliseconds: 100), () {
+      loadSelectedAddress();
+    });
   }
 
   @override
@@ -312,11 +410,12 @@ class CheckOutController extends GetxController with BaseController {
 
             HelperFunctions().showOverlayLoader();
             try {
-              // ✅ pass USD if COD prepayment is via PayPal
               var orderResponse = await createOrder(
                 currency: selectedOnlineMethod == 'paypal' ? 'USD' : 'INR',
               );
+
               if (orderResponse == null) {
+                HelperFunctions().hideOverlayLoader();
                 if (Get.isDialogOpen ?? false) Get.back();
                 return;
               }
@@ -334,11 +433,24 @@ class CheckOutController extends GetxController with BaseController {
 
               await CODPayment().processPayment(amount: amount);
 
+              HelperFunctions().hideOverlayLoader();
               if (Get.isDialogOpen ?? false) Get.back();
-              Get.offAllNamed(Routes.ORDERSUCCESS, arguments: orderId);
+
+              // ✅ Show success dialog after successful payment
+              showPaymentSuccessDialog(orderId);
             } catch (e) {
+              HelperFunctions().hideOverlayLoader();
               if (Get.isDialogOpen ?? false) Get.back();
-              HelperFunctions().showSnackBarError('Prepayment failed: $e');
+
+              // Show appropriate message
+              if (e.toString().contains('cancelled') ||
+                  e.toString().contains('Cancelled') ||
+                  e.toString().contains('cancel')) {
+                HelperFunctions().showSnackBarError('Payment was cancelled');
+              } else {
+                HelperFunctions()
+                    .showSnackBarError('Prepayment failed: ${e.toString()}');
+              }
             } finally {
               secondaryPaymentGateway.value = '';
             }
@@ -352,14 +464,13 @@ class CheckOutController extends GetxController with BaseController {
     HelperFunctions().showOverlayLoader();
 
     try {
-      // ✅ pass USD when PayPal is the primary method
       var orderResponse = await createOrder(
         currency: methodName == 'paypal' ? 'USD' : 'INR',
       );
       printInfo(info: 'orderResponse: $orderResponse');
 
       if (orderResponse == null) {
-        if (Get.isDialogOpen ?? false) Get.back();
+        HelperFunctions().hideOverlayLoader();
         return;
       }
 
@@ -374,209 +485,113 @@ class CheckOutController extends GetxController with BaseController {
         rawOrderId: rawOrderId,
       );
 
-      if (Get.isDialogOpen ?? false) Get.back();
-      Get.offAllNamed(Routes.ORDERSUCCESS, arguments: orderId);
+      HelperFunctions().hideOverlayLoader();
+
+      // ✅ Show success dialog after successful payment
+      showPaymentSuccessDialog(orderId);
     } catch (e) {
-      if (Get.isDialogOpen ?? false) Get.back();
-      HelperFunctions().showSnackBarError('Failed to place order: $e');
+      HelperFunctions().hideOverlayLoader();
+
+      // Show appropriate error message
+      if (e.toString().contains('cancelled') ||
+          e.toString().contains('Cancelled') ||
+          e.toString().contains('cancel')) {
+        HelperFunctions().showSnackBarError('Payment was cancelled');
+      } else {
+        HelperFunctions()
+            .showSnackBarError('Failed to place order: ${e.toString()}');
+      }
     }
   }
 
-  // Future<void> processOrder() async {
-  //   if (deliveryOption.isEmpty) {
-  //     HelperFunctions().showSnackBarError('Please select a payment method');
-  //     return;
-  //   }
-  //
-  //   final String methodName = deliveryOption['name'];
-  //   final double amount = cartController.total.value;
-  //
-  //   // ── COD prepayment flow ──
-  //   if (methodName == 'cod') {
-  //     final codConfig = paymentConfig['cod'];
-  //     final bool needsPrepayment = codConfig['cod_prepayment_type'] != null &&
-  //         codConfig['cod_prepayment_ammount'] != null &&
-  //         codConfig['cod_prepayment_ammount'].toString().isNotEmpty;
-  //
-  //     if (needsPrepayment) {
-  //       final double prepaymentAmount =
-  //           double.tryParse(codConfig['cod_prepayment_ammount'].toString()) ??
-  //               0.0;
-  //
-  //       showCodPrepaymentDialog(
-  //         amount: prepaymentAmount,
-  //         onMethodSelected: (selectedOnlineMethod) async {
-  //           // Store the chosen secondary gateway so createOrder() includes it.
-  //           secondaryPaymentGateway.value = selectedOnlineMethod;
-  //
-  //           HelperFunctions().showOverlayLoader();
-  //           try {
-  //             var orderResponse = await createOrder();
-  //             if (orderResponse == null) {
-  //               if (Get.isDialogOpen ?? false) Get.back();
-  //               return;
-  //             }
-  //
-  //             final String orderId =
-  //                 orderResponse['order_no'] ?? orderResponse['_id'] ?? "";
-  //             final String rawOrderId = orderResponse['_id'] ?? "";
-  //
-  //             await _processGatewayPayment(
-  //               methodName: selectedOnlineMethod,
-  //               amount: prepaymentAmount,
-  //               orderResponse: orderResponse,
-  //               rawOrderId: rawOrderId,
-  //             );
-  //
-  //             // Finalize as COD.
-  //             await CODPayment().processPayment(amount: amount);
-  //
-  //             if (Get.isDialogOpen ?? false) Get.back();
-  //             Get.offAllNamed(Routes.ORDERSUCCESS, arguments: orderId);
-  //           } catch (e) {
-  //             if (Get.isDialogOpen ?? false) Get.back();
-  //             HelperFunctions().showSnackBarError('Prepayment failed: $e');
-  //           } finally {
-  //             secondaryPaymentGateway.value = '';
-  //           }
-  //         },
-  //       );
-  //       return; // Wait for dialog selection.
-  //     }
-  //   }
-  //
-  //   // ── Standard flow (no prepayment) ──
-  //   HelperFunctions().showOverlayLoader();
-  //
-  //   try {
-  //     var orderResponse = await createOrder();
-  //     printInfo(info: 'orderResponse: $orderResponse');
-  //
-  //     if (orderResponse == null) {
-  //       if (Get.isDialogOpen ?? false) Get.back();
-  //       return;
-  //     }
-  //
-  //     final String orderId =
-  //         orderResponse['order_no'] ?? orderResponse['_id'] ?? "";
-  //     final String rawOrderId = orderResponse['_id'] ?? "";
-  //
-  //     await _processGatewayPayment(
-  //       methodName: methodName,
-  //       amount: amount,
-  //       orderResponse: orderResponse,
-  //       rawOrderId: rawOrderId,
-  //     );
-  //
-  //     if (Get.isDialogOpen ?? false) Get.back();
-  //     Get.offAllNamed(Routes.ORDERSUCCESS, arguments: orderId);
-  //   } catch (e) {
-  //     if (Get.isDialogOpen ?? false) Get.back();
-  //     HelperFunctions().showSnackBarError('Failed to place order: $e');
-  //   }
-  // }
   Future<void> _processGatewayPayment({
     required String methodName,
     required double amount,
     required Map<String, dynamic> orderResponse,
     required String rawOrderId,
   }) async {
-    switch (methodName) {
-      case 'stripe':
-        final publicKey = paymentConfig['stripe']['publicKey'];
-        final clientSecret = orderResponse['payment_client_secret'] ?? "";
-        final paymentIntentId = orderResponse['payment_intent_id'] ?? "";
-        await StripePayment(publicKey: publicKey).processPayment(
-          amount: amount,
-          currency: 'INR',
-          clientSecret: clientSecret,
-        );
-        await confirmPayment(rawOrderId, paymentIntentId);
-        break;
+    try {
+      switch (methodName) {
+        case 'stripe':
+          final publicKey = paymentConfig['stripe']['publicKey'];
+          final clientSecret = orderResponse['payment_client_secret'] ?? "";
+          final paymentIntentId = orderResponse['payment_intent_id'] ?? "";
 
-      case 'razorpay':
-        final keyId = paymentConfig['razorpay']['key_id'];
-        await RazorPayPayment(keyId: keyId).processPayment(
-          amount: amount,
-          metadata: orderResponse,
-        );
-        break;
+          try {
+            await StripePayment(publicKey: publicKey).processPayment(
+              amount: amount,
+              currency: 'INR',
+              clientSecret: clientSecret,
+            );
 
-      case 'phonepe':
-        final merchantId = paymentConfig['phonepe']['merchant_id'];
-        await PhonePePayment(merchantId: merchantId).processPayment(
-          amount: amount,
-          metadata: orderResponse,
-        );
-        break;
+            await confirmPayment(rawOrderId, paymentIntentId);
+          } catch (e) {
+            // Check if this is a cancellation (Stripe often throws PlatformException with code 'cancelled')
+            if (e.toString().toLowerCase().contains('cancel') ||
+                (e is PlatformException && e.code == 'cancelled')) {
+              throw Exception('Payment was cancelled by user');
+            }
+            rethrow;
+          }
+          break;
 
-      // ✅ ADD THIS CASE
-      case 'paypal':
-        final clientId = paymentConfig['paypal']['client_id'];
-        final secretKey = paymentConfig['paypal']['client_secret'];
-        await PayPalPayment(
-          clientId: clientId,
-          secretKey: secretKey,
-        ).processPayment(
-          amount: amount,
-          metadata: orderResponse,
-          currency: 'USD',
-        );
-        break;
+        case 'razorpay':
+          final keyId = paymentConfig['razorpay']['key_id'];
+          await RazorPayPayment(keyId: keyId).processPayment(
+            amount: amount,
+            metadata: orderResponse,
+          );
+          break;
 
-      case 'cod':
-        await CODPayment().processPayment(amount: amount);
-        break;
+        case 'phonepe':
+          final merchantId = paymentConfig['phonepe']['merchant_id'];
+          await PhonePePayment(merchantId: merchantId).processPayment(
+            amount: amount,
+            metadata: orderResponse,
+          );
+          break;
 
-      default:
-        printInfo(info: 'Unknown payment method: $methodName');
-        await Future.delayed(const Duration(seconds: 1));
+        case 'paypal':
+          final clientId = paymentConfig['paypal']['client_id'];
+          final secretKey = paymentConfig['paypal']['client_secret'];
+          await PayPalPayment(
+            clientId: clientId,
+            secretKey: secretKey,
+          ).processPayment(
+            amount: amount,
+            metadata: orderResponse,
+            currency: 'USD',
+          );
+          break;
+
+        case 'cod':
+          await CODPayment().processPayment(amount: amount);
+          break;
+
+        default:
+          printInfo(info: 'Unknown payment method: $methodName');
+          await Future.delayed(const Duration(seconds: 1));
+      }
+    } catch (e) {
+      // Log the error for debugging
+      printInfo(info: 'Payment error in $methodName: $e');
+      rethrow;
     }
   }
 
-  // Future<void> _processGatewayPayment({
-  //   required String methodName,
-  //   required double amount,
-  //   required Map<String, dynamic> orderResponse,
-  //   required String rawOrderId,
-  // }) async {
-  //   switch (methodName) {
-  //     case 'stripe':
-  //       final publicKey = paymentConfig['stripe']['publicKey'];
-  //       final clientSecret = orderResponse['payment_client_secret'] ?? "";
-  //       final paymentIntentId = orderResponse['payment_intent_id'] ?? "";
-  //
-  //       await StripePayment(publicKey: publicKey).processPayment(
-  //         amount: amount,
-  //         currency: 'INR',
-  //         clientSecret: clientSecret,
-  //       );
-  //       await confirmPayment(rawOrderId, paymentIntentId);
-  //       break;
-  //
-  //     case 'razorpay':
-  //       final keyId = paymentConfig['razorpay']['key_id'];
-  //       await RazorPayPayment(keyId: keyId).processPayment(
-  //         amount: amount,
-  //         metadata: orderResponse,
-  //       );
-  //       break;
-  //
-  //     case 'phonepe':
-  //       final merchantId = paymentConfig['phonepe']['merchant_id'];
-  //       await PhonePePayment(merchantId: merchantId).processPayment(
-  //         amount: amount,
-  //         metadata: orderResponse,
-  //       );
-  //       break;
-  //
-  //     case 'cod':
-  //       await CODPayment().processPayment(amount: amount);
-  //       break;
-  //
-  //     default:
-  //       printInfo(info: 'Unknown payment method: $methodName');
-  //       await Future.delayed(const Duration(seconds: 1));
-  //   }
-  // }
+  // Add this method to CheckOutController
+  void showPaymentSuccessDialog(String orderId) {
+    DialogHelper.showSuccessDialog(
+      title: "Payment Successfully Processed",
+      description:
+          "Thank you for your purchase! Your payment has been successfully processed. Sit back, relax, and enjoy your new items.",
+      imagePath: "assets/images/success.png",
+      buttonText: "Continue",
+      onPressed: () {
+        Get.back();
+        // Navigate to order success page
+        Get.offAllNamed(Routes.ORDERSUCCESS, arguments: orderId);
+      },
+    );
+  }
 }
