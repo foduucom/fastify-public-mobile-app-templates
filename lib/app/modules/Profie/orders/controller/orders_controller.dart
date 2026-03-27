@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
-import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import '/app/controllers/api_exception_handle_controller.dart';
+import '/app/data/basic_provider.dart';
 import 'package:get/get.dart';
 
 class OrdersController extends GetxController with BaseController {
@@ -19,16 +19,33 @@ class OrdersController extends GetxController with BaseController {
   }
 
   Future<void> Orders() async {
-    isLoading.value = true;
-    var response = await BasicProvider("orders/get/all")
-        .getRequest()
-        .catchError(handleError);
-    if (response == null) return;
-    orderList.addAll(response["data"]);
-    // maxPage(response["last_page"]);
-    isLoading.value = false;
-    // print('response===$response');
-    // print('orderList===$orderList');
+    try {
+      isLoading.value = true;
+      var response =
+          await BasicProvider("order").getRequest().catchError(handleError);
+
+      if (response != null) {
+        if (response is List) {
+          orderList.addAll(response);
+        } else if (response is Map) {
+          if (response["docs"] is Iterable) {
+            orderList.addAll(response["docs"]);
+          } else if (response["data"] is Iterable) {
+            orderList.addAll(response["data"]);
+          } else if (response["data"] is Map &&
+              response["data"]["docs"] is Iterable) {
+            orderList.addAll(response["data"]["docs"]);
+          }
+          // if (response["last_page"] != null) {
+          //   maxPage.value = response["last_page"];
+          // }
+        }
+      }
+    } catch (e) {
+      debugPrint('Orders error: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   // Future<void> fetchMoreCategoriesOnScroll() async {

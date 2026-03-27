@@ -20,29 +20,29 @@ class OrdersView extends GetView<OrdersController> {
         body: RefreshIndicator(
           onRefresh: () async => controller.onRefresh(),
           child: Obx(
-                () => controller.isLoading.isFalse && controller.orderList.isEmpty
+            () => controller.isLoading.isFalse && controller.orderList.isEmpty
                 ? const NoOrders()
                 : ListView.separated(
-              controller: controller.scrollController,
-              padding: const EdgeInsets.symmetric(
-                  vertical: 16, horizontal: 12),
-              itemCount: controller.isLoading.isTrue &&
-                  controller.orderList.isEmpty
-                  ? 6
-                  : controller.orderList.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                if (controller.isLoading.isTrue &&
-                    controller.orderList.isEmpty) {
-                  return const OrderListShimmer();
-                }
-                return OrderCard(
-                  item: controller.orderList[index],
-                  // Pass index to guarantee globally unique hero tags
-                  listIndex: index,
-                );
-              },
-            ),
+                    controller: controller.scrollController,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16, horizontal: 12),
+                    itemCount: controller.isLoading.isTrue &&
+                            controller.orderList.isEmpty
+                        ? 6
+                        : controller.orderList.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      if (controller.isLoading.isTrue &&
+                          controller.orderList.isEmpty) {
+                        return const OrderListShimmer();
+                      }
+                      return OrderCard(
+                        item: controller.orderList[index],
+                        // Pass index to guarantee globally unique hero tags
+                        listIndex: index,
+                      );
+                    },
+                  ),
           ),
         ),
       ),
@@ -64,7 +64,8 @@ class OrderCard extends StatelessWidget {
     final filepath = imageObj['filepath']?.toString() ?? '';
     if (filepath.isNotEmpty) {
       // Ensure we don't have double slashes if filepath starts with '/'
-      final cleanPath = filepath.startsWith('/') ? filepath.substring(1) : filepath;
+      final cleanPath =
+          filepath.startsWith('/') ? filepath.substring(1) : filepath;
       // ✅ FIXED: Changed to mywatch.vbought.com
       return 'https://mywatch.vbought.com/images/$cleanPath';
     }
@@ -80,7 +81,8 @@ class OrderCard extends StatelessWidget {
     if (uri == null) return url;
 
     // ✅ FIXED: Check and replace with mywatch.vbought.com
-    if (uri.host.endsWith('.vbought.com') && uri.host != 'mywatch.vbought.com') {
+    if (uri.host.endsWith('.vbought.com') &&
+        uri.host != 'mywatch.vbought.com') {
       return url.replaceFirst(uri.host, 'mywatch.vbought.com');
     }
     return url;
@@ -108,7 +110,7 @@ class OrderCard extends StatelessWidget {
 
       if (gallery is List && frontImageId.isNotEmpty) {
         final match = gallery.firstWhere(
-              (g) => g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
+          (g) => g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
           orElse: () => null,
         );
 
@@ -154,7 +156,7 @@ class OrderCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     final orderId =
-    (item['order_no'] ?? item['_id'] ?? item['id'] ?? '').toString();
+        (item['order_no'] ?? item['_id'] ?? item['id'] ?? '').toString();
     final paymentStatus = (item['payment_status'] ?? 'Pending').toString();
     final currency = (item['currency'] ?? '₹').toString();
     final total = (item['total'] ?? '0').toString();
@@ -199,20 +201,21 @@ class OrderCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               child: imageUrl.isNotEmpty
                   ? Image.network(
-                imageUrl,
-                width: 70,
-                height: 70,
-                fit: BoxFit.cover,
-                gaplessPlayback: true,
-                errorBuilder: (_, error, ___) {
-                  debugPrint('🚨 Failed to load image from network: $imageUrl');
-                  return _imageFallback(theme);
-                },
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return _imageFallback(theme);
-                },
-              )
+                      imageUrl,
+                      width: 70,
+                      height: 70,
+                      fit: BoxFit.cover,
+                      gaplessPlayback: true,
+                      errorBuilder: (_, error, ___) {
+                        debugPrint(
+                            '🚨 Failed to load image from network: $imageUrl');
+                        return _imageFallback(theme);
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return _imageFallback(theme);
+                      },
+                    )
                   : _imageFallback(theme),
             ),
             const SizedBox(width: 12),
@@ -428,13 +431,17 @@ class OrderListShimmer extends StatelessWidget {
                   Container(
                     height: 10,
                     width: double.infinity,
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(6)),
                   ),
                   const SizedBox(height: 8),
                   Container(
                     height: 10,
                     width: 150,
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(6)),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -443,12 +450,16 @@ class OrderListShimmer extends StatelessWidget {
                       Container(
                         height: 10,
                         width: 60,
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(6)),
                       ),
                       Container(
                         height: 10,
                         width: 80,
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(6)),
                       ),
                     ],
                   ),
@@ -477,8 +488,7 @@ class NoOrders extends StatelessWidget {
         children: [
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 30),
-            child:
-            Image(image: AssetImage('assets/images/emptyimagecart.png')),
+            child: Image(image: AssetImage('assets/images/emptyimagecart.png')),
           ),
           const SizedBox(height: 20),
           Text(

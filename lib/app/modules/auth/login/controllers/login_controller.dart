@@ -240,7 +240,7 @@ class LoginController extends GetxController with BaseController {
 
       if (statusCode == 200 || statusCode == 201) {
         // Use AuthDetails to save the response properly
-        AuthDetails.saveLoginResponse(responseBody);
+        //AuthDetails.saveLoginResponse(responseBody);
 
         // Extract message for snackbar
         String successMessage = 'Login successful!';
@@ -260,7 +260,7 @@ class LoginController extends GetxController with BaseController {
         passwordController.clear();
 
         // Navigate to main screen
-        Get.offAllNamed(Routes.BOTTOMBAR);
+        Get.offAllNamed(Routes.OTP);
       } else {
         // Handle error responses
         String errorMsg = 'Login failed. Please check your credentials.';

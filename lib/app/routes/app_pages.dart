@@ -1,5 +1,9 @@
+import 'package:foduu_ecommerce/app/modules/Profie/orders/binding/order_binding.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/order_products/binding/order_products_binding.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/order_products/view/order_view.dart';
+import 'package:foduu_ecommerce/app/modules/Profie/orders/orders_details/binding/orderdetails_binding.dart';
+import 'package:foduu_ecommerce/app/modules/Profie/orders/orders_details/view/orderdetails_view.dart';
+import 'package:foduu_ecommerce/app/modules/Profie/orders/view/order_view.dart';
 import 'package:foduu_ecommerce/app/modules/add_profile/bindings/add_profile_binding.dart';
 import 'package:foduu_ecommerce/app/modules/add_profile/views/add_profile_view.dart';
 import 'package:foduu_ecommerce/app/modules/address/bindings/address_form_binding.dart';
@@ -209,6 +213,23 @@ class AppPages {
       binding: WishlistBinding(),
     ),
 
+    GetPage(
+      name: _Paths.ORDERS,
+      page: () => OrdersView(),
+      binding: OrdersBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.ORDER_DETAILS,
+      page: () => OrderdetailView(),
+      binding: OrderdetailBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.ORDER_PRODUCTS,
+      page: () => const OrderProductsView(),
+      binding: OrderProductsBinding(),
+    ),
     // GetPage(
     //   name: _Paths.LOGIN,
     //   page: () => LoginView(),
