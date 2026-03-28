@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/controllers/homepage_controller.dart';
+import 'package:foduu_ecommerce/components/shimmer/home_shimmer.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
 import 'package:get/get.dart';
 
@@ -9,13 +10,19 @@ class HomePageView extends GetView<HomepageController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FoduuStudioLayoutView(
-        widgetList: controller.widgetList,
-        isLoading: controller.isLoading,
-        onRefresh: () async {
-          await controller.getDashboardDesign(controller.pageSlug);
-        },
-      ),
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const HomeShimmer();
+        }
+
+        return FoduuStudioLayoutView(
+          widgetList: controller.widgetList,
+          isLoading: controller.isLoading,
+          onRefresh: () async {
+            await controller.getDashboardDesign(controller.pageSlug);
+          },
+        );
+      }),
     );
   }
 
