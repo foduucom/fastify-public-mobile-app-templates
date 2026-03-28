@@ -16,7 +16,7 @@ import 'package:get/get.dart';
 class ProfileView extends GetView<ProfileController> {
   ProfileView({Key? key}) : super(key: key);
   final profileController =
-  Get.lazyPut<ProfileController>(() => ProfileController());
+      Get.lazyPut<ProfileController>(() => ProfileController());
 
   final bottomeController = Get.find<BottombarController>();
 
@@ -42,9 +42,9 @@ class ProfileView extends GetView<ProfileController> {
           children: [
             Center(
                 child: Text(
-                  'Login to View Profile',
-                  style: txtTheme().displayMedium,
-                )),
+              'Login to View Profile',
+              style: txtTheme().displayMedium,
+            )),
             const SizedBox(height: 15),
             SizedBox(
               width: Get.width * 0.6,
@@ -104,19 +104,19 @@ class ProfileView extends GetView<ProfileController> {
                     children: [
                       // Profile Image
                       Obx(
-                            () => Container(
+                        () => Container(
                           width: height * 0.075,
                           height: height * 0.075,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             image: DecorationImage(
-                              image: controller.profiledata['featured_image'] == null
+                              image: controller.profiledata['featured_image'] ==
+                                      null
                                   ? const AssetImage('assets/images/men.png')
-                                  : NetworkImage(
-                                  HelperFunctions().getImage(
-                                      controller.profiledata['featured_image']
-                                  )
-                              ) as ImageProvider,
+                                  : NetworkImage(HelperFunctions().getImage(
+                                          controller
+                                              .profiledata['featured_image']))
+                                      as ImageProvider,
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -131,20 +131,41 @@ class ProfileView extends GetView<ProfileController> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
+                            Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Obx(
+                                    () => Text(
+                                      controller.profiledata['name']
+                                              ?.toString() ??
+                                          '',
+                                      style: TextStyle(
+                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontSize: height * 0.022,
+                                        fontWeight: FontWeight.w600,
+                                        height: 1.66,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 25,
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        Get.to(() => const EditprofileView());
+                                      },
+                                      child: const Text('Edit',
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              fontFamily: 'Lato')),
+                                    ),
+                                  ),
+                                ]),
                             Obx(
-                                  () => Text(
-                                controller.profiledata['name']?.toString() ?? '',
-                                style: TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
-                                  fontSize: height * 0.022,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.66,
-                                ),
-                              ),
-                            ),
-                            Obx(
-                                  () => Text(
-                                controller.profiledata['email']?.toString() ?? '',
+                              () => Text(
+                                controller.profiledata['email']?.toString() ??
+                                    '',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -172,7 +193,8 @@ class ProfileView extends GetView<ProfileController> {
                   child: ListView.separated(
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: controller.profileOptions.length,
-                    separatorBuilder: (context, index) => const SizedBox.shrink(),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox.shrink(),
                     itemBuilder: ((context, index) {
                       return Container(
                         width: width * 0.92,
@@ -186,13 +208,13 @@ class ProfileView extends GetView<ProfileController> {
                         ),
                         decoration: index < controller.profileOptions.length - 1
                             ? const BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: Colors.grey,
-                              width: 1,
-                            ),
-                          ),
-                        )
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Colors.grey,
+                                    width: 1,
+                                  ),
+                                ),
+                              )
                             : null,
                         child: profileSection(
                           ontap: () {
@@ -217,9 +239,11 @@ class ProfileView extends GetView<ProfileController> {
                           },
                           assetIcon: controller.profileOptions[index]['icon']
                               .toString(),
-                          profileOption: controller.profileOptions[index]['title']
+                          profileOption: controller.profileOptions[index]
+                                  ['title']
                               .toString(),
-                          optionDetial: controller.profileOptions[index]['subtitle']
+                          optionDetial: controller.profileOptions[index]
+                                  ['subtitle']
                               .toString(),
                           width: width,
                           height: height,

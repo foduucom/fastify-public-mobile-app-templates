@@ -1,693 +1,840 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/home_component/studio_search_bar_rounded.dart';
 import 'package:foduu_ecommerce/components/search_bar_rounded.dart';
-import 'package:foduu_ecommerce/constants/constants.dart';
-import 'package:foduu_ecommerce/constants/helper_functions.dart';
-import 'package:foduu_ecommerce/constants/theme.dart';
+import 'package:shimmer/shimmer.dart';
+import '/app/modules/product/views/product_view.dart';
+import '/app/modules/shop/bindings/shop_binding.dart';
+import '/app/routes/app_pages.dart';
+import '/constants/constants.dart';
+import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
 import '../controllers/search_controller.dart';
 
+// ── Safe capitalize ──────────
+String _cap(dynamic value) {
+  if (value == null) return '';
+  final s = value.toString().trim();
+  if (s.isEmpty) return '';
+  return s[0].toUpperCase() + s.substring(1);
+}
+
 class SearchView extends GetView<SearchsController> {
   const SearchView({Key? key}) : super(key: key);
 
-  // In SearchView.dart, update the getImage method to use controller
-  String getImage(int index) {
-    try {
-      if (index < 0 || index >= controller.trendingCategoryProduct.length) {
-        return HelperFunctions.getNoImage();
-      }
-
-      final product = controller.trendingCategoryProduct[index];
-      return controller.getProductImage(product);
-    } catch (e) {
-      print('Error in getImage: $e');
-      return HelperFunctions.getNoImage();
-    }
-  }
-
-// Also update the _buildImageUrl method
-  String _buildImageUrl(dynamic item) {
-    return controller.getProductImage(item);
-  }
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+
     return GestureDetector(
       onTap: () => HelperFunctions().closeKeyboard(context),
-      child: SafeArea(
-        child: Scaffold(
-          appBar: AppBar(
-            titleSpacing: 15,
-            title: SizedBox(
-              height: Get.height * 0.05,
-              child: SearchBarRounded(
-                icon: Icons.arrow_back_ios,
-                searchHintText: "Search...",
-                SearchsController: controller.searchTextController,
-                onChanged: (value) {
-                  controller.serachData.clear();
-                  controller.searchBlog.clear();
-                  controller.searchCategory.clear();
-                  controller.searchProduct.clear();
-                  if (value.isNotEmpty && value.length > 2) {
-                    controller.getSearchSuggestion(text: value);
-                  }
+      child: Scaffold(
+        backgroundColor: colorScheme.background,
+
+        // Remove the default AppBar completely
+        appBar: null,
+
+        body: SafeArea(
+          child: Column(
+            children: [
+              // ── CUSTOM HEADER WITH SEARCH BAR AND ICONS ──
+              SearchViewHeader(
+                width: width,
+                height: height,
+                searchTextController: controller.searchTextController,
+                onSearchChanged: (value) {
+                  controller.getSearchSuggestion(text: value);
                 },
+                onCartTap: () => Get.toNamed(Routes.CART),
+                onMessageTap: () => print("Message tapped"),
+                onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),
               ),
-            ),
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-          ),
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: pageSurroundingPadding,
-              child: Column(
+
+              SizedBox(height: 8),
+              // ── POPULAR KEYWORDS SECTION ──
+              // Container with vertical gap of 12px
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Obx(
-                    () {
-                      return controller.searchProduct.isNotEmpty ||
-                              controller.searchCategory.isNotEmpty ||
-                              controller.searchBlog.isNotEmpty
-                          ? Container()
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                controller.recentSearchList.isNotEmpty
-                                    ? Text(
-                                        "Recent Search",
-                                        style: txtTheme()
-                                            .headlineSmall!
-                                            .copyWith(
-                                                fontWeight: FontWeight.bold),
-                                      )
-                                    : Container(),
-                                ListView.builder(
-                                  shrinkWrap: true,
-                                  itemCount:
-                                      controller.recentSearchList.length >= 4
-                                          ? 4
-                                          : controller.recentSearchList.length,
-                                  itemBuilder: (context, index) => Column(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(6.0),
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            if (controller
-                                                        .recentSearchList[index]
-                                                    ['type'] ==
-                                                'product') {
-                                              Get.toNamed(Routes.PRODUCTDETAILS,
-                                                  arguments: {
-                                                    'productId': controller
-                                                            .recentSearchList[
-                                                        index]['productId'],
-                                                  });
-                                            } else if (controller
-                                                        .recentSearchList[index]
-                                                    ['type'] ==
-                                                'category') {
-                                              print('ont tap');
-                                              print(
-                                                  'recent ${controller.recentSearchList}');
-                                              Get.toNamed(
-                                                  Routes.SHOPPRODUCTLISTVIEW,
-                                                  arguments: {
-                                                    'productId': controller
-                                                            .recentSearchList[
-                                                        index]['productId'],
-                                                    'source': 'category',
-                                                    'name': controller
-                                                            .recentSearchList[
-                                                        index]['name']
-                                                  });
-                                            } else if (controller
-                                                        .recentSearchList[index]
-                                                    ['type'] ==
-                                                'blog') {
-                                              Get.toNamed(Routes.BLOG,
-                                                  arguments: controller
-                                                          .recentSearchList[
-                                                      index]['productId']);
-                                            }
-                                          },
-                                          child: Row(
-                                            children: [
-                                              Icon(Icons.access_time, size: 20),
-                                              SizedBox(width: 10),
-                                              Expanded(
-                                                child: Text(
-                                                    controller.recentSearchList[
-                                                            index]['name'] ??
-                                                        '',
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: txtTheme()
-                                                        .titleLarge!
-                                                        .copyWith(
-                                                            color: Theme.of(
-                                                                    context)
-                                                                .primaryColor)),
-                                              ),
-                                              const Spacer(),
-                                              GestureDetector(
-                                                onTap: () {
-                                                  controller.recentSearchList
-                                                      .removeAt(index);
-                                                  controller.box.write(
-                                                      'recentSearch',
-                                                      controller
-                                                          .recentSearchList);
-                                                },
-                                                child: const Icon(
-                                                  Icons
-                                                      .highlight_remove_outlined,
-                                                  size: 24,
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            );
-                    },
-                  ),
-                  Obx(
-                    () {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          controller.searchProduct.isNotEmpty
-                              ? Text(
-                                  "Products",
-                                  style: txtTheme()
-                                      .headlineSmall!
-                                      .copyWith(fontWeight: FontWeight.bold),
-                                )
-                              : Container(),
-                          ListView.separated(
-                            shrinkWrap: true,
-                            itemCount: controller.searchProduct.length > 3
-                                ? 3
-                                : controller.searchProduct.length,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              return ListTile(
-                                onTap: () {
-                                  controller.recentSearchList.add({
-                                    'productId': controller.searchProduct[index]
-                                        ['_id'],
-                                    'name': controller.searchProduct[index]
-                                        ['name'],
-                                    'type': 'product'
-                                  });
-                                  controller.box.write(
-                                      'recentSearch',
-                                      controller.recentSearchList
-                                          .toSet()
-                                          .toList());
-                                  Get.toNamed(Routes.PRODUCTDETAILS,
-                                      arguments: {
-                                        'productId': controller
-                                            .searchProduct[index]['_id']
-                                      });
-                                },
-                                leading: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: CachedNetworkImage(
-                                    progressIndicatorBuilder: (context, url,
-                                            progress) =>
-                                        HelperFunctions().loadingIndicator(),
-                                    width: 45,
-                                    height: 45,
-                                    fit: BoxFit.cover,
-                                    filterQuality: FilterQuality.low,
-                                    errorWidget: ((context, url, error) {
-                                      return const SizedBox(
-                                        child: Icon(Icons.error),
-                                      );
-                                    }),
-                                    imageUrl: _buildImageUrl(
-                                        controller.searchProduct[index]),
-                                  ),
-                                ),
-                                title: Text(
-                                  controller.searchProduct[index]['name'],
-                                  style: txtTheme().titleLarge!.copyWith(),
-                                ),
-                              );
-                            },
-                            separatorBuilder: (context, index) {
-                              return const SizedBox(
-                                height: 10,
-                              );
-                            },
+                  // Row with "Popular keyword" and "Filter"
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Popular keyword",
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
                           ),
-                        ],
-                      );
-                    },
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            // TODO: Add filter functionality
+                            print("Filter tapped");
+                          },
+                          child: Text(
+                            "Filter",
+                            style: textTheme.titleSmall?.copyWith(
+                              color: Theme.of(context)
+                                  .primaryColor, // PrimaryThemeColor
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Obx(
-                    () {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          controller.searchCategory.isNotEmpty
-                              ? Text(
-                                  "Category",
-                                  style: txtTheme()
-                                      .headlineSmall!
-                                      .copyWith(fontWeight: FontWeight.bold),
-                                )
-                              : Container(),
-                          ListView.separated(
-                            shrinkWrap: true,
-                            itemCount: controller.searchCategory.length > 3
-                                ? 3
-                                : controller.searchCategory.length,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              return ListTile(
-                                onTap: () {
-                                  controller.recentSearchList.add({
-                                    'productId':
-                                        controller.searchCategory[index]['_id'],
-                                    'name': controller.searchCategory[index]
-                                        ['name'],
-                                    'type': 'category'
-                                  });
-                                  controller.box.write(
-                                      'recentSearch',
-                                      controller.recentSearchList
-                                          .toSet()
-                                          .toList());
+                  const SizedBox(height: 8), // Gap between row and wrap
 
-                                  Get.toNamed(Routes.SHOPPRODUCTLISTVIEW,
-                                      arguments: {
-                                        'productId': controller
-                                            .searchCategory[index]['_id'],
-                                        'name': controller.searchCategory[index]
-                                            ['name'],
-                                        'source': 'category',
-                                      });
-                                },
-                                leading: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: CachedNetworkImage(
-                                    progressIndicatorBuilder: (context, url,
-                                            progress) =>
-                                        HelperFunctions().loadingIndicator(),
-                                    width: 45,
-                                    height: 45,
-                                    fit: BoxFit.cover,
-                                    filterQuality: FilterQuality.low,
-                                    errorWidget: ((context, url, error) {
-                                      return const SizedBox(
-                                        child: Icon(Icons.error),
-                                      );
-                                    }),
-                                    imageUrl: _buildImageUrl(
-                                        controller.searchCategory[index]),
-                                  ),
-                                ),
-                                title: Text(
-                                  controller.searchCategory[index]['name'],
-                                  style: txtTheme().titleLarge!.copyWith(),
-                                ),
-                              );
-                            },
-                            separatorBuilder: (context, index) {
-                              return const SizedBox(
-                                height: 10,
-                              );
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  Obx(
-                    () {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          controller.searchBlog.isNotEmpty
-                              ? Text(
-                                  "Blogs",
-                                  style: txtTheme()
-                                      .headlineSmall!
-                                      .copyWith(fontWeight: FontWeight.bold),
-                                )
-                              : Container(),
-                          ListView.separated(
-                            shrinkWrap: true,
-                            itemCount: controller.searchBlog.length > 3
-                                ? 3
-                                : controller.searchBlog.length,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              return ListTile(
-                                onTap: () {
-                                  controller.recentSearchList.add({
-                                    'productId': controller.searchBlog[index]
-                                        ['_id'],
-                                    'name': controller.searchBlog[index]
-                                        ['name'],
-                                    'type': 'blog'
-                                  });
-                                  controller.box.write(
-                                      'recentSearch',
-                                      controller.recentSearchList
-                                          .toSet()
-                                          .toList());
-                                  Get.toNamed(Routes.BLOG,
-                                      arguments: controller.searchBlog[index]
-                                          ['_id']);
-                                },
-                                leading: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: CachedNetworkImage(
-                                    progressIndicatorBuilder: (context, url,
-                                            progress) =>
-                                        HelperFunctions().loadingIndicator(),
-                                    width: 45,
-                                    height: 45,
-                                    fit: BoxFit.cover,
-                                    errorWidget: ((context, url, error) {
-                                      return const SizedBox(
-                                        child: Icon(Icons.error),
-                                      );
-                                    }),
-                                    filterQuality: FilterQuality.low,
-                                    imageUrl: _buildImageUrl(
-                                        controller.searchBlog[index]),
-                                  ),
-                                ),
-                                title: Text(
-                                  controller.searchBlog[index]['name'],
-                                  style: txtTheme().titleLarge!.copyWith(),
-                                ),
-                              );
-                            },
-                            separatorBuilder: (context, index) {
-                              return const SizedBox(
-                                height: 10,
-                              );
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  // Uncomment and fix the Trending Category section
-                  const SizedBox(height: 15),
-                  Obx(
-                    () => controller.trendingCategoryProduct.isEmpty
-                        ? Container()
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Trending Category",
-                                style: txtTheme()
-                                    .headlineSmall!
-                                    .copyWith(fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 15),
-                              GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 3,
-                                  crossAxisSpacing: 10,
-                                  childAspectRatio: 1.5 / 2,
-                                ),
-                                itemCount: controller
-                                            .trendingCategoryProduct.length >=
-                                        3
-                                    ? 3
-                                    : controller.trendingCategoryProduct.length,
-                                itemBuilder: ((context, index) {
-                                  return GestureDetector(
-                                    onTap: () {
-                                      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW,
-                                          arguments: {
-                                            'productId': controller
-                                                    .trendingCategoryProduct[
-                                                index]['_id'],
-                                            'name': controller
-                                                    .trendingCategoryProduct[
-                                                index]['name']
-                                          });
-                                    },
-                                    child: Column(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                          child: CachedNetworkImage(
-                                            errorWidget:
-                                                (context, url, error) =>
-                                                    Container(
-                                              decoration: BoxDecoration(
-                                                  color: Colors.grey.shade300),
-                                              child: const Center(
-                                                child: Icon(Icons.error),
-                                              ),
-                                            ),
-                                            height: 110,
-                                            width: 90,
-                                            fit: BoxFit.cover,
-                                            imageUrl: getImage(index),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4.0),
-                                        Text(
-                                          controller.trendingCategoryProduct[
-                                                  index]['name'] ??
-                                              '',
-                                          style: txtTheme().titleLarge,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          textAlign: TextAlign.center,
-                                        )
-                                      ],
-                                    ),
-                                  );
-                                }),
-                              ),
-                            ],
-                          ),
+                  // Wrap with popular keyword buttons
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Wrap(
+                      spacing: 1, // Horizontal gap between buttons
+                      runSpacing: 2, // Vertical gap between rows
+                      children: [
+                        // Example keywords - you can replace with dynamic data from controller
+                        _buildKeywordButton(context, "Accessories"),
+                        _buildKeywordButton(context, "Dresses"),
+                        _buildKeywordButton(context, "Shoes"),
+                        _buildKeywordButton(context, "Tops"),
+                        _buildKeywordButton(context, "Jeans"),
+                        _buildKeywordButton(context, "Books & Stationery"),
+                        _buildKeywordButton(context, "Toys & Games"),
+                        _buildKeywordButton(context, "Food & Beverages"),
+                        _buildKeywordButton(context, "Health & Wellness"),
+                        _buildKeywordButton(context, "Automotive"),
+                        // Add more keywords as needed
+                      ],
+                    ),
                   ),
                 ],
               ),
-            ),
+
+              // ── SCROLLABLE CONTENT ──
+              Expanded(
+                child: Obx(() {
+                  // ── INITIAL LOADING STATE ──
+                  if (controller.isSearching.value &&
+                      controller.searchProduct.isEmpty) {
+                    return _buildGridShimmer(colorScheme);
+                  }
+
+                  return SingleChildScrollView(
+                    controller: controller.scrollController,
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ── RECENT SEARCHES (CHIPS) ──
+                        if (controller.searchTextController.text.isEmpty &&
+                            controller.recentSearchList.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Recent Searches",
+                                      style: textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    Icon(Icons.history,
+                                        size: 20,
+                                        color: colorScheme.onSurfaceVariant),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: controller.recentSearchList
+                                      .take(6)
+                                      .map((item) {
+                                    return ActionChip(
+                                      label:
+                                          Text(item['name']?.toString() ?? ''),
+                                      backgroundColor: colorScheme
+                                          .surfaceVariant
+                                          .withOpacity(0.4),
+                                      side: BorderSide.none,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(20)),
+                                      labelStyle: textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.onSurface,
+                                          fontWeight: FontWeight.w500),
+                                      onPressed: () {
+                                        controller.searchTextController.text =
+                                            item['name']?.toString() ?? '';
+                                        controller.getSearchSuggestion(
+                                            text: controller
+                                                .searchTextController.text);
+                                      },
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                        // ── SECTION TITLE ──
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+                          child: Text(
+                            controller.searchTextController.text.trim().isEmpty
+                                ? "Discover Products"
+                                : "Search Results",
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+
+                        // ── EMPTY STATE ──
+                        if (!controller.isSearching.value &&
+                            controller.searchProduct.isEmpty)
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 60),
+                              child: Column(
+                                children: [
+                                  Icon(Icons.search_off_rounded,
+                                      size: 80,
+                                      color:
+                                          colorScheme.outline.withOpacity(0.5)),
+                                  const SizedBox(height: 16),
+                                  Text("No products found",
+                                      style: textTheme.titleLarge?.copyWith(
+                                          fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                      "Try searching with a different keyword.",
+                                      style: TextStyle(
+                                          color: colorScheme.onSurfaceVariant)),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                        // ── PRODUCT GRID ──
+                        if (controller.searchProduct.isNotEmpty)
+                          GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 0.62,
+                            ),
+                            itemCount: controller.searchProduct.length,
+                            itemBuilder: (context, index) {
+                              final product = controller.searchProduct[index];
+                              return _ProductGridCard(
+                                product: product,
+                                onTap: () {
+                                  final productId =
+                                      product['_id']?.toString() ?? '';
+                                  final productName =
+                                      product['name']?.toString() ?? '';
+                                  if (productId.isNotEmpty) {
+                                    controller.saveRecentSearch(
+                                        id: productId,
+                                        name: productName,
+                                        type: 'product');
+                                    Get.to(() => ProductView(),
+                                        binding: ShopBinding(),
+                                        arguments: {'productId': productId});
+                                  }
+                                },
+                              );
+                            },
+                          ),
+
+                        // ── PAGINATION LOADER ──
+                        Obx(() {
+                          if (controller.isFetchingMore.value) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 24),
+                              child: Center(
+                                child: CupertinoActivityIndicator(radius: 14),
+                              ),
+                            );
+                          } else if (!controller.hasNextPage &&
+                              controller.searchProduct.isNotEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24),
+                              child: Center(
+                                child: Text("No more products",
+                                    style: TextStyle(
+                                        color: colorScheme.onSurfaceVariant)),
+                              ),
+                            );
+                          }
+                          return const SizedBox(height: 40);
+                        }),
+                      ],
+                    ),
+                  );
+                }),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
-
-//   String _buildImageUrl(dynamic item) {
-//     try {
-//       if (item['featured_image'] != null &&
-//           item['featured_image'] is Map &&
-//           item['featured_image']['filepath'] != null) {
-//         String filepath = item['featured_image']['filepath'];
-//         if (filepath.startsWith('http')) {
-//           return filepath;
-//         } else {
-//           return url + filepath;
-//         }
-//       }
-//     } catch (e) {
-//       print('Error building image URL: $e');
-//     }
-//     return HelperFunctions.getNoImage();
-//   }
 }
-                  // const SizedBox(height: 10),
-                  // Text(
-                  //   "Recommended for you",
-                  //   style: txtTheme()
-                  //       .headlineSmall!
-                  //       .copyWith(fontWeight: FontWeight.bold),
-                  // ),
-                  // const SizedBox(height: 15),
-                  // GridView.builder(
-                  //   shrinkWrap: true,
-                  //   physics: const NeverScrollableScrollPhysics(),
-                  //   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  //       childAspectRatio: 2 / 0.7,
-                  //       crossAxisCount: 3,
-                  //       crossAxisSpacing: 20,
-                  //       mainAxisSpacing: 15),
-                  //   itemCount: 5,
-                  //   itemBuilder: ((context, index) {
-                  //     return GestureDetector(
-                  //       onTap: () {},
-                  //       child: Container(
-                  //         decoration: BoxDecoration(
-                  //             color: themegreyColor,
-                  //             borderRadius: BorderRadius.circular(5)),
-                  //         child: Center(
-                  //             child: Text('Denim', style: txtTheme().titleLarge)),
-                  //       ),
-                  //     );
-                  //   }),
-                  // ),
-                  // const SizedBox(height: 15),
-                  // Obx(
-                  //   () => controller.trendingCategoryProduct.isEmpty
-                  //       ? Container()
-                  //       : Column(
-                  //           crossAxisAlignment: CrossAxisAlignment.start,
-                  //           children: [
-                  //             Text(
-                  //               "Trending Category",
-                  //               style: txtTheme()
-                  //                   .headlineSmall!
-                  //                   .copyWith(fontWeight: FontWeight.bold),
-                  //             ),
-                  //             const SizedBox(height: 15),
-                  //             GridView.builder(
-                  //               shrinkWrap: true,
-                  //               physics: const NeverScrollableScrollPhysics(),
-                  //               gridDelegate:
-                  //                   const SliverGridDelegateWithFixedCrossAxisCount(
-                  //                 crossAxisCount: 3,
-                  //                 crossAxisSpacing: 10,
-                  //                 childAspectRatio: 1.5 / 2,
-                  //               ),
-                  //               itemCount:
-                  //                   controller.trendingCategoryProduct.length >= 3
-                  //                       ? 3
-                  //                       : controller
-                  //                           .trendingCategoryProduct.length,
-                  //               itemBuilder: ((context, index) {
-                  //                 return GestureDetector(
-                  //                   onTap: () {
-                  //                     Get.toNamed(Routes.SHOPPRODUCTLISTVIEW,
-                  //                         arguments: {
-                  //                           'productId': controller
-                  //                                   .trendingCategoryProduct[
-                  //                               index]['_id'],
-                  //                           'name': controller
-                  //                                   .trendingCategoryProduct[
-                  //                               index]['name']
-                  //                         });
-                  //                   },
-                  //                   child: Column(
-                  //                     children: [
-                  //                       ClipRRect(
-                  //                         borderRadius: BorderRadius.circular(5),
-                  //                         child: CachedNetworkImage(
-                  //                           errorWidget: (context, url, error) =>
-                  //                               Container(
-                  //                             decoration: BoxDecoration(
-                  //                                 color: Colors.grey.shade300),
-                  //                             child: const Center(
-                  //                               child: Icon(Icons.error),
-                  //                             ),
-                  //                           ),
-                  //                           height: 110,
-                  //                           width: 90,
-                  //                           fit: BoxFit.cover,
-                  //                           imageUrl: getImage(index),
-                  //                         ),
-                  //                       ),
-                  //                       const SizedBox(height: 4.0),
-                  //                       Text(
-                  //                         controller.trendingCategoryProduct[
-                  //                                 index]['name'] ??
-                  //                             '',
-                  //                         style: txtTheme().titleLarge,
-                  //                       )
-                  //                     ],
-                  //                   ),
-                  //                 );
-                  //               }),
-                  //             ),
-                  //           ],
-                  //         ),
-                  // ),
-                  // const SizedBox(height: 10),
-                  // Text(
-                  //   "Top Brands On Foduukart",
-                  //   style: txtTheme()
-                  //       .headlineSmall!
-                  //       .copyWith(fontWeight: FontWeight.bold),
-                  // ),
-                  // GridView.builder(
-                  //   shrinkWrap: true,
-                  //   physics: const NeverScrollableScrollPhysics(),
-                  //   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  //       childAspectRatio: 2 / 1.1,
-                  //       crossAxisCount: 3,
-                  //       crossAxisSpacing: 10,
-                  //       mainAxisSpacing: 0),
-                  //   itemCount: 6,
-                  //   itemBuilder: ((context, index) {
-                  //     return GestureDetector(
-                  //         onTap: () {},
-                  //         child: const brandCategory(
-                  //           assetImage: 'assets/images/asgardia1.png',
-                  //         ));
-                  //   }),
-                  // ),
-//                 ],
-//               ),
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-                                      // onTap: () {
-                                      //   // controller.recentSearchList.add({
-                                      //   //   'productId': controller
-                                      //   //       .searchProduct[index]['_id'],
-                                      //   //   'name': controller
-                                      //   //       .searchProduct[index]['name']
-                                      //   // });
-                                      //   if (controller.recentSearchList[index]
-                                      //           ['type'] ==
-                                      //       'product') {
-                                      //   } else if (controller
-                                      //               .recentSearchList[index]
-                                      //           ['type'] ==
-                                      //       'category') {
-                                      //     print(
-                                      //         'recent ${controller.recentSearchList[0]['name']}');
-                                      //     Get.toNamed(
-                                      //         Routes.SHOPPRODUCTLISTVIEW,
-                                      //         arguments: {
-                                      //           'productId': controller
-                                      //                   .searchCategory[index]
-                                      //               ['_id'],
-                                      //           'name': controller
-                                      //                   .searchCategory[index]
-                                      //               ['name']
-                                      //         });
-                                      //   } else if (controller
-                                      //               .recentSearchList[index]
-                                      //           ['type'] ==
-                                      //       'blog') {
-                                      //     Get.toNamed(Routes.BLOG,
-                                      //         arguments: controller
-                                      //                 .recentSearchList[index]
-                                      //             ['productId']);
-                                      //   }
-                                      //   print(
-                                      //       'recent search ${controller.recentSearchList}');
-                                      // },
+
+// Add this helper method inside your SearchView class
+Widget _buildKeywordButton(BuildContext context, String keyword) {
+  final theme = Theme.of(context);
+  var controller = Get.find<SearchsController>();
+  return ElevatedButton(
+    onPressed: () {
+      // When keyword is tapped, populate search field and trigger search
+      controller.searchTextController.text = keyword;
+      controller.getSearchSuggestion(text: keyword);
+    },
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      minimumSize: Size.zero,
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(
+            30), // Using height value for consistent rounding
+      ),
+    ),
+    child: Ink(
+      decoration: BoxDecoration(
+        borderRadius:
+            BorderRadius.circular(30), // Matching parent container style
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey[800]!
+              : Colors.grey[300]!,
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Text(
+          keyword,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black87,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+// ── GRID SHIMMER EFFECT (Keep as is) ──
+Widget _buildGridShimmer(ColorScheme colorScheme) {
+  return GridView.builder(
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: 2,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      childAspectRatio: 0.62,
+    ),
+    itemCount: 6,
+    itemBuilder: (context, index) {
+      return Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+// ── Beautiful Product Grid Card ─────────────────────────────────────────────
+class _ProductGridCard extends StatelessWidget {
+  final Map<String, dynamic> product;
+  final VoidCallback onTap;
+
+  const _ProductGridCard({required this.product, required this.onTap});
+
+  // Safe Image URL Extractor
+  String _getImageUrl() {
+    final featuredImg = product['featured_image'];
+    if (featuredImg != null && featuredImg is Map) {
+      final downloadUrl = featuredImg['download_url']?.toString() ?? '';
+      final filepath = featuredImg['filepath']?.toString() ?? '';
+
+      if (downloadUrl.isNotEmpty) return downloadUrl;
+      if (filepath.isNotEmpty) {
+        final cleanPath =
+            filepath.startsWith('/') ? filepath.substring(1) : filepath;
+        return 'https://mywatch.vbought.com/images/$cleanPath';
+      }
+    }
+    return '';
+  }
+
+  // Helper method to safely get price from variants
+  double _getPrice(String field) {
+    final variants = product['variants'];
+
+    // If variants is null or empty
+    if (variants == null) return 0.0;
+
+    // If variants is a List (array)
+    if (variants is List && variants.isNotEmpty) {
+      final firstVariant = variants[0];
+      if (firstVariant is Map) {
+        return double.tryParse(firstVariant[field]?.toString() ?? '0') ?? 0.0;
+      }
+    }
+
+    // If variants is a Map (object)
+    if (variants is Map) {
+      return double.tryParse(variants[field]?.toString() ?? '0') ?? 0.0;
+    }
+
+    return 0.0;
+  }
+
+  // Helper method to get quantity (handles null as unlimited)
+  int? _getQuantity() {
+    final variants = product['variants'];
+
+    if (variants == null) return null; // Unlimited stock
+
+    if (variants is List && variants.isNotEmpty) {
+      final firstVariant = variants[0];
+      if (firstVariant is Map) {
+        final quantityValue = firstVariant['quantity'];
+        if (quantityValue == null) return null; // Unlimited stock
+        return int.tryParse(quantityValue.toString());
+      }
+    }
+
+    if (variants is Map) {
+      final quantityValue = variants['quantity'];
+      if (quantityValue == null) return null; // Unlimited stock
+      return int.tryParse(quantityValue.toString());
+    }
+
+    return null; // Default to unlimited if can't determine
+  }
+
+  // Helper method to get badge color based on type
+  Color _getBadgeColor(String type, ColorScheme colorScheme) {
+    switch (type) {
+      case 'featured':
+        return Colors.amber.shade700;
+      case 'hot':
+        return Colors.red.shade600;
+      case 'trending':
+        return Colors.purple.shade600;
+      case 'recommended':
+        return Colors.green.shade600;
+      default:
+        return colorScheme.primary;
+    }
+  }
+
+  // Helper method to get badge icon based on type
+  IconData _getBadgeIcon(String type) {
+    switch (type) {
+      case 'featured':
+        return Icons.star;
+      case 'hot':
+        return Icons.local_fire_department;
+      case 'trending':
+        return Icons.trending_up;
+      case 'recommended':
+        return Icons.thumb_up;
+      default:
+        return Icons.label;
+    }
+  }
+
+  // Helper method to check if product is out of stock
+  bool _isOutOfStock() {
+    final quantity = _getQuantity();
+    // Only out of stock if quantity is explicitly 0
+    return quantity != null && quantity <= 0;
+  }
+
+  // Helper method to check if stock is limited
+  bool _isStockLimited() {
+    final quantity = _getQuantity();
+    return quantity != null && quantity > 0;
+  }
+
+  // Helper method to get display quantity
+  int? _getDisplayQuantity() {
+    final quantity = _getQuantity();
+    if (quantity == null) return null;
+    if (quantity <= 0) return null;
+    return quantity;
+  }
+
+  // Helper method to get stock status
+  String _getStockStatus() {
+    final quantity = _getQuantity();
+    if (quantity == null) return 'UNLIMITED';
+    if (quantity <= 0) return 'OUT OF STOCK';
+    if (quantity <= 10) return 'LOW STOCK';
+    return 'IN STOCK';
+  }
+
+  // Helper method to get stock status color
+  Color _getStockStatusColor(int? quantity, ColorScheme colorScheme) {
+    if (quantity == null) return Colors.blue.shade600;
+    if (quantity <= 0) return Colors.red.shade600;
+    if (quantity <= 10) return Colors.orange.shade600;
+    return Colors.green.shade600;
+  }
+
+  // Helper method to get stock status icon
+  IconData _getStockStatusIcon(int? quantity) {
+    if (quantity == null) return Icons.invert_colors_off_outlined;
+    if (quantity <= 0) return Icons.inventory_2_outlined;
+    if (quantity <= 10) return Icons.warning_amber_rounded;
+    return Icons.check_circle_outline;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final String imageUrl = _getImageUrl();
+    final String name = product['name']?.toString() ?? 'Unknown Product';
+
+    // Safely parse prices
+    final double price = _getPrice('price');
+    final double salePrice = _getPrice('sale_price');
+    final bool hasDiscount = salePrice > 0 && salePrice < price;
+
+    // Get quantity
+    // Get quantity and stock status
+    final int? quantity = _getQuantity();
+    final bool isOutOfStock = _isOutOfStock();
+    final bool isLimitedStock = _isStockLimited();
+    final bool isLowStock =
+        isLimitedStock && quantity != null && quantity <= 10;
+    final bool isUnlimited = quantity == null;
+
+    // Get product flags
+    // final bool featured = product['featured'] ?? false;
+    final bool hot = product['hot'] ?? false;
+    final bool trending = product['trending'] ?? false;
+    // final bool recommended = product['recommended'] ?? false;
+
+    final double displayPrice = hasDiscount ? salePrice : price;
+
+    // Collect active badges
+    final Map<String, bool> badges = {
+      'hot': hot,
+      'trend': trending,
+    };
+
+    final List<String> activeBadges = badges.entries
+        .where((entry) => entry.value)
+        .map((entry) => entry.key)
+        .toList();
+
+    return InkWell(
+      onTap: isOutOfStock ? null : onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isOutOfStock
+                ? Colors.red.withOpacity(0.3)
+                : colorScheme.outline.withOpacity(0.15),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Image Section ──
+            Expanded(
+              flex: 4,
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(15)),
+                    child: Container(
+                      width: double.infinity,
+                      color: colorScheme.surfaceVariant.withOpacity(0.5),
+                      child: imageUrl.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => const Center(
+                                  child: CupertinoActivityIndicator()),
+                              errorWidget: (context, url, error) => Icon(
+                                  Icons.image_not_supported_outlined,
+                                  color: colorScheme.outline),
+                            )
+                          : Icon(Icons.image_not_supported_outlined,
+                              color: colorScheme.outline),
+                    ),
+                  ),
+
+                  // Out of Stock Overlay
+                  if (isOutOfStock)
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(15)),
+                        color: Colors.black.withOpacity(0.7),
+                      ),
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade600,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.shopping_cart_outlined,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 6),
+                              const Text(
+                                'OUT OF STOCK',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  // Top Left Badges Stack
+                  if (activeBadges.isNotEmpty && !isOutOfStock)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: activeBadges.map((badge) {
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  _getBadgeColor(badge, colorScheme),
+                                  _getBadgeColor(badge, colorScheme)
+                                      .withOpacity(0.8),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: _getBadgeColor(badge, colorScheme)
+                                      .withOpacity(0.3),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _getBadgeIcon(badge),
+                                  size: 12,
+                                  color: Colors.white,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  badge.toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            // ── Details Section ──
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Product Title with indicators
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                name,
+                                style: textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.2,
+                                  color: isOutOfStock
+                                      ? colorScheme.onSurfaceVariant
+                                      : null,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (hot && !isOutOfStock)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 4),
+                                child: Icon(
+                                  Icons.star,
+                                  size: 16,
+                                  color: Colors.amber.shade700,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    // Price Row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Price and discount section
+
+                        if (hasDiscount && !isOutOfStock)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Text(
+                              "₹${price.toStringAsFixed(2)}",
+                              style: textTheme.bodyMedium?.copyWith(
+                                decoration: TextDecoration.lineThrough,
+                                color: colorScheme.onSurfaceVariant
+                                    .withOpacity(0.7),
+                              ),
+                            ),
+                          ),
+                        Text(
+                          "₹${displayPrice.toStringAsFixed(2)}",
+                          style: textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: isOutOfStock
+                                ? colorScheme.onSurfaceVariant.withOpacity(0.6)
+                                : colorScheme.primary,
+                          ),
+                        ),
+
+                        // Stock status
+                        if (isLowStock && !isOutOfStock)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'Low Stock',
+                              style: textTheme.labelSmall?.copyWith(
+                                color: Colors.orange.shade700,
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    // Discount text
+                    if (hasDiscount && price > 0 && !isOutOfStock)
+                      Text(
+                        "${((price - salePrice) / price * 100).round()}% off",
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Colors.green.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

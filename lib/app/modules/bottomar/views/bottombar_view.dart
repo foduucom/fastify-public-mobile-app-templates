@@ -40,7 +40,7 @@ class BottombarView extends GetView<BottombarController> {
                 return ResponsiveCommonHeader(
                   width: width,
                   height: height,
-                  onSearchTap: () => print("Search tapped"),
+                  onSearchTap: () => Get.toNamed(Routes.SEARCH),
                   onCartTap: () => Get.toNamed(Routes.CART),
                   onMessageTap: () => print("Message tapped"),
                   onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),

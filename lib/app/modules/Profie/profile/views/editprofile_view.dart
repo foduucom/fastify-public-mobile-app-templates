@@ -4,41 +4,42 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:foduu_ecommerce/app/modules/Profie/profile/controllers/profile_controller.dart';
-import 'package:foduu_ecommerce/app/modules/Profie/profile/views/change_password_view.dart';
-import 'package:foduu_ecommerce/app/routes/app_pages.dart';
-import 'package:foduu_ecommerce/components/check_internet_widget.dart';
-import 'package:foduu_ecommerce/components/foduu_gender_widget.dart';
-import 'package:foduu_ecommerce/components/foduuformtextfield.dart';
-import 'package:foduu_ecommerce/components/open_image_picker_sheet.dart';
-import 'package:foduu_ecommerce/constants/constants.dart';
-import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import '/app/modules/Profie/profile/controllers/profile_controller.dart';
+import '/app/modules/Profie/profile/views/change_password_view.dart';
+import '/app/routes/app_pages.dart';
+import '/components/check_internet_widget.dart';
+import '/components/foduuformtextfield.dart';
+import '/components/open_image_picker_sheet.dart';
+import '/components/buttons/primary_action_button.dart';
+import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
 class EditprofileView extends GetView<ProfileController> {
   const EditprofileView({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
+    var width = Get.width;
+    var height = Get.height;
+
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Profile".tr),
+          centerTitle: true,
+          title: SizedBox(
+            width: width * 0.4,
+            child: Text(
+              "Profile".tr,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: height * 0.025,
+                fontWeight: FontWeight.w700,
+                height: 1.6,
+              ),
+            ),
+          ),
           elevation: 0.0,
-          actions: [
-            TextButton.icon(
-              icon: const Icon(
-                Icons.delete,
-                color: Colors.red,
-              ),
-              onPressed: () {
-                Get.toNamed(Routes.DELETE_ACCOUNT);
-              },
-              label: const Text(
-                "Delete Account",
-                style: TextStyle(color: Colors.red),
-              ),
-            )
-          ],
         ),
         body: GestureDetector(
           onTap: () {
@@ -48,399 +49,316 @@ class EditprofileView extends GetView<ProfileController> {
             child: Form(
               key: controller.formKey,
               child: ListView(
-                shrinkWrap: true,
+                padding: EdgeInsets.symmetric(
+                  horizontal: width * 0.05,
+                  vertical: height * 0.02,
+                ),
                 children: [
+                  SizedBox(height: height * 0.015),
                   Container(
-                    padding: const EdgeInsets.all(30.0),
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
+                    width: width * 0.92,
+                    padding: EdgeInsets.only(
+                      top: height * 0.03,
+                      left: width * 0.03,
+                      right: width * 0.03,
+                      bottom: height * 0.015,
                     ),
-                    child: Center(
-                        child: EditProfileImageWidget(controller: controller)),
-                  ),
-                  Column(
-                    // crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 15, vertical: 10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('PERSONAL DETAILS',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 17,
-                                    color: Colors.black)),
-                            const SizedBox(height: 30),
-                            FoduuFormTextField(
-                                fieldHintText: '',
-                                title: 'Full Name'.tr,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.allow(
-                                      RegExp(r'[a-zA-Z\s]'))
-                                ],
-                                keyType: TextInputType.text,
-                                validationmsg: '',
-                                controller: controller.nameController,
-                                validCheck: (value) {
-                                  if (value == null ||
-                                      value.isEmpty ||
-                                      value.length < 6) {
-                                    return 'Please enter a name'.tr;
-                                  } else if (value.trim().isEmpty) {
-                                    return 'Name cannot start with a space'.tr;
+                    // decoration: BoxDecoration(
+                    //   borderRadius: BorderRadius.circular(height * 0.015),
+                    //   border: Border.all(color: Colors.grey.shade300),
+                    // ),
+                    child: Column(
+                      children: [
+                        // Profile Image Section
+                        Container(
+                          width: height * 0.1125,
+                          height: height * 0.1125,
+                          alignment: Alignment.center,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              ClipOval(
+                                child: Obx(() {
+                                  if (controller.imagePath.isNotEmpty &&
+                                      !controller.imagePath.value
+                                          .contains("http")) {
+                                    return Image.file(
+                                      File(controller.imagePath.value),
+                                      height: height * 0.1125,
+                                      width: height * 0.1125,
+                                      fit: BoxFit.cover,
+                                    );
+                                  } else if (controller.imagePath.value
+                                          .contains("http") &&
+                                      !controller.imagePath.value
+                                          .contains(".svg")) {
+                                    return Image.network(
+                                      controller.imagePath.value,
+                                      height: height * 0.1125,
+                                      width: height * 0.1125,
+                                      fit: BoxFit.cover,
+                                    );
+                                  } else {
+                                    return CircleAvatar(
+                                      radius: height * 0.05625,
+                                      backgroundColor: Colors.grey.shade200,
+                                      child: controller.profiledata[
+                                                  'featured_image'] ==
+                                              null
+                                          ? Icon(
+                                              Icons.person,
+                                              size: height * 0.04375,
+                                              color: Colors.grey.shade600,
+                                            )
+                                          : CachedNetworkImage(
+                                              imageUrl: HelperFunctions()
+                                                  .getImage(
+                                                      controller.profiledata[
+                                                          'featured_image']),
+                                              fit: BoxFit.cover,
+                                            ),
+                                    );
                                   }
-                                  return null;
                                 }),
-                            const SizedBox(height: 20.0),
-
-                            // FoduuFormTextField(
-                            //   fieldHintText: '',
-                            //   title: 'Gender',
-                            //   keyType: TextInputType.text,
-                            //   validationmsg: '',
-                            //   onsaved: (String? value) {},
-                            //   controller: controller.genderController,
-                            //   validCheck: (value) {
-                            //     if (value == null ||
-                            //         value.isEmpty ||
-                            //         value.length < 6) {
-                            //       return 'Please enter valid full name!';
-                            //     }
-                            //     return null;
-                            //   },
-                            // ),
-
-                            Obx(
-                              () => FoduuGenderWidget(
-                                selectedGender: controller.gender
-                                    .value, // require for editing purpose the value should be pre-filled
-                                onChange: (value) {
-                                  controller.gender.value = value;
-                                },
                               ),
-                            ),
-                            const SizedBox(height: 10)
-                          ],
-                        ),
-                      ),
-                      Container(
-                        height: 10,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 15, vertical: 35),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'SECURITY'.tr,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 17,
-                                  color: Colors.black),
-                            ),
-                            const SizedBox(height: 30.0),
-                            FoduuFormTextField(
-                              // onsaved: (String? value) {},
-                              readOnly: true,
-                              title: 'Mobile Number'.tr,
-                              // suffixIcon: TextButtonCustom('CHANGE'.tr,
-                              //     FontWeight.w500, () => null, themeRedColor, 14),
-                              controller: controller.phoneController,
-                              fieldHintText: "",
-                              keyType: TextInputType.number,
-                              validCheck: (value) {
-                                if (value == null ||
-                                    value.isEmpty ||
-                                    value.length > 10 ||
-                                    value.length < 10) {
-                                  return 'Please enter valid mobile number!'.tr;
-                                }
-                                return null;
-                              },
-                              validationmsg: "",
-                            ),
-                            const SizedBox(height: 20.0),
-                            FoduuFormTextField(
-                              // onsaved: (String? value) {},
-                              title: 'Email'.tr,
-                              readOnly: true,
-                              controller: controller.emailController,
-                              fieldHintText: "Email ID".tr,
-                              keyType: TextInputType.emailAddress,
-                              validCheck: (value) {
-                                if (value!.isEmpty ||
-                                    !GetUtils.isEmail(value)) {
-                                  return 'Enter a valid email!'.tr;
-                                }
-                                return null;
-                              },
-                              validationmsg: "",
-                            ),
-                            const SizedBox(height: 20.0),
-                            // FoduuFormTextField(
-                            //   fieldHintText: '',
-                            //   title: 'Password',
-                            //   suffixIcon: TextButtonCustom(
-                            //       'CHANGE',
-                            //       FontWeight.w500,
-                            //       () => Get.to(const ChangePasswordView()),
-                            //       Colors.red,
-                            //       14),
-                            //   keyType: TextInputType.text,
-                            //   readOnly: true,
-                            //   validationmsg: '',
-                            //   controller: controller.passwordController,
-                            //   validCheck: (value) {
-                            //     // if (value == null ||
-                            //     //     value.isEmpty ||
-                            //     //     value.length < 6) {
-                            //     //   return 'Please enter valid full name!';
-                            //     // }
-                            //     // return null;
-                            //   },
-                            // ),
-                            isOtpLogin
-                                ? Container()
-                                : Align(
-                                    alignment: Alignment.centerRight,
-                                    // child: ElevatedButton(
-                                    //     style: ElevatedButton.styleFrom(
-                                    //         backgroundColor: Colors.white,
-                                    //         foregroundColor: Colors.red,
-                                    //         surfaceTintColor: Colors.white,
-                                    //         disabledBackgroundColor: Colors.white,
-                                    //         elevation: 0,
-                                    //         disabledForegroundColor: Colors.white,
-                                    //         shadowColor: Colors.white),
-                                    //     onPressed: () {},
-                                    //     child: Text('Change Password')),
-                                    child: InkWell(
-                                      onTap: () {
-                                        Get.to(() => ChangePasswordView());
-                                      },
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                            color: Colors.transparent),
-                                        child: const Text(
-                                          'Change Password',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.red,
-                                          ),
-                                        ),
+                              Positioned(
+                                right: 0,
+                                bottom: 0,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    openImagePickerSheet(controller);
+                                  },
+                                  child: Container(
+                                    width: height * 0.0375,
+                                    height: height * 0.0375,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white,
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: SvgPicture.asset(
+                                        'assets/icon/editprofile.svg',
+                                        height: height * 0.0225,
+                                        width: height * 0.0225,
                                       ),
                                     ),
                                   ),
-
-                            const SizedBox(height: 40)
-                          ],
-                        ),
-                      ),
-                      Container(
-                        decoration: const BoxDecoration(
-                            color: Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                  offset: Offset(2, 2),
-                                  blurRadius: 2,
-                                  color: Colors.black)
-                            ]),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 0, vertical: 8),
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 15),
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                      width: Get.width * 0.45,
-                                      child: ElevatedButton(
-                                          onPressed: () {
-                                            Get.back();
-                                            Get.back();
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.white,
-                                              shadowColor: Colors.white,
-                                              foregroundColor: Colors.white,
-                                              elevation: 0.0,
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          8.0)),
-                                              minimumSize: Size(Get.width, 50)),
-                                          child: Text('CANCEL'.tr,
-                                              style: const TextStyle(
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 17)))),
-                                  SizedBox(
-                                    width: Get.width * 0.45,
-                                    child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(),
-                                        onPressed: () async {
-                                          HelperFunctions().showOverlayLoader();
-                                          await controller.sendFormData();
-                                          //     then((value) {
-                                          // Get.until(
-                                          //     (route) => !Get.isDialogOpen!);
-                                          //   Get.back();
-                                          // Get.back();
-
-                                          HelperFunctions().showSnackBarSuccess(
-                                              'Profile update successfffully');
-                                          // });
-                                        },
-                                        child: Text('SAVE DETAILS'.tr,
-                                            style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 17))),
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
-                          ],
+                              Obx(() => controller.imagePath.value != ""
+                                  ? Positioned(
+                                      right: 0,
+                                      top: 0,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          controller.imagePath.value = "";
+                                        },
+                                        child: Container(
+                                          width: height * 0.028,
+                                          height: height * 0.028,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.grey.shade300,
+                                          ),
+                                          child: const Center(
+                                            child: Icon(
+                                              Icons.close,
+                                              size: 13,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : const SizedBox()),
+                            ],
+                          ),
                         ),
-                      ),
 
-                      //const SizedBox(height: 10.0),
-                    ],
+                        SizedBox(height: height * 0.02),
+
+                        // Full Name Field
+                        _profileFieldRow(
+                          title: 'Full Name'.tr,
+                          value: controller.nameController.text,
+                          icon: Icons.person_outline,
+                          enabled: true,
+                          onTap: () {
+                            _showEditDialog(context, 'Full Name'.tr,
+                                controller.nameController);
+                          },
+                        ),
+
+                        SizedBox(height: height * 0.015),
+
+                        // Email Field (Read Only)
+                        _profileFieldRow(
+                          title: 'Email'.tr,
+                          value: controller.emailController.text,
+                          icon: Icons.email_outlined,
+                          enabled: false,
+                        ),
+
+                        SizedBox(height: height * 0.015),
+
+                        // Phone Number Field (Read Only)
+                        _profileFieldRow(
+                          title: 'Mobile Number'.tr,
+                          value: controller.phoneController.text,
+                          icon: Icons.call_outlined,
+                          enabled: false,
+                        ),
+
+                        SizedBox(height: height * 0.015),
+
+                        // Password Field
+                        _profileFieldRow(
+                          title: 'Password'.tr,
+                          value: '••••••••',
+                          icon: Icons.lock_outline,
+                          enabled: true,
+                          onTap: () {
+                            Get.to(const ChangePasswordView());
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-
-            // Positioned(
-            //   bottom: 10,
-            //   left: 0,
-            //   right: 0,
-            //   child: Container(
-            //     padding: const EdgeInsets.symmetric(horizontal: 10),
-            //     decoration: const BoxDecoration(
-            //       color: Colors.white,
-            //     ),
-            //     child: Obx(() {
-            //       if (controller.isLoading.value) {
-            //         return const CircularProgressIndicator(
-            //           color: themePrimaryColor,
-            //         );
-            //       } else {
-            //         return SizedBox(
-            //           width: Get.width,
-            //           child: FoduuButton(
-            //             btnText: "Update Profile",
-            //             onPressButton: () {
-            //               HelperFunctions().closeKeyboard(context);
-            //               controller.sendFormData();
-            //             },
-            //           ),
-            //         );
-            //       }
-            //     }),
-            //   ),
-            // ),
+          ),
+        ),
+        bottomNavigationBar: Container(
+          margin: const EdgeInsets.only(bottom: 20.0, left: 16.0, right: 16.0),
+          child: PrimaryActionButton(
+            text: 'SAVE DETAILS'.tr,
+            onPressed: () async {
+              HelperFunctions().showOverlayLoader();
+              await controller.sendFormData();
+              HelperFunctions().showSnackBarSuccess(
+                'Profile update successfully'.tr,
+              );
+            },
           ),
         ),
       ),
     );
   }
-}
 
-class EditProfileImageWidget extends StatelessWidget {
-  const EditProfileImageWidget({
-    Key? key,
-    required this.controller,
-  }) : super(key: key);
+  Widget _profileFieldRow({
+    required String title,
+    required String value,
+    required IconData icon,
+    required bool enabled,
+    VoidCallback? onTap,
+  }) {
+    final width = Get.width;
+    final height = Get.height;
 
-  final ProfileController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        ClipOval(child: Obx(() {
-          if (controller.imagePath.isNotEmpty &&
-              !controller.imagePath.value.contains("http")) {
-            return Image.file(
-              File(controller.imagePath.value),
-              height: 100,
-              width: 100,
-              fit: BoxFit.cover,
-            );
-          } else if (controller.imagePath.value.contains("http") &&
-              !controller.imagePath.value.contains(".svg")) {
-            return Image.network(
-              controller.imagePath.value,
-              height: 100,
-              width: 100,
-              fit: BoxFit.cover,
-            );
-          } else {
-            return CircleAvatar(
-              radius: 50,
-              backgroundColor: const Color.fromARGB(36, 206, 200, 200),
-              child: controller.profiledata['featured_image'] == null
-                  ? const Icon(
-                      Icons.no_photography_outlined,
-                      size: 35,
-                      color: Colors.grey,
-                    )
-                  : CachedNetworkImage(
-                      imageUrl: url +
-                          controller.profiledata['featured_image']['filepath']),
-            );
-          }
-        })),
-        Positioned(
-          right: 4,
-          bottom: 2,
-          child: CircleAvatar(
-            radius: 18,
-            backgroundColor: Colors.white,
-            child: IconButton(
-              icon: SvgPicture.asset(
-                'assets/icon/editprofile.svg',
-                height: 40,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 1.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: width * 0.86,
+            child: Text(
+              title,
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: height * 0.015,
+                fontWeight: FontWeight.w600,
+                height: 2,
+                color: Colors.grey.shade600,
               ),
-
-              // const Icon(
-              //   Icons.edit,
-              //   size: 18,
-              //   color: themeTextColor,
-              // ),
-              onPressed: () {
-                openImagePickerSheet(controller);
-              },
             ),
           ),
-        ),
-        Positioned(
-          right: 0,
-          top: 0,
-          child: Obx(() => controller.imagePath.value != ""
-              ? CircleAvatar(
-                  radius: 14,
-                  backgroundColor: Colors.grey.shade300,
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      size: 13,
-                    ),
-                    onPressed: () {
-                      controller.imagePath.value = "";
-                    },
+          SizedBox(height: height * 0.005),
+          GestureDetector(
+            onTap: enabled ? onTap : null,
+            child: Container(
+              width: width * 0.86,
+              height: height * 0.065,
+              padding: EdgeInsets.all(width * 0.04),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(height * 0.01),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    size: height * 0.025,
+                    color: Colors.grey.shade600,
                   ),
-                )
-              : Container()),
-        )
-      ],
+                  SizedBox(width: width * 0.04),
+                  Expanded(
+                    child: Text(
+                      value.isEmpty ? 'Not set'.tr : value,
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: height * 0.018,
+                        fontWeight: FontWeight.w500,
+                        height: 1.4,
+                        color: enabled ? Colors.black87 : Colors.grey.shade600,
+                      ),
+                    ),
+                  ),
+                  if (enabled)
+                    Icon(
+                      Icons.chevron_right,
+                      size: height * 0.025,
+                      color: Colors.grey.shade400,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditDialog(
+      BuildContext context, String title, TextEditingController controller) {
+    final height = Get.height;
+    final width = Get.width;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Edit $title'),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              hintText: 'Enter $title',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(height * 0.01),
+              ),
+            ),
+            inputFormatters: title == 'Full Name'.tr
+                ? [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))]
+                : null,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('CANCEL'.tr),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('SAVE'.tr),
+            ),
+          ],
+        );
+      },
     );
   }
 }

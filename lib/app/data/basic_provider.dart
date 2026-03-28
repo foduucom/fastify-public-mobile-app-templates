@@ -56,7 +56,7 @@ class BasicProvider {
       final response = await http
           .get(uri, headers: headerType())
           .timeout(const Duration(seconds: 60));
-      print('GET API RESONSE ${response.body}');
+      //print('GET API RESONSE ${response.body}');
 
       return _processResponse(response, fetchUrl());
     } on SocketException {
@@ -85,7 +85,7 @@ class BasicProvider {
           )
           .timeout(const Duration(seconds: 120));
 
-      print('POST API RESONSE ${response.body}');
+      //print('POST API RESONSE ${response.body}');
 
       return _processResponse(response, fetchUrl());
     } on SocketException {

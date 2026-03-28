@@ -16,6 +16,7 @@ class ProductHelper {
   }
 
   /// Calculate prices for variable products with variants
+  /// Calculate prices for variable products with variants
   static Map<String, dynamic> _calculateVariableProductPrice(
       Map<String, dynamic> product) {
     final variants = product['variants'] ?? [];
@@ -33,12 +34,15 @@ class ProductHelper {
     }
 
     // Calculate lowest and highest prices from variants
-    num minPrice = variants.first['sale_price'] ?? variants.first['price'] ?? 0;
-
+    // Parse the first variant's price to num
+    num minPrice =
+        _parseNum(variants.first['sale_price'] ?? variants.first['price'] ?? 0);
     num maxPrice = minPrice;
 
     for (var variant in variants) {
-      final variantPrice = variant['sale_price'] ?? variant['price'] ?? 0;
+      // Parse each variant's price to num
+      final variantPrice =
+          _parseNum(variant['sale_price'] ?? variant['price'] ?? 0);
       if (variantPrice < minPrice && variantPrice > 0) minPrice = variantPrice;
       if (variantPrice > maxPrice) maxPrice = variantPrice;
     }
