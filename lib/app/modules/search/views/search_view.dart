@@ -12,6 +12,7 @@ import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
 import '../controllers/search_controller.dart';
+import 'filter_view.dart';
 
 // ── Safe capitalize ──────────
 String _cap(dynamic value) {
@@ -76,18 +77,49 @@ class SearchView extends GetView<SearchsController> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () {
-                            // TODO: Add filter functionality
-                            print("Filter tapped");
+                          onTap: () async {
+                            final result = await showFilterBottomSheet(
+                              context,
+                              controller.activeFilter.value,
+                            );
+                            if (result != null) {
+                              controller.applyFilter(result);
+                            }
                           },
-                          child: Text(
-                            "Filter",
-                            style: textTheme.titleSmall?.copyWith(
-                              color: Theme.of(context)
-                                  .primaryColor, // PrimaryThemeColor
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          child: Obx(() {
+                            final count = controller
+                                .activeFilter.value.activeFilterCount;
+                            return Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  "Filter",
+                                  style: textTheme.titleSmall?.copyWith(
+                                    color: Theme.of(context).primaryColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                if (count > 0) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).primaryColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Text(
+                                      '$count',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            );
+                          }),
                         ),
                       ],
                     ),

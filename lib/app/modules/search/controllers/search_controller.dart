@@ -5,6 +5,9 @@ import '/app/data/basic_provider.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
+import '../models/filter_model.dart';
+import '../services/product_service.dart';
+
 class SearchsController extends GetxController with BaseController {
   var searchProduct = [].obs;
   var recentSearchList = [].obs;
@@ -15,6 +18,9 @@ class SearchsController extends GetxController with BaseController {
   var box = GetStorage();
   late TextEditingController searchTextController;
   late ScrollController scrollController;
+
+  // Filter state
+  var activeFilter = const FilterModel.empty().obs;
 
   // Pagination Trackers
   int currentPage = 1;
@@ -78,9 +84,13 @@ class SearchsController extends GetxController with BaseController {
       isSearching.value = true;
       searchProduct.clear();
 
-      var response = await BasicProvider('products').getRequest(queryParams: {
-        'page': currentPage.toString()
-      }).catchError(handleError);
+      var response = await BasicProvider('products')
+          .getRequest(
+              queryParams: ProductService.buildQueryParams(
+            page: 1,
+            filter: activeFilter.value,
+          ))
+          .catchError(handleError);
 
       _parseAndSetProducts(response, isRefresh: true);
     } catch (e) {
@@ -103,11 +113,15 @@ class SearchsController extends GetxController with BaseController {
       isSearching.value = true;
       searchProduct.clear();
 
-      var response = await BasicProvider('products').getRequest(queryParams: {
-        'search': text,
-        'page': currentPage.toString()
-      }).catchError(handleError);
-      print('response search $response');
+      var response = await BasicProvider('products')
+          .getRequest(
+              queryParams: ProductService.buildQueryParams(
+            page: 1,
+            search: text,
+            filter: activeFilter.value,
+          ))
+          .catchError(handleError);
+      debugPrint('response search $response');
       _parseAndSetProducts(response, isRefresh: true);
     } catch (e) {
       debugPrint('❌ search error: $e');
@@ -122,15 +136,15 @@ class SearchsController extends GetxController with BaseController {
       isFetchingMore.value = true;
       currentPage++;
 
-      // Check if we are searching or just browsing all
-      String text = searchTextController.text.trim();
-      Map<String, String> queryParams = {'page': currentPage.toString()};
-      if (text.isNotEmpty) {
-        queryParams['search'] = text;
-      }
-
       var response = await BasicProvider('products')
-          .getRequest(queryParams: queryParams)
+          .getRequest(
+              queryParams: ProductService.buildQueryParams(
+            page: currentPage,
+            search: searchTextController.text.trim().isEmpty
+                ? null
+                : searchTextController.text.trim(),
+            filter: activeFilter.value,
+          ))
           .catchError(handleError);
 
       _parseAndSetProducts(response, isRefresh: false);
@@ -140,6 +154,22 @@ class SearchsController extends GetxController with BaseController {
     } finally {
       isFetchingMore.value = false;
     }
+  }
+
+  // ── Filter methods ──
+  void applyFilter(FilterModel filter) {
+    activeFilter.value = filter;
+    // Re-fetch from page 1 with current search text + new filters
+    final text = searchTextController.text.trim();
+    if (text.isNotEmpty) {
+      getSearchSuggestion(text: text);
+    } else {
+      loadAllProducts();
+    }
+  }
+
+  void clearFilter() {
+    applyFilter(const FilterModel.empty());
   }
 
   // ── Parser ──
