@@ -1,0 +1,25 @@
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "foduu-comm",
+                    "appId": "1:312212886005:android:7092aa54f875a15b0790bc",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "foduu-comm",
+                    "configurations": {
+                        "android": "1:312212886005:android:7092aa54f875a15b0790bc",
+                        "ios": "1:312212886005:ios:f0c2c2558121dd860790bc",
+                        "macos": "1:312212886005:ios:f0c2c2558121dd860790bc",
+                        "web": "1:312212886005:web:73c0ff1ee48dcc840790bc",
+                        "windows": "1:312212886005:web:4d16d2d63bca82730790bc"
+                    }
+                }
+            }
+        }
+    }
+}

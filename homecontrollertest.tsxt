@@ -1,0 +1,362 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import '/app/controllers/api_exception_handle_controller.dart';
+import '/app/data/basic_provider.dart';
+import '/app/routes/app_pages.dart';
+import '/components/home_component/home_products.dart';
+import '/components/home_component/home_rich_text_component.dart';
+import '/components/home_component/home_slider.dart';
+import '/components/home_component/home_banner.dart';
+import '/components/home_component/home_blogs.dart';
+import '/components/home_component/home_category.dart';
+import '/components/home_component/home_common_widgets.dart';
+import '/components/home_component/home_price_filter.dart';
+import '/components/search_bar_rounded.dart';
+import '/constants/constants.dart';
+import '/helpers/socket_helper.dart';
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+
+class HomepageController extends GetxController with BaseController {
+  var selectcategory = 0.obs;
+  var isLoading = true.obs;
+  var box = GetStorage();
+  final isLogin = false.obs;
+  var widgetList = [].obs;
+  var blogList = [].obs;
+  var notificatoinCount = 0.obs;
+  var isDrawerNavigationLoading = false.obs;
+  var drawernavigationItems = [].obs;
+  final _socketHelper = SocketHelper();
+  var dashboardDesign = {}.obs;
+  List _initialComponents = [];
+
+  // Storage for full data from API
+  final Map<String, dynamic> _storedProducts = {};
+  final Map<String, dynamic> _storedCategories = {};
+  final Map<String, dynamic> _storedSliders = {};
+  final Map<String, dynamic> _storedBlogs = {};
+
+  String? slug;
+  String? domain;
+  String? apiKey;
+
+  /// Centralized method to get app configuration
+  /// For web: extracts from URL query parameters or fragment
+  /// For mobile: returns hardcoded values
+  Map<String, String?> _getAppConfig() {
+    if (kIsWeb) {
+      // Try to get from query parameters first
+      String? apiKey = Uri.base.queryParameters['api_key'];
+      String? domain = Uri.base.queryParameters['domain'];
+      String? slug = Uri.base.queryParameters['slug'];
+
+      // If not found in query params, try fragment
+      if (apiKey == null && Uri.base.fragment.isNotEmpty) {
+        try {
+          final fragmentUri = Uri.parse(Uri.base.fragment);
+          apiKey = fragmentUri.queryParameters['api_key'];
+          domain = fragmentUri.queryParameters['domain'];
+          slug = fragmentUri.queryParameters['slug'];
+        } catch (e) {
+          print('Error parsing fragment: $e');
+        }
+      }
+
+      print('🌐 Web Config - API Key: $apiKey, Domain: $domain, Slug: $slug');
+
+      return {
+        'api_key': apiKey,
+        'domain': domain,
+        'slug': slug ?? 'home',
+      };
+    } else {
+      // Hardcoded values for mobile
+      print('📱 Mobile Config - Using hardcoded values');
+
+      return {
+        'api_key': ACCESS_KEY,
+        'domain': websiteDomain,
+        'slug': 'home',
+      };
+    }
+  }
+
+  @override
+  Future<void> onInit() async {
+    super.onInit();
+    getDrawerNavigation();
+
+    // Get configuration from centralized method
+    final config = _getAppConfig();
+    apiKey = config['api_key'];
+    domain = config['domain'];
+    slug = config['slug'];
+
+    print('HomepageController onInit - Config: $config');
+
+    getDashboardDesign(slug ?? 'home');
+    _socketHelper.connect();
+  }
+
+  void getWidgetbyCategory() {
+    final homeComponent = box.read('homeComponent') ?? [];
+    widgetList.clear();
+    for (int i = 0; i < homeComponent.length; i++) {
+      var item = homeComponent[i];
+      var contentJson = item['content_json'];
+      switch (item['type']) {
+        case 'search':
+          widgetList.add(Padding(
+            padding: pageSurroundingPadding,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent, // o
+              onTap: () {
+                Get.toNamed(Routes.SEARCH);
+              },
+              child: AbsorbPointer(
+                child: SearchBarRounded(
+                    onChanged: (p0) {
+                      print('sarch ... ${contentJson}');
+                    },
+                    searchHintText: contentJson['placeholder'] ?? 'Search...',
+                    SearchsController: SearchController()),
+              ),
+            ),
+          ));
+          break;
+        case 'slider':
+          var sliderData = {};
+          if (contentJson != null) {
+            sliderData = contentJson;
+          }
+          widgetList.add(FoduuSlider(sliderData: sliderData));
+          break;
+        case 'categories':
+          var categoryData = contentJson ?? {};
+          widgetList.add(CategoryHome(
+            categoryData: categoryData,
+          ));
+          break;
+        case 'blog':
+          widgetList.add(BlogSection(
+            blogData: contentJson,
+          ));
+          break;
+
+        case 'banner':
+          if (contentJson != null) {
+            widgetList.add(HomeBanner(bannerContent: contentJson));
+          }
+          break;
+        case 'price_filter':
+          widgetList.add(PriceFilter(contentJson: contentJson));
+          break;
+        case 'spacer':
+          widgetList.add(SpacerComponent(contentJson: contentJson));
+          break;
+
+        case 'divider':
+          widgetList.add(DividerComponent(contentJson: contentJson));
+          break;
+
+        case 'text_block':
+          widgetList.add(TextBlockComponent(contentJson: contentJson));
+          break;
+
+        case 'products':
+          widgetList.add(TrendingProductSection(
+            contentJson: contentJson,
+          ));
+          break;
+        case 'rich_text':
+          widgetList.add(RichTextComponent(contentJson: contentJson));
+          break;
+      }
+    }
+    // update();
+  }
+
+  Future<dynamic> getDashboardDesign(String slug) async {
+    try {
+      var response = await BasicProvider("mobile-app/$slug").getRequest();
+
+      if (response != null) {
+        var list = response['content_json'];
+        if (list != null && list is List) {
+          _initialComponents = list;
+          // Store full data from API
+          _storeFullData(list);
+          box.write('homeComponent', list);
+          getWidgetbyCategory();
+        }
+      }
+
+      if (kIsWeb) {
+        // Use the already-initialized class-level variables
+        _setupSocketListener(websiteDomain: domain, slug: slug);
+      }
+      return response;
+    } catch (e) {
+      print('home page controller error $e');
+    }
+  }
+
+  /// Store full data (products, categories, sliders, blogs) from initial API response
+  void _storeFullData(List components) {
+    for (var component in components) {
+      if (component['id'] != null && component['content_json'] != null) {
+        final id = component['id'];
+        final contentJson = component['content_json'];
+
+        switch (component['type']) {
+          case 'products':
+            if (contentJson['products'] != null) {
+              _storedProducts[id] = contentJson['products'];
+            }
+            break;
+          case 'categories':
+            if (contentJson['categories'] != null) {
+              _storedCategories[id] = contentJson['categories'];
+            }
+            break;
+          case 'slider':
+            if (contentJson['slider'] != null) {
+              _storedSliders[id] = contentJson['slider'];
+            }
+            break;
+          // case 'blog':
+          //   if (contentJson['blog'] != null) {
+          //     _storedBlogs[id] = contentJson['blog']['content'];
+          //   }
+          //   break;
+        }
+      }
+    }
+
+    print(
+        '📦 Stored data: Products=${_storedProducts.length}, Categories=${_storedCategories.length}, Sliders=${_storedSliders.length}, Blogs=${_storedBlogs.length}');
+  }
+
+  /// Merge socket data with stored full data
+  List _mergeSocketDataWithStored(List socketComponents) {
+    List mergedComponents = [];
+
+    for (var component in socketComponents) {
+      var mergedComponent = Map<String, dynamic>.from(component);
+
+      if (component['id'] != null && component['content_json'] != null) {
+        final id = component['id'];
+        var contentJson = Map<String, dynamic>.from(component['content_json']);
+
+        switch (component['type']) {
+          case 'products':
+            // Add stored products data if not present in socket update
+            if (contentJson['products'] == null &&
+                _storedProducts[id] != null) {
+              contentJson['products'] = _storedProducts[id];
+            }
+            break;
+          case 'categories':
+            // Add stored categories data if not present in socket update
+            if (contentJson['categories'] == null &&
+                _storedCategories[id] != null) {
+              contentJson['categories'] = _storedCategories[id];
+            }
+            break;
+          case 'slider':
+            // Add stored sliders data if not present in socket update
+            if (contentJson['slider'] == null && _storedSliders[id] != null) {
+              contentJson['slider'] = _storedSliders[id];
+            }
+            break;
+          case 'blog':
+            // Add stored blogs data if not present in socket update
+            if (contentJson['blogs'] == null && _storedBlogs[id] != null) {
+              contentJson['blogs'] = _storedBlogs[id];
+            }
+            break;
+        }
+
+        mergedComponent['content_json'] = contentJson;
+      }
+
+      mergedComponents.add(mergedComponent);
+    }
+
+    return mergedComponents;
+  }
+
+  void _setupSocketListener({String? websiteDomain, String? slug}) {
+    try {
+      final eventName = '${websiteDomain}:mobileapp';
+
+      _socketHelper.off(eventName);
+
+      _socketHelper.on(eventName, (data) {
+        print('Received socket update for $eventName:______---- $data');
+        if (data != null) {
+          // Check if data is a string before decoding
+          var decodedData;
+          if (data is String) {
+            decodedData = json.decode(data);
+          } else {
+            decodedData = data;
+          }
+
+          dashboardDesign.value = decodedData;
+
+          print(
+              "✅ Dashboard updated with ${decodedData['content_json'].length} components");
+
+          var list = decodedData['content_json'];
+          if (list is String) {
+            list = json.decode(list);
+          }
+          if (list != null && list is List) {
+            print("✅ Dashboard updated with ${list.length} components");
+
+            // Merge socket data with stored data
+            var mergedList = _mergeSocketDataWithStored(list);
+
+            print("🔄 Merged socket data with stored data");
+
+            box.write('homeComponent', mergedList);
+            getWidgetbyCategory();
+          }
+        }
+      });
+    } catch (e) {
+      print('home page controller error $e');
+    }
+  }
+
+  Future<dynamic> getDrawerNavigation() async {
+    try {
+      isDrawerNavigationLoading(true);
+
+      var response = await BasicProvider("navigation/sidebar")
+          .getRequest()
+          .catchError(handleError);
+
+      var list = response['value'];
+      drawernavigationItems.assignAll(list);
+
+      return response;
+    } catch (e) {
+      print('home page controller error $e');
+    } finally {
+      isDrawerNavigationLoading.value = false;
+    }
+  }
+
+  @override
+  void onClose() {
+    if (kIsWeb) {
+      _socketHelper.off('dashboard-update-69708c1b6968f244e799ea6a');
+    }
+    super.onClose();
+  }
+}

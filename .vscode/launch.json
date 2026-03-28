@@ -1,0 +1,42 @@
+// {
+//   "version": "0.2.0",
+//   "configurations": [
+//     {
+//       "name": "foduu_ecommerce (Web)",
+//       "request": "launch",
+//       "type": "dart",
+//       "args": ["--web-port", "8080"]
+//     }
+//   ]
+// }
+{
+  "version": "0.2.0",
+  "configurations": [
+  
+    {
+      "name": "foduu_ecommerce (Web)",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--web-port",
+        "8080",
+        "--web-launch-url",
+        "http://localhost:8080/#/home?slug=home&api_key=6e7b1cf24b9c920e21be204f3475978abc7067f0c176f1e8&domain_name=shoponline.vbought.com"
+      ]
+    },
+  
+    {
+      "name": "Flutter Web (Release)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "args": [
+        "--web-port",
+        "8080",
+        "--web-launch-url",
+        "http://localhost:8080/#/home?slug=home&api_key=6e7b1cf24b9c920e21be204f3475978abc7067f0c176f1e8&domain_name=shoponline.vbought.com"
+      ]
+    
+}
+  ]
+}

@@ -1,0 +1,374 @@
+BRO A Transaction "order_no" contains multiple "products" For proff i can give to details of single "order_no" Given Below:
+"{
+                "_id": "69b3ae8d145f436c83fb8a22",
+                "order_no": "ORD-309028-WCJH",
+                "total": 55,
+                "subtotal": 55,
+                "discount": 0,
+                "tax": 0,
+                "shipping_charges": 0,
+                "payment_status": "unpaid",
+                "customer": "69afbc534f69443c3f50168a",
+                "address_id": "69afbd1f4f69443c3f5021d2",
+                "address": {
+                    "name": "aniket",
+                    "email": "aniket@gmail.com",
+                    "mobile": "9876512340",
+                    "address": "bharkua",
+                    "address_type": "shipping",
+                    "pincode": "987654",
+                    "country": "68e63df6038f495b64eca490",
+                    "state": "68f9ccb3281ec9e0cd95e40d",
+                    "city": "68f9cccc281ec9e0cd95e422",
+                    "_id": "69afbd1f4f69443c3f5021d2"
+                },
+                "currency": "₹",
+                "payment_method": "razorpay",
+                "products": [
+                    {
+                        "product_id": {
+                            "_id": "69b279d641ca6bb5bded1e5a",
+                            "name": "testt26763721",
+                            "slug": "testt26763721",
+                            "type": "variable",
+                            "content": "d wbgeh dge cfgvctdwvue",
+                            "long_content": "duewbdyuwebegebyebdwbiedywbeytdi",
+                            "featured_image": {
+                                "metadata": {
+                                    "width": 900,
+                                    "height": 545,
+                                    "processed": false
+                                },
+                                "_id": "69aea07b21b6c8530fef1253",
+                                "filename": "blog2_60edda983104b9_044dfc3027fcbb64_1773052027021.webp",
+                                "originalname": "blog2_60edda983104b95c_1772032421098.webp",
+                                "filepath": "2026/03/09/blog2_60edda983104b9_044dfc3027fcbb64_1773052027021.webp",
+                                "mimetype": "image/webp",
+                                "size": 32790,
+                                "file_type": "image",
+                                "uploaded_by": null,
+                                "is_public": true,
+                                "download_count": 0,
+                                "tags": [],
+                                "alt_text": "Blog2 60edda983104b95c 1772032421098",
+                                "file_extension": "webp",
+                                "is_processed": false,
+                                "compression_percentage": 0,
+                                "download_url": "https://69a16b5966d670945a8c6c86.vbought.com/images/2026/03/09/blog2_60edda983104b9_044dfc3027fcbb64_1773052027021.webp"
+                            },
+                            "gallery": [
+                                "69aea07a21b6c8530fef1247",
+                                "69aea07a21b6c8530fef124b",
+                                "69aea07b21b6c8530fef124f",
+                                "69aea07b21b6c8530fef1253",
+                                "69aea07b21b6c8530fef1257",
+                                "69aea07b21b6c8530fef125b",
+                                "69aea07b21b6c8530fef125f"
+                            ],
+                            "front_image": "69aea07b21b6c8530fef1253",
+                            "back_image": "69aea07b21b6c8530fef125b",
+                            "categories": [],
+                            "tags": [],
+                            "brand": null,
+                            "attributes": [
+                                {
+                                    "name": "Color",
+                                    "values": [
+                                        "blue",
+                                        "red"
+                                    ],
+                                    "_id": "69b279d641ca6bb5bded1ed6"
+                                },
+                                {
+                                    "name": "Size",
+                                    "values": [
+                                        "33",
+                                        "34"
+                                    ],
+                                    "_id": "69b279d641ca6bb5bded1ed7"
+                                }
+                            ],
+                            "average_rating": null,
+                            "rating_count": null,
+                            "meta_title": null,
+                            "meta_description": null,
+                            "meta_keywords": null,
+                            "featured": false,
+                            "hot": false,
+                            "trending": false,
+                            "recommended": false,
+                            "bought_together": false,
+                            "bought_together_products": [],
+                            "isTaxable": false,
+                            "tax": 0
+                        },
+                        "name": "testt26763721",
+                        "description": "",
+                        "variant": null,
+                        "qty": 1,
+                        "unit_price": 11,
+                        "total": 11,
+                        "tax": 0,
+                        "tax_amount": 0,
+                        "_id": "69b518888b4d3667080e4644"
+                    },
+                    {
+                        "product_id": {
+                            "_id": "69b279d641ca6bb5bded1e4f",
+                            "name": "product26",
+                            "slug": "product26",
+                            "type": "variable",
+                            "content": "bdyuevdeyhdvwe",
+                            "long_content": "vbwbnwqouinduqbe",
+                            "featured_image": {
+                                "metadata": {
+                                    "width": 650,
+                                    "height": 750,
+                                    "processed": false
+                                },
+                                "_id": "69aea07a21b6c8530fef11c4",
+                                "filename": "Key_Aspects_of_En_Pr_93402dd3fbd80195_1773052026577.webp",
+                                "originalname": "Key_Aspects_of_En_Pr_f3bcf30fb4274eeb_1772099891280.webp",
+                                "filepath": "2026/03/09/Key_Aspects_of_En_Pr_93402dd3fbd80195_1773052026577.webp",
+                                "mimetype": "image/webp",
+                                "size": 41032,
+                                "file_type": "image",
+                                "uploaded_by": null,
+                                "is_public": true,
+                                "download_count": 0,
+                                "tags": [],
+                                "alt_text": "Key Aspects Of En Pr F3bcf30fb4274eeb 1772099891280",
+                                "file_extension": "webp",
+                                "is_processed": false,
+                                "compression_percentage": 0,
+                                "download_url": "https://69a16b5966d670945a8c6c86.vbought.com/images/2026/03/09/Key_Aspects_of_En_Pr_93402dd3fbd80195_1773052026577.webp"
+                            },
+                            "gallery": [],
+                            "front_image": "69aea07a21b6c8530fef11c4",
+                            "back_image": null,
+                            "categories": [],
+                            "tags": [],
+                            "brand": null,
+                            "attributes": [
+                                {
+                                    "name": "Color",
+                                    "values": [
+                                        "blue",
+                                        "red",
+                                        "green"
+                                    ],
+                                    "_id": "69b279d641ca6bb5bded1ed3"
+                                },
+                                {
+                                    "name": "Size",
+                                    "values": [
+                                        "2333",
+                                        "2555",
+                                        "26666"
+                                    ],
+                                    "_id": "69b279d641ca6bb5bded1ed4"
+                                }
+                            ],
+                            "average_rating": null,
+                            "rating_count": null,
+                            "meta_title": null,
+                            "meta_description": null,
+                            "meta_keywords": null,
+                            "featured": false,
+                            "hot": false,
+                            "trending": false,
+                            "recommended": false,
+                            "bought_together": false,
+                            "bought_together_products": [],
+                            "isTaxable": false,
+                            "tax": 0
+                        },
+                        "name": "product26",
+                        "description": "",
+                        "variant": null,
+                        "qty": 2,
+                        "unit_price": 11,
+                        "total": 22,
+                        "tax": 0,
+                        "tax_amount": 0,
+                        "_id": "69b518888b4d3667080e4645"
+                    },
+                    {
+                        "product_id": {
+                            "_id": "69b279d641ca6bb5bded1e0f",
+                            "name": "neyuwbu",
+                            "slug": "neyuwbu",
+                            "type": "simple",
+                            "content": "efnybcyuebrie",
+                            "long_content": "",
+                            "featured_image": {
+                                "metadata": {
+                                    "width": 850,
+                                    "height": 480,
+                                    "processed": false
+                                },
+                                "_id": "69aea07a21b6c8530fef1247",
+                                "filename": "blog15_83c0422d81c6d_433b79b5f9172177_1773052026958.webp",
+                                "originalname": "blog15_83c0422d81c6df27_1772032422128.webp",
+                                "filepath": "2026/03/09/blog15_83c0422d81c6d_433b79b5f9172177_1773052026958.webp",
+                                "mimetype": "image/webp",
+                                "size": 35598,
+                                "file_type": "image",
+                                "uploaded_by": null,
+                                "is_public": true,
+                                "download_count": 0,
+                                "tags": [],
+                                "alt_text": "Blog15 83c0422d81c6df27 1772032422128",
+                                "file_extension": "webp",
+                                "is_processed": false,
+                                "compression_percentage": 0,
+                                "download_url": "https://69a16b5966d670945a8c6c86.vbought.com/images/2026/03/09/blog15_83c0422d81c6d_433b79b5f9172177_1773052026958.webp"
+                            },
+                            "gallery": [
+                                "69aea07a21b6c8530fef1247",
+                                "69aea07b21b6c8530fef12a4",
+                                "69aea07b21b6c8530fef12d3",
+                                "69aea07b21b6c8530fef12d7"
+                            ],
+                            "front_image": "69aea07a21b6c8530fef1247",
+                            "back_image": "69aea07b21b6c8530fef12d3",
+                            "categories": [
+                                "69a9214b901c3a4e579346be",
+                                "69abc0f64268e4ebf8576541"
+                            ],
+                            "tags": [
+                                "69aea07b21b6c8530fef12c2",
+                                "69aea07b21b6c8530fef12ed"
+                            ],
+                            "brand": "69aea07b21b6c8530fef12e6",
+                            "attributes": [],
+                            "average_rating": null,
+                            "rating_count": null,
+                            "meta_title": null,
+                            "meta_description": null,
+                            "meta_keywords": null,
+                            "featured": false,
+                            "hot": false,
+                            "trending": false,
+                            "recommended": false,
+                            "bought_together": false,
+                            "bought_together_products": [],
+                            "isTaxable": false,
+                            "tax": 0
+                        },
+                        "name": "neyuwbu",
+                        "description": "",
+                        "variant": null,
+                        "qty": 1,
+                        "unit_price": 11,
+                        "total": 11,
+                        "tax": 0,
+                        "tax_amount": 0,
+                        "_id": "69b518888b4d3667080e4646"
+                    },
+                    {
+                        "product_id": {
+                            "_id": "69b279d641ca6bb5bded1e4b",
+                            "name": "product25 (Copy)",
+                            "slug": "product25-copy",
+                            "type": "variable",
+                            "content": "bdyuevdeyhdvwe",
+                            "long_content": "vbwbnwqouinduqbe",
+                            "featured_image": {
+                                "metadata": {
+                                    "width": 1000,
+                                    "height": 563,
+                                    "processed": false
+                                },
+                                "_id": "69aea07a21b6c8530fef1225",
+                                "filename": "beeimgtmp_20260226_1_df56e42ab83e9c7b_1773052026838.webp",
+                                "originalname": "beeimgtmp_20260226_1_55df7fa061272e7c_1772437705591.webp",
+                                "filepath": "2026/03/09/beeimgtmp_20260226_1_df56e42ab83e9c7b_1773052026838.webp",
+                                "mimetype": "image/webp",
+                                "size": 26772,
+                                "file_type": "image",
+                                "uploaded_by": null,
+                                "is_public": true,
+                                "download_count": 0,
+                                "tags": [],
+                                "alt_text": "Beeimgtmp 20260226 1 55df7fa061272e7c 1772437705591",
+                                "file_extension": "webp",
+                                "is_processed": false,
+                                "compression_percentage": 0,
+                                "download_url": "https://69a16b5966d670945a8c6c86.vbought.com/images/2026/03/09/beeimgtmp_20260226_1_df56e42ab83e9c7b_1773052026838.webp"
+                            },
+                            "gallery": [],
+                            "front_image": "69aea07a21b6c8530fef1225",
+                            "back_image": null,
+                            "categories": [],
+                            "tags": [],
+                            "brand": null,
+                            "attributes": [
+                                {
+                                    "name": "Color",
+                                    "values": [
+                                        "blue",
+                                        "red"
+                                    ],
+                                    "_id": "69b2933a4e6b95b42bec5723"
+                                },
+                                {
+                                    "name": "Size",
+                                    "values": [
+                                        "2333",
+                                        "2555"
+                                    ],
+                                    "_id": "69b2933a4e6b95b42bec5724"
+                                }
+                            ],
+                            "average_rating": null,
+                            "rating_count": null,
+                            "meta_title": "%%title%% %%separator%% %%sitename%%",
+                            "meta_description": "",
+                            "meta_keywords": "",
+                            "featured": false,
+                            "hot": false,
+                            "trending": false,
+                            "recommended": false,
+                            "bought_together": false,
+                            "bought_together_products": [],
+                            "isTaxable": false,
+                            "tax": 0
+                        },
+                        "name": "product25 (Copy)",
+                        "description": "",
+                        "variant": null,
+                        "qty": 1,
+                        "unit_price": 11,
+                        "total": 11,
+                        "tax": 0,
+                        "tax_amount": 0,
+                        "_id": "69b518888b4d3667080e4647"
+                    }
+                ],
+                "tags": [],
+                "notes": "",
+                "shipment_id": null,
+                "payments": [
+                    {
+                        "gateway": "razorpay",
+                        "payment_intent_id": "order_SQbwrYu8nYSm2s",
+                        "client_secret": "rzp_test_YXZ7SjPw01FhyY",
+                        "amount": 55,
+                        "currency": "₹",
+                        "paid_at": null,
+                        "_id": "69b3ae8d145f436c83fb8a2c"
+                    }
+                ]
+            },"
+SO We have to Build a separate page to show the "Purchased" products for only transaction.
+And Currently In @beautifulMention  we have to show only ""order_no": "ORD-309028-WCJH",
+                "total": 55,
+                "subtotal": 55,
+                "discount": 0,
+                "tax": 0,
+                "shipping_charges": 0,
+                "payment_status": "unpaid",
+"currency": "₹",
+                "payment_method": "razorpay","payments": [ { "transaction_id"}]".
+AND WHEN USER CLICK on Those "Order" we show Our Newly created "Products Page".
