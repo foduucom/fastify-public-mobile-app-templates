@@ -87,8 +87,8 @@ class SearchView extends GetView<SearchsController> {
                             }
                           },
                           child: Obx(() {
-                            final count = controller
-                                .activeFilter.value.activeFilterCount;
+                            final count =
+                                controller.activeFilter.value.activeFilterCount;
                             return Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
