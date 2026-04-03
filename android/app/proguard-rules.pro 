@@ -1,0 +1,17 @@
+# Flutter
+-keep class io.flutter.** { *; }
+-keep class io.flutter.plugins.** { *; }
+
+# Stripe — full coverage
+-keep class com.stripe.** { *; }
+-dontwarn com.stripe.**
+-keep class com.reactnativestripesdk.** { *; }
+-dontwarn com.reactnativestripesdk.**
+
+# Razorpay
+-keep class com.razorpay.** { *; }
+-dontwarn com.razorpay.**
+
+# SVG / Vector graphics
+-keep class vector_graphics.** { *; }
+-dontwarn vector_graphics.**

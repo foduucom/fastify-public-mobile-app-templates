@@ -1,0 +1,87 @@
+{
+  "pages": [
+    {
+      "title": "Home",
+      "slug": "home",
+      "route": "/home",
+      "description": "Main landing page — fully server-driven via dynamic layout engine"
+    },
+    {
+      "title": "Categories",
+      "slug": "category",
+      "route": "/category",
+      "description": "Category listing with dynamic sections embedded below the category list"
+    },
+    {
+      "title": "Category Details",
+      "slug": "category-details",
+      "route": "/detailcategory",
+      "description": "Subcategory / product listing for a specific category"
+    },
+    {
+      "title": "Search",
+      "slug": "search",
+      "route": "/search",
+      "description": "Search page — dynamic sections can be embedded below search results"
+    },
+    {
+      "title": "Cart",
+      "slug": "cart",
+      "route": "/cart",
+      "description": "Cart page — dynamic sections (e.g. upsell products) can appear below cart items"
+    },
+    {
+      "title": "Wishlist",
+      "slug": "wishlist",
+      "route": "/wishlist",
+      "description": "Wishlist page — dynamic sections can appear below wishlist items"
+    },
+    {
+      "title": "Product Details",
+      "slug": "product-details",
+      "route": "/productdetails",
+      "description": "Product detail page — dynamic sections (e.g. related products, reviews) below product info"
+    },
+    {
+      "title": "Product Listing",
+      "slug": "product-listing",
+      "route": "/product-listing",
+      "description": "Shop / product list view with optional dynamic sections"
+    }
+  ],
+  "layouts": {
+    "category": [
+      {
+        "name": "Circular",
+        "slug": "circular",
+        "description": "Small circular icons in a horizontally scrollable list (Home Style)"
+      },
+      {
+        "name": "Rectangular",
+        "slug": "rectangular",
+        "description": "Large rectangular cards with image on left and text on right (Default Category Page Style)"
+      }
+    ],
+    "product": [
+      {
+        "name": "Standard",
+        "slug": "standard",
+        "description": "Vertical card with image on top, name and price below — horizontal scrollable list (Default)"
+      },
+      {
+        "name": "Horizontal",
+        "slug": "horizontal",
+        "description": "Horizontal card with image on left, product info and price on right — vertical list layout"
+      },
+      {
+        "name": "Overlay",
+        "slug": "overlay",
+        "description": "Full-image card with gradient overlay showing product name and price at bottom — horizontal scrollable list"
+      }
+    ]
+  },
+  "github": {
+    "repo_url": "https://github.com/foduucom/fastify-public-mobile-app-templates.git",
+    "branch": "foduu_ecommerce"
+  }
+}
