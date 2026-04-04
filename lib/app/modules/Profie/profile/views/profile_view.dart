@@ -18,13 +18,13 @@ class ProfileView extends GetView<ProfileController> {
   ProfileView({Key? key}) : super(key: key);
 
   final profileController =
-  Get.lazyPut<ProfileController>(() => ProfileController());
+      Get.lazyPut<ProfileController>(() => ProfileController());
   final bottomeController = Get.find<BottombarController>();
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme   = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
 
     // ── Not logged in ──────────────────────────────────────────────────
     if (!AuthDetails.isUserLogin()) {
@@ -68,49 +68,48 @@ class ProfileView extends GetView<ProfileController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // ── User Info Card ─────────────────────────────────────────
             Row(
               children: [
                 Obx(() => ClipOval(
-                  child: controller.profiledata['featured_image'] == null
-                      ? Container(
-                    height: 56,
-                    width: 56,
-                    color: colorScheme.surfaceVariant,
-                    child: Image.asset(
-                      'assets/images/user.png',
-                      color: colorScheme.onSurface,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                      : CachedNetworkImage(
-                    width: 56,
-                    height: 56,
-                    fit: BoxFit.cover,
-                    imageUrl: HelperFunctions().getImage(
-                        controller.profiledata['featured_image']),
-                  ),
-                )),
+                      child: controller.profiledata['featured_image'] == null
+                          ? Container(
+                              height: 56,
+                              width: 56,
+                              color: colorScheme.surfaceVariant,
+                              child: Image.asset(
+                                'assets/images/user.png',
+                                color: colorScheme.onSurface,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : CachedNetworkImage(
+                              width: 56,
+                              height: 56,
+                              fit: BoxFit.cover,
+                              imageUrl: HelperFunctions().getImage(
+                                  controller.profiledata['featured_image']),
+                            ),
+                    )),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Obx(() => Text(
-                        controller.profiledata['name']?.toString() ?? '',
-                        style: textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      )),
+                            controller.profiledata['name']?.toString() ?? '',
+                            style: textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          )),
                       const SizedBox(height: 2),
                       Obx(() => Text(
-                        '@${controller.profiledata['email']?.toString().split('@').first ?? ''}',
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey.shade500,
-                        ),
-                      )),
+                            '@${controller.profiledata['email']?.toString().split('@').first ?? ''}',
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: Colors.grey.shade500,
+                            ),
+                          )),
                     ],
                   ),
                 ),
@@ -137,7 +136,7 @@ class ProfileView extends GetView<ProfileController> {
             _divider(),
             _settingsTile(
               context: context,
-              assetPath: 'assets/images/orders_icon.png',
+              assetPath: 'assets/images/Wallet.png',
               label: 'Orders',
               onTap: () => Get.toNamed(Routes.ORDERS),
             ),
@@ -249,22 +248,21 @@ class ProfileView extends GetView<ProfileController> {
 
   // ── Divider ───────────────────────────────────────────────────────────
   Widget _divider() => Divider(
-    height: 1,
-    thickness: 1,
-    color: Colors.grey.shade100,
-    indent: 52,
-  );
+        height: 1,
+        thickness: 1,
+        color: Colors.grey.shade100,
+        indent: 52,
+      );
 
   // ── Settings Tile — uses asset image instead of Icon ─────────────────
   Widget _settingsTile({
     required BuildContext context,
-    required String assetPath,   // ✅ asset path instead of IconData
+    required String assetPath, // ✅ asset path instead of IconData
     required String label,
     required VoidCallback onTap,
     Widget? trailing,
   }) {
-    final textTheme   = Theme.of(context).textTheme;
-
+    final textTheme = Theme.of(context).textTheme;
 
     return InkWell(
       onTap: onTap,
@@ -278,13 +276,13 @@ class ProfileView extends GetView<ProfileController> {
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                // color: colorScheme.primary.withValues(alpha: 0.08),
-                // borderRadius: BorderRadius.circular(10),
-              ),
+                  // color: colorScheme.primary.withValues(alpha: 0.08),
+                  // borderRadius: BorderRadius.circular(10),
+                  ),
               padding: const EdgeInsets.all(8),
               child: Image.asset(
                 assetPath,
-                 // ✅ tints image to primary color
+                // ✅ tints image to primary color
                 fit: BoxFit.contain,
               ),
             ),
