@@ -12,14 +12,14 @@ const appMode = "test";
 // var ACCESS_KEY =
 //     isWeb ? 'c4144f5a5223976f79ac555d0a95e35f6dd9e34a69e0f935' : 'Not Provided';
 
-//var websiteDomain = "byonegetonefree.vbought.com";   //Our
-var websiteDomain = "mywatch.vbought.com";
+var websiteDomain = "byonegetonefree.vbought.com"; // Our
+//var websiteDomain = "mywatch.vbought.com";
 var url = "https://${websiteDomain}/";
-//var socketUrl = "https://byonegetonefree.vbought.com/";   //Our
-var socketUrl = "https://studio.vbought.com/";
-//var ACCESS_KEY = 'f9f6040c1bcafe23210613993a7acf3b8b87d5972cbff49a';  //Our
+var socketUrl = "https://byonegetonefree.vbought.com/"; // Our
+//var socketUrl = "https://studio.vbought.com/";
+var ACCESS_KEY = 'f9f6040c1bcafe23210613993a7acf3b8b87d5972cbff49a'; // Our
 
-var ACCESS_KEY = '72a5a13ab02a20737217279980c33374f41554ec60742815';
+//var ACCESS_KEY = '72a5a13ab02a20737217279980c33374f41554ec60742815';
 
 var assetURL = "${url}images/";
 var apiURL = "${url}api/";

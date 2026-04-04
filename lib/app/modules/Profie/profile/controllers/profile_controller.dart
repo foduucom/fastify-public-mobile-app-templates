@@ -30,8 +30,10 @@ class ProfileController extends GetxController with BaseController {
   var newPasswordObsecureValue = true.obs;
   var oldPasswordObsecureValue = true.obs;
   var comfirmPasswordObsecureValue = true.obs;
-
+  var selectedGender = 'Male'.obs;
+  final addressController = TextEditingController();
   var selectNotification = 0.obs;
+  var selectedDob = Rx<DateTime?>(null);
 
   @override
   Future<void> onInit() async {
@@ -119,22 +121,45 @@ class ProfileController extends GetxController with BaseController {
   Future<void> fetchDataFromServer() async {
     try {
       isLoading(true);
-      var response = await BasicProvider("auth/customer/profile")
+      var response = await BasicProvider("public/customer/profile")
           .getRequest()
           .catchError(handleError);
 
       if (response != null) {
         profiledata.clear();
-        profiledata.addAll(response);
+        profiledata
+            .addAll(response); // response here should be the profile object
 
         nameController.text = response["name"]?.toString() ?? "";
         emailController.text = response["email"]?.toString() ?? "";
         phoneController.text = response["mobile"]?.toString() ?? "";
-        DateTime? dob =
+
+        print("profile data From Fetch Data From Server: $response");
+        print("Name: ${response["name"]}");
+        print("Email: ${response["email"]}");
+
+        // ✅ DOB — populate both controller + observable
+        final DateTime? dob =
             response['dob'] != null ? DateTime.tryParse(response['dob']) : null;
-        dobController.text =
-            dob != null ? DateFormat('dd-MM-yyyy').format(dob) : '';
-        genderController.text = response["gender"]?.toString() ?? 'female';
+        if (dob != null) {
+          selectedDob.value = dob;
+          dobController.text = DateFormat('dd-MM-yyyy').format(dob);
+        } else {
+          selectedDob.value = null;
+          dobController.text = '';
+        }
+
+        // ✅ Gender — sync both controller + observable pill selector
+        final String rawGender =
+            response["gender"]?.toString().toLowerCase() ?? 'male';
+        genderController.text = rawGender;
+        selectedGender.value = rawGender == 'female' ? 'Female' : 'Male';
+        gender.value = rawGender;
+      } else {
+        print("profile data From Fetch Data From Server Response is null");
+        // Add more debugging here
+        print(
+            "Headers being sent: ${BasicProvider("public/customer/profile").headerType()}");
       }
     } catch (e) {
       debugPrint('profile error $e');
@@ -183,7 +208,7 @@ class ProfileController extends GetxController with BaseController {
       var form = FormData({
         'name': nameController.text,
         'mobile': phoneController.text,
-        'dob': selectedDate,
+        'dob': selectedDob.value,
         'gender': gender.value,
         'email': emailController.text,
         'featured_image':
@@ -207,8 +232,8 @@ class ProfileController extends GetxController with BaseController {
         isLoading(false);
 
         Get.until((route) => !Get.isDialogOpen!);
-        var updatedprofile = await AuthDetails().updateUserDetailsFromServer();
-        Get.find<BottombarController>().authDetails.value = updatedprofile;
+        var updatedprofile = AuthDetails().updateUserDetailsFromServer();
+        //Get.find<BottombarController>().authDetails.value = updatedprofile;
         // HelperFunctions().showSnackBarSuccess(response["status"]);
         Get.until((route) => !Get.isDialogOpen!);
         // Get.back();
@@ -248,7 +273,7 @@ class ProfileController extends GetxController with BaseController {
       "subtitle": "Offers, Order tracking messages.."
     },
     {
-      "icon": "assets/icon/profilesetting.svg",
+      "icon": "assets/icon/profilecall.svg",
       "title": "Contact Us",
       "subtitle": "Customer Support, FAQs"
     },

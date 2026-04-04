@@ -79,45 +79,122 @@ class EditprofileView extends GetView<ProfileController> {
                             children: [
                               ClipOval(
                                 child: Obx(() {
-                                  if (controller.imagePath.isNotEmpty &&
-                                      !controller.imagePath.value
-                                          .contains("http")) {
-                                    return Image.file(
-                                      File(controller.imagePath.value),
-                                      height: height * 0.1125,
-                                      width: height * 0.1125,
-                                      fit: BoxFit.cover,
-                                    );
-                                  } else if (controller.imagePath.value
-                                          .contains("http") &&
-                                      !controller.imagePath.value
-                                          .contains(".svg")) {
-                                    return Image.network(
-                                      controller.imagePath.value,
-                                      height: height * 0.1125,
-                                      width: height * 0.1125,
-                                      fit: BoxFit.cover,
-                                    );
-                                  } else {
+                                  // Helper function to get fallback widget
+                                  Widget buildFallback() {
                                     return CircleAvatar(
                                       radius: height * 0.05625,
                                       backgroundColor: Colors.grey.shade200,
-                                      child: controller.profiledata[
-                                                  'featured_image'] ==
-                                              null
-                                          ? Icon(
-                                              Icons.person,
-                                              size: height * 0.04375,
-                                              color: Colors.grey.shade600,
-                                            )
-                                          : CachedNetworkImage(
-                                              imageUrl: HelperFunctions()
-                                                  .getImage(
-                                                      controller.profiledata[
-                                                          'featured_image']),
-                                              fit: BoxFit.cover,
-                                            ),
+                                      child: Icon(
+                                        Icons.person,
+                                        size: height * 0.04375,
+                                        color: Colors.grey.shade600,
+                                      ),
                                     );
+                                  }
+
+                                  // Try to determine what we're loading
+                                  final imagePath = controller.imagePath.value;
+                                  final hasImagePath = imagePath.isNotEmpty;
+                                  final isNetworkImage =
+                                      imagePath.contains("http");
+                                  final isSvgImage = imagePath.contains(".svg");
+                                  final hasFeaturedImage = controller
+                                          .profiledata['featured_image'] !=
+                                      null;
+
+                                  // Case 1: Local file image
+                                  if (hasImagePath && !isNetworkImage) {
+                                    try {
+                                      final file = File(imagePath);
+                                      if (file.existsSync()) {
+                                        return Image.file(
+                                          file,
+                                          height: height * 0.1125,
+                                          width: height * 0.1125,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            print(
+                                                "Error loading local image: $error");
+                                            return buildFallback();
+                                          },
+                                        );
+                                      } else {
+                                        print(
+                                            "Local file doesn't exist: $imagePath");
+                                        return buildFallback();
+                                      }
+                                    } catch (e) {
+                                      print(
+                                          "Exception loading local image: $e");
+                                      return buildFallback();
+                                    }
+                                  }
+
+                                  // Case 2: Network image (non-SVG)
+                                  else if (isNetworkImage && !isSvgImage) {
+                                    return Image.network(
+                                      imagePath,
+                                      height: height * 0.1125,
+                                      width: height * 0.1125,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        print(
+                                            "Error loading network image: $error");
+                                        // Try featured image as fallback
+                                        if (hasFeaturedImage) {
+                                          return CachedNetworkImage(
+                                            imageUrl: HelperFunctions()
+                                                .getImage(
+                                                    controller.profiledata[
+                                                        'featured_image']),
+                                            fit: BoxFit.cover,
+                                            errorWidget:
+                                                (context, url, error) =>
+                                                    buildFallback(),
+                                            placeholder: (context, url) =>
+                                                buildFallback(),
+                                          );
+                                        }
+                                        return buildFallback();
+                                      },
+                                      loadingBuilder:
+                                          (context, child, loadingProgress) {
+                                        if (loadingProgress == null)
+                                          return child;
+                                        return buildFallback(); // Or a loading indicator
+                                      },
+                                    );
+                                  }
+
+                                  // Case 3: Featured image fallback
+                                  else if (hasFeaturedImage) {
+                                    try {
+                                      return CachedNetworkImage(
+                                        imageUrl: HelperFunctions().getImage(
+                                            controller
+                                                .profiledata['featured_image']),
+                                        height: height * 0.1125,
+                                        width: height * 0.1125,
+                                        fit: BoxFit.cover,
+                                        errorWidget: (context, url, error) {
+                                          print(
+                                              "CachedNetworkImage error: $error");
+                                          return buildFallback();
+                                        },
+                                        placeholder: (context, url) =>
+                                            buildFallback(),
+                                      );
+                                    } catch (e) {
+                                      print("CachedNetworkImage exception: $e");
+                                      return buildFallback();
+                                    }
+                                  }
+
+                                  // Ultimate fallback
+                                  else {
+                                    return buildFallback();
                                   }
                                 }),
                               ),

@@ -215,54 +215,105 @@ class ProductView extends GetView<ProductController> {
                                     ),
                                   ),
 
+                                  SizedBox(width: 10),
+
                                   // Price (Right side)
-                                  Obx(
-                                    () {
-                                      if (controller.productDetials.isEmpty) {
-                                        return const ShimmerEffect(
-                                            height: 20, width: 80);
-                                      }
+                                  Flexible(
+                                    child: Obx(
+                                      () {
+                                        if (controller.productDetials.isEmpty) {
+                                          return const ShimmerEffect(
+                                              height: 20, width: 80);
+                                        }
 
-                                      final productType =
-                                          controller.productDetials['type'] ??
-                                              'simple';
+                                        final productType =
+                                            controller.productDetials['type'] ??
+                                                'simple';
 
-                                      if (productType == 'variable') {
-                                        final variants = controller
-                                                .productDetials['variants']
-                                            as List?;
-                                        if (variants != null &&
-                                            variants.isNotEmpty) {
-                                          final selectedVariant = variants[
-                                              controller
-                                                  .selectedVariantIndex.value];
-                                          final price =
-                                              selectedVariant['price'] ?? 0;
-                                          final discountedPrice =
-                                              selectedVariant['sale_price'] ??
-                                                  0;
+                                        if (productType == 'variable') {
+                                          final variants = controller
+                                                  .productDetials['variants']
+                                              as List?;
+                                          if (variants != null &&
+                                              variants.isNotEmpty) {
+                                            final selectedVariant = variants[
+                                                controller.selectedVariantIndex
+                                                    .value];
 
-                                          String discountRate = '';
-                                          if (discountedPrice > 0 &&
-                                              price > discountedPrice) {
-                                            final discount =
-                                                ((price - discountedPrice) /
-                                                        price *
-                                                        100)
-                                                    .round();
-                                            discountRate = '$discount% off';
+                                            String discountRate = '';
+                                            // FIX - ensure they are numbers first
+                                            final price = double.tryParse(
+                                                    selectedVariant['price']
+                                                            ?.toString() ??
+                                                        '0') ??
+                                                0;
+                                            final discountedPrice =
+                                                double.tryParse(selectedVariant[
+                                                                'sale_price']
+                                                            ?.toString() ??
+                                                        '0') ??
+                                                    0;
+
+                                            if (discountedPrice > 0 &&
+                                                price > discountedPrice) {
+                                              final discount =
+                                                  ((price - discountedPrice) /
+                                                          price *
+                                                          100)
+                                                      .round();
+                                              discountRate = '$discount% off';
+                                            }
+
+                                            return SimplePriceText(
+                                              price: discountedPrice > 0
+                                                  ? discountedPrice
+                                                  : price,
+                                              originalPrice: discountedPrice > 0
+                                                  ? price
+                                                  : null,
+                                              discountLabel: discountedPrice > 0
+                                                  ? discountRate
+                                                  : null,
+                                              priceStyle: txtTheme()
+                                                  .displayMedium!
+                                                  .copyWith(
+                                                    fontSize: height * 0.020,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: DefaultThemeColors
+                                                        .mainprimary,
+                                                  ),
+                                            );
                                           }
+                                        }
 
+                                        // Fallback
+                                        final priceInfo =
+                                            ProductHelper.calculatePriceInfo(
+                                                Map<String, dynamic>.from(
+                                                    controller.productDetials));
+
+                                        if (productType == 'variable') {
+                                          return VariablePriceText(
+                                            lowestPrice:
+                                                priceInfo['lowestPrice'],
+                                            highestPrice:
+                                                priceInfo['highestPrice'],
+                                            style: txtTheme()
+                                                .displayMedium!
+                                                .copyWith(
+                                                  fontSize: height * 0.020,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: DefaultThemeColors
+                                                      .mainprimary,
+                                                ),
+                                          );
+                                        } else {
                                           return SimplePriceText(
-                                            price: discountedPrice > 0
-                                                ? discountedPrice
-                                                : price,
-                                            originalPrice: discountedPrice > 0
-                                                ? price
-                                                : null,
-                                            discountLabel: discountedPrice > 0
-                                                ? discountRate
-                                                : null,
+                                            price: priceInfo['productPrice'],
+                                            originalPrice:
+                                                priceInfo['discountPrice'],
+                                            discountLabel:
+                                                priceInfo['discountRate'],
                                             priceStyle: txtTheme()
                                                 .displayMedium!
                                                 .copyWith(
@@ -273,46 +324,8 @@ class ProductView extends GetView<ProductController> {
                                                 ),
                                           );
                                         }
-                                      }
-
-                                      // Fallback
-                                      final priceInfo =
-                                          ProductHelper.calculatePriceInfo(
-                                              Map<String, dynamic>.from(
-                                                  controller.productDetials));
-
-                                      if (productType == 'variable') {
-                                        return VariablePriceText(
-                                          lowestPrice: priceInfo['lowestPrice'],
-                                          highestPrice:
-                                              priceInfo['highestPrice'],
-                                          style: txtTheme()
-                                              .displayMedium!
-                                              .copyWith(
-                                                fontSize: height * 0.020,
-                                                fontWeight: FontWeight.w700,
-                                                color: DefaultThemeColors
-                                                    .mainprimary,
-                                              ),
-                                        );
-                                      } else {
-                                        return SimplePriceText(
-                                          price: priceInfo['productPrice'],
-                                          originalPrice:
-                                              priceInfo['discountPrice'],
-                                          discountLabel:
-                                              priceInfo['discountRate'],
-                                          priceStyle: txtTheme()
-                                              .displayMedium!
-                                              .copyWith(
-                                                fontSize: height * 0.020,
-                                                fontWeight: FontWeight.w700,
-                                                color: DefaultThemeColors
-                                                    .mainprimary,
-                                              ),
-                                        );
-                                      }
-                                    },
+                                      },
+                                    ),
                                   ),
                                 ],
                               ),

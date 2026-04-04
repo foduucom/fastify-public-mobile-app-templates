@@ -48,7 +48,7 @@ class BasicProvider {
 
       // Build URL with query parameters
       var uri = Uri.parse(fetchUrl());
-      print("Uri Get Request $uri");
+      //print("Uri Get Request $uri");
       if (queryParams != null) {
         uri = uri.replace(queryParameters: queryParams);
       }
@@ -56,7 +56,9 @@ class BasicProvider {
       final response = await http
           .get(uri, headers: headerType())
           .timeout(const Duration(seconds: 60));
-      //print('GET API RESONSE ${response.body}');
+      // CRITICAL: Print the RAW response body
+      // print('RAW RESPONSE BODY: ${response.body}');
+      // print('RESPONSE STATUS: ${response.statusCode}');
 
       return _processResponse(response, fetchUrl());
     } on SocketException {
@@ -170,7 +172,7 @@ class BasicProvider {
         userHeader['Authorization'] = 'Bearer ${AuthDetails.getToken()}';
       }
 
-      print("userHeader: $userHeader");
+      //print("userHeader: $userHeader");
 
       return userHeader;
     } catch (e) {
@@ -188,12 +190,15 @@ class BasicProvider {
       return;
     }
 
-    var message = json.decode(response.body)?['data'] ??
-        json.decode(response.body)?['message'];
+    var decodedBody = json.decode(response.body);
+    print('Decoded body: $decodedBody');
+
+    var message = decodedBody['data'] ?? decodedBody['message'];
 
     switch (response.statusCode) {
       case 200:
         var responseJson = json.decode(response.body)["data"];
+        print("responseJson: $responseJson");
         return responseJson;
       case 201:
         var responseJson = json.decode(response.body)["data"];

@@ -244,45 +244,45 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     return Obx(() => Column(
           children: [
             // ─── Section Header ───
-            //if (!_infiniteScroll)
-            Padding(
-              padding: pageSurroundingPadding,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(heading, style: textTheme.titleLarge),
-                        subheading.isEmpty
-                            ? Container()
-                            : Text(subheading,
-                                style: textTheme.titleSmall!.copyWith(
-                                    color: colorScheme.onSurfaceVariant)),
-                      ],
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-                        'productId': categoryIds,
-                        'name': heading,
-                        'productype': categoryType,
-                        'source': 'dashboard'
-                      });
-                    },
-                    child: Text(
-                      'See all',
-                      style: textTheme.labelMedium?.copyWith(
-                        color: colorScheme.primary,
+            if (!_infiniteScroll)
+              Padding(
+                padding: pageSurroundingPadding,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(heading, style: textTheme.titleLarge),
+                          subheading.isEmpty
+                              ? Container()
+                              : Text(subheading,
+                                  style: textTheme.titleSmall!.copyWith(
+                                      color: colorScheme.onSurfaceVariant)),
+                        ],
                       ),
                     ),
-                  ),
-                ],
+                    GestureDetector(
+                      onTap: () {
+                        Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+                          'productId': categoryIds,
+                          'name': heading,
+                          'productype': categoryType,
+                          'source': 'dashboard'
+                        });
+                      },
+                      child: Text(
+                        'See all',
+                        style: textTheme.labelMedium?.copyWith(
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
             const SizedBox(height: 4),
             // ─── Product Cards ───
             trendingList.isEmpty
