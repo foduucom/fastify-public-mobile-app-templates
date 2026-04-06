@@ -1,9 +1,12 @@
+import 'package:foduu_ecommerce/app/modules/Profie/contact/view/contact_us_view.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/binding/order_binding.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/order_products/binding/order_products_binding.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/order_products/view/order_view.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/orders_details/binding/orderdetails_binding.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/orders_details/view/orderdetails_view.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/view/order_view.dart';
+import 'package:foduu_ecommerce/app/modules/Profie/privacy_policy/view/privacy_policy_view.dart';
+import 'package:foduu_ecommerce/app/modules/Profie/terms&condition/view/terms_conditions_view.dart';
 import 'package:foduu_ecommerce/app/modules/add_profile/bindings/add_profile_binding.dart';
 import 'package:foduu_ecommerce/app/modules/add_profile/views/add_profile_view.dart';
 import 'package:foduu_ecommerce/app/modules/address/bindings/address_form_binding.dart';
@@ -33,6 +36,8 @@ import 'package:foduu_ecommerce/app/modules/checkout/bindings/checkout_bindings.
 import 'package:foduu_ecommerce/app/modules/checkout/views/checkout_views.dart';
 import 'package:foduu_ecommerce/app/modules/choose_category/bindings/choose_category_binding.dart';
 import 'package:foduu_ecommerce/app/modules/choose_category/views/choose_category_view.dart';
+import 'package:foduu_ecommerce/app/modules/helpandsupport/bindings/helpandsupport_binding.dart';
+import 'package:foduu_ecommerce/app/modules/helpandsupport/views/helpandsupport_view.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/bindings/homepage_binding.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/views/home_page_view.dart';
 import 'package:foduu_ecommerce/app/modules/intro/bindings/intro_binding.dart';
@@ -51,6 +56,8 @@ import 'package:foduu_ecommerce/app/modules/shop/bindings/shop_binding.dart';
 import 'package:foduu_ecommerce/app/modules/shop/views/shop_view.dart';
 import 'package:foduu_ecommerce/app/modules/splashscreen/bindings/splashscreen_binding.dart';
 import 'package:foduu_ecommerce/app/modules/splashscreen/view/splashscreen_view.dart';
+import 'package:foduu_ecommerce/app/modules/termsandcondition/bindings/termsandcondition_binding.dart';
+import 'package:foduu_ecommerce/app/modules/termsandcondition/views/termsandcondition_view.dart';
 import 'package:foduu_ecommerce/app/modules/wishlist/bindings/wishlist_binding.dart';
 import 'package:foduu_ecommerce/app/modules/wishlist/views/wishlist_view.dart';
 import 'package:get/get.dart';
@@ -291,38 +298,69 @@ class AppPages {
       binding: OrderProductsBinding(),
     ),
 
+    GetPage(
+      name: _Paths.HELPANDSUPPORT,
+      page: () => const HelpandsupportView(),
+      binding: HelpandsupportBinding(),
+    ),
+    GetPage(
+      name: _Paths.TERMSANDCONDITION,
+      page: () => const TermsandconditionView(),
+      binding: TermsandconditionBinding(),
+    ),
     // GetPage(
-    //   name: _Paths.PAYMENT,
-    //   page: () =>
+    //   name: _Paths.CUSTOMPAGE,
+    //   page: () => CustomPageView(),
+    //   binding: CustomPageBinding(),
     // ),
-    // GetPage(
-    //   name: _Paths.BLOG,
-    //   page: () => BlogView(),
-    //   binding: BlogBinding(),
-    // ),
-    // GetPage(
-    //   name: _Paths.BLOG_DETAILS,
-    //   page: () => BlogDetailsView(),
-    //   binding: BlogBinding(),
-    // ),
-    // GetPage(
-    //   name: _Paths.CONTACT,
-    //   page: () => ContactView(),
-    //   binding: ContactBinding(),
-    // ),
-    // GetPage(
-    //   name: _Paths.PROFILE,
-    //   page: () => ProfileView(),
-    //   binding: ProfileBinding(),
-    // ),
-    // GetPage(
-    //   name: _Paths.DELETE_ACCOUNT,
-    //   page: () => DeleteAccountView(),
-    //   binding: DeleteAccountBinding(),
-    // ),
-    // GetPage(
-    //   name: _Paths.ORDERS,
-    //   page: () => OrdersView(),
-    //   binding: OrdersBindi
+
+    GetPage(
+      name: _Paths.CONTACTUS,
+      page: () => ContactUsView(),
+    ),
+
+    GetPage(
+      name: _Paths.PRIVACY_POLICY,
+      page: () => const PrivacyPolicyView(),
+    ),
+    GetPage(
+      name: _Paths.TERMS_CONDITIONS,
+      page: () => const TermsConditionsView(),
+    ),
   ];
+
+  // GetPage(
+  //   name: _Paths.PAYMENT,
+  //   page: () =>
+  // ),
+  // GetPage(
+  //   name: _Paths.BLOG,
+  //   page: () => BlogView(),
+  //   binding: BlogBinding(),
+  // ),
+  // GetPage(
+  //   name: _Paths.BLOG_DETAILS,
+  //   page: () => BlogDetailsView(),
+  //   binding: BlogBinding(),
+  // ),
+  // GetPage(
+  //   name: _Paths.CONTACT,
+  //   page: () => ContactView(),
+  //   binding: ContactBinding(),
+  // ),
+  // GetPage(
+  //   name: _Paths.PROFILE,
+  //   page: () => ProfileView(),
+  //   binding: ProfileBinding(),
+  // ),
+  // GetPage(
+  //   name: _Paths.DELETE_ACCOUNT,
+  //   page: () => DeleteAccountView(),
+  //   binding: DeleteAccountBinding(),
+  // ),
+  // GetPage(
+  //   name: _Paths.ORDERS,
+  //   page: () => OrdersView(),
+  //   binding: OrdersBindi
+  //];
 }

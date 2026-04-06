@@ -63,6 +63,10 @@ abstract class Routes {
   static const PHONEPAY = _Paths.PHONEPAY;
   //static const PRODUCTDETAILS = _Paths.PRODUCTDETAILS;
   static const BLOG_DETAILS = _Paths.BLOG_DETAILS;
+  static const CUSTOMPAGE = _Paths.CUSTOMPAGE;
+  static const CONTACTUS = _Paths.CONTACTUS;
+  static const PRIVACY_POLICY = _Paths.PRIVACY_POLICY;
+  static const TERMS_CONDITIONS = _Paths.TERMS_CONDITIONS;
 
   //
 }
@@ -124,4 +128,8 @@ abstract class _Paths {
   static const PHONEPAY = '/phonepay';
   static const EMAIL_OTP = '/emailotp';
   static const BLOG_DETAILS = '/blog_details';
+  static const CUSTOMPAGE = '/custompage';
+  static const CONTACTUS = '/contactus';
+  static const PRIVACY_POLICY = '/privacy_policy';
+  static const TERMS_CONDITIONS = '/terms_condition';
 }

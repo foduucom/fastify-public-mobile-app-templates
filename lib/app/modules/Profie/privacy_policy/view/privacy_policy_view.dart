@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../controller/terms_conditions_controller.dart';
+import '../controller/privacy_policy_controller.dart';
 
-class TermsConditionsView extends GetView<TermsConditionsController> {
-  const TermsConditionsView({Key? key}) : super(key: key);
+class PrivacyPolicyView extends GetView<PrivacyPolicyController> {
+  const PrivacyPolicyView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    Get.lazyPut(() => TermsConditionsController());
+    Get.lazyPut(() => PrivacyPolicyController());
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: colorScheme.background,
       appBar: AppBar(
-        title: const Text('Terms & Conditions',
+        title: const Text('Privacy Policy',
             style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
         centerTitle: false,
@@ -31,40 +31,40 @@ class TermsConditionsView extends GetView<TermsConditionsController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Rules and Guidelines",
+                "How we protect your data",
                 style: textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold, color: colorScheme.primary),
               ),
               const SizedBox(height: 8),
               Text(
-                "Please read these terms carefully before using our application.",
-                style: textTheme.bodyMedium
+                "Last updated: October 2025",
+                style: textTheme.labelMedium
                     ?.copyWith(color: colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 24),
               _buildSection(
                 context,
-                title: "1. Acceptance of Terms",
+                title: "1. Information We Collect",
                 content:
-                    "By accessing and using this application, you accept and agree to be bound by the terms and provision of this agreement. In addition, when using this application's particular services, you shall be subject to any posted guidelines or rules applicable to such services.",
+                    "We collect information you provide directly to us when you create an account, make a purchase, or contact customer support. This includes your name, email address, phone number, shipping address, and payment details.",
               ),
               _buildSection(
                 context,
-                title: "2. User Accounts",
+                title: "2. How We Use Your Information",
                 content:
-                    "If you create an account on the application, you are responsible for maintaining the security of your account and you are fully responsible for all activities that occur under the account and any other actions taken in connection with it.",
+                    "We use the information we collect to process your orders, send order confirmations, provide customer support, and improve our services. We may also use your email to send promotional offers, which you can opt out of at any time.",
               ),
               _buildSection(
                 context,
-                title: "3. Products and Pricing",
+                title: "3. Data Security",
                 content:
-                    "All products and prices are subject to change without notice. We reserve the right to modify or discontinue any product at any time. We shall not be liable to you or to any third-party for any modification, price change, suspension, or discontinuance of products.",
+                    "We implement a variety of security measures to maintain the safety of your personal information. Your personal data is contained behind secured networks and is only accessible by a limited number of persons who have special access rights to such systems.",
               ),
               _buildSection(
                 context,
-                title: "4. Return and Refund",
+                title: "4. Sharing with Third Parties",
                 content:
-                    "Our return policy lasts 7 days. If 7 days have gone by since your purchase, unfortunately, we can’t offer you a refund or exchange. To be eligible for a return, your item must be unused and in the same condition that you received it.",
+                    "We do not sell, trade, or otherwise transfer to outside parties your Personally Identifiable Information unless we provide users with advance notice. This does not include website hosting partners and other parties who assist us in operating our website, so long as those parties agree to keep this information confidential.",
               ),
               const SizedBox(height: 40),
             ],
