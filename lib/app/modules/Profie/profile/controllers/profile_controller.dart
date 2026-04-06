@@ -128,18 +128,18 @@ class ProfileController extends GetxController with BaseController {
         profiledata.clear();
         profiledata.addAll(response);
 
-        nameController.text  = response["name"]?.toString()   ?? "";
-        emailController.text = response["email"]?.toString()  ?? "";
+        nameController.text = response["name"]?.toString() ?? "";
+        emailController.text = response["email"]?.toString() ?? "";
         phoneController.text = response["mobile"]?.toString() ?? "";
 
         // ✅ DOB — populate both controller + observable
         final DateTime? dob =
-        response['dob'] != null ? DateTime.tryParse(response['dob']) : null;
+            response['dob'] != null ? DateTime.tryParse(response['dob']) : null;
         if (dob != null) {
-          selectedDob.value  = dob;
+          selectedDob.value = dob;
           dobController.text = DateFormat('dd-MM-yyyy').format(dob);
         } else {
-          selectedDob.value  = null;
+          selectedDob.value = null;
           dobController.text = '';
         }
 
@@ -147,8 +147,8 @@ class ProfileController extends GetxController with BaseController {
         final String rawGender =
             response["gender"]?.toString().toLowerCase() ?? 'male';
         genderController.text = rawGender;
-        selectedGender.value  = rawGender == 'female' ? 'Female' : 'Male';
-        gender.value          = rawGender;
+        selectedGender.value = rawGender == 'female' ? 'Female' : 'Male';
+        gender.value = rawGender;
       }
     } catch (e) {
       debugPrint('profile error $e');
@@ -197,7 +197,7 @@ class ProfileController extends GetxController with BaseController {
       var form = FormData({
         'name': nameController.text,
         'mobile': phoneController.text,
-        'dob':    selectedDob.value,
+        'dob': selectedDob.value,
         'gender': gender.value,
         'email': emailController.text,
         'featured_image':
