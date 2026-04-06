@@ -72,6 +72,7 @@ Future<void> main() async {
   // Remove splash screen after app is ready
   FlutterNativeSplash.remove();
 }
+
 Future<String> _initApp() async {
   final box = GetStorage();
   try {
@@ -87,12 +88,12 @@ Future<String> _initApp() async {
         Get.find<ThemeController>().refreshTheme();
       }
 
-      final bool isLogin        = box.read('isLogin')        ?? false;
-      final bool hasSeenIntro   = box.read('isIntroViewed')  ?? false;
+      final bool isLogin = box.read('isLogin') ?? false;
+      final bool hasSeenIntro = box.read('isIntroViewed') ?? false;
 
-      if (isLogin)        return Routes.BOTTOMBAR;  // logged-in user
-      if (hasSeenIntro)   return Routes.LOGIN;       // returning guest
-      return Routes.INTRO;                           // ✅ first-time user
+      if (isLogin) return Routes.BOTTOMBAR; // logged-in user
+      if (hasSeenIntro) return Routes.LOGIN; // returning guest
+      return Routes.INTRO; // ✅ first-time user
     }
   } catch (e) {
     debugPrint('Error during initApp: $e');
@@ -102,7 +103,6 @@ Future<String> _initApp() async {
   final bool hasSeenIntro = GetStorage().read('isIntroViewed') ?? false;
   return hasSeenIntro ? Routes.LOGIN : Routes.INTRO;
 }
-
 
 // Future<String> _initApp() async {
 //   final box = GetStorage();
