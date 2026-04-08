@@ -73,7 +73,7 @@ class _HomeBannerState extends State<HomeBanner>
 
   // Carousel Banner with auto-play
   Widget _buildCarouselBanner(List items, Map<String, dynamic> config) {
-    return CarouselBanner(
+    return BannerCarousel(
       items: items,
       config: config,
       onTap: handleBannerTap,
@@ -261,14 +261,14 @@ class _HomeBannerState extends State<HomeBanner>
   bool get wantKeepAlive => true;
 }
 
-// Carousel Banner Widget with Auto-play
-class CarouselBanner extends StatefulWidget {
+// ── Banner Carousel Widget with Auto-play ───────────────────────────────────────────────────────────
+class BannerCarousel extends StatefulWidget {
   final List items;
   final Map<String, dynamic> config;
   final Function(Map<String, dynamic>) onTap;
   final String Function(Map<String, dynamic>) getImage;
 
-  const CarouselBanner({
+  const BannerCarousel({
     super.key,
     required this.items,
     required this.config,
@@ -277,10 +277,10 @@ class CarouselBanner extends StatefulWidget {
   });
 
   @override
-  State<CarouselBanner> createState() => _CarouselBannerState();
+  State<BannerCarousel> createState() => _BannerCarouselState();
 }
 
-class _CarouselBannerState extends State<CarouselBanner> {
+class _BannerCarouselState extends State<BannerCarousel> {
   late PageController _pageController;
   int _currentPage = 0;
   Timer? _timer;
@@ -322,78 +322,132 @@ class _CarouselBannerState extends State<CarouselBanner> {
 
   @override
   Widget build(BuildContext context) {
-    final height = widget.config['height']?.toDouble() ?? 200.0;
-    final borderRadius = widget.config['border_radius']?.toDouble() ?? 10.0;
+    final textTheme = Theme.of(context).textTheme;
+    final height = widget.config['height']?.toDouble() ?? 160.0;
     final showIndicators = widget.config['show_indicators'] ?? true;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      child: Column(
-        children: [
-          // Text('data' , style:  Theme.of(context).textTheme.tit,)
-          SizedBox(
-            height: height,
-            child: PageView.builder(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPage = index;
-                });
-              },
-              itemCount: widget.items.length,
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () => widget.onTap(widget.items[index]),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(borderRadius),
-                      child: CachedNetworkImage(
-                        fit: BoxFit.cover,
-                        imageUrl: widget.getImage(widget.items[index]),
-                        progressIndicatorBuilder: (context, url, progress) {
-                          return Container(
-                            decoration:
-                                BoxDecoration(color: Colors.grey.shade100),
-                            child: HelperFunctions().loadingIndicator(),
-                          );
-                        },
-                        errorWidget: (context, url, error) {
-                          return Container(
-                            color: Colors.grey.shade200,
-                            child: const Icon(Icons.error, size: 40),
-                          );
-                        },
-                      ),
-                    ),
+    return Column(
+      children: [
+        SizedBox(
+          height: height,
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            itemCount: widget.items.length,
+            itemBuilder: (context, index) {
+              final banner = widget.items[index];
+              return GestureDetector(
+                onTap: () => widget.onTap(banner),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDCF1E0),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                );
-              },
-            ),
+                  child: Stack(
+                    children: [
+                      // ── Text left ──────────────────────────────
+                      Positioned(
+                        left: 20,
+                        top: 20,
+                        bottom: 20,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // ── Delivery tag ──────────────────
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: Colors.black87,
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    banner['tag']!,
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 11),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    banner['highlight']!,
+                                    style: TextStyle(
+                                      color: Colors.amber.shade400,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              width: 170,
+                              child: Text(
+                                banner['title']!,
+                                style: textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                  fontSize: 15,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // ── Image right ────────────────────────────
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.horizontal(
+                              right: Radius.circular(20)),
+                          child: Image.asset(
+                            widget.getImage(banner),
+                            width: 160,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
-          if (showIndicators && widget.items.length > 1)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  widget.items.length,
-                  (index) => Container(
-                    width: 8,
-                    height: 8,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _currentPage == index
-                          ? Theme.of(context).primaryColor
-                          : Colors.grey.shade300,
-                    ),
+        ),
+        if (showIndicators && widget.items.length > 1)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                widget.items.length,
+                (i) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: _currentPage == i ? 24 : 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: _currentPage == i
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
                   ),
                 ),
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }

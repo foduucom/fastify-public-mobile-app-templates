@@ -7,13 +7,12 @@ import '/app/modules/product/views/product_view.dart';
 import '/app/modules/shop/bindings/shop_binding.dart';
 import '/app/routes/app_pages.dart';
 
-
 class HomeView extends GetView<HomeController> {
   const HomeView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final textTheme   = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -23,7 +22,6 @@ class HomeView extends GetView<HomeController> {
         color: colorScheme.primary,
         child: CustomScrollView(
           slivers: [
-
             // ── AppBar ─────────────────────────────────────────────
             SliverAppBar(
               backgroundColor: Colors.white,
@@ -83,13 +81,14 @@ class HomeView extends GetView<HomeController> {
                       children: [
                         _AppBarIconButton(
                           icon: Icons.notifications_outlined,
-                          onTap: () =>
-                              Get.toNamed(Routes.NOTIFICATION),
+                          onTap: () => Get.toNamed(Routes.NOTIFICATION),
                         ),
                         Positioned(
-                          top: 6, right: 6,
+                          top: 6,
+                          right: 6,
                           child: Container(
-                            width: 8, height: 8,
+                            width: 8,
+                            height: 8,
                             decoration: const BoxDecoration(
                               color: Colors.red,
                               shape: BoxShape.circle,
@@ -165,11 +164,10 @@ class HomeView extends GetView<HomeController> {
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: controller.featuredProducts.length,
-                    separatorBuilder: (_, __) =>
-                    const SizedBox(width: 14),
+                    separatorBuilder: (_, __) => const SizedBox(width: 14),
                     itemBuilder: (context, index) {
                       final product = controller.featuredProducts[index]
-                      as Map<String, dynamic>;
+                          as Map<String, dynamic>;
                       return _StoreCard(
                         product: product,
                         controller: controller,
@@ -200,22 +198,21 @@ class HomeView extends GetView<HomeController> {
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
                         itemCount: controller.categories.length,
-                        separatorBuilder: (_, __) =>
-                        const SizedBox(width: 12),
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
                         itemBuilder: (context, index) {
                           final cat = controller.categories[index];
                           return GestureDetector(
-                            onTap: () =>
-                                Get.toNamed(Routes.CATEGORY),
+                            onTap: () => Get.toNamed(Routes.CATEGORY),
                             child: Column(
                               children: [
                                 Container(
-                                  width: 60, height: 60,
+                                  width: 60,
+                                  height: 60,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: Colors.grey.shade100,
-                                    border: Border.all(
-                                        color: Colors.grey.shade200),
+                                    border:
+                                        Border.all(color: Colors.grey.shade200),
                                   ),
                                   padding: const EdgeInsets.all(12),
                                   child: Image.asset(
@@ -264,17 +261,16 @@ class HomeView extends GetView<HomeController> {
               return SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 sliver: SliverGrid(
-                  gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     crossAxisSpacing: 14,
                     mainAxisSpacing: 14,
                     childAspectRatio: 0.68,
                   ),
                   delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                      final product = controller.hotProducts[index]
-                      as Map<String, dynamic>;
+                    (context, index) {
+                      final product =
+                          controller.hotProducts[index] as Map<String, dynamic>;
                       return _ProductCard(
                         product: product,
                         controller: controller,
@@ -327,8 +323,7 @@ class HomeView extends GetView<HomeController> {
         child: GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate:
-          const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 14,
             mainAxisSpacing: 14,
@@ -359,7 +354,8 @@ class _AppBarIconButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 40, height: 40,
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
           color: Colors.grey.shade100,
           shape: BoxShape.circle,
@@ -379,7 +375,7 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme   = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -432,7 +428,9 @@ class _BannerCarousel extends StatelessWidget {
                   children: [
                     // ── Text left ──────────────────────────────
                     Positioned(
-                      left: 20, top: 20, bottom: 20,
+                      left: 20,
+                      top: 20,
+                      bottom: 20,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -451,8 +449,7 @@ class _BannerCarousel extends StatelessWidget {
                                 Text(
                                   banner['tag']!,
                                   style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 11),
+                                      color: Colors.white, fontSize: 11),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -484,7 +481,9 @@ class _BannerCarousel extends StatelessWidget {
                     ),
                     // ── Image right ────────────────────────────
                     Positioned(
-                      right: 0, top: 0, bottom: 0,
+                      right: 0,
+                      top: 0,
+                      bottom: 0,
                       child: ClipRRect(
                         borderRadius: const BorderRadius.horizontal(
                             right: Radius.circular(20)),
@@ -505,23 +504,23 @@ class _BannerCarousel extends StatelessWidget {
 
         // ── Dot indicators ────────────────────────────────────
         Obx(() => Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            controller.banners.length,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                controller.banners.length,
                 (i) => AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              width: controller.currentBanner.value == i ? 24 : 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: controller.currentBanner.value == i
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(4),
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: controller.currentBanner.value == i ? 24 : 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: controller.currentBanner.value == i
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
               ),
-            ),
-          ),
-        )),
+            )),
       ],
     );
   }
@@ -544,15 +543,14 @@ class _StoreCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imageUrl = controller.getImageUrl(product);
-    final name     = product['name']?.toString() ?? '';
+    final name = product['name']?.toString() ?? '';
 
     return GestureDetector(
       onTap: () {
         final id = product['_id']?.toString() ?? '';
         if (id.isNotEmpty) {
           Get.to(() => ProductView(),
-              binding: ShopBinding(),
-              arguments: {'productId': id});
+              binding: ShopBinding(), arguments: {'productId': id});
         }
       },
       child: SizedBox(
@@ -566,33 +564,34 @@ class _StoreCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: SizedBox(
-                    width: 180, height: 150,
+                    width: 180,
+                    height: 150,
                     child: imageUrl.isNotEmpty
                         ? CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) =>
-                          Container(color: Colors.grey.shade200),
-                      errorWidget: (_, __, ___) => Container(
-                        color: Colors.grey.shade200,
-                        child: Icon(Icons.store,
-                            color: Colors.grey.shade400,
-                            size: 40),
-                      ),
-                    )
+                            imageUrl: imageUrl,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) =>
+                                Container(color: Colors.grey.shade200),
+                            errorWidget: (_, __, ___) => Container(
+                              color: Colors.grey.shade200,
+                              child: Icon(Icons.store,
+                                  color: Colors.grey.shade400, size: 40),
+                            ),
+                          )
                         : Container(
-                      color: Colors.grey.shade200,
-                      child: Icon(Icons.store,
-                          color: Colors.grey.shade400, size: 40),
-                    ),
+                            color: Colors.grey.shade200,
+                            child: Icon(Icons.store,
+                                color: Colors.grey.shade400, size: 40),
+                          ),
                   ),
                 ),
                 // ── Category tag overlay ──────────────────────
                 Positioned(
-                  top: 10, left: 10,
+                  top: 10,
+                  left: 10,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 5),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: colorScheme.primary,
                       borderRadius: BorderRadius.circular(8),
@@ -627,8 +626,8 @@ class _StoreCard extends StatelessWidget {
                 const SizedBox(width: 3),
                 Text(
                   'London, United Kingdom',
-                  style: textTheme.bodySmall?.copyWith(
-                      color: Colors.grey.shade500, fontSize: 11),
+                  style: textTheme.bodySmall
+                      ?.copyWith(color: Colors.grey.shade500, fontSize: 11),
                 ),
               ],
             ),
@@ -655,23 +654,21 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl    = controller.getImageUrl(product);
-    final name        = product['name']?.toString() ?? '';
-    final price       = controller.getPrice(product);
-    final salePrice   = controller.getSalePrice(product);
+    final imageUrl = controller.getImageUrl(product);
+    final name = product['name']?.toString() ?? '';
+    final price = controller.getPrice(product);
+    final salePrice = controller.getSalePrice(product);
     final hasDiscount = salePrice > 0 && salePrice < price;
     final displayPrice = hasDiscount ? salePrice : price;
-    final discountPct  = hasDiscount
-        ? ((price - salePrice) / price * 100).round()
-        : 0;
+    final discountPct =
+        hasDiscount ? ((price - salePrice) / price * 100).round() : 0;
 
     return GestureDetector(
       onTap: () {
         final id = product['_id']?.toString() ?? '';
         if (id.isNotEmpty) {
           Get.to(() => ProductView(),
-              binding: ShopBinding(),
-              arguments: {'productId': id});
+              binding: ShopBinding(), arguments: {'productId': id});
         }
       },
       child: Container(
@@ -688,34 +685,33 @@ class _ProductCard extends StatelessWidget {
               child: Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(15)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(15)),
                     child: SizedBox(
                       width: double.infinity,
                       child: imageUrl.isNotEmpty
                           ? CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) =>
-                            Container(color: Colors.grey.shade100),
-                        errorWidget: (_, __, ___) => Container(
-                          color: Colors.grey.shade100,
-                          child: Icon(
-                              Icons.image_not_supported_outlined,
-                              color: Colors.grey.shade400),
-                        ),
-                      )
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              placeholder: (_, __) =>
+                                  Container(color: Colors.grey.shade100),
+                              errorWidget: (_, __, ___) => Container(
+                                color: Colors.grey.shade100,
+                                child: Icon(Icons.image_not_supported_outlined,
+                                    color: Colors.grey.shade400),
+                              ),
+                            )
                           : Container(
-                        color: Colors.grey.shade100,
-                        child: Icon(
-                            Icons.image_not_supported_outlined,
-                            color: Colors.grey.shade400),
-                      ),
+                              color: Colors.grey.shade100,
+                              child: Icon(Icons.image_not_supported_outlined,
+                                  color: Colors.grey.shade400),
+                            ),
                     ),
                   ),
                   if (hasDiscount)
                     Positioned(
-                      top: 8, left: 8,
+                      top: 8,
+                      left: 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
@@ -781,10 +777,10 @@ class _ProductCard extends StatelessWidget {
                           ],
                         ),
                         Container(
-                          width: 30, height: 30,
+                          width: 30,
+                          height: 30,
                           decoration: BoxDecoration(
-                            color: colorScheme.primary
-                                .withValues(alpha: 0.12),
+                            color: colorScheme.primary.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(Icons.add,

@@ -307,12 +307,13 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                         ),
                         GestureDetector(
                           onTap: () {
-                            Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-                              'productId': categoryIds,
-                              'name': heading,
-                              'productype': categoryType,
-                              'source': 'dashboard'
-                            });
+                            Get.toNamed(Routes.EXPLORE);
+                            // Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+                            //   'productId': categoryIds,
+                            //   'name': heading,
+                            //   'productype': categoryType,
+                            //   'source': 'dashboard'
+                            // });
                           },
                           child: Text(
                             'See all',
