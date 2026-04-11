@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 
 class ProfileController extends GetxController with BaseController {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> changePasswordFormKey = GlobalKey<FormState>();
   var box = GetStorage();
   var profiledata = {}.obs;
   DateTime? selectedDate;

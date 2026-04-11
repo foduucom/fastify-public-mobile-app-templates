@@ -15,6 +15,7 @@ class PrimaryActionButton extends StatelessWidget {
   final bool isLoading; // New parameter
   final Widget? loadingWidget; // Optional custom loading widget
   final Color? loadingIndicatorColor; // Color for the loading indicator
+  final double verticalPadding;
 
   const PrimaryActionButton({
     super.key,
@@ -30,6 +31,7 @@ class PrimaryActionButton extends StatelessWidget {
     this.isLoading = false, // Default to false
     this.loadingWidget,
     this.loadingIndicatorColor,
+    this.verticalPadding = 12,
   });
 
   @override
@@ -42,7 +44,7 @@ class PrimaryActionButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor ?? DefaultThemeColors.mainprimary,
           elevation: elevation,
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: EdgeInsets.symmetric(vertical: verticalPadding),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
           ),

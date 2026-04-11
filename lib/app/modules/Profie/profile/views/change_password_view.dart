@@ -47,7 +47,7 @@ class ChangePasswordView extends GetView<ProfileController> {
               FocusScope.of(context).requestFocus(FocusNode());
             },
             child: Form(
-              key: controller.formKey,
+              key: controller.changePasswordFormKey,
               child: ListView(
                 padding: EdgeInsets.symmetric(
                   horizontal: width * 0.05,

@@ -35,7 +35,7 @@ class TempraryChangePassword extends StatelessWidget {
         ),
       ),
       body: Form(
-        key: controller.formKey, // Use the form key from ProfileController
+        key: controller.changePasswordFormKey,
         child: ListView(
           padding: EdgeInsets.symmetric(
             horizontal: width * 0.05,
@@ -149,7 +149,7 @@ class TempraryChangePassword extends StatelessWidget {
               onPressed: controller.isLoading.value
                   ? null // Disable button when loading
                   : () {
-                      if (controller.formKey.currentState!.validate()) {
+                      if (controller.changePasswordFormKey.currentState!.validate()) {
                         controller
                             .changePassword(); // Call the changePassword method
                       }

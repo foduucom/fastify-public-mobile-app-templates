@@ -200,16 +200,20 @@ class _WishListGridItem extends StatelessWidget {
     final priceInfo = controller.getPriceInfo(index);
     final productType = priceInfo['productType'];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.outline.withOpacity(0.15),
-          width: 1,
+    return InkWell(
+      onTap: () =>
+          Get.toNamed(Routes.PRODUCTDETAILS, arguments: {'productId': productId}),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: colorScheme.outline.withOpacity(0.15),
+            width: 1,
+          ),
         ),
-      ),
-      child: Column(
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Product Image
@@ -296,7 +300,6 @@ class _WishListGridItem extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min, // Keep content tight
                 children: [
                   Text(
                     productName,
@@ -323,7 +326,7 @@ class _WishListGridItem extends StatelessWidget {
                     _buildVariablePrice(context, priceInfo)
                   else
                     _buildSimplePrice(context, priceInfo),
-                  const Spacer(), // Use Spacer to push buttons to the very bottom
+                  const Spacer(),
                   // Add to Cart Section
                   Row(
                     children: [
@@ -371,11 +374,12 @@ class _WishListGridItem extends StatelessWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: SizedBox(
-                          height: 28, // Matches quantity selector height
+                          height: 28,
                           child: PrimaryActionButton(
                             onPressed: () => controller.addToCart(index),
                             text: 'Add',
-                            fontSize: 14,
+                            fontSize: 13,
+                            verticalPadding: 2,
                           ),
                         ),
                       ),
@@ -386,6 +390,7 @@ class _WishListGridItem extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -633,8 +638,9 @@ class _WishListItemCard extends StatelessWidget {
                               child: PrimaryActionButton(
                                 onPressed: () => controller.addToCart(index),
                                 text: 'Add Cart',
-                                height: 0.045, // Compact height
-                                fontSize: 12, // Smaller font for consistency
+                                height: 0.042,
+                                fontSize: 12,
+                                verticalPadding: 4,
                               ),
                             ),
                           ],
