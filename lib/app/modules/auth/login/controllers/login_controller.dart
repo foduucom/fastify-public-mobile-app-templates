@@ -259,8 +259,13 @@ class LoginController extends GetxController with BaseController {
         // Clear password for security
         passwordController.clear();
 
-        // Navigate to main screen
-        Get.offAllNamed(Routes.OTP);
+        // Navigate to OTP verification screen
+        Get.toNamed(Routes.OTP, arguments: {
+          'email': emailController.text.trim(),
+          'mobile': '',
+          'country_code': '',
+          'context': 'login',
+        });
       } else {
         // Handle error responses
         String errorMsg = 'Login failed. Please check your credentials.';

@@ -3,15 +3,13 @@ import 'package:get/get.dart';
 import '/constants/helper_functions.dart';
 
 class ContactUsController extends GetxController {
-  final formKey = GlobalKey<FormState>();
-
   final nameCtrl = TextEditingController();
   final emailCtrl = TextEditingController();
   final messageCtrl = TextEditingController();
 
   var isSubmitting = false.obs;
 
-  Future<void> submitContactForm() async {
+  Future<void> submitContactForm(GlobalKey<FormState> formKey) async {
     if (!formKey.currentState!.validate()) return;
 
     try {

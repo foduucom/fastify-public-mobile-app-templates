@@ -35,6 +35,7 @@ class ProfileController extends GetxController with BaseController {
   final addressController = TextEditingController();
   var selectNotification = 0.obs;
   var selectedDob = Rx<DateTime?>(null);
+  var addresses = <dynamic>[].obs;
 
   @override
   Future<void> onInit() async {
@@ -122,26 +123,32 @@ class ProfileController extends GetxController with BaseController {
   Future<void> fetchDataFromServer() async {
     try {
       isLoading(true);
-      var response = await BasicProvider("public/customer/profile")
+      // Switched from "public/customer/profile" to "auth/customer/profile" as requested
+      var response = await BasicProvider("auth/customer/profile")
           .getRequest()
           .catchError(handleError);
 
       if (response != null) {
         profiledata.clear();
-        profiledata
-            .addAll(response); // response here should be the profile object
+        profiledata.addAll(response);
 
+        // Basic Profile Data
         nameController.text = response["name"]?.toString() ?? "";
         emailController.text = response["email"]?.toString() ?? "";
         phoneController.text = response["mobile"]?.toString() ?? "";
 
-        print("profile data From Fetch Data From Server: $response");
-        print("Name: ${response["name"]}");
-        print("Email: ${response["email"]}");
+        // Gender syncing
+        final String rawGender =
+            response["gender"]?.toString().toLowerCase() ?? 'male';
+        genderController.text = rawGender;
+        selectedGender.value = rawGender == 'female' ? 'Female' : 'Male';
+        gender.value = rawGender;
 
-        // ✅ DOB — populate both controller + observable
+        // Date of Birth parsing (API uses "date_of_birth" while previous code used "dob")
+        final String? dobString = response['date_of_birth'] ?? response['dob'];
         final DateTime? dob =
-            response['dob'] != null ? DateTime.tryParse(response['dob']) : null;
+            dobString != null ? DateTime.tryParse(dobString) : null;
+
         if (dob != null) {
           selectedDob.value = dob;
           dobController.text = DateFormat('dd-MM-yyyy').format(dob);
@@ -150,20 +157,25 @@ class ProfileController extends GetxController with BaseController {
           dobController.text = '';
         }
 
-        // ✅ Gender — sync both controller + observable pill selector
-        final String rawGender =
-            response["gender"]?.toString().toLowerCase() ?? 'male';
-        genderController.text = rawGender;
-        selectedGender.value = rawGender == 'female' ? 'Female' : 'Male';
-        gender.value = rawGender;
+        // Addresses parsing
+        if (response['addresses'] != null && response['addresses'] is List) {
+          addresses.assignAll(response['addresses']);
+        } else {
+          addresses.clear();
+        }
+
+        // Profile Image
+        if (response['featured_image'] != null &&
+            response['featured_image']['download_url'] != null) {
+          imagePath.value = response['featured_image']['download_url'];
+        }
+
+        debugPrint("Profile data successfully fetched and parsed: $response");
       } else {
-        print("profile data From Fetch Data From Server Response is null");
-        // Add more debugging here
-        print(
-            "Headers being sent: ${BasicProvider("public/customer/profile").headerType()}");
+        debugPrint("Profile data response was null.");
       }
     } catch (e) {
-      debugPrint('profile error $e');
+      debugPrint('Error fetching profile: $e');
     } finally {
       isLoading(false);
     }
@@ -209,21 +221,20 @@ class ProfileController extends GetxController with BaseController {
       var form = FormData({
         'name': nameController.text,
         'mobile': phoneController.text,
-        'dob': selectedDob.value,
-        'gender': gender.value,
         'email': emailController.text,
+        'gender': selectedGender.value.toLowerCase(),
+        if (selectedDob.value != null)
+          'date_of_birth': DateFormat('yyyy-MM-dd').format(selectedDob.value!),
         'featured_image':
             !imagePath.value.contains("http") && imagePath.value != ""
                 ? MultipartFile(imagePath.value,
                     filename: imagePath.value
                         .split("/")[imagePath.value.split("/").length - 1])
-                : imagePath.value != ""
-                    ? null
-                    : "",
+                : null,
       });
 
       try {
-        var response = await BasicProvider("public/customer/profile/update")
+        var response = await BasicProvider("auth/customer/profile/update")
             .postRequest(form)
             .catchError(handleError);
         Get.until((route) => !Get.isDialogOpen!);

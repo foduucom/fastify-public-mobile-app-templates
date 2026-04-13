@@ -50,7 +50,6 @@ class ProductController extends GetxController
   var selectedVariant = {}.obs;
   var productVariantOption = List<dynamic>.empty();
 
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   // var pinCodeController;
   final count = 1.obs;
   final checkController = TextEditingController();
@@ -94,12 +93,12 @@ class ProductController extends GetxController
       cateogries.add("${element['_id']}");
     });
 
-    //getSimilarProduct(cateogries);
+    getSimilarProduct(cateogries);
     extractAttributes();
     // ✅ ADD THIS: Initialize selectors after extracting attributes
     initializeSelectors();
     getVariantDetails();
-    //getProductReview(productId);
+    getProductReview(productId);
     controller = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 300),

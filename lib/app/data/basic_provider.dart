@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
 import '../../constants/app_exceptions.dart';
@@ -77,7 +78,31 @@ class BasicProvider {
 
   Future<dynamic> postRequest(form) async {
     try {
-      // final client = CookieClientManager.getClient();
+      if (form is FormData) {
+        var request = http.MultipartRequest('POST', Uri.parse(fetchUrl()));
+        request.headers.addAll(headerType(isMultipart: true));
+
+        // Add fields
+        form.fields.forEach((field) {
+          request.fields[field.key] = field.value;
+        });
+
+        // Add files
+        for (var file in form.files) {
+          request.files.add(http.MultipartFile(
+            file.key,
+            file.value.stream!,
+            file.value.length ?? 0,
+            filename: file.value.filename,
+          ));
+        }
+
+        final streamedResponse =
+            await request.send().timeout(const Duration(seconds: 120));
+        final response = await http.Response.fromStream(streamedResponse);
+
+        return _processResponse(response, fetchUrl());
+      }
 
       final response = await http
           .post(
@@ -157,16 +182,18 @@ class BasicProvider {
     }
   }
 
-  Map<String, String> headerType() {
+  Map<String, String> headerType({bool isMultipart = false}) {
     try {
       Map<String, String> userHeader;
 
       userHeader = {
         "accept": "application/json",
         'access_key': ACCESS_KEY,
-        "Content-Type": "application/json",
-        //'Authorization': 'Bearer ${AuthDetails.getToken()}',
       };
+
+      if (!isMultipart) {
+        userHeader["Content-Type"] = "application/json";
+      }
 
       if (AuthDetails.getToken() != null) {
         userHeader['Authorization'] = 'Bearer ${AuthDetails.getToken()}';
@@ -186,7 +213,7 @@ class BasicProvider {
 
     if (response.statusCode == null) {
       HelperFunctions()
-          .showSnackBarError("No response from server\\n $custom_url");
+          .showSnackBarError("No response from server\n $custom_url");
       return;
     }
 
@@ -194,6 +221,15 @@ class BasicProvider {
     print('Decoded body: $decodedBody');
 
     var message = decodedBody['data'] ?? decodedBody['message'];
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      print('━━━━━━━━━━━━━━━ API ERROR ━━━━━━━━━━━━━━━');
+      print('URL: $url');
+      print('STATUS: ${response.statusCode}');
+      print('MESSAGE: $message');
+      print('BODY: ${response.body}');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    }
 
     switch (response.statusCode) {
       case 200:
@@ -204,16 +240,20 @@ class BasicProvider {
         var responseJson = json.decode(response.body)["data"];
         return responseJson;
       case 400:
-        throw BadRequestException(message ?? response.request!.url.toString());
+        throw BadRequestException(
+            message?.toString() ?? response.request!.url.toString(),
+            response.request!.url.toString());
       case 401:
         throw UnAuthorizedException(
-            message ?? response.request!.url.toString());
+            message?.toString() ?? response.request!.url.toString(),
+            response.request!.url.toString());
       case 403:
         throw UnAuthorizedException(
-            message ?? response.request!.url.toString());
+            message?.toString() ?? response.request!.url.toString(),
+            response.request!.url.toString());
       case 404:
         throw BadRequestException(
-            message ??
+            message?.toString() ??
                 "Requested URL not exist! ${response.request!.url.toString()}",
             response.request!.url.toString());
       case 409:
@@ -223,10 +263,12 @@ class BasicProvider {
           "status": response.statusCode
         };
       case 422:
-        throw BadRequestException(message ?? response.request!.url.toString());
+        throw BadRequestException(
+            message?.toString() ?? response.request!.url.toString(),
+            response.request!.url.toString());
       case 500:
-        throw FetchDataException(
-            message, response.request!.url.toString(), response.statusCode);
+        throw FetchDataException(message?.toString(),
+            response.request!.url.toString(), response.statusCode);
       default:
         if (response.statusCode != null) {
           throw ApiNotRespondingException(

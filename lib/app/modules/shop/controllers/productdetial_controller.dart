@@ -40,7 +40,6 @@ class ProductdetialController extends GetxController
   var selectedVariant = {}.obs;
   var productVariantOption = List<dynamic>.empty();
 
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   // var pinCodeController;
   final count = 1.obs;
   final checkController = TextEditingController();

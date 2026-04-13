@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:intl/intl.dart';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -92,17 +94,12 @@ class EditprofileView extends GetView<ProfileController> {
                                     );
                                   }
 
-                                  // Try to determine what we're loading
                                   final imagePath = controller.imagePath.value;
                                   final hasImagePath = imagePath.isNotEmpty;
                                   final isNetworkImage =
                                       imagePath.contains("http");
-                                  final isSvgImage = imagePath.contains(".svg");
-                                  final hasFeaturedImage = controller
-                                          .profiledata['featured_image'] !=
-                                      null;
 
-                                  // Case 1: Local file image
+                                  // Case 1: Local file image (picked but not uploaded yet)
                                   if (hasImagePath && !isNetworkImage) {
                                     try {
                                       final file = File(imagePath);
@@ -112,90 +109,29 @@ class EditprofileView extends GetView<ProfileController> {
                                           height: height * 0.1125,
                                           width: height * 0.1125,
                                           fit: BoxFit.cover,
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                            print(
-                                                "Error loading local image: $error");
-                                            return buildFallback();
-                                          },
                                         );
-                                      } else {
-                                        print(
-                                            "Local file doesn't exist: $imagePath");
-                                        return buildFallback();
                                       }
                                     } catch (e) {
-                                      print(
-                                          "Exception loading local image: $e");
-                                      return buildFallback();
+                                      debugPrint(
+                                          "Error loading local image: $e");
                                     }
                                   }
 
-                                  // Case 2: Network image (non-SVG)
-                                  else if (isNetworkImage && !isSvgImage) {
-                                    return Image.network(
-                                      imagePath,
+                                  // Case 2: Network image (from download_url)
+                                  if (isNetworkImage) {
+                                    return CachedNetworkImage(
+                                      imageUrl: imagePath,
                                       height: height * 0.1125,
                                       width: height * 0.1125,
                                       fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        print(
-                                            "Error loading network image: $error");
-                                        // Try featured image as fallback
-                                        if (hasFeaturedImage) {
-                                          return CachedNetworkImage(
-                                            imageUrl: HelperFunctions()
-                                                .getImage(
-                                                    controller.profiledata[
-                                                        'featured_image']),
-                                            fit: BoxFit.cover,
-                                            errorWidget:
-                                                (context, url, error) =>
-                                                    buildFallback(),
-                                            placeholder: (context, url) =>
-                                                buildFallback(),
-                                          );
-                                        }
-                                        return buildFallback();
-                                      },
-                                      loadingBuilder:
-                                          (context, child, loadingProgress) {
-                                        if (loadingProgress == null)
-                                          return child;
-                                        return buildFallback(); // Or a loading indicator
-                                      },
+                                      placeholder: (context, url) =>
+                                          buildFallback(),
+                                      errorWidget: (context, url, error) =>
+                                          buildFallback(),
                                     );
                                   }
 
-                                  // Case 3: Featured image fallback
-                                  else if (hasFeaturedImage) {
-                                    try {
-                                      return CachedNetworkImage(
-                                        imageUrl: HelperFunctions().getImage(
-                                            controller
-                                                .profiledata['featured_image']),
-                                        height: height * 0.1125,
-                                        width: height * 0.1125,
-                                        fit: BoxFit.cover,
-                                        errorWidget: (context, url, error) {
-                                          print(
-                                              "CachedNetworkImage error: $error");
-                                          return buildFallback();
-                                        },
-                                        placeholder: (context, url) =>
-                                            buildFallback(),
-                                      );
-                                    } catch (e) {
-                                      print("CachedNetworkImage exception: $e");
-                                      return buildFallback();
-                                    }
-                                  }
-
-                                  // Ultimate fallback
-                                  else {
-                                    return buildFallback();
-                                  }
+                                  return buildFallback();
                                 }),
                               ),
                               Positioned(
@@ -271,36 +207,56 @@ class EditprofileView extends GetView<ProfileController> {
 
                         SizedBox(height: height * 0.015),
 
-                        // Email Field (Read Only)
+                        // Email Field
                         _profileFieldRow(
                           title: 'Email'.tr,
                           value: controller.emailController.text,
                           icon: Icons.email_outlined,
-                          enabled: false,
+                          enabled: true,
+                          onTap: () {
+                            _showEditDialog(
+                                context, 'Email'.tr, controller.emailController);
+                          },
                         ),
 
                         SizedBox(height: height * 0.015),
 
-                        // Phone Number Field (Read Only)
+                        // Phone Number Field
                         _profileFieldRow(
                           title: 'Mobile Number'.tr,
                           value: controller.phoneController.text,
                           icon: Icons.call_outlined,
-                          enabled: false,
+                          enabled: true,
+                          onTap: () {
+                            _showEditDialog(context, 'Mobile Number'.tr,
+                                controller.phoneController);
+                          },
                         ),
 
                         SizedBox(height: height * 0.015),
 
-                        // Password Field
-                        _profileFieldRow(
-                          title: 'Password'.tr,
-                          value: '••••••••',
-                          icon: Icons.lock_outline,
-                          enabled: true,
-                          onTap: () {
-                            Get.to(const ChangePasswordView());
-                          },
-                        ),
+                        SizedBox(height: height * 0.015),
+
+                        // Gender Field (Read Only)
+                        Obx(() => _profileFieldRow(
+                              title: 'Gender'.tr,
+                              value: controller.selectedGender.value,
+                              icon: Icons.person_search_outlined,
+                              enabled: false,
+                            )),
+
+                        SizedBox(height: height * 0.015),
+
+                        // Date of Birth Field (Read Only)
+                        Obx(() => _profileFieldRow(
+                              title: 'Date of Birth'.tr,
+                              value: controller.selectedDob.value != null
+                                  ? DateFormat('dd-MM-yyyy')
+                                      .format(controller.selectedDob.value!)
+                                  : '',
+                              icon: Icons.calendar_today_outlined,
+                              enabled: false,
+                            )),
                       ],
                     ),
                   ),
@@ -403,7 +359,6 @@ class EditprofileView extends GetView<ProfileController> {
   void _showEditDialog(
       BuildContext context, String title, TextEditingController controller) {
     final height = Get.height;
-    final width = Get.width;
 
     showDialog(
       context: context,

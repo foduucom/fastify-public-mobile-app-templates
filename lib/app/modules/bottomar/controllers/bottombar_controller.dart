@@ -36,7 +36,7 @@ class BottombarController extends GetxController with BaseController {
     // getShippingSetting();
     // updateFirebaseToken();
     if (AuthDetails.isUserLogin()) {
-      getShippingSetting();
+      // getShippingSetting();
     }
     // onRefreshToken();
 
@@ -46,21 +46,21 @@ class BottombarController extends GetxController with BaseController {
   }
 
   void getShippingSetting() async {
-    try {
-      var response =
-          await BasicProvider("shipping").getRequest().catchError(handleError);
-      if (response == null) return;
-      var form = {
-        'email': response['value']['email'],
-        'password': response['value']['password']
-      };
-      var response2 = await BasicProvider("orders/shippinglogin")
-          .postRequest(form)
-          .catchError(handleError);
-      if (response2 == null) return;
-    } catch (e) {
-      print('get coupon error $e');
-    }
+    // try {
+    //   var response =
+    //       await BasicProvider("shipping").getRequest().catchError(handleError);
+    //   if (response == null) return;
+    //   var form = {
+    //     'email': response['value']['email'],
+    //     'password': response['value']['password']
+    //   };
+    //   var response2 = await BasicProvider("orders/shippinglogin")
+    //       .postRequest(form)
+    //       .catchError(handleError);
+    //   if (response2 == null) return;
+    // } catch (e) {
+    //   print('get coupon error $e');
+    // }
   }
 
   Future<void> addToWishList(item, selectedVariation) async {

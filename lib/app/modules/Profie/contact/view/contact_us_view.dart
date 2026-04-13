@@ -190,6 +190,7 @@ class ContactUsView extends GetView<ContactUsController> {
   // ─── Contact Form Bottom Sheet ─────────────────────────────────────────
   void _showContactFormSheet(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final formKey = GlobalKey<FormState>();
 
     Get.bottomSheet(
       Container(
@@ -205,7 +206,7 @@ class ContactUsView extends GetView<ContactUsController> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Form(
-          key: controller.formKey,
+          key: formKey,
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -245,7 +246,7 @@ class ContactUsView extends GetView<ContactUsController> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: controller.submitContactForm,
+                    onPressed: () => controller.submitContactForm(formKey),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,

@@ -45,7 +45,7 @@ class ProductView extends GetView<ProductController> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    SizedBox(height: height * 0.005),
+                    //SizedBox(height: height * 0.005),
                     Obx(() {
                       final isInWishlist =
                           WishListService.to.isInWishlist(controller.productId);
@@ -241,21 +241,39 @@ class ProductView extends GetView<ProductController> {
                                                     .value];
 
                                             String discountRate = '';
-                                            // FIX - ensure they are numbers first
-                                            final price = double.tryParse(
-                                                    selectedVariant['price']
-                                                            ?.toString() ??
-                                                        '0') ??
-                                                0;
+                                            final priceStr = selectedVariant[
+                                                        'price']
+                                                    ?.toString() ??
+                                                '0';
+                                            final saleStr = selectedVariant[
+                                                        'sale_price']
+                                                    ?.toString() ??
+                                                '0';
+                                            final price =
+                                                double.tryParse(priceStr) ?? 0;
                                             final discountedPrice =
-                                                double.tryParse(selectedVariant[
-                                                                'sale_price']
-                                                            ?.toString() ??
-                                                        '0') ??
-                                                    0;
+                                                double.tryParse(saleStr) ?? 0;
 
-                                            if (discountedPrice > 0 &&
-                                                price > discountedPrice) {
+                                            // Both price and sale_price are 0 → free product
+                                            if (price == 0 &&
+                                                discountedPrice == 0) {
+                                              return Text(
+                                                'Free',
+                                                style: txtTheme()
+                                                    .displayMedium!
+                                                    .copyWith(
+                                                      fontSize: height * 0.020,
+                                                      fontWeight: FontWeight.w700,
+                                                      color: Colors.green,
+                                                    ),
+                                              );
+                                            }
+
+                                            // sale_price "0" on a paid product = no discount
+                                            final hasDiscount =
+                                                discountedPrice > 0 &&
+                                                    price > discountedPrice;
+                                            if (hasDiscount) {
                                               final discount =
                                                   ((price - discountedPrice) /
                                                           price *
@@ -265,13 +283,13 @@ class ProductView extends GetView<ProductController> {
                                             }
 
                                             return SimplePriceText(
-                                              price: discountedPrice > 0
+                                              price: hasDiscount
                                                   ? discountedPrice
                                                   : price,
-                                              originalPrice: discountedPrice > 0
+                                              originalPrice: hasDiscount
                                                   ? price
                                                   : null,
-                                              discountLabel: discountedPrice > 0
+                                              discountLabel: hasDiscount
                                                   ? discountRate
                                                   : null,
                                               priceStyle: txtTheme()
@@ -342,14 +360,22 @@ class ProductView extends GetView<ProductController> {
                                           size: height * 0.018, // ≈ 16
                                           color: DefaultThemeColors.darklight,
                                         ),
-                                        Text('1.0',
-                                            style:
-                                                txtTheme().titleSmall!.copyWith(
-                                                      fontSize: height * 0.018,
-                                                      height: 1.4,
-                                                      fontFamily:
-                                                          'Plus Jakarta Sans',
-                                                    )),
+                                        Obx(() {
+                                          final rating = controller
+                                              .productDetials['average_rating'];
+                                          final ratingStr = rating != null
+                                              ? rating.toString()
+                                              : '—';
+                                          return Text(ratingStr,
+                                              style: txtTheme()
+                                                  .titleSmall!
+                                                  .copyWith(
+                                                    fontSize: height * 0.018,
+                                                    height: 1.4,
+                                                    fontFamily:
+                                                        'Plus Jakarta Sans',
+                                                  ));
+                                        }),
                                       ],
                                     ),
                                     SizedBox(width: width * 0.012),
@@ -369,18 +395,29 @@ class ProductView extends GetView<ProductController> {
                                           color: DefaultThemeColors.darkdark,
                                         ),
                                         SizedBox(width: width * 0.015),
-                                        Text(
-                                          'Near Store',
-                                          style: txtTheme()
-                                              .titleSmall!
-                                              .copyWith(
-                                                fontFamily: 'Plus Jakarta Sans',
-                                                color:
-                                                    DefaultThemeColors.darkdark,
-                                                fontSize: height * 0.018,
-                                                height: 1.4,
-                                              ),
-                                        ),
+                                        Obx(() {
+                                          final brand = controller
+                                              .productDetials['brand'];
+                                          final brandName = (brand is Map)
+                                              ? (brand['name']?.toString() ??
+                                                  '')
+                                              : (brand?.toString() ?? '');
+                                          return Text(
+                                            brandName.isEmpty
+                                                ? 'Unknown Brand'
+                                                : brandName,
+                                            style: txtTheme()
+                                                .titleSmall!
+                                                .copyWith(
+                                                  fontFamily:
+                                                      'Plus Jakarta Sans',
+                                                  color: DefaultThemeColors
+                                                      .darkdark,
+                                                  fontSize: height * 0.018,
+                                                  height: 1.4,
+                                                ),
+                                          );
+                                        }),
                                       ],
                                     ),
                                     SizedBox(width: width * 0.012),
@@ -420,6 +457,138 @@ class ProductView extends GetView<ProductController> {
                                   ],
                                 ),
                               ),
+                              // HOT / TRENDING / FEATURED badges
+                              Obx(() {
+                                final badges = <String>[];
+                                if (controller.productDetials['hot'] == true)
+                                  badges.add('Hot');
+                                if (controller.productDetials['trending'] ==
+                                    true) badges.add('Trending');
+                                if (controller.productDetials['featured'] ==
+                                    true) badges.add('Featured');
+                                if (badges.isEmpty) return SizedBox.shrink();
+                                return Padding(
+                                  padding:
+                                      EdgeInsets.only(top: height * 0.008),
+                                  child: Wrap(
+                                    spacing: 6,
+                                    children: badges.map((b) {
+                                      final bg = b == 'Hot'
+                                          ? Colors.orange.shade100
+                                          : b == 'Trending'
+                                              ? Colors.blue.shade100
+                                              : Colors.purple.shade100;
+                                      final fg = b == 'Hot'
+                                          ? Colors.orange.shade800
+                                          : b == 'Trending'
+                                              ? Colors.blue.shade800
+                                              : Colors.purple.shade800;
+                                      return Container(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: bg,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: Text(b,
+                                            style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                                color: fg)),
+                                      );
+                                    }).toList(),
+                                  ),
+                                );
+                              }),
+
+                              // STOCK STATUS badge
+                              Obx(() {
+                                final variants = controller
+                                    .productDetials['variants'] as List?;
+                                final v = (variants != null &&
+                                        variants.isNotEmpty)
+                                    ? variants[
+                                            controller.selectedVariantIndex
+                                                .value] as Map?
+                                    : null;
+                                final qty = v?['quantity'];
+                                final inStock = qty == null ||
+                                    (qty != 0 &&
+                                    qty != false &&
+                                    qty.toString() != '0');
+                                return Padding(
+                                  padding:
+                                      EdgeInsets.only(top: height * 0.008),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: inStock
+                                              ? Colors.green.shade50
+                                              : Colors.red.shade50,
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                          border: Border.all(
+                                              color: inStock
+                                                  ? Colors.green
+                                                  : Colors.red),
+                                        ),
+                                        child: Text(
+                                          inStock ? 'In Stock' : 'Out of Stock',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: inStock
+                                                ? Colors.green.shade700
+                                                : Colors.red.shade700,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
+
+                              // SKU + BARCODE row
+                              Obx(() {
+                                final variants = controller
+                                    .productDetials['variants'] as List?;
+                                final v = (variants != null &&
+                                        variants.isNotEmpty)
+                                    ? variants[
+                                            controller.selectedVariantIndex
+                                                .value] as Map?
+                                    : null;
+                                final sku = v?['sku']?.toString() ?? '';
+                                final barcode =
+                                    v?['barcode']?.toString() ?? '';
+                                if (sku.isEmpty && barcode.isEmpty)
+                                  return SizedBox.shrink();
+                                return Padding(
+                                  padding:
+                                      EdgeInsets.only(top: height * 0.006),
+                                  child: Row(
+                                    children: [
+                                      if (sku.isNotEmpty)
+                                        Text('SKU: $sku',
+                                            style: TextStyle(
+                                                fontSize: 11,
+                                                color: Colors.grey.shade600)),
+                                      if (sku.isNotEmpty && barcode.isNotEmpty)
+                                        SizedBox(width: 16),
+                                      if (barcode.isNotEmpty)
+                                        Text('Barcode: $barcode',
+                                            style: TextStyle(
+                                                fontSize: 11,
+                                                color: Colors.grey.shade600)),
+                                    ],
+                                  ),
+                                );
+                              }),
+
                               // COLOR SELECTOR - Make it reactive
                               Obx(
                                 () => (controller.colors.isEmpty ||
@@ -732,6 +901,55 @@ class ProductView extends GetView<ProductController> {
                                   );
                                 }),
                               ),
+                              // TAGS section
+                              Obx(() {
+                                final tags = controller
+                                    .productDetials['tags'] as List?;
+                                if (tags == null || tags.isEmpty) {
+                                  return SizedBox.shrink();
+                                }
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(height: height * 0.015),
+                                    Text(
+                                      'Tags',
+                                      style: TextStyle(
+                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    SizedBox(height: height * 0.008),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 4,
+                                      children: tags.map((tag) {
+                                        final name = (tag is Map)
+                                            ? tag['name']?.toString() ?? ''
+                                            : tag.toString();
+                                        if (name.isEmpty) {
+                                          return SizedBox.shrink();
+                                        }
+                                        return Chip(
+                                          label: Text(
+                                            name,
+                                            style: TextStyle(fontSize: 12),
+                                          ),
+                                          backgroundColor:
+                                              Colors.grey.shade100,
+                                          side: BorderSide(
+                                              color: Colors.grey.shade300),
+                                          padding: EdgeInsets.zero,
+                                          materialTapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
+                                );
+                              }),
+
                               const SizedBox(height: 50),
                             ],
                           ),
