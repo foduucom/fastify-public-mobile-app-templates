@@ -49,6 +49,7 @@ class PayPalPayment {
           note: "Contact us for any questions on your order.",
           onSuccess: (Map params) async {
             debugPrint("PayPal Success: $params");
+            Get.back(); // close the WebView before resuming order flow
             if (!completer.isCompleted) completer.complete();
           },
           onError: (error) {
@@ -58,6 +59,7 @@ class PayPalPayment {
           },
           onCancel: () {
             debugPrint("PayPal Cancelled");
+            Get.back(); // close the WebView on cancel
             if (!completer.isCompleted) {
               completer.completeError("PayPal payment was cancelled");
             }

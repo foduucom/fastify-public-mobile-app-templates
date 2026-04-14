@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
@@ -63,6 +64,16 @@ class ProfileController extends GetxController with BaseController {
       if (userData != null) {
         profiledata.clear();
         profiledata.addAll(userData);
+
+        // Seed imagePath from cached featured_image so EditProfileView
+        // shows the current image immediately before the API call returns
+        final featuredImage = userData['featured_image'];
+        if (featuredImage != null) {
+          final imgUrl = HelperFunctions().getImage(featuredImage);
+          if (imgUrl.isNotEmpty) {
+            imagePath.value = imgUrl;
+          }
+        }
       }
     }
   }
@@ -164,10 +175,12 @@ class ProfileController extends GetxController with BaseController {
           addresses.clear();
         }
 
-        // Profile Image
-        if (response['featured_image'] != null &&
-            response['featured_image']['download_url'] != null) {
-          imagePath.value = response['featured_image']['download_url'];
+        // Profile Image — use HelperFunctions().getImage() same as ProfileView
+        if (response['featured_image'] != null) {
+          final imgUrl = HelperFunctions().getImage(response['featured_image']);
+          if (imgUrl.isNotEmpty) {
+            imagePath.value = imgUrl;
+          }
         }
 
         debugPrint("Profile data successfully fetched and parsed: $response");
@@ -240,7 +253,11 @@ class ProfileController extends GetxController with BaseController {
         Get.until((route) => !Get.isDialogOpen!);
 
         if (response == null) return;
-        fetchDataFromServer();
+        // Evict old cached image so the updated one loads fresh
+        if (imagePath.value.contains("http")) {
+          await CachedNetworkImage.evictFromCache(imagePath.value);
+        }
+        await fetchDataFromServer();
         isLoading(false);
 
         Get.until((route) => !Get.isDialogOpen!);

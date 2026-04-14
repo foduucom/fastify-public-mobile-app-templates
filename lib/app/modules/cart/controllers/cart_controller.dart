@@ -37,6 +37,13 @@ class CartController extends GetxController
   }
 
   @override
+  void onReady() {
+    super.onReady();
+    // Re-fetch on ready to ensure we have the latest state when the view is active
+    fetchCart();
+  }
+
+  @override
   void onClose() {
     if (kIsWeb) {
       disableSocketUpdates(websiteDomain, 'cart');
@@ -59,9 +66,9 @@ class CartController extends GetxController
     HelperFunctions().showOverlayLoader();
     var form = {'coupon': coupon};
 
-    Map<String, dynamic>? response = await BasicProvider("cart/apply/coupon")
-        .postRequest(form)
-        .catchError(handleError);
+    Map<String, dynamic>? response = await BasicProvider(
+      "cart/apply/coupon",
+    ).postRequest(form).catchError(handleError);
 
     if (response == null || response.isEmpty) {
       Get.until((route) => !Get.isDialogOpen!);
@@ -95,7 +102,10 @@ class CartController extends GetxController
   }
 
   Future<void> decrementItem(
-      String productId, String variantId, int currentQty) async {
+    String productId,
+    String variantId,
+    int currentQty,
+  ) async {
     if (currentQty <= 1) {
       _showRemoveConfirmation(productId, variantId);
       return;
@@ -160,28 +170,75 @@ class CartController extends GetxController
   }
 
   Map<String, dynamic> getProduct(int index) {
-    final product = cartItems[index]['product_id'];
-    if (product is Map) {
-      return Map<String, dynamic>.from(product);
+    if (index >= cartItems.length) return {};
+    final item = cartItems[index];
+
+    Map<String, dynamic> productMap = {};
+
+    // Priority 1: Check for 'product' key (common when populated)
+    final productObj = item['product'];
+    if (productObj is Map) {
+      productMap = Map<String, dynamic>.from(productObj);
+    } else {
+      // Priority 2: Check 'product_id' key
+      final productData = item['product_id'];
+      if (productData is Map) {
+        productMap = Map<String, dynamic>.from(productData);
+      } else if (productData is String) {
+        // Fallback: If it's a String, return a Map with just the ID
+        return {'_id': productData};
+      }
     }
-    // If it's a String (ID), return a Map with just the ID
-    if (product is String) {
-      return {'_id': product};
+
+    if (productMap.isEmpty) return {};
+
+    // --- NORMALIZATION FOR PRODUCT HELPER ---
+    // Ensure 'featured_image' exists as expected by ProductHelper
+    if (productMap['featured_image'] == null) {
+      final img = productMap['image'] ?? productMap['thumbnail'];
+      if (img != null) {
+        productMap['featured_image'] = img;
+      }
     }
-    return {};
+
+    // If featured_image is a Map but lacks 'filepath', try to map 'download_url'
+    final featImg = productMap['featured_image'];
+    if (featImg is Map &&
+        featImg['filepath'] == null &&
+        featImg['filePath'] == null) {
+      if (featImg['download_url'] != null) {
+        // HelperFunctions expects 'filepath' to append to base URL,
+        // but if we have a full download_url, we might need a different hack.
+        // However, user said HelperFunctions works perfectly fine, so maybe
+        // they just need the right keys.
+        featImg['filepath'] = featImg['download_url'];
+      }
+    }
+
+    return productMap;
   }
 
   Map<String, dynamic> getVariant(int index) {
-    final variant =
-        cartItems[index]['variant'] ?? cartItems[index]['variant_id'];
+    if (index >= cartItems.length) return {};
+    final item = cartItems[index];
 
-    if (variant is Map) {
-      return Map<String, dynamic>.from(variant);
+    // Priority 1: Check for 'variant' key
+    final variantObj = item['variant'];
+    if (variantObj is Map) {
+      return Map<String, dynamic>.from(variantObj);
     }
-    // If it's a String (ID), return a Map with just the ID
-    if (variant is String) {
-      return {'_id': variant};
+
+    // Priority 2: Check 'variant_id' key
+    final variantData = item['variant_id'];
+    if (variantData is Map) {
+      return Map<String, dynamic>.from(variantData);
     }
+
+    // Fallback: If it's a String, return a Map with just the ID
+    if (variantData is String) {
+      return {'_id': variantData};
+    }
+
     return {};
   }
 

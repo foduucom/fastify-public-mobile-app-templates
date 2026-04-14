@@ -203,5 +203,35 @@ class SearchsController extends GetxController with BaseController {
       }
       hasNextPage = false; // No pagination data attached
     }
+
+    _applyClientSideFilter();
+  }
+
+  // ── Client-side flag filtering ──
+  // Filters products locally since the backend has no API support for
+  // trending/recommended params. Handles bool true, string "true", and int 1.
+  bool _isFlagTrue(dynamic value) {
+    if (value == null) return false;
+    if (value is bool) return value;
+    if (value is int) return value == 1;
+    return value.toString().toLowerCase() == 'true';
+  }
+
+  void _applyClientSideFilter() {
+    final f = activeFilter.value;
+    if (!f.featured && !f.hot && !f.trending && !f.recommended) return;
+
+    final before = searchProduct.length;
+    searchProduct.value = searchProduct.where((product) {
+      if (f.featured && !_isFlagTrue(product['featured'])) return false;
+      if (f.hot && !_isFlagTrue(product['hot'])) return false;
+      if (f.trending && !_isFlagTrue(product['trending'])) return false;
+      if (f.recommended && !_isFlagTrue(product['recommended'])) return false;
+      return true;
+    }).toList();
+    debugPrint('🔍 Filter applied: before=$before, after=${searchProduct.length}, trending=${f.trending}, recommended=${f.recommended}');
+    if (searchProduct.isNotEmpty) {
+      debugPrint('🔍 Sample product flags → trending=${searchProduct[0]['trending']}, recommended=${searchProduct[0]['recommended']}');
+    }
   }
 }

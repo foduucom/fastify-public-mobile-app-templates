@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
@@ -14,9 +15,21 @@ class OrdersView extends GetView<OrdersController> {
 
   @override
   Widget build(BuildContext context) {
+    final height = Get.height;
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(title: Text('Orders'.tr), elevation: 0.0),
+        appBar: AppBar(
+          centerTitle: true,
+          elevation: 0,
+          title: Text(
+            'Orders'.tr,
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: height * 0.025,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
         body: RefreshIndicator(
           onRefresh: () async => controller.onRefresh(),
           child: Obx(
@@ -25,12 +38,12 @@ class OrdersView extends GetView<OrdersController> {
                 : ListView.separated(
                     controller: controller.scrollController,
                     padding: const EdgeInsets.symmetric(
-                        vertical: 16, horizontal: 12),
+                        vertical: 16, horizontal: 14),
                     itemCount: controller.isLoading.isTrue &&
                             controller.orderList.isEmpty
                         ? 6
                         : controller.orderList.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       if (controller.isLoading.isTrue &&
                           controller.orderList.isEmpty) {
@@ -38,7 +51,6 @@ class OrdersView extends GetView<OrdersController> {
                       }
                       return OrderCard(
                         item: controller.orderList[index],
-                        // Pass index to guarantee globally unique hero tags
                         listIndex: index,
                       );
                     },
@@ -58,19 +70,13 @@ class OrderCard extends StatelessWidget {
   final dynamic item;
   final int listIndex;
 
-  // ─── FIXED: Using the correct domain "mywatch.vbought.com" ──────────────────
   String _constructImageUrl(Map imageObj) {
-    // 1. Try to build directly from filepath
     final filepath = imageObj['filepath']?.toString() ?? '';
     if (filepath.isNotEmpty) {
-      // Ensure we don't have double slashes if filepath starts with '/'
       final cleanPath =
           filepath.startsWith('/') ? filepath.substring(1) : filepath;
-      // ✅ FIXED: Changed to mywatch.vbought.com
       return 'https://mywatch.vbought.com/images/$cleanPath';
     }
-
-    // 2. Fallback to download_url if filepath is missing
     final url = imageObj['download_url']?.toString() ?? '';
     return _fixImageUrl(url);
   }
@@ -79,8 +85,6 @@ class OrderCard extends StatelessWidget {
     if (url.isEmpty) return '';
     final uri = Uri.tryParse(url);
     if (uri == null) return url;
-
-    // ✅ FIXED: Check and replace with mywatch.vbought.com
     if (uri.host.endsWith('.vbought.com') &&
         uri.host != 'mywatch.vbought.com') {
       return url.replaceFirst(uri.host, 'mywatch.vbought.com');
@@ -113,10 +117,7 @@ class OrderCard extends StatelessWidget {
           (g) => g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
           orElse: () => null,
         );
-
-        if (match != null) {
-          return _constructImageUrl(match);
-        }
+        if (match != null) return _constructImageUrl(match);
       }
 
       return '';
@@ -134,11 +135,9 @@ class OrderCard extends StatelessWidget {
       final first = products.first;
       if (first == null || first is! Map) return 'Order';
 
-      // Direct name field on product line item
       final directName = first['name']?.toString();
       if (directName != null && directName.isNotEmpty) return directName;
 
-      // Populated product_id object
       final productObj = first['product_id'];
       if (productObj is Map) {
         return productObj['name']?.toString() ?? 'Order';
@@ -170,53 +169,38 @@ class OrderCard extends StatelessWidget {
     final imageUrl = _getProductImage();
     final productName = _getFirstProductName();
 
-    debugPrint('🎯 FINAL BUILT IMAGE URL: "$imageUrl"');
-
-    final heroTag = 'orders_list_img_${listIndex}_$orderId';
-
     return GestureDetector(
       onTap: () => Get.toNamed(
         Routes.ORDER_PRODUCTS,
-        arguments: {'order': item}, // pass the full order map
+        arguments: {'order': item},
       ),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: theme.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: theme.outline.withOpacity(0.08)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: theme.outline.withOpacity(0.25)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // ── Product Image ──────────────────────────────
             ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: imageUrl.isNotEmpty
-                  ? Image.network(
-                      imageUrl,
-                      width: 70,
-                      height: 70,
-                      fit: BoxFit.cover,
-                      gaplessPlayback: true,
-                      errorBuilder: (_, error, ___) {
-                        debugPrint(
-                            '🚨 Failed to load image from network: $imageUrl');
-                        return _imageFallback(theme);
-                      },
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return _imageFallback(theme);
-                      },
-                    )
-                  : _imageFallback(theme),
+              borderRadius: BorderRadius.circular(8),
+              child: SizedBox(
+                width: 68,
+                height: 68,
+                child: imageUrl.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        width: 68,
+                        height: 68,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => _imageFallback(theme),
+                        errorWidget: (_, __, ___) => _imageFallback(theme),
+                      )
+                    : _imageFallback(theme),
+              ),
             ),
             const SizedBox(width: 12),
 
@@ -224,9 +208,8 @@ class OrderCard extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min, // don't take infinite height
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Product name + item count badge
                   Row(
                     children: [
                       Expanded(
@@ -234,7 +217,8 @@ class OrderCard extends StatelessWidget {
                           productName,
                           style: textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                            fontSize: 13,
+                            fontFamily: 'lato',
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -244,55 +228,56 @@ class OrderCard extends StatelessWidget {
                         Container(
                           margin: const EdgeInsets.only(left: 6),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
+                              horizontal: 7, vertical: 2),
                           decoration: BoxDecoration(
-                            color: theme.onSurface.withOpacity(0.06),
+                            color: theme.primary.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             '+${productCount - 1} more',
-                            style: textTheme.labelSmall?.copyWith(
+                            style: TextStyle(
                               fontSize: 10,
-                              color: theme.onSurface.withOpacity(0.5),
+                              fontWeight: FontWeight.w500,
+                              color: theme.primary,
+                              fontFamily: 'lato',
                             ),
                           ),
                         ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-
+                  const SizedBox(height: 3),
                   Text(
                     'Order #$orderId',
                     style: textTheme.bodySmall?.copyWith(
-                      color: theme.onSurface.withOpacity(0.45),
+                      color: theme.onSurface.withValues(alpha: 0.4),
                       fontSize: 11,
+                      fontFamily: 'lato',
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-
                   if (orderDate.isNotEmpty) ...[
                     const SizedBox(height: 2),
                     Text(
                       orderDate,
                       style: textTheme.bodySmall?.copyWith(
-                        color: theme.onSurface.withOpacity(0.35),
+                        color: theme.onSurface.withValues(alpha: 0.35),
                         fontSize: 11,
+                        fontFamily: 'lato',
                       ),
                     ),
                   ],
-
                   const SizedBox(height: 8),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         '$currency$total',
-                        style: textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
                           color: theme.primary,
                           fontSize: 14,
+                          fontFamily: 'lato',
                         ),
                       ),
                       Flexible(
@@ -304,11 +289,11 @@ class OrderCard extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(width: 6),
+            const SizedBox(width: 4),
             Icon(
               Icons.chevron_right_rounded,
-              color: theme.onSurface.withOpacity(0.3),
-              size: 20,
+              color: theme.onSurface.withValues(alpha: 0.3),
+              size: 18,
             ),
           ],
         ),
@@ -318,16 +303,13 @@ class OrderCard extends StatelessWidget {
 
   Widget _imageFallback(ColorScheme theme) {
     return Container(
-      width: 70,
-      height: 70,
-      decoration: BoxDecoration(
-        color: theme.onSurface.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(10),
-      ),
+      width: 68,
+      height: 68,
+      color: theme.surfaceContainerHighest.withValues(alpha: 0.5),
       child: Icon(
         Icons.shopping_bag_outlined,
-        color: theme.onSurface.withOpacity(0.3),
-        size: 28,
+        color: theme.onSurface.withValues(alpha: 0.3),
+        size: 26,
       ),
     );
   }
@@ -341,49 +323,51 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context).colorScheme;
     Color color;
     switch (status.toLowerCase()) {
       case 'delivered':
       case 'paid':
       case 'completed':
-        color = Colors.green;
+        color = const Color(0xFF3BC24F);
         break;
       case 'pending':
       case 'unpaid':
       case 'processing':
-        color = Colors.orange;
+        color = const Color(0xFFF9A825);
         break;
       case 'cancelled':
       case 'failed':
-        color = Colors.red;
+        color = theme.error;
         break;
       default:
-        color = Theme.of(context).colorScheme.onSurfaceVariant;
+        color = theme.onSurfaceVariant;
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.5)),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 6,
-            height: 6,
+            width: 5,
+            height: 5,
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
-          const SizedBox(width: 5),
+          const SizedBox(width: 4),
           Flexible(
             child: Text(
               status.tr,
               style: TextStyle(
                 color: color,
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: FontWeight.w600,
+                fontFamily: 'lato',
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -402,23 +386,25 @@ class OrderListShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context).colorScheme;
     return Shimmer.fromColors(
-      baseColor: Colors.grey.shade300,
-      highlightColor: Colors.white,
+      baseColor: theme.surfaceContainerHighest,
+      highlightColor: theme.surface,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          color: theme.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: theme.outline.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
             Container(
-              width: 70,
-              height: 70,
+              width: 68,
+              height: 68,
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
+                color: theme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
             const SizedBox(width: 12),
@@ -427,21 +413,20 @@ class OrderListShimmer extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // ✅ FIXED: Replaced FractionallySizedBox to prevent layout crashes
                   Container(
                     height: 10,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(6)),
+                        color: theme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(5)),
                   ),
                   const SizedBox(height: 8),
                   Container(
                     height: 10,
-                    width: 150,
+                    width: 140,
                     decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(6)),
+                        color: theme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(5)),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -451,15 +436,15 @@ class OrderListShimmer extends StatelessWidget {
                         height: 10,
                         width: 60,
                         decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(6)),
+                            color: theme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(5)),
                       ),
                       Container(
                         height: 10,
-                        width: 80,
+                        width: 72,
                         decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(6)),
+                            color: theme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(5)),
                       ),
                     ],
                   ),
@@ -494,13 +479,15 @@ class NoOrders extends StatelessWidget {
           Text(
             'whoops_no_order_yet'.tr,
             style: const TextStyle(
-                fontWeight: FontWeight.w600, fontSize: 18, color: Colors.black),
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+                fontFamily: 'Plus Jakarta Sans'),
           ),
           const SizedBox(height: 10),
           Text(
             'look_like_you_have_no_orders_yet.'.tr,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 14, fontFamily: 'lato'),
           ),
           const SizedBox(height: 20),
           AppButton(

@@ -24,12 +24,12 @@ String _cap(dynamic value) {
 
 class SearchView extends GetView<SearchsController> {
   const SearchView({Key? key}) : super(key: key);
+  
+  ColorScheme get colorScheme => Theme.of(Get.context!).colorScheme;
+  TextTheme get textTheme => Theme.of(Get.context!).textTheme;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
 
@@ -109,9 +109,8 @@ class SearchView extends GetView<SearchsController> {
                                     ),
                                     child: Text(
                                       '$count',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10,
+                                      style: textTheme.labelSmall?.copyWith(
+                                        color: colorScheme.onPrimary,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -157,7 +156,7 @@ class SearchView extends GetView<SearchsController> {
                   // ── INITIAL LOADING STATE ──
                   if (controller.isSearching.value &&
                       controller.searchProduct.isEmpty) {
-                    return _buildGridShimmer(colorScheme);
+                    return _buildGridShimmer();
                   }
 
                   return SingleChildScrollView(
@@ -335,82 +334,76 @@ class SearchView extends GetView<SearchsController> {
       ),
     );
   }
-}
 
-// Add this helper method inside your SearchView class
-Widget _buildKeywordButton(BuildContext context, String keyword) {
-  final theme = Theme.of(context);
-  var controller = Get.find<SearchsController>();
-  return ElevatedButton(
-    onPressed: () {
-      // When keyword is tapped, populate search field and trigger search
-      controller.searchTextController.text = keyword;
-      controller.getSearchSuggestion(text: keyword);
-    },
-    style: ElevatedButton.styleFrom(
-      backgroundColor: Colors.transparent,
-      shadowColor: Colors.transparent,
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      minimumSize: Size.zero,
-      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(
-            30), // Using height value for consistent rounding
-      ),
-    ),
-    child: Ink(
-      decoration: BoxDecoration(
-        borderRadius:
-            BorderRadius.circular(30), // Matching parent container style
-        border: Border.all(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.grey[800]!
-              : Colors.grey[300]!,
+  // Add this helper method inside your SearchView class
+  Widget _buildKeywordButton(BuildContext context, String keyword) {
+    var controller = Get.find<SearchsController>();
+    return ElevatedButton(
+      onPressed: () {
+        // When keyword is tapped, populate search field and trigger search
+        controller.searchTextController.text = keyword;
+        controller.getSearchSuggestion(text: keyword);
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.transparent,
+        shadowColor: Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+              30), // Using height value for consistent rounding
         ),
       ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Text(
-          keyword,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white
-                : Colors.black87,
+      child: Ink(
+        decoration: BoxDecoration(
+          borderRadius:
+              BorderRadius.circular(30), // Matching parent container style
+          border: Border.all(
+            color: colorScheme.outline,
           ),
         ),
-      ),
-    ),
-  );
-}
-
-// ── GRID SHIMMER EFFECT (Keep as is) ──
-Widget _buildGridShimmer(ColorScheme colorScheme) {
-  return GridView.builder(
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-      crossAxisCount: 2,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      childAspectRatio: 0.62,
-    ),
-    itemCount: 6,
-    itemBuilder: (context, index) {
-      return Shimmer.fromColors(
-        baseColor: Colors.grey[300]!,
-        highlightColor: Colors.grey[100]!,
         child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Text(
+            keyword,
+            style: textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+              color: colorScheme.onSurface,
+            ),
           ),
         ),
-      );
-    },
-  );
+      ),
+    );
+  }
+
+  // ── GRID SHIMMER EFFECT (Keep as is) ──
+  Widget _buildGridShimmer() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 0.62,
+      ),
+      itemCount: 6,
+      itemBuilder: (context, index) {
+        return Shimmer.fromColors(
+          baseColor: colorScheme.surfaceVariant,
+          highlightColor: colorScheme.surface,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
 // ── Beautiful Product Grid Card ─────────────────────────────────────────────
@@ -487,10 +480,6 @@ class _ProductGridCard extends StatelessWidget {
   // Helper method to get badge color based on type
   Color _getBadgeColor(String type, ColorScheme colorScheme) {
     switch (type) {
-      case 'featured':
-        return Colors.amber.shade700;
-      case 'hot':
-        return Colors.red.shade600;
       case 'trending':
         return Colors.purple.shade600;
       case 'recommended':
@@ -612,7 +601,7 @@ class _ProductGridCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isOutOfStock
-                ? Colors.red.withOpacity(0.3)
+                ? colorScheme.error.withOpacity(0.3)
                 : colorScheme.outline.withOpacity(0.15),
           ),
           boxShadow: [
@@ -665,7 +654,7 @@ class _ProductGridCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.red.shade600,
+                            color: colorScheme.error,
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(

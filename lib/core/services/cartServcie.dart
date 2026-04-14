@@ -34,8 +34,8 @@ class CartService extends GetxService with BaseController {
     }
 
     try {
-      var response =
-          await BasicProvider("cart").getRequest().catchError(handleError);
+      var response = await BasicProvider("cart")
+          .getRequest(queryParams: {'populate': '*'}).catchError(handleError);
 
       if (response == null) {
         cartItems.clear();
@@ -76,7 +76,7 @@ class CartService extends GetxService with BaseController {
     };
 
     print("manageCart form === $form");
-    var response = await BasicProvider("cart/manage")
+    var response = await BasicProvider("cart/manage?populate=*")
         .postRequest(form)
         .catchError(handleError);
     if (response != null) {
@@ -102,7 +102,7 @@ class CartService extends GetxService with BaseController {
       'variant_id': variantSlug,
     };
     print("removeFromCart form === $form");
-    var response = await BasicProvider("cart/remove")
+    var response = await BasicProvider("cart/remove?populate=*")
         .postRequest(form)
         .catchError(handleError);
     print("removeFromCart response === $response");
@@ -133,7 +133,7 @@ class CartService extends GetxService with BaseController {
         };
       }).toList();
 
-      var response = await BasicProvider("cart/manage")
+      var response = await BasicProvider("cart/manage?populate=*")
           .postRequest({'items': items}).catchError(handleError);
 
       if (response != null) {
@@ -155,6 +155,7 @@ class CartService extends GetxService with BaseController {
     cartItems.value = items.map((e) => Map<String, dynamic>.from(e)).toList();
     subTotal.value = (data['sub_total'] ?? 0).toDouble();
     total.value = (data['total'] ?? 0).toDouble();
+    cartItems.refresh();
   }
 
   // ══════════════════════════════════════════════════════════

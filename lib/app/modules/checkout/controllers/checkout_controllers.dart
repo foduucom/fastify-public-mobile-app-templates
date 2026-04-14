@@ -15,6 +15,7 @@ import '/components/paymentGateway/PhonePe.dart';
 import '/components/paymentGateway/COD.dart';
 import '/components/paymentGateway/RazorPay.dart';
 import '/app/modules/address/controllers/address_list_controller.dart';
+import '/constants/app_exceptions.dart';
 
 class CheckOutController extends GetxController with BaseController {
   // ── Observable state ──────────────────────────────────────────────────
@@ -311,13 +312,21 @@ class CheckOutController extends GetxController with BaseController {
     String addressId = "";
 
     try {
-      if (Get.isRegistered<AddressListController>()) {
+      // Prioritize retrieving addressId from selectedAddressData which is already in this controller
+      if (selectedAddressData.isNotEmpty) {
+        addressId =
+            (selectedAddressData['_id'] ?? selectedAddressData['id'] ?? "")
+                .toString();
+      }
+
+      // Fallback/Validation with AddressListController if addressId is still empty
+      if (addressId.isEmpty && Get.isRegistered<AddressListController>()) {
         final addressController = Get.find<AddressListController>();
         final int selectedAddrIndex = addressController.selectAddress.value;
         if (addressController.userAddressList.isNotEmpty &&
             selectedAddrIndex < addressController.userAddressList.length) {
-          addressId =
-              addressController.userAddressList[selectedAddrIndex]['_id'];
+          final addr = addressController.userAddressList[selectedAddrIndex];
+          addressId = (addr['_id'] ?? addr['id'] ?? "").toString();
         }
       }
 
@@ -343,9 +352,19 @@ class CheckOutController extends GetxController with BaseController {
         }
       }
 
+      print("Order Create :$form");
+
       var response = await BasicProvider("order/create")
           .postRequest(form)
-          .catchError(handleError);
+          .catchError((error) {
+        if (error is FetchDataException || error is BadRequestException) {
+          HelperFunctions().showSnackBarError(
+              "we’re currently experiencing issues with the payment method you selected. could you please use an alternative payment method to complete the transaction?");
+        } else {
+          handleError(error);
+        }
+        return null; // Ensure null is returned so orderResponse reflects failure
+      });
 
       printInfo(info: 'createOrder response: $response');
 
@@ -388,6 +407,12 @@ class CheckOutController extends GetxController with BaseController {
       return;
     }
 
+    if (selectedAddressData.isEmpty) {
+      HelperFunctions()
+          .showSnackBarError('Please select a delivery address first');
+      return;
+    }
+
     final String methodName = deliveryOption['name'];
     final double amount = cartController.total.value;
 
@@ -409,21 +434,27 @@ class CheckOutController extends GetxController with BaseController {
             secondaryPaymentGateway.value = selectedOnlineMethod;
 
             HelperFunctions().showOverlayLoader();
+
+            Map<String, dynamic>? orderResponse;
             try {
-              var orderResponse = await createOrder(
+              orderResponse = await createOrder(
                 currency: selectedOnlineMethod == 'paypal' ? 'USD' : 'INR',
               );
+            } finally {
+              // Hide overlay before gateway opens its own screen.
+              HelperFunctions().hideOverlayLoader();
+            }
 
-              if (orderResponse == null) {
-                HelperFunctions().hideOverlayLoader();
-                if (Get.isDialogOpen ?? false) Get.back();
-                return;
-              }
+            if (orderResponse == null) {
+              secondaryPaymentGateway.value = '';
+              return;
+            }
 
-              final String orderId =
-                  orderResponse['order_no'] ?? orderResponse['_id'] ?? "";
-              final String rawOrderId = orderResponse['_id'] ?? "";
+            final String orderId =
+                orderResponse['order_no'] ?? orderResponse['_id'] ?? "";
+            final String rawOrderId = orderResponse['_id'] ?? "";
 
+            try {
               await _processGatewayPayment(
                 methodName: selectedOnlineMethod,
                 amount: prepaymentAmount,
@@ -433,15 +464,9 @@ class CheckOutController extends GetxController with BaseController {
 
               await CODPayment().processPayment(amount: amount);
 
-              HelperFunctions().hideOverlayLoader();
-              if (Get.isDialogOpen ?? false) Get.back();
-
               // ✅ Show success dialog after successful payment
               showPaymentSuccessDialog(orderId);
             } catch (e) {
-              HelperFunctions().hideOverlayLoader();
-              if (Get.isDialogOpen ?? false) Get.back();
-
               // Show appropriate message
               if (e.toString().contains('cancelled') ||
                   e.toString().contains('Cancelled') ||
@@ -463,21 +488,26 @@ class CheckOutController extends GetxController with BaseController {
     // ── Standard flow ──
     HelperFunctions().showOverlayLoader();
 
+    Map<String, dynamic>? orderResponse;
     try {
-      var orderResponse = await createOrder(
+      orderResponse = await createOrder(
         currency: methodName == 'paypal' ? 'USD' : 'INR',
       );
       printInfo(info: 'orderResponse: $orderResponse');
+    } finally {
+      // Always hide the overlay before the gateway opens its own screen.
+      // Keeping Get.dialog() open while calling Get.to() blocks navigation.
+      HelperFunctions().hideOverlayLoader();
+    }
 
-      if (orderResponse == null) {
-        HelperFunctions().hideOverlayLoader();
-        return;
-      }
+    if (orderResponse == null) return;
 
-      final String orderId =
-          orderResponse['order_no'] ?? orderResponse['_id'] ?? "";
-      final String rawOrderId = orderResponse['_id'] ?? "";
+    final String orderId =
+        orderResponse['order_no'] ?? orderResponse['_id'] ?? "";
+    final String rawOrderId = orderResponse['_id'] ?? "";
 
+    // Gateway handles its own UI — no overlay needed here.
+    try {
       await _processGatewayPayment(
         methodName: methodName,
         amount: amount,
@@ -485,13 +515,9 @@ class CheckOutController extends GetxController with BaseController {
         rawOrderId: rawOrderId,
       );
 
-      HelperFunctions().hideOverlayLoader();
-
       // ✅ Show success dialog after successful payment
       showPaymentSuccessDialog(orderId);
     } catch (e) {
-      HelperFunctions().hideOverlayLoader();
-
       // Show appropriate error message
       if (e.toString().contains('cancelled') ||
           e.toString().contains('Cancelled') ||

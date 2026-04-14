@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '/app/routes/app_pages.dart';
 import '/constants/helper_functions.dart';
@@ -22,46 +23,61 @@ class OrderProductsView extends StatelessWidget {
     final shipping =
         double.tryParse(order['shipping_charges']?.toString() ?? '0') ?? 0;
     final paymentMethod =
-    (order['payment_method'] ?? '').toString().toUpperCase();
+        (order['payment_method'] ?? '').toString().toUpperCase();
     final notes = (order['notes'] ?? '').toString();
     final orderDate = order['created_at'] != null
         ? HelperFunctions()
-        .toCarbonToHumanDateFormat(order['created_at'].toString())
+            .toCarbonToHumanDateFormat(order['created_at'].toString())
         : '';
 
     final address = order['address'] is Map ? order['address'] as Map : null;
 
     final List<dynamic> products =
-    (order['products'] is List) ? order['products'] as List : [];
+        (order['products'] is List) ? order['products'] as List : [];
 
     final theme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final height = Get.height;
 
     return Scaffold(
       backgroundColor: theme.surface,
       appBar: AppBar(
-        title: Text('OrderDetails'.tr),
+        centerTitle: true,
         elevation: 0,
+        title: Text(
+          'OrderDetails'.tr,
+          style: TextStyle(
+            fontFamily: 'Plus Jakarta Sans',
+            fontSize: height * 0.025,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () =>
                 Get.toNamed(Routes.ORDER_DETAILS, arguments: {'id': mongoId}),
             child: Text(
               'View Details'.tr,
-              style: TextStyle(color: theme.primary, fontSize: 13),
+              style: TextStyle(
+                color: theme.primary,
+                fontSize: 13,
+                fontFamily: 'lato',
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         children: [
-          //──OrderHeader──
+          // ── Order Header ──────────────────────────────────────────────────
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: theme.surfaceVariant.withOpacity(0.35),
-              borderRadius: BorderRadius.circular(12),
+              color: theme.surfaceContainerHighest.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: theme.outline.withValues(alpha: 0.2)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,8 +89,9 @@ class OrderProductsView extends StatelessWidget {
                       child: Text(
                         orderId,
                         style: textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                           fontSize: 14,
+                          fontFamily: 'lato',
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -83,40 +100,51 @@ class OrderProductsView extends StatelessWidget {
                   ],
                 ),
                 if (orderDate.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    orderDate,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: theme.onSurface.withOpacity(0.4),
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-                if (paymentMethod.isNotEmpty) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
-                      Icon(Icons.payment_outlined,
-                          size: 13, color: theme.onSurface.withOpacity(0.4)),
+                      Icon(Icons.calendar_today_outlined,
+                          size: 12,
+                          color: theme.onSurface.withValues(alpha: 0.4)),
                       const SizedBox(width: 5),
                       Text(
-                        paymentMethod,
+                        orderDate,
                         style: textTheme.bodySmall?.copyWith(
-                          color: theme.onSurface.withOpacity(0.45),
+                          color: theme.onSurface.withValues(alpha: 0.45),
                           fontSize: 11,
+                          fontFamily: 'lato',
                         ),
                       ),
                     ],
                   ),
                 ],
-                //Address
+                if (paymentMethod.isNotEmpty) ...[
+                  const SizedBox(height: 5),
+                  Row(
+                    children: [
+                      Icon(Icons.payment_outlined,
+                          size: 12,
+                          color: theme.onSurface.withValues(alpha: 0.4)),
+                      const SizedBox(width: 5),
+                      Text(
+                        paymentMethod,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: theme.onSurface.withValues(alpha: 0.45),
+                          fontSize: 11,
+                          fontFamily: 'lato',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 if (address != null) ...[
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(Icons.location_on_outlined,
-                          size: 13, color: theme.onSurface.withOpacity(0.4)),
+                          size: 12,
+                          color: theme.onSurface.withValues(alpha: 0.4)),
                       const SizedBox(width: 5),
                       Expanded(
                         child: Text(
@@ -129,8 +157,9 @@ class OrderProductsView extends StatelessWidget {
                                   (e) => e != null && e.toString().isNotEmpty)
                               .join(', '),
                           style: textTheme.bodySmall?.copyWith(
-                            color: theme.onSurface.withOpacity(0.45),
+                            color: theme.onSurface.withValues(alpha: 0.45),
                             fontSize: 11,
+                            fontFamily: 'lato',
                           ),
                         ),
                       ),
@@ -141,30 +170,54 @@ class OrderProductsView extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
 
-          //──ProductsHeader──
-          Text(
-            '${'PurchasedProducts'.tr} (${products.length})',
-            style: textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
+          // ── Products Header ───────────────────────────────────────────────
+          Row(
+            children: [
+              Text(
+                'PurchasedProducts'.tr,
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  fontFamily: 'Plus Jakarta Sans',
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: theme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${products.length}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: theme.primary,
+                    fontFamily: 'lato',
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 10),
 
-          //──ProductsList──
+          // ── Products List ─────────────────────────────────────────────────
           ...products
               .map((prod) => _ProductTile(product: prod, currency: currency)),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
 
-          //──AmountBreakdown──
+          // ── Price Breakdown ───────────────────────────────────────────────
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: theme.surfaceVariant.withOpacity(0.35),
-              borderRadius: BorderRadius.circular(12),
+              color: theme.surfaceContainerHighest.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: theme.outline.withValues(alpha: 0.2)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,8 +225,9 @@ class OrderProductsView extends StatelessWidget {
                 Text(
                   'PriceBreakdown'.tr,
                   style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                     fontSize: 13,
+                    fontFamily: 'Plus Jakarta Sans',
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -184,17 +238,19 @@ class OrderProductsView extends StatelessWidget {
                     context,
                     'Discount'.tr,
                     '-$currency ${discount.toStringAsFixed(2)}',
-                    valueColor: Colors.green.shade600,
+                    valueColor: const Color(0xFF3BC24F),
                   ),
                 if (tax > 0)
-                  _amountRow(
-                      context, 'Tax'.tr, '$currency ${tax.toStringAsFixed(2)}'),
+                  _amountRow(context, 'Tax'.tr,
+                      '$currency ${tax.toStringAsFixed(2)}'),
                 if (shipping > 0)
                   _amountRow(context, 'Shipping'.tr,
                       '$currency ${shipping.toStringAsFixed(2)}'),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: Divider(height: 1),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Divider(
+                      height: 1,
+                      color: theme.outline.withValues(alpha: 0.25)),
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -202,16 +258,18 @@ class OrderProductsView extends StatelessWidget {
                     Text(
                       'Total'.tr,
                       style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         fontSize: 14,
+                        fontFamily: 'lato',
                       ),
                     ),
                     Text(
                       '$currency ${total.toStringAsFixed(2)}',
                       style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         fontSize: 14,
                         color: theme.primary,
+                        fontFamily: 'lato',
                       ),
                     ),
                   ],
@@ -220,29 +278,41 @@ class OrderProductsView extends StatelessWidget {
             ),
           ),
 
-          //──Notes──
+          // ── Notes ─────────────────────────────────────────────────────────
           if (notes.isNotEmpty) ...[
             const SizedBox(height: 12),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.amber.shade50.withOpacity(0.7),
-                borderRadius: BorderRadius.circular(10),
-                border:
-                Border.all(color: Colors.amber.shade200.withOpacity(0.6)),
+                color: const Color(0xFFF9A825).withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                    color: const Color(0xFFF9A825).withValues(alpha: 0.3)),
               ),
-              child: Text(
-                '📝 $notes',
-                style: textTheme.bodySmall?.copyWith(
-                  color: Colors.orange.shade900.withOpacity(0.8),
-                  fontSize: 12,
-                ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.sticky_note_2_outlined,
+                      size: 14,
+                      color: const Color(0xFFF9A825).withValues(alpha: 0.8)),
+                  const SizedBox(width: 7),
+                  Expanded(
+                    child: Text(
+                      notes,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: theme.onSurface.withValues(alpha: 0.65),
+                        fontSize: 12,
+                        fontFamily: 'lato',
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -257,77 +327,93 @@ class OrderProductsView extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: textTheme.bodySmall?.copyWith(
-                color: theme.onSurface.withOpacity(0.5),
-                fontSize: 12,
-              )),
-          Text(value,
-              style: textTheme.bodySmall?.copyWith(
-                color: valueColor ?? theme.onSurface.withOpacity(0.65),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              )),
+          Text(
+            label,
+            style: textTheme.bodySmall?.copyWith(
+              color: theme.onSurface.withValues(alpha: 0.5),
+              fontSize: 12,
+              fontFamily: 'lato',
+            ),
+          ),
+          Text(
+            value,
+            style: textTheme.bodySmall?.copyWith(
+              color: valueColor ?? theme.onSurface.withValues(alpha: 0.65),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              fontFamily: 'lato',
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _statusChip(String status, BuildContext context) {
+    final theme = Theme.of(context).colorScheme;
     Color color;
     switch (status.toLowerCase()) {
       case 'delivered':
       case 'paid':
       case 'completed':
-        color = Colors.green;
+        color = const Color(0xFF3BC24F);
         break;
       case 'pending':
       case 'unpaid':
       case 'processing':
-        color = Colors.orange;
+        color = const Color(0xFFF9A825);
         break;
       case 'cancelled':
       case 'failed':
-        color = Colors.red;
+        color = theme.error;
         break;
       default:
-        color = Theme.of(context).colorScheme.onSurfaceVariant;
+        color = theme.onSurfaceVariant;
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(8),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-              width: 7,
-              height: 7,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-          const SizedBox(width: 5),
-          Text(status.tr,
-              style: TextStyle(
-                  color: color, fontSize: 11, fontWeight: FontWeight.w600)),
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            status.tr,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              fontFamily: 'lato',
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-//──SingleProductRow──
+// ── Single Product Row ─────────────────────────────────────────────────────────
+
 class _ProductTile extends StatelessWidget {
   const _ProductTile({required this.product, required this.currency});
 
   final dynamic product;
   final String currency;
 
-  // ─── URL Fixers ────────────────────────────────────────────────────────
   String _constructImageUrl(Map imageObj) {
     final filepath = imageObj['filepath']?.toString() ?? '';
     if (filepath.isNotEmpty) {
-      final cleanPath = filepath.startsWith('/') ? filepath.substring(1) : filepath;
+      final cleanPath =
+          filepath.startsWith('/') ? filepath.substring(1) : filepath;
       return 'https://mywatch.vbought.com/images/$cleanPath';
     }
     final url = imageObj['download_url']?.toString() ?? '';
@@ -338,7 +424,8 @@ class _ProductTile extends StatelessWidget {
     if (url.isEmpty) return '';
     final uri = Uri.tryParse(url);
     if (uri == null) return url;
-    if (uri.host.endsWith('.vbought.com') && uri.host != 'mywatch.vbought.com') {
+    if (uri.host.endsWith('.vbought.com') &&
+        uri.host != 'mywatch.vbought.com') {
       return url.replaceFirst(uri.host, 'mywatch.vbought.com');
     }
     return url;
@@ -348,7 +435,6 @@ class _ProductTile extends StatelessWidget {
     try {
       final productObj = product['product_id'];
 
-      // Case 1: product_id is a fully populated Map
       if (productObj is Map) {
         final fi = productObj['featured_image'];
         if (fi is Map) {
@@ -361,24 +447,20 @@ class _ProductTile extends StatelessWidget {
 
         if (gallery is List && frontImageId.isNotEmpty) {
           final match = gallery.firstWhere(
-                (g) => g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
+            (g) =>
+                g is Map &&
+                (g['_id'] ?? g['id'])?.toString() == frontImageId,
             orElse: () => null,
           );
-          if (match != null) {
-            return _constructImageUrl(match);
-          }
+          if (match != null) return _constructImageUrl(match);
         }
       }
 
-      // Case 2: Top level direct image (fallback)
       final directImage = product['image'] ?? product['featured_image'];
-      if (directImage is Map) {
-        return _constructImageUrl(directImage);
-      }
+      if (directImage is Map) return _constructImageUrl(directImage);
       if (directImage is String && directImage.startsWith('http')) {
         return _fixImageUrl(directImage);
       }
-
     } catch (e) {
       debugPrint('Image extraction error: $e');
     }
@@ -395,80 +477,69 @@ class _ProductTile extends StatelessWidget {
     final unitPrice = (product['unit_price'] ?? 0).toString();
     final lineTotal = (product['total'] ?? 0).toString();
 
-    // Variant label
     final variant = product['variant'];
     String variantLabel = '';
     if (variant is Map) {
       final attrs = variant['attributes'];
       if (attrs is Map) {
-        // Safely handle map attributes
-        variantLabel = attrs.entries.map((e) => '${e.key}: ${e.value}').join('   ·   ');
+        variantLabel =
+            attrs.entries.map((e) => '${e.key}: ${e.value}').join('  ·  ');
       } else if (attrs is List) {
-        // Safely handle list attributes
-        variantLabel = attrs.map((a) => '${a['name']}: ${a['value']}').join('   ·   ');
+        variantLabel =
+            attrs.map((a) => '${a['name']}: ${a['value']}').join('  ·  ');
       }
     }
 
     final String? imageUrl = _extractImageUrl(product);
+
+    // SKU: prefer variant sku, fall back to product_id sku
+    final productObj = product['product_id'];
+    final variantSku = (product['variant'] is Map
+            ? product['variant']['sku']
+            : null)
+        ?.toString()
+        .trim() ??
+        '';
+    final productSku = (productObj is Map ? productObj['sku'] : null)
+            ?.toString()
+            .trim() ??
+        '';
+    final sku = variantSku.isNotEmpty ? variantSku : productSku;
+
+    // Product type: simple / variable / digital
+    final productType = (productObj is Map ? productObj['type'] : null)
+            ?.toString()
+            .toLowerCase() ??
+        '';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: theme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.outline.withOpacity(0.09)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.outline.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
           // ── Product Image ──
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(6),
             child: SizedBox(
-              width: 64,
-              height: 64,
+              width: 62,
+              height: 62,
               child: imageUrl != null && imageUrl.isNotEmpty
-                  ? Image.network(
-                imageUrl,
-                width: 64,
-                height: 64,
-                fit: BoxFit.cover,
-                // Show shimmer while loading
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    color: theme.surfaceVariant.withOpacity(0.4),
-                    child: Center(
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          value: loadingProgress.expectedTotalBytes !=
-                              null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                              : null,
-                          color: theme.primary.withOpacity(0.5),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-                // On error: show placeholder
-                errorBuilder: (context, error, stackTrace) {
-                  debugPrint(
-                      'Image failed to load: $imageUrl\nError: $error');
-                  return _placeholder(theme);
-                },
-              )
+                  ? CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      width: 62,
+                      height: 62,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => _placeholder(theme),
+                      errorWidget: (_, __, ___) {
+                        debugPrint('Image failed to load: $imageUrl');
+                        return _placeholder(theme);
+                      },
+                    )
                   : _placeholder(theme),
             ),
           ),
@@ -485,6 +556,7 @@ class _ProductTile extends StatelessWidget {
                   style: textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
+                    fontFamily: 'lato',
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -494,30 +566,118 @@ class _ProductTile extends StatelessWidget {
                   Text(
                     variantLabel,
                     style: textTheme.bodySmall?.copyWith(
-                      color: theme.onSurface.withOpacity(0.45),
+                      color: theme.onSurface.withValues(alpha: 0.45),
                       fontSize: 11,
+                      fontFamily: 'lato',
                     ),
+                  ),
+                ],
+                if (sku.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.qr_code_rounded,
+                          size: 11,
+                          color: theme.onSurface.withValues(alpha: 0.35)),
+                      const SizedBox(width: 4),
+                      Text(
+                        sku,
+                        style: TextStyle(
+                          color: theme.onSurface.withValues(alpha: 0.4),
+                          fontSize: 10,
+                          fontFamily: 'lato',
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
                 const SizedBox(height: 5),
                 Text(
                   '$currency $unitPrice × $qty',
                   style: textTheme.bodySmall?.copyWith(
-                    color: theme.onSurface.withOpacity(0.5),
+                    color: theme.onSurface.withValues(alpha: 0.5),
                     fontSize: 11,
+                    fontFamily: 'lato',
                   ),
                 ),
+                if (productType.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  _typeBadge(productType, theme),
+                ],
               ],
             ),
           ),
 
           // ── Line Total ──
+          const SizedBox(width: 8),
           Text(
             '$currency $lineTotal',
             style: textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               fontSize: 13,
-              color: theme.onSurface,
+              color: theme.primary,
+              fontFamily: 'lato',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _typeBadge(String type, ColorScheme theme) {
+    // Each type maps to a universally recognisable icon + vivid colour
+    // so the user understands at a glance — no jargon needed.
+    const Color digitalColor  = Color(0xFF6366F1); // indigo  → "cloud/digital"
+    const Color variableColor = Color(0xFF0891B2); // cyan    → "customisable options"
+    const Color simpleColor   = Color(0xFF059669); // emerald → "ready / straightforward"
+
+    final Color color;
+    final IconData icon;
+    final String label;
+
+    switch (type) {
+      case 'digital':
+        color = digitalColor;
+        icon  = Icons.cloud_download_outlined;
+        label = 'Digital';
+        break;
+      case 'variable':
+        color = variableColor;
+        icon  = Icons.tune_rounded;
+        label = 'Variants';
+        break;
+      case 'simple':
+        color = simpleColor;
+        icon  = Icons.sell_outlined;
+        label = 'In Stock';
+        break;
+      default:
+        color = theme.onSurface.withValues(alpha: 0.35);
+        icon  = Icons.inventory_2_outlined;
+        label = type;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.09),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.28)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              fontFamily: 'lato',
             ),
           ),
         ],
@@ -526,13 +686,13 @@ class _ProductTile extends StatelessWidget {
   }
 
   Widget _placeholder(ColorScheme theme) => Container(
-    color: theme.surfaceVariant.withOpacity(0.4),
-    child: Center(
-      child: Icon(
-        Icons.shopping_bag_outlined,
-        color: theme.onSurfaceVariant.withOpacity(0.4),
-        size: 26,
-      ),
-    ),
-  );
+        color: theme.surfaceContainerHighest.withValues(alpha: 0.5),
+        child: Center(
+          child: Icon(
+            Icons.shopping_bag_outlined,
+            color: theme.onSurface.withValues(alpha: 0.3),
+            size: 24,
+          ),
+        ),
+      );
 }

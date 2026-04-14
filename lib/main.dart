@@ -1,12 +1,10 @@
 // import 'package:flutter_stripe/flutter_stripe.dart';
 
-import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import 'package:foduu_ecommerce/core/studio_socket_routing.dart';
 import '/constants/constants.dart';
 import '/core/services/cartServcie.dart';
 import '/constants/dynamic_theme.dart';
-import '/app/data/basic_provider.dart';
 import 'core/foduuStudio/register_default_widgets.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -15,8 +13,7 @@ import 'package:flutter/material.dart';
 import '/app/routes/app_pages.dart';
 
 Future<void> main() async {
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  WidgetsFlutterBinding.ensureInitialized();
 
   await GetStorage.init();
 
@@ -62,43 +59,11 @@ Future<void> main() async {
   // Register all dynamic layout widgets
   registerDefaultWidgets();
 
-  // Initialize App and get initial route
-  String initialRoute = await _initApp();
-
-  runApp(MyApp(initialRoute: initialRoute));
-
-  // Remove splash screen after app is ready
-  FlutterNativeSplash.remove();
-}
-
-Future<String> _initApp() async {
-  final box = GetStorage();
-  try {
-    var response = await BasicProvider('public-settings').getRequest();
-
-    if (response != null) {
-      var authPreference = response['storeSettings']['auth_preference'];
-      box.write('auth_preference', authPreference);
-
-      if (response['storeSettings']['app_theme_color'] != null) {
-        DynamicThemeManager()
-            .updateFromApi(response['storeSettings']['app_theme_color']);
-        Get.find<ThemeController>().refreshTheme();
-      }
-
-      bool isLogin = box.read('isLogin') ?? false;
-      print('isLogin: $isLogin');
-      return isLogin ? Routes.BOTTOMBAR : Routes.LOGIN;
-    }
-  } catch (e) {
-    print('Error during initApp: $e');
-  }
-  return Routes.LOGIN;
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final String initialRoute;
-  const MyApp({super.key, required this.initialRoute});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +72,7 @@ class MyApp extends StatelessWidget {
         return GetMaterialApp(
           debugShowCheckedModeBanner: false,
           title: "My App",
-          initialRoute: initialRoute,
+          initialRoute: AppPages.INITIAL,
           getPages: AppPages.routes,
           theme: themeController.lightTheme,
           darkTheme: themeController.darkTheme,

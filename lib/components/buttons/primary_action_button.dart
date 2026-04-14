@@ -36,30 +36,31 @@ class PrimaryActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SizedBox(
       height: Get.height * height,
       width: double.infinity,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed, // Disable when loading
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? DefaultThemeColors.mainprimary,
+          backgroundColor: backgroundColor ?? colorScheme.primary,
           elevation: elevation,
           padding: EdgeInsets.symmetric(vertical: verticalPadding),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
           ),
           // Optional: Change color when disabled/loading
-          disabledBackgroundColor:
-              (backgroundColor ?? DefaultThemeColors.mainprimary)
-                  .withOpacity(0.7),
+          disabledBackgroundColor: (backgroundColor ?? colorScheme.primary)
+              .withOpacity(0.7),
         ),
         child: isLoading
-            ? _buildLoadingWidget()
+            ? _buildLoadingWidget(colorScheme)
             : Text(
                 text,
                 style: TextStyle(
                   fontSize: fontSize,
-                  color: textColor ?? DefaultThemeColors.lightOnPrimary,
+                  color: textColor ?? colorScheme.onPrimary,
                   fontWeight: fontWeight,
                 ),
               ),
@@ -67,7 +68,7 @@ class PrimaryActionButton extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadingWidget() {
+  Widget _buildLoadingWidget(ColorScheme colorScheme) {
     if (loadingWidget != null) {
       return loadingWidget!;
     }
@@ -81,9 +82,7 @@ class PrimaryActionButton extends StatelessWidget {
           child: CircularProgressIndicator(
             strokeWidth: 2,
             valueColor: AlwaysStoppedAnimation<Color>(
-              loadingIndicatorColor ??
-                  textColor ??
-                  DefaultThemeColors.lightOnPrimary,
+              loadingIndicatorColor ?? textColor ?? colorScheme.onPrimary,
             ),
           ),
         ),
@@ -92,7 +91,7 @@ class PrimaryActionButton extends StatelessWidget {
           'Loading...',
           style: TextStyle(
             fontSize: fontSize,
-            color: textColor ?? DefaultThemeColors.lightOnPrimary,
+            color: textColor ?? colorScheme.onPrimary,
             fontWeight: fontWeight,
           ),
         ),

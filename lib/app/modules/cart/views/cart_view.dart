@@ -18,11 +18,12 @@ import 'package:lottie/lottie.dart';
 
 class CartView extends GetView<CartController> {
   CartView({Key? key}) : super(key: key);
+  
+  ColorScheme get colorScheme => Theme.of(Get.context!).colorScheme;
+  TextTheme get textTheme => Theme.of(Get.context!).textTheme;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
 
@@ -36,13 +37,11 @@ class CartView extends GetView<CartController> {
         body: Padding(
           padding: EdgeInsets.symmetric(
             horizontal: width * 0.05,
-            vertical: height * 0.02,
+            vertical: height * 0.01,
           ),
           child: Column(
             children: [
-              SecondaryAppHeader(
-                title: "My Cart",
-              ),
+              SecondaryAppHeader(title: "My Cart"),
               SizedBox(height: height * 0.001),
               Expanded(
                 child: Obx(() {
@@ -52,43 +51,41 @@ class CartView extends GetView<CartController> {
 
                   if (controller.cartItems.isEmpty) {
                     return _buildEmptyCart(
-                        context, colorScheme, textTheme, width, height);
+                      width,
+                      height,
+                    );
                   }
 
-                  return _buildCartContent(
-                      context, colorScheme, textTheme, width, height);
+                   return _buildCartContent(
+                    width,
+                    height,
+                  );
                 }),
               ),
             ],
           ),
         ),
-        bottomNavigationBar: Obx(() => controller.cartItems.isEmpty
-            ? const SizedBox.shrink()
-            : _bottombar(width: width, height: height)),
+        bottomNavigationBar: Obx(
+          () => controller.cartItems.isEmpty
+              ? const SizedBox.shrink()
+              : _bottombar(width: width, height: height),
+        ),
       ),
     );
   }
 
   Widget _buildEmptyCart(
-    BuildContext context,
-    ColorScheme colorScheme,
-    TextTheme textTheme,
     double width,
     double height,
   ) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Lottie.asset(
-          'assets/lotti/emptyanimation.json',
-          height: height * 0.3,
-        ),
+        Lottie.asset('assets/lotti/emptyanimation.json', height: height * 0.3),
         const SizedBox(height: 20),
         Text(
           'Whoops !! Cart is Empty',
-          style: textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 20),
         SizedBox(
@@ -117,9 +114,6 @@ class CartView extends GetView<CartController> {
   }
 
   Widget _buildCartContent(
-    BuildContext context,
-    ColorScheme colorScheme,
-    TextTheme textTheme,
     double width,
     double height,
   ) {
@@ -152,7 +146,7 @@ class CartView extends GetView<CartController> {
             padding: EdgeInsets.symmetric(horizontal: width * 0.025),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(height * 0.01),
-              border: Border.all(color: DefaultThemeColors.darklight),
+              border: Border.all(color: colorScheme.outline),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -173,59 +167,65 @@ class CartView extends GetView<CartController> {
                     ),
                   ),
                 ),
-                Obx(() => TextButton(
-                      onPressed: controller.isClicked.value
-                          ? null
-                          : () {
-                              if (controller.couponController.text.isNotEmpty) {
-                                controller.isClicked.value = true;
-                                controller
-                                    .applyCoupon(
-                                        coupon:
-                                            controller.couponController.text)
-                                    .then((_) {
-                                  controller.isClicked.value = false;
-                                }).catchError((e) {
-                                  controller.isClicked.value = false;
-                                });
-                              }
-                            },
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.symmetric(horizontal: width * 0.02),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                Obx(
+                  () => TextButton(
+                    onPressed: controller.isClicked.value
+                        ? null
+                        : () {
+                            if (controller.couponController.text.isNotEmpty) {
+                              controller.isClicked.value = true;
+                              controller
+                                  .applyCoupon(
+                                    coupon: controller.couponController.text,
+                                  )
+                                  .then((_) {
+                                    controller.isClicked.value = false;
+                                  })
+                                  .catchError((e) {
+                                    controller.isClicked.value = false;
+                                  });
+                            }
+                          },
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(horizontal: width * 0.02),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      controller.isClicked.value ? "Applying..." : "Apply",
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: height * 0.018,
+                        fontWeight: FontWeight.w600,
+                        color: controller.isClicked.value
+                            ? colorScheme.onSurfaceVariant
+                            : colorScheme.primary,
                       ),
-                      child: Text(
-                        controller.isClicked.value ? "Applying..." : "Apply",
-                        style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontSize: height * 0.018,
-                          fontWeight: FontWeight.w600,
-                          color: controller.isClicked.value
-                              ? Colors.grey
-                              : Get.theme.primaryColor,
-                        ),
-                      ),
-                    )),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
 
           // Coupon Message
-          Obx(() => controller.couponeMessage.value.isNotEmpty
-              ? Padding(
-                  padding: EdgeInsets.only(top: height * 0.01),
-                  child: Text(
-                    controller.couponeMessage.value,
-                    style: TextStyle(
-                      color: controller.couponeMessage.value.contains('success')
-                          ? Colors.green
-                          : Colors.red,
-                      fontSize: height * 0.014,
+          Obx(
+            () => controller.couponeMessage.value.isNotEmpty
+                ? Padding(
+                    padding: EdgeInsets.only(top: height * 0.01),
+                    child: Text(
+                      controller.couponeMessage.value,
+                      style: TextStyle(
+                        color:
+                            controller.couponeMessage.value.contains('success')
+                            ? Colors.green
+                            : Colors.red,
+                        fontSize: height * 0.014,
+                      ),
                     ),
-                  ),
-                )
-              : const SizedBox.shrink()),
+                  )
+                : const SizedBox.shrink(),
+          ),
 
           SizedBox(height: height * 0.015),
 
@@ -238,13 +238,18 @@ class CartView extends GetView<CartController> {
               children: [
                 _priceRow("Subtotal", "₹${controller.subTotal.value}"),
                 _priceRow("Delivery Fee", "Free"),
-                _priceRow("Discount",
-                    "- ₹${(controller.subTotal.value - controller.total.value).toStringAsFixed(2)}",
-                    color: Colors.green),
+                _priceRow(
+                  "Discount",
+                  "- ₹${(controller.subTotal.value - controller.total.value).toStringAsFixed(2)}",
+                  color: Colors.green,
+                ),
                 const Divider(),
                 _priceRow(
-                    "Total", "₹${controller.total.value.toStringAsFixed(2)}",
-                    isBold: true, fontSize: height * 0.022),
+                  "Total",
+                  "₹${controller.total.value.toStringAsFixed(2)}",
+                  isBold: true,
+                  fontSize: height * 0.022,
+                ),
               ],
             ),
           ),
@@ -255,7 +260,17 @@ class CartView extends GetView<CartController> {
           PrimaryActionButton(
             text: "Proceed to Checkout",
             onPressed: () {
-              Get.toNamed(Routes.ADDRESS_LIST);
+              if (AuthDetails.isUserLogin()) {
+                Get.toNamed(Routes.ADDRESS_LIST);
+              } else {
+                Get.snackbar(
+                  "Login Required",
+                  "To place the Order First User has to login",
+                  backgroundColor: colorScheme.error,
+                  colorText: colorScheme.onError,
+                  margin: const EdgeInsets.all(15),
+                );
+              }
             },
           ),
         ],
@@ -263,8 +278,13 @@ class CartView extends GetView<CartController> {
     );
   }
 
-  Widget _priceRow(String title, String value,
-      {bool isBold = false, Color? color, double? fontSize}) {
+  Widget _priceRow(
+    String title,
+    String value, {
+    bool isBold = false,
+    Color? color,
+    double? fontSize,
+  }) {
     final height = Get.height;
     final width = Get.width;
 
@@ -280,7 +300,7 @@ class CartView extends GetView<CartController> {
               fontFamily: 'Plus Jakarta Sans',
               fontSize: fontSize ?? height * 0.018,
               fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-              color: color ?? DefaultThemeColors.darklighter,
+              color: color ?? colorScheme.onSurfaceVariant,
             ),
           ),
           Text(
@@ -319,12 +339,13 @@ class CartView extends GetView<CartController> {
 
       // Get variant's effective price
       final variantPrice = HelperFunctions.parseAmount(
-          variant['sale_price'] ?? variant['price']);
+        variant['sale_price'] ?? variant['price'],
+      );
       final variantRegularPrice = HelperFunctions.parseAmount(variant['price']);
       final hasDiscount =
           HelperFunctions.parseAmount(variant['sale_price']) > 0 &&
-              variantRegularPrice >
-                  HelperFunctions.parseAmount(variant['sale_price']);
+          variantRegularPrice >
+              HelperFunctions.parseAmount(variant['sale_price']);
 
       return Container(
         width: width * 0.92,
@@ -332,9 +353,7 @@ class CartView extends GetView<CartController> {
         padding: EdgeInsets.all(width * 0.026),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(height * 0.015),
-          border: Border.all(
-            color: DefaultThemeColors.darklight,
-          ),
+          border: Border.all(color: colorScheme.outline),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -345,8 +364,10 @@ class CartView extends GetView<CartController> {
               height: height * 0.09,
               child: GestureDetector(
                 onTap: () {
-                  Get.toNamed(Routes.PRODUCTDETAILS,
-                      arguments: {'productId': product['_id']});
+                  Get.toNamed(
+                    Routes.PRODUCTDETAILS,
+                    arguments: {'productId': product['_id']},
+                  );
                 },
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(height * 0.012),
@@ -356,14 +377,20 @@ class CartView extends GetView<CartController> {
                     height: height * 0.09,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
-                      color: Colors.grey[200],
-                      child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2)),
+                      color: colorScheme.surfaceVariant,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: colorScheme.primary,
+                        ),
+                      ),
                     ),
                     errorWidget: (context, url, error) => Container(
-                      color: Colors.grey[200],
-                      child: Icon(Icons.image_not_supported_outlined,
-                          color: Colors.grey[400]),
+                      color: colorScheme.surfaceVariant,
+                      child: Icon(
+                        Icons.image_not_supported_outlined,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ),
@@ -398,7 +425,7 @@ class CartView extends GetView<CartController> {
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: height * 0.014,
                         fontWeight: FontWeight.w500,
-                        color: DefaultThemeColors.lightDarker,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                   SizedBox(height: height * 0.005),
@@ -423,7 +450,7 @@ class CartView extends GetView<CartController> {
                             fontSize: height * 0.014,
                             fontWeight: FontWeight.w500,
                             decoration: TextDecoration.lineThrough,
-                            color: Colors.grey,
+                            color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -456,7 +483,7 @@ class CartView extends GetView<CartController> {
                   height: height * 0.04,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(height * 0.02),
-                    border: Border.all(color: DefaultThemeColors.darklight),
+                    border: Border.all(color: colorScheme.outline),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -466,7 +493,10 @@ class CartView extends GetView<CartController> {
                         onTap: () {
                           if (quantity > 1) {
                             controller.decrementItem(
-                                productId, variantId, quantity);
+                              productId,
+                              variantId,
+                              quantity,
+                            );
                           }
                         },
                         child: Container(
@@ -475,15 +505,15 @@ class CartView extends GetView<CartController> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: quantity > 1
-                                ? Get.theme.primaryColor.withOpacity(0.1)
+                                ? colorScheme.primary.withOpacity(0.1)
                                 : Colors.transparent,
                           ),
                           child: Icon(
                             Icons.remove,
                             size: height * 0.016,
                             color: quantity > 1
-                                ? Get.theme.primaryColor
-                                : Colors.grey,
+                                ? colorScheme.primary
+                                : colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ),
@@ -508,12 +538,12 @@ class CartView extends GetView<CartController> {
                           height: height * 0.03,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Get.theme.primaryColor.withOpacity(0.1),
+                            color: colorScheme.primary.withOpacity(0.1),
                           ),
                           child: Icon(
                             Icons.add,
                             size: height * 0.016,
-                            color: Get.theme.primaryColor,
+                            color: colorScheme.primary,
                           ),
                         ),
                       ),
@@ -528,12 +558,15 @@ class CartView extends GetView<CartController> {
                   child: IconButton(
                     onPressed: () {
                       _showDeleteConfirmation(
-                          index, product['_id'], variant['_id']);
+                        index,
+                        product['_id'],
+                        variant['_id'],
+                      );
                     },
                     icon: Icon(
                       Icons.delete_outline,
                       size: height * 0.022,
-                      color: Colors.red,
+                      color: colorScheme.error,
                     ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -552,20 +585,16 @@ class CartView extends GetView<CartController> {
       AlertDialog(
         title: const Text('Remove Product'),
         content: const Text(
-            'Are you sure you want to remove this product from cart?'),
+          'Are you sure you want to remove this product from cart?',
+        ),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               Get.back();
               controller.removeItem(productId, variantId);
             },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
+            style: TextButton.styleFrom(foregroundColor: colorScheme.error),
             child: const Text('Remove'),
           ),
         ],

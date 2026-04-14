@@ -157,10 +157,10 @@ class AppThemeColors {
     );
   }
 
-  /// Parse from API response (only 4 core colors needed!)
+  /// Parse from API response
   factory AppThemeColors.fromThemeMap(
       Map<String, dynamic> themeMap, bool isDark) {
-    debugPrint('🌐 Parsing ${isDark ? "DARK" : "LIGHT"} theme colors from API');
+    debugPrint('🌐 Parsing ${isDark ? "DARK" : "LIGHT"} theme colors');
 
     return AppThemeColors.fromCoreColors(
       primary: _hexToColor(themeMap['primary']) ??
@@ -241,18 +241,27 @@ class AppThemeColors {
     }
   }
 
-  /// Convert to JSON for storage (only store core colors)
+  /// Convert to JSON for storage (store ALL colors for full persistence)
   Map<String, dynamic> toJson() {
     return {
       'primary': _colorToHex(primary),
+      'onPrimary': _colorToHex(onPrimary),
       'secondary': _colorToHex(secondary),
+      'onSecondary': _colorToHex(onSecondary),
       'background': _colorToHex(background),
+      'onBackground': _colorToHex(onBackground),
+      'surface': _colorToHex(surface),
+      'onSurface': _colorToHex(onSurface),
       'error': _colorToHex(error),
+      'onError': _colorToHex(onError),
+      'outline': _colorToHex(outline),
+      'surfaceVariant': _colorToHex(surfaceVariant),
+      'onSurfaceVariant': _colorToHex(onSurfaceVariant),
     };
   }
 
   static String _colorToHex(Color color) {
-    return '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
+    return '#${color.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
   }
 }
 
@@ -404,7 +413,8 @@ class DynamicThemeManager {
       primaryColor: colors.primary,
       cardColor: colors.surface,
       dividerColor: colors.outline,
-      iconTheme: IconThemeData(color: colors.onBackground),
+      canvasColor: colors.background,
+      iconTheme: IconThemeData(color: colors.onSurface),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: colors.primary,
@@ -434,6 +444,8 @@ class DynamicThemeManager {
         fillColor: colors.surfaceVariant,
         hintStyle: TextStyle(color: colors.onSurfaceVariant),
         labelStyle: TextStyle(color: colors.onSurface),
+        prefixIconColor: colors.onSurfaceVariant,
+        suffixIconColor: colors.onSurfaceVariant,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: colors.outline),
@@ -459,6 +471,7 @@ class DynamicThemeManager {
         backgroundColor: colors.surface,
         selectedItemColor: colors.primary,
         unselectedItemColor: colors.onSurfaceVariant,
+        elevation: 8,
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: colors.secondary,
@@ -472,6 +485,8 @@ class DynamicThemeManager {
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: colors.surface,
+        elevation: 24,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         titleTextStyle: TextStyle(
           color: colors.onSurface,
           fontSize: 20,
@@ -481,12 +496,16 @@ class DynamicThemeManager {
       ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: colors.surface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: isDark ? colors.surface : colors.onBackground,
+        backgroundColor: isDark ? colors.onSurface : colors.surface,
         contentTextStyle: TextStyle(
-          color: isDark ? colors.onSurface : colors.background,
+          color: isDark ? colors.surface : colors.onSurface,
         ),
+        behavior: SnackBarBehavior.floating,
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: colors.primary,

@@ -72,6 +72,8 @@ class SearchViewHeader extends StatelessWidget {
                       onChanged: onSearchChanged,
                       decoration: const InputDecoration(
                         hintText: "Search products, categories...",
+                        filled: true,
+                        fillColor: Colors.transparent,
                         border: InputBorder.none,
                         focusedBorder: InputBorder.none,
                         enabledBorder: InputBorder.none,
