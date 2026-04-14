@@ -24,17 +24,19 @@ class ShopView extends GetView<ShopController> {
         elevation: 0,
         centerTitle: true,
         title: Obx(() => Column(
-          children: [
-            Text(
-              controller.collectionName.value,
-              style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            Text(
-              "${controller.totalProducts.value} items",
-              style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-            ),
-          ],
-        )),
+              children: [
+                Text(
+                  controller.collectionName.value,
+                  style: textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  "${controller.totalProducts.value} items",
+                  style: textTheme.bodySmall
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
+              ],
+            )),
         actions: [
           IconButton(
             icon: const Icon(Icons.tune_rounded), // Filter Icon
@@ -54,9 +56,10 @@ class ShopView extends GetView<ShopController> {
               child: controller.isLoading.value
                   ? _buildGridShimmer()
                   : RefreshIndicator(
-                onRefresh: () => controller.fetchProducts(isRefresh: true),
-                child: _buildProductGrid(colorScheme, textTheme),
-              ),
+                      onRefresh: () =>
+                          controller.fetchProducts(isRefresh: true),
+                      child: _buildProductGrid(colorScheme, textTheme),
+                    ),
             ),
           ],
         );
@@ -91,31 +94,36 @@ class ShopView extends GetView<ShopController> {
           ),
           const SizedBox(width: 8),
 
-          if (controller.isFeatured.value) _activeChip("Featured", () {
-            controller.isFeatured.value = false;
-            controller.fetchProducts(isRefresh: true);
-          }, colorScheme),
+          if (controller.isFeatured.value)
+            _activeChip("Featured", () {
+              controller.isFeatured.value = false;
+              controller.fetchProducts(isRefresh: true);
+            }, colorScheme),
 
-          if (controller.isHot.value) _activeChip("Hot", () {
-            controller.isHot.value = false;
-            controller.fetchProducts(isRefresh: true);
-          }, colorScheme),
+          if (controller.isHot.value)
+            _activeChip("Hot", () {
+              controller.isHot.value = false;
+              controller.fetchProducts(isRefresh: true);
+            }, colorScheme),
 
-          ...controller.selectedCategories.map((cat) => _activeChip(cat.capitalizeFirst!, () {
-            controller.toggleCategory(cat);
-            controller.fetchProducts(isRefresh: true);
-          }, colorScheme)),
+          ...controller.selectedCategories
+              .map((cat) => _activeChip(cat.capitalizeFirst!, () {
+                    controller.toggleCategory(cat);
+                    controller.fetchProducts(isRefresh: true);
+                  }, colorScheme)),
 
-          ...controller.selectedBrands.map((brand) => _activeChip(brand.capitalizeFirst!, () {
-            controller.toggleBrand(brand);
-            controller.fetchProducts(isRefresh: true);
-          }, colorScheme)),
+          ...controller.selectedBrands
+              .map((brand) => _activeChip(brand.capitalizeFirst!, () {
+                    controller.toggleBrand(brand);
+                    controller.fetchProducts(isRefresh: true);
+                  }, colorScheme)),
         ],
       ),
     );
   }
 
-  Widget _activeChip(String label, VoidCallback onDeleted, ColorScheme colorScheme) {
+  Widget _activeChip(
+      String label, VoidCallback onDeleted, ColorScheme colorScheme) {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: Chip(
@@ -136,7 +144,8 @@ class ShopView extends GetView<ShopController> {
 
     Get.bottomSheet(
       Container(
-        height: MediaQuery.of(context).size.height * 0.75, // 75% of screen height
+        height:
+            MediaQuery.of(context).size.height * 0.75, // 75% of screen height
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -145,7 +154,12 @@ class ShopView extends GetView<ShopController> {
           children: [
             // Handle Bar
             const SizedBox(height: 12),
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: colorScheme.outline.withOpacity(0.5), borderRadius: BorderRadius.circular(10))),
+            Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                    color: colorScheme.outline.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(10))),
 
             // Header
             Padding(
@@ -153,13 +167,16 @@ class ShopView extends GetView<ShopController> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Sort & Filter", style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                  Text("Sort & Filter",
+                      style: textTheme.titleLarge
+                          ?.copyWith(fontWeight: FontWeight.bold)),
                   TextButton(
                     onPressed: () {
                       controller.clearAllFilters();
                       Get.back();
                     },
-                    child: Text("Clear All", style: TextStyle(color: colorScheme.error)),
+                    child: Text("Clear All",
+                        style: TextStyle(color: colorScheme.error)),
                   )
                 ],
               ),
@@ -174,79 +191,94 @@ class ShopView extends GetView<ShopController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // 1. SORTING
-                    Text("Sort By", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    Text("Sort By",
+                        style: textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 10),
                     Wrap(
-                      spacing: 8, runSpacing: 8,
+                      spacing: 8,
+                      runSpacing: 8,
                       children: [
                         _sortChip("Newest", "created_at", "desc", colorScheme),
-                        _sortChip("Price: Low-High", "price", "asc", colorScheme),
-                        _sortChip("Price: High-Low", "price", "desc", colorScheme),
+                        _sortChip(
+                            "Price: Low-High", "price", "asc", colorScheme),
+                        _sortChip(
+                            "Price: High-Low", "price", "desc", colorScheme),
                       ],
                     ),
                     const SizedBox(height: 24),
 
                     // 2. QUICK TOGGLES
-                    Text("Collections", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    Text("Collections",
+                        style: textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold)),
                     Obx(() => CheckboxListTile(
-                      title: const Text("Featured Products"),
-                      value: controller.isFeatured.value,
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      onChanged: (val) => controller.isFeatured.value = val!,
-                    )),
+                          title: const Text("Featured Products"),
+                          value: controller.isFeatured.value,
+                          contentPadding: EdgeInsets.zero,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          onChanged: (val) =>
+                              controller.isFeatured.value = val!,
+                        )),
                     Obx(() => CheckboxListTile(
-                      title: const Text("Hot Trending"),
-                      value: controller.isHot.value,
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      onChanged: (val) => controller.isHot.value = val!,
-                    )),
+                          title: const Text("Hot Trending"),
+                          value: controller.isHot.value,
+                          contentPadding: EdgeInsets.zero,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          onChanged: (val) => controller.isHot.value = val!,
+                        )),
                     const SizedBox(height: 16),
 
                     // 3. PRICE RANGE
-                    Text("Price Range", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    Text("Price Range",
+                        style: textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold)),
                     Obx(() => Column(
-                      children: [
-                        RangeSlider(
-                          values: controller.currentPriceRange.value,
-                          min: 0,
-                          max: 10000,
-                          divisions: 100,
-                          activeColor: colorScheme.primary,
-                          labels: RangeLabels(
-                            "₹${controller.currentPriceRange.value.start.round()}",
-                            "₹${controller.currentPriceRange.value.end.round()}",
-                          ),
-                          onChanged: (RangeValues values) {
-                            controller.currentPriceRange.value = values;
-                            controller.minPrice.value = values.start;
-                            controller.maxPrice.value = values.end;
-                          },
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text("₹${controller.minPrice.value.round()}"),
-                            Text("₹${controller.maxPrice.value.round()}"),
+                            RangeSlider(
+                              values: controller.currentPriceRange.value,
+                              min: 0,
+                              max: 10000,
+                              divisions: 100,
+                              activeColor: colorScheme.primary,
+                              labels: RangeLabels(
+                                "₹${controller.currentPriceRange.value.start.round()}",
+                                "₹${controller.currentPriceRange.value.end.round()}",
+                              ),
+                              onChanged: (RangeValues values) {
+                                controller.currentPriceRange.value = values;
+                                controller.minPrice.value = values.start;
+                                controller.maxPrice.value = values.end;
+                              },
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("₹${controller.minPrice.value.round()}"),
+                                Text("₹${controller.maxPrice.value.round()}"),
+                              ],
+                            )
                           ],
-                        )
-                      ],
-                    )),
+                        )),
                     const SizedBox(height: 24),
 
                     // 4. CATEGORIES (Mocked for UI, wire these to your actual category list)
-                    Text("Categories", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    Text("Categories",
+                        style: textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 10),
                     Obx(() => Wrap(
-                      spacing: 8, runSpacing: 8,
-                      children: [
-                        _categoryChip("electronics", "Electronics", colorScheme),
-                        _categoryChip("clothing", "Clothing", colorScheme),
-                        _categoryChip("home-decor", "Home Decor", colorScheme),
-                        _categoryChip("toys", "Toys", colorScheme),
-                      ],
-                    )),
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _categoryChip(
+                                "electronics", "Electronics", colorScheme),
+                            _categoryChip("clothing", "Clothing", colorScheme),
+                            _categoryChip(
+                                "home-decor", "Home Decor", colorScheme),
+                            _categoryChip("toys", "Toys", colorScheme),
+                          ],
+                        )),
                   ],
                 ),
               ),
@@ -257,7 +289,12 @@ class ShopView extends GetView<ShopController> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: colorScheme.surface,
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))],
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5))
+                ],
               ),
               child: SafeArea(
                 child: SizedBox(
@@ -271,9 +308,12 @@ class ShopView extends GetView<ShopController> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text("Apply Filters", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    child: const Text("Apply Filters",
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ),
@@ -285,9 +325,11 @@ class ShopView extends GetView<ShopController> {
     );
   }
 
-  Widget _sortChip(String label, String by, String order, ColorScheme colorScheme) {
+  Widget _sortChip(
+      String label, String by, String order, ColorScheme colorScheme) {
     return Obx(() {
-      bool isSelected = controller.sortBy.value == by && controller.sortOrder.value == order;
+      bool isSelected =
+          controller.sortBy.value == by && controller.sortOrder.value == order;
       return ChoiceChip(
         label: Text(label),
         selected: isSelected,
@@ -317,9 +359,12 @@ class ShopView extends GetView<ShopController> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inventory_2_outlined, size: 80, color: colorScheme.outline.withOpacity(0.5)),
+            Icon(Icons.inventory_2_outlined,
+                size: 80, color: colorScheme.outline.withOpacity(0.5)),
             const SizedBox(height: 16),
-            Text("No products match your filters", style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            Text("No products match your filters",
+                style: textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold)),
           ],
         ),
       );
@@ -335,7 +380,10 @@ class ShopView extends GetView<ShopController> {
             physics: const NeverScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, crossAxisSpacing: 16, mainAxisSpacing: 16, childAspectRatio: 0.62,
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 0.62,
             ),
             itemCount: controller.products.length,
             itemBuilder: (context, index) {
@@ -345,14 +393,18 @@ class ShopView extends GetView<ShopController> {
                 onTap: () {
                   final productId = product['_id']?.toString() ?? '';
                   if (productId.isNotEmpty) {
-                    Get.to(() => ProductView(), binding: ShopBinding(), arguments: {'productId': productId});
+                    Get.to(() => ProductView(),
+                        binding: ShopBinding(),
+                        arguments: {'productId': productId});
                   }
                 },
               );
             },
           ),
           if (controller.isFetchingMore.value)
-            const Padding(padding: EdgeInsets.all(24.0), child: CupertinoActivityIndicator(radius: 14)),
+            const Padding(
+                padding: EdgeInsets.all(24.0),
+                child: CupertinoActivityIndicator(radius: 14)),
           const SizedBox(height: 40),
         ],
       ),
@@ -366,10 +418,15 @@ class ShopView extends GetView<ShopController> {
       child: GridView.builder(
         padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, crossAxisSpacing: 16, mainAxisSpacing: 16, childAspectRatio: 0.62,
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.62,
         ),
         itemCount: 6,
-        itemBuilder: (_, __) => Container(decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
+        itemBuilder: (_, __) => Container(
+            decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(16))),
       ),
     );
   }
@@ -389,7 +446,8 @@ class _ProductGridCard extends StatelessWidget {
       final filepath = featuredImg['filepath']?.toString() ?? '';
       if (downloadUrl.isNotEmpty) return downloadUrl;
       if (filepath.isNotEmpty) {
-        final cleanPath = filepath.startsWith('/') ? filepath.substring(1) : filepath;
+        final cleanPath =
+            filepath.startsWith('/') ? filepath.substring(1) : filepath;
         return 'https://mywatch.vbought.com/images/$cleanPath';
       }
     }
@@ -408,9 +466,15 @@ class _ProductGridCard extends StatelessWidget {
     double price = 0.0;
     double salePrice = 0.0;
 
-    if (isSimple && product['variants'] != null && product['variants'].isNotEmpty) {
-      price = double.tryParse(product['variants'][0]['price']?.toString() ?? '0') ?? 0.0;
-      salePrice = double.tryParse(product['variants'][0]['sale_price']?.toString() ?? '0') ?? 0.0;
+    if (isSimple &&
+        product['variants'] != null &&
+        product['variants'].isNotEmpty) {
+      price =
+          double.tryParse(product['variants'][0]['price']?.toString() ?? '0') ??
+              0.0;
+      salePrice = double.tryParse(
+              product['variants'][0]['sale_price']?.toString() ?? '0') ??
+          0.0;
     }
 
     final bool hasDiscount = salePrice > 0 && salePrice < price;
@@ -424,7 +488,12 @@ class _ProductGridCard extends StatelessWidget {
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: colorScheme.outline.withOpacity(0.15)),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4))
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -434,26 +503,41 @@ class _ProductGridCard extends StatelessWidget {
               child: Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(15)),
                     child: Container(
                       width: double.infinity,
                       color: colorScheme.surfaceVariant.withOpacity(0.5),
                       child: imageUrl.isNotEmpty
                           ? CachedNetworkImage(
-                        imageUrl: imageUrl, fit: BoxFit.cover,
-                        placeholder: (context, url) => const Center(child: CupertinoActivityIndicator()),
-                        errorWidget: (context, url, error) => Icon(Icons.image_not_supported_outlined, color: colorScheme.outline),
-                      )
-                          : Icon(Icons.image_not_supported_outlined, color: colorScheme.outline),
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => const Center(
+                                  child: CupertinoActivityIndicator()),
+                              errorWidget: (context, url, error) => Icon(
+                                  Icons.image_not_supported_outlined,
+                                  color: colorScheme.outline),
+                            )
+                          : Icon(Icons.image_not_supported_outlined,
+                              color: colorScheme.outline),
                     ),
                   ),
                   if (hasDiscount && price > 0)
                     Positioned(
-                      top: 8, left: 8,
+                      top: 8,
+                      left: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(color: Colors.red.shade600, borderRadius: BorderRadius.circular(8)),
-                        child: Text("${((price - salePrice) / price * 100).round()}% OFF", style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                            color: Colors.red.shade600,
+                            borderRadius: BorderRadius.circular(8)),
+                        child: Text(
+                            "${((price - salePrice) / price * 100).round()}% OFF",
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold)),
                       ),
                     ),
                 ],
@@ -467,13 +551,23 @@ class _ProductGridCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(name, style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, height: 1.2), maxLines: 2, overflow: TextOverflow.ellipsis),
+                    Text(name,
+                        style: textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600, height: 1.2),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (hasDiscount)
-                          Text("₹${price.toStringAsFixed(2)}", style: textTheme.bodySmall?.copyWith(decoration: TextDecoration.lineThrough, color: colorScheme.onSurfaceVariant)),
-                        Text("₹${displayPrice.toStringAsFixed(2)}", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary)),
+                          Text("₹${price.toStringAsFixed(2)}",
+                              style: textTheme.bodySmall?.copyWith(
+                                  decoration: TextDecoration.lineThrough,
+                                  color: colorScheme.onSurfaceVariant)),
+                        Text("₹${displayPrice.toStringAsFixed(2)}",
+                            style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.primary)),
                       ],
                     ),
                   ],
