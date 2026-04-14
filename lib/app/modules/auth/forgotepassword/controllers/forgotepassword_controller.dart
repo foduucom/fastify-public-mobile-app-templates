@@ -35,11 +35,15 @@ class ForgotepasswordController extends GetxController {
         //Get.offAllNamed('/home');
         if (response is String) {
           // Show success message
-          Get.snackbar(
-            'Success',
-            response,
-            backgroundColor: Colors.green,
-          );
+          if (Get.context != null) {
+            final colorScheme = Theme.of(Get.context!).colorScheme;
+            Get.snackbar(
+              'Success',
+              response,
+              backgroundColor: colorScheme.primary,
+              colorText: colorScheme.onPrimary,
+            );
+          }
 
           // Navigate to OTP screen or login screen
           // Navigate to OTP screen with email
@@ -51,21 +55,29 @@ class ForgotepasswordController extends GetxController {
           print(response['message']);
           // Handle error from API
           errorMessage.value = response['message'] ?? 'Something went wrong';
-          Get.snackbar(
-            'Error',
-            errorMessage.value,
-            backgroundColor: DefaultThemeColors.alertErrorLighter,
-          );
+          if (Get.context != null) {
+            final colorScheme = Theme.of(Get.context!).colorScheme;
+            Get.snackbar(
+              'Error',
+              errorMessage.value,
+              backgroundColor: colorScheme.error,
+              colorText: colorScheme.onError,
+            );
+          }
         }
       } catch (e) {
         // Handle exceptions
         print(e.toString());
         errorMessage.value = e.toString();
-        Get.snackbar(
-          'Error',
-          e.toString(),
-          backgroundColor: DefaultThemeColors.alertErrorLighter,
-        );
+        if (Get.context != null) {
+          final colorScheme = Theme.of(Get.context!).colorScheme;
+          Get.snackbar(
+            'Error',
+            e.toString(),
+            backgroundColor: colorScheme.error,
+            colorText: colorScheme.onError,
+          );
+        }
       } finally {
         isLoading.value = false;
       }

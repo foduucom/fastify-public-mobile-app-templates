@@ -14,6 +14,7 @@ class ChooseCategoryView extends GetView<ChooseCategoryController> {
   Widget build(BuildContext context) {
     var width = Get.width;
     var height = Get.height;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
         body: SafeArea(
@@ -32,7 +33,7 @@ class ChooseCategoryView extends GetView<ChooseCategoryController> {
                 icon: Icon(
                   Icons.arrow_back,
                   size: width * 0.06,
-                  color: context.onSurfaceColor, // Theme-aware back button
+                  color: colorScheme.onSurface,
                 ),
               ),
             ),
@@ -57,7 +58,7 @@ class ChooseCategoryView extends GetView<ChooseCategoryController> {
                         fontSize: height * 0.03,
                         height: 1.1,
                         fontWeight: FontWeight.w700,
-                        color: context.onBackgroundColor, // Theme-aware title
+                        color: colorScheme.onSurface,
                       ),
                       const SizedBox(height: 8),
                       AppText(
@@ -66,9 +67,7 @@ class ChooseCategoryView extends GetView<ChooseCategoryController> {
                         height: 1.4,
                         letterSpacing: 0,
                         maxLines: 3,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? DefaultThemeColors.darklighter
-                            : DefaultThemeColors.lightDarker,
+                        color: colorScheme.onSurfaceVariant,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -106,14 +105,13 @@ class ChooseCategoryView extends GetView<ChooseCategoryController> {
                               ),
                               decoration: BoxDecoration(
                                 color: isActive
-                                    ? DefaultThemeColors.mainprimary
+                                    ? colorScheme.primary
                                     : Colors.transparent,
                                 borderRadius: BorderRadius.circular(height * 2),
                                 border: Border.all(
                                   color: isActive
-                                      ? DefaultThemeColors.mainprimary
-                                      : context
-                                          .outlineColor, // Theme-aware border
+                                      ? colorScheme.primary
+                                      : colorScheme.outline,
                                   width: 1,
                                 ),
                               ),
@@ -130,10 +128,8 @@ class ChooseCategoryView extends GetView<ChooseCategoryController> {
                                     height: 1.75,
                                     letterSpacing: 0,
                                     color: isActive
-                                        ? context
-                                            .onPrimaryColor // White text on purple
-                                        : context
-                                            .onSurfaceColor, // Theme-aware text
+                                        ? colorScheme.onPrimary
+                                        : colorScheme.onSurface,
                                   ),
                                 ),
                               ),
@@ -158,9 +154,8 @@ class ChooseCategoryView extends GetView<ChooseCategoryController> {
 
                 PrimaryActionButton(
                     text: "Skip",
-                    backgroundColor:
-                        context.surfaceColor, // Theme-aware background
-                    textColor: DefaultThemeColors.mainprimary,
+                    backgroundColor: colorScheme.surface,
+                    textColor: colorScheme.primary,
                     onPressed: () {
                       print("Skip");
                     }),

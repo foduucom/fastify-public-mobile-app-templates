@@ -24,6 +24,9 @@ import 'package:shimmer/shimmer.dart';
 class ProductView extends GetView<ProductController> {
   ProductView({Key? key}) : super(key: key);
 
+  ColorScheme get colorScheme => Theme.of(Get.context!).colorScheme;
+  TextTheme get textTheme => Theme.of(Get.context!).textTheme;
+
   WishlistController wishListController = Get.find<WishlistController>();
 
   @override
@@ -171,8 +174,9 @@ class ProductView extends GetView<ProductController> {
                                       color:
                                           controller.selectedPageIndex.value ==
                                                   index
-                                              ? DefaultThemeColors.mainprimary
-                                              : Colors.grey.shade400,
+                                              ? colorScheme.primary
+                                              : colorScheme.outline
+                                                  .withOpacity(0.5),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                   );
@@ -241,14 +245,14 @@ class ProductView extends GetView<ProductController> {
                                                     .value];
 
                                             String discountRate = '';
-                                            final priceStr = selectedVariant[
-                                                        'price']
-                                                    ?.toString() ??
-                                                '0';
-                                            final saleStr = selectedVariant[
-                                                        'sale_price']
-                                                    ?.toString() ??
-                                                '0';
+                                            final priceStr =
+                                                selectedVariant['price']
+                                                        ?.toString() ??
+                                                    '0';
+                                            final saleStr =
+                                                selectedVariant['sale_price']
+                                                        ?.toString() ??
+                                                    '0';
                                             final price =
                                                 double.tryParse(priceStr) ?? 0;
                                             final discountedPrice =
@@ -263,7 +267,8 @@ class ProductView extends GetView<ProductController> {
                                                     .displayMedium!
                                                     .copyWith(
                                                       fontSize: height * 0.020,
-                                                      fontWeight: FontWeight.w700,
+                                                      fontWeight:
+                                                          FontWeight.w700,
                                                       color: Colors.green,
                                                     ),
                                               );
@@ -286,9 +291,8 @@ class ProductView extends GetView<ProductController> {
                                               price: hasDiscount
                                                   ? discountedPrice
                                                   : price,
-                                              originalPrice: hasDiscount
-                                                  ? price
-                                                  : null,
+                                              originalPrice:
+                                                  hasDiscount ? price : null,
                                               discountLabel: hasDiscount
                                                   ? discountRate
                                                   : null,
@@ -297,8 +301,7 @@ class ProductView extends GetView<ProductController> {
                                                   .copyWith(
                                                     fontSize: height * 0.020,
                                                     fontWeight: FontWeight.w700,
-                                                    color: DefaultThemeColors
-                                                        .mainprimary,
+                                                    color: colorScheme.primary,
                                                   ),
                                             );
                                           }
@@ -321,8 +324,7 @@ class ProductView extends GetView<ProductController> {
                                                 .copyWith(
                                                   fontSize: height * 0.020,
                                                   fontWeight: FontWeight.w700,
-                                                  color: DefaultThemeColors
-                                                      .mainprimary,
+                                                  color: colorScheme.primary,
                                                 ),
                                           );
                                         } else {
@@ -337,8 +339,7 @@ class ProductView extends GetView<ProductController> {
                                                 .copyWith(
                                                   fontSize: height * 0.020,
                                                   fontWeight: FontWeight.w700,
-                                                  color: DefaultThemeColors
-                                                      .mainprimary,
+                                                  color: colorScheme.primary,
                                                 ),
                                           );
                                         }
@@ -358,7 +359,7 @@ class ProductView extends GetView<ProductController> {
                                         Icon(
                                           Icons.star,
                                           size: height * 0.018, // ≈ 16
-                                          color: DefaultThemeColors.darklight,
+                                          color: Colors.amber,
                                         ),
                                         Obx(() {
                                           final rating = controller
@@ -383,7 +384,7 @@ class ProductView extends GetView<ProductController> {
                                       "•",
                                       style: TextStyle(
                                         fontSize: height * 0.02,
-                                        color: DefaultThemeColors.lightDarker,
+                                        color: colorScheme.outline,
                                       ),
                                     ),
                                     SizedBox(width: width * 0.012),
@@ -392,7 +393,7 @@ class ProductView extends GetView<ProductController> {
                                         Icon(
                                           Icons.storefront,
                                           size: height * 0.02, // ≈ 16
-                                          color: DefaultThemeColors.darkdark,
+                                          color: colorScheme.onSurface,
                                         ),
                                         SizedBox(width: width * 0.015),
                                         Obx(() {
@@ -411,8 +412,7 @@ class ProductView extends GetView<ProductController> {
                                                 .copyWith(
                                                   fontFamily:
                                                       'Plus Jakarta Sans',
-                                                  color: DefaultThemeColors
-                                                      .darkdark,
+                                                  color: colorScheme.onSurface,
                                                   fontSize: height * 0.018,
                                                   height: 1.4,
                                                 ),
@@ -425,7 +425,7 @@ class ProductView extends GetView<ProductController> {
                                       "•",
                                       style: TextStyle(
                                         fontSize: height * 0.02,
-                                        color: DefaultThemeColors.lightDarker,
+                                        color: colorScheme.outline,
                                       ),
                                     ),
                                     SizedBox(width: width * 0.012),
@@ -434,7 +434,7 @@ class ProductView extends GetView<ProductController> {
                                         Icon(
                                           Icons.chat_bubble_outline,
                                           size: height * 0.02, // ≈ 16
-                                          color: DefaultThemeColors.darkdark,
+                                          color: colorScheme.onSurface,
                                         ),
                                         SizedBox(width: width * 0.015),
                                         Obx(
@@ -468,8 +468,7 @@ class ProductView extends GetView<ProductController> {
                                     true) badges.add('Featured');
                                 if (badges.isEmpty) return SizedBox.shrink();
                                 return Padding(
-                                  padding:
-                                      EdgeInsets.only(top: height * 0.008),
+                                  padding: EdgeInsets.only(top: height * 0.008),
                                   child: Wrap(
                                     spacing: 6,
                                     children: badges.map((b) {
@@ -506,20 +505,18 @@ class ProductView extends GetView<ProductController> {
                               Obx(() {
                                 final variants = controller
                                     .productDetials['variants'] as List?;
-                                final v = (variants != null &&
-                                        variants.isNotEmpty)
-                                    ? variants[
-                                            controller.selectedVariantIndex
-                                                .value] as Map?
-                                    : null;
+                                final v =
+                                    (variants != null && variants.isNotEmpty)
+                                        ? variants[controller
+                                            .selectedVariantIndex.value] as Map?
+                                        : null;
                                 final qty = v?['quantity'];
                                 final inStock = qty == null ||
                                     (qty != 0 &&
-                                    qty != false &&
-                                    qty.toString() != '0');
+                                        qty != false &&
+                                        qty.toString() != '0');
                                 return Padding(
-                                  padding:
-                                      EdgeInsets.only(top: height * 0.008),
+                                  padding: EdgeInsets.only(top: height * 0.008),
                                   child: Row(
                                     children: [
                                       Container(
@@ -556,20 +553,17 @@ class ProductView extends GetView<ProductController> {
                               Obx(() {
                                 final variants = controller
                                     .productDetials['variants'] as List?;
-                                final v = (variants != null &&
-                                        variants.isNotEmpty)
-                                    ? variants[
-                                            controller.selectedVariantIndex
-                                                .value] as Map?
-                                    : null;
+                                final v =
+                                    (variants != null && variants.isNotEmpty)
+                                        ? variants[controller
+                                            .selectedVariantIndex.value] as Map?
+                                        : null;
                                 final sku = v?['sku']?.toString() ?? '';
-                                final barcode =
-                                    v?['barcode']?.toString() ?? '';
+                                final barcode = v?['barcode']?.toString() ?? '';
                                 if (sku.isEmpty && barcode.isEmpty)
                                   return SizedBox.shrink();
                                 return Padding(
-                                  padding:
-                                      EdgeInsets.only(top: height * 0.006),
+                                  padding: EdgeInsets.only(top: height * 0.006),
                                   child: Row(
                                     children: [
                                       if (sku.isNotEmpty)
@@ -607,6 +601,7 @@ class ProductView extends GetView<ProductController> {
                                               fontFamily: 'Plus Jakarta Sans',
                                               fontSize: height * 0.018,
                                               fontWeight: FontWeight.w600,
+                                              color: colorScheme.onSurface,
                                             ),
                                           ),
                                           SizedBox(height: height * 0.01),
@@ -650,20 +645,20 @@ class ProductView extends GetView<ProductController> {
                                                       ),
                                                       decoration: BoxDecoration(
                                                         color: isActive
-                                                            ? DefaultThemeColors
-                                                                .lightOnSecondary
-                                                            : DefaultThemeColors
-                                                                .darklight,
+                                                            ? colorScheme
+                                                                .primary
+                                                            : colorScheme
+                                                                .surface,
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(
                                                                     height * 2),
                                                         border: Border.all(
                                                           color: isActive
-                                                              ? DefaultThemeColors
-                                                                  .darklight
-                                                              : DefaultThemeColors
-                                                                  .lightOnSecondary,
+                                                              ? colorScheme
+                                                                  .primary
+                                                              : colorScheme
+                                                                  .outline,
                                                           width: 1,
                                                         ),
                                                       ),
@@ -681,10 +676,10 @@ class ProductView extends GetView<ProductController> {
                                                             fontWeight:
                                                                 FontWeight.w500,
                                                             color: isActive
-                                                                ? DefaultThemeColors
-                                                                    .lightOnPrimary
-                                                                : DefaultThemeColors
-                                                                    .lightOnSecondary,
+                                                                ? colorScheme
+                                                                    .onPrimary
+                                                                : colorScheme
+                                                                    .onSurface,
                                                           ),
                                                         ),
                                                       ),
@@ -709,6 +704,16 @@ class ProductView extends GetView<ProductController> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
+                                          SizedBox(height: height * 0.01),
+                                          Text(
+                                            'Size',
+                                            style: TextStyle(
+                                              fontFamily: 'Plus Jakarta Sans',
+                                              fontSize: height * 0.018,
+                                              fontWeight: FontWeight.w600,
+                                              color: colorScheme.onSurface,
+                                            ),
+                                          ),
                                           SizedBox(height: height * 0.01),
                                           Container(
                                             width: width * 0.90,
@@ -749,20 +754,20 @@ class ProductView extends GetView<ProductController> {
                                                       ),
                                                       decoration: BoxDecoration(
                                                         color: isActive
-                                                            ? DefaultThemeColors
-                                                                .lightOnBackground
-                                                            : DefaultThemeColors
-                                                                .darklight,
+                                                            ? colorScheme
+                                                                .primary
+                                                            : colorScheme
+                                                                .surface,
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(
                                                                     height * 2),
                                                         border: Border.all(
                                                           color: isActive
-                                                              ? DefaultThemeColors
-                                                                  .darklight
-                                                              : DefaultThemeColors
-                                                                  .lightOnBackground,
+                                                              ? colorScheme
+                                                                  .primary
+                                                              : colorScheme
+                                                                  .outline,
                                                           width: 1,
                                                         ),
                                                       ),
@@ -780,10 +785,10 @@ class ProductView extends GetView<ProductController> {
                                                             fontWeight:
                                                                 FontWeight.w500,
                                                             color: isActive
-                                                                ? DefaultThemeColors
-                                                                    .lightOnPrimary
-                                                                : DefaultThemeColors
-                                                                    .lightOnSecondary,
+                                                                ? colorScheme
+                                                                    .onPrimary
+                                                                : colorScheme
+                                                                    .onSurface,
                                                           ),
                                                         ),
                                                       ),
@@ -829,11 +834,11 @@ class ProductView extends GetView<ProductController> {
                                         reviewModal(controller);
                                       },
                                       child: Text('Add Review',
-                                          style: txtTheme()
-                                              .titleLarge!
+                                          style: textTheme.titleMedium!
                                               .copyWith(
-                                                  fontWeight:
-                                                      FontWeight.bold))),
+                                                  fontWeight: FontWeight.bold,
+                                                  color:
+                                                      colorScheme.onSurface))),
                                 ],
                               ),
 
@@ -858,8 +863,7 @@ class ProductView extends GetView<ProductController> {
                                           "body": Style(
                                             fontSize: FontSize(12),
                                             fontWeight: FontWeight.w700,
-                                            color:
-                                                DefaultThemeColors.darklighter,
+                                            color: colorScheme.onSurfaceVariant,
                                             maxLines: controller
                                                     .isDescriptionExpanded.value
                                                 ? 100
@@ -867,12 +871,10 @@ class ProductView extends GetView<ProductController> {
                                             textOverflow: TextOverflow.ellipsis,
                                           ),
                                           "span": Style(
-                                            color:
-                                                DefaultThemeColors.darklighter,
+                                            color: colorScheme.onSurfaceVariant,
                                           ),
                                           "font": Style(
-                                            color:
-                                                DefaultThemeColors.darklighter,
+                                            color: colorScheme.onSurfaceVariant,
                                           ),
                                         },
                                       ),
@@ -891,8 +893,7 @@ class ProductView extends GetView<ProductController> {
                                               style: TextStyle(
                                                 fontSize: height * 0.016,
                                                 fontWeight: FontWeight.w700,
-                                                color: DefaultThemeColors
-                                                    .mainprimary,
+                                                color: colorScheme.primary,
                                               ),
                                             ),
                                           ),
@@ -903,8 +904,8 @@ class ProductView extends GetView<ProductController> {
                               ),
                               // TAGS section
                               Obx(() {
-                                final tags = controller
-                                    .productDetials['tags'] as List?;
+                                final tags =
+                                    controller.productDetials['tags'] as List?;
                                 if (tags == null || tags.isEmpty) {
                                   return SizedBox.shrink();
                                 }
@@ -936,8 +937,7 @@ class ProductView extends GetView<ProductController> {
                                             name,
                                             style: TextStyle(fontSize: 12),
                                           ),
-                                          backgroundColor:
-                                              Colors.grey.shade100,
+                                          backgroundColor: Colors.grey.shade100,
                                           side: BorderSide(
                                               color: Colors.grey.shade300),
                                           padding: EdgeInsets.zero,
@@ -993,7 +993,7 @@ class ProductView extends GetView<ProductController> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: DefaultThemeColors.darklight,
+                      color: Theme.of(Get.context!).colorScheme.outline,
                       width: 1,
                     ),
                   ),
@@ -1029,7 +1029,7 @@ class ProductView extends GetView<ProductController> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: DefaultThemeColors.darklight,
+                      color: Theme.of(Get.context!).colorScheme.outline,
                       width: 1,
                     ),
                   ),
@@ -1071,7 +1071,9 @@ class ProductView extends GetView<ProductController> {
 reviewModal(ProductController controller) {
   TextEditingController reviewController = TextEditingController();
   int rating = 3;
+  final colorScheme = Theme.of(Get.context!).colorScheme;
   return Get.dialog(AlertDialog(
+      backgroundColor: colorScheme.surface,
       content: SizedBox(
         // width: MediaQuery.of(context).size.width * 80,
         child: Padding(
@@ -1081,9 +1083,13 @@ reviewModal(ProductController controller) {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Write Review',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 RatingBar.builder(
@@ -1105,10 +1111,9 @@ reviewModal(ProductController controller) {
                   },
                 ),
                 const SizedBox(height: 10),
-                const Text("Review:",
+                Text("Review:",
                     style: TextStyle(
-                        // fontFamily: 'Lato',
-                        fontSize: 14)),
+                        fontSize: 14, color: colorScheme.onSurfaceVariant)),
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: reviewController,
@@ -1117,14 +1122,17 @@ reviewModal(ProductController controller) {
                   onChanged: (value) {
                     // .text = value;
                   },
-                  decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
+                  decoration: InputDecoration(
+                    contentPadding:
+                        const EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
                     focusedBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Color(0xFFDDDDDD), width: 1)),
+                        borderSide: BorderSide(
+                            color: Theme.of(Get.context!).colorScheme.primary,
+                            width: 1)),
                     enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Color(0xFFDDDDDD), width: 1)),
+                        borderSide: BorderSide(
+                            color: Theme.of(Get.context!).colorScheme.outline,
+                            width: 1)),
                   ),
                   minLines: 1,
                   keyboardType: TextInputType.multiline,
@@ -1147,7 +1155,14 @@ reviewModal(ProductController controller) {
                     height: 45,
                     child: Center(
                       child: Text('Back'.toUpperCase(),
-                          style: txtTheme().titleLarge),
+                          style: Theme.of(Get.context!)
+                              .textTheme
+                              .titleLarge!
+                              .copyWith(
+                                color: Theme.of(Get.context!)
+                                    .colorScheme
+                                    .onSurface,
+                              )),
                     )),
               ),
             ),
@@ -1168,13 +1183,17 @@ reviewModal(ProductController controller) {
                       HelperFunctions().showSnackBarError('Enter review');
                     }
                   },
-                  style: themeButton,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(Get.context!).colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                   child: Text('Submit'.toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: Theme.of(Get.context!).colorScheme.onPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        // fontFamily: 'Lato'
                       )),
                 ),
               ),
@@ -1221,12 +1240,13 @@ class _OrderButtonState extends State<OrderButton>
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-                color: Color.fromARGB(96, 168, 164, 164),
+                color:
+                    Theme.of(Get.context!).colorScheme.outline.withOpacity(0.3),
                 spreadRadius: 0,
-                blurRadius: 02),
+                blurRadius: 2),
           ],
         ),
         width: Get.width,
@@ -1266,9 +1286,15 @@ class _OrderButtonState extends State<OrderButton>
                         ),
                         const SizedBox(width: 10),
                         Text("WISHLIST",
-                            style: txtTheme()
+                            style: Theme.of(Get.context!)
+                                .textTheme
                                 .headlineSmall!
-                                .copyWith(fontSize: 16))
+                                .copyWith(
+                                  fontSize: 16,
+                                  color: Theme.of(Get.context!)
+                                      .colorScheme
+                                      .onSurface,
+                                ))
                       ],
                     );
                   },
@@ -1294,8 +1320,14 @@ class _OrderButtonState extends State<OrderButton>
                     ),
                     const SizedBox(width: 10),
                     Text(widget.btntext,
-                        style:
-                            txtTheme().headlineSmall!.copyWith(fontSize: 16)),
+                        style: Theme.of(Get.context!)
+                            .textTheme
+                            .headlineSmall!
+                            .copyWith(
+                              fontSize: 16,
+                              color:
+                                  Theme.of(Get.context!).colorScheme.onSurface,
+                            )),
                   ],
                 ),
               ),
@@ -1308,6 +1340,8 @@ class _OrderButtonState extends State<OrderButton>
 class ProductGallery extends StatelessWidget {
   final ProductController controller;
   final List productGallery;
+
+  ColorScheme get colorScheme => Theme.of(Get.context!).colorScheme;
 
   const ProductGallery({
     super.key,
@@ -1343,8 +1377,8 @@ class ProductGallery extends StatelessWidget {
         direction: ShimmerDirection.ltr,
         loop: 0,
         period: const Duration(seconds: 1),
-        baseColor: Colors.grey.shade300,
-        highlightColor: const Color.fromARGB(255, 197, 197, 197),
+        baseColor: colorScheme.surfaceVariant,
+        highlightColor: colorScheme.onSurfaceVariant.withOpacity(0.1),
         child: SizedBox(
           height: height * 0.47,
           width: width * 0.92,
@@ -1468,7 +1502,7 @@ class ProductGallery extends StatelessWidget {
                                   BorderRadius.circular(height * 0.02),
                               border: isActive
                                   ? Border.all(
-                                      color: DefaultThemeColors.mainprimary,
+                                      color: colorScheme.primary,
                                       width: 2,
                                     )
                                   : null,
@@ -1504,8 +1538,9 @@ class dileveryOption extends StatelessWidget {
         SvgPicture.asset(icon),
         const SizedBox(width: 10),
         Text(services,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
+              color: Theme.of(Get.context!).colorScheme.onSurface,
             ))
       ],
     );

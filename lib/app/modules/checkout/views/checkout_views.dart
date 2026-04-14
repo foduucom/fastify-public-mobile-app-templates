@@ -40,21 +40,21 @@ class CheckoutViews extends GetView<CheckOutController> {
             SizedBox(height: height * 0.012),
 
             // ADDRESS BAR (Integrated from first design)
-            _buildAddressBar(width, height),
+            _buildAddressBar(width, height, context),
 
             SizedBox(height: height * 0.01),
 
             // PAYMENT METHODS SECTION (Integrated from second design)
-            _buildPaymentMethodsSection(width, height),
+            _buildPaymentMethodsSection(width, height, context),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomBar(width, height),
+      bottomNavigationBar: _buildBottomBar(width, height, context),
     );
   }
 
   // ── Address Bar Widget (with edit functionality) ──────────────────────────────
-  Widget _buildAddressBar(double width, double height) {
+  Widget _buildAddressBar(double width, double height, BuildContext context) {
     return Container(
       width: width * 0.94,
       padding: EdgeInsets.symmetric(
@@ -64,7 +64,7 @@ class CheckoutViews extends GetView<CheckOutController> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(height * 0.015),
         border: Border.all(
-          color: DefaultThemeColors.darklight,
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
           width: 1,
         ),
       ),
@@ -82,7 +82,7 @@ class CheckoutViews extends GetView<CheckOutController> {
               child: Icon(
                 Icons.location_on_outlined,
                 size: height * 0.0315,
-                color: DefaultThemeColors.secondarymain,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ),
@@ -119,8 +119,8 @@ class CheckoutViews extends GetView<CheckOutController> {
                         fontWeight: FontWeight.w500,
                         height: 1.4,
                         color: controller.selectedAddressString.value.isNotEmpty
-                            ? DefaultThemeColors.lightDarker
-                            : Colors.red,
+                            ? Theme.of(context).colorScheme.onSurfaceVariant
+                            : Theme.of(context).colorScheme.error,
                       ),
                     )),
               ],
@@ -131,7 +131,7 @@ class CheckoutViews extends GetView<CheckOutController> {
           GestureDetector(
             onTap: () {
               if (controller.selectedAddressString.value.isNotEmpty) {
-                _showEditAddressBottomSheet(width, height);
+                _showEditAddressBottomSheet(width, height, context);
               } else {
                 // If no address selected, navigate to address list
                 Get.toNamed(Routes.ADDRESS_LIST)?.then((_) {
@@ -148,7 +148,7 @@ class CheckoutViews extends GetView<CheckOutController> {
                         ? Icons.edit_outlined
                         : Icons.add_location_alt_outlined,
                     size: height * 0.02,
-                    color: DefaultThemeColors.lightPrimary,
+                    color: Theme.of(context).colorScheme.primary,
                   )),
             ),
           ),
@@ -158,7 +158,8 @@ class CheckoutViews extends GetView<CheckOutController> {
   }
 
   // ── Edit Address Bottom Sheet Method ───────────────────────────────────
-  void _showEditAddressBottomSheet(double width, double height) {
+  void _showEditAddressBottomSheet(
+      double width, double height, BuildContext context) {
     // Get the selected address data from controller
     final selectedAddressMap = controller.selectedAddressData.value;
 
@@ -171,8 +172,8 @@ class CheckoutViews extends GetView<CheckOutController> {
         "Error",
         "No address selected to edit",
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.error,
+        colorText: Theme.of(context).colorScheme.onError,
       );
       return;
     }
@@ -201,8 +202,8 @@ class CheckoutViews extends GetView<CheckOutController> {
           "Success",
           "Address updated successfully",
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          colorText: Theme.of(context).colorScheme.onPrimary,
           duration: Duration(seconds: 2),
         );
       }
@@ -210,7 +211,8 @@ class CheckoutViews extends GetView<CheckOutController> {
   }
 
   // ── Payment Methods Section (integrated from second design) ──────────────
-  Widget _buildPaymentMethodsSection(double width, double height) {
+  Widget _buildPaymentMethodsSection(
+      double width, double height, BuildContext context) {
     return Container(
       width: width * 0.92,
       child: Column(
@@ -226,7 +228,7 @@ class CheckoutViews extends GetView<CheckOutController> {
                 fontSize: height * 0.02,
                 fontWeight: FontWeight.w700,
                 height: 1.75,
-                color: const Color(0xFF232323),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
@@ -239,7 +241,7 @@ class CheckoutViews extends GetView<CheckOutController> {
             final currentIndex = controller.selectedIndex.value;
 
             return controller.paymentOptions.isEmpty
-                ? _buildPaymentMethodShimmer(width, height)
+                ? _buildPaymentMethodShimmer(width, height, context)
                 : ListView.separated(
                     separatorBuilder: (_, __) =>
                         SizedBox(height: height * 0.012),
@@ -254,6 +256,7 @@ class CheckoutViews extends GetView<CheckOutController> {
                         width,
                         height,
                         currentIndex, // Pass current index for comparison
+                        context,
                       );
                     },
                   );
@@ -264,15 +267,15 @@ class CheckoutViews extends GetView<CheckOutController> {
   }
 
   // ── Individual Payment Tile (styling from first design, logic from second) ──
-  Widget _buildPaymentTile(
-      int index, double width, double height, int currentSelectedIndex) {
+  Widget _buildPaymentTile(int index, double width, double height,
+      int currentSelectedIndex, BuildContext context) {
     final option = controller.paymentOptions[index];
     // Use the passed currentSelectedIndex instead of accessing controller directly
     final isSelected = currentSelectedIndex == index;
 
     // Check if this is the credit card section (expanded view)
     if (option['method'] == "Credit Card" && isSelected) {
-      return _buildCreditCardExpandedSection(width, height);
+      return _buildCreditCardExpandedSection(width, height, context);
     }
     return GestureDetector(
       onTap: () {
@@ -292,12 +295,12 @@ class CheckoutViews extends GetView<CheckOutController> {
           borderRadius: BorderRadius.circular(height * 0.015),
           border: Border.all(
             color: isSelected
-                ? DefaultThemeColors.secondarymain
-                : const Color(0xFFE0E0E0),
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.outline.withOpacity(0.5),
             width: isSelected ? 1.5 : 1,
           ),
           color: isSelected
-              ? DefaultThemeColors.secondarymain.withValues(alpha: 0.05)
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.05)
               : Colors.transparent,
         ),
         child: Row(
@@ -310,16 +313,18 @@ class CheckoutViews extends GetView<CheckOutController> {
                       width: height * 0.03,
                       height: height * 0.03,
                       colorFilter: isSelected
-                          ? const ColorFilter.mode(
-                              DefaultThemeColors.secondarymain, BlendMode.srcIn)
+                          ? ColorFilter.mode(
+                              Theme.of(context).colorScheme.primary,
+                              BlendMode.srcIn)
                           : null,
                     )
                   : Image.asset(
                       option['image']!,
                       width: height * 0.03,
                       height: height * 0.03,
-                      color:
-                          isSelected ? DefaultThemeColors.secondarymain : null,
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : null,
                     ),
             SizedBox(width: width * 0.025),
             Expanded(
@@ -331,8 +336,8 @@ class CheckoutViews extends GetView<CheckOutController> {
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   height: 1.4,
                   color: isSelected
-                      ? DefaultThemeColors.secondarymain
-                      : const Color(0xFF666666),
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ),
@@ -346,8 +351,8 @@ class CheckoutViews extends GetView<CheckOutController> {
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: isSelected
-                      ? DefaultThemeColors.secondarymain
-                      : const Color(0xFFE0E0E0),
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.outline,
                   width: 2,
                 ),
               ),
@@ -360,7 +365,7 @@ class CheckoutViews extends GetView<CheckOutController> {
                         height: height * 0.012,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: DefaultThemeColors.secondarymain,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                     )
@@ -373,13 +378,15 @@ class CheckoutViews extends GetView<CheckOutController> {
   }
 
   // ── Credit Card Expanded Section (from first design) ─────────────────────
-  Widget _buildCreditCardExpandedSection(double width, double height) {
+  Widget _buildCreditCardExpandedSection(
+      double width, double height, BuildContext context) {
     return Container(
       width: width * 0.92,
       padding: EdgeInsets.all(width * 0.03),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(height * 0.015),
-        border: Border.all(color: DefaultThemeColors.secondarymain, width: 1.5),
+        border: Border.all(
+            color: Theme.of(context).colorScheme.primary, width: 1.5),
       ),
       child: Column(
         children: [
@@ -400,7 +407,7 @@ class CheckoutViews extends GetView<CheckOutController> {
                     fontSize: height * 0.018,
                     fontWeight: FontWeight.w500,
                     height: 1.85,
-                    color: const Color(0xFF666666),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -426,7 +433,7 @@ class CheckoutViews extends GetView<CheckOutController> {
           SizedBox(height: height * 0.015),
 
           // Add new card button
-          _buildAddNewCardButton(width, height),
+          _buildAddNewCardButton(width, height, context),
         ],
       ),
     );
@@ -492,7 +499,8 @@ class CheckoutViews extends GetView<CheckOutController> {
   // }
 
   // ── Add New Card Button ──────────────────────────────────────────────────
-  Widget _buildAddNewCardButton(double width, double height) {
+  Widget _buildAddNewCardButton(
+      double width, double height, BuildContext context) {
     return GestureDetector(
       onTap: () => controller.addNewCard(),
       child: Container(
@@ -500,7 +508,7 @@ class CheckoutViews extends GetView<CheckOutController> {
         height: height * 0.062,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(height * 0.015),
-          border: Border.all(color: const Color(0xFF3196F3)),
+          border: Border.all(color: Theme.of(context).colorScheme.primary),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -508,7 +516,7 @@ class CheckoutViews extends GetView<CheckOutController> {
             Icon(
               Icons.add,
               size: height * 0.025,
-              color: const Color(0xFF3196F3),
+              color: Theme.of(context).colorScheme.primary,
             ),
             SizedBox(width: width * 0.02),
             Text(
@@ -518,7 +526,7 @@ class CheckoutViews extends GetView<CheckOutController> {
                 fontSize: height * 0.018,
                 fontWeight: FontWeight.w500,
                 height: 1.85,
-                color: const Color(0xFF3196F3),
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ],
@@ -528,32 +536,35 @@ class CheckoutViews extends GetView<CheckOutController> {
   }
 
   // ── Shimmer Loader for Payment Methods (from second design) ──────────────
-  Widget _buildPaymentMethodShimmer(double width, double height) {
+  Widget _buildPaymentMethodShimmer(
+      double width, double height, BuildContext context) {
     return Shimmer.fromColors(
       enabled: true,
       direction: ShimmerDirection.ltr,
       loop: 0,
       period: const Duration(seconds: 1),
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+      baseColor: Theme.of(context).colorScheme.surfaceVariant,
+      highlightColor:
+          Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.1),
       child: Column(
         children: [
-          _buildShimmerTile(width, height),
+          _buildShimmerTile(width, height, context),
           SizedBox(height: height * 0.015),
-          _buildShimmerTile(width, height),
+          _buildShimmerTile(width, height, context),
         ],
       ),
     );
   }
 
-  Widget _buildShimmerTile(double width, double height) {
+  Widget _buildShimmerTile(double width, double height, BuildContext context) {
     return Container(
       width: width * 0.92,
       height: height * 0.065,
       padding: EdgeInsets.all(width * 0.03),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(height * 0.015),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.3)),
       ),
       child: Row(
         children: [
@@ -583,7 +594,7 @@ class CheckoutViews extends GetView<CheckOutController> {
   }
 
   // ── Order Summary Section (integrated from second design) ────────────────
-  Widget _buildOrderSummary(double width, double height) {
+  Widget _buildOrderSummary(double width, double height, BuildContext context) {
     final textTheme = txtTheme();
 
     return Column(
@@ -609,7 +620,9 @@ class CheckoutViews extends GetView<CheckOutController> {
                 textTheme,
                 width,
                 height,
-                valueColor: Colors.green,
+                valueColor: Theme.of(context)
+                    .colorScheme
+                    .primary, // Using primary for savings if it's "good"
               )
             : const SizedBox.shrink()),
         const SizedBox(height: 8),
@@ -629,7 +642,7 @@ class CheckoutViews extends GetView<CheckOutController> {
                   '₹${cartController.total.value.toStringAsFixed(2)}',
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: DefaultThemeColors.secondarymain,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -663,7 +676,7 @@ class CheckoutViews extends GetView<CheckOutController> {
 
   // ── Bottom Navigation Bar (from first design, integrated with order summary) ──
   // ── Bottom Navigation Bar (from first design, integrated with order summary) ──
-  Widget _buildBottomBar(double width, double height) {
+  Widget _buildBottomBar(double width, double height, BuildContext context) {
     return Container(
       width: width,
       // Remove fixed height constraint - let content determine height
@@ -673,7 +686,7 @@ class CheckoutViews extends GetView<CheckOutController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Order Summary inside bottom bar
-          _buildOrderSummary(width, height),
+          _buildOrderSummary(width, height, context),
 
           SizedBox(height: height * 0.015),
 

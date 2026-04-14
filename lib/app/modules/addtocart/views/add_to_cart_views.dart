@@ -12,6 +12,7 @@ class AddToCartViews extends GetView {
   Widget build(BuildContext context) {
     var width = Get.width;
     var height = Get.height;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: Padding(
@@ -35,18 +36,21 @@ class AddToCartViews extends GetView {
                 separatorBuilder: (_, __) =>
                     SizedBox(height: height * 0.025), // ≈ gap 20
                 itemBuilder: (context, index) {
-                  return _cartItemRow();
+                  return _cartItemRow(context);
                 },
               ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: _bottombar(width: width, height: height),
+      bottomNavigationBar:
+          _bottombar(context: context, width: width, height: height),
     );
   }
 
-  Widget _bottombar({required width, required height}) {
+  Widget _bottombar(
+      {required BuildContext context, required width, required height}) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       width: width, // ≈ 393
       height: height * 0.395, // ≈ 316
@@ -60,7 +64,7 @@ class AddToCartViews extends GetView {
             padding: EdgeInsets.all(width * 0.025), // ≈ 10
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(height * 0.01), // ≈ 8
-              border: Border.all(color: DefaultThemeColors.darklight),
+              border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -73,6 +77,7 @@ class AddToCartViews extends GetView {
                       fontSize: height * 0.02, // ≈ 16
                       fontWeight: FontWeight.w500,
                       height: 1.75, // ≈ 28
+                      color: colorScheme.onSurface,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -84,7 +89,8 @@ class AddToCartViews extends GetView {
                     Icon(
                       Icons.check_circle,
                       size: height * 0.02, // ≈ 16
-                      color: DefaultThemeColors.alertSuccessLight,
+                      color: colorScheme
+                          .primary, // Using primary for success/active states
                     ),
                     SizedBox(width: width * 0.01), // gap 4
                     Text(
@@ -94,7 +100,7 @@ class AddToCartViews extends GetView {
                         fontSize: height * 0.018, // ≈ 14
                         fontWeight: FontWeight.w500,
                         height: 1.4, // ≈ 20
-                        color: DefaultThemeColors.alertSuccessLight,
+                        color: colorScheme.primary,
                       ),
                     ),
                   ],
@@ -110,10 +116,10 @@ class AddToCartViews extends GetView {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _priceRow("Subtotal", "\$260,51"),
-                _priceRow("Delivery Fee", "\$35"),
-                _priceRow("Discount", "\$50,00"),
-                _priceRow("Total", "\$245,51", isBold: true),
+                _priceRow(context, "Subtotal", "\$260,51"),
+                _priceRow(context, "Delivery Fee", "\$35"),
+                _priceRow(context, "Discount", "\$50,00"),
+                _priceRow(context, "Total", "\$245,51", isBold: true),
               ],
             ),
           ),
@@ -132,9 +138,11 @@ class AddToCartViews extends GetView {
     );
   }
 
-  Widget _priceRow(String title, String value, {bool isBold = false}) {
+  Widget _priceRow(BuildContext context, String title, String value,
+      {bool isBold = false}) {
     final height = Get.height;
     final width = Get.width;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return SizedBox(
       width: width * 0.90, // ≈ 353
@@ -149,7 +157,7 @@ class AddToCartViews extends GetView {
               fontSize: height * 0.02, // ≈ 16
               fontWeight: FontWeight.w500,
               height: 1.75,
-              color: DefaultThemeColors.darklighter,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
           Text(
@@ -160,6 +168,7 @@ class AddToCartViews extends GetView {
               fontSize: height * 0.02, // ≈ 16
               fontWeight: isBold ? FontWeight.w700 : FontWeight.w700,
               height: 1.75,
+              color: colorScheme.onSurface,
             ),
           ),
         ],
@@ -167,9 +176,10 @@ class AddToCartViews extends GetView {
     );
   }
 
-  Widget _cartItemRow() {
+  Widget _cartItemRow(BuildContext context) {
     final width = Get.width;
     final height = Get.height;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       width: width * 0.92,
@@ -178,7 +188,7 @@ class AddToCartViews extends GetView {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(height * 0.015),
         border: Border.all(
-          color: DefaultThemeColors.darklight,
+          color: colorScheme.outline.withOpacity(0.3),
         ),
       ),
       child: Row(
@@ -215,6 +225,7 @@ class AddToCartViews extends GetView {
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: height * 0.018,
                         fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -225,7 +236,7 @@ class AddToCartViews extends GetView {
                       fontFamily: 'Plus Jakarta Sans',
                       fontSize: height * 0.015,
                       fontWeight: FontWeight.w400,
-                      color: DefaultThemeColors.darklight,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                   SizedBox(height: height * 0.005),
@@ -235,6 +246,7 @@ class AddToCartViews extends GetView {
                       fontFamily: 'Plus Jakarta Sans',
                       fontSize: height * 0.015,
                       fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                 ],
@@ -258,12 +270,13 @@ class AddToCartViews extends GetView {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: DefaultThemeColors.darklight,
+                      color: colorScheme.outline.withOpacity(0.3),
                     ),
                   ),
                   child: Icon(
                     Icons.remove,
                     size: height * 0.018,
+                    color: colorScheme.onSurface,
                   ),
                 ),
 
@@ -278,6 +291,7 @@ class AddToCartViews extends GetView {
                       fontFamily: 'Plus Jakarta Sans',
                       fontSize: height * 0.015,
                       fontWeight: FontWeight.w700,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -288,11 +302,13 @@ class AddToCartViews extends GetView {
                   height: height * 0.035,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: DefaultThemeColors.darklight),
+                    border:
+                        Border.all(color: colorScheme.outline.withOpacity(0.3)),
                   ),
                   child: Icon(
                     Icons.add,
                     size: height * 0.018,
+                    color: colorScheme.onSurface,
                   ),
                 ),
               ],

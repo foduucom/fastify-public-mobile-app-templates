@@ -29,6 +29,9 @@ import 'package:get/get.dart';
 class RegisterView extends GetView<RegisterController> {
   const RegisterView({Key? key}) : super(key: key);
 
+  ColorScheme get colorScheme => Theme.of(Get.context!).colorScheme;
+  TextTheme get textTheme => Theme.of(Get.context!).textTheme;
+
   @override
   Widget build(BuildContext context) {
     var height = Get.height;
@@ -53,10 +56,7 @@ class RegisterView extends GetView<RegisterController> {
                   height: 1.1,
                   letterSpacing: 0,
                   fontWeight: FontWeight.w700,
-                  //color: context.onBackgroundColor, // Theme-aware title
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? DefaultThemeColors.lightDarker
-                      : DefaultThemeColors.lightOnBackground,
+                  color: colorScheme.onSurface,
                 ),
 
                 const SizedBox(height: 8),
@@ -68,9 +68,7 @@ class RegisterView extends GetView<RegisterController> {
                   height: 1.4,
                   letterSpacing: 0,
                   maxLines: 3,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? DefaultThemeColors.darklighter
-                      : DefaultThemeColors.lightDarker,
+                  color: colorScheme.onSurfaceVariant,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -96,10 +94,7 @@ class RegisterView extends GetView<RegisterController> {
                       height: 1.5,
                       letterSpacing: 0,
                       fontWeight: FontWeight.w600,
-                      //color: context.onSurfaceColor, // Theme-aware label
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.lightDarker
-                          : DefaultThemeColors.lightOnBackground,
+                      color: colorScheme.onSurface,
                     ),
                     SizedBox(height: 4),
                     AppTextField(
@@ -108,19 +103,12 @@ class RegisterView extends GetView<RegisterController> {
                       keyboardType: TextInputType.name,
                       prefixIcon: Icons.person,
                       fontSize: height * 0.0165,
-                      textColor: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.darklighter
-                          : DefaultThemeColors.lightDarker,
-                      hintColor: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.darklighter
-                          : DefaultThemeColors.lightDarker,
-                      borderColor: DefaultThemeColors.mainprimary!,
-                      focusColor: DefaultThemeColors.mainprimary!,
-                      disabledColor:
-                          Theme.of(context).brightness == Brightness.dark
-                              ? DefaultThemeColors.darklighter
-                              : DefaultThemeColors.lightDarker,
-                      fillColor: context.surfaceColor, // Theme-aware background
+                      textColor: colorScheme.onSurface,
+                      hintColor: colorScheme.onSurfaceVariant,
+                      borderColor: colorScheme.primary,
+                      focusColor: colorScheme.primary,
+                      disabledColor: colorScheme.outline,
+                      fillColor: colorScheme.surface,
                       validator: (value) {
                         if (value == null || value.isEmpty)
                           return 'Please Enter Your Full Name';
@@ -142,10 +130,7 @@ class RegisterView extends GetView<RegisterController> {
                       height: 1.5,
                       letterSpacing: 0,
                       fontWeight: FontWeight.w600,
-                      //color: context.onSurfaceColor, // Theme-aware label
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.lightDarker
-                          : DefaultThemeColors.lightOnBackground,
+                      color: colorScheme.onSurface,
                     ),
                     SizedBox(height: 4),
                     AppTextField(
@@ -154,19 +139,12 @@ class RegisterView extends GetView<RegisterController> {
                       keyboardType: TextInputType.emailAddress,
                       prefixIcon: Icons.email_outlined,
                       fontSize: height * 0.0165,
-                      textColor: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.darklighter
-                          : DefaultThemeColors.lightDarker,
-                      hintColor: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.darklighter
-                          : DefaultThemeColors.lightDarker,
-                      borderColor: DefaultThemeColors.mainprimary!,
-                      focusColor: DefaultThemeColors.mainprimary!,
-                      disabledColor:
-                          Theme.of(context).brightness == Brightness.dark
-                              ? DefaultThemeColors.darklighter
-                              : DefaultThemeColors.lightDarker,
-                      fillColor: context.surfaceColor, // Theme-aware background
+                      textColor: colorScheme.onSurface,
+                      hintColor: colorScheme.onSurfaceVariant,
+                      borderColor: colorScheme.primary,
+                      focusColor: colorScheme.primary,
+                      disabledColor: colorScheme.outline,
+                      fillColor: colorScheme.surface,
                       validator: (value) {
                         if (value == null || value.isEmpty)
                           return 'Please enter your email';
@@ -190,10 +168,7 @@ class RegisterView extends GetView<RegisterController> {
                       fontSize: height * 0.016,
                       height: 1.5,
                       letterSpacing: 0,
-                      //color: context.onSurfaceColor, // Theme-aware label
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.lightDarker
-                          : DefaultThemeColors.lightOnBackground,
+                      color: colorScheme.onSurface,
                     ),
                     SizedBox(height: 4),
                     AppPasswordField(
@@ -225,9 +200,7 @@ class RegisterView extends GetView<RegisterController> {
                       height: 1.5,
                       letterSpacing: 0,
                       fontWeight: FontWeight.w600,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.lightDarker
-                          : DefaultThemeColors.lightOnBackground,
+                      color: colorScheme.onSurface,
                     ),
                     SizedBox(height: 4),
                     IntlPhoneField(
@@ -235,32 +208,27 @@ class RegisterView extends GetView<RegisterController> {
                       decoration: InputDecoration(
                         hintText: 'Phone Number',
                         hintStyle: TextStyle(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? DefaultThemeColors.darklighter
-                              : DefaultThemeColors.lightDarker,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                         border: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: DefaultThemeColors.mainprimary!),
+                          borderSide: BorderSide(color: colorScheme.primary),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: DefaultThemeColors.mainprimary!),
+                          borderSide: BorderSide(color: colorScheme.primary),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: DefaultThemeColors.mainprimary!),
+                          borderSide: BorderSide(color: colorScheme.primary),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         contentPadding:
                             EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        fillColor: context.surfaceColor,
+                        fillColor: colorScheme.surface,
                         filled: true,
                         prefixIcon: Icon(
                           Icons.phone_android_outlined,
-                          color: DefaultThemeColors.mainprimary,
+                          color: colorScheme.primary,
                         ),
                       ),
                       initialCountryCode: 'IN',
@@ -293,9 +261,8 @@ class RegisterView extends GetView<RegisterController> {
                           onChanged: (bool? value) {
                             controller.toggleCheckbox();
                           },
-                          activeColor: DefaultThemeColors.mainprimary,
-                          checkColor:
-                              context.onPrimaryColor, // Theme-aware checkmark
+                          activeColor: colorScheme.primary,
+                          checkColor: colorScheme.onPrimary,
                           visualDensity: VisualDensity.compact,
                         ),
 
@@ -324,7 +291,7 @@ class RegisterView extends GetView<RegisterController> {
                                     fontFamily: 'Plus Jakarta Sans',
                                     fontSize: width * 0.035,
                                     fontWeight: FontWeight.bold,
-                                    color: DefaultThemeColors.mainprimary,
+                                    color: colorScheme.primary,
                                   ),
                                 ),
                               ),
@@ -348,7 +315,7 @@ class RegisterView extends GetView<RegisterController> {
                                     fontFamily: 'Plus Jakarta Sans',
                                     fontSize: width * 0.035,
                                     fontWeight: FontWeight.bold,
-                                    color: DefaultThemeColors.mainprimary,
+                                    color: colorScheme.primary,
                                   ),
                                 ),
                               ),
@@ -363,9 +330,8 @@ class RegisterView extends GetView<RegisterController> {
                 // Sign Up Button
                 PrimaryActionButton(
                   text: "Sign Up",
-                  backgroundColor: DefaultThemeColors.mainprimary,
-                  textColor: DefaultThemeColors
-                      .lightOnPrimary, // Theme-aware text color
+                  backgroundColor: colorScheme.primary,
+                  textColor: colorScheme.onPrimary,
                   isLoading: controller.isLoading.value,
                   onPressed: () {
                     if (controller.formKey.currentState!.validate() &&
@@ -453,7 +419,7 @@ class RegisterView extends GetView<RegisterController> {
                             fontFamily: 'Plus Jakarta Sans',
                             fontSize: width * 0.04,
                             fontWeight: FontWeight.bold,
-                            color: DefaultThemeColors.mainprimary,
+                            color: colorScheme.primary,
                           ),
                         ),
                       ),

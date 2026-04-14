@@ -13,6 +13,7 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
   Widget build(BuildContext context) {
     var width = Get.width;
     var height = Get.height;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return SafeArea(
       child: Scaffold(
@@ -30,8 +31,7 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
                 icon: Icon(
                   Icons.arrow_back,
                   size: width * 0.06,
-                  color:
-                      context.onSurfaceColor, // Theme-aware back button color
+                  color: colorScheme.onSurface,
                 ),
               ),
             ),
@@ -58,20 +58,16 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
                             fontSize: height * 0.03,
                             height: 1.1,
                             fontWeight: FontWeight.w700,
-                            color: context
-                                .onBackgroundColor, // Theme-aware title color
+                            color: colorScheme.onSurface,
                           ),
                           const SizedBox(height: 8),
                           AppText(
-                            "Don\'t worry, we'll help you reset it quickly and easily!",
+                            "Don't worry, we'll help you reset it quickly and easily!",
                             fontSize: height * 0.018,
                             height: 1.4,
                             letterSpacing: 0,
                             maxLines: 3,
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? DefaultThemeColors.darklighter
-                                    : DefaultThemeColors.lightDarker,
+                            color: colorScheme.onSurfaceVariant,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -85,7 +81,7 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
                       "Email",
                       fontSize: height * 0.016,
                       fontWeight: FontWeight.w600,
-                      color: context.onSurfaceColor, // Theme-aware label color
+                      color: colorScheme.onSurface,
                     ),
 
                     const SizedBox(height: 4),
@@ -96,20 +92,6 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
                       keyboardType: TextInputType.emailAddress,
                       prefixIcon: Icons.email_outlined,
                       fontSize: height * 0.0165,
-                      textColor: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.darklighter
-                          : DefaultThemeColors.lightDarker,
-                      hintColor: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.darklighter
-                          : DefaultThemeColors.lightDarker,
-                      borderColor: DefaultThemeColors.mainprimary,
-                      focusColor: DefaultThemeColors.mainprimary,
-                      disabledColor:
-                          Theme.of(context).brightness == Brightness.dark
-                              ? DefaultThemeColors.darklighter
-                              : DefaultThemeColors.lightDarker,
-                      fillColor:
-                          context.surfaceColor, // Theme-aware background color
                       validator: (value) {
                         if (value == null || value.isEmpty)
                           return 'Please enter your email';

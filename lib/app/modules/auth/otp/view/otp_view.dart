@@ -15,6 +15,7 @@ class OTPView extends GetView<OtpController> {
   Widget build(BuildContext context) {
     var width = Get.width;
     var height = Get.height;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return SafeArea(
       child: Scaffold(
@@ -66,9 +67,7 @@ class OTPView extends GetView<OtpController> {
                           height: 1.4,
                           letterSpacing: 0,
                           maxLines: 3,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? DefaultThemeColors.darklighter
-                              : DefaultThemeColors.lightDarker,
+                          color: colorScheme.onSurfaceVariant,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -122,8 +121,7 @@ class OTPView extends GetView<OtpController> {
                                     fontFamily: 'Plus Jakarta Sans',
                                     fontSize: width * 0.04,
                                     fontWeight: FontWeight.bold,
-                                    color: DefaultThemeColors
-                                        .mainprimary, // Brand color
+                                    color: colorScheme.primary,
                                   ),
                                 ),
                               ),
@@ -136,7 +134,7 @@ class OTPView extends GetView<OtpController> {
                           style: TextStyle(
                             fontFamily: 'Plus Jakarta Sans',
                             fontSize: width * 0.04,
-                            color: context.onSurfaceVariantColor, // Theme-aware
+                            color: colorScheme.onSurface,
                           ),
                         );
                       }

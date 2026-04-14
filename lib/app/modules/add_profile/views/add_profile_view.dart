@@ -12,6 +12,7 @@ class AddProfileView extends GetView<AddProfileController> {
   Widget build(BuildContext context) {
     var width = Get.width;
     var height = Get.height;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
         body: SafeArea(
@@ -30,7 +31,7 @@ class AddProfileView extends GetView<AddProfileController> {
                 icon: Icon(
                   Icons.arrow_back,
                   size: width * 0.06,
-                  color: context.onSurfaceColor, // Theme-aware back button
+                  color: colorScheme.onSurface,
                 ),
               ),
             ),
@@ -55,7 +56,7 @@ class AddProfileView extends GetView<AddProfileController> {
                         fontSize: height * 0.03,
                         height: 1.1,
                         fontWeight: FontWeight.w700,
-                        color: context.onBackgroundColor, // Theme-aware title
+                        color: colorScheme.onSurface,
                       ),
                       const SizedBox(height: 8),
                       AppText(
@@ -64,9 +65,7 @@ class AddProfileView extends GetView<AddProfileController> {
                         height: 1.4,
                         letterSpacing: 0,
                         maxLines: 3,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? DefaultThemeColors.darklighter
-                            : DefaultThemeColors.lightDarker,
+                        color: colorScheme.onSurfaceVariant,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -104,17 +103,13 @@ class AddProfileView extends GetView<AddProfileController> {
                           height: height * 0.068, // ≈ 54
                           decoration: BoxDecoration(
                             shape: BoxShape.circle, // radius ≈ 540
-                            color:
-                                context.surfaceColor, // Theme-aware background
+                            color: colorScheme.surface,
                           ),
                           child: Center(
                             child: Icon(
                               Icons.delete,
                               size: height * 0.03, // ≈ 24
-                              color: Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? DefaultThemeColors.darklighter
-                                  : DefaultThemeColors.darkmain,
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ),

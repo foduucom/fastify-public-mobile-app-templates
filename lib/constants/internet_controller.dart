@@ -38,14 +38,17 @@ class InternetController extends GetxController {
         if (Get.isSnackbarOpen) {
           Get.closeCurrentSnackbar();
           // Show connected message briefly
-          Get.snackbar(
-            'Connected',
-            'Internet connection restored',
-            backgroundColor: DefaultThemeColors.alertSuccessLight,
-            colorText: DefaultThemeColors.lightOnPrimary,
-            duration: Duration(seconds: 2),
-            snackPosition: SnackPosition.TOP,
-          );
+          if (Get.context != null) {
+            final colorScheme = Theme.of(Get.context!).colorScheme;
+            Get.snackbar(
+              'Connected',
+              'Internet connection restored',
+              backgroundColor: colorScheme.primary,
+              colorText: colorScheme.onPrimary,
+              duration: const Duration(seconds: 2),
+              snackPosition: SnackPosition.TOP,
+            );
+          }
         }
       }
     }
@@ -56,25 +59,30 @@ class InternetController extends GetxController {
       Get.closeCurrentSnackbar();
     }
 
-    Get.snackbar(
-      'No Internet Connection',
-      'Please check your internet connection',
-      backgroundColor: DefaultThemeColors.alertErrorLighter,
-      colorText: DefaultThemeColors.lightOnPrimary,
-      icon: Icon(Icons.wifi_off, color: DefaultThemeColors.lightOnPrimary),
-      duration: Duration(days: 1), // Show until connection is restored
-      isDismissible: false,
-      mainButton: TextButton(
-        onPressed: () async {
-          await _checkInitialConnection();
-        },
-        child: Text('RETRY',
-            style: TextStyle(color: DefaultThemeColors.lightOnPrimary)),
-      ),
-      snackPosition: SnackPosition.TOP,
-      snackStyle: SnackStyle.FLOATING,
-      margin: EdgeInsets.all(10),
-      borderRadius: 8,
-    );
+    if (Get.context != null) {
+      final colorScheme = Theme.of(Get.context!).colorScheme;
+      Get.snackbar(
+        'No Internet Connection',
+        'Please check your internet connection',
+        backgroundColor: colorScheme.error,
+        colorText: colorScheme.onError,
+        icon: Icon(Icons.wifi_off, color: colorScheme.onError),
+        duration: const Duration(days: 1), // Show until connection is restored
+        isDismissible: false,
+        mainButton: TextButton(
+          onPressed: () async {
+            await _checkInitialConnection();
+          },
+          child: Text(
+            'RETRY',
+            style: TextStyle(color: colorScheme.onError),
+          ),
+        ),
+        snackPosition: SnackPosition.TOP,
+        snackStyle: SnackStyle.FLOATING,
+        margin: const EdgeInsets.all(10),
+        borderRadius: 8,
+      );
+    }
   }
 }

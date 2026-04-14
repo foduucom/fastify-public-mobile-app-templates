@@ -21,6 +21,9 @@ import '../controllers/bottombar_controller.dart';
 class BottombarView extends GetView<BottombarController> {
   BottombarView({super.key});
 
+  ColorScheme get colorScheme => Theme.of(Get.context!).colorScheme;
+  TextTheme get textTheme => Theme.of(Get.context!).textTheme;
+
   var cartController = Get.put(CartController());
   var notifcationController = Get.put(NotificationsController());
   var wishListController = Get.put(WishlistController());
@@ -79,7 +82,7 @@ class BottombarView extends GetView<BottombarController> {
         currentIndex: controller.currentPageIndex.value,
         onTap: controller.onTabChange,
         backgroundColor: context.surfaceColor, // Theme-aware background
-        activeColor: DefaultThemeColors.mainprimary, // Keep brand color
+        activeColor: colorScheme.primary, // Dynamic primary color
         inactiveColor: context.onSurfaceVariantColor, // Theme-aware inactive
         borderColor: context.outlineColor, // Theme-aware border
         items: const [

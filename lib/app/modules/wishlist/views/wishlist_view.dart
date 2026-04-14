@@ -58,8 +58,8 @@ class WishlistView extends GetView<WishlistController> {
                   controller.setViewMode('list');
                 },
                 color: controller.viewMode.value == 'list'
-                    ? Colors.black
-                    : Colors.grey,
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
               )),
 
           // Grid View Icon
@@ -69,8 +69,8 @@ class WishlistView extends GetView<WishlistController> {
                   controller.setViewMode('grid');
                 },
                 color: controller.viewMode.value == 'grid'
-                    ? Colors.black
-                    : Colors.grey,
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
               )),
         ],
       ),
@@ -593,7 +593,7 @@ class _WishListItemCard extends StatelessWidget {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: DefaultThemeColors.darklight,
+                                  color: colorScheme.outline,
                                   width: 1,
                                 ),
                               ),

@@ -7,8 +7,11 @@ import 'package:get/get.dart';
 class OnboardingView extends GetView<OnboardingController> {
   OnboardingView({Key? key}) : super(key: key);
 
-  var height = Get.height;
-  var width = Get.width;
+  ColorScheme get colorScheme => Theme.of(Get.context!).colorScheme;
+  TextTheme get textTheme => Theme.of(Get.context!).textTheme;
+
+  final height = Get.height;
+  final width = Get.width;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +59,8 @@ class OnboardingView extends GetView<OnboardingController> {
 
   Widget _buildBottomOverlay(BuildContext context) {
     return Obx(() {
+      final height = Get.height;
+      final width = Get.width;
       return Container(
         height: height * 0.61,
         width: width,
@@ -125,11 +130,7 @@ class OnboardingView extends GetView<OnboardingController> {
             fontSize: 18,
             fontWeight: FontWeight.bold,
             height: 1.4,
-            // Force rebuild with Obx if needed
-            //color: Theme.of(context).colorScheme.onSurface,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? DefaultThemeColors.lightDarker
-                : DefaultThemeColors.lightOnBackground,
+            color: colorScheme.onSurface,
           ),
         ),
       ),
@@ -150,10 +151,8 @@ class OnboardingView extends GetView<OnboardingController> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4),
               color: controller.currentIndex.value == index
-                  ? DefaultThemeColors.mainprimary // Keeping your primary color
-                  : Theme.of(Get.context!).brightness == Brightness.dark
-                      ? DefaultThemeColors.darklighter // Dark mode inactive
-                      : DefaultThemeColors.lightDarker, // Light mode inactive
+                  ? colorScheme.primary
+                  : colorScheme.outlineVariant.withOpacity(0.5),
             ),
           ),
         ),

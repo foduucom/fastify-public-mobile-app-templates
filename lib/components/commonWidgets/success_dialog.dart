@@ -24,6 +24,7 @@ class SuccessDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = Get.width;
     final height = Get.height;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Center(
       child: Container(
@@ -35,7 +36,7 @@ class SuccessDialog extends StatelessWidget {
           height * 0.02, // bottom 16
         ),
         decoration: BoxDecoration(
-          color: context.surfaceColor, // Theme-aware dialog background
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(height * 0.025), // ≈ 20
         ),
         child: Column(
@@ -59,15 +60,13 @@ class SuccessDialog extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: width * 0.055),
               child: Column(
                 children: [
-                  SizedBox(
+                   SizedBox(
                     width: width * 0.73,
                     child: AppText(
                       title,
                       fontSize: height * 0.022,
                       fontWeight: FontWeight.w700,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.darklighter
-                          : DefaultThemeColors.darkdark,
+                      color: colorScheme.onSurface,
                       textAlign: TextAlign.center,
                       maxLines: 3,
                     ),
@@ -79,9 +78,7 @@ class SuccessDialog extends StatelessWidget {
                       description,
                       fontSize: height * 0.017,
                       fontWeight: FontWeight.w500,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.lightDarker
-                          : DefaultThemeColors.darklighter,
+                      color: colorScheme.onSurfaceVariant,
                       textAlign: TextAlign.center,
                       maxLines: 5,
                     ),

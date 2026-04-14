@@ -4,8 +4,8 @@ import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 class CircularLoadingIndicator extends StatefulWidget {
   final double progress; // Value between 0.0 and 1.0
   final double size;
-  final Color primaryColor;
-  final Color secondaryColor;
+  final Color? primaryColor;
+  final Color? secondaryColor;
   final double strokeWidth;
   final String? centerText;
 
@@ -13,8 +13,8 @@ class CircularLoadingIndicator extends StatefulWidget {
     super.key,
     required this.progress,
     this.size = 100,
-    this.primaryColor = DefaultThemeColors.lightSecondary,
-    this.secondaryColor = DefaultThemeColors.lighterSecondary,
+    this.primaryColor,
+    this.secondaryColor,
     this.strokeWidth = 16.0,
     this.centerText,
   }) : assert(progress >= 0.0 && progress <= 1.0);
@@ -73,6 +73,10 @@ class _CircularLoadingIndicatorState extends State<CircularLoadingIndicator>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final primary = widget.primaryColor ?? colorScheme.primary;
+    final secondary = widget.secondaryColor ?? colorScheme.secondaryContainer;
+
     return Container(
       width: widget.size,
       height: widget.size,
@@ -89,8 +93,8 @@ class _CircularLoadingIndicatorState extends State<CircularLoadingIndicator>
             child: CircularProgressIndicator(
               value: 1.0,
               strokeWidth: widget.strokeWidth,
-              backgroundColor: widget.secondaryColor.withOpacity(0.3),
-              valueColor: AlwaysStoppedAnimation<Color>(widget.secondaryColor),
+              backgroundColor: secondary.withOpacity(0.3),
+              valueColor: AlwaysStoppedAnimation<Color>(secondary),
             ),
           ),
 
@@ -105,8 +109,7 @@ class _CircularLoadingIndicatorState extends State<CircularLoadingIndicator>
                   value: _animation.value,
                   strokeWidth: widget.strokeWidth,
                   backgroundColor: Colors.transparent,
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(widget.primaryColor),
+                  valueColor: AlwaysStoppedAnimation<Color>(primary),
                   strokeCap: StrokeCap.round,
                 ),
               );
@@ -117,9 +120,7 @@ class _CircularLoadingIndicatorState extends State<CircularLoadingIndicator>
           Text(
             widget.centerText ?? '${(widget.progress * 100).toInt()}%',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? DefaultThemeColors.lightDarker
-                      : DefaultThemeColors.darklighter,
+                  color: colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
                 ),
           ),

@@ -16,6 +16,9 @@ import '../controllers/login_controller.dart';
 class LoginView extends GetView<LoginController> {
   const LoginView({Key? key}) : super(key: key);
 
+  ColorScheme get colorScheme => Theme.of(Get.context!).colorScheme;
+  TextTheme get textTheme => Theme.of(Get.context!).textTheme;
+
   @override
   Widget build(BuildContext context) {
     var width = Get.width;
@@ -37,7 +40,7 @@ class LoginView extends GetView<LoginController> {
                 child: Text(
                   'SKIP',
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: colorScheme.onSurface,
                     fontSize: 16,
                     fontFamily: 'Lato',
                     fontWeight: FontWeight.w600,
@@ -72,9 +75,7 @@ class LoginView extends GetView<LoginController> {
                           height: 1.1,
                           letterSpacing: 0,
                           fontWeight: FontWeight.w700,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? DefaultThemeColors.lightDarker
-                              : DefaultThemeColors.lightOnBackground,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                       SizedBox(width: 8),
@@ -93,9 +94,7 @@ class LoginView extends GetView<LoginController> {
                     height: 1.4,
                     letterSpacing: 0,
                     maxLines: 3,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? DefaultThemeColors.darklighter
-                        : DefaultThemeColors.lightDarker,
+                    color: colorScheme.onSurfaceVariant,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -120,10 +119,7 @@ class LoginView extends GetView<LoginController> {
                               height: 1.5,
                               letterSpacing: 0,
                               fontWeight: FontWeight.w600,
-                              color: Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? DefaultThemeColors.lightDarker
-                                  : DefaultThemeColors.lightOnBackground,
+                              color: colorScheme.onSurface,
                             ),
                             SizedBox(height: 4),
                             IntlPhoneField(
@@ -131,34 +127,30 @@ class LoginView extends GetView<LoginController> {
                               decoration: InputDecoration(
                                 hintText: 'Phone Number',
                                 hintStyle: TextStyle(
-                                  color: Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? DefaultThemeColors.darklighter
-                                      : DefaultThemeColors.lightDarker,
+                                  color: colorScheme.onSurfaceVariant,
                                 ),
                                 border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: DefaultThemeColors.mainprimary!),
+                                  borderSide:
+                                      BorderSide(color: colorScheme.primary),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: DefaultThemeColors.mainprimary!),
+                                  borderSide:
+                                      BorderSide(color: colorScheme.primary),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: DefaultThemeColors.mainprimary!),
+                                  borderSide:
+                                      BorderSide(color: colorScheme.primary),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 contentPadding: EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 12),
-                                fillColor:
-                                    Theme.of(context).colorScheme.surface,
+                                fillColor: colorScheme.surface,
                                 filled: true,
                                 prefixIcon: Icon(
                                   Icons.phone_android_outlined,
-                                  color: DefaultThemeColors.mainprimary,
+                                  color: colorScheme.primary,
                                 ),
                               ),
                               initialCountryCode: 'IN',
@@ -188,10 +180,7 @@ class LoginView extends GetView<LoginController> {
                               height: 1.5,
                               letterSpacing: 0,
                               fontWeight: FontWeight.w600,
-                              color: Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? DefaultThemeColors.lightDarker
-                                  : DefaultThemeColors.lightOnBackground,
+                              color: colorScheme.onSurface,
                             ),
                             SizedBox(height: 4),
                             AppTextField(
@@ -200,21 +189,12 @@ class LoginView extends GetView<LoginController> {
                               keyboardType: TextInputType.emailAddress,
                               prefixIcon: Icons.email_outlined,
                               fontSize: height * 0.0165,
-                              textColor: Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? DefaultThemeColors.darklighter
-                                  : DefaultThemeColors.lightDarker,
-                              hintColor: Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? DefaultThemeColors.darklighter
-                                  : DefaultThemeColors.lightDarker,
-                              borderColor: DefaultThemeColors.mainprimary,
-                              focusColor: DefaultThemeColors.mainprimary,
-                              disabledColor: Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? DefaultThemeColors.darklighter
-                                  : DefaultThemeColors.lightDarker,
-                              fillColor: Theme.of(context).colorScheme.surface,
+                              textColor: colorScheme.onSurface,
+                              hintColor: colorScheme.onSurfaceVariant,
+                              borderColor: colorScheme.primary,
+                              focusColor: colorScheme.primary,
+                              disabledColor: colorScheme.outline,
+                              fillColor: colorScheme.surface,
                               //validator: controller.validEmail,
                             ),
                           ],
@@ -233,10 +213,7 @@ class LoginView extends GetView<LoginController> {
                                   height: 1.5,
                                   letterSpacing: 0,
                                   fontWeight: FontWeight.w600,
-                                  color: Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? DefaultThemeColors.lightDarker
-                                      : DefaultThemeColors.lightOnBackground,
+                                  color: colorScheme.onSurface,
                                 ),
                                 SizedBox(height: 4),
                                 AppPasswordField(
@@ -268,7 +245,7 @@ class LoginView extends GetView<LoginController> {
                     if (controller.isLoading.value) {
                       return Center(
                         child: CircularProgressIndicator(
-                          color: DefaultThemeColors.mainprimary,
+                          color: colorScheme.primary,
                         ),
                       );
                     } else {
@@ -276,8 +253,8 @@ class LoginView extends GetView<LoginController> {
                         text: controller.isPasswordMode.value
                             ? 'Login'
                             : 'Send OTP',
-                        backgroundColor: DefaultThemeColors.mainprimary,
-                        textColor: DefaultThemeColors.lightOnPrimary,
+                        backgroundColor: colorScheme.primary,
+                        textColor: colorScheme.onPrimary,
                         onPressed: () {
                           print(
                               '${controller.isPasswordMode.value ? 'Login' : 'Send OTP'} button clicked');
@@ -372,7 +349,7 @@ class LoginView extends GetView<LoginController> {
                               fontFamily: 'Plus Jakarta Sans',
                               fontSize: width * 0.04,
                               fontWeight: FontWeight.bold,
-                              color: DefaultThemeColors.mainprimary,
+                              color: colorScheme.primary,
                             ),
                           ),
                         ),

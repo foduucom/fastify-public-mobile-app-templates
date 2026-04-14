@@ -29,6 +29,7 @@ class AppPasswordField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final height = MediaQuery.of(context).size.height;
     // Safety check for fontSize
     final double safeFontSize = fontSize > 0 ? fontSize : 14.0;
@@ -46,23 +47,17 @@ class AppPasswordField extends StatelessWidget {
             fontWeight: FontWeight.w500,
             fontSize: safeFontSize,
             height: 1.43,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? DefaultThemeColors.darklighter
-                : DefaultThemeColors.lightDarker,
+            color: colorScheme.onSurface,
           ),
           decoration: InputDecoration(
             prefixIcon: Icon(
               Icons.lock_outline,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? DefaultThemeColors.darklighter
-                  : context.onSurfaceVariantColor,
+              color: colorScheme.onSurfaceVariant,
             ),
             suffixIcon: IconButton(
               icon: Icon(
                 isVisible.value ? Icons.visibility_off : Icons.visibility,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? DefaultThemeColors.darklighter
-                    : context.onSurfaceVariantColor,
+                color: colorScheme.onSurfaceVariant,
               ),
               onPressed: onToggle,
             ),
@@ -72,18 +67,16 @@ class AppPasswordField extends StatelessWidget {
               fontWeight: FontWeight.w500,
               fontSize: fontSize,
               height: 1.43,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? DefaultThemeColors.darklighter
-                  : DefaultThemeColors.lightDarker,
+              color: colorScheme.onSurfaceVariant,
             ),
-            border: _border(context.outlineColor),
-            enabledBorder: _border(DefaultThemeColors.mainprimary!),
-            focusedBorder: _border(DefaultThemeColors.mainprimary!),
-            disabledBorder: _border(context.outlineColor),
+            border: _border(colorScheme.outline),
+            enabledBorder: _border(colorScheme.primary),
+            focusedBorder: _border(colorScheme.primary),
+            disabledBorder: _border(colorScheme.outline.withOpacity(0.5)),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             filled: true,
-            fillColor: context.surfaceColor,
+            fillColor: colorScheme.surface,
           ),
         ),
       ),

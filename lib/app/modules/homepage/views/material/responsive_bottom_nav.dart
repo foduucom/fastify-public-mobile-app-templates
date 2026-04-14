@@ -34,12 +34,10 @@ class ResponsiveBottomNav extends StatelessWidget {
         color: backgroundColor,
         boxShadow: [
           BoxShadow(
-            offset: Offset(0, -10),
+            offset: const Offset(0, -10),
             blurRadius: 60,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.black.withOpacity(0.3) // Dark mode shadow
-                : DefaultThemeColors.lightOnSecondary
-                    .withOpacity(0.1), // Light mode shadow
+            color: Theme.of(context).colorScheme.shadow.withOpacity(
+                Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.05),
           ),
         ],
         border: Border(

@@ -85,6 +85,7 @@ class _gridProductCartState extends State<gridProductCart>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return SizedBox(
       width: widget.width,
       child: InkWell(
@@ -95,10 +96,7 @@ class _gridProductCartState extends State<gridProductCart>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? DefaultThemeColors
-                      .darklight // Keep your original for dark mode
-                  : context.outlineColor, // Use theme outline for light mode
+              color: colorScheme.outline,
               width: 1,
             ),
           ),
@@ -109,7 +107,7 @@ class _gridProductCartState extends State<gridProductCart>
               // Product Image with Like Button
               Stack(
                 children: [
-                  ClipRRect(
+                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: CachedNetworkImage(
                       height: widget.height,
@@ -120,15 +118,14 @@ class _gridProductCartState extends State<gridProductCart>
                         height: widget.height,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: context
-                              .surfaceVariantColor, // Theme-aware error background
+                          color: colorScheme.surfaceVariant,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Center(
                           child: Icon(
                             Icons.error,
                             size: 30,
-                            color: context.errorColor, // Theme-aware error icon
+                            color: colorScheme.error,
                           ),
                         ),
                       ),
@@ -137,8 +134,7 @@ class _gridProductCartState extends State<gridProductCart>
                         height: widget.height,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: context
-                              .surfaceVariantColor, // Theme-aware progress background
+                          color: colorScheme.surfaceVariant,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Center(
@@ -148,10 +144,8 @@ class _gridProductCartState extends State<gridProductCart>
                             child: CircularProgressIndicator(
                               value: progress.progress,
                               strokeWidth: 2,
-                              color:
-                                  DefaultThemeColors.mainprimary, // Brand color
-                              backgroundColor: context
-                                  .surfaceVariantColor, // Theme-aware background
+                              color: colorScheme.primary,
+                              backgroundColor: colorScheme.surfaceVariant,
                             ),
                           ),
                         ),
@@ -185,8 +179,7 @@ class _gridProductCartState extends State<gridProductCart>
                                 child: Container(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(50),
-                                    color: context
-                                        .surfaceColor, // Theme-aware background
+                                    color: colorScheme.surface,
                                   ),
                                   padding: const EdgeInsets.all(8),
                                   child: widget.liked,
@@ -229,7 +222,7 @@ class _gridProductCartState extends State<gridProductCart>
                 style: TextStyle(
                   fontFamily: 'Lato',
                   fontSize: 15,
-                  color: context.onSurfaceColor, // Theme-aware text
+                  color: colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -246,11 +239,7 @@ class _gridProductCartState extends State<gridProductCart>
                     fontFamily: 'Lato',
                     fontWeight: FontWeight.w400,
                     fontSize: 13,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? DefaultThemeColors
-                            .lightDarker // Light color for dark mode
-                        : DefaultThemeColors
-                            .darklighter, // Dark color for light mode
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
 
@@ -263,7 +252,7 @@ class _gridProductCartState extends State<gridProductCart>
                         Icon(
                           Icons.sell_outlined,
                           size: 16,
-                          color: DefaultThemeColors.mainprimary, // Brand color
+                          color: colorScheme.primary,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
@@ -273,7 +262,7 @@ class _gridProductCartState extends State<gridProductCart>
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               fontFamily: 'Lato',
-                              color: context.onSurfaceColor, // Theme-aware text
+                              color: colorScheme.onSurface,
                             ),
                           ),
                         ),
@@ -286,7 +275,7 @@ class _gridProductCartState extends State<gridProductCart>
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           fontFamily: 'Lato',
-                          color: context.onSurfaceColor, // Theme-aware text
+                          color: colorScheme.onSurface,
                         ),
                         children: [
                           if (widget.discountrate.isNotEmpty) ...[
@@ -297,16 +286,14 @@ class _gridProductCartState extends State<gridProductCart>
                                 fontWeight: FontWeight.w400,
                                 fontSize: 13,
                                 decoration: TextDecoration.lineThrough,
-                                color: context
-                                    .onSurfaceVariantColor, // Theme-aware strikethrough
+                                color: colorScheme.onSurfaceVariant,
                               ),
                             ),
                             const TextSpan(text: ' '),
                             TextSpan(
                               text: widget.discountrate,
                               style: TextStyle(
-                                color: context
-                                    .errorColor, // Theme-aware discount color (red)
+                                color: colorScheme.error,
                                 fontWeight: FontWeight.w500,
                                 fontSize: 12,
                               ),

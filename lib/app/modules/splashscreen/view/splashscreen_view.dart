@@ -53,10 +53,7 @@ class SplashscreenView extends GetView<SplashScreenController> {
                 Text(
                   '©2023 OCTAGON - All Right Reserved ',
                   style: TextStyle(
-                    // Using ThemeColorExtension explicitly to avoid ambiguity
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? DefaultThemeColors.lightDarker // For dark mode
-                        : DefaultThemeColors.darklighter, // For light mode
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
                   ),

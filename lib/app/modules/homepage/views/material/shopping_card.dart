@@ -33,7 +33,7 @@ class ShoppingCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(height * 0.015),
           border: Border.all(
-            color: DefaultThemeColors.darklight,
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
             width: 1,
           ),
         ),
@@ -79,7 +79,7 @@ class ShoppingCard extends StatelessWidget {
                 fontWeight: FontWeight.w400,
                 fontSize: height * 0.015,
                 height: 2,
-                color: DefaultThemeColors.darklighter,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
 
@@ -95,7 +95,7 @@ class ShoppingCard extends StatelessWidget {
                     Icon(
                       Icons.sell_outlined,
                       size: height * 0.02,
-                      color: DefaultThemeColors.mainprimary,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     SizedBox(width: width * 0.005),
                     Text(
@@ -104,7 +104,7 @@ class ShoppingCard extends StatelessWidget {
                         fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.w700,
                         fontSize: height * 0.018,
-                        color: DefaultThemeColors.mainprimary,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                   ],
@@ -116,7 +116,7 @@ class ShoppingCard extends StatelessWidget {
                     Icon(
                       Icons.star,
                       size: height * 0.02,
-                      color: DefaultThemeColors.alertWarninglight,
+                      color: Colors.amber, // Semantic color for stars is usually acceptable as constant
                     ),
                     SizedBox(width: width * 0.005),
                     Text(
@@ -125,7 +125,7 @@ class ShoppingCard extends StatelessWidget {
                         fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.w700,
                         fontSize: height * 0.018,
-                        color: DefaultThemeColors.darkdark,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ],

@@ -137,6 +137,7 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
   Widget build(BuildContext context) {
     var width = Get.width;
     var height = Get.height;
+    final colorScheme = Theme.of(context).colorScheme;
 
     // Only observe the active index, not the entire controller
     return Obx(() => Container(
@@ -165,8 +166,8 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
                     borderRadius: BorderRadius.circular(height * 0.01),
                     border: Border.all(
                       color: widget.controller.activeIndex.value == index
-                          ? DefaultThemeColors.darkdark // Active border
-                          : context.outlineColor, // Inactive border
+                          ? colorScheme.primary // Active border
+                          : colorScheme.outline, // Inactive border
                       width: 2,
                     ),
                   ),
@@ -180,7 +181,7 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
                       style: TextStyle(
                         fontSize: height * 0.022,
                         fontWeight: FontWeight.w600,
-                        color: context.onSurfaceVariantColor,
+                        color: colorScheme.onSurface,
                       ),
                       decoration: const InputDecoration(
                         counterText: '',

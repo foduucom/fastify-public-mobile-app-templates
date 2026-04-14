@@ -99,18 +99,9 @@ class AppTextField extends StatelessWidget {
     final defaultErrorColor = errorColor ?? theme.colorScheme.error;
     final defaultDisabledColor =
         disabledColor ?? theme.colorScheme.onSurface.withOpacity(0.1);
-    final defaultFillColor = fillColor ??
-        (isDark
-            ? theme.colorScheme.surfaceVariant.withOpacity(0.3)
-            : theme.colorScheme.surfaceVariant.withOpacity(0.5));
-    final defaultPrefixIconColor =
-        Theme.of(context).brightness == Brightness.dark
-            ? DefaultThemeColors.lightDarker
-            : DefaultThemeColors.lightOnBackground;
-    final defaultSuffixIconColor =
-        Theme.of(context).brightness == Brightness.dark
-            ? DefaultThemeColors.lightDarker
-            : DefaultThemeColors.lightOnBackground;
+    final defaultFillColor = fillColor ?? theme.colorScheme.surface;
+    final defaultPrefixIconColor = theme.colorScheme.onSurfaceVariant;
+    final defaultSuffixIconColor = theme.colorScheme.onSurfaceVariant;
 
     // Safety check for fontSize
     final double safeFontSize =

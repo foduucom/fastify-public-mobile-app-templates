@@ -46,9 +46,7 @@ class ResponsiveCommonHeader extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(height),
                   border: Border.all(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? DefaultThemeColors.darklight
-                        : context.outlineColor,
+                    color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
                   ),
                 ),
                 child: Row(
@@ -56,9 +54,7 @@ class ResponsiveCommonHeader extends StatelessWidget {
                     Icon(
                       Icons.search,
                       size: height * 0.025,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? DefaultThemeColors.darklighter
-                          : context.onSurfaceVariantColor,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     SizedBox(width: width * 0.02),
                     Expanded(
@@ -68,9 +64,7 @@ class ResponsiveCommonHeader extends StatelessWidget {
                         style: TextStyle(
                           fontSize: height * 0.018,
                           fontWeight: FontWeight.w600,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? DefaultThemeColors.darklighter
-                              : DefaultThemeColors.lightDarker,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ),

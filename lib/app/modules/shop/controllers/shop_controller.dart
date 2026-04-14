@@ -11,7 +11,7 @@ class ShopController extends GetxController
     with BaseController, GetTickerProviderStateMixin, FoduuStudioLayoutMixin {
   var allProductList = List<dynamic>.empty().obs;
   var getCurrentvalue = 0.obs;
-  late ScrollController scrollController;
+  ScrollController? scrollController;
   var selectBrand = 0.obs;
   var selectSize = 0.obs;
   final count = 0.obs;
@@ -700,7 +700,7 @@ class ShopController extends GetxController
 
   @override
   void onClose() {
-    scrollController.dispose();
+    scrollController?.dispose();
   }
 
   List color = [

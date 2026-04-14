@@ -7,8 +7,8 @@ class AppSocialButton extends StatelessWidget {
   final VoidCallback? onTap;
   final double? size;
   final double? iconSize;
-  final Color backgroundColor;
-  final Color borderColor;
+  final Color? backgroundColor;
+  final Color? borderColor;
 
   const AppSocialButton({
     super.key,
@@ -16,14 +16,18 @@ class AppSocialButton extends StatelessWidget {
     this.onTap,
     this.size,
     this.iconSize,
-    this.backgroundColor = DefaultThemeColors.lightOnPrimary,
-    this.borderColor = DefaultThemeColors.darklighter,
+    this.backgroundColor,
+    this.borderColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final width = size ?? Get.width * 0.14;
     final imgSize = iconSize ?? Get.width * 0.055;
+
+    final bg = backgroundColor ?? colorScheme.surface;
+    final border = borderColor ?? colorScheme.outline;
 
     return GestureDetector(
       onTap: onTap,
@@ -32,10 +36,10 @@ class AppSocialButton extends StatelessWidget {
         height: width,
         padding: EdgeInsets.all(width * 0.25),
         decoration: BoxDecoration(
-          color: backgroundColor,
+          color: bg,
           shape: BoxShape.circle,
           border: Border.all(
-            color: borderColor,
+            color: border,
             width: 1,
           ),
         ),

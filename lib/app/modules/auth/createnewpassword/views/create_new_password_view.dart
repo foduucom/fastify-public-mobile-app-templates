@@ -16,6 +16,8 @@ class CreateNewPasswordView extends GetView<CreateNewPasswordController> {
   Widget build(BuildContext context) {
     var width = Get.width;
     var height = Get.height;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -32,7 +34,7 @@ class CreateNewPasswordView extends GetView<CreateNewPasswordController> {
                 icon: Icon(
                   Icons.arrow_back,
                   size: width * 0.06,
-                  color: context.onSurfaceColor, // Theme-aware back button
+                  color: colorScheme.onSurface,
                 ),
               ),
             ),
@@ -44,7 +46,7 @@ class CreateNewPasswordView extends GetView<CreateNewPasswordController> {
                 padding: EdgeInsets.symmetric(
                   horizontal: width * 0.03,
                   vertical: height * 0.02,
-                ),
+                  ),
                 children: [
                   // Title + Description
                   Container(
@@ -57,7 +59,7 @@ class CreateNewPasswordView extends GetView<CreateNewPasswordController> {
                           fontSize: height * 0.03,
                           height: 1.1,
                           fontWeight: FontWeight.w700,
-                          color: context.onBackgroundColor, // Theme-aware title
+                          color: colorScheme.onSurface,
                         ),
                         const SizedBox(height: 8),
                         AppText(
@@ -66,9 +68,7 @@ class CreateNewPasswordView extends GetView<CreateNewPasswordController> {
                           height: 1.4,
                           letterSpacing: 0,
                           maxLines: 3,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? DefaultThemeColors.darklighter
-                              : DefaultThemeColors.lightDarker,
+                          color: colorScheme.onSurfaceVariant,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -88,7 +88,7 @@ class CreateNewPasswordView extends GetView<CreateNewPasswordController> {
                           fontSize: height * 0.016,
                           height: 1.5,
                           letterSpacing: 0,
-                          color: context.onSurfaceColor, // Theme-aware label
+                          color: colorScheme.onSurface,
                         ),
 
                         const SizedBox(height: 4),
@@ -117,7 +117,7 @@ class CreateNewPasswordView extends GetView<CreateNewPasswordController> {
                           fontSize: height * 0.016,
                           height: 1.5,
                           letterSpacing: 0,
-                          color: context.onSurfaceColor, // Theme-aware label
+                          color: colorScheme.onSurface,
                         ),
 
                         const SizedBox(height: 4),
