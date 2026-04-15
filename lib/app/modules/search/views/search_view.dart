@@ -20,11 +20,11 @@ class SearchView extends GetView<SearchsController> {
     return GestureDetector(
       onTap: () => HelperFunctions().closeKeyboard(context),
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
         // ── AppBar ──────────────────────────────────────────────────
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           elevation: 0,
           automaticallyImplyLeading: false,
           leading: Padding(
@@ -34,11 +34,11 @@ class SearchView extends GetView<SearchsController> {
               child: Container(
                 width: 40, height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: colorScheme.surfaceContainerHighest,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.arrow_back,
-                    color: Colors.black87, size: 20),
+                child: Icon(Icons.arrow_back,
+                    color: colorScheme.onSurface, size: 20),
               ),
             ),
           ),
@@ -46,7 +46,7 @@ class SearchView extends GetView<SearchsController> {
           title: Text(
             'Search',
             style: textTheme.titleLarge?.copyWith(
-              color: Colors.black,
+              color: colorScheme.onSurface,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -55,8 +55,8 @@ class SearchView extends GetView<SearchsController> {
               padding: const EdgeInsets.only(right: 16),
               child: IconButton(
                 onPressed: () {},
-                icon: const Icon(Icons.more_vert,
-                    color: Colors.black87, size: 22),
+                icon: Icon(Icons.more_vert,
+                    color: colorScheme.onSurface, size: 22),
               ),
             ),
           ],
@@ -74,24 +74,24 @@ class SearchView extends GetView<SearchsController> {
               child: Container(
                 height: 52,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,    // ✅ grey lives here only
+                  color: colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Row(
                   children: [
                     const SizedBox(width: 14),
-                    Icon(Icons.search, color: Colors.grey.shade400, size: 22),
+                    Icon(Icons.search, color: colorScheme.onSurfaceVariant, size: 22),
                     const SizedBox(width: 8),
 
                     Expanded(
                       child: TextField(
                         controller: controller.searchTextController,
                         onChanged: (v) => controller.getSearchSuggestion(text: v),
-                        style: textTheme.bodyMedium?.copyWith(color: Colors.black87),
+                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
                         decoration: InputDecoration(
                           hintText: 'Search...',
                           hintStyle: TextStyle(
-                            color: Colors.grey.shade400,
+                            color: colorScheme.onSurfaceVariant,
                             fontSize: 14,
                           ),
                           isDense: true,
@@ -124,7 +124,7 @@ class SearchView extends GetView<SearchsController> {
                             padding:
                             const EdgeInsets.symmetric(horizontal: 6),
                             child: Icon(Icons.cancel_outlined,
-                                size: 18, color: Colors.grey.shade400),
+                                size: 18, color: colorScheme.onSurfaceVariant),
                           ),
                         )
                             : const SizedBox.shrink();
@@ -133,7 +133,7 @@ class SearchView extends GetView<SearchsController> {
 
                     Container(
                       width: 1, height: 22,
-                      color: Colors.grey.shade300,
+                      color: colorScheme.outline,
                     ),
 
                     GestureDetector(
@@ -142,7 +142,7 @@ class SearchView extends GetView<SearchsController> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 14),
                         child: Icon(Icons.tune_rounded,
-                            color: Colors.black87, size: 20),
+                            color: colorScheme.onSurface, size: 20),
                       ),
                     ),
                   ],
@@ -157,7 +157,7 @@ class SearchView extends GetView<SearchsController> {
               child: Obx(() {
                 if (controller.isSearching.value &&
                     controller.searchProduct.isEmpty) {
-                  return _buildShimmer();
+                  return _buildShimmer(context);
                 }
 
                 return SingleChildScrollView(
@@ -181,7 +181,7 @@ class SearchView extends GetView<SearchsController> {
                                   Text('Last Search',
                                       style: textTheme.titleMedium?.copyWith(
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.black,
+                                        color: colorScheme.onSurface,
                                         fontSize: 17,
                                       )),
                                   GestureDetector(
@@ -216,11 +216,11 @@ class SearchView extends GetView<SearchsController> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 14, vertical: 8),
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
+                                        color: colorScheme.surface,
                                         borderRadius:
                                         BorderRadius.circular(30),
                                         border: Border.all(
-                                            color: Colors.grey.shade300),
+                                            color: colorScheme.outline),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
@@ -228,7 +228,7 @@ class SearchView extends GetView<SearchsController> {
                                           Text(name,
                                               style: textTheme.bodyMedium
                                                   ?.copyWith(
-                                                color: Colors.grey.shade600,
+                                                color: colorScheme.onSurfaceVariant,
                                                 fontWeight: FontWeight.w500,
                                               )),
                                           const SizedBox(width: 6),
@@ -243,7 +243,7 @@ class SearchView extends GetView<SearchsController> {
                                             },
                                             child: Icon(Icons.close,
                                                 size: 14,
-                                                color: Colors.grey.shade500),
+                                                color: colorScheme.onSurfaceVariant),
                                           ),
                                         ],
                                       ),
@@ -273,7 +273,7 @@ class SearchView extends GetView<SearchsController> {
                                     : 'Search Results',
                                 style: textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black,
+                                  color: colorScheme.onSurface,
                                   fontSize: 17,
                                 ),
                               ),
@@ -344,7 +344,7 @@ class SearchView extends GetView<SearchsController> {
                                   Text('Best Store',
                                       style: textTheme.titleMedium?.copyWith(
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.black,
+                                        color: colorScheme.onSurface,
                                         fontSize: 17,
                                       )),
                                   GestureDetector(
@@ -378,7 +378,7 @@ class SearchView extends GetView<SearchsController> {
                               children: [
                                 Icon(Icons.search_off_rounded,
                                     size: 80,
-                                    color: Colors.grey.shade300),
+                                    color: colorScheme.outline),
                                 const SizedBox(height: 16),
                                 Text('No products found',
                                     style: textTheme.titleLarge
@@ -388,7 +388,7 @@ class SearchView extends GetView<SearchsController> {
                                 Text(
                                   'Try searching with a different keyword.',
                                   style: TextStyle(
-                                      color: Colors.grey.shade500),
+                                      color: colorScheme.onSurfaceVariant),
                                 ),
                               ],
                             ),
@@ -415,10 +415,11 @@ class SearchView extends GetView<SearchsController> {
     );
   }
 
-  Widget _buildShimmer() {
+  Widget _buildShimmer(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.white,
+      baseColor: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+      highlightColor: isDark ? Colors.grey.shade600 : Colors.grey.shade100,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -528,9 +529,9 @@ class _ProductCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: colorScheme.outline),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -549,19 +550,19 @@ class _ProductCard extends StatelessWidget {
                         imageUrl: imageUrl,
                         fit: BoxFit.cover,
                         placeholder: (_, __) =>
-                            Container(color: Colors.grey.shade100),
+                            Container(color: colorScheme.surfaceContainerHighest),
                         errorWidget: (_, __, ___) => Container(
-                          color: Colors.grey.shade100,
+                          color: colorScheme.surfaceContainerHighest,
                           child: Icon(
                               Icons.image_not_supported_outlined,
-                              color: Colors.grey.shade400),
+                              color: colorScheme.onSurfaceVariant),
                         ),
                       )
                           : Container(
-                        color: Colors.grey.shade100,
+                        color: colorScheme.surfaceContainerHighest,
                         child: Icon(
                             Icons.image_not_supported_outlined,
-                            color: Colors.grey.shade400),
+                            color: colorScheme.onSurfaceVariant),
                       ),
                     ),
                   ),
@@ -572,13 +573,13 @@ class _ProductCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.red,
+                          color: colorScheme.error,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           '$discountPct%',
-                          style: const TextStyle(
-                              color: Colors.white,
+                          style: TextStyle(
+                              color: colorScheme.onError,
                               fontSize: 11,
                               fontWeight: FontWeight.bold),
                         ),
@@ -599,7 +600,7 @@ class _ProductCard extends StatelessWidget {
                       name,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: colorScheme.onSurface,
                         fontSize: 13,
                       ),
                       maxLines: 1,
@@ -608,7 +609,7 @@ class _ProductCard extends StatelessWidget {
                     Text(
                       'For 1Kg',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey.shade500, fontSize: 11),
+                          color: colorScheme.onSurfaceVariant, fontSize: 11),
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -623,7 +624,7 @@ class _ProductCard extends StatelessWidget {
                                   .titleSmall
                                   ?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                                color: colorScheme.onSurface,
                                 fontSize: 13,
                               ),
                             ),
@@ -636,8 +637,8 @@ class _ProductCard extends StatelessWidget {
                                     ?.copyWith(
                                   decoration:
                                   TextDecoration.lineThrough,
-                                  color: Colors.red.shade300,
-                                  decorationColor: Colors.red.shade300,
+                                  color: colorScheme.error,
+                                  decorationColor: colorScheme.error,
                                   fontSize: 11,
                                 ),
                               ),
@@ -699,8 +700,8 @@ class _StoreTile extends StatelessWidget {
               fit: BoxFit.cover,
               errorWidget: (_, __, ___) => Container(
                 width: 64, height: 64,
-                color: Colors.grey.shade200,
-                child: Icon(Icons.store, color: Colors.grey.shade400),
+                color: colorScheme.surfaceContainerHighest,
+                child: Icon(Icons.store, color: colorScheme.onSurfaceVariant),
               ),
             ),
           ),
@@ -713,7 +714,7 @@ class _StoreTile extends StatelessWidget {
                   Text(
                     'PROMO',
                     style: textTheme.labelSmall?.copyWith(
-                      color: Colors.red,
+                      color: colorScheme.error,
                       fontWeight: FontWeight.bold,
                       fontSize: 11,
                       letterSpacing: 0.5,
@@ -724,7 +725,7 @@ class _StoreTile extends StatelessWidget {
                   store['name'] as String? ?? '',
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -732,24 +733,24 @@ class _StoreTile extends StatelessWidget {
                   children: [
                     Text(store['time'] as String? ?? '',
                         style: textTheme.bodySmall
-                            ?.copyWith(color: Colors.grey.shade500)),
+                            ?.copyWith(color: colorScheme.onSurfaceVariant)),
                     const SizedBox(width: 10),
                     Text(store['distance'] as String? ?? '',
                         style: textTheme.bodySmall
-                            ?.copyWith(color: Colors.grey.shade500)),
+                            ?.copyWith(color: colorScheme.onSurfaceVariant)),
                     const SizedBox(width: 10),
                     const Icon(Icons.star, color: Colors.amber, size: 14),
                     const SizedBox(width: 3),
                     Text(store['rating'] as String? ?? '',
                         style: textTheme.bodySmall
-                            ?.copyWith(color: Colors.grey.shade500)),
+                            ?.copyWith(color: colorScheme.onSurfaceVariant)),
                   ],
                 ),
               ],
             ),
           ),
           Icon(Icons.chevron_right,
-              color: Colors.grey.shade400, size: 22),
+              color: colorScheme.onSurfaceVariant, size: 22),
         ],
       ),
     );

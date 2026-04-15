@@ -15,7 +15,7 @@ class TermsConditionsView extends GetView<TermsConditionsController> {
     final textTheme   = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar:  CustomAppBar(title: 'Terms Conditions'),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -42,7 +42,7 @@ class TermsConditionsView extends GetView<TermsConditionsController> {
               Text(
                 'Please read these terms carefully before using our application.',
                 style: textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey.shade500,
+                  color: colorScheme.onSurfaceVariant,
                   height: 1.5,
                 ),
               ),
@@ -95,8 +95,8 @@ class TermsConditionsView extends GetView<TermsConditionsController> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: Colors.grey.shade200),
+          color: colorScheme.surface,
+          border: Border.all(color: colorScheme.outline),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -106,14 +106,14 @@ class TermsConditionsView extends GetView<TermsConditionsController> {
               title,
               style: textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 10),
             Text(
               content,
               style: textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade600,
+                color: colorScheme.onSurfaceVariant,
                 height: 1.6,
               ),
             ),

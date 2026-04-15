@@ -20,11 +20,11 @@ class CheckOutView extends GetView<CheckOutController> {
     final textTheme   = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       // ── AppBar matching design ──────────────────────────────────────
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         automaticallyImplyLeading: false,
 
@@ -37,12 +37,12 @@ class CheckOutView extends GetView<CheckOutController> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: colorScheme.surfaceContainerHighest,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back,
-                color: Colors.black87,
+                color: colorScheme.onSurface,
                 size: 20,
               ),
             ),
@@ -54,7 +54,7 @@ class CheckOutView extends GetView<CheckOutController> {
         title: Text(
           'Payment Method',
           style: textTheme.titleLarge?.copyWith(
-            color: Colors.black,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -73,12 +73,12 @@ class CheckOutView extends GetView<CheckOutController> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: colorScheme.surfaceContainerHighest,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.add,
-                  color: Colors.black87,
+                  color: colorScheme.onSurface,
                   size: 22,
                 ),
               ),
@@ -104,7 +104,7 @@ class CheckOutView extends GetView<CheckOutController> {
                           'Payment Method',
                           style: textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: Colors.black,
+                            color: colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -123,7 +123,7 @@ class CheckOutView extends GetView<CheckOutController> {
                       ],
                     ),
                   ),
-                  Divider(thickness: 10, color: Colors.grey.shade100),
+                  Divider(thickness: 10, color: colorScheme.surfaceContainerHighest),
                   Padding(
                     padding: pageSurroundingPadding,
                     child: _buildOrderSummary(context, textTheme),
@@ -169,11 +169,11 @@ class CheckOutView extends GetView<CheckOutController> {
           decoration: BoxDecoration(
             color: isSelected
                 ? colorScheme.primary.withValues(alpha: 0.05)
-                : Colors.white,
+                : colorScheme.surface,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color:
-              isSelected ? colorScheme.primary : Colors.grey.shade200,
+              isSelected ? colorScheme.primary : colorScheme.outline,
               width: isSelected ? 1.5 : 1,
             ),
           ),
@@ -205,7 +205,7 @@ class CheckOutView extends GetView<CheckOutController> {
                   option['method'].toString(),
                   style: textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -219,7 +219,7 @@ class CheckOutView extends GetView<CheckOutController> {
                   border: Border.all(
                     color: isSelected
                         ? colorScheme.primary
-                        : Colors.grey.shade400,
+                        : colorScheme.outline,
                     width: 2,
                   ),
                 ),
@@ -253,13 +253,14 @@ class CheckOutView extends GetView<CheckOutController> {
         Text(
           'Order Summary',
           style: textTheme.titleMedium
-              ?.copyWith(fontWeight: FontWeight.bold, color: Colors.black),
+              ?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
         ),
         const SizedBox(height: 16),
         Obx(() => _summaryRow(
           'Subtotal',
           '\$${cartController.subTotal.value.toStringAsFixed(2)}',
           textTheme,
+          colorScheme: colorScheme,
         )),
         const SizedBox(height: 8),
         Obx(() => cartController.savings > 0
@@ -267,14 +268,15 @@ class CheckOutView extends GetView<CheckOutController> {
           'You Save',
           '-\$${cartController.savings.toStringAsFixed(2)}',
           textTheme,
-          valueColor: Colors.green,
+          valueColor: colorScheme.primary,
+          colorScheme: colorScheme,
         )
             : const SizedBox.shrink()),
         const SizedBox(height: 8),
         _summaryRow('Delivery', 'FREE', textTheme,
-            valueColor: colorScheme.primary),
+            valueColor: colorScheme.primary, colorScheme: colorScheme),
         const SizedBox(height: 12),
-        Divider(color: Colors.grey.shade200, thickness: 1),
+        Divider(color: colorScheme.outline, thickness: 1),
         const SizedBox(height: 12),
         Obx(() => Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -302,18 +304,19 @@ class CheckOutView extends GetView<CheckOutController> {
       String value,
       TextTheme textTheme, {
         Color? valueColor,
+        required ColorScheme colorScheme,
       }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label,
             style: textTheme.bodyMedium
-                ?.copyWith(color: Colors.black87)),
+                ?.copyWith(color: colorScheme.onSurface)),
         Text(
           value,
           style: textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.w600,
-            color: valueColor ?? Colors.black87,
+            color: valueColor ?? colorScheme.onSurface,
           ),
         ),
       ],
@@ -327,9 +330,10 @@ class PaymentMethodShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.white,
+      baseColor: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+      highlightColor: isDark ? Colors.grey.shade600 : Colors.grey.shade100,
       child: Column(
         children: [
           _shimmerTile(),
@@ -346,7 +350,7 @@ class PaymentMethodShimmer extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.grey.shade200),
       ),

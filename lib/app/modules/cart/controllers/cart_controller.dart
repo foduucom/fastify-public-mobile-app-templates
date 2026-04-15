@@ -132,7 +132,7 @@ class CartController extends GetxController
       middleText: 'Are you sure you want to remove this item from the cart?',
       textConfirm: 'Remove',
       textCancel: 'Cancel',
-      confirmTextColor: Colors.white,
+      confirmTextColor: Get.theme.colorScheme.onPrimary,
       onConfirm: () {
         Get.back();
         removeItem(productId, variantSlug);

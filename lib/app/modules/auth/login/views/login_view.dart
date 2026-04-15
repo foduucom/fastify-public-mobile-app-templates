@@ -16,7 +16,7 @@ class LoginView extends GetView<LoginController> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme   = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: colorScheme.primary, // ← green top area
@@ -24,7 +24,6 @@ class LoginView extends GetView<LoginController> {
         onTap: () => HelperFunctions().closeKeyboard(context),
         child: Column(
           children: [
-
             // ── TOP: Green Header Area ──────────────────────────────────
             SafeArea(
               bottom: false,
@@ -65,10 +64,10 @@ class LoginView extends GetView<LoginController> {
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft:  Radius.circular(28),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(28),
                     topRight: Radius.circular(28),
                   ),
                 ),
@@ -78,7 +77,6 @@ class LoginView extends GetView<LoginController> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-
                         // ── Email Field ───────────────────────────────
                         FoduuFormTextField(
                           fieldHintText: 'Enter your email address',
@@ -189,19 +187,23 @@ class LoginView extends GetView<LoginController> {
                         Row(
                           children: [
                             Expanded(
-                                child: Divider(color: Color(0xFF6C6C6C), thickness: 1)),
+                                child: Divider(
+                                    color: colorScheme.onSurfaceVariant,
+                                    thickness: 1)),
                             Padding(
                               padding:
-                              const EdgeInsets.symmetric(horizontal: 12),
+                                  const EdgeInsets.symmetric(horizontal: 12),
                               child: Text(
                                 'Or continue with',
                                 style: textTheme.bodySmall?.copyWith(
-                                  color: Color(0xFF6C6C6C),
+                                  color: colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ),
                             Expanded(
-                                child: Divider(color: Color(0xFF6C6C6C), thickness: 1)),
+                                child: Divider(
+                                    color: colorScheme.onSurfaceVariant,
+                                    thickness: 1)),
                           ],
                         ),
 
@@ -216,7 +218,7 @@ class LoginView extends GetView<LoginController> {
                               // TODO: Google sign in
                             },
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Colors.grey.shade300),
+                              side: BorderSide(color: colorScheme.outline),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
                               ),
@@ -233,7 +235,7 @@ class LoginView extends GetView<LoginController> {
                                 Text(
                                   'Continue with Google',
                                   style: textTheme.bodyLarge?.copyWith(
-                                    color: Colors.black87,
+                                    color: colorScheme.onSurface,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -242,10 +244,7 @@ class LoginView extends GetView<LoginController> {
                           ),
                         ),
 
-
-
                         // ── Continue with Apple ───────────────────────
-
 
                         const SizedBox(height: 28),
 
@@ -260,7 +259,7 @@ class LoginView extends GetView<LoginController> {
                               text: TextSpan(
                                 text: "Don't have an account? ",
                                 style: textTheme.bodyMedium?.copyWith(
-                                  color: Colors.grey.shade500,
+                                  color: colorScheme.onSurfaceVariant,
                                 ),
                                 children: [
                                   TextSpan(

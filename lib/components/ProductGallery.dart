@@ -22,7 +22,7 @@ class ProductGallery extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading || productGallery.isEmpty) {
-      return _buildShimmer();
+      return _buildShimmer(context);
     }
 
     // Outer Column with height constraint for gallery
@@ -45,12 +45,12 @@ class ProductGallery extends StatelessWidget {
   }
 
   /// -------------------- SHIMMER --------------------
-  Widget _buildShimmer() {
+  Widget _buildShimmer(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Shimmer.fromColors(
-        baseColor: Colors.grey.shade300,
-        highlightColor: const Color.fromARGB(255, 197, 197, 197),
+        baseColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade700 : Colors.grey.shade300,
+        highlightColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade600 : Colors.grey.shade100,
         child: SizedBox(
           height: Get.height * 0.6,
           child: ListView.separated(
@@ -61,7 +61,7 @@ class ProductGallery extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               child: Container(
                 width: 300,
-                color: Colors.grey.shade300,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
               ),
             ),
           ),
@@ -127,11 +127,11 @@ class ProductGallery extends StatelessWidget {
                 fit: BoxFit.cover,
                 imageUrl: HelperFunctions().getImage(productGallery[index]),
                 errorWidget: (_, __, ___) => Container(
-                  color: Colors.grey.shade300,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   child: const Center(child: Icon(Icons.error)),
                 ),
                 progressIndicatorBuilder: (_, __, ___) => Container(
-                  color: Colors.grey.shade300,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   child: Center(
                     child: SizedBox(
                       height: 40,

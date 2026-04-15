@@ -63,11 +63,9 @@ class _AddNewCardViewState extends State<AddNewCardView> {
     final textTheme   = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
 
       // ── AppBar ──────────────────────────────────────────────────────
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
         leading: Padding(
@@ -78,11 +76,11 @@ class _AddNewCardViewState extends State<AddNewCardView> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: colorScheme.surfaceContainerHighest,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.arrow_back,
-                  color: Colors.black87, size: 20),
+              child: Icon(Icons.arrow_back,
+                  color: colorScheme.onSurface, size: 20),
             ),
           ),
         ),
@@ -90,7 +88,7 @@ class _AddNewCardViewState extends State<AddNewCardView> {
         title: Text(
           'Add New Card',
           style: textTheme.titleLarge?.copyWith(
-            color: Colors.black,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -218,7 +216,7 @@ class _AddNewCardViewState extends State<AddNewCardView> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.primary,
-              foregroundColor: Colors.white,
+              foregroundColor: colorScheme.onPrimary,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
@@ -227,7 +225,7 @@ class _AddNewCardViewState extends State<AddNewCardView> {
             child: Text(
               'Add Card',
               style: textTheme.titleMedium?.copyWith(
-                color: Colors.white,
+                color: colorScheme.onPrimary,
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
               ),
@@ -379,7 +377,7 @@ class _AddNewCardViewState extends State<AddNewCardView> {
     return Text(
       label,
       style: textTheme.titleMedium?.copyWith(
-        color: Colors.black,
+        color: Theme.of(context).colorScheme.onSurface,
         fontWeight: FontWeight.w600,
         fontSize: 15,
       ),
@@ -402,20 +400,20 @@ class _AddNewCardViewState extends State<AddNewCardView> {
       obscureText: obscureText,
       inputFormatters: inputFormatters,
       validator: validator,
-      style: const TextStyle(
-        color: Colors.black87,
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface,
         fontSize: 15,
         fontWeight: FontWeight.w500,
       ),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(
-          color: Colors.grey.shade400,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
           fontSize: 14,
         ),
-        prefixIcon: Icon(icon, color: Colors.grey.shade400, size: 20),
+        prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 20),
         filled: true,
-        fillColor: Colors.grey.shade100,
+        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         contentPadding:
         const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
@@ -435,11 +433,11 @@ class _AddNewCardViewState extends State<AddNewCardView> {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.red, width: 1),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.error, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.red, width: 1.5),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.error, width: 1.5),
         ),
       ),
     );

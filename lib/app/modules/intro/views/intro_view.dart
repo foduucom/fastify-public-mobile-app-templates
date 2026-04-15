@@ -15,7 +15,7 @@ class IntroView extends GetView<IntroController> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("GRACPSURT" , style: TextStyle(color: Colors.black87, fontSize: 32, fontWeight: FontWeight.w600),),
+            Text("GRACPSURT" , style: TextStyle(color: colorScheme.onSurface, fontSize: 32, fontWeight: FontWeight.w600),),
             // ── Logo ─────────────────────────────────────────────────
             // Image.asset(
             //   'assets/images/app_logo.png',

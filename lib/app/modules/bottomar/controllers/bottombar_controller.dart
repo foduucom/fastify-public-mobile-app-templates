@@ -77,7 +77,7 @@ class BottombarController extends GetxController with BaseController {
                 curve: Curves.fastOutSlowIn),
             badgeStyle: const badges.BadgeStyle(padding: EdgeInsets.all(4.0)),
             badgeContent: Text(badgeNumber.toString(),
-                style: const TextStyle(color: Colors.white, fontSize: 12)),
+                style: const TextStyle(color: Colors.white, fontSize: 12)), // badge text always white
             child: child),
       ),
     );

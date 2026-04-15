@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '/constants/constants.dart';
+import '/constants/dynamic_theme.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -31,19 +32,24 @@ class HelperFunctions {
   }
 
   void showSnackBarError(String message) {
+    final isDark = Get.isPlatformDarkMode;
+    final colors = DynamicThemeManager()
+        .getColors(isDark ? Brightness.dark : Brightness.light);
     Get.snackbar("Error!", message,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        backgroundColor: colors.error,
+        colorText: colors.onError,
         isDismissible: true,
         dismissDirection: DismissDirection.horizontal,
-        // animationDuration: Duration(microseconds: 2000),
         duration: const Duration(seconds: 3));
   }
 
   void showSnackBarSuccess(String message) {
+    final isDark = Get.isPlatformDarkMode;
+    final colors = DynamicThemeManager()
+        .getColors(isDark ? Brightness.dark : Brightness.light);
     Get.snackbar("Success!", message,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
+        backgroundColor: colors.primary,
+        colorText: colors.onPrimary,
         isDismissible: true,
         dismissDirection: DismissDirection.horizontal,
         duration: const Duration(seconds: 5));
@@ -64,13 +70,16 @@ class HelperFunctions {
     }
 
     if (isKeyboardOpen()) {
+      final isDark = Get.isPlatformDarkMode;
+      final colors = DynamicThemeManager()
+          .getColors(isDark ? Brightness.dark : Brightness.light);
       Get.dialog(
         Center(
           child: Container(
             height: 130,
             width: 100,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.8),
+              color: colors.surface.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Scaffold(
@@ -86,9 +95,9 @@ class HelperFunctions {
                       child: HelperFunctions().loadingIndicator(),
                     ),
                     const SizedBox(height: 10),
-                    const Text(
+                    Text(
                       "Loading...",
-                      style: TextStyle(fontSize: 14, color: Colors.black),
+                      style: TextStyle(fontSize: 14, color: colors.onSurface),
                     ),
                   ],
                 ),
@@ -238,13 +247,16 @@ class HelperFunctions {
       {barrierDismissible = false,
       icon = Icons.check_circle,
       text = "Success"}) {
+    final isDark = Get.isPlatformDarkMode;
+    final colors = DynamicThemeManager()
+        .getColors(isDark ? Brightness.dark : Brightness.light);
     Get.dialog(
       Center(
         child: Container(
           height: 170,
           width: 250,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(1),
+            color: colors.surface,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Scaffold(
@@ -260,7 +272,7 @@ class HelperFunctions {
                   SizedBox(height: 10),
                   Text(
                     text,
-                    style: TextStyle(fontSize: 16, color: Colors.black),
+                    style: TextStyle(fontSize: 16, color: colors.onSurface),
                   ),
                   SizedBox(
                     height: 10,

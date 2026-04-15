@@ -15,13 +15,13 @@ class MessagesView extends GetView<MessagesController> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: Colors.white, // Clean white background like the design
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       // ── Floating Action Button ──
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF1A1A1A), // Dark almost-black color
+        backgroundColor: colorScheme.onSurface,
         elevation: 4,
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
+        child: Icon(Icons.add, color: colorScheme.surface, size: 28),
         onPressed: () {
           // Add new message action
         },
@@ -43,24 +43,24 @@ class MessagesView extends GetView<MessagesController> {
                 decoration: InputDecoration(
                   // 1. Set the background color here instead of a Container
                   filled: true,
-                  fillColor: Colors.grey.shade50,
+                  fillColor: colorScheme.surfaceContainerHighest,
 
                   hintText: "Search...",
-                  hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 16),
-                  prefixIcon: Icon(Icons.search, color: Colors.grey.shade400),
-                  suffixIcon: Icon(Icons.tune_rounded, color: Colors.grey.shade600),
+                  hintStyle: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 16),
+                  prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
+                  suffixIcon: Icon(Icons.tune_rounded, color: colorScheme.onSurfaceVariant),
                   contentPadding: const EdgeInsets.symmetric(vertical: 15),
 
                   // 2. Default rounded border
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
-                    borderSide: BorderSide(color: Colors.grey.shade200),
+                    borderSide: BorderSide(color: colorScheme.outline),
                   ),
 
                   // 3. Border when the TextField is enabled but not clicked
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
-                    borderSide: BorderSide(color: Colors.grey.shade200),
+                    borderSide: BorderSide(color: colorScheme.outline),
                   ),
 
                   // 4. Border when the user clicks/focuses on the TextField
@@ -87,7 +87,7 @@ class MessagesView extends GetView<MessagesController> {
                   separatorBuilder: (context, index) => const SizedBox(height: 5),
                   itemBuilder: (context, index) {
                     final chat = controller.chatList[index];
-                    return _buildChatItem(chat);
+                    return _buildChatItem(context, chat);
                   },
                 );
               }),
@@ -99,7 +99,8 @@ class MessagesView extends GetView<MessagesController> {
   }
 
   // ── Single Chat Item with Swipe-To-Delete ──
-  Widget _buildChatItem(Map<String, dynamic> chat) {
+  Widget _buildChatItem(BuildContext context, Map<String, dynamic> chat) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Dismissible(
       key: Key(chat['id'].toString()),
       direction: DismissDirection.endToStart,
@@ -110,10 +111,10 @@ class MessagesView extends GetView<MessagesController> {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 30.0),
-        color: const Color(0xFFFFF0F0), // Very light red background
-        child: const Icon(
+        color: colorScheme.error.withValues(alpha: 0.1),
+        child: Icon(
           Icons.delete_outline_rounded,
-          color: Colors.redAccent,
+          color: colorScheme.error,
           size: 28,
         ),
       ),
@@ -130,7 +131,7 @@ class MessagesView extends GetView<MessagesController> {
                 children: [
                   CircleAvatar(
                     radius: 28,
-                    backgroundColor: Colors.grey.shade200,
+                    backgroundColor: colorScheme.surfaceContainerHighest,
                     backgroundImage: CachedNetworkImageProvider(chat['avatar']),
                   ),
                   if (chat['isOnline'] == true)
@@ -143,7 +144,7 @@ class MessagesView extends GetView<MessagesController> {
                         decoration: BoxDecoration(
                           color: const Color(0xFF00C853), // Bright green dot
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2.5),
+                          border: Border.all(color: colorScheme.surface, width: 2.5),
                         ),
                       ),
                     ),
@@ -159,10 +160,10 @@ class MessagesView extends GetView<MessagesController> {
                   children: [
                     Text(
                       chat['name'],
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: Colors.black87,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 5),
@@ -172,7 +173,7 @@ class MessagesView extends GetView<MessagesController> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey.shade500,
+                        color: colorScheme.onSurfaceVariant,
                         fontWeight: FontWeight.w400,
                       ),
                     ),
@@ -190,7 +191,7 @@ class MessagesView extends GetView<MessagesController> {
                     chat['time'],
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey.shade500,
+                      color: colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -198,14 +199,14 @@ class MessagesView extends GetView<MessagesController> {
                   if (chat['unread'] > 0)
                     Container(
                       padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF4B6B50), // Muted dark green badge
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary,
                         shape: BoxShape.circle,
                       ),
                       child: Text(
                         chat['unread'].toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: colorScheme.onPrimary,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),

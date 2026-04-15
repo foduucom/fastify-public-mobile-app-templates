@@ -22,10 +22,10 @@ class BottombarView extends GetView<BottombarController> {
   BottombarView({super.key});
 
   // ── Register ALL tab controllers here ──────────────────────────────
-  final homeController         = Get.put(HomeController());          // ← ADD
-  final cartController         = Get.put(CartController());
-  final notifcationController  = Get.put(NotificationsController());
-  final wishListController     = Get.put(WishlistController());
+
+  final cartController = Get.put(CartController());
+  final notifcationController = Get.put(NotificationsController());
+  final wishListController = Get.put(WishlistController());
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +36,10 @@ class BottombarView extends GetView<BottombarController> {
         child: PageView(
           controller: controller.pageController,
           physics: const NeverScrollableScrollPhysics(),
-          children: [          // ← use const where possible
-            const HomeView(),
+          children: [
+            // ← use const where possible
+            //const HomeView(),
+            Testinghome(),
             const ExploreView(),
             const CartView(),
             WishlistView(),
@@ -45,13 +47,12 @@ class BottombarView extends GetView<BottombarController> {
           ],
         ),
       ),
-
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colorScheme.surface,
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.shade200,
+              color: Colors.black.withValues(alpha: 0.06),
               spreadRadius: 0,
               blurRadius: 12,
               offset: const Offset(0, -4),
@@ -59,17 +60,16 @@ class BottombarView extends GetView<BottombarController> {
           ],
         ),
         child: Obx(
-              () => BottomNavigationBar(
+          () => BottomNavigationBar(
             type: BottomNavigationBarType.fixed,
-            backgroundColor: Colors.white,
+            backgroundColor: colorScheme.surface,
             elevation: 0,
-            showSelectedLabels:   false,
+            showSelectedLabels: false,
             showUnselectedLabels: false,
-            selectedItemColor:   colorScheme.primary,
+            selectedItemColor: colorScheme.primary,
             unselectedItemColor: colorScheme.onSurfaceVariant,
             currentIndex: controller.currentPageIndex.value,
             onTap: (value) => controller.onTabChange(value),
-
             items: [
               // ── Home ─────────────────────────────────────────────
               BottomNavigationBarItem(
@@ -81,8 +81,8 @@ class BottombarView extends GetView<BottombarController> {
                 ),
                 activeIcon: SvgPicture.asset(
                   'assets/icon/home.svg',
-                  colorFilter: ColorFilter.mode(
-                      colorScheme.primary, BlendMode.srcIn),
+                  colorFilter:
+                      ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
                 ),
               ),
 
@@ -96,8 +96,8 @@ class BottombarView extends GetView<BottombarController> {
                 ),
                 activeIcon: SvgPicture.asset(
                   'assets/icon/Discovery.svg',
-                  colorFilter: ColorFilter.mode(
-                      colorScheme.primary, BlendMode.srcIn),
+                  colorFilter:
+                      ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
                 ),
               ),
 
@@ -120,8 +120,8 @@ class BottombarView extends GetView<BottombarController> {
                   onTap: () {},
                   child: SvgPicture.asset(
                     'assets/icon/cart_fill.svg',
-                    colorFilter: ColorFilter.mode(
-                        colorScheme.primary, BlendMode.srcIn),
+                    colorFilter:
+                        ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
                   ),
                   badgeNumber: CartService.to.cartItemCount,
                 ),
@@ -131,14 +131,14 @@ class BottombarView extends GetView<BottombarController> {
               BottomNavigationBarItem(
                 label: '',
                 icon: SvgPicture.asset(
-                  'assets/icon/heart.svg',             // ← use .svg not .png
+                  'assets/icon/heart.svg', // ← use .svg not .png
                   colorFilter: ColorFilter.mode(
                       colorScheme.onSurfaceVariant, BlendMode.srcIn),
                 ),
                 activeIcon: SvgPicture.asset(
-                  'assets/icon/heart_fill.svg',        // ← filled variant
-                  colorFilter: ColorFilter.mode(
-                      colorScheme.primary, BlendMode.srcIn),
+                  'assets/icon/heart_fill.svg', // ← filled variant
+                  colorFilter:
+                      ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
                 ),
               ),
 
@@ -152,8 +152,8 @@ class BottombarView extends GetView<BottombarController> {
                 ),
                 activeIcon: SvgPicture.asset(
                   'assets/icon/bottomactiveprofile.svg',
-                  colorFilter: ColorFilter.mode(
-                      colorScheme.primary, BlendMode.srcIn),
+                  colorFilter:
+                      ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
                 ),
               ),
             ],

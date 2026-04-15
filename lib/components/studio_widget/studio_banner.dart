@@ -221,13 +221,13 @@ class _HomeBannerState extends State<HomeBanner>
       imageUrl: getImage(item),
       progressIndicatorBuilder: (context, url, progress) {
         return Container(
-          decoration: BoxDecoration(color: Colors.grey.shade100),
+          decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest),
           child: HelperFunctions().loadingIndicator(),
         );
       },
       errorWidget: (context, url, error) {
         return Container(
-          color: Colors.grey.shade200,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           child: const Icon(Icons.error, size: 40),
         );
       },
@@ -323,6 +323,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     final height = widget.config['height']?.toDouble() ?? 160.0;
     final showIndicators = widget.config['show_indicators'] ?? true;
 
@@ -345,7 +346,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFDCF1E0),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Stack(
@@ -364,22 +365,22 @@ class _BannerCarouselState extends State<BannerCarousel> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
-                                color: Colors.black87,
+                                color: colorScheme.onSurface.withValues(alpha: 0.85),
                                 borderRadius: BorderRadius.circular(30),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    banner['tag']!,
-                                    style: const TextStyle(
-                                        color: Colors.white, fontSize: 11),
+                                    banner['tag']?.toString() ?? '',
+                                    style: TextStyle(
+                                        color: colorScheme.surface, fontSize: 11),
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    banner['highlight']!,
-                                    style: TextStyle(
-                                      color: Colors.amber.shade400,
+                                    banner['highlight']?.toString() ?? '',
+                                    style: const TextStyle(
+                                      color: Colors.amber,
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -391,10 +392,10 @@ class _BannerCarouselState extends State<BannerCarousel> {
                             SizedBox(
                               width: 170,
                               child: Text(
-                                banner['title']!,
+                                banner['title']?.toString() ?? '',
                                 style: textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black,
+                                  color: colorScheme.onSurface,
                                   fontSize: 15,
                                   height: 1.4,
                                 ),
@@ -411,11 +412,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
                         child: ClipRRect(
                           borderRadius: const BorderRadius.horizontal(
                               right: Radius.circular(20)),
-                          child: Image.asset(
-                            widget.getImage(banner),
-                            width: 160,
-                            fit: BoxFit.cover,
-                          ),
+                          child: _buildBannerImage(widget.getImage(banner)),
                         ),
                       ),
                     ],
@@ -440,7 +437,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
                   decoration: BoxDecoration(
                     color: _currentPage == i
                         ? Theme.of(context).colorScheme.primary
-                        : Colors.grey.shade300,
+                        : colorScheme.outline,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -449,5 +446,33 @@ class _BannerCarouselState extends State<BannerCarousel> {
           ),
       ],
     );
+  }
+
+  Widget _buildBannerImage(String imagePath) {
+    if (imagePath.startsWith('http') || imagePath.startsWith('https')) {
+      return CachedNetworkImage(
+        imageUrl: imagePath,
+        width: 160,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => Container(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        ),
+        errorWidget: (context, url, error) => Container(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: const Icon(Icons.error),
+        ),
+      );
+    } else {
+      return Image.asset(
+        imagePath,
+        width: 160,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: const Icon(Icons.broken_image),
+        ),
+      );
+    }
   }
 }

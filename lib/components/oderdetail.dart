@@ -130,19 +130,19 @@ class TextShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
         enabled: true,
         direction: ShimmerDirection.ltr,
-        baseColor: Colors.grey,
+        baseColor: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
         loop: 0,
         period: Duration(seconds: 1),
-        // baseColor: themegreyColor,
-        highlightColor: Color.fromARGB(255, 197, 197, 197),
+        highlightColor: isDark ? Colors.grey.shade600 : Colors.grey.shade100,
         child: Container(
           height: 12,
           width: 60,
           decoration: BoxDecoration(
-              color: Colors.grey, borderRadius: BorderRadius.circular(10)),
+              color: Colors.white, borderRadius: BorderRadius.circular(10)),
         ));
   }
 }

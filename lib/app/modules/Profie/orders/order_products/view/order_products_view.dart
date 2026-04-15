@@ -60,7 +60,7 @@ class OrderProductsView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: theme.surfaceVariant.withOpacity(0.35),
+              color: theme.surfaceContainerHighest.withValues(alpha: 0.35),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -87,7 +87,7 @@ class OrderProductsView extends StatelessWidget {
                   Text(
                     orderDate,
                     style: textTheme.bodySmall?.copyWith(
-                      color: theme.onSurface.withOpacity(0.4),
+                      color: theme.onSurface.withValues(alpha:0.4),
                       fontSize: 11,
                     ),
                   ),
@@ -97,12 +97,12 @@ class OrderProductsView extends StatelessWidget {
                   Row(
                     children: [
                       Icon(Icons.payment_outlined,
-                          size: 13, color: theme.onSurface.withOpacity(0.4)),
+                          size: 13, color: theme.onSurface.withValues(alpha:0.4)),
                       const SizedBox(width: 5),
                       Text(
                         paymentMethod,
                         style: textTheme.bodySmall?.copyWith(
-                          color: theme.onSurface.withOpacity(0.45),
+                          color: theme.onSurface.withValues(alpha:0.45),
                           fontSize: 11,
                         ),
                       ),
@@ -116,7 +116,7 @@ class OrderProductsView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(Icons.location_on_outlined,
-                          size: 13, color: theme.onSurface.withOpacity(0.4)),
+                          size: 13, color: theme.onSurface.withValues(alpha:0.4)),
                       const SizedBox(width: 5),
                       Expanded(
                         child: Text(
@@ -129,7 +129,7 @@ class OrderProductsView extends StatelessWidget {
                                   (e) => e != null && e.toString().isNotEmpty)
                               .join(', '),
                           style: textTheme.bodySmall?.copyWith(
-                            color: theme.onSurface.withOpacity(0.45),
+                            color: theme.onSurface.withValues(alpha:0.45),
                             fontSize: 11,
                           ),
                         ),
@@ -163,7 +163,7 @@ class OrderProductsView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: theme.surfaceVariant.withOpacity(0.35),
+              color: theme.surfaceContainerHighest.withValues(alpha: 0.35),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -184,7 +184,7 @@ class OrderProductsView extends StatelessWidget {
                     context,
                     'Discount'.tr,
                     '-$currency ${discount.toStringAsFixed(2)}',
-                    valueColor: Colors.green.shade600,
+                    valueColor: theme.primary,
                   ),
                 if (tax > 0)
                   _amountRow(
@@ -227,15 +227,15 @@ class OrderProductsView extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.amber.shade50.withOpacity(0.7),
+                color: theme.surfaceContainerHighest.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(10),
                 border:
-                Border.all(color: Colors.amber.shade200.withOpacity(0.6)),
+                Border.all(color: theme.outline.withValues(alpha: 0.3)),
               ),
               child: Text(
                 '📝 $notes',
                 style: textTheme.bodySmall?.copyWith(
-                  color: Colors.orange.shade900.withOpacity(0.8),
+                  color: theme.onSurface.withValues(alpha: 0.8),
                   fontSize: 12,
                 ),
               ),
@@ -259,12 +259,12 @@ class OrderProductsView extends StatelessWidget {
         children: [
           Text(label,
               style: textTheme.bodySmall?.copyWith(
-                color: theme.onSurface.withOpacity(0.5),
+                color: theme.onSurface.withValues(alpha:0.5),
                 fontSize: 12,
               )),
           Text(value,
               style: textTheme.bodySmall?.copyWith(
-                color: valueColor ?? theme.onSurface.withOpacity(0.65),
+                color: valueColor ?? theme.onSurface.withValues(alpha: 0.65),
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
               )),
@@ -275,28 +275,29 @@ class OrderProductsView extends StatelessWidget {
 
   Widget _statusChip(String status, BuildContext context) {
     Color color;
+    final cs = Theme.of(context).colorScheme;
     switch (status.toLowerCase()) {
       case 'delivered':
       case 'paid':
       case 'completed':
-        color = Colors.green;
+        color = cs.primary;
         break;
       case 'pending':
       case 'unpaid':
       case 'processing':
-        color = Colors.orange;
+        color = cs.secondary;
         break;
       case 'cancelled':
       case 'failed':
-        color = Colors.red;
+        color = cs.error;
         break;
       default:
-        color = Theme.of(context).colorScheme.onSurfaceVariant;
+        color = cs.onSurfaceVariant;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -417,10 +418,10 @@ class _ProductTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.outline.withOpacity(0.09)),
+        border: Border.all(color: theme.outline.withValues(alpha: 0.09)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -444,7 +445,7 @@ class _ProductTile extends StatelessWidget {
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
                   return Container(
-                    color: theme.surfaceVariant.withOpacity(0.4),
+                    color: theme.surfaceContainerHighest.withValues(alpha: 0.4),
                     child: Center(
                       child: SizedBox(
                         width: 20,
@@ -456,7 +457,7 @@ class _ProductTile extends StatelessWidget {
                               ? loadingProgress.cumulativeBytesLoaded /
                               loadingProgress.expectedTotalBytes!
                               : null,
-                          color: theme.primary.withOpacity(0.5),
+                          color: theme.primary.withValues(alpha: 0.5),
                         ),
                       ),
                     ),
@@ -494,7 +495,7 @@ class _ProductTile extends StatelessWidget {
                   Text(
                     variantLabel,
                     style: textTheme.bodySmall?.copyWith(
-                      color: theme.onSurface.withOpacity(0.45),
+                      color: theme.onSurface.withValues(alpha:0.45),
                       fontSize: 11,
                     ),
                   ),
@@ -503,7 +504,7 @@ class _ProductTile extends StatelessWidget {
                 Text(
                   '$currency $unitPrice × $qty',
                   style: textTheme.bodySmall?.copyWith(
-                    color: theme.onSurface.withOpacity(0.5),
+                    color: theme.onSurface.withValues(alpha:0.5),
                     fontSize: 11,
                   ),
                 ),
@@ -526,11 +527,11 @@ class _ProductTile extends StatelessWidget {
   }
 
   Widget _placeholder(ColorScheme theme) => Container(
-    color: theme.surfaceVariant.withOpacity(0.4),
+    color: theme.surfaceContainerHighest.withValues(alpha: 0.4),
     child: Center(
       child: Icon(
         Icons.shopping_bag_outlined,
-        color: theme.onSurfaceVariant.withOpacity(0.4),
+        color: theme.onSurfaceVariant.withValues(alpha: 0.4),
         size: 26,
       ),
     ),

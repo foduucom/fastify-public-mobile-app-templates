@@ -27,7 +27,7 @@ class ProductView extends GetView<ProductController> {
     return SafeArea(
       top: false, // Keep top false so the image slider goes beautifully behind the status bar
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         extendBodyBehindAppBar: true,
         appBar: _buildAppBar(context, controller, colorScheme),
         body: SingleChildScrollView(
@@ -47,9 +47,9 @@ class ProductView extends GetView<ProductController> {
               // ── Product Info Card ──
               Container(
                 transform: Matrix4.translationValues(0, -20, 0),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,7 +67,7 @@ class ProductView extends GetView<ProductController> {
                           controller.productDetials['name']?.toString() ?? '',
                           style: textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                            color: colorScheme.onSurface,
                             fontSize: 22,
                             height: 1.2, // ✅ Keep text tight
                           ),
@@ -135,7 +135,7 @@ class ProductView extends GetView<ProductController> {
                           children: [
                             Text(
                               '₹${hasSale ? priceInfo['salePrice'] : priceInfo['productPrice']}',
-                              style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 26),
+                              style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface, fontSize: 26),
                             ),
                             if (hasSale) ...[
                               const SizedBox(width: 10),
@@ -143,17 +143,17 @@ class ProductView extends GetView<ProductController> {
                                 padding: const EdgeInsets.only(bottom: 3.0),
                                 child: Text(
                                   '₹${priceInfo['productPrice']}',
-                                  style: textTheme.titleMedium?.copyWith(decoration: TextDecoration.lineThrough, color: Colors.grey.shade500),
+                                  style: textTheme.titleMedium?.copyWith(decoration: TextDecoration.lineThrough, color: colorScheme.onSurfaceVariant),
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Container(
                                 margin: const EdgeInsets.only(bottom: 2),
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(6)),
+                                decoration: BoxDecoration(color: colorScheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
                                 child: Text(
                                   priceInfo['discountRate'] ?? '',
-                                  style: textTheme.labelSmall?.copyWith(color: Colors.green.shade700, fontWeight: FontWeight.bold),
+                                  style: textTheme.labelSmall?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ],
@@ -174,9 +174,9 @@ class ProductView extends GetView<ProductController> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
+                            color: colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey.shade200),
+                            border: Border.all(color: colorScheme.outline),
                           ),
                           // ✅ FIXED: Strip out HTML margins that cause extra height
                           child: HtmlWidget(
@@ -212,8 +212,8 @@ class ProductView extends GetView<ProductController> {
                                   children: [
                                     Row(
                                       children: [
-                                        Text('Select ', style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: Colors.grey.shade600, fontSize: 14)),
-                                        Text(controller.labels[parentIndex], style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 14)),
+                                        Text('Select ', style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: colorScheme.onSurfaceVariant, fontSize: 14)),
+                                        Text(controller.labels[parentIndex], style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface, fontSize: 14)),
                                       ],
                                     ),
                                     const SizedBox(height: 8),
@@ -231,15 +231,15 @@ class ProductView extends GetView<ProductController> {
                                                 duration: const Duration(milliseconds: 200),
                                                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                                                 decoration: BoxDecoration(
-                                                  color: isSelected ? colorScheme.primary : Colors.white,
-                                                  border: Border.all(width: 1.5, color: isSelected ? colorScheme.primary : Colors.grey.shade300),
+                                                  color: isSelected ? colorScheme.primary : colorScheme.surface,
+                                                  border: Border.all(width: 1.5, color: isSelected ? colorScheme.primary : colorScheme.outline),
                                                   borderRadius: BorderRadius.circular(10),
                                                   boxShadow: isSelected ? [BoxShadow(color: colorScheme.primary.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 3))] : [],
                                                 ),
                                                 child: Text(
                                                   controller.labelVariant[parentIndex][index],
                                                   style: textTheme.labelLarge?.copyWith(
-                                                    color: isSelected ? Colors.white : Colors.black87,
+                                                    color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
                                                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                                                   ),
                                                 ),
@@ -265,7 +265,7 @@ class ProductView extends GetView<ProductController> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Quantity', style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 15)),
+                          Text('Quantity', style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface, fontSize: 15)),
                           const SizedBox(height: 12),
                           Row(
                             children: [
@@ -297,15 +297,15 @@ class ProductView extends GetView<ProductController> {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Product Details', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.black)),
+                            Text('Product Details', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
                             const SizedBox(height: 10),
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: Colors.grey.shade50,
+                                color: colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey.shade200),
+                                border: Border.all(color: colorScheme.outline),
                               ),
                               // ✅ FIXED: Enforced strict zero margin and padding styles on the body and paragraphs
                               child: Html(
@@ -362,8 +362,8 @@ class ProductView extends GetView<ProductController> {
         onTap: () => Get.back(),
         child: Container(
           margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 2))]),
-          child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black, size: 18),
+          decoration: BoxDecoration(color: colorScheme.surface, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 8, offset: const Offset(0, 2))]),
+          child: Icon(Icons.arrow_back_ios_new_rounded, color: colorScheme.onSurface, size: 18),
         ),
       ),
     );
@@ -402,7 +402,7 @@ class _ProductImageGalleryState extends State<_ProductImageGallery> {
       width: double.infinity,
       child: Stack(
         children: [
-          Container(height: galleryHeight, color: Colors.grey.shade100),
+          Container(height: galleryHeight, color: colorScheme.surfaceContainerHighest),
           if (widget.isLoading)
             _buildShimmer(galleryHeight)
           else if (widget.images.isEmpty)
@@ -419,7 +419,7 @@ class _ProductImageGalleryState extends State<_ProductImageGallery> {
                     imageUrl: widget.images[index],
                     fit: BoxFit.contain,
                     placeholder: (_, __) => _buildShimmer(galleryHeight),
-                    errorWidget: (_, __, ___) => const Center(child: Icon(Icons.image_not_supported, size: 50, color: Colors.grey)),
+                    errorWidget: (ctx, __, ___) => Center(child: Icon(Icons.image_not_supported, size: 50, color: Theme.of(ctx).colorScheme.outline)),
                   ),
                 );
               },
@@ -436,7 +436,7 @@ class _ProductImageGalleryState extends State<_ProductImageGallery> {
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     width: widget.currentIndex.value == i ? 20 : 8,
                     height: 8,
-                    decoration: BoxDecoration(color: widget.currentIndex.value == i ? colorScheme.primary : Colors.grey.shade400, borderRadius: BorderRadius.circular(4)),
+                    decoration: BoxDecoration(color: widget.currentIndex.value == i ? colorScheme.primary : colorScheme.outline, borderRadius: BorderRadius.circular(4)),
                   ),
                 ),
               )),
@@ -447,7 +447,7 @@ class _ProductImageGalleryState extends State<_ProductImageGallery> {
   }
 
   Widget _buildShimmer(double height) => Container(height: height, child: const Center(child: CircularProgressIndicator()));
-  Widget _buildPlaceholder(double height) => SizedBox(height: height, child: Center(child: Icon(Icons.image_outlined, size: 64, color: Colors.grey.shade400)));
+  Widget _buildPlaceholder(double height) => SizedBox(height: height, child: Center(child: Icon(Icons.image_outlined, size: 64, color: Theme.of(context).colorScheme.outline)));
 }
 
 class _QtyButton extends StatelessWidget {
@@ -465,11 +465,11 @@ class _QtyButton extends StatelessWidget {
       child: Container(
         width: 46, height: 46,
         decoration: BoxDecoration(
-          color: filled ? colorScheme.primary : Colors.white,
+          color: filled ? colorScheme.primary : colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: filled ? colorScheme.primary : Colors.grey.shade300, width: 1.5),
+          border: Border.all(color: filled ? colorScheme.primary : colorScheme.outline, width: 1.5),
         ),
-        child: Icon(icon, size: 20, color: filled ? Colors.white : Colors.black87),
+        child: Icon(icon, size: 20, color: filled ? colorScheme.onPrimary : colorScheme.onSurface),
       ),
     );
   }
@@ -488,7 +488,7 @@ class OrderButton extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-      decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.grey.shade200, blurRadius: 20, offset: const Offset(0, -6))]),
+      decoration: BoxDecoration(color: colorScheme.surface, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 20, offset: const Offset(0, -6))]),
       child: SafeArea(
         top: false,
         child: Row(
@@ -497,8 +497,8 @@ class OrderButton extends StatelessWidget {
               onTap: wishListTap,
               child: Container(
                 width: 56, height: 56,
-                decoration: BoxDecoration(color: Colors.pink.shade50, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.pink.shade100)),
-                child: Center(child: Icon(Icons.favorite_border_rounded, color: Colors.pink.shade400, size: 24)),
+                decoration: BoxDecoration(color: colorScheme.errorContainer, borderRadius: BorderRadius.circular(14), border: Border.all(color: colorScheme.error.withValues(alpha: 0.3))),
+                child: Center(child: Icon(Icons.favorite_border_rounded, color: colorScheme.error, size: 24)),
               ),
             ),
             const SizedBox(width: 12),
@@ -511,9 +511,9 @@ class OrderButton extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 22),
+                      Icon(Icons.shopping_cart_outlined, color: colorScheme.onPrimary, size: 22),
                       const SizedBox(width: 10),
-                      Text(btntext, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text(btntext, style: TextStyle(color: colorScheme.onPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
                     ],
                   ),
                 ),

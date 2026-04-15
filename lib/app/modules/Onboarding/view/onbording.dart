@@ -30,7 +30,7 @@ class onbording extends GetView<IntroController> {
               fit: StackFit.expand,
               children: [
                 Image.asset(_bgImages[index], fit: BoxFit.cover),
-                Container(color: Colors.black.withOpacity(0.35)),
+                Container(color: Colors.black.withValues(alpha: 0.35)),
               ],
             ),
           ),
@@ -105,11 +105,11 @@ class _OnboardingCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -124,7 +124,7 @@ class _OnboardingCard extends StatelessWidget {
             introPage[index]["title"].toString(),
             textAlign: TextAlign.center,
             style: textTheme.headlineMedium?.copyWith(
-              color: Colors.black,
+              color: colorScheme.onSurface,
               fontWeight: FontWeight.bold,
               fontSize: 24,
               height: 1.3,
@@ -137,7 +137,7 @@ class _OnboardingCard extends StatelessWidget {
             introPage[index]["descrition"].toString(),
             textAlign: TextAlign.center,
             style: textTheme.bodyMedium?.copyWith(
-              color: Colors.grey.shade500,
+              color: colorScheme.onSurfaceVariant,
               fontSize: 15,
               height: 1.5,
             ),
@@ -157,7 +157,7 @@ class _OnboardingCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isActive
                       ? colorScheme.primary
-                      : Colors.grey.shade300,
+                      : colorScheme.outline,
                   borderRadius: BorderRadius.circular(20),
                 ),
               );
@@ -202,7 +202,7 @@ class _OnboardingCard extends StatelessWidget {
                   text: TextSpan(
                     text: "Don't have an account? ",
                     style: textTheme.bodyMedium
-                        ?.copyWith(color: Colors.grey.shade500),
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
                     children: [
                       TextSpan(
                         text: 'Register',
@@ -227,7 +227,7 @@ class _OnboardingCard extends StatelessWidget {
                   child: Text(
                     'Skip',
                     style: textTheme.bodyLarge?.copyWith(
-                      color: Colors.grey.shade500,
+                      color: colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -242,7 +242,7 @@ class _OnboardingCard extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: colorScheme.primary.withOpacity(0.3),
+                          color: colorScheme.primary.withValues(alpha: 0.3),
                           blurRadius: 15,
                           offset: const Offset(0, 8),
                         ),

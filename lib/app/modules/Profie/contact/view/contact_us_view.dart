@@ -15,7 +15,7 @@ class ContactUsView extends GetView<ContactUsController> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Help & Contact', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
@@ -29,7 +29,7 @@ class ContactUsView extends GetView<ContactUsController> {
             padding: const EdgeInsets.symmetric(vertical: 20),
             child: Column(
               children: [
-                Icon(Icons.support_agent_rounded, size: 80, color: colorScheme.primary.withOpacity(0.8)),
+                Icon(Icons.support_agent_rounded, size: 80, color: colorScheme.primary.withValues(alpha:0.8)),
                 const SizedBox(height: 16),
                 Text(
                   "How can we help you?",
@@ -98,9 +98,9 @@ class ContactUsView extends GetView<ContactUsController> {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
+        border: Border.all(color: colorScheme.outline.withValues(alpha:0.3)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2)),
         ],
       ),
       child: ListTile(
@@ -108,7 +108,7 @@ class ContactUsView extends GetView<ContactUsController> {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: colorScheme.primary.withOpacity(0.1),
+            color: colorScheme.primary.withValues(alpha:0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: colorScheme.primary),
@@ -228,9 +228,9 @@ class ContactUsView extends GetView<ContactUsController> {
         hintText: hint,
         prefixIcon: maxLines == 1 ? Icon(icon, color: colorScheme.onSurfaceVariant) : null,
         filled: true,
-        fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.5))),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.5))),
+        fillColor: colorScheme.surfaceContainerHighest.withValues(alpha:0.3),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.outline.withValues(alpha:0.5))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.outline.withValues(alpha:0.5))),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.primary, width: 1.5)),
       ),
     );

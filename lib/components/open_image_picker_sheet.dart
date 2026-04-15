@@ -56,7 +56,7 @@ class FoduuButtonWithIcon extends StatelessWidget {
           child: Material(
             // color: themePrimaryColor, // Button color
             child: InkWell(
-              splashColor: Colors.red, // Splash color
+              splashColor: Theme.of(context).colorScheme.error.withValues(alpha: 0.3),
               onTap: onPressed,
               child: SizedBox(
                 width: 70,
@@ -64,7 +64,7 @@ class FoduuButtonWithIcon extends StatelessWidget {
                 child: Icon(
                   icon,
                   size: 35,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onPrimary,
                 ),
               ),
             ),

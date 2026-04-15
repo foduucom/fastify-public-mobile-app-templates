@@ -24,8 +24,8 @@ class CustomPageView extends GetView<CustomPageController> {
                 width: 10,
                 decoration: BoxDecoration(
                   color: SocketHelper().isConnectedObs.value
-                      ? Colors.green
-                      : Colors.red,
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.error,
                   shape: BoxShape.circle,
                 ),
               ),

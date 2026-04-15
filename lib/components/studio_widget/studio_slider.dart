@@ -257,7 +257,7 @@ Widget _indicator(bool isActive) {
     margin: const EdgeInsets.symmetric(horizontal: 4.0),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(50),
-      color: isActive ? Theme.of(Get.context!).primaryColor : Colors.grey,
+      color: isActive ? Theme.of(Get.context!).colorScheme.primary : Theme.of(Get.context!).colorScheme.outline,
     ),
   );
 }

@@ -412,23 +412,28 @@ class ShopView extends GetView<ShopController> {
   }
 
   Widget _buildGridShimmer() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey.shade300,
-      highlightColor: Colors.grey.shade100,
-      child: GridView.builder(
-        padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 0.62,
+    return Builder(builder: (context) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final cs = Theme.of(context).colorScheme;
+      return Shimmer.fromColors(
+        baseColor: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+        highlightColor: isDark ? Colors.grey.shade600 : Colors.grey.shade100,
+        child: GridView.builder(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 0.62,
+          ),
+          itemCount: 6,
+          itemBuilder: (_, __) => Container(
+              decoration: BoxDecoration(
+                  color: cs.surface,
+                  borderRadius: BorderRadius.circular(16))),
         ),
-        itemCount: 6,
-        itemBuilder: (_, __) => Container(
-            decoration: BoxDecoration(
-                color: Colors.white, borderRadius: BorderRadius.circular(16))),
-      ),
-    );
+      );
+    });
   }
 }
 
@@ -530,12 +535,12 @@ class _ProductGridCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                            color: Colors.red.shade600,
+                            color: colorScheme.error,
                             borderRadius: BorderRadius.circular(8)),
                         child: Text(
                             "${((price - salePrice) / price * 100).round()}% OFF",
-                            style: const TextStyle(
-                                color: Colors.white,
+                            style: TextStyle(
+                                color: colorScheme.onError,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold)),
                       ),

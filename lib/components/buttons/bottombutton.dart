@@ -58,7 +58,7 @@ class _bottomButtonState extends State<bottomButton> {
                         //   body:
                         Container(
                           decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
+                              color: Theme.of(context).colorScheme.surfaceContainerHighest,
                               borderRadius: BorderRadius.vertical(
                                   top: Radius.circular(15))),
                           padding: pageSurroundingPadding,
@@ -145,8 +145,8 @@ class _bottomButtonState extends State<bottomButton> {
                           padding: MaterialStateProperty.all(
                               EdgeInsets.symmetric(horizontal: 5))),
                       child: Text(widget.buttonText.toUpperCase(),
-                          style: const TextStyle(
-                              color: Colors.white,
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                               fontFamily: 'Lato')),

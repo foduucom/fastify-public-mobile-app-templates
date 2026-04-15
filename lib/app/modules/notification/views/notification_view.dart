@@ -106,12 +106,12 @@ class NotificationList extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 15),
           child: Container(
             decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 238, 238, 238),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(10.0),
               // border: Border.all(color: Colors.blue),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.04),
                   blurRadius: 1.0,
                 ),
               ],
@@ -179,15 +179,16 @@ class NotificationListShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-        baseColor: Colors.grey,
-        highlightColor: Colors.grey,
+        baseColor: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+        highlightColor: isDark ? Colors.grey.shade600 : Colors.grey.shade100,
         child: Container(
             margin: const EdgeInsets.only(bottom: 10),
             padding: pageSurroundingPadding,
             width: Get.width * 0.4,
             decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
+                border: Border.all(color: Colors.grey.shade300),
                 borderRadius: BorderRadius.circular(12)),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -197,7 +198,7 @@ class NotificationListShimmer extends StatelessWidget {
                     height: 50,
                     width: 50,
                     decoration: BoxDecoration(
-                        color: Colors.grey,
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(50))),
                 const SizedBox(
                   height: 10,
@@ -210,7 +211,7 @@ class NotificationListShimmer extends StatelessWidget {
                         height: 15,
                         width: Get.width * 0.5,
                         decoration: BoxDecoration(
-                            color: Colors.grey,
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(30))),
                     const SizedBox(
                       height: 5,
@@ -220,7 +221,7 @@ class NotificationListShimmer extends StatelessWidget {
                         width: 90,
                         alignment: Alignment.topLeft,
                         decoration: BoxDecoration(
-                            color: Colors.grey,
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(30))),
                     const SizedBox(
                       height: 7,
@@ -230,7 +231,7 @@ class NotificationListShimmer extends StatelessWidget {
                         width: Get.width * 0.6,
                         alignment: Alignment.topLeft,
                         decoration: BoxDecoration(
-                            color: Colors.grey,
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(30))),
                   ],
                 ),

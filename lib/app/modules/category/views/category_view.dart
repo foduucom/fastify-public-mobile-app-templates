@@ -17,7 +17,7 @@ class CategoryView extends GetView<CategoryController> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       // ── AppBar ──────────────────────────────────────────────────────
       appBar: CustomAppBar2(title: 'Category'),
@@ -43,7 +43,7 @@ class CategoryView extends GetView<CategoryController> {
                 'Categories',
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF111111),
+                  color: colorScheme.onSurface,
                   fontSize: 16,
                 ),
               ),
@@ -64,7 +64,7 @@ class CategoryView extends GetView<CategoryController> {
                     'Best Selling',
                     style: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: colorScheme.onSurface,
                       fontSize: 18,
                     ),
                   ),
@@ -85,7 +85,7 @@ class CategoryView extends GetView<CategoryController> {
               // ── Products ────────────────────────────────────────────
               Obx(() {
                 if (controller.isLoading.value && controller.products.isEmpty) {
-                  return _buildShimmerGrid();
+                  return _buildShimmerGrid(context);
                 }
                 if (controller.products.isEmpty) {
                   return Center(
@@ -93,7 +93,7 @@ class CategoryView extends GetView<CategoryController> {
                       padding: const EdgeInsets.symmetric(vertical: 40),
                       child: Text('No products found',
                           style: textTheme.bodyLarge
-                              ?.copyWith(color: Colors.grey.shade400)),
+                              ?.copyWith(color: colorScheme.onSurfaceVariant)),
                     ),
                   );
                 }
@@ -129,10 +129,12 @@ class CategoryView extends GetView<CategoryController> {
   }
 
   // ── Shimmer skeleton ────────────────────────────────────────────────
-  Widget _buildShimmerGrid() {
+  Widget _buildShimmerGrid(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
     return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.white,
+      baseColor: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+      highlightColor: isDark ? Colors.grey.shade600 : Colors.grey.shade100,
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -145,7 +147,7 @@ class CategoryView extends GetView<CategoryController> {
         itemCount: 4,
         itemBuilder: (_, __) => Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
           ),
         ),
@@ -215,7 +217,7 @@ class _CategoriesGrid extends StatelessWidget {
                   shape: BoxShape.circle,
                   // border: Border.all(
                   //     color: Colors.grey.shade200, width: 1.5),
-                  color: Colors.white,
+                  color: colorScheme.surface,
                 ),
                 padding: const EdgeInsets.all(14),
                 child: Image.asset(
@@ -228,7 +230,7 @@ class _CategoriesGrid extends StatelessWidget {
               Text(
                 cat['name']!,
                 style: textTheme.bodySmall?.copyWith(
-                  color: Color(0xFF66707A),
+                  color: colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
@@ -281,9 +283,9 @@ class _ProductCard extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: colorScheme.outline),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,17 +305,17 @@ class _ProductCard extends StatelessWidget {
                               imageUrl: imageUrl,
                               fit: BoxFit.cover,
                               placeholder: (_, __) =>
-                                  Container(color: Colors.grey.shade100),
+                                  Container(color: colorScheme.surfaceContainerHighest),
                               errorWidget: (_, __, ___) => Container(
-                                color: Colors.grey.shade100,
+                                color: colorScheme.surfaceContainerHighest,
                                 child: Icon(Icons.image_not_supported_outlined,
-                                    color: Colors.grey.shade400),
+                                    color: colorScheme.onSurfaceVariant),
                               ),
                             )
                           : Container(
-                              color: Colors.grey.shade100,
+                              color: colorScheme.surfaceContainerHighest,
                               child: Icon(Icons.image_not_supported_outlined,
-                                  color: Colors.grey.shade400),
+                                  color: colorScheme.onSurfaceVariant),
                             ),
                     ),
                   ),
@@ -327,13 +329,13 @@ class _ProductCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.red,
+                          color: colorScheme.error,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           '$discountPct%',
-                          style: const TextStyle(
-                              color: Colors.white,
+                          style: TextStyle(
+                              color: colorScheme.onError,
                               fontSize: 11,
                               fontWeight: FontWeight.bold),
                         ),
@@ -356,7 +358,7 @@ class _ProductCard extends StatelessWidget {
                       name,
                       style: textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: colorScheme.onSurface,
                         fontSize: 13,
                       ),
                       maxLines: 1,
@@ -365,7 +367,7 @@ class _ProductCard extends StatelessWidget {
                     Text(
                       'For 1Kg',
                       style: textTheme.bodySmall
-                          ?.copyWith(color: Colors.grey.shade500, fontSize: 11),
+                          ?.copyWith(color: colorScheme.onSurfaceVariant, fontSize: 11),
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -377,7 +379,7 @@ class _ProductCard extends StatelessWidget {
                               '\$${displayPrice.toStringAsFixed(2)}',
                               style: textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                                color: colorScheme.onSurface,
                                 fontSize: 13,
                               ),
                             ),
@@ -386,8 +388,8 @@ class _ProductCard extends StatelessWidget {
                                 '\$${price.toStringAsFixed(2)}',
                                 style: textTheme.bodySmall?.copyWith(
                                   decoration: TextDecoration.lineThrough,
-                                  color: Colors.red.shade300,
-                                  decorationColor: Colors.red.shade300,
+                                  color: colorScheme.error,
+                                  decorationColor: colorScheme.error,
                                   fontSize: 11,
                                 ),
                               ),

@@ -19,14 +19,14 @@ class SecurityView extends GetView<SecurityController> {
     final textTheme   = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar:  CustomAppBar(title: 'Security'),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: Colors.grey.shade400),
+            color: colorScheme.surface,
+            border: Border.all(color: colorScheme.outline),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -101,7 +101,7 @@ class _SecurityToggleTile extends StatelessWidget {
               Text(
                 label,
                 style: textTheme.bodyLarge?.copyWith(
-                  color: Colors.black87,
+                  color: colorScheme.onSurface,
                   fontWeight: FontWeight.w500,
                   fontSize: 16,
                 ),
@@ -109,10 +109,10 @@ class _SecurityToggleTile extends StatelessWidget {
               Switch(
                 value: value,
                 onChanged: onChanged,
-                activeColor: Colors.white,
+                activeColor: colorScheme.onPrimary,
                 activeTrackColor: colorScheme.primary,
-                inactiveThumbColor: Colors.white,
-                inactiveTrackColor: Colors.grey.shade300,
+                inactiveThumbColor: colorScheme.surface,
+                inactiveTrackColor: colorScheme.outline,
               ),
             ],
           ),
@@ -121,7 +121,7 @@ class _SecurityToggleTile extends StatelessWidget {
           Divider(
             height: 1,
             thickness: 1,
-            color: Colors.grey.shade200,
+            color: colorScheme.outline,
             indent: 20,
             endIndent: 20,
           ),

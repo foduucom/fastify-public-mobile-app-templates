@@ -10,13 +10,14 @@ class CategoryShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-        baseColor: Colors.grey[300]!,
-        highlightColor: Colors.grey[100]!,
+        baseColor: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+        highlightColor: isDark ? Colors.grey.shade600 : Colors.grey.shade100,
         child: Container(
             padding: const EdgeInsets.symmetric(vertical: 10),
             decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey, width: 1.0),
+                border: Border.all(color: Colors.grey.shade300, width: 1.0),
                 borderRadius: BorderRadius.circular(15.0)),
             child: index % 2 == 0
                 ? Row(

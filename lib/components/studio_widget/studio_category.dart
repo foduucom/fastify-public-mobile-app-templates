@@ -56,7 +56,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
       );
     } else {
       return SizedBox(
-        height: style == 'circular' ? 115 : 140, // Adjust height based on style
+        height: style == 'circular' ? 90 : 140, // Adjust height based on style
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(
             dragDevices: {
@@ -132,35 +132,44 @@ class _TopCategoryHomeState extends State<CategoryHome>
   }
 
   Widget _buildCircularItem(dynamic category, bool isGrid) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(50),
-          child: Container(
-            width: 70,
-            height: 65,
-            color: Theme.of(context).colorScheme.surfaceVariant,
-            child: CachedNetworkImage(
-              fit: BoxFit.cover,
-              imageUrl: HelperFunctions().getImage(category['featured_image']),
-              errorWidget: (_, __, ___) => const Icon(Icons.category_outlined),
-              progressIndicatorBuilder: (_, __, ___) =>
-                  HelperFunctions().loadingIndicator(),
+        Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: colorScheme.surfaceContainerHighest,
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.4),
             ),
           ),
-        ),
-        const SizedBox(height: 4),
-        SizedBox(
-          width: isGrid ? null : 80,
-          child: Text(
-            category['name'].toString(),
-            style: Theme.of(context).textTheme.bodyMedium,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          padding: const EdgeInsets.all(12),
+          child: CachedNetworkImage(
+            imageUrl: HelperFunctions().getImage(category['featured_image']),
+            fit: BoxFit.contain,
+            errorWidget: (_, __, ___) =>
+                const Icon(Icons.category_outlined, size: 24),
+            progressIndicatorBuilder: (_, __, ___) =>
+                HelperFunctions().loadingIndicator(),
           ),
-        )
+        ),
+        const SizedBox(height: 6),
+        Text(
+          category['name'].toString(),
+          style: textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
       ],
     );
   }
@@ -176,7 +185,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: colorScheme.outline.withOpacity(0.1),
+            color: colorScheme.outline.withValues(alpha: 0.1),
           ),
         ),
         child: Row(
@@ -184,7 +193,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
             Container(
               width: 100,
               decoration: BoxDecoration(
-                color: colorScheme.surfaceVariant,
+                color: colorScheme.surfaceContainerHighest,
                 borderRadius: const BorderRadius.horizontal(
                   left: Radius.circular(10),
                 ),
@@ -245,7 +254,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
+          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.1)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,7 +299,7 @@ class CategoryHomeShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-        baseColor: Theme.of(context).colorScheme.surfaceVariant,
+        baseColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         highlightColor: Theme.of(context).colorScheme.surface,
         child: SizedBox(
           height: 100,
@@ -303,7 +312,7 @@ class CategoryHomeShimmer extends StatelessWidget {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(50)),
                     width: 70,
                     height: 70,
@@ -311,7 +320,7 @@ class CategoryHomeShimmer extends StatelessWidget {
                   const SizedBox(height: 5),
                   Container(
                     decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(50)),
                     width: 40,
                     height: 10,

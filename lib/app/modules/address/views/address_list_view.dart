@@ -81,11 +81,11 @@ class AddressListView extends GetView<AddressListController> {
                                             ? Theme.of(context)
                                             .colorScheme
                                             .primary
-                                            .withOpacity(0.05)
+                                            .withValues(alpha: 0.05)
                                             : Theme.of(context)
                                             .colorScheme
                                             .surfaceVariant
-                                            .withOpacity(0.25),
+                                            .withValues(alpha: 0.25),
                                         borderRadius:
                                         BorderRadius.circular(3),
                                         border: Border.all(
@@ -239,6 +239,7 @@ class AddressListView extends GetView<AddressListController> {
                                                   Row(
                                                     children: [
                                                       _buildActionButton(
+                                                        context,
                                                         "Edit",
                                                             () => Get.toNamed(
                                                           Routes.ADDRESS_FORM,
@@ -254,6 +255,7 @@ class AddressListView extends GetView<AddressListController> {
                                                       ),
                                                       const SizedBox(width: 15),
                                                       _buildActionButton(
+                                                        context,
                                                         "Remove",
                                                             () => _showDeleteDialog(
                                                           context,
@@ -331,7 +333,7 @@ class AddressListView extends GetView<AddressListController> {
                                                 color: Theme.of(context)
                                                     .colorScheme
                                                     .secondary
-                                                    .withOpacity(0.1),
+                                                    .withValues(alpha: 0.1),
                                                 borderRadius:
                                                 BorderRadius.circular(3),
                                                 border: Border.all(
@@ -421,14 +423,14 @@ class AddressListView extends GetView<AddressListController> {
     );
   }
 
-  Widget _buildActionButton(String label, VoidCallback onTap,
+  Widget _buildActionButton(BuildContext context, String label, VoidCallback onTap,
       {Color? color}) {
     return InkWell(
       onTap: onTap,
       child: Text(
         label.toUpperCase(),
         style: TextStyle(
-          color: color ?? Colors.black87,
+          color: color ?? Theme.of(context).colorScheme.onSurface,
           fontWeight: FontWeight.w600,
           fontSize: 13,
           letterSpacing: 0.5,
@@ -446,16 +448,16 @@ class AddressListView extends GetView<AddressListController> {
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text('Cancel',
-                style: TextStyle(color: Colors.grey)),
+            child: Text('Cancel',
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
           ),
           TextButton(
             onPressed: () {
               Get.back();
               controller.removeAddress(id, index);
             },
-            child: const Text('Remove',
-                style: TextStyle(color: Colors.red)),
+            child: Text('Remove',
+                style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
         ],
       ),

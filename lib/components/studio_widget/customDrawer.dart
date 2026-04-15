@@ -29,7 +29,7 @@ class CustomDrawer extends GetView<HomepageController> {
                 children: [
                   if (!isLoggedIn)
                     DrawerTile(
-                      icon: const Icon(Icons.login, color: Colors.blue),
+                      icon: Builder(builder: (ctx) => Icon(Icons.login, color: Theme.of(ctx).colorScheme.secondary)),
                       title: 'Login',
                       onTap: () {
                         Get.back();
@@ -62,11 +62,11 @@ class CustomDrawer extends GetView<HomepageController> {
         isLoggedIn ? (userData?['email'] ?? '') : 'Login to your account',
       ),
       currentAccountPicture: CircleAvatar(
-        backgroundColor: Colors.white,
+        backgroundColor: Get.theme.colorScheme.surface,
         child: Icon(
           Icons.person,
           size: 40,
-          color: Colors.grey.shade400,
+          color: Get.theme.colorScheme.onSurfaceVariant,
         ),
       ),
       decoration: BoxDecoration(

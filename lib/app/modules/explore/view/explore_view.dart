@@ -131,7 +131,6 @@ class ExploreView extends GetView<ExploreController> {
     final textTheme   = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: const CustomAppBar2(
         title: 'Explore',
         showBackButton: false,
@@ -163,30 +162,30 @@ class ExploreView extends GetView<ExploreController> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                      color: colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(30),
                     ),
                     child: Row(
                       children: [
                         Icon(Icons.search,
-                            color: Colors.grey.shade400, size: 20),
+                            color: colorScheme.onSurfaceVariant, size: 20),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             'Search...',
                             style: textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey.shade400,
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ),
                         Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(Icons.tune,
-                              color: Colors.grey.shade600, size: 18),
+                              color: colorScheme.onSurfaceVariant, size: 18),
                         ),
                       ],
                     ),
@@ -247,7 +246,7 @@ class ExploreView extends GetView<ExploreController> {
                               color:
                               controller.currentBannerIndex.value == i
                                   ? colorScheme.primary
-                                  : Colors.grey.shade300,
+                                  : colorScheme.outline,
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
@@ -326,7 +325,7 @@ class _SectionHeader extends StatelessWidget {
         Text(
           title,
           style: textTheme.titleLarge?.copyWith(
-            color: Colors.black,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -336,7 +335,7 @@ class _SectionHeader extends StatelessWidget {
           child: Text(
             'See All',
             style: textTheme.bodyMedium?.copyWith(
-              color: seeAllColor ?? Colors.grey.shade500,
+              color: seeAllColor ?? colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -364,7 +363,7 @@ class _NearbyStoreCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: Colors.grey.shade200,
+        color: colorScheme.surfaceContainerHighest,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
@@ -375,7 +374,7 @@ class _NearbyStoreCard extends StatelessWidget {
                 imageUrl: store['image'] as String? ?? '',
                 fit: BoxFit.cover,
                 errorWidget: (_, __, ___) =>
-                    Container(color: Colors.grey.shade300),
+                    Container(color: colorScheme.surfaceContainerHighest),
               ),
             ),
 
@@ -502,8 +501,8 @@ class _OtherStoreTile extends StatelessWidget {
                 errorWidget: (_, __, ___) => Container(
                   width: 70,
                   height: 70,
-                  color: Colors.grey.shade200,
-                  child: Icon(Icons.store, color: Colors.grey.shade400),
+                  color: colorScheme.surfaceContainerHighest,
+                  child: Icon(Icons.store, color: colorScheme.onSurfaceVariant),
                 ),
               ),
             ),
@@ -516,7 +515,7 @@ class _OtherStoreTile extends StatelessWidget {
                     Text(
                       'PROMO',
                       style: textTheme.labelSmall?.copyWith(
-                        color: Colors.red,
+                        color: colorScheme.error,
                         fontWeight: FontWeight.bold,
                         fontSize: 11,
                         letterSpacing: 0.5,
@@ -526,7 +525,7 @@ class _OtherStoreTile extends StatelessWidget {
                   Text(
                     store['name'] as String? ?? '',
                     style: textTheme.titleMedium?.copyWith(
-                      color: Colors.black,
+                      color: colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -535,25 +534,25 @@ class _OtherStoreTile extends StatelessWidget {
                     children: [
                       Text(store['time'] as String? ?? '',
                           style: textTheme.bodySmall?.copyWith(
-                              color: Colors.grey.shade500)),
+                              color: colorScheme.onSurfaceVariant)),
                       const SizedBox(width: 10),
                       Text(store['distance'] as String? ?? '',
                           style: textTheme.bodySmall?.copyWith(
-                              color: Colors.grey.shade500)),
+                              color: colorScheme.onSurfaceVariant)),
                       const SizedBox(width: 10),
                       const Icon(Icons.star,
                           color: Colors.amber, size: 14),
                       const SizedBox(width: 3),
                       Text(store['rating'] as String? ?? '',
                           style: textTheme.bodySmall?.copyWith(
-                              color: Colors.grey.shade500)),
+                              color: colorScheme.onSurfaceVariant)),
                     ],
                   ),
                 ],
               ),
             ),
             Icon(Icons.chevron_right,
-                color: Colors.grey.shade400, size: 22),
+                color: colorScheme.onSurfaceVariant, size: 22),
           ],
         ),
       ),

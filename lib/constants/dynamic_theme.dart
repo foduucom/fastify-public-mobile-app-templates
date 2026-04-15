@@ -216,18 +216,27 @@ class AppThemeColors {
     }
   }
 
-  /// Convert to JSON for storage (only store core colors)
+  /// Convert to JSON for storage (all colors)
   Map<String, dynamic> toJson() {
     return {
       'primary': _colorToHex(primary),
+      'onPrimary': _colorToHex(onPrimary),
       'secondary': _colorToHex(secondary),
+      'onSecondary': _colorToHex(onSecondary),
       'background': _colorToHex(background),
+      'onBackground': _colorToHex(onBackground),
+      'surface': _colorToHex(surface),
+      'onSurface': _colorToHex(onSurface),
       'error': _colorToHex(error),
+      'onError': _colorToHex(onError),
+      'outline': _colorToHex(outline),
+      'surfaceVariant': _colorToHex(surfaceVariant),
+      'onSurfaceVariant': _colorToHex(onSurfaceVariant),
     };
   }
 
   static String _colorToHex(Color color) {
-    return '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
+    return '#${color.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
   }
 }
 
@@ -286,7 +295,7 @@ class DynamicThemeManager {
   /// Expected format: { "light": { "primary": "#xxx", "secondary": "#xxx", "background": "#xxx", "error": "#xxx" }, "dark": { ... } }
   void updateFromApi(Map<String, dynamic> appThemeColor) {
     debugPrint('🌐 Updating themes from API');
-    print('swaponil appThemeColor update working $appThemeColor');
+    debugPrint('appThemeColor update working $appThemeColor');
 
     // Parse light theme
     if (appThemeColor.containsKey('light') && appThemeColor['light'] != null) {
@@ -368,11 +377,14 @@ class DynamicThemeManager {
         onSecondary: colors.onSecondary,
         surface: colors.surface,
         onSurface: colors.onSurface,
+        // ignore: deprecated_member_use
         background: colors.background,
+        // ignore: deprecated_member_use
         onBackground: colors.onBackground,
         error: colors.error,
         onError: colors.onError,
         outline: colors.outline,
+        // ignore: deprecated_member_use
         surfaceVariant: colors.surfaceVariant,
         onSurfaceVariant: colors.onSurfaceVariant,
       ),
@@ -380,7 +392,7 @@ class DynamicThemeManager {
       primaryColor: colors.primary,
       cardColor: colors.surface,
       dividerTheme: DividerThemeData(
-          color: colors.surfaceVariant.withOpacity(0.5), thickness: 8),
+          color: colors.surfaceVariant.withValues(alpha: 0.5), thickness: 8),
       iconTheme: IconThemeData(color: colors.onBackground),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -494,7 +506,7 @@ class DynamicThemeManager {
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return colors.primary.withOpacity(0.5);
+            return colors.primary.withValues(alpha: 0.5);
           }
           return colors.onSurfaceVariant;
         }),
@@ -644,7 +656,9 @@ extension ThemeColorExtension on BuildContext {
   Color get primaryColor => colorScheme.primary;
   Color get onPrimaryColor => colorScheme.onPrimary;
   Color get secondaryColor => colorScheme.secondary;
+  // ignore: deprecated_member_use
   Color get backgroundColor => colorScheme.background;
+  // ignore: deprecated_member_use
   Color get onBackgroundColor => colorScheme.onBackground;
   Color get surfaceColor => colorScheme.surface;
   Color get onSurfaceColor => colorScheme.onSurface;

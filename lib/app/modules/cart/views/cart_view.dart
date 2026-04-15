@@ -21,7 +21,7 @@ class CartView extends GetView<CartController> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -35,7 +35,6 @@ class CartView extends GetView<CartController> {
     final textTheme   = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: const CustomAppBar2(
         title: 'My Cart',
         showBackButton: false,
@@ -72,7 +71,7 @@ class CartView extends GetView<CartController> {
               'Looks like you haven\'t added anything to your cart yet.\nExplore our products and find something you love!',
               textAlign: TextAlign.center,
               style: textTheme.bodyMedium
-                  ?.copyWith(color: Colors.grey.shade500),
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 32),
             AppButton(
@@ -128,7 +127,7 @@ class CartView extends GetView<CartController> {
                 padding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: colorScheme.outline),
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Row(
@@ -145,7 +144,7 @@ class CartView extends GetView<CartController> {
                         style: TextStyle(
                           color: controller.appliedCoupon.value.isNotEmpty
                               ? Theme.of(context).colorScheme.primary
-                              : Colors.grey.shade400,
+                              : colorScheme.onSurfaceVariant,
                           fontSize: 14,
                           fontWeight:
                           controller.appliedCoupon.value.isNotEmpty
@@ -158,10 +157,10 @@ class CartView extends GetView<CartController> {
                         ? GestureDetector(
                       onTap: () => controller.clearCoupon(),
                       child: Icon(Icons.close,
-                          color: Colors.grey.shade400, size: 18),
+                          color: colorScheme.onSurfaceVariant, size: 18),
                     )
                         : Icon(Icons.chevron_right,
-                        color: Colors.grey.shade400, size: 20)),
+                        color: colorScheme.onSurfaceVariant, size: 20)),
                   ],
                 ),
               ),
@@ -221,7 +220,7 @@ class CartView extends GetView<CartController> {
                 value:
                 '-\$${controller.couponDiscount.value.toStringAsFixed(2)}',
                 textTheme: textTheme,
-                valueColor: Colors.green,
+                valueColor: colorScheme.primary,
               ),
             ],
           )
@@ -229,7 +228,7 @@ class CartView extends GetView<CartController> {
 
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Divider(color: Colors.grey.shade200, thickness: 1),
+            child: Divider(color: colorScheme.surfaceContainerHighest, thickness: 1),
           ),
           Obx(() => Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -282,12 +281,12 @@ class CartView extends GetView<CartController> {
       children: [
         Text(label,
             style: textTheme.bodyLarge?.copyWith(
-              color: Colors.black87,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.w400,
             )),
         Text(value,
             style: textTheme.bodyLarge?.copyWith(
-              color: valueColor ?? Colors.black87,
+              color: valueColor ?? Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.w600,
             )),
       ],
@@ -298,7 +297,7 @@ class CartView extends GetView<CartController> {
   Widget _buildBottomBar(
       BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
-      color: Colors.grey.shade100,
+      color: colorScheme.surfaceContainerHighest,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       child: SizedBox(
         width: double.infinity,
@@ -398,7 +397,7 @@ class _CouponBottomSheetState extends State<_CouponBottomSheet> {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: colorScheme.outline,
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -412,15 +411,15 @@ class _CouponBottomSheetState extends State<_CouponBottomSheet> {
                     'My Coupon',
                     style: textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   GestureDetector(
                     onTap: () => Get.back(),
                     child: Container(
                       padding: const EdgeInsets.all(4),
-                      child: const Icon(Icons.close,
-                          color: Colors.black87, size: 24),
+                      child: Icon(Icons.close,
+                          color: colorScheme.onSurface, size: 24),
                     ),
                   ),
                 ],
@@ -449,12 +448,12 @@ class _CouponBottomSheetState extends State<_CouponBottomSheet> {
                           color: isSelected
                               ? colorScheme.primary
                               .withValues(alpha: 0.04)
-                              : Colors.grey.shade50,
+                              : colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: isSelected
                                 ? colorScheme.primary
-                                : Colors.grey.shade200,
+                                : colorScheme.outline,
                             width: isSelected ? 1.5 : 1,
                           ),
                         ),
@@ -490,7 +489,7 @@ class _CouponBottomSheetState extends State<_CouponBottomSheet> {
                                     style: textTheme.titleMedium
                                         ?.copyWith(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black,
+                                      color: colorScheme.onSurface,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
@@ -502,7 +501,7 @@ class _CouponBottomSheetState extends State<_CouponBottomSheet> {
                                             '',
                                         style:
                                         textTheme.bodySmall?.copyWith(
-                                          color: Colors.grey.shade500,
+                                          color: colorScheme.onSurfaceVariant,
                                           fontSize: 12,
                                         ),
                                       ),
@@ -567,7 +566,7 @@ class _CouponBottomSheetState extends State<_CouponBottomSheet> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorScheme.primary,
-                    disabledBackgroundColor: Colors.grey.shade300,
+                    disabledBackgroundColor: colorScheme.surfaceContainerHighest,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
@@ -576,7 +575,7 @@ class _CouponBottomSheetState extends State<_CouponBottomSheet> {
                   child: Text(
                     'Use Coupon',
                     style: textTheme.titleMedium?.copyWith(
-                      color: Colors.white,
+                      color: colorScheme.onPrimary,
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
                     ),
@@ -640,14 +639,14 @@ class _CartItemCard extends StatelessWidget {
                     errorWidget: (_, __, ___) => Container(
                       width: 110,
                       height: 110,
-                      color: Colors.grey.shade100,
+                      color: colorScheme.surfaceContainerHighest,
                       child: Icon(Icons.image_not_supported_outlined,
-                          color: Colors.grey.shade400),
+                          color: colorScheme.onSurfaceVariant),
                     ),
                     progressIndicatorBuilder: (_, __, progress) => Container(
                       width: 110,
                       height: 110,
-                      color: Colors.grey.shade100,
+                      color: colorScheme.surfaceContainerHighest,
                       child: Center(
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
@@ -665,17 +664,17 @@ class _CartItemCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 4),
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.only(
+                      decoration: BoxDecoration(
+                        color: colorScheme.error,
+                        borderRadius: const BorderRadius.only(
                           topRight: Radius.circular(6),
                           bottomRight: Radius.circular(6),
                         ),
                       ),
                       child: Text(
                         '$discountPercent%',
-                        style: const TextStyle(
-                            color: Colors.white,
+                        style: TextStyle(
+                            color: colorScheme.onError,
                             fontSize: 11,
                             fontWeight: FontWeight.bold),
                       ),
@@ -699,7 +698,7 @@ class _CartItemCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600, color: Colors.black),
+                        fontWeight: FontWeight.w600, color: colorScheme.onSurface),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -708,7 +707,7 @@ class _CartItemCard extends StatelessWidget {
                       ? 'For ${variant['name']}'
                       : 'For 1Kg',
                   style: textTheme.bodySmall
-                      ?.copyWith(color: Colors.grey.shade500),
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
                 const SizedBox(height: 10),
                 Row(
@@ -716,14 +715,14 @@ class _CartItemCard extends StatelessWidget {
                     Text('\$$variantPrice',
                         style: textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: Colors.black)),
+                            color: colorScheme.onSurface)),
                     if (hasDiscount) ...[
                       const SizedBox(width: 8),
                       Text('\$$variantRegularPrice',
                           style: textTheme.bodySmall?.copyWith(
                             decoration: TextDecoration.lineThrough,
-                            color: Colors.red.shade300,
-                            decorationColor: Colors.red.shade300,
+                            color: colorScheme.error,
+                            decorationColor: colorScheme.error,
                           )),
                     ],
                   ],
@@ -750,7 +749,7 @@ class _CartItemCard extends StatelessWidget {
                         child: Text('$quantity',
                             style: textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black87)),
+                                color: colorScheme.onSurface)),
                       ),
                       _stepperBtn(
                           icon: Icons.add,
@@ -778,7 +777,7 @@ class _CartItemCard extends StatelessWidget {
         width: 30,
         height: 30,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colorScheme.surface,
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
@@ -787,7 +786,7 @@ class _CartItemCard extends StatelessWidget {
                 offset: const Offset(0, 1))
           ],
         ),
-        child: Icon(icon, size: 16, color: Colors.black87),
+        child: Icon(icon, size: 16, color: colorScheme.onSurface),
       ),
     );
   }

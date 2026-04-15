@@ -88,11 +88,11 @@ class _OTPViewState extends State<OTPView> {
     final textTheme   = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       // ── AppBar ────────────────────────────────────────────────────
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         automaticallyImplyLeading: false,
         leading: const Padding(
@@ -115,7 +115,7 @@ class _OTPViewState extends State<OTPView> {
               Text(
                 'Enter OTP',
                 style: textTheme.headlineMedium?.copyWith(
-                  color: Colors.black,
+                  color: colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
                   fontSize: 28,
                 ),
@@ -130,14 +130,14 @@ class _OTPViewState extends State<OTPView> {
                   text:
                   'We have just sent you 4 digit code via your\nemail ',
                   style: textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey.shade500,
+                    color: colorScheme.onSurfaceVariant,
                     height: 1.6,
                   ),
                   children: [
                     TextSpan(
                       text: _email,
                       style: textTheme.bodyMedium?.copyWith(
-                        color: Colors.black87,
+                        color: colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -202,7 +202,7 @@ class _OTPViewState extends State<OTPView> {
                   text: TextSpan(
                     text: "Didn't receive code? ",
                     style: textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey.shade600,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                     children: [
                       TextSpan(
@@ -211,7 +211,7 @@ class _OTPViewState extends State<OTPView> {
                             : 'Resend Code',
                         style: TextStyle(
                           color: _resendSeconds > 0
-                              ? Colors.grey.shade400
+                              ? colorScheme.outline
                               : colorScheme.primary,
                           fontWeight: FontWeight.w600,
                         ),
@@ -241,7 +241,7 @@ class _OTPViewState extends State<OTPView> {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(color: colorScheme.primary, width: 1.5),
-        color: Colors.white,
+        color: colorScheme.surface,
       ),
       child: Center(
         child: TextFormField(
@@ -251,7 +251,7 @@ class _OTPViewState extends State<OTPView> {
           keyboardType: TextInputType.number,
           maxLength: 1,
           style: textTheme.headlineSmall?.copyWith(
-            color: Colors.black,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
           decoration: const InputDecoration(

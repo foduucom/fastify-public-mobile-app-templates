@@ -34,11 +34,11 @@ class ChangePasswordView extends GetView<ProfileController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 50),
-                      const Text(
+                      Text(
                         'Change Password',
                         style: TextStyle(
                             fontSize: 25,
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 24),
@@ -108,19 +108,19 @@ class ChangePasswordView extends GetView<ProfileController> {
                                   FloatingLabelBehavior.always,
                               contentPadding: const EdgeInsets.fromLTRB(
                                   30.0, 15.0, 30.0, 15.0),
-                              focusedBorder: const OutlineInputBorder(
+                              focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Color(0xFFDDDDDD), width: 1)),
-                              enabledBorder: const OutlineInputBorder(
+                                      color: Theme.of(context).colorScheme.outline, width: 1)),
+                              enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Color(0xFFDDDDDD), width: 1)),
-                              focusedErrorBorder: const OutlineInputBorder(
+                                      color: Theme.of(context).colorScheme.outline, width: 1)),
+                              focusedErrorBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Color.fromARGB(255, 253, 81, 81),
+                                      color: Theme.of(context).colorScheme.error,
                                       width: 1)),
-                              errorBorder: const OutlineInputBorder(
+                              errorBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Color.fromARGB(255, 253, 81, 81),
+                                      color: Theme.of(context).colorScheme.error,
                                       width: 1)),
                               // labelStyle: const TextStyle(
                               //     color: themeSecondrytext, fontFamily: 'Lato'),
@@ -137,7 +137,7 @@ class ChangePasswordView extends GetView<ProfileController> {
                                       color: controller
                                               .oldPasswordObsecureValue.value
                                           ? Theme.of(context).primaryColor
-                                          : Colors.grey)),
+                                          : Theme.of(context).colorScheme.onSurfaceVariant)),
                               labelText: 'Old password'),
                           controller: controller.oldPasswordController,
                           autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -162,19 +162,19 @@ class ChangePasswordView extends GetView<ProfileController> {
                                   FloatingLabelBehavior.always,
                               contentPadding: const EdgeInsets.fromLTRB(
                                   30.0, 15.0, 30.0, 15.0),
-                              focusedBorder: const OutlineInputBorder(
+                              focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Color(0xFFDDDDDD), width: 1)),
-                              enabledBorder: const OutlineInputBorder(
+                                      color: Theme.of(context).colorScheme.outline, width: 1)),
+                              enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Color(0xFFDDDDDD), width: 1)),
-                              focusedErrorBorder: const OutlineInputBorder(
+                                      color: Theme.of(context).colorScheme.outline, width: 1)),
+                              focusedErrorBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Color.fromARGB(255, 253, 81, 81),
+                                      color: Theme.of(context).colorScheme.error,
                                       width: 1)),
-                              errorBorder: const OutlineInputBorder(
+                              errorBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Color.fromARGB(255, 253, 81, 81),
+                                      color: Theme.of(context).colorScheme.error,
                                       width: 1)),
                               suffixIcon: GestureDetector(
                                   onTap: (() {
@@ -190,7 +190,7 @@ class ChangePasswordView extends GetView<ProfileController> {
                                       color: controller
                                               .newPasswordObsecureValue.value
                                           ? Theme.of(context).primaryColor
-                                          : Colors.grey)),
+                                          : Theme.of(context).colorScheme.onSurfaceVariant)),
                               labelText: 'New password'),
                           controller: controller.newPasswordController,
                           autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -215,19 +215,19 @@ class ChangePasswordView extends GetView<ProfileController> {
                                   FloatingLabelBehavior.always,
                               contentPadding: const EdgeInsets.fromLTRB(
                                   30.0, 15.0, 30.0, 15.0),
-                              focusedBorder: const OutlineInputBorder(
+                              focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Color(0xFFDDDDDD), width: 1)),
-                              enabledBorder: const OutlineInputBorder(
+                                      color: Theme.of(context).colorScheme.outline, width: 1)),
+                              enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Color(0xFFDDDDDD), width: 1)),
-                              focusedErrorBorder: const OutlineInputBorder(
+                                      color: Theme.of(context).colorScheme.outline, width: 1)),
+                              focusedErrorBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Color.fromARGB(255, 253, 81, 81),
+                                      color: Theme.of(context).colorScheme.error,
                                       width: 1)),
-                              errorBorder: const OutlineInputBorder(
+                              errorBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Color.fromARGB(255, 253, 81, 81),
+                                      color: Theme.of(context).colorScheme.error,
                                       width: 1)),
                               // labelStyle: const TextStyle(
                               //     color: themeSecondrytext, fontFamily: 'Lato'),
@@ -248,7 +248,7 @@ class ChangePasswordView extends GetView<ProfileController> {
                                               .comfirmPasswordObsecureValue
                                               .value
                                           ? Theme.of(context).primaryColor
-                                          : Colors.grey)),
+                                          : Theme.of(context).colorScheme.onSurfaceVariant)),
                               labelText: 'Confirm password'),
                           controller: controller.comfirmPasswordController,
                           autovalidateMode: AutovalidateMode.onUserInteraction,

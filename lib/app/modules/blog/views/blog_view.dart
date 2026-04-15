@@ -66,7 +66,7 @@ class BlogView extends GetView<BlogController> {
                                     },
                                     child: Container(
                                       decoration: BoxDecoration(
-                                          color: Colors.grey.shade100,
+                                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
                                           borderRadius:
                                               BorderRadius.circular(10)),
                                       child: Column(
@@ -90,9 +90,7 @@ class BlogView extends GetView<BlogController> {
                                                       Container(
                                                         decoration:
                                                             BoxDecoration(
-                                                                color: Colors
-                                                                    .grey
-                                                                    .shade300),
+                                                                color: Theme.of(context).colorScheme.surfaceContainerHighest),
                                                         child: const Center(
                                                           child:
                                                               Icon(Icons.error),
@@ -189,9 +187,10 @@ class AllNewsShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+      baseColor: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+      highlightColor: isDark ? Colors.grey.shade600 : Colors.grey.shade100,
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(

@@ -18,7 +18,7 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
     final textTheme   = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
        appBar: CustomAppBar(title: ''),
       body: SafeArea(
         child: GestureDetector(
@@ -41,7 +41,7 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
                   child: Text(
                     'Forgot Password',
                     style: textTheme.headlineMedium?.copyWith(
-                      color: Colors.black,
+                      color: colorScheme.onSurface,
                       fontWeight: FontWeight.w700,
                       fontSize: 22,
                     ),
@@ -55,7 +55,7 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
                   child: Text(
                     'Recover your account password',
                     style: textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey.shade500,
+                      color: colorScheme.onSurfaceVariant,
                       fontSize: 14,
                     ),
                   ),
@@ -67,7 +67,7 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
                 Text(
                   'E-mail',
                   style: textTheme.bodyMedium?.copyWith(
-                    color: Color(0xFF78828A),
+                    color: colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

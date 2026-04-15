@@ -37,11 +37,11 @@ class Testinghome extends GetView<HomepageController> {
 
     return Scaffold(
       key: scaffoldKey,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       // ── AppBar ──────────────────────────────────────────────────────
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         automaticallyImplyLeading: false,
         titleSpacing: 16,
@@ -59,7 +59,7 @@ class Testinghome extends GetView<HomepageController> {
                 Text(
                   'Hello, ${_getGreetingName()}! 👋',
                   style: textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey.shade500,
+                    color: colorScheme.onSurfaceVariant,
                     fontSize: 14,
                   ),
                 ),
@@ -67,7 +67,7 @@ class Testinghome extends GetView<HomepageController> {
                 Text(
                   'Fulfill all your daily needs\nwith HarvestHub',
                   style: textTheme.headlineMedium?.copyWith(
-                    color: Colors.black,
+                    color: colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                     fontSize: 24,  // ✅ was 20 — design shows ~28px
                     height: 1.25,
@@ -97,13 +97,13 @@ class Testinghome extends GetView<HomepageController> {
                       ? controller.selectcategory.value.toString()
                       : 'Select Location',
                   style: textTheme.bodyMedium?.copyWith(
-                    color: Colors.black87,
+                    color: colorScheme.onSurface,
                     fontWeight: FontWeight.w500,
                     fontSize: 13,
                   ),
                 )),
                 const SizedBox(width: 4),
-                const Icon(Icons.keyboard_arrow_down, color: Colors.black87, size: 18),
+                Icon(Icons.keyboard_arrow_down, color: colorScheme.onSurface, size: 18),
               ],
             ),
           ),
@@ -120,8 +120,8 @@ class Testinghome extends GetView<HomepageController> {
                 width: 10,
                 decoration: BoxDecoration(
                   color: SocketHelper().isConnectedObs.value
-                      ? Colors.green
-                      : Colors.red,
+                      ? colorScheme.primary
+                      : colorScheme.error,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -135,11 +135,11 @@ class Testinghome extends GetView<HomepageController> {
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: colorScheme.surfaceContainerHighest,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.chat_bubble_outline,
-                  color: Colors.black87, size: 20),
+              child: Icon(Icons.chat_bubble_outline,
+                  color: colorScheme.onSurface, size: 20),
             ),
           ),
 
@@ -159,15 +159,15 @@ class Testinghome extends GetView<HomepageController> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        color: colorScheme.surfaceContainerHighest,
                         shape: BoxShape.circle,
                       ),
                       child: SvgPicture.asset(
                         'assets/icon/appbarnotification.svg',
                         height: 20,
                         width: 20,
-                        colorFilter: const ColorFilter.mode(
-                          Colors.black87,
+                        colorFilter: ColorFilter.mode(
+                          colorScheme.onSurface,
                           BlendMode.srcIn,
                         ),
                       ),
@@ -179,8 +179,8 @@ class Testinghome extends GetView<HomepageController> {
                         child: Container(
                           width: 10,
                           height: 10,
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
+                          decoration: BoxDecoration(
+                            color: colorScheme.error,
                             shape: BoxShape.circle,
                           ),
                         ),

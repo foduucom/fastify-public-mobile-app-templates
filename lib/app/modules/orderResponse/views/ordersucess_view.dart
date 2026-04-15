@@ -29,8 +29,8 @@ class OrdersucessView extends GetView<OrderSuccessController> {
               title: Text('Order Placed',
                   style: txtTheme().titleLarge!.copyWith(
                       fontWeight: FontWeight.bold, fontFamily: 'Lato')),
-              iconTheme: const IconThemeData(
-                color: Colors.black,
+              iconTheme: IconThemeData(
+                color: Theme.of(context).colorScheme.onSurface,
               ),
               // backgroundColor: Colors.transparent,
               elevation: 0,

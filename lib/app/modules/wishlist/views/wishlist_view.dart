@@ -28,7 +28,6 @@ class WishlistView extends GetView<WishlistController> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
       appBar: _buildAppBar(context, colorScheme, textTheme),
       body: Obx(() {
         if (controller.isLoading.value) return const CartShimmer();
@@ -44,7 +43,6 @@ class WishlistView extends GetView<WishlistController> {
   Widget _buildNotLoggedIn(
       BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
       appBar: _buildAppBar(context, colorScheme, textTheme),
       body: Center(
         child: Padding(
@@ -55,7 +53,7 @@ class WishlistView extends GetView<WishlistController> {
               Container(
                 width: 100, height: 100,
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withOpacity(0.1),
+                  color: colorScheme.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(Icons.favorite_border_rounded,
@@ -65,14 +63,14 @@ class WishlistView extends GetView<WishlistController> {
               Text('Login to view your wishlist',
                   style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: colorScheme.onSurface,
                   ),
                   textAlign: TextAlign.center),
               const SizedBox(height: 10),
               Text(
                 'Save your favourite items and\nshop them anytime.',
                 style: textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey.shade500, height: 1.5),
+                    color: colorScheme.onSurfaceVariant, height: 1.5),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
@@ -97,10 +95,10 @@ class WishlistView extends GetView<WishlistController> {
       preferredSize: const Size.fromHeight(65),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colorScheme.surface,
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.shade100,
+              color: colorScheme.surfaceContainerHighest,
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -114,7 +112,7 @@ class WishlistView extends GetView<WishlistController> {
                 Text('My Wishlist',
                     style: textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: colorScheme.onSurface,
                       fontSize: 22,
                     )),
                 const Spacer(),
@@ -123,7 +121,7 @@ class WishlistView extends GetView<WishlistController> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.1),
+                    color: colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -155,23 +153,23 @@ class WishlistView extends GetView<WishlistController> {
             Container(
               width: 130, height: 130,
               decoration: BoxDecoration(
-                color: Colors.pink.shade50,
+                color: colorScheme.errorContainer,
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.favorite_border_rounded,
-                  size: 60, color: Colors.pink.shade300),
+                  size: 60, color: colorScheme.error),
             ),
             const SizedBox(height: 28),
             Text('Your wishlist is empty',
                 style: textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: colorScheme.onSurface,
                 )),
             const SizedBox(height: 10),
             Text(
               "You haven't saved any products yet.\nExplore and tap ♡ to add items here.",
               style: textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey.shade500, height: 1.5),
+                  color: colorScheme.onSurfaceVariant, height: 1.5),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -264,11 +262,11 @@ class _WishListItemCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.shade100,
+            color: colorScheme.surfaceContainerHighest,
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -295,7 +293,7 @@ class _WishListItemCard extends StatelessWidget {
                       errorWidget: (_, __, ___) => Container(
                         width: 100, height: 110,
                         decoration: BoxDecoration(
-                          color: colorScheme.surfaceVariant,
+                          color: colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(Icons.image_not_supported_outlined,
@@ -304,7 +302,7 @@ class _WishListItemCard extends StatelessWidget {
                       progressIndicatorBuilder: (_, __, progress) => Container(
                         width: 100, height: 110,
                         decoration: BoxDecoration(
-                          color: colorScheme.surfaceVariant,
+                          color: colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Center(
@@ -329,13 +327,13 @@ class _WishListItemCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.red,
+                          color: colorScheme.error,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           '$discountPct%',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: colorScheme.onError,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
@@ -367,7 +365,7 @@ class _WishListItemCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w700,
-                              color: Colors.black,
+                              color: colorScheme.onSurface,
                               fontSize: 14,
                             ),
                           ),
@@ -382,11 +380,11 @@ class _WishListItemCard extends StatelessWidget {
                           margin: const EdgeInsets.only(left: 6),
                           width: 28, height: 28,
                           decoration: BoxDecoration(
-                            color: Colors.red.shade50,
+                            color: colorScheme.errorContainer,
                             shape: BoxShape.circle,
                           ),
                           child: Icon(Icons.favorite_rounded,
-                              size: 16, color: Colors.red.shade400),
+                              size: 16, color: colorScheme.error),
                         ),
                       ),
                     ],
@@ -401,7 +399,7 @@ class _WishListItemCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: colorScheme.primary.withOpacity(0.08),
+                        color: colorScheme.primary.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -422,7 +420,7 @@ class _WishListItemCard extends StatelessWidget {
                         '₹$variantPrice',
                         style: textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: colorScheme.onSurface,
                           fontSize: 16,
                         ),
                       ),
@@ -432,8 +430,8 @@ class _WishListItemCard extends StatelessWidget {
                           '₹$variantRegularPrice',
                           style: textTheme.bodySmall?.copyWith(
                             decoration: TextDecoration.lineThrough,
-                            decorationColor: Colors.red.shade300,
-                            color: Colors.red.shade300,
+                            decorationColor: colorScheme.error,
+                            color: colorScheme.error,
                           ),
                         ),
                       ],
@@ -450,7 +448,7 @@ class _WishListItemCard extends StatelessWidget {
                       onPressed: () => _navigateToProduct(productId),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.primary,
-                        foregroundColor: Colors.white,
+                        foregroundColor: colorScheme.onPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -461,7 +459,7 @@ class _WishListItemCard extends StatelessWidget {
                           size: 16),
                       label: Text('Add to Cart',
                           style: textTheme.labelMedium?.copyWith(
-                            color: Colors.white,
+                            color: colorScheme.onPrimary,
                             fontWeight: FontWeight.w600,
                           )),
                     ),

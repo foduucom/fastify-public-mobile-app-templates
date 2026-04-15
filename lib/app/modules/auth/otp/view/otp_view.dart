@@ -13,13 +13,13 @@ class OTPView extends GetView<OtpController> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme   = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       // ── AppBar: back button only, no title ───────────────────────
-      appBar :CustomAppBar(title: "OTP"),
+      appBar: CustomAppBar(title: "OTP"),
 
       body: GestureDetector(
         onTap: () => HelperFunctions().closeKeyboard(context),
@@ -28,14 +28,13 @@ class OTPView extends GetView<OtpController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-
               const SizedBox(height: 32),
 
               // ── Title ──────────────────────────────────────────────
               Text(
                 'Enter OTP',
                 style: textTheme.headlineMedium?.copyWith(
-                  color: Colors.black,
+                  color: colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
                   fontSize: 24,
                 ),
@@ -49,16 +48,16 @@ class OTPView extends GetView<OtpController> {
                   textAlign: TextAlign.center,
                   text: TextSpan(
                     text:
-                    'We have just sent you ${controller.otpLength.value} digit code via your\nemail ',
+                        'We have just sent you ${controller.otpLength.value} digit code via your\nemail ',
                     style: textTheme.bodyMedium?.copyWith(
-                      color: Color(0xFF6C6C6C),
+                      color: colorScheme.onSurfaceVariant,
                       height: 1.6,
                     ),
                     children: <TextSpan>[
                       TextSpan(
                         text: controller.email.value,
                         style: textTheme.bodyMedium?.copyWith(
-                          color: Colors.black87,
+                          color: colorScheme.onSurface,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -71,40 +70,40 @@ class OTPView extends GetView<OtpController> {
 
               // ── PinField — ORIGINAL logic kept, only styling updated ─
               Obx(() => PinFieldAutoFill(
-                codeLength: controller.otpLength.value,
-                keyboardType: TextInputType.number,
-                decoration: BoxLooseDecoration(
-                  textStyle: textTheme.headlineSmall?.copyWith(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  // ✅ Circular box style
-                  radius: const Radius.circular(50),
-                  strokeWidth: 1.5,
-                  gapSpace: 16,
-                  bgColorBuilder: FixedColorBuilder(Colors.white),
-                  strokeColorBuilder:
-                  FixedColorBuilder(colorScheme.primary),
-                ),
-                autoFocus: true,
-                onCodeSubmitted: (value) {
-                  print(value); // original
-                },
-                cursor: Cursor(
-                  width: 2,
-                  height: 25,
-                  color: colorScheme.primary,
-                  radius: const Radius.circular(1),
-                  enabled: true,
-                ),
-                onCodeChanged: (value) {
-                  // original logic — untouched
-                  if (value!.length == controller.otpLength.value) {
-                    FocusScope.of(context).requestFocus(FocusNode());
-                    controller.verifyOtp(otp: value);
-                  }
-                },
-              )),
+                    codeLength: controller.otpLength.value,
+                    keyboardType: TextInputType.number,
+                    decoration: BoxLooseDecoration(
+                      textStyle: textTheme.headlineSmall?.copyWith(
+                        color: colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      // ✅ Circular box style
+                      radius: const Radius.circular(50),
+                      strokeWidth: 1.5,
+                      gapSpace: 16,
+                      bgColorBuilder: FixedColorBuilder(colorScheme.surface),
+                      strokeColorBuilder:
+                          FixedColorBuilder(colorScheme.primary),
+                    ),
+                    autoFocus: true,
+                    onCodeSubmitted: (value) {
+                      print(value); // original
+                    },
+                    cursor: Cursor(
+                      width: 2,
+                      height: 25,
+                      color: colorScheme.primary,
+                      radius: const Radius.circular(1),
+                      enabled: true,
+                    ),
+                    onCodeChanged: (value) {
+                      // original logic — untouched
+                      if (value!.length == controller.otpLength.value) {
+                        FocusScope.of(context).requestFocus(FocusNode());
+                        controller.verifyOtp(otp: value);
+                      }
+                    },
+                  )),
 
               const SizedBox(height: 48),
 
@@ -157,7 +156,7 @@ class OTPView extends GetView<OtpController> {
                       text: TextSpan(
                         text: "Didn't receive code? ",
                         style: textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey.shade600,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                         children: [
                           TextSpan(

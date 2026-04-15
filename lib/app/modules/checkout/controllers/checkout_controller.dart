@@ -176,7 +176,7 @@ class CheckOutController extends GetxController with BaseController {
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            child: const Text('Cancel'),
           ),
         ],
       ),
@@ -194,7 +194,7 @@ class CheckOutController extends GetxController with BaseController {
         if (addressController.userAddressList.isNotEmpty &&
             selectedAddrIndex < addressController.userAddressList.length) {
           addressId =
-          addressController.userAddressList[selectedAddrIndex]['_id'];
+              addressController.userAddressList[selectedAddrIndex]['_id'];
         }
       }
 
@@ -207,7 +207,8 @@ class CheckOutController extends GetxController with BaseController {
       var form = <String, String>{
         "address_id": addressId,
         "primary_method": methodName,
-        "currency": currency, // ✅ tells backend which currency to use for payment gateway
+        "currency":
+            currency, // ✅ tells backend which currency to use for payment gateway
       };
 
       if (methodName == 'cod') {
@@ -234,7 +235,6 @@ class CheckOutController extends GetxController with BaseController {
     }
     return null;
   }
-
 
   // Future<Map<String, dynamic>?> createOrder() async {
   //   final String methodName = deliveryOption['name'];
@@ -406,100 +406,6 @@ class CheckOutController extends GetxController with BaseController {
     }
   }
 
-
-  // Future<void> processOrder() async {
-  //   if (deliveryOption.isEmpty) {
-  //     HelperFunctions().showSnackBarError('Please select a payment method');
-  //     return;
-  //   }
-  //
-  //   final String methodName = deliveryOption['name'];
-  //   final double amount = cartController.total.value;
-  //
-  //   // ── COD prepayment flow ──
-  //   if (methodName == 'cod') {
-  //     final codConfig = paymentConfig['cod'];
-  //     final bool needsPrepayment = codConfig['cod_prepayment_type'] != null &&
-  //         codConfig['cod_prepayment_ammount'] != null &&
-  //         codConfig['cod_prepayment_ammount'].toString().isNotEmpty;
-  //
-  //     if (needsPrepayment) {
-  //       final double prepaymentAmount =
-  //           double.tryParse(codConfig['cod_prepayment_ammount'].toString()) ??
-  //               0.0;
-  //
-  //       showCodPrepaymentDialog(
-  //         amount: prepaymentAmount,
-  //         onMethodSelected: (selectedOnlineMethod) async {
-  //           // Store the chosen secondary gateway so createOrder() includes it.
-  //           secondaryPaymentGateway.value = selectedOnlineMethod;
-  //
-  //           HelperFunctions().showOverlayLoader();
-  //           try {
-  //             var orderResponse = await createOrder();
-  //             if (orderResponse == null) {
-  //               if (Get.isDialogOpen ?? false) Get.back();
-  //               return;
-  //             }
-  //
-  //             final String orderId =
-  //                 orderResponse['order_no'] ?? orderResponse['_id'] ?? "";
-  //             final String rawOrderId = orderResponse['_id'] ?? "";
-  //
-  //             await _processGatewayPayment(
-  //               methodName: selectedOnlineMethod,
-  //               amount: prepaymentAmount,
-  //               orderResponse: orderResponse,
-  //               rawOrderId: rawOrderId,
-  //             );
-  //
-  //             // Finalize as COD.
-  //             await CODPayment().processPayment(amount: amount);
-  //
-  //             if (Get.isDialogOpen ?? false) Get.back();
-  //             Get.offAllNamed(Routes.ORDERSUCCESS, arguments: orderId);
-  //           } catch (e) {
-  //             if (Get.isDialogOpen ?? false) Get.back();
-  //             HelperFunctions().showSnackBarError('Prepayment failed: $e');
-  //           } finally {
-  //             secondaryPaymentGateway.value = '';
-  //           }
-  //         },
-  //       );
-  //       return; // Wait for dialog selection.
-  //     }
-  //   }
-  //
-  //   // ── Standard flow (no prepayment) ──
-  //   HelperFunctions().showOverlayLoader();
-  //
-  //   try {
-  //     var orderResponse = await createOrder();
-  //     printInfo(info: 'orderResponse: $orderResponse');
-  //
-  //     if (orderResponse == null) {
-  //       if (Get.isDialogOpen ?? false) Get.back();
-  //       return;
-  //     }
-  //
-  //     final String orderId =
-  //         orderResponse['order_no'] ?? orderResponse['_id'] ?? "";
-  //     final String rawOrderId = orderResponse['_id'] ?? "";
-  //
-  //     await _processGatewayPayment(
-  //       methodName: methodName,
-  //       amount: amount,
-  //       orderResponse: orderResponse,
-  //       rawOrderId: rawOrderId,
-  //     );
-  //
-  //     if (Get.isDialogOpen ?? false) Get.back();
-  //     Get.offAllNamed(Routes.ORDERSUCCESS, arguments: orderId);
-  //   } catch (e) {
-  //     if (Get.isDialogOpen ?? false) Get.back();
-  //     HelperFunctions().showSnackBarError('Failed to place order: $e');
-  //   }
-  // }
   Future<void> _processGatewayPayment({
     required String methodName,
     required double amount,
@@ -535,7 +441,7 @@ class CheckOutController extends GetxController with BaseController {
         );
         break;
 
-    // ✅ ADD THIS CASE
+      // ✅ ADD THIS CASE
       case 'paypal':
         final clientId = paymentConfig['paypal']['client_id'];
         final secretKey = paymentConfig['paypal']['client_secret'];
@@ -558,50 +464,4 @@ class CheckOutController extends GetxController with BaseController {
         await Future.delayed(const Duration(seconds: 1));
     }
   }
-
-  // Future<void> _processGatewayPayment({
-  //   required String methodName,
-  //   required double amount,
-  //   required Map<String, dynamic> orderResponse,
-  //   required String rawOrderId,
-  // }) async {
-  //   switch (methodName) {
-  //     case 'stripe':
-  //       final publicKey = paymentConfig['stripe']['publicKey'];
-  //       final clientSecret = orderResponse['payment_client_secret'] ?? "";
-  //       final paymentIntentId = orderResponse['payment_intent_id'] ?? "";
-  //
-  //       await StripePayment(publicKey: publicKey).processPayment(
-  //         amount: amount,
-  //         currency: 'INR',
-  //         clientSecret: clientSecret,
-  //       );
-  //       await confirmPayment(rawOrderId, paymentIntentId);
-  //       break;
-  //
-  //     case 'razorpay':
-  //       final keyId = paymentConfig['razorpay']['key_id'];
-  //       await RazorPayPayment(keyId: keyId).processPayment(
-  //         amount: amount,
-  //         metadata: orderResponse,
-  //       );
-  //       break;
-  //
-  //     case 'phonepe':
-  //       final merchantId = paymentConfig['phonepe']['merchant_id'];
-  //       await PhonePePayment(merchantId: merchantId).processPayment(
-  //         amount: amount,
-  //         metadata: orderResponse,
-  //       );
-  //       break;
-  //
-  //     case 'cod':
-  //       await CODPayment().processPayment(amount: amount);
-  //       break;
-  //
-  //     default:
-  //       printInfo(info: 'Unknown payment method: $methodName');
-  //       await Future.delayed(const Duration(seconds: 1));
-  //   }
-  // }
 }

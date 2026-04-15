@@ -16,12 +16,12 @@ class AppBackButton extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: Colors.grey.shade200,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           shape: BoxShape.circle,
         ),
-        child: const Icon(
+        child: Icon(
           Icons.arrow_back,
-          color: Colors.black87,
+          color: Theme.of(context).colorScheme.onSurface,
           size: 20,
         ),
       ),

@@ -57,7 +57,7 @@ class _OtpTimerState extends State<OtpTimer> {
         const SizedBox(
           width: 5,
         ),
-        Text(timerText, style: const TextStyle(color: Color(0xFFeb323a)))
+        Text(timerText, style: TextStyle(color: Theme.of(context).colorScheme.error))
       ],
     );
   }

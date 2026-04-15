@@ -83,14 +83,14 @@ class _gridProductCartState extends State<gridProductCart>
                     fit: BoxFit.cover,
                     imageUrl: widget.assetimage,
                     errorWidget: (context, url, error) => Container(
-                      decoration: BoxDecoration(color: Colors.grey.shade300),
+                      decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest),
                       child: const Center(
                         child: Icon(Icons.error),
                       ),
                     ),
                     progressIndicatorBuilder: (context, url, progress) =>
                         Container(
-                      decoration: BoxDecoration(color: Colors.grey.shade300),
+                      decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest),
                       height: 165,
                       child: const Center(
                         child: SizedBox(
@@ -146,7 +146,7 @@ class _gridProductCartState extends State<gridProductCart>
                           child: Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(50),
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.surface,
                             ),
                             padding: const EdgeInsets.all(6.0),
                             child: widget.liked,
@@ -186,10 +186,10 @@ class _gridProductCartState extends State<gridProductCart>
               widget.productname,
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
-              style: const TextStyle(
+              style: TextStyle(
                   fontFamily: 'Lato',
                   fontSize: 14,
-                  color: Color.fromRGBO(34, 34, 34, 1),
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w500)),
           const SizedBox(height: 2.6),
           widget.productType == 'variant'
@@ -233,8 +233,9 @@ class _gridProductCartState extends State<gridProductCart>
                       ),
                       TextSpan(
                           text: widget.discountrate,
-                          style: const TextStyle(
-                              color: Colors.red, fontWeight: FontWeight.w400)),
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                              fontWeight: FontWeight.w400)),
                     ])),
         ],
       ),

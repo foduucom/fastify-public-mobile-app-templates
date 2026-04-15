@@ -11,7 +11,7 @@ class FoduuFormTextField extends StatelessWidget {
     this.validCheck,
     this.suffixIcon,
     this.readOnly = false,
-    this.fillcolor = Colors.white,
+    this.fillcolor = Colors.transparent,
     this.keyType = TextInputType.text,
     this.obsecure = false,
     this.maxLine = 1,
@@ -45,14 +45,14 @@ class FoduuFormTextField extends StatelessWidget {
       keyboardType: keyType,
       obscureText: obsecure,
 
-      style: const TextStyle(color: Colors.black), // prevent fade
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
 
       decoration: InputDecoration(
         // 👇 fill color control
         filled: true,
         fillColor: readOnly
-            ? Colors.grey.shade200   // disabled color
-            : fillcolor,             // normal color
+            ? Theme.of(context).colorScheme.surfaceContainerHighest
+            : fillcolor,
 
         // 👇 LABEL
         floatingLabelAlignment: FloatingLabelAlignment.start,
@@ -83,7 +83,7 @@ class FoduuFormTextField extends StatelessWidget {
           color: Theme.of(context)
               .colorScheme
               .onSurfaceVariant
-              .withOpacity(0.6),
+              .withValues(alpha: 0.6),
         ),
 
         suffixIcon: suffixIcon,
@@ -91,27 +91,27 @@ class FoduuFormTextField extends StatelessWidget {
         // 👇 borders (ALL states handled)
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
         ),
 
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(color: Colors.black, width: 1.5),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface, width: 1.5),
         ),
 
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
         ),
 
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(color: Colors.red),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
         ),
 
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(color: Colors.red, width: 1.5),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.error, width: 1.5),
         ),
       ),
 

@@ -57,24 +57,24 @@ class OrderdetailView extends GetView<OrderdetailController> {
                                 // isFirst: index == 0 ? true : false,
                                 // isLast: index == totalSteps - 1 ? true : false,
                                 indicatorStyle: IndicatorStyle(
-                                    color: const Color(0xff309530),
+                                    color: Theme.of(context).colorScheme.primary,
                                     indicator: Container(
                                       height: 50,
                                       width: 50,
                                       alignment: Alignment.center,
-                                      decoration: const BoxDecoration(
-                                          color: Color(0xff309530),
+                                      decoration: BoxDecoration(
+                                          color: Theme.of(context).colorScheme.primary,
                                           shape: BoxShape.circle),
-                                      child: const Icon(
+                                      child: Icon(
                                         Icons.check,
-                                        color: Colors.white,
+                                        color: Theme.of(context).colorScheme.onPrimary,
                                         size: 15,
                                       ),
                                     )),
                                 beforeLineStyle:
-                                    const LineStyle(color: Colors.grey),
+                                    LineStyle(color: Theme.of(context).colorScheme.outline),
                                 afterLineStyle:
-                                    const LineStyle(color: Color(0xff309530)),
+                                    LineStyle(color: Theme.of(context).colorScheme.primary),
                                 endChild: Container(
                                   padding: const EdgeInsets.all(20),
                                   child: Column(
@@ -85,7 +85,7 @@ class OrderdetailView extends GetView<OrderdetailController> {
                                         height: 28,
                                         width: Get.width * 0.42,
                                         decoration: BoxDecoration(
-                                            color: const Color(0xffEDEFF4),
+                                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
                                             borderRadius:
                                                 BorderRadius.circular(10)),
                                         alignment: Alignment.center,
@@ -188,25 +188,32 @@ class OrderdetailView extends GetView<OrderdetailController> {
                         ? PriceDetails(item: controller.item)
                         : const ShippingAddressShimmer()),
                     const SizedBox(height: 10),
-                    Obx(
-                      () => Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 50),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            shape: BeveledRectangleBorder(),
+                    Builder(
+                      builder: (context) {
+                        final cs = Theme.of(context).colorScheme;
+                        return Obx(
+                          () => Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 50),
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: cs.primary,
+                                foregroundColor: cs.onPrimary,
+                                shape: const BeveledRectangleBorder(),
+                              ),
+                              onPressed: () => controller
+                                  .downloadAndSavePDF(controller.item['_id']),
+                              child: controller.downloading.value
+                                  ? HelperFunctions().loadingIndicator(
+                                      color: cs.onPrimary,
+                                    )
+                                  : Text(
+                                      'Download PDF'.tr,
+                                      style: TextStyle(color: cs.onPrimary),
+                                    ),
+                            ),
                           ),
-                          onPressed: () => controller
-                              .downloadAndSavePDF(controller.item['_id']),
-                          child: controller.downloading.value
-                              ? HelperFunctions().loadingIndicator(
-                                  color: Colors.white,
-                                )
-                              : Text(
-                                  'Download PDF'.tr,
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -386,7 +393,7 @@ class PriceDetails extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
               return Container(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -401,7 +408,7 @@ class PriceDetails extends StatelessWidget {
                         child: CachedNetworkImage(
                             errorWidget: (context, url, error) => Container(
                                   decoration: BoxDecoration(
-                                      color: Colors.grey.shade300),
+                                      color: Theme.of(context).colorScheme.surfaceContainerHighest),
                                   child: const Center(
                                     child: Icon(Icons.error),
                                   ),
@@ -621,13 +628,13 @@ reviewModal(OrderdetailController controller) {
                     }
                   },
                   style: themeButton,
-                  child: Text('Submit'.toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
+                  child: Builder(builder: (ctx) => Text('Submit'.toUpperCase(),
+                      style: TextStyle(
+                        color: Theme.of(ctx).colorScheme.onPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         // fontFamily: 'Lato'
-                      )),
+                      ))),
                 ),
               ),
             ),

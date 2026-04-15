@@ -28,8 +28,8 @@ class _BlogSectionState extends State<BlogSection>
               ClipRRect(
                 child: CachedNetworkImage(
                     errorWidget: (context, url, error) => Container(
-                          decoration:
-                              BoxDecoration(color: Colors.grey.shade300),
+                          decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surfaceContainerHighest),
                           child: const Center(
                             child: Icon(Icons.error),
                           ),

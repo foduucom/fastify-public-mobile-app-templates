@@ -39,7 +39,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
                                   errorWidget: (context, url, error) =>
                                       Container(
                                         decoration: BoxDecoration(
-                                            color: Colors.grey.shade300),
+                                            color: Theme.of(context).colorScheme.surfaceContainerHighest),
                                         child: const Center(
                                           child: Icon(Icons.error),
                                         ),
@@ -107,11 +107,11 @@ class VideoPlayerShimmer extends StatelessWidget {
         direction: ShimmerDirection.ltr,
         loop: 0,
         period: const Duration(seconds: 1),
-        baseColor: Colors.grey.shade300,
-        highlightColor: Color.fromARGB(255, 197, 197, 197),
+        baseColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade700 : Colors.grey.shade300,
+        highlightColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade600 : Colors.grey.shade100,
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.grey.shade100,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
           ),
           width: Get.width,
           height: 220,

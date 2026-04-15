@@ -22,13 +22,13 @@ class DeleteAccountView extends GetView<DeleteAccountController> {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const Text(
+            Text(
               'We feel sorry for you to take this step!',
               textAlign: TextAlign.center,
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.normal,
-                  color: Colors.grey),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 20),
             const Text(
@@ -93,9 +93,9 @@ class DeleteAccountView extends GetView<DeleteAccountController> {
               onPressed: () {
                 Get.toNamed(Routes.CONTACT);
               },
-              child: const Text(
+              child: Text(
                 "CONTACT US",
-                style: TextStyle(fontSize: 20, color: Colors.red),
+                style: TextStyle(fontSize: 20, color: Theme.of(context).colorScheme.error),
               ),
             ),
             const SizedBox(height: 10),

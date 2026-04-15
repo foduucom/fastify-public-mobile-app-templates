@@ -1,12 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:foduu_ecommerce/app/data/basic_provider.dart';
-import 'package:foduu_ecommerce/app/routes/app_pages.dart';
-import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
-import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:new_fastify_template/app/data/basic_provider.dart';
+import 'package:new_fastify_template/app/routes/app_pages.dart';
+import 'package:new_fastify_template/constants/helper_functions.dart';
 
 class CategoryDialog extends StatelessWidget {
   final Map<String, dynamic> category;

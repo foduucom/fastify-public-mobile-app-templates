@@ -22,7 +22,7 @@ class TermsandconditionView extends GetView<TermsandconditionController> {
                 .copyWith(fontWeight: FontWeight.bold, fontFamily: "Lato"),
           ),
           iconTheme: IconThemeData(
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           elevation: 0,
         ),

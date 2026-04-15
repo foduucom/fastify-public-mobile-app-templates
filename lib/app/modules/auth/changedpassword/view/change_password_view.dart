@@ -18,7 +18,7 @@ class ResetpasswordView extends GetView<ResetpasswordController> {
     final textTheme   = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       // ── AppBar ──────────────────────────────────────────────────────
       appBar: CustomAppBar(title: 'Change Password'),
@@ -77,7 +77,7 @@ class ResetpasswordView extends GetView<ResetpasswordController> {
                 Text(
                   'The new password must be different\nfrom the current password',
                   style: textTheme.bodyLarge?.copyWith(
-                    color: Colors.black,
+                    color: colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                     fontSize: 18,
                     height: 1.4,
@@ -90,7 +90,7 @@ class ResetpasswordView extends GetView<ResetpasswordController> {
                 Text(
                   'Password',
                   style: textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey.shade500,
+                    color: colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -125,13 +125,11 @@ class ResetpasswordView extends GetView<ResetpasswordController> {
                       _PasswordRule(
                         met:   hasLength,
                         text:  'There must be at least 8 characters',
-                        color: Color(0xFF00C566),
                       ),
                       const SizedBox(height: 6),
                       _PasswordRule(
                         met:   hasSpecial,
                         text:  'There must be a unique code like @!#',
-                        color: Color(0xFF00C566),
                       ),
                     ],
                   );
@@ -143,7 +141,7 @@ class ResetpasswordView extends GetView<ResetpasswordController> {
                 Text(
                   'Confirm Password',
                   style: textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey.shade500,
+                    color: colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -194,15 +192,16 @@ class _PasswordField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return TextFormField(
       controller: controller,
       obscureText: obscure,
       validator: validator,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+        hintStyle: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14),
         filled: true,
-        fillColor: Colors.grey.shade100,
+        fillColor: colorScheme.surfaceContainerHighest,
         contentPadding:
         const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         suffixIcon: GestureDetector(
@@ -211,7 +210,7 @@ class _PasswordField extends StatelessWidget {
             obscure
                 ? Icons.visibility_off_outlined
                 : Icons.remove_red_eye_outlined,
-            color: Colors.grey.shade400,
+            color: colorScheme.onSurfaceVariant,
             size: 20,
           ),
         ),
@@ -226,17 +225,17 @@ class _PasswordField extends StatelessWidget {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
-            color: Theme.of(context).colorScheme.primary,
+            color: colorScheme.primary,
             width: 1.5,
           ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.red, width: 1.5),
+          borderSide: BorderSide(color: colorScheme.error, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.red, width: 1.5),
+          borderSide: BorderSide(color: colorScheme.error, width: 1.5),
         ),
       ),
     );
@@ -247,29 +246,28 @@ class _PasswordField extends StatelessWidget {
 class _PasswordRule extends StatelessWidget {
   final bool met;
   final String text;
-  final Color color;
 
   const _PasswordRule({
     required this.met,
     required this.text,
-    required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Row(
       children: [
         Icon(
           Icons.check,
           size: 16,
-          color: met ? color : Colors.grey.shade300,
+          color: met ? colorScheme.primary : colorScheme.outline,
         ),
         const SizedBox(width: 8),
         Text(
           text,
           style: TextStyle(
             fontSize: 13,
-            color: met ? color : Colors.grey.shade400,
+            color: met ? colorScheme.primary : colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w500,
           ),
         ),

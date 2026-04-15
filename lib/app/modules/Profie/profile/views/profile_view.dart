@@ -29,7 +29,7 @@ class ProfileView extends GetView<ProfileController> {
     // ── Not logged in ──────────────────────────────────────────────────
     if (!AuthDetails.isUserLogin()) {
       return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: const CustomAppBar2(
           title: 'Profile',
           showBackButton: false,
@@ -58,7 +58,7 @@ class ProfileView extends GetView<ProfileController> {
 
     // ── Logged in ──────────────────────────────────────────────────────
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: const CustomAppBar2(
         title: 'Profile',
         showBackButton: false,
@@ -76,7 +76,7 @@ class ProfileView extends GetView<ProfileController> {
                           ? Container(
                               height: 56,
                               width: 56,
-                              color: colorScheme.surfaceVariant,
+                              color: colorScheme.surfaceContainerHighest,
                               child: Image.asset(
                                 'assets/images/user.png',
                                 color: colorScheme.onSurface,
@@ -100,14 +100,14 @@ class ProfileView extends GetView<ProfileController> {
                             controller.profiledata['name']?.toString() ?? '',
                             style: textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                              color: colorScheme.onSurface,
                             ),
                           )),
                       const SizedBox(height: 2),
                       Obx(() => Text(
                             '@${controller.profiledata['email']?.toString().split('@').first ?? ''}',
                             style: textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey.shade500,
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           )),
                     ],
@@ -119,7 +119,7 @@ class ProfileView extends GetView<ProfileController> {
             const SizedBox(height: 18),
 
             // ── Personal Info ──────────────────────────────────────────
-            _sectionLabel('Personal Info', textTheme),
+            _sectionLabel(context, 'Personal Info', textTheme),
             _settingsTile(
               context: context,
               assetPath: 'assets/images/profile_icon.png',
@@ -151,7 +151,7 @@ class ProfileView extends GetView<ProfileController> {
             const SizedBox(height: 20),
 
             // ── Security ──────────────────────────────────────────────
-            _sectionLabel('Security', textTheme),
+            _sectionLabel(context, 'Security', textTheme),
             _settingsTile(
               context: context,
               assetPath: 'assets/images/change_password_icon.png',
@@ -183,7 +183,7 @@ class ProfileView extends GetView<ProfileController> {
             const SizedBox(height: 10),
 
             // ── About ─────────────────────────────────────────────────
-            _sectionLabel('About', textTheme),
+            _sectionLabel(context, 'About', textTheme),
             _settingsTile(
               context: context,
               assetPath: 'assets/images/legal_icon.png',
@@ -231,13 +231,13 @@ class ProfileView extends GetView<ProfileController> {
   }
 
   // ── Section Label ─────────────────────────────────────────────────────
-  Widget _sectionLabel(String label, TextTheme textTheme) {
+  Widget _sectionLabel(BuildContext context, String label, TextTheme textTheme) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
       child: Text(
         label,
         style: textTheme.bodySmall?.copyWith(
-          color: const Color(0xFF111111),
+          color: Theme.of(context).colorScheme.onSurface,
           fontWeight: FontWeight.w500,
           fontSize: 12,
           letterSpacing: 0.4,
@@ -247,11 +247,13 @@ class ProfileView extends GetView<ProfileController> {
   }
 
   // ── Divider ───────────────────────────────────────────────────────────
-  Widget _divider() => Divider(
-        height: 1,
-        thickness: 1,
-        color: Colors.grey.shade100,
-        indent: 52,
+  Widget _divider() => Builder(
+        builder: (context) => Divider(
+          height: 1,
+          thickness: 1,
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+          indent: 52,
+        ),
       );
 
   // ── Settings Tile — uses asset image instead of Icon ─────────────────
@@ -291,7 +293,7 @@ class ProfileView extends GetView<ProfileController> {
               child: Text(
                 label,
                 style: textTheme.bodyLarge?.copyWith(
-                  color: Colors.black87,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -299,7 +301,7 @@ class ProfileView extends GetView<ProfileController> {
             trailing ??
                 Icon(
                   Icons.chevron_right,
-                  color: Colors.grey.shade400,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   size: 22,
                 ),
           ],

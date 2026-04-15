@@ -14,7 +14,7 @@ class AddressView extends GetView<AddressController> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Saved Addresses', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
@@ -52,7 +52,7 @@ class AddressView extends GetView<AddressController> {
           color: colorScheme.surface,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, -5),
             )
@@ -123,12 +123,12 @@ class _AddressCard extends StatelessWidget {
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDefault ? colorScheme.primary : colorScheme.outline.withOpacity(0.3),
+          color: isDefault ? colorScheme.primary : colorScheme.outline.withValues(alpha:0.3),
           width: isDefault ? 1.5 : 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -152,7 +152,7 @@ class _AddressCard extends StatelessWidget {
                   margin: const EdgeInsets.only(right: 6),
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.1),
+                    color: colorScheme.primary.withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -166,7 +166,7 @@ class _AddressCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: colorScheme.surfaceVariant,
+                  color: colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
@@ -185,7 +185,7 @@ class _AddressCard extends StatelessWidget {
           Text(
             controller.getFormattedAddress(address),
             style: textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurface.withOpacity(0.8),
+              color: colorScheme.onSurface.withValues(alpha:0.8),
               height: 1.4,
             ),
           ),
@@ -222,7 +222,7 @@ class _AddressCard extends StatelessWidget {
                     middleText: "Are you sure you want to remove this address?",
                     textConfirm: "Delete",
                     textCancel: "Cancel",
-                    confirmTextColor: Colors.white,
+                    confirmTextColor: Theme.of(context).colorScheme.onError,
                     buttonColor: colorScheme.error,
                     cancelTextColor: colorScheme.primary,
                     onConfirm: () {

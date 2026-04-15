@@ -27,7 +27,7 @@ class OrdersView extends GetView<OrdersController> {
     final textTheme   = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       // ── AppBar ──────────────────────────────────────────────────────
       appBar:  CustomAppBar(title: ' MY Order'),
@@ -43,7 +43,7 @@ class OrdersView extends GetView<OrdersController> {
               height: 48,
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Row(
@@ -138,7 +138,7 @@ class _TabButton extends StatelessWidget {
           child: Text(
             label,
             style: textTheme.bodyMedium?.copyWith(
-              color: isActive ? Colors.white : Colors.grey.shade500,
+              color: isActive ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
               fontWeight:
               isActive ? FontWeight.w600 : FontWeight.w400,
             ),
@@ -274,9 +274,9 @@ class OrderCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -289,7 +289,7 @@ class OrderCard extends StatelessWidget {
                 Text(
                   orderDate,
                   style: textTheme.bodySmall?.copyWith(
-                    color: Colors.grey.shade500,
+                    color: colorScheme.onSurfaceVariant,
                     fontSize: 13,
                   ),
                 ),
@@ -329,13 +329,13 @@ class OrderCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.red,
+                            color: colorScheme.error,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             discount,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: colorScheme.onError,
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
                             ),
@@ -355,7 +355,7 @@ class OrderCard extends StatelessWidget {
                       Text(
                         productName,
                         style: textTheme.titleMedium?.copyWith(
-                          color: Colors.black,
+                          color: colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -367,7 +367,7 @@ class OrderCard extends StatelessWidget {
                         Text(
                           'For ${productCount}Kg',
                           style: textTheme.bodySmall?.copyWith(
-                            color: Colors.grey.shade500,
+                            color: colorScheme.onSurfaceVariant,
                             fontSize: 13,
                           ),
                         ),
@@ -377,7 +377,7 @@ class OrderCard extends StatelessWidget {
                           Text(
                             '$currency$total',
                             style: textTheme.titleMedium?.copyWith(
-                              color: Colors.black,
+                              color: colorScheme.onSurface,
                               fontWeight: FontWeight.bold,
                               fontSize: 17,
                             ),
@@ -387,7 +387,7 @@ class OrderCard extends StatelessWidget {
                             Text(
                               '$currency$salePrice',
                               style: textTheme.bodySmall?.copyWith(
-                                color: Colors.red.shade300,
+                                color: colorScheme.error,
                                 decoration: TextDecoration.lineThrough,
                                 fontSize: 13,
                               ),
@@ -413,9 +413,9 @@ class OrderCard extends StatelessWidget {
                         Routes.ORDER_PRODUCTS,
                         arguments: {'order': item}),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.black87,
+                      foregroundColor: colorScheme.onSurface,
                       side:
-                      BorderSide(color: Colors.grey.shade300),
+                      BorderSide(color: colorScheme.outline),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
@@ -426,7 +426,7 @@ class OrderCard extends StatelessWidget {
                       'Detail',
                       style: textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -440,7 +440,7 @@ class OrderCard extends StatelessWidget {
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: colorScheme.onPrimary,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
@@ -452,7 +452,7 @@ class OrderCard extends StatelessWidget {
                       'Tracking',
                       style: textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: colorScheme.onPrimary,
                       ),
                     ),
                   ),
@@ -486,33 +486,34 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     Color color;
     switch (status.toLowerCase()) {
       case 'delivered':
       case 'paid':
       case 'completed':
       case 'towards you':
-        color = Colors.teal;
+        color = colorScheme.primary;
         break;
       case 'pending':
       case 'unpaid':
       case 'processing':
       case 'on process':
-        color = Colors.orange;
+        color = colorScheme.secondary;
         break;
       case 'cancelled':
       case 'failed':
-        color = Colors.red;
+        color = colorScheme.error;
         break;
       default:
-        color = Theme.of(context).colorScheme.primary;
+        color = colorScheme.onSurfaceVariant;
     }
 
     return Container(
       padding:
       const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color, width: 1.2),
       ),
@@ -534,15 +535,16 @@ class OrderListShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.white,
+      baseColor: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+      highlightColor: isDark ? Colors.grey.shade600 : Colors.grey.shade100,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade100),
+          border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -597,6 +599,7 @@ class OrderListShimmer extends StatelessWidget {
       ),
     );
   }
+
 }
 
 // ── No Orders ─────────────────────────────────────────────────────────────────
@@ -628,7 +631,7 @@ class NoOrders extends StatelessWidget {
             'look_like_you_have_no_orders_yet.'.tr,
             textAlign: TextAlign.center,
             style: textTheme.bodyMedium
-                ?.copyWith(color: Colors.grey.shade500),
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 20),
           AppButton(

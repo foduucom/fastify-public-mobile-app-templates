@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '/constants/dynamic_theme.dart';
 import '/constants/helper_functions.dart';
 
 class ContactUsController extends GetxController {
@@ -35,8 +36,8 @@ class ContactUsController extends GetxController {
         'Message Sent',
         'Thank you for reaching out. We will contact you soon!',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green.shade600,
-        colorText: Colors.white,
+        backgroundColor: DynamicThemeManager().getColors(Get.isPlatformDarkMode ? Brightness.dark : Brightness.light).primary,
+        colorText: DynamicThemeManager().getColors(Get.isPlatformDarkMode ? Brightness.dark : Brightness.light).onPrimary,
         margin: const EdgeInsets.all(16),
       );
 

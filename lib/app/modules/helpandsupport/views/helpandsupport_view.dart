@@ -24,7 +24,7 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                   // color: themeTextColor,
                   fontWeight: FontWeight.w600)),
           iconTheme: IconThemeData(
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           backgroundColor: Colors.transparent,
           elevation: 0,

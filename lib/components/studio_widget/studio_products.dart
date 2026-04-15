@@ -300,7 +300,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                               subheading.isEmpty
                                   ? Container()
                                   : Text(subheading,
-                                      style: textTheme.titleSmall!.copyWith(
+                                      style: textTheme.titleSmall?.copyWith(
                                           color: colorScheme.onSurfaceVariant)),
                             ],
                           ),
@@ -347,7 +347,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
+                    color: Colors.black.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
@@ -494,7 +494,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     return Padding(
       padding: const EdgeInsets.only(left: 6.0),
       child: SizedBox(
-        height: 250,
+        height: 270,
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(
             dragDevices: {
@@ -535,77 +535,162 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final imageUrl = ProductHelper.getProductImage(product);
     final productType = priceInfo['productType'];
 
+    // Price parsing for the new design
+    final displayPrice = priceInfo['productPrice']?.toString() ?? '0';
+    final originalPrice = priceInfo['salePrice']?.toString() ?? '0';
+    final hasDiscount = originalPrice != '0' &&
+        originalPrice.isNotEmpty &&
+        originalPrice != displayPrice;
+    final discountRate = priceInfo['discountRate']?.toString() ?? '';
+
     return GestureDetector(
       onTap: () => _navigateToProduct(product),
-      child: SizedBox(
-        width: Get.width,
+      child: Container(
+        width: 180,
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
+        ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Product Image
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    height: 178,
-                    width: 160,
-                    fit: BoxFit.cover,
-                    progressIndicatorBuilder: (_, __, ___) =>
-                        HelperFunctions().loadingIndicator(),
-                    errorWidget: (_, __, ___) => Container(
-                      height: 180,
-                      width: 160,
-                      color: colorScheme.surfaceVariant,
-                      child: Icon(Icons.image_outlined,
-                          color: colorScheme.onSurfaceVariant),
+            // ── Image Section ───────────────────────────────────────
+            Expanded(
+              flex: 5,
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(15)),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: double.infinity,
+                      child: imageUrl.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              progressIndicatorBuilder: (_, __, ___) =>
+                                  HelperFunctions().loadingIndicator(),
+                              errorWidget: (ctx, __, ___) => Container(
+                                color: Theme.of(ctx)
+                                    .colorScheme
+                                    .surfaceContainerHighest,
+                                child: Icon(Icons.image_not_supported_outlined,
+                                    color: Theme.of(ctx).colorScheme.outline),
+                              ),
+                            )
+                          : Container(
+                              color: colorScheme.surfaceContainerHighest,
+                              child: Icon(Icons.image_not_supported_outlined,
+                                  color: colorScheme.outline),
+                            ),
                     ),
                   ),
-                ),
-                // Wishlist Button
-                _buildWishlistButton(product),
-                // Discount Badge
-                if (priceInfo['discountRate'] != null &&
-                    priceInfo['discountRate'].toString().isNotEmpty)
-                  Positioned(
-                    right: 6,
-                    top: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: colorScheme.error,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        priceInfo['discountRate'],
-                        style: textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onError,
-                          fontWeight: FontWeight.w600,
+                  // Discount Badge
+                  if (hasDiscount && discountRate.isNotEmpty)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: colorScheme.error,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          discountRate.replaceAll('off', '').trim(),
+                          style: TextStyle(
+                              color: colorScheme.onError,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
+                  // Wishlist Button
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: _buildWishlistButton(product),
                   ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // Product Name
-            Text(
-              productName,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 2,
-              style: textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+                ],
               ),
             ),
-            const SizedBox(height: 4),
-            // Price
-            if (productType == 'variable')
-              _buildVariablePrice(priceInfo)
-            else
-              _buildSimplePrice(priceInfo),
+            // ── Details Section ─────────────────────────────────────
+            Expanded(
+              flex: 4,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      productName,
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                        fontSize: 13,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      'For 1Kg',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: 11,
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '₹$displayPrice',
+                              style: textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onSurface,
+                                fontSize: 13,
+                              ),
+                            ),
+                            if (hasDiscount)
+                              Text(
+                                '₹$originalPrice',
+                                style: textTheme.bodySmall?.copyWith(
+                                  decoration: TextDecoration.lineThrough,
+                                  color: colorScheme.error,
+                                  decorationColor: colorScheme.error,
+                                  fontSize: 11,
+                                ),
+                              ),
+                          ],
+                        ),
+                        // Add Button (Visual mock)
+                        Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary.withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.add,
+                            size: 18,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -657,7 +742,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: colorScheme.outline.withOpacity(0.15),
+            color: colorScheme.outline.withValues(alpha: 0.15),
           ),
         ),
         child: Row(
@@ -679,7 +764,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                     errorWidget: (_, __, ___) => Container(
                       width: 120,
                       height: 120,
-                      color: colorScheme.surfaceVariant,
+                      color: colorScheme.surfaceContainerHighest,
                       child: Icon(Icons.image_outlined,
                           color: colorScheme.onSurfaceVariant),
                     ),
@@ -830,7 +915,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.onSurface.withOpacity(0.08),
+              color: colorScheme.onSurface.withValues(alpha: 0.08),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -848,7 +933,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 progressIndicatorBuilder: (_, __, ___) =>
                     HelperFunctions().loadingIndicator(),
                 errorWidget: (_, __, ___) => Container(
-                  color: colorScheme.surfaceVariant,
+                  color: colorScheme.surfaceContainerHighest,
                   child: Icon(Icons.image_outlined,
                       color: colorScheme.onSurfaceVariant, size: 40),
                 ),
@@ -865,8 +950,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        colorScheme.surface.withOpacity(0.7),
-                        colorScheme.surface.withOpacity(0.95),
+                        colorScheme.surface.withValues(alpha: 0.7),
+                        colorScheme.surface.withValues(alpha: 0.95),
                       ],
                       stops: const [0.0, 0.4, 1.0],
                     ),
@@ -988,7 +1073,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(50),
-          color: colorScheme.surface.withOpacity(0.85),
+          color: colorScheme.surface.withValues(alpha: 0.85),
         ),
         padding: const EdgeInsets.all(6.0),
         child: Obx(() {
@@ -1104,8 +1189,8 @@ class TrendingProductsShimmer extends StatelessWidget {
         direction: ShimmerDirection.ltr,
         loop: 0,
         period: const Duration(seconds: 1),
-        baseColor: colorScheme.surfaceVariant,
-        highlightColor: colorScheme.onSurfaceVariant.withOpacity(0.3),
+        baseColor: colorScheme.surfaceContainerHighest,
+        highlightColor: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
         child: ListView.separated(
           itemCount: 10,
           scrollDirection: Axis.horizontal,
@@ -1120,7 +1205,7 @@ class TrendingProductsShimmer extends StatelessWidget {
               children: [
                 Container(
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceVariant,
+                    color: colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   height: 180,
@@ -1131,7 +1216,7 @@ class TrendingProductsShimmer extends StatelessWidget {
                 ),
                 Container(
                   decoration: BoxDecoration(
-                      color: colorScheme.surfaceVariant,
+                      color: colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(10)),
                   height: 11,
                   width: 150,
@@ -1141,7 +1226,7 @@ class TrendingProductsShimmer extends StatelessWidget {
                 ),
                 Container(
                   decoration: BoxDecoration(
-                      color: colorScheme.surfaceVariant,
+                      color: colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(10)),
                   height: 11,
                   width: 50,
@@ -1151,7 +1236,7 @@ class TrendingProductsShimmer extends StatelessWidget {
                 ),
                 Container(
                   decoration: BoxDecoration(
-                      color: colorScheme.surfaceVariant,
+                      color: colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(10)),
                   height: 11,
                   width: 100,

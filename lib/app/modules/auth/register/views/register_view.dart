@@ -16,14 +16,14 @@ class RegisterView extends GetView<RegisterController> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme   = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       // ── AppBar ──────────────────────────────────────────────────────
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         automaticallyImplyLeading: false,
         leading: const Padding(
@@ -34,7 +34,7 @@ class RegisterView extends GetView<RegisterController> {
         title: Text(
           'Sign Up',
           style: textTheme.titleLarge?.copyWith(
-            color: Colors.black,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -47,14 +47,13 @@ class RegisterView extends GetView<RegisterController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               const SizedBox(height: 28),
 
               // ── Headline ───────────────────────────────────────────
               Text(
                 'Complet your account',
                 style: textTheme.headlineMedium?.copyWith(
-                  color: Colors.black,
+                  color: colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
                   fontSize: 28,
                 ),
@@ -63,7 +62,7 @@ class RegisterView extends GetView<RegisterController> {
               Text(
                 'Lorem ipsum dolor sit amet',
                 style: textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey.shade500,
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
 
@@ -75,7 +74,6 @@ class RegisterView extends GetView<RegisterController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     // ── First Name ─────────────────────────────────
                     _FieldLabel('First Name', textTheme),
                     const SizedBox(height: 8),
@@ -155,7 +153,8 @@ class RegisterView extends GetView<RegisterController> {
                     Obx(() {
                       if (controller.isLoading.value) {
                         return Center(
-                          child: CircularProgressIndicator(color: colorScheme.primary),
+                          child: CircularProgressIndicator(
+                              color: colorScheme.primary),
                         );
                       }
                       return SizedBox(
@@ -243,7 +242,7 @@ class RegisterView extends GetView<RegisterController> {
                           text: TextSpan(
                             text: 'Already have an account? ',
                             style: textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey.shade600,
+                              color: colorScheme.onSurfaceVariant,
                             ),
                             children: [
                               TextSpan(
@@ -279,10 +278,11 @@ class _FieldLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Text(
       label,
       style: textTheme.bodyMedium?.copyWith(
-        color: Colors.black87,
+        color: colorScheme.onSurface,
         fontWeight: FontWeight.w500,
       ),
     );
@@ -305,17 +305,18 @@ class _InputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return TextFormField(
       controller: controller,
       keyboardType: keyType,
       validator: validator,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+        hintStyle: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14),
         filled: true,
-        fillColor: Colors.grey.shade100,
+        fillColor: colorScheme.surfaceContainerHighest,
         contentPadding:
-        const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
@@ -327,19 +328,17 @@ class _InputField extends StatelessWidget {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
-            color: Theme.of(context).colorScheme.primary,
+            color: colorScheme.primary,
             width: 1.5,
           ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide:
-          const BorderSide(color: Colors.red, width: 1.5),
+          borderSide: BorderSide(color: colorScheme.error, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide:
-          const BorderSide(color: Colors.red, width: 1.5),
+          borderSide: BorderSide(color: colorScheme.error, width: 1.5),
         ),
       ),
     );
@@ -367,24 +366,26 @@ class _PasswordFieldState extends State<_PasswordField> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return TextFormField(
       controller: widget.controller,
       obscureText: _obscure,
       validator: widget.validator,
       decoration: InputDecoration(
         hintText: widget.hint,
-        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+        hintStyle: TextStyle(
+            color: colorScheme.onSurfaceVariant, fontSize: 14),
         filled: true,
-        fillColor: Colors.grey.shade100,
+        fillColor: colorScheme.surfaceContainerHighest,
         contentPadding:
-        const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         suffixIcon: GestureDetector(
           onTap: () => setState(() => _obscure = !_obscure),
           child: Icon(
             _obscure
                 ? Icons.remove_red_eye_outlined
                 : Icons.visibility_off_outlined,
-            color: Colors.grey.shade400,
+            color: colorScheme.onSurfaceVariant,
             size: 20,
           ),
         ),
@@ -399,19 +400,17 @@ class _PasswordFieldState extends State<_PasswordField> {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
-            color: Theme.of(context).colorScheme.primary,
+            color: colorScheme.primary,
             width: 1.5,
           ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide:
-          const BorderSide(color: Colors.red, width: 1.5),
+          borderSide: BorderSide(color: colorScheme.error, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide:
-          const BorderSide(color: Colors.red, width: 1.5),
+          borderSide: BorderSide(color: colorScheme.error, width: 1.5),
         ),
       ),
     );

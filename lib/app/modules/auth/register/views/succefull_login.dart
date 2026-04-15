@@ -41,7 +41,7 @@ class SuccessDialog extends StatelessWidget {
     final textTheme   = Theme.of(context).textTheme;
 
     return Dialog(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
       ),
@@ -52,17 +52,17 @@ class SuccessDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
 
-            // ── Green Checkmark Circle ──────────────────────────────
+            // ── Primary Checkmark Circle ────────────────────────────
             Container(
               width: 90,
               height: 90,
-              decoration: const BoxDecoration(
-                color: Color(0xFF2ECC71),
+              decoration: BoxDecoration(
+                color: colorScheme.primary,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.check,
-                color: Colors.white,
+                color: colorScheme.onPrimary,
                 size: 48,
               ),
             ),
@@ -74,7 +74,7 @@ class SuccessDialog extends StatelessWidget {
               title,
               textAlign: TextAlign.center,
               style: textTheme.titleLarge?.copyWith(
-                color: Colors.black,
+                color: colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
                 fontSize: 22,
                 height: 1.3,
@@ -88,7 +88,7 @@ class SuccessDialog extends StatelessWidget {
               subtitle,
               textAlign: TextAlign.center,
               style: textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade500,
+                color: colorScheme.onSurfaceVariant,
                 height: 1.5,
               ),
             ),

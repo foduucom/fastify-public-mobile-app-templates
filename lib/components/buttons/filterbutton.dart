@@ -46,8 +46,8 @@ class filterButton extends StatelessWidget {
                       onPressed: pressEvnetFilter,
                       style: themeButton,
                       child: Text(filter.toUpperCase(),
-                          style: const TextStyle(
-                              color: Colors.white,
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                               fontFamily: 'Lato')),

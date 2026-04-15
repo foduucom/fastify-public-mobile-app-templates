@@ -158,8 +158,8 @@ class AddressFormView extends GetView<AddressFormController> {
                 ),
                 child: Text(
                   controller.isEditMode ? 'Update Address' : 'Save Address',
-                  style: const TextStyle(
-                      color: Colors.white,
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.bold),
                 ),
@@ -184,12 +184,12 @@ class AddressFormView extends GetView<AddressFormController> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(title,
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14)),
         const SizedBox(height: 5),
         Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade400),
+            border: Border.all(color: Theme.of(context).colorScheme.outline),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Obx(() => DropdownButtonHideUnderline(

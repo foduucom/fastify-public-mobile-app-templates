@@ -16,7 +16,7 @@ class HomeView extends GetView<HomeController> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: RefreshIndicator(
         onRefresh: controller.onRefresh,
         color: colorScheme.primary,
@@ -24,7 +24,7 @@ class HomeView extends GetView<HomeController> {
           slivers: [
             // ── AppBar ─────────────────────────────────────────────
             SliverAppBar(
-              backgroundColor: Colors.white,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               elevation: 0,
               floating: true,
               pinned: false,
@@ -41,7 +41,7 @@ class HomeView extends GetView<HomeController> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
+                          color: colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(30),
                         ),
                         // child: Row(
@@ -89,8 +89,8 @@ class HomeView extends GetView<HomeController> {
                           child: Container(
                             width: 8,
                             height: 8,
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
+                            decoration: BoxDecoration(
+                              color: colorScheme.error,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -115,7 +115,7 @@ class HomeView extends GetView<HomeController> {
                     Text(
                       'Hello, Jonatan! 👋',
                       style: textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey.shade500,
+                        color: colorScheme.onSurfaceVariant,
                         fontSize: 14,
                       ),
                     ),
@@ -124,7 +124,7 @@ class HomeView extends GetView<HomeController> {
                       'Fulfill all your daily needs\nwith HarvestHub',
                       style: textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: colorScheme.onSurface,
                         height: 1.3,
                         fontSize: 24,
                       ),
@@ -153,7 +153,7 @@ class HomeView extends GetView<HomeController> {
               child: Obx(() {
                 if (controller.isLoading.value &&
                     controller.featuredProducts.isEmpty) {
-                  return _buildStoreShimmer();
+                  return _buildStoreShimmer(context);
                 }
                 if (controller.featuredProducts.isEmpty) {
                   return const SizedBox.shrink();
@@ -210,9 +210,10 @@ class HomeView extends GetView<HomeController> {
                                   height: 60,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: Colors.grey.shade100,
-                                    border:
-                                        Border.all(color: Colors.grey.shade200),
+                                    color: colorScheme.surfaceContainerHighest,
+                                    border: Border.all(
+                                        color: colorScheme.outline
+                                            .withValues(alpha: 0.4)),
                                   ),
                                   padding: const EdgeInsets.all(12),
                                   child: Image.asset(
@@ -224,7 +225,7 @@ class HomeView extends GetView<HomeController> {
                                 Text(
                                   cat['name']!,
                                   style: textTheme.bodySmall?.copyWith(
-                                    color: Colors.grey.shade600,
+                                    color: colorScheme.onSurfaceVariant,
                                     fontSize: 11,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -253,7 +254,7 @@ class HomeView extends GetView<HomeController> {
             Obx(() {
               if (controller.isLoading.value &&
                   controller.hotProducts.isEmpty) {
-                return SliverToBoxAdapter(child: _buildProductShimmer());
+                return SliverToBoxAdapter(child: _buildProductShimmer(context));
               }
               if (controller.hotProducts.isEmpty) {
                 return const SliverToBoxAdapter(child: SizedBox.shrink());
@@ -291,10 +292,11 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  Widget _buildStoreShimmer() {
+  Widget _buildStoreShimmer(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.white,
+      baseColor: isDark ? Colors.grey.shade700 : Colors.grey.shade200,
+      highlightColor: isDark ? Colors.grey.shade600 : Colors.grey.shade50,
       child: SizedBox(
         height: 220,
         child: ListView.separated(
@@ -305,7 +307,7 @@ class HomeView extends GetView<HomeController> {
           itemBuilder: (_, __) => Container(
             width: 180,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
             ),
           ),
@@ -314,10 +316,11 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  Widget _buildProductShimmer() {
+  Widget _buildProductShimmer(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.white,
+      baseColor: isDark ? Colors.grey.shade700 : Colors.grey.shade200,
+      highlightColor: isDark ? Colors.grey.shade600 : Colors.grey.shade50,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: GridView.builder(
@@ -332,7 +335,7 @@ class HomeView extends GetView<HomeController> {
           itemCount: 4,
           itemBuilder: (_, __) => Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
             ),
           ),
@@ -351,16 +354,17 @@ class _AppBarIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: colorScheme.surfaceContainerHighest,
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: Colors.black87, size: 20),
+        child: Icon(icon, color: colorScheme.onSurface, size: 20),
       ),
     );
   }
@@ -383,7 +387,7 @@ class _SectionHeader extends StatelessWidget {
         Text(title,
             style: textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: colorScheme.onSurface,
               fontSize: 18,
             )),
         GestureDetector(
@@ -407,6 +411,7 @@ class _BannerCarousel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
       children: [
@@ -421,7 +426,7 @@ class _BannerCarousel extends StatelessWidget {
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDCF1E0),
+                  color: colorScheme.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Stack(
@@ -440,22 +445,23 @@ class _BannerCarousel extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
-                              color: Colors.black87,
+                              color:
+                                  colorScheme.onSurface.withValues(alpha: 0.8),
                               borderRadius: BorderRadius.circular(30),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  banner['tag']!,
-                                  style: const TextStyle(
-                                      color: Colors.white, fontSize: 11),
+                                  banner['tag']?.toString() ?? '',
+                                  style: TextStyle(
+                                      color: colorScheme.surface, fontSize: 11),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  banner['highlight']!,
+                                  banner['highlight']?.toString() ?? '',
                                   style: TextStyle(
-                                    color: Colors.amber.shade400,
+                                    color: colorScheme.secondary,
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -467,10 +473,10 @@ class _BannerCarousel extends StatelessWidget {
                           SizedBox(
                             width: 170,
                             child: Text(
-                              banner['title']!,
+                              banner['title']?.toString() ?? '',
                               style: textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                                color: colorScheme.onSurface,
                                 fontSize: 15,
                                 height: 1.4,
                               ),
@@ -488,7 +494,7 @@ class _BannerCarousel extends StatelessWidget {
                         borderRadius: const BorderRadius.horizontal(
                             right: Radius.circular(20)),
                         child: Image.asset(
-                          banner['asset']!,
+                          banner['asset']?.toString() ?? '',
                           width: 160,
                           fit: BoxFit.cover,
                         ),
@@ -514,8 +520,8 @@ class _BannerCarousel extends StatelessWidget {
                   height: 8,
                   decoration: BoxDecoration(
                     color: controller.currentBanner.value == i
-                        ? Theme.of(context).colorScheme.primary
-                        : Colors.grey.shade300,
+                        ? colorScheme.primary
+                        : colorScheme.outline,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -570,18 +576,23 @@ class _StoreCard extends StatelessWidget {
                         ? CachedNetworkImage(
                             imageUrl: imageUrl,
                             fit: BoxFit.cover,
-                            placeholder: (_, __) =>
-                                Container(color: Colors.grey.shade200),
-                            errorWidget: (_, __, ___) => Container(
-                              color: Colors.grey.shade200,
+                            placeholder: (ctx, __) => Container(
+                                color: Theme.of(ctx)
+                                    .colorScheme
+                                    .surfaceContainerHighest),
+                            errorWidget: (ctx, __, ___) => Container(
+                              color: Theme.of(ctx)
+                                  .colorScheme
+                                  .surfaceContainerHighest,
                               child: Icon(Icons.store,
-                                  color: Colors.grey.shade400, size: 40),
+                                  color: Theme.of(ctx).colorScheme.outline,
+                                  size: 40),
                             ),
                           )
                         : Container(
-                            color: Colors.grey.shade200,
+                            color: colorScheme.surfaceContainerHighest,
                             child: Icon(Icons.store,
-                                color: Colors.grey.shade400, size: 40),
+                                color: colorScheme.outline, size: 40),
                           ),
                   ),
                 ),
@@ -598,8 +609,8 @@ class _StoreCard extends StatelessWidget {
                     ),
                     child: Text(
                       name,
-                      style: const TextStyle(
-                          color: Colors.white,
+                      style: TextStyle(
+                          color: colorScheme.onPrimary,
                           fontSize: 11,
                           fontWeight: FontWeight.w600),
                     ),
@@ -612,7 +623,7 @@ class _StoreCard extends StatelessWidget {
               '$name Store',
               style: textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: colorScheme.onSurface,
                 fontSize: 13,
               ),
               maxLines: 1,
@@ -622,12 +633,12 @@ class _StoreCard extends StatelessWidget {
             Row(
               children: [
                 Icon(Icons.location_on_outlined,
-                    size: 13, color: Colors.grey.shade500),
+                    size: 13, color: colorScheme.onSurfaceVariant),
                 const SizedBox(width: 3),
                 Text(
                   'London, United Kingdom',
-                  style: textTheme.bodySmall
-                      ?.copyWith(color: Colors.grey.shade500, fontSize: 11),
+                  style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant, fontSize: 11),
                 ),
               ],
             ),
@@ -673,9 +684,9 @@ class _ProductCard extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -693,18 +704,22 @@ class _ProductCard extends StatelessWidget {
                           ? CachedNetworkImage(
                               imageUrl: imageUrl,
                               fit: BoxFit.cover,
-                              placeholder: (_, __) =>
-                                  Container(color: Colors.grey.shade100),
-                              errorWidget: (_, __, ___) => Container(
-                                color: Colors.grey.shade100,
+                              placeholder: (ctx, __) => Container(
+                                  color: Theme.of(ctx)
+                                      .colorScheme
+                                      .surfaceContainerHighest),
+                              errorWidget: (ctx, __, ___) => Container(
+                                color: Theme.of(ctx)
+                                    .colorScheme
+                                    .surfaceContainerHighest,
                                 child: Icon(Icons.image_not_supported_outlined,
-                                    color: Colors.grey.shade400),
+                                    color: Theme.of(ctx).colorScheme.outline),
                               ),
                             )
                           : Container(
-                              color: Colors.grey.shade100,
+                              color: colorScheme.surfaceContainerHighest,
                               child: Icon(Icons.image_not_supported_outlined,
-                                  color: Colors.grey.shade400),
+                                  color: colorScheme.outline),
                             ),
                     ),
                   ),
@@ -716,13 +731,13 @@ class _ProductCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.red,
+                          color: colorScheme.error,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           '$discountPct%',
-                          style: const TextStyle(
-                              color: Colors.white,
+                          style: TextStyle(
+                              color: colorScheme.onError,
                               fontSize: 11,
                               fontWeight: FontWeight.bold),
                         ),
@@ -742,14 +757,14 @@ class _ProductCard extends StatelessWidget {
                     Text(name,
                         style: textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: colorScheme.onSurface,
                           fontSize: 13,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis),
                     Text('For 1Kg',
                         style: textTheme.bodySmall?.copyWith(
-                            color: Colors.grey.shade500, fontSize: 11)),
+                            color: colorScheme.onSurfaceVariant, fontSize: 11)),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -760,7 +775,7 @@ class _ProductCard extends StatelessWidget {
                               '₹${displayPrice.toStringAsFixed(0)}',
                               style: textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                                color: colorScheme.onSurface,
                                 fontSize: 13,
                               ),
                             ),
@@ -769,8 +784,8 @@ class _ProductCard extends StatelessWidget {
                                 '₹${price.toStringAsFixed(0)}',
                                 style: textTheme.bodySmall?.copyWith(
                                   decoration: TextDecoration.lineThrough,
-                                  color: Colors.red.shade300,
-                                  decorationColor: Colors.red.shade300,
+                                  color: colorScheme.error,
+                                  decorationColor: colorScheme.error,
                                   fontSize: 11,
                                 ),
                               ),

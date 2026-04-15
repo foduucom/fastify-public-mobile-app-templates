@@ -18,7 +18,7 @@ class EditprofileView extends GetView<ProfileController> {
     final textTheme   = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(title: 'Edit Profile'),
       body: GestureDetector(
         onTap: () => HelperFunctions().closeKeyboard(context),
@@ -125,7 +125,7 @@ class EditprofileView extends GetView<ProfileController> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 18, vertical: 16),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: colorScheme.surface,
                               border: Border.all(
                                   color: colorScheme.primary, width: 1.2),
                               borderRadius: BorderRadius.circular(30),
@@ -141,7 +141,7 @@ class EditprofileView extends GetView<ProfileController> {
                                       '${controller.selectedDob.value!.year}'
                                       : '24 february 1996',
                                   style: textTheme.bodyMedium?.copyWith(
-                                    color: Colors.black87,
+                                    color: colorScheme.onSurface,
                                   ),
                                 ),
                                 Icon(Icons.calendar_month_outlined,
@@ -185,7 +185,7 @@ class EditprofileView extends GetView<ProfileController> {
                         const SizedBox(height: 8),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: colorScheme.surface,
                             border: Border.all(
                                 color: colorScheme.primary, width: 1.2),
                             borderRadius: BorderRadius.circular(16),
@@ -195,11 +195,11 @@ class EditprofileView extends GetView<ProfileController> {
                             maxLines: 4,
                             keyboardType: TextInputType.multiline,
                             style: textTheme.bodyMedium
-                                ?.copyWith(color: Colors.black87),
+                                ?.copyWith(color: colorScheme.onSurface),
                             decoration: InputDecoration(
                               hintText: 'Enter your location',
                               hintStyle: TextStyle(
-                                  color: Colors.grey.shade400,
+                                  color: colorScheme.onSurfaceVariant,
                                   fontSize: 14),
                               border: InputBorder.none,
                               contentPadding: const EdgeInsets.all(16),
@@ -220,7 +220,7 @@ class EditprofileView extends GetView<ProfileController> {
 
       // ── Save Changes ────────────────────────────────────────────────
       bottomNavigationBar: Container(
-        color: Colors.grey.shade100,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         child: SizedBox(
           width: double.infinity,
@@ -255,13 +255,13 @@ class EditprofileView extends GetView<ProfileController> {
 
   // ── Field Label ────────────────────────────────────────────────────
   Widget _fieldLabel(String label, TextTheme textTheme) {
-    return Text(
+    return Builder(builder: (context) => Text(
       label,
       style: textTheme.bodyMedium?.copyWith(
-        color: Colors.grey.shade500,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
         fontWeight: FontWeight.w500,
       ),
-    );
+    ));
   }
 
   // ── Reusable Input Field ───────────────────────────────────────────
@@ -283,12 +283,12 @@ class EditprofileView extends GetView<ProfileController> {
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       validator: validator,
-      style: textTheme.bodyMedium?.copyWith(color: Colors.black87),
+      style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+        hintStyle: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: colorScheme.surface,
         contentPadding:
         const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         enabledBorder: OutlineInputBorder(
@@ -303,11 +303,11 @@ class EditprofileView extends GetView<ProfileController> {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(color: Colors.red, width: 1.2),
+          borderSide: BorderSide(color: colorScheme.error, width: 1.2),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(color: Colors.red, width: 1.8),
+          borderSide: BorderSide(color: colorScheme.error, width: 1.8),
         ),
       ),
     );
@@ -329,7 +329,7 @@ class EditprofileView extends GetView<ProfileController> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
-            color: isSelected ? colorScheme.primary : Colors.white,
+            color: isSelected ? colorScheme.primary : colorScheme.surface,
             border: Border.all(color: colorScheme.primary, width: 1.2),
             borderRadius: BorderRadius.circular(30),
           ),
@@ -340,12 +340,12 @@ class EditprofileView extends GetView<ProfileController> {
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.white : Colors.transparent,
+                  color: isSelected ? colorScheme.onPrimary : Colors.transparent,
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: isSelected
                         ? Colors.transparent
-                        : Colors.grey.shade400,
+                        : colorScheme.outline,
                   ),
                 ),
                 child: isSelected
@@ -358,7 +358,7 @@ class EditprofileView extends GetView<ProfileController> {
                 label,
                 style: textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: isSelected ? Colors.white : Colors.black87,
+                  color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
                 ),
               ),
             ],
@@ -400,7 +400,7 @@ class _ProfileHeaderWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               child: Container(
                 height: 150,
-                color: Colors.blueGrey.shade200,
+                color: colorScheme.surfaceContainerHighest,
                 child: controller.profiledata['banner_image'] != null
                     ? CachedNetworkImage(
                   imageUrl: HelperFunctions().getImage(
@@ -432,7 +432,7 @@ class _ProfileHeaderWidget extends StatelessWidget {
                 child: Image.asset(
                   'assets/icon/edit.png',
                   width: 16, height: 16,
-                  color: Colors.white,
+                  color: colorScheme.onPrimary,
                   fit: BoxFit.contain,
                 ),
               ),
@@ -462,7 +462,7 @@ class _ProfileHeaderWidget extends StatelessWidget {
                     } else {
                       return CircleAvatar(
                         radius: 40,
-                        backgroundColor: colorScheme.surfaceVariant,
+                        backgroundColor: colorScheme.surfaceContainerHighest,
                         child: controller.profiledata['featured_image'] ==
                             null
                             ? Icon(Icons.person,
@@ -488,12 +488,12 @@ class _ProfileHeaderWidget extends StatelessWidget {
                         color: colorScheme.primary,
                         shape: BoxShape.circle,
                         border:
-                        Border.all(color: Colors.white, width: 2),
+                        Border.all(color: colorScheme.surface, width: 2),
                       ),
                       child: Image.asset(
                         'assets/icon/edit.png',
                         width: 12, height: 12,
-                        color: Colors.white,
+                        color: colorScheme.onPrimary,
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -509,11 +509,11 @@ class _ProfileHeaderWidget extends StatelessWidget {
                     child: Container(
                       width: 22, height: 22,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade400,
+                        color: colorScheme.onSurfaceVariant,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.close,
-                          size: 13, color: Colors.white),
+                      child: Icon(Icons.close,
+                          size: 13, color: colorScheme.surface),
                     ),
                   ),
                 )
