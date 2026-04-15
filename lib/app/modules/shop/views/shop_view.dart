@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
@@ -7,6 +6,7 @@ import 'package:get/get.dart';
 import '/app/modules/product/views/product_view.dart';
 import '/app/modules/shop/bindings/shop_binding.dart';
 import '/app/modules/shop/controllers/shop_controller.dart';
+import '/components/product_grid_card.dart';
 
 class ShopView extends GetView<ShopController> {
   const ShopView({Key? key}) : super(key: key);
@@ -388,7 +388,7 @@ class ShopView extends GetView<ShopController> {
             itemCount: controller.products.length,
             itemBuilder: (context, index) {
               final product = controller.products[index];
-              return _ProductGridCard(
+              return ProductGridCard(
                 product: product,
                 onTap: () {
                   final productId = product['_id']?.toString() ?? '';
@@ -427,155 +427,6 @@ class ShopView extends GetView<ShopController> {
         itemBuilder: (_, __) => Container(
             decoration: BoxDecoration(
                 color: Colors.white, borderRadius: BorderRadius.circular(16))),
-      ),
-    );
-  }
-}
-
-// ── Beautiful Product Grid Card (Reused) ────────────────────────────────────
-class _ProductGridCard extends StatelessWidget {
-  final Map<String, dynamic> product;
-  final VoidCallback onTap;
-
-  const _ProductGridCard({required this.product, required this.onTap});
-
-  String _getImageUrl() {
-    final featuredImg = product['featured_image'];
-    if (featuredImg != null && featuredImg is Map) {
-      final downloadUrl = featuredImg['download_url']?.toString() ?? '';
-      final filepath = featuredImg['filepath']?.toString() ?? '';
-      if (downloadUrl.isNotEmpty) return downloadUrl;
-      if (filepath.isNotEmpty) {
-        final cleanPath =
-            filepath.startsWith('/') ? filepath.substring(1) : filepath;
-        return 'https://mywatch.vbought.com/images/$cleanPath';
-      }
-    }
-    return '';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    final String imageUrl = _getImageUrl();
-    final String name = product['name']?.toString() ?? 'Unknown Product';
-
-    final bool isSimple = product['type'] == 'simple';
-    double price = 0.0;
-    double salePrice = 0.0;
-
-    if (isSimple &&
-        product['variants'] != null &&
-        product['variants'].isNotEmpty) {
-      price =
-          double.tryParse(product['variants'][0]['price']?.toString() ?? '0') ??
-              0.0;
-      salePrice = double.tryParse(
-              product['variants'][0]['sale_price']?.toString() ?? '0') ??
-          0.0;
-    }
-
-    final bool hasDiscount = salePrice > 0 && salePrice < price;
-    final double displayPrice = hasDiscount ? salePrice : price;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colorScheme.outline.withOpacity(0.15)),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 4))
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 5,
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(15)),
-                    child: Container(
-                      width: double.infinity,
-                      color: colorScheme.surfaceVariant.withOpacity(0.5),
-                      child: imageUrl.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: imageUrl,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => const Center(
-                                  child: CupertinoActivityIndicator()),
-                              errorWidget: (context, url, error) => Icon(
-                                  Icons.image_not_supported_outlined,
-                                  color: colorScheme.outline),
-                            )
-                          : Icon(Icons.image_not_supported_outlined,
-                              color: colorScheme.outline),
-                    ),
-                  ),
-                  if (hasDiscount && price > 0)
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                            color: Colors.red.shade600,
-                            borderRadius: BorderRadius.circular(8)),
-                        child: Text(
-                            "${((price - salePrice) / price * 100).round()}% OFF",
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 3,
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(name,
-                        style: textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600, height: 1.2),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (hasDiscount)
-                          Text("₹${price.toStringAsFixed(2)}",
-                              style: textTheme.bodySmall?.copyWith(
-                                  decoration: TextDecoration.lineThrough,
-                                  color: colorScheme.onSurfaceVariant)),
-                        Text("₹${displayPrice.toStringAsFixed(2)}",
-                            style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.primary)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

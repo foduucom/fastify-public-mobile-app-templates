@@ -51,8 +51,8 @@ class ShopController extends GetxController with BaseController {
       collectionName.value = args['name'] ?? "Shop";
 
       // If we arrived here from a specific category or brand banner
-      if (args['source'] == 'category' && args['categoryId'] != null) {
-        selectedCategories.add(args['categoryId']);
+      if (args['source'] == 'category' && args['categorySlug'] != null) {
+        selectedCategories.add(args['categorySlug']);
       } else if (args['source'] == 'brand' && args['brandId'] != null) {
         selectedBrands.add(args['brandId']);
       }

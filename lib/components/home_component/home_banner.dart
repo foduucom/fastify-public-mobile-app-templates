@@ -246,6 +246,7 @@ class _HomeBannerState extends State<HomeBanner>
     } else if (linkType == 'category') {
       Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
         'source': 'category',
+        'categorySlug': link['value'],
         'productId': link['value'],
         'name': link['label'] ?? link['name']
       });

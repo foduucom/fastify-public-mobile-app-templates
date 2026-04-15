@@ -181,7 +181,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
 
   Widget _buildRectangularItem(dynamic category, bool isVerticalList) {
     final colorScheme = Theme.of(context).colorScheme;
-
+    print("Category: ${category.toString()}");
     if (isVerticalList) {
       // New UI style for the main Category Page
       return Center(
@@ -192,11 +192,12 @@ class _TopCategoryHomeState extends State<CategoryHome>
             onTap: () => category['children'] != null &&
                     (category['children'] as List).isNotEmpty
                 ? _showCategoryDialog(context, category)
-                : Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-                    'productId': category['_id'],
-                    'name': category['name'],
-                    'source': 'category'
-                  }),
+                :  Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+              'productId': category['_id'],
+              'categorySlug': category['slug'],
+              'name': category['name'],
+              'source': 'category'
+            }),
             borderRadius: BorderRadius.circular(Get.height * 0.015),
             splashColor: Theme.of(context).primaryColor.withOpacity(0.3),
             highlightColor: Theme.of(context).primaryColor.withOpacity(0.1),
