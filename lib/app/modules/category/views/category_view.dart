@@ -14,7 +14,7 @@ class CategoryView extends GetView<CategoryController> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme   = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -28,11 +28,11 @@ class CategoryView extends GetView<CategoryController> {
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(
-              horizontal: 16, ),
+            horizontal: 16,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               // ── Banner ─────────────────────────────────────────────
               _BannerCard(),
 
@@ -84,26 +84,23 @@ class CategoryView extends GetView<CategoryController> {
 
               // ── Products ────────────────────────────────────────────
               Obx(() {
-                if (controller.isLoading.value &&
-                    controller.products.isEmpty) {
+                if (controller.isLoading.value && controller.products.isEmpty) {
                   return _buildShimmerGrid();
                 }
                 if (controller.products.isEmpty) {
                   return Center(
                     child: Padding(
-                      padding:
-                      const EdgeInsets.symmetric(vertical: 40),
+                      padding: const EdgeInsets.symmetric(vertical: 40),
                       child: Text('No products found',
-                          style: textTheme.bodyLarge?.copyWith(
-                              color: Colors.grey.shade400)),
+                          style: textTheme.bodyLarge
+                              ?.copyWith(color: Colors.grey.shade400)),
                     ),
                   );
                 }
                 return GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     crossAxisSpacing: 14,
                     mainAxisSpacing: 14,
@@ -111,8 +108,8 @@ class CategoryView extends GetView<CategoryController> {
                   ),
                   itemCount: controller.products.length,
                   itemBuilder: (context, index) {
-                    final product = controller.products[index]
-                    as Map<String, dynamic>;
+                    final product =
+                        controller.products[index] as Map<String, dynamic>;
                     return _ProductCard(
                       product: product,
                       controller: controller,
@@ -139,8 +136,7 @@ class CategoryView extends GetView<CategoryController> {
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        gridDelegate:
-        const SliverGridDelegateWithFixedCrossAxisCount(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 14,
           mainAxisSpacing: 14,
@@ -263,22 +259,21 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl    = controller.getImageUrl(product);
-    final name        = product['name']?.toString() ?? '';
-    final price       = controller.getPrice(product);
-    final salePrice   = controller.getSalePrice(product);
+    final imageUrl = controller.getImageUrl(product);
+    final name = product['name']?.toString() ?? '';
+    final price = controller.getPrice(product);
+    final salePrice = controller.getSalePrice(product);
     final hasDiscount = salePrice > 0 && salePrice < price;
     final displayPrice = hasDiscount ? salePrice : price;
-    final discountPct  = hasDiscount
-        ? ((price - salePrice) / price * 100).round()
-        : 0;
+    final discountPct =
+        hasDiscount ? ((price - salePrice) / price * 100).round() : 0;
 
     return GestureDetector(
       onTap: () {
         final productId = product['_id']?.toString() ?? '';
         if (productId.isNotEmpty) {
           Get.to(
-                () => ProductView(),
+            () => ProductView(),
             binding: ShopBinding(),
             arguments: {'productId': productId},
           );
@@ -293,43 +288,41 @@ class _ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // ── Image ───────────────────────────────────────────────
             Expanded(
               flex: 5,
               child: Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(15)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(15)),
                     child: SizedBox(
                       width: double.infinity,
                       child: imageUrl.isNotEmpty
                           ? CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => Container(
-                            color: Colors.grey.shade100),
-                        errorWidget: (_, __, ___) => Container(
-                          color: Colors.grey.shade100,
-                          child: Icon(
-                              Icons.image_not_supported_outlined,
-                              color: Colors.grey.shade400),
-                        ),
-                      )
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              placeholder: (_, __) =>
+                                  Container(color: Colors.grey.shade100),
+                              errorWidget: (_, __, ___) => Container(
+                                color: Colors.grey.shade100,
+                                child: Icon(Icons.image_not_supported_outlined,
+                                    color: Colors.grey.shade400),
+                              ),
+                            )
                           : Container(
-                        color: Colors.grey.shade100,
-                        child: Icon(
-                            Icons.image_not_supported_outlined,
-                            color: Colors.grey.shade400),
-                      ),
+                              color: Colors.grey.shade100,
+                              child: Icon(Icons.image_not_supported_outlined,
+                                  color: Colors.grey.shade400),
+                            ),
                     ),
                   ),
 
                   // ── Discount badge ─────────────────────────────
                   if (hasDiscount)
                     Positioned(
-                      top: 8, left: 8,
+                      top: 8,
+                      left: 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
@@ -371,16 +364,14 @@ class _ProductCard extends StatelessWidget {
                     ),
                     Text(
                       'For 1Kg',
-                      style: textTheme.bodySmall?.copyWith(
-                          color: Colors.grey.shade500, fontSize: 11),
+                      style: textTheme.bodySmall
+                          ?.copyWith(color: Colors.grey.shade500, fontSize: 11),
                     ),
                     Row(
-                      mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               '\$${displayPrice.toStringAsFixed(2)}',
@@ -394,11 +385,9 @@ class _ProductCard extends StatelessWidget {
                               Text(
                                 '\$${price.toStringAsFixed(2)}',
                                 style: textTheme.bodySmall?.copyWith(
-                                  decoration:
-                                  TextDecoration.lineThrough,
+                                  decoration: TextDecoration.lineThrough,
                                   color: Colors.red.shade300,
-                                  decorationColor:
-                                  Colors.red.shade300,
+                                  decorationColor: Colors.red.shade300,
                                   fontSize: 11,
                                 ),
                               ),
@@ -406,10 +395,10 @@ class _ProductCard extends StatelessWidget {
                         ),
                         // ── + Button ──────────────────────────────
                         Container(
-                          width: 30, height: 30,
+                          width: 30,
+                          height: 30,
                           decoration: BoxDecoration(
-                            color: colorScheme.primary
-                                .withValues(alpha: 0.12),
+                            color: colorScheme.primary.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(Icons.add,
