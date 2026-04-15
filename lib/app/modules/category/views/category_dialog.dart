@@ -267,9 +267,12 @@ class CategoryDialog extends StatelessWidget {
                 ),
               ),
               onTap: () {
+                print("DEBUG: Tapped Category Header: ${categoryItem['name']}");
+                print("DEBUG: Slug from Item: ${categoryItem['slug']}");
                 dialogController.fetchSubcategoriesAndToggle(
                   index,
                   categoryItem['_id'] ?? '',
+                  categoryItem['slug'] ?? '',
                   categoryItem['name'] ?? '',
                 );
               },
@@ -298,6 +301,10 @@ class CategoryDialog extends StatelessWidget {
                                       ['name'] !=
                                   'no further category') {
                                 Get.back(); // Close dialog
+                                print(
+                                    "DEBUG: Navigating from Sub-subcategory: ${dialogController.subcategory[subindex]['name']}");
+                                print(
+                                    "DEBUG: Arguments: {productId: ${dialogController.subcategory[subindex]['_id']}, categorySlug: ${dialogController.subcategory[subindex]['slug']}}");
                                 Get.toNamed(
                                   Routes.SHOPPRODUCTLISTVIEW,
                                   arguments: {
@@ -347,9 +354,11 @@ class CategoryDialog extends StatelessWidget {
         ),
       ],
       expansionCallback: (int panelIndex, bool isExpanded) {
+        print("DEBUG: Expansion Callback for: ${categoryItem['name']}");
         dialogController.fetchSubcategoriesAndToggle(
           index,
           categoryItem['_id'] ?? '',
+          categoryItem['slug'] ?? '',
           categoryItem['name'] ?? '',
         );
       },
@@ -425,8 +434,8 @@ class CategoryDialogController extends GetxController {
     update();
   }
 
-  Future<void> fetchSubcategoriesAndToggle(
-      int index, String parentId, String parentName) async {
+  Future<void> fetchSubcategoriesAndToggle(int index, String parentId,
+      String categorySlug, String parentName) async {
     if (expandedindex.value == index) {
       // Just collapse
       expandedindex.value = -1;
@@ -467,9 +476,11 @@ class CategoryDialogController extends GetxController {
       // Collapse and navigate to Shop view directly
       expandedindex.value = -1;
       Get.back();
+      print(
+          "DEBUG: Direct navigation from fetch (no children). Category: $parentName, Slug: $categorySlug");
       Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
         'productId': parentId,
-        'categorySlug': '',
+        'categorySlug': categorySlug,
         'name': parentName,
         'source': 'category'
       });
