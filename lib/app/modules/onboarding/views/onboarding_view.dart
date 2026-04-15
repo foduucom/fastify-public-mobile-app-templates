@@ -130,7 +130,7 @@ class OnboardingView extends GetView<OnboardingController> {
             fontSize: 18,
             fontWeight: FontWeight.bold,
             height: 1.4,
-            color: colorScheme.onSurface,
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
       ),

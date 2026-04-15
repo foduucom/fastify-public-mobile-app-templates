@@ -40,7 +40,7 @@ class LoginView extends GetView<LoginController> {
                 child: Text(
                   'SKIP',
                   style: TextStyle(
-                    color: colorScheme.onSurface,
+                    color: colorScheme.onSurfaceVariant,
                     fontSize: 16,
                     fontFamily: 'Lato',
                     fontWeight: FontWeight.w600,
@@ -189,7 +189,7 @@ class LoginView extends GetView<LoginController> {
                               keyboardType: TextInputType.emailAddress,
                               prefixIcon: Icons.email_outlined,
                               fontSize: height * 0.0165,
-                              textColor: colorScheme.onSurface,
+                              textColor: colorScheme.onSurfaceVariant,
                               hintColor: colorScheme.onSurfaceVariant,
                               borderColor: colorScheme.primary,
                               focusColor: colorScheme.primary,

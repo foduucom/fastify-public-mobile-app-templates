@@ -47,7 +47,7 @@ class AppPasswordField extends StatelessWidget {
             fontWeight: FontWeight.w500,
             fontSize: safeFontSize,
             height: 1.43,
-            color: colorScheme.onSurface,
+            color: colorScheme.onSurfaceVariant,
           ),
           decoration: InputDecoration(
             prefixIcon: Icon(
