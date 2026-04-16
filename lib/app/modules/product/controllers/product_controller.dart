@@ -71,7 +71,7 @@ class ProductController extends GetxController with BaseController, GetTickerPro
         urls.add(dUrl);
       } else if (path.isNotEmpty) {
         final cleanPath = path.startsWith('/') ? path.substring(1) : path;
-        urls.add('https://mywatch.vbought.com/images/$cleanPath');
+        urls.add('https://food-restuarant.vbought.com/images/$cleanPath');
       }
     }
 

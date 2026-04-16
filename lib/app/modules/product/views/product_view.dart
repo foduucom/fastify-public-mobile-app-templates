@@ -116,7 +116,50 @@ class ProductView extends GetView<ProductController> {
                       }),
                     ),
 
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 10),
+
+                    // ── Status & Badge Pills ──
+                    Padding(
+                      padding: pageSurroundingPadding,
+                      child: Obx(() {
+                        if (controller.isLoading.value) return const SizedBox.shrink();
+                        final p = controller.productDetials;
+                        final status = p['status'];
+                        final statusName = status is Map ? status['name']?.toString() : null;
+                        final isFeatured = p['featured'] == true;
+                        final isHot = p['hot'] == true;
+                        final isTrending = p['trending'] == true;
+                        final isRecommended = p['recommended'] == true;
+                        final isDigital = p['is_digital'] == true;
+
+                        final badges = <_BadgeData>[
+                          if (statusName != null) _BadgeData(statusName, Colors.green.shade600),
+                          if (isFeatured) _BadgeData('Featured', Colors.teal),
+                          if (isHot) _BadgeData('Hot', Colors.deepOrange),
+                          if (isTrending) _BadgeData('Trending', Colors.purple),
+                          if (isRecommended) _BadgeData('Recommended', Colors.indigo),
+                          if (isDigital) _BadgeData('Digital', Colors.blue),
+                        ];
+
+                        if (badges.isEmpty) return const SizedBox.shrink();
+                        return Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: badges.map((b) => Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: b.color.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: b.color.withValues(alpha: 0.4)),
+                            ),
+                            child: Text(b.label,
+                                style: TextStyle(color: b.color, fontSize: 12, fontWeight: FontWeight.w600)),
+                          )).toList(),
+                        );
+                      }),
+                    ),
+
+                    const SizedBox(height: 8),
 
                     // ── Price ──
                     Padding(
@@ -328,7 +371,6 @@ class ProductView extends GetView<ProductController> {
                       }),
                     ),
 
-                    // Reduced bottom spacing since SafeArea handles it now
                     const SizedBox(height: 40),
                   ],
                 ),
@@ -473,6 +515,12 @@ class _QtyButton extends StatelessWidget {
       ),
     );
   }
+}
+
+class _BadgeData {
+  final String label;
+  final Color color;
+  const _BadgeData(this.label, this.color);
 }
 
 class OrderButton extends StatelessWidget {

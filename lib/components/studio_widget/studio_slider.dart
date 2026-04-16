@@ -26,6 +26,9 @@ class _FoduuSliderState extends State<FoduuSlider>
   late HomepageController homeController;
   // var sliderImage = [];
 
+  List get _sliderContent =>
+      (widget.sliderData['slider'] as Map?)?['content'] as List? ?? [];
+
   int _currentPage = 0;
   final PageController _pageController = PageController(
     initialPage: 0,
@@ -46,7 +49,7 @@ class _FoduuSliderState extends State<FoduuSlider>
 
   List<Widget> _buildPageIndicator() {
     List<Widget> list = [];
-    for (int i = 0; i < widget.sliderData['slider']['content'].length; i++) {
+    for (int i = 0; i < _sliderContent.length; i++) {
       list.add(i == _currentPage ? _indicator(true) : _indicator(false));
     }
     return list;
@@ -60,7 +63,7 @@ class _FoduuSliderState extends State<FoduuSlider>
     // initFetchSliderImage(widget.id);
 
     Timer.periodic(const Duration(seconds: 8), (Timer timer) {
-      if (_currentPage < widget.sliderData['slider']['content'].length - 1) {
+      if (_currentPage < _sliderContent.length - 1) {
         _currentPage++;
       } else {
         _currentPage = 0;
@@ -90,7 +93,7 @@ class _FoduuSliderState extends State<FoduuSlider>
             color: Colors.transparent,
           ),
           height: sliderHeight,
-          child: widget.sliderData['slider']['content'].isEmpty
+          child: _sliderContent.isEmpty
               ? Shimmer.fromColors(
                   child: Padding(
                     padding: pageSurroundingPadding,
@@ -122,33 +125,25 @@ class _FoduuSliderState extends State<FoduuSlider>
                           _currentPage = page;
                         });
                       },
-                      itemCount: widget.sliderData['slider']['content'].length,
+                      itemCount: _sliderContent.length,
                       itemBuilder: (context, index) {
+                        final item = _sliderContent[index];
                         return Stack(
                           children: [
                             GestureDetector(
                               onTap: () {
-                                if (widget.sliderData['slider']['content']
-                                        [index]['sliderType'] ==
-                                    'categories') {
+                                if (item['sliderType'] == 'categories') {
                                   Get.toNamed(Routes.SHOPPRODUCTLISTVIEW,
                                       arguments: {
                                         'source': 'category',
-                                        'productId': widget.sliderData['slider']
-                                            ['content'][index]['link'],
-                                        'name': widget.sliderData['slider']
-                                            ['content'][index]['heading']
+                                        'productId': item['link'],
+                                        'name': item['heading']
                                       });
                                 }
-                                if (widget.sliderData['slider']['content']
-                                        [index]['sliderType'] ==
-                                    'page') {}
-                                if (widget.sliderData['slider']['content']
-                                        [index]['sliderType'] ==
-                                    'blog') {
+                                if (item['sliderType'] == 'page') {}
+                                if (item['sliderType'] == 'blog') {
                                   Get.toNamed(Routes.BLOG, arguments: {
-                                    'id': widget.sliderData['slider']['content']
-                                        [index]['link'],
+                                    'id': item['link'],
                                   });
                                 }
                               },
@@ -158,9 +153,7 @@ class _FoduuSliderState extends State<FoduuSlider>
                                   borderRadius: BorderRadius.circular(12.0),
                                   child: CachedNetworkImage(
                                       height: sliderHeight,
-                                      imageUrl: HelperFunctions().getImage(
-                                          widget.sliderData['slider']['content']
-                                              [index]),
+                                      imageUrl: HelperFunctions().getImage(item),
                                       fit: BoxFit.cover,
                                       width: Get.width,
                                       errorWidget: ((context, url, error) =>
@@ -209,8 +202,7 @@ class _FoduuSliderState extends State<FoduuSlider>
                                 children: [
                                   SizedBox(height: 6),
                                   Text(
-                                    widget.sliderData['slider']['content']
-                                        [index]['heading'],
+                                    item['heading'],
                                     style: TextStyle(
                                       fontFamily: 'Lato',
                                       fontSize: 20,
@@ -219,8 +211,7 @@ class _FoduuSliderState extends State<FoduuSlider>
                                   ),
                                   SizedBox(height: 6),
                                   Text(
-                                    widget.sliderData['slider']['content']
-                                        [index]['description'],
+                                    item['description'],
                                     style: TextStyle(
                                       fontFamily: 'Lato',
                                       fontSize: 12,

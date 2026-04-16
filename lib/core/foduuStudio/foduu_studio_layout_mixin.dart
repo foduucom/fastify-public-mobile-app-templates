@@ -11,6 +11,7 @@ import '/helpers/socket_helper.dart';
 import 'package:get/get.dart';
 
 import 'widget_registry.dart';
+import '/app/modules/auth/auth_details.dart';
 
 /// Mixin that gives any GetxController dynamic-layout capabilities.
 ///
@@ -66,6 +67,28 @@ mixin FoduuStudioLayoutMixin on GetxController {
   //  PUBLIC API
   // ═══════════════════════════════════════════════════════════════
 
+  /// Resolves dynamic placeholders in section data before building widgets.
+  ///
+  /// Currently handles `{{USER}}` in `text_block` sections.
+  List _resolvePlaceholders(List sections) {
+    final userName = AuthDetails.getCurrentUserName() ?? 'Guest';
+    return sections.map((section) {
+      if (section is! Map<String, dynamic>) return section;
+      if (section['type'] != 'text_block') return section;
+      final contentJson = section['content_json'];
+      if (contentJson is! Map<String, dynamic>) return section;
+      final text = contentJson['text'];
+      if (text is! String || !text.contains('{{USER}}')) return section;
+      return <String, dynamic>{
+        ...section,
+        'content_json': <String, dynamic>{
+          ...contentJson,
+          'text': text.replaceAll('{{USER}}', userName),
+        },
+      };
+    }).toList();
+  }
+
   /// Build the [widgetList] from a raw list of section maps.
   void buildLayout(List sections) {
     widgetList.clear();
@@ -108,7 +131,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
         var list = response['sections'];
         if (list != null && list is List) {
           _initialComponents = list;
-          buildLayout(list);
+          buildLayout(_resolvePlaceholders(list));
         }
       }
 
@@ -314,7 +337,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
       for (int idx in staticChangedIndices) {
         _initialComponents[idx] = newSections[idx];
       }
-      buildLayout(_initialComponents);
+      buildLayout(_resolvePlaceholders(_initialComponents));
     } else {
       print('ℹ️ No changes detected.');
     }

@@ -92,9 +92,19 @@ class AuthDetails with BaseController {
     }
   }
 
+  static String? getCurrentUserName() {
+    if (!isUserLogin()) return null;
+    final userData = getUserDetails();
+    if (userData == null) return null;
+    // 'name' is sent at registration; fallback to email
+    final name = userData['name']?.toString().trim();
+    if (name != null && name.isNotEmpty) return name;
+    return userData['email']?.toString();
+  }
+
   dynamic updateUserDetailsFromServer() async {
     if (isUserLogin()) {
-      var response = await BasicProvider("public/customer/profile")
+      var response = await BasicProvider("auth/customer/profile")
           .getRequest()
           .catchError(handleError);
       if (response != null) {

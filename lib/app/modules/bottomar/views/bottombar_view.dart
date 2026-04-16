@@ -9,6 +9,7 @@ import 'package:flutter_svg/svg.dart';
 import '/app/modules/cart/controllers/cart_controller.dart';
 import '/app/modules/cart/views/cart_view.dart';
 import '/app/modules/category/views/category_view.dart';
+import '/app/modules/category/controllers/category_controller.dart';
 import '/app/modules/Profie/profile/views/profile_view.dart';
 import '/app/modules/notification/controller/notification_controller.dart';
 import '/app/modules/wishlist/controllers/wishlist_controller.dart';
@@ -26,6 +27,7 @@ class BottombarView extends GetView<BottombarController> {
   final cartController = Get.put(CartController());
   final notifcationController = Get.put(NotificationsController());
   final wishListController = Get.put(WishlistController());
+  final categoryController = Get.put(CategoryController());
   //final homeController = Get.put(HomeController());
 
   @override
@@ -41,7 +43,8 @@ class BottombarView extends GetView<BottombarController> {
             // ← use const where possible
             //const HomeView(),
             Testinghome(),
-            const ExploreView(),
+            //const ExploreView(),
+            CategoryView(),
             const CartView(),
             WishlistView(),
             ProfileView(),
@@ -137,7 +140,7 @@ class BottombarView extends GetView<BottombarController> {
                       colorScheme.onSurfaceVariant, BlendMode.srcIn),
                 ),
                 activeIcon: SvgPicture.asset(
-                  'assets/icon/heart_fill.svg', // ← filled variant
+                  'assets/icon/like.svg', // ← filled heart variant
                   colorFilter:
                       ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
                 ),

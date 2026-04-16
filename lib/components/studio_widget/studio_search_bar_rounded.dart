@@ -1,17 +1,13 @@
-// import 'dart:html';
-
-// ignore_for_file: sort_child_properties_last
-
 import 'package:flutter/material.dart';
 
 class SearchBarRounded extends StatelessWidget {
-  const SearchBarRounded(
-      {Key? key,
-      required this.searchHintText,
-      required this.SearchsController,
-      this.icon,
-      required this.onChanged})
-      : super(key: key);
+  const SearchBarRounded({
+    Key? key,
+    required this.searchHintText,
+    required this.SearchsController,
+    this.icon,
+    required this.onChanged,
+  }) : super(key: key);
 
   final String searchHintText;
   final TextEditingController SearchsController;
@@ -20,32 +16,66 @@ class SearchBarRounded extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: SearchsController,
-      onChanged: onChanged,
-      onSaved: (String? value) {},
-      decoration: InputDecoration(
-        contentPadding: EdgeInsets.zero,
-        hintText: searchHintText,
-        // focusColor: themeSecondryColor,
-        filled: true,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(03),
-          borderSide: const BorderSide(),
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return GestureDetector(
+      onTap: () {
+        // You can add navigation here if needed, or let the TextField handle focus
+        // For now, just focus the TextField when tapped
+        FocusScope.of(context).requestFocus(FocusNode());
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(30),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(),
-          borderRadius: BorderRadius.circular(03),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(),
-          borderRadius: BorderRadius.circular(03),
-        ),
-        // fillColor: themegreyColor,
-        prefixIcon: const Icon(
-          Icons.search,
-          size: 20,
-          // color: themeSecondrytext,
+        child: Row(
+          children: [
+            Icon(
+              icon ?? Icons.search,
+              color: colorScheme.onSurfaceVariant,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextFormField(
+                controller: SearchsController,
+                onChanged: onChanged,
+                decoration: InputDecoration(
+                  hintText: searchHintText,
+                  hintStyle: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  filled: true,
+                  fillColor: colorScheme.onInverseSurface,
+                  border: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  errorBorder: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                  isDense: true,
+                ),
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.tune,
+                color: colorScheme.onSurfaceVariant,
+                size: 18,
+              ),
+            ),
+          ],
         ),
       ),
     );

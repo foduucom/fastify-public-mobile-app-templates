@@ -1,11 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:new_fastify_template/core/foduuStudio/foduu_studio_layout_mixin.dart';
 import '/app/data/basic_provider.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 
-class CategoryController extends GetxController with BaseController {
+class CategoryController extends GetxController with BaseController, FoduuStudioLayoutMixin {
   final isLoading   = false.obs;
   final products    = [].obs;
+
+  // ADDED FOR CATEGORY
+  var categoryList = List<dynamic>.empty().obs;
+  late ScrollController scrollController;
+  var currentPage = 1.obs;
+  var maxPage = 1.obs;
+  var pageSlug = 'category';
 
   static const String _baseImageUrl = 'https://mywatch.vbought.com/images/';
 
@@ -22,9 +30,18 @@ class CategoryController extends GetxController with BaseController {
   ];
 
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
-    fetchProducts();
+    scrollController = ScrollController();
+
+    await fetchLayout(pageSlug);
+    //fetchProducts();
+  }
+
+  Future<void> onPullTorefresh() async {
+    currentPage.value = 1;
+    maxPage.value = 1;
+    categoryList.clear();
   }
 
   Future<void> fetchProducts() async {

@@ -141,53 +141,79 @@ class WishlistView extends GetView<WishlistController> {
     );
   }
 
-  // ── Empty State ───────────────────────────────────────────────────────────
-  Widget _buildEmptyWishlist(
-      BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 130, height: 130,
-              decoration: BoxDecoration(
-                color: colorScheme.errorContainer,
-                shape: BoxShape.circle,
+  // ── Empty State - Minimalist Version ─────────────────────────────────────
+Widget _buildEmptyWishlist(
+    BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
+  return Center(
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Animated heart with ripple effect
+          TweenAnimationBuilder(
+            duration: const Duration(milliseconds: 800),
+            tween: Tween<double>(begin: 0, end: 1),
+            builder: (context, double value, child) {
+              return Transform.scale(
+                scale: value,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: colorScheme.outline.withOpacity(0.3),
+                      width: 2,
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.favorite_border_rounded,
+                    size: 55 + (10 * value),
+                    color: colorScheme.primary.withOpacity(0.8),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 32),
+          Text(
+            'No favorites yet?',
+            style: textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "Start exploring and save your favorite products here",
+            style: textTheme.bodyLarge?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+          OutlinedButton.icon(
+            onPressed: () {
+              Get.find<BottombarController>().currentPageIndex.value = 0;
+              Get.find<BottombarController>().pageController.jumpToPage(0);
+            },
+            icon: const Icon(Icons.shopping_bag_outlined),
+            label: const Text('Start Shopping'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
               ),
-              child: Icon(Icons.favorite_border_rounded,
-                  size: 60, color: colorScheme.error),
+              side: BorderSide(color: colorScheme.primary, width: 2),
             ),
-            const SizedBox(height: 28),
-            Text('Your wishlist is empty',
-                style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                )),
-            const SizedBox(height: 10),
-            Text(
-              "You haven't saved any products yet.\nExplore and tap ♡ to add items here.",
-              style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant, height: 1.5),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: AppButton(
-                keypressEvent: () {
-                  Get.find<BottombarController>().currentPageIndex.value = 0;
-                  Get.find<BottombarController>().pageController.jumpToPage(0);
-                },
-                itemText: 'Explore Products',
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ── Main wishlist content ─────────────────────────────────────────────────
   Widget _buildWishlistContent(
@@ -372,25 +398,39 @@ class _WishListItemCard extends StatelessWidget {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => WishListService.to.removeFromWishlist(
-                          productId: productId,
-                          variantSlug: variantSlug,
-                        ),
-                        child: Container(
-                          margin: const EdgeInsets.only(left: 6),
-                          width: 28, height: 28,
-                          decoration: BoxDecoration(
-                            color: colorScheme.errorContainer,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(Icons.favorite_rounded,
-                              size: 16, color: colorScheme.error),
-                        ),
-                      ),
+  onTap: () => WishListService.to.removeFromWishlist(
+    productId: productId,
+    variantSlug: variantSlug,
+  ),
+  child: Container(
+    margin: const EdgeInsets.only(left: 6),
+    width: 32, 
+    height: 32,
+    decoration: BoxDecoration(
+      color: colorScheme.primaryContainer,
+      shape: BoxShape.circle,
+      boxShadow: [
+        BoxShadow(
+          color: colorScheme.primary.withOpacity(0.1),
+          blurRadius: 4,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Icon(Icons.favorite_rounded,
+        size: 16, color: colorScheme.error),
+  ),
+),
                     ],
                   ),
 
                   const SizedBox(height: 6),
+
+                  // ── Badges row ─────────────────────────────────
+                  _buildBadges(product, colorScheme, textTheme),
+
+                  // ── Rating row ─────────────────────────────────
+                  _buildRating(product, colorScheme, textTheme),
 
                   // Variant chip
                   if (variant['variant_name'] != null &&
@@ -469,6 +509,55 @@ class _WishListItemCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBadges(Map product, ColorScheme colorScheme, TextTheme textTheme) {
+    final badges = <MapEntry<String, Color>>[
+      if (product['featured'] == true) MapEntry('Featured', Colors.teal),
+      if (product['hot'] == true) MapEntry('Hot', Colors.deepOrange),
+      if (product['trending'] == true) MapEntry('Trending', Colors.purple),
+      if (product['recommended'] == true) MapEntry('Recommended', Colors.indigo),
+    ];
+    if (badges.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 4,
+        children: badges.map((b) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+          decoration: BoxDecoration(
+            color: b.value.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: b.value.withValues(alpha: 0.4)),
+          ),
+          child: Text(b.key,
+              style: TextStyle(
+                  color: b.value, fontSize: 10, fontWeight: FontWeight.w600)),
+        )).toList(),
+      ),
+    );
+  }
+
+  Widget _buildRating(Map product, ColorScheme colorScheme, TextTheme textTheme) {
+    final rating = double.tryParse(product['average_rating']?.toString() ?? '0') ?? 0.0;
+    final count = int.tryParse(product['rating_count']?.toString() ?? '0') ?? 0;
+    if (count == 0) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Icon(Icons.star_rounded, size: 13, color: Colors.amber.shade600),
+          const SizedBox(width: 2),
+          Text(rating.toStringAsFixed(1),
+              style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600, fontSize: 11)),
+          const SizedBox(width: 3),
+          Text('($count)',
+              style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant, fontSize: 10)),
+        ],
       ),
     );
   }

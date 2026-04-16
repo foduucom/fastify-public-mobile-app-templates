@@ -429,15 +429,14 @@ class ShopView extends GetView<ShopController> {
           itemCount: 6,
           itemBuilder: (_, __) => Container(
               decoration: BoxDecoration(
-                  color: cs.surface,
-                  borderRadius: BorderRadius.circular(16))),
+                  color: cs.surface, borderRadius: BorderRadius.circular(16))),
         ),
       );
     });
   }
 }
 
-// ── Beautiful Product Grid Card (Reused) ────────────────────────────────────
+// ── Beautiful Product Grid Card ──────────────────────────────────────────────
 class _ProductGridCard extends StatelessWidget {
   final Map<String, dynamic> product;
   final VoidCallback onTap;
@@ -453,7 +452,7 @@ class _ProductGridCard extends StatelessWidget {
       if (filepath.isNotEmpty) {
         final cleanPath =
             filepath.startsWith('/') ? filepath.substring(1) : filepath;
-        return 'https://mywatch.vbought.com/images/$cleanPath';
+        return 'https://food-restuarant.vbought.com/images/$cleanPath';
       }
     }
     return '';
@@ -467,23 +466,34 @@ class _ProductGridCard extends StatelessWidget {
     final String imageUrl = _getImageUrl();
     final String name = product['name']?.toString() ?? 'Unknown Product';
 
-    final bool isSimple = product['type'] == 'simple';
+    // Price — works for both simple and variable products
     double price = 0.0;
     double salePrice = 0.0;
+    int quantity = 0;
 
-    if (isSimple &&
-        product['variants'] != null &&
-        product['variants'].isNotEmpty) {
-      price =
-          double.tryParse(product['variants'][0]['price']?.toString() ?? '0') ??
-              0.0;
-      salePrice = double.tryParse(
-              product['variants'][0]['sale_price']?.toString() ?? '0') ??
-          0.0;
+    if (product['variants'] != null && product['variants'].isNotEmpty) {
+      final v = product['variants'][0];
+      price = double.tryParse(v['price']?.toString() ?? '0') ?? 0.0;
+      salePrice = double.tryParse(v['sale_price']?.toString() ?? '0') ?? 0.0;
+      // null quantity means unlimited stock; only treat as out-of-stock when explicitly 0 or less
+      final rawQty = v['quantity'];
+      quantity = rawQty == null ? -1 : (int.tryParse(rawQty.toString()) ?? 0);
     }
 
     final bool hasDiscount = salePrice > 0 && salePrice < price;
     final double displayPrice = hasDiscount ? salePrice : price;
+    final bool isOutOfStock = quantity != -1 && quantity <= 0;
+
+    // Badges
+    final bool isHot = product['hot'] == true;
+    final bool isFeatured = product['featured'] == true;
+    final bool isTrending = product['trending'] == true;
+
+    // Rating
+    final double rating =
+        double.tryParse(product['average_rating']?.toString() ?? '0') ?? 0.0;
+    final int ratingCount =
+        int.tryParse(product['rating_count']?.toString() ?? '0') ?? 0;
 
     return InkWell(
       onTap: onTap,
@@ -503,15 +513,16 @@ class _ProductGridCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── Image + Overlays ──
             Expanded(
-              flex: 5,
+              flex: 4,
               child: Stack(
+                fit: StackFit.expand,
                 children: [
                   ClipRRect(
                     borderRadius:
                         const BorderRadius.vertical(top: Radius.circular(15)),
                     child: Container(
-                      width: double.infinity,
                       color: colorScheme.surfaceVariant.withOpacity(0.5),
                       child: imageUrl.isNotEmpty
                           ? CachedNetworkImage(
@@ -527,6 +538,31 @@ class _ProductGridCard extends StatelessWidget {
                               color: colorScheme.outline),
                     ),
                   ),
+
+                  // Out-of-stock overlay
+                  if (isOutOfStock)
+                    ClipRRect(
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(15)),
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        alignment: Alignment.center,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(8)),
+                          child: const Text("Out of Stock",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ),
+
+                  // Discount badge — top left
                   if (hasDiscount && price > 0)
                     Positioned(
                       top: 8,
@@ -545,34 +581,79 @@ class _ProductGridCard extends StatelessWidget {
                                 fontWeight: FontWeight.bold)),
                       ),
                     ),
+
+                  // Hot / Featured / Trending badges — top right
+                  if (isHot || isFeatured || isTrending)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          if (isHot) _badgePill("HOT", Colors.deepOrange),
+                          if (isTrending) _badgePill("TREND", Colors.purple),
+                          if (isFeatured) _badgePill("FEAT", Colors.teal),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             ),
+
+            // ── Info Section ──
             Expanded(
-              flex: 3,
+              flex: 1,
               child: Padding(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(name,
+                    Text(name.toUpperCase(),
                         style: textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600, height: 1.2),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis),
-                    Column(
+                    Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Rating row
+                        if (ratingCount > 0)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Row(
+                              children: [
+                                Icon(Icons.star_rounded,
+                                    size: 13, color: Colors.amber.shade600),
+                                const SizedBox(width: 2),
+                                Text(rating.toStringAsFixed(1),
+                                    style: textTheme.bodySmall?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 11)),
+                                const SizedBox(width: 3),
+                                Text("($ratingCount)",
+                                    style: textTheme.bodySmall?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                        fontSize: 10)),
+                              ],
+                            ),
+                          ),
+
+                        // Price row
+                        if (displayPrice > 0)
+                          Text("₹${displayPrice.toStringAsFixed(2)}",
+                              style: textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary)),
                         if (hasDiscount)
                           Text("₹${price.toStringAsFixed(2)}",
                               style: textTheme.bodySmall?.copyWith(
                                   decoration: TextDecoration.lineThrough,
+                                  color: colorScheme.onSurfaceVariant))
+                        else
+                          Text("Price on request",
+                              style: textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurfaceVariant)),
-                        Text("₹${displayPrice.toStringAsFixed(2)}",
-                            style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.primary)),
                       ],
                     ),
                   ],
@@ -582,6 +663,21 @@ class _ProductGridCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _badgePill(String label, Color color) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration:
+          BoxDecoration(color: color, borderRadius: BorderRadius.circular(6)),
+      child: Text(label,
+          style: const TextStyle(
+              color: Colors.white,
+              fontSize: 9,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5)),
     );
   }
 }

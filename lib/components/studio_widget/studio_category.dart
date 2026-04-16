@@ -8,6 +8,14 @@ import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 
+// ── Private value object for type-based styling ───────────────────────────────
+class _CategoryTypeStyle {
+  final Color accentColor;
+  final IconData fallbackIcon;
+  const _CategoryTypeStyle(
+      {required this.accentColor, required this.fallbackIcon});
+}
+
 class CategoryHome extends StatefulWidget {
   final dynamic categoryData;
   CategoryHome({super.key, required this.categoryData});
@@ -18,6 +26,71 @@ class CategoryHome extends StatefulWidget {
 
 class _TopCategoryHomeState extends State<CategoryHome>
     with AutomaticKeepAliveClientMixin, BaseController {
+
+  // ── Helpers used only by vertical rectangular list ───────────────────────────
+
+  bool _isHot(dynamic category) => category['is_featured'] == true;
+
+  bool _isRecent(dynamic category) {
+    final createdAt = category['created_at'];
+    if (createdAt == null) return false;
+    try {
+      final date = DateTime.parse(createdAt.toString());
+      return DateTime.now().difference(date).inDays <= 7;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  _CategoryTypeStyle _getCategoryStyle(dynamic category, ColorScheme cs) {
+    switch ((category['type'] ?? '').toString().toLowerCase()) {
+      case 'product':
+        return _CategoryTypeStyle(
+            accentColor: cs.primary, fallbackIcon: Icons.local_dining);
+      case 'product options':
+        return _CategoryTypeStyle(
+            accentColor: cs.secondary, fallbackIcon: Icons.tune);
+      case 'even':
+        return _CategoryTypeStyle(
+            accentColor: Colors.amber.shade600,
+            fallbackIcon: Icons.star_outline);
+      default:
+        return _CategoryTypeStyle(
+            accentColor: cs.onSurfaceVariant,
+            fallbackIcon: Icons.category_outlined);
+    }
+  }
+
+  Widget _badge(String label, Color bg, Color fg) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: fg, fontSize: 9, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildBadgeRow(dynamic category, ColorScheme cs) {
+    final hot = _isHot(category);
+    final recent = _isRecent(category);
+    if (!hot && !recent) return const SizedBox.shrink();
+    return Wrap(
+      spacing: 4,
+      runSpacing: 2,
+      children: [
+        if (hot) _badge('🔥 Hot', cs.error, cs.onError),
+        if (recent) _badge('New', Colors.green.shade600, Colors.white),
+      ],
+    );
+  }
+
+  // ── Build ────────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -97,33 +170,25 @@ class _TopCategoryHomeState extends State<CategoryHome>
       {bool isVerticalList = false, bool isGrid = false}) {
     return GestureDetector(
       onTap: () {
-        {
-          //------------
-
-          List children = category['children'] ?? [];
-
-          if (children.isNotEmpty) {
-            Get.toNamed(Routes.DETAILCATEGORY, arguments: {
+        List children = category['children'] ?? [];
+        if (children.isNotEmpty) {
+          Get.toNamed(Routes.DETAILCATEGORY, arguments: {
+            'name': category['name'],
+            'id': category['_id'],
+            'children': children,
+            'bannerData': {
               'name': category['name'],
-              'id': category['_id'],
-              'children': children,
-              'bannerData': {
-                'name': category['name'],
-                'image': category['featured_image'],
-              }
-            });
-          } else {
-            Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-              'productId': category['_id'],
-              'categorySlug': category['slug'],
-              'name': category['name'],
-              'source': 'category'
-            });
-          }
-
-          //------------
+              'image': category['featured_image'],
+            }
+          });
+        } else {
+          Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+            'productId': category['_id'],
+            'categorySlug': category['slug'],
+            'name': category['name'],
+            'source': 'category'
+          });
         }
-        ;
       },
       child: style == 'rectangular'
           ? _buildRectangularItem(category, isVerticalList)
@@ -178,22 +243,25 @@ class _TopCategoryHomeState extends State<CategoryHome>
     final colorScheme = Theme.of(context).colorScheme;
 
     if (isVerticalList) {
-      // Style used in the main Category Page
+      // ── Enhanced vertical list style ──────────────────────────────────────
+      final typeStyle = _getCategoryStyle(category, colorScheme);
+
       return Container(
         height: 100,
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: colorScheme.outline.withValues(alpha: 0.1),
+            color: typeStyle.accentColor.withValues(alpha: 0.2),
           ),
         ),
         child: Row(
           children: [
+            // Image panel with type-tinted background
             Container(
               width: 100,
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest,
+                color: typeStyle.accentColor.withValues(alpha: 0.08),
                 borderRadius: const BorderRadius.horizontal(
                   left: Radius.circular(10),
                 ),
@@ -206,10 +274,17 @@ class _TopCategoryHomeState extends State<CategoryHome>
                   imageUrl:
                       HelperFunctions().getImage(category['featured_image']),
                   fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => const Icon(Icons.category),
+                  errorWidget: (_, __, ___) => Center(
+                    child: Icon(
+                      typeStyle.fallbackIcon,
+                      size: 32,
+                      color: typeStyle.accentColor,
+                    ),
+                  ),
                 ),
               ),
             ),
+            // Text + badges
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -236,19 +311,22 @@ class _TopCategoryHomeState extends State<CategoryHome>
                             ),
                       ),
                     ],
+                    const SizedBox(height: 4),
+                    _buildBadgeRow(category, colorScheme),
                   ],
                 ),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.only(right: 16),
-              child: Icon(Icons.chevron_right, size: 20),
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Icon(Icons.chevron_right,
+                  size: 20, color: typeStyle.accentColor),
             ),
           ],
         ),
       );
     } else {
-      // Horizontal rectangular card
+      // Horizontal rectangular card — unchanged
       return Container(
         width: 140,
         decoration: BoxDecoration(
