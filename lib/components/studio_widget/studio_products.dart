@@ -287,7 +287,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 // ─── Section Header ───
                 if (!_infiniteScroll)
                   Padding(
-                    padding: pageSurroundingPadding,
+                    padding: pageSurroundingPadding.copyWith(top: 24, bottom: 4),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -419,7 +419,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     return Padding(
       padding: pageSurroundingPadding,
       child: GridView.builder(
-        shrinkWrap: true,
+        shrinkWrap: true,             
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: columns,
@@ -464,7 +464,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         _infiniteScroll ? trendingList.length + 1 : trendingList.length;
 
     return Padding(
-      padding: pageSurroundingPadding,
+      padding: pageSurroundingPadding.copyWith(top: 8),
       child: ListView.separated(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -619,7 +619,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             ),
             // ── Details Section ─────────────────────────────────────
             Expanded(
-              flex: 4,
+              flex: 2,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                 child: Column(
@@ -636,13 +636,13 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text(
-                      'For 1Kg',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontSize: 11,
-                      ),
-                    ),
+                    // Text(
+                    //   'For 1Kg',
+                    //   style: textTheme.bodySmall?.copyWith(
+                    //     color: colorScheme.onSurfaceVariant,
+                    //     fontSize: 11,
+                    //   ),
+                    // ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.end,

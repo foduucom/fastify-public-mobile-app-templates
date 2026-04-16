@@ -37,6 +37,10 @@ class FoduuCachedNetworkImage extends StatelessWidget {
           fit: fit,
           height: height,
           width: width,
+          httpHeaders: const {
+            "Accept":
+                "image/jpeg,image/png,image/gif,image/webp,image/*;q=0.8,*/*;q=0.5",
+          },
           progressIndicatorBuilder: (context, url, downloadProgress) =>
               Container(
                   height: height,

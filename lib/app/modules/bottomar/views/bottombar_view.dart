@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:new_fastify_template/app/modules/homepage/views/home_view.dart';
 import '../../explore/view/explore_view.dart';
 import '../../homepage/controllers/home_controller2.dart';
 import '../../homepage/views/view.dart';
 import '/core/services/cartServcie.dart';
 import 'package:flutter_svg/svg.dart';
-import '/app/modules/homepage/views/home_view.dart';
 // ← ADD
 import '/app/modules/cart/controllers/cart_controller.dart';
 import '/app/modules/cart/views/cart_view.dart';
@@ -26,6 +26,7 @@ class BottombarView extends GetView<BottombarController> {
   final cartController = Get.put(CartController());
   final notifcationController = Get.put(NotificationsController());
   final wishListController = Get.put(WishlistController());
+  //final homeController = Get.put(HomeController());
 
   @override
   Widget build(BuildContext context) {

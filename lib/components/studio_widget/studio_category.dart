@@ -37,7 +37,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
     int columns = int.tryParse(contentJson['columns'].toString()) ?? 2;
 
     return Padding(
-      padding: pageSurroundingPadding,
+      padding: pageSurroundingPadding.copyWith(bottom: 0),
       child: viewMode == 'grid'
           ? _buildGridView(categories, style, columns)
           : _buildListView(categories, style, orientation),
@@ -56,7 +56,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
       );
     } else {
       return SizedBox(
-        height: style == 'circular' ? 90 : 140, // Adjust height based on style
+        height: style == 'rectangular' ? 140 : 82, // Adjust height based on style
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(
             dragDevices: {

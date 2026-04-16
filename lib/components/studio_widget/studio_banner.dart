@@ -3,7 +3,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '/app/modules/homepage/controllers/homepage_controller.dart';
 import '/app/routes/app_pages.dart';
-import '/constants/constants.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'dart:async';
@@ -221,7 +220,8 @@ class _HomeBannerState extends State<HomeBanner>
       imageUrl: getImage(item),
       progressIndicatorBuilder: (context, url, progress) {
         return Container(
-          decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest),
+          decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest),
           child: HelperFunctions().loadingIndicator(),
         );
       },
@@ -322,8 +322,6 @@ class _BannerCarouselState extends State<BannerCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
     final height = widget.config['height']?.toDouble() ?? 160.0;
     final showIndicators = widget.config['show_indicators'] ?? true;
 
@@ -344,78 +342,10 @@ class _BannerCarouselState extends State<BannerCarousel> {
               return GestureDetector(
                 onTap: () => widget.onTap(banner),
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 2),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Stack(
-                    children: [
-                      // ── Text left ──────────────────────────────
-                      Positioned(
-                        left: 20,
-                        top: 20,
-                        bottom: 20,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // ── Delivery tag ──────────────────
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: colorScheme.onSurface.withValues(alpha: 0.85),
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    banner['tag']?.toString() ?? '',
-                                    style: TextStyle(
-                                        color: colorScheme.surface, fontSize: 11),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    banner['highlight']?.toString() ?? '',
-                                    style: const TextStyle(
-                                      color: Colors.amber,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            SizedBox(
-                              width: 170,
-                              child: Text(
-                                banner['title']?.toString() ?? '',
-                                style: textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.onSurface,
-                                  fontSize: 15,
-                                  height: 1.4,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // ── Image right ────────────────────────────
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        bottom: 0,
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.horizontal(
-                              right: Radius.circular(20)),
-                          child: _buildBannerImage(widget.getImage(banner)),
-                        ),
-                      ),
-                    ],
+                    child: _buildBannerImage(widget.getImage(banner)),
                   ),
                 ),
               );
@@ -437,7 +367,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
                   decoration: BoxDecoration(
                     color: _currentPage == i
                         ? Theme.of(context).colorScheme.primary
-                        : colorScheme.outline,
+                        : Theme.of(context).colorScheme.outline,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
