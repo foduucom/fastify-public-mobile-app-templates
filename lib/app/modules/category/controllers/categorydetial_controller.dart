@@ -30,7 +30,7 @@ class CategeorydetaiController extends GetxController
   }
 
   Future<void> fetchSubcategoriesAndToggle(
-      int index, String parentId, String parentName) async {
+      int index, String parentId, String parentName, String parentSlug) async {
     if (expandedindex.value == index) {
       // Just collapse
       expandedindex.value = -1;
@@ -62,11 +62,10 @@ class CategeorydetaiController extends GetxController
     }
 
     if (fetchedChildren.isEmpty) {
-      // Collapse and navigate to Shop view directly
       expandedindex.value = -1;
       Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
         'productId': parentId,
-        'categorySlug': '', // Provide empty slug or retrieve if available
+        'categorySlug': parentSlug,
         'name': parentName,
         'source': 'category'
       });

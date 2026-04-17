@@ -247,6 +247,7 @@ class _HomeBannerState extends State<HomeBanner>
       Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
         'source': 'category',
         'productId': link['value'],
+        'categorySlug': link['value'],
         'name': link['label'] ?? link['name']
       });
     } else if (linkType == 'mobile_page') {

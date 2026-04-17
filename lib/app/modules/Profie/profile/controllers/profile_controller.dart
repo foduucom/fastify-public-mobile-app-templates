@@ -119,7 +119,7 @@ class ProfileController extends GetxController with BaseController {
   Future<void> fetchDataFromServer() async {
     try {
       isLoading(true);
-      var response = await BasicProvider("public/customer/profile")
+      var response = await BasicProvider("auth/customer/profile")
           .getRequest()
           .catchError(handleError);
 
@@ -197,7 +197,7 @@ class ProfileController extends GetxController with BaseController {
       });
 
       try {
-        var response = await BasicProvider("public/customer/profile/update")
+        var response = await BasicProvider("auth/customer/profile/update")
             .postRequest(form)
             .catchError(handleError);
         Get.until((route) => !Get.isDialogOpen!);

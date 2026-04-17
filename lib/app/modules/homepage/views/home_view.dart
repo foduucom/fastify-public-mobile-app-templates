@@ -56,7 +56,7 @@ class Testinghome extends GetView<HomepageController> {
           // ),
           if (kIsWeb)
             Obx(
-                  () => Container(
+              () => Container(
                 margin: const EdgeInsets.only(right: 8),
                 height: 10,
                 width: 10,
@@ -74,28 +74,28 @@ class Testinghome extends GetView<HomepageController> {
           Obx(() => Text(controller.selectcategory.value.toString())),
           const SizedBox(width: 14),
           Obx(
-                () => controller.notificatoinCount == 1
+            () => controller.notificatoinCount == 1
                 ? GestureDetector(
-              onTap: () {
-                Get.toNamed(Routes.NOTIFICATION);
-              },
-              child: SvgPicture.asset(
-                'assets/icon/appbarnotification.svg',
-                height: 22,
-                width: 22,
-                colorFilter: ColorFilter.mode(
-                  Theme.of(context).colorScheme.onSurface,
-                  BlendMode.srcIn,
-                ),
-              ),
-            )
+                    onTap: () {
+                      Get.toNamed(Routes.NOTIFICATION);
+                    },
+                    child: SvgPicture.asset(
+                      'assets/icon/appbarnotification.svg',
+                      height: 22,
+                      width: 22,
+                      colorFilter: ColorFilter.mode(
+                        Theme.of(context).colorScheme.onSurface,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                  )
                 : Get.find<BottombarController>().cartbadge(
-                child: NotificationIcon(() {
-                  Get.toNamed(Routes.NOTIFICATION);
-                }),
-                badgeNumber: Get.find<NotificationsController>()
-                    .allnotificationList
-                    .length),
+                    child: NotificationIcon(() {
+                      Get.toNamed(Routes.NOTIFICATION);
+                    }),
+                    badgeNumber: Get.find<NotificationsController>()
+                        .allnotificationList
+                        .length),
           ),
           const SizedBox(width: 14),
           Obx(() => Get.find<BottombarController>().cartbadge(
@@ -111,25 +111,25 @@ class Testinghome extends GetView<HomepageController> {
         child: AuthDetails.isUserLogin()
             ? const CustomDrawer()
             : Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Center(
-                child: Text(
-                  'Login to View Profile',
-                  style: txtTheme().displayMedium,
-                )),
-            const SizedBox(height: 15),
-            SizedBox(
-              width: Get.width * 0.6,
-              child: AppButton(
-                  itemText: 'Login',
-                  keypressEvent: () {
-                    // Removed the unused isOtpLogin check
-                    Get.offAllNamed(Routes.LOGIN);
-                  }),
-            ),
-          ],
-        ),
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Center(
+                      child: Text(
+                    'Login to View Profile',
+                    style: txtTheme().displayMedium,
+                  )),
+                  const SizedBox(height: 15),
+                  SizedBox(
+                    width: Get.width * 0.6,
+                    child: AppButton(
+                        itemText: 'Login',
+                        keypressEvent: () {
+                          // Removed the unused isOtpLogin check
+                          Get.offAllNamed(Routes.LOGIN);
+                        }),
+                  ),
+                ],
+              ),
       ),
       // 👇 Wrap the body in an Obx to toggle between Shimmer and the real layout
       body: Obx(() {
@@ -148,4 +148,3 @@ class Testinghome extends GetView<HomepageController> {
     );
   }
 }
-

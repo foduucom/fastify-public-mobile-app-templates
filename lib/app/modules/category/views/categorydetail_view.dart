@@ -171,6 +171,9 @@ class CategeorydetailView extends GetView<CategeorydetaiController> {
                                             '',
                                         controller.parentCategor[index]
                                                 ['name'] ??
+                                            '',
+                                        controller.parentCategor[index]
+                                                ['slug'] ??
                                             '');
                                   },
                                 );
@@ -262,7 +265,8 @@ class CategeorydetailView extends GetView<CategeorydetaiController> {
                             controller.fetchSubcategoriesAndToggle(
                                 index,
                                 controller.parentCategor[index]['_id'] ?? '',
-                                controller.parentCategor[index]['name'] ?? '');
+                                controller.parentCategor[index]['name'] ?? '',
+                                controller.parentCategor[index]['slug'] ?? '');
                           },
                         );
                       }),

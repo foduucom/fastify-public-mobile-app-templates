@@ -38,10 +38,41 @@ class ShopView extends GetView<ShopController> {
               ],
             )),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.tune_rounded), // Filter Icon
-            onPressed: () => _showFilterBottomSheet(context),
-          ),
+          Obx(() {
+            final count = controller.activeFilterCount;
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.tune_rounded),
+                  onPressed: () => _showFilterBottomSheet(context),
+                ),
+                if (count > 0)
+                  Positioned(
+                    right: 6,
+                    top: 6,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints:
+                          const BoxConstraints(minWidth: 16, minHeight: 16),
+                      child: Text(
+                        '$count',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          }),
           const SizedBox(width: 8),
         ],
       ),
@@ -137,15 +168,44 @@ class ShopView extends GetView<ShopController> {
     );
   }
 
-  // ─── PREMIUM FILTER BOTTOM SHEET ──────────────────────────────────────
+// ─── FIXED FILTER BOTTOM SHEET ──────────────────────────────────────
   void _showFilterBottomSheet(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    // ✅ Store initial values to compare changes
+    final initialFeatured = controller.isFeatured.value;
+    final initialHot = controller.isHot.value;
+    final initialTrending = controller.isTrending.value;
+    final initialRecommended = controller.isRecommended.value;
+    final initialPriceRange = controller.currentPriceRange.value;
+    final initialCategories = List<String>.from(controller.selectedCategories);
+    final initialBrands = List<String>.from(controller.selectedBrands);
+    final initialSortBy = controller.sortBy.value;
+    final initialSortOrder = controller.sortOrder.value;
+
+    // ✅ Create temporary controllers for the bottom sheet
+    final tempFeatured = false.obs;
+    final tempHot = false.obs;
+    final tempTrending = false.obs;
+    final tempRecommended = false.obs;
+    final tempPriceRange = Rx<RangeValues>(initialPriceRange);
+    final tempCategories = <String>{}.obs;
+    final tempBrands = <String>{}.obs;
+    final tempSortBy = initialSortBy.obs;
+    final tempSortOrder = initialSortOrder.obs;
+
+    // Initialize temp values
+    tempFeatured.value = initialFeatured;
+    tempHot.value = initialHot;
+    tempTrending.value = initialTrending;
+    tempRecommended.value = initialRecommended;
+    tempCategories.addAll(initialCategories);
+    tempBrands.addAll(initialBrands);
+
     Get.bottomSheet(
       Container(
-        height:
-            MediaQuery.of(context).size.height * 0.75, // 75% of screen height
+        height: MediaQuery.of(context).size.height * 0.85,
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -155,27 +215,56 @@ class ShopView extends GetView<ShopController> {
             // Handle Bar
             const SizedBox(height: 12),
             Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                    color: colorScheme.outline.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(10))),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                  color: colorScheme.outline.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(10)),
+            ),
 
-            // Header
+            // Header with filter count
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Sort & Filter",
-                      style: textTheme.titleLarge
-                          ?.copyWith(fontWeight: FontWeight.bold)),
+                  Obx(() => Row(
+                        children: [
+                          Text("Sort & Filter",
+                              style: textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.bold)),
+                          if (controller.activeFilterCount > 0) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primary,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '${controller.activeFilterCount}',
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 12),
+                              ),
+                            ),
+                          ],
+                        ],
+                      )),
                   TextButton(
                     onPressed: () {
-                      controller.clearAllFilters();
-                      Get.back();
+                      // Reset all temp values
+                      tempFeatured.value = false;
+                      tempHot.value = false;
+                      tempTrending.value = false;
+                      tempRecommended.value = false;
+                      tempCategories.clear();
+                      tempBrands.clear();
+                      tempPriceRange.value = const RangeValues(0, 10000);
+                      tempSortBy.value = "created_at";
+                      tempSortOrder.value = "desc";
                     },
-                    child: Text("Clear All",
+                    child: Text("Reset All",
                         style: TextStyle(color: colorScheme.error)),
                   )
                 ],
@@ -183,108 +272,58 @@ class ShopView extends GetView<ShopController> {
             ),
             const Divider(height: 1),
 
-            // Scrollable Filter Content
+            // Scrollable Content
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 1. SORTING
-                    Text("Sort By",
-                        style: textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _sortChip("Newest", "created_at", "desc", colorScheme),
-                        _sortChip(
-                            "Price: Low-High", "price", "asc", colorScheme),
-                        _sortChip(
-                            "Price: High-Low", "price", "desc", colorScheme),
-                      ],
+                    // 1. SORTING SECTION
+                    _buildSortSection(
+                        colorScheme, textTheme, tempSortBy, tempSortOrder),
+                    const SizedBox(height: 24),
+
+                    // 2. PRODUCT FLAGS SECTION
+                    _buildFlagsSection(
+                      colorScheme,
+                      textTheme,
+                      tempFeatured,
+                      tempHot,
+                      tempTrending,
+                      tempRecommended,
                     ),
                     const SizedBox(height: 24),
 
-                    // 2. QUICK TOGGLES
-                    Text("Collections",
-                        style: textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    Obx(() => CheckboxListTile(
-                          title: const Text("Featured Products"),
-                          value: controller.isFeatured.value,
-                          contentPadding: EdgeInsets.zero,
-                          controlAffinity: ListTileControlAffinity.leading,
-                          onChanged: (val) =>
-                              controller.isFeatured.value = val!,
-                        )),
-                    Obx(() => CheckboxListTile(
-                          title: const Text("Hot Trending"),
-                          value: controller.isHot.value,
-                          contentPadding: EdgeInsets.zero,
-                          controlAffinity: ListTileControlAffinity.leading,
-                          onChanged: (val) => controller.isHot.value = val!,
-                        )),
-                    const SizedBox(height: 16),
-
-                    // 3. PRICE RANGE
-                    Text("Price Range",
-                        style: textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    Obx(() => Column(
-                          children: [
-                            RangeSlider(
-                              values: controller.currentPriceRange.value,
-                              min: 0,
-                              max: 10000,
-                              divisions: 100,
-                              activeColor: colorScheme.primary,
-                              labels: RangeLabels(
-                                "₹${controller.currentPriceRange.value.start.round()}",
-                                "₹${controller.currentPriceRange.value.end.round()}",
-                              ),
-                              onChanged: (RangeValues values) {
-                                controller.currentPriceRange.value = values;
-                                controller.minPrice.value = values.start;
-                                controller.maxPrice.value = values.end;
-                              },
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text("₹${controller.minPrice.value.round()}"),
-                                Text("₹${controller.maxPrice.value.round()}"),
-                              ],
-                            )
-                          ],
-                        )),
+                    // 3. PRICE RANGE SECTION
+                    _buildPriceSection(
+                      colorScheme,
+                      textTheme,
+                      tempPriceRange,
+                    ),
                     const SizedBox(height: 24),
 
-                    // 4. CATEGORIES (Mocked for UI, wire these to your actual category list)
-                    Text("Categories",
-                        style: textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 10),
-                    Obx(() => Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _categoryChip(
-                                "electronics", "Electronics", colorScheme),
-                            _categoryChip("clothing", "Clothing", colorScheme),
-                            _categoryChip(
-                                "home-decor", "Home Decor", colorScheme),
-                            _categoryChip("toys", "Toys", colorScheme),
-                          ],
-                        )),
+                    // 4. CATEGORIES SECTION
+                    _buildCategoriesSection(
+                      colorScheme,
+                      textTheme,
+                      tempCategories,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // 5. BRANDS SECTION
+                    _buildBrandsSection(
+                      colorScheme,
+                      textTheme,
+                      tempBrands,
+                    ),
+                    const SizedBox(height: 32),
                   ],
                 ),
               ),
             ),
 
-            // Apply Button Sticky Footer
+            // Apply Button
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -297,24 +336,59 @@ class ShopView extends GetView<ShopController> {
                 ],
               ),
               child: SafeArea(
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Get.back(); // Close sheet
-                      controller.fetchProducts(isRefresh: true); // Trigger API
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Get.back(),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text("Cancel"),
+                      ),
                     ),
-                    child: const Text("Apply Filters",
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                  ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // ✅ Apply all temp filters to actual controller
+                          controller.isFeatured.value = tempFeatured.value;
+                          controller.isHot.value = tempHot.value;
+                          controller.isTrending.value = tempTrending.value;
+                          controller.isRecommended.value =
+                              tempRecommended.value;
+                          controller.selectedCategories.clear();
+                          controller.selectedCategories.addAll(tempCategories);
+                          controller.selectedBrands.clear();
+                          controller.selectedBrands.addAll(tempBrands);
+                          controller.currentPriceRange.value =
+                              tempPriceRange.value;
+                          controller.minPrice.value =
+                              tempPriceRange.value.start;
+                          controller.maxPrice.value = tempPriceRange.value.end;
+                          controller.sortBy.value = tempSortBy.value;
+                          controller.sortOrder.value = tempSortOrder.value;
+
+                          Get.back(); // Close sheet
+                          controller
+                              .applyFiltersAndRefresh(); // Refresh with new filters
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text("Apply Filters",
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             )
@@ -322,33 +396,242 @@ class ShopView extends GetView<ShopController> {
         ),
       ),
       isScrollControlled: true,
+      enableDrag: true,
     );
   }
 
-  Widget _sortChip(
-      String label, String by, String order, ColorScheme colorScheme) {
-    return Obx(() {
-      bool isSelected =
-          controller.sortBy.value == by && controller.sortOrder.value == order;
-      return ChoiceChip(
-        label: Text(label),
-        selected: isSelected,
-        selectedColor: colorScheme.primaryContainer,
-        onSelected: (val) {
-          controller.sortBy.value = by;
-          controller.sortOrder.value = order;
-        },
-      );
-    });
+// ─── SORT SECTION ────────────────────────────────────────────────
+  Widget _buildSortSection(
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+    RxString tempSortBy,
+    RxString tempSortOrder,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Sort By",
+            style:
+                textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        Obx(() => Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _sortChipWidget("Newest", "created_at", "desc", tempSortBy,
+                    tempSortOrder, colorScheme),
+                _sortChipWidget("Price: Low-High", "price", "asc", tempSortBy,
+                    tempSortOrder, colorScheme),
+                _sortChipWidget("Price: High-Low", "price", "desc", tempSortBy,
+                    tempSortOrder, colorScheme),
+              ],
+            )),
+      ],
+    );
   }
 
-  Widget _categoryChip(String slug, String label, ColorScheme colorScheme) {
-    bool isSelected = controller.selectedCategories.contains(slug);
-    return FilterChip(
+  Widget _sortChipWidget(
+    String label,
+    String by,
+    String order,
+    RxString tempSortBy,
+    RxString tempSortOrder,
+    ColorScheme colorScheme,
+  ) {
+    bool isSelected = tempSortBy.value == by && tempSortOrder.value == order;
+    return ChoiceChip(
       label: Text(label),
       selected: isSelected,
       selectedColor: colorScheme.primaryContainer,
-      onSelected: (val) => controller.toggleCategory(slug),
+      onSelected: (_) {
+        tempSortBy.value = by;
+        tempSortOrder.value = order;
+      },
+    );
+  }
+
+// ─── FLAGS SECTION ────────────────────────────────────────────────
+  Widget _buildFlagsSection(
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+    RxBool tempFeatured,
+    RxBool tempHot,
+    RxBool tempTrending,
+    RxBool tempRecommended,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Product Type",
+            style:
+                textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Obx(() => Column(
+              children: [
+                CheckboxListTile(
+                  title: const Text("Featured Products"),
+                  value: tempFeatured.value,
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  onChanged: (val) => tempFeatured.value = val ?? false,
+                ),
+                CheckboxListTile(
+                  title: const Text("Hot Trending"),
+                  value: tempHot.value,
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  onChanged: (val) => tempHot.value = val ?? false,
+                ),
+                CheckboxListTile(
+                  title: const Text("Trending"),
+                  value: tempTrending.value,
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  onChanged: (val) => tempTrending.value = val ?? false,
+                ),
+                CheckboxListTile(
+                  title: const Text("Recommended"),
+                  value: tempRecommended.value,
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  onChanged: (val) => tempRecommended.value = val ?? false,
+                ),
+              ],
+            )),
+      ],
+    );
+  }
+
+// ─── PRICE SECTION ────────────────────────────────────────────────
+  Widget _buildPriceSection(
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+    Rx<RangeValues> tempPriceRange,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Price Range",
+            style:
+                textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        Obx(() => Column(
+              children: [
+                RangeSlider(
+                  values: tempPriceRange.value,
+                  min: 0,
+                  max: 10000,
+                  divisions: 100,
+                  activeColor: colorScheme.primary,
+                  labels: RangeLabels(
+                    "₹${tempPriceRange.value.start.round()}",
+                    "₹${tempPriceRange.value.end.round()}",
+                  ),
+                  onChanged: (RangeValues values) {
+                    tempPriceRange.value = values;
+                  },
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("₹${tempPriceRange.value.start.round()}"),
+                    Text("₹${tempPriceRange.value.end.round()}"),
+                  ],
+                )
+              ],
+            )),
+      ],
+    );
+  }
+
+// ─── CATEGORIES SECTION ───────────────────────────────────────────
+  Widget _buildCategoriesSection(
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+    RxSet<String> tempCategories,
+  ) {
+    // ✅ Replace with your actual categories from API
+    final List<Map<String, String>> availableCategories = [
+      {'slug': 'electronics', 'name': 'Electronics'},
+      {'slug': 'clothing', 'name': 'Clothing'},
+      {'slug': 'home-decor', 'name': 'Home Decor'},
+      {'slug': 'toys', 'name': 'Toys'},
+      {'slug': 'books', 'name': 'Books'},
+      {'slug': 'sports', 'name': 'Sports'},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Categories",
+            style:
+                textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        Obx(() => Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: availableCategories.map((cat) {
+                bool isSelected = tempCategories.contains(cat['slug']);
+                return FilterChip(
+                  label: Text(cat['name']!),
+                  selected: isSelected,
+                  selectedColor: colorScheme.primaryContainer,
+                  onSelected: (val) {
+                    if (val) {
+                      tempCategories.add(cat['slug']!);
+                    } else {
+                      tempCategories.remove(cat['slug']!);
+                    }
+                  },
+                );
+              }).toList(),
+            )),
+      ],
+    );
+  }
+
+// ─── BRANDS SECTION ───────────────────────────────────────────────
+  Widget _buildBrandsSection(
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+    RxSet<String> tempBrands,
+  ) {
+    // ✅ Replace with your actual brands from API
+    final List<Map<String, String>> availableBrands = [
+      {'slug': 'nike', 'name': 'Nike'},
+      {'slug': 'adidas', 'name': 'Adidas'},
+      {'slug': 'apple', 'name': 'Apple'},
+      {'slug': 'samsung', 'name': 'Samsung'},
+      {'slug': 'sony', 'name': 'Sony'},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Brands",
+            style:
+                textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        Obx(() => Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: availableBrands.map((brand) {
+                bool isSelected = tempBrands.contains(brand['slug']);
+                return FilterChip(
+                  label: Text(brand['name']!),
+                  selected: isSelected,
+                  selectedColor: colorScheme.primaryContainer,
+                  onSelected: (val) {
+                    if (val) {
+                      tempBrands.add(brand['slug']!);
+                    } else {
+                      tempBrands.remove(brand['slug']!);
+                    }
+                  },
+                );
+              }).toList(),
+            )),
+      ],
     );
   }
 
