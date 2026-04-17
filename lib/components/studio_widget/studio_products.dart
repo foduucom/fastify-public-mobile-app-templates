@@ -287,7 +287,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 // ─── Section Header ───
                 if (!_infiniteScroll)
                   Padding(
-                    padding: pageSurroundingPadding.copyWith(top: 24, bottom: 4),
+                    padding:
+                        pageSurroundingPadding.copyWith(top: 24, bottom: 4),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -375,6 +376,76 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SHARED HELPERS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  int get _itemCount =>
+      _infiniteScroll ? trendingList.length + 1 : trendingList.length;
+
+  /// Extracts price display data from priceInfo map.
+  ({
+    String displayPrice,
+    String originalPrice,
+    bool hasDiscount,
+    String discountRate
+  }) _parsePriceData(Map<String, dynamic> priceInfo) {
+    final displayPrice = priceInfo['productPrice']?.toString() ?? '0';
+    final originalPrice = priceInfo['salePrice']?.toString() ?? '0';
+    final hasDiscount = originalPrice != '0' &&
+        originalPrice.isNotEmpty &&
+        originalPrice != displayPrice;
+    final discountRate = priceInfo['discountRate']?.toString() ?? '';
+    return (
+      displayPrice: displayPrice,
+      originalPrice: originalPrice,
+      hasDiscount: hasDiscount,
+      discountRate: discountRate,
+    );
+  }
+
+  /// Price row: bold current price + strikethrough original if discounted.
+  Widget _buildPriceRichText(
+      String displayPrice, String originalPrice, String discountRate) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return RichText(
+      text: TextSpan(
+        text: '₹$displayPrice',
+        style: textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: colorScheme.primary,
+        ),
+        children: [
+          if (discountRate.isNotEmpty) ...[
+            const TextSpan(text: '  '),
+            TextSpan(
+              text: '₹$originalPrice',
+              style: textTheme.bodySmall?.copyWith(
+                decoration: TextDecoration.lineThrough,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Wraps [child] with ScrollConfiguration that enables touch/mouse/trackpad.
+  Widget _withScrollConfig(Widget child) {
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(
+        dragDevices: {
+          PointerDeviceKind.touch,
+          PointerDeviceKind.mouse,
+          PointerDeviceKind.trackpad,
+        },
+      ),
+      child: child,
+    );
+  }
+
   /// Route to the correct layout based on `view`, `list_view_type`, and card `style`
   Widget _buildProductLayout(String style) {
     final view = widget.contentJson?['view'] ?? 'list';
@@ -413,13 +484,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final spacing =
         double.tryParse(widget.contentJson?['spacing']?.toString() ?? '21') ??
             21;
-    final itemCount =
-        _infiniteScroll ? trendingList.length + 1 : trendingList.length;
-
     return Padding(
       padding: pageSurroundingPadding,
       child: GridView.builder(
-        shrinkWrap: true,             
+        shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: columns,
@@ -427,7 +495,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           mainAxisSpacing: spacing,
           childAspectRatio: aspectRatio,
         ),
-        itemCount: itemCount,
+        itemCount: _itemCount,
         itemBuilder: (context, index) {
           if (index >= trendingList.length) {
             return _buildLoadingIndicatorVertical();
@@ -460,15 +528,12 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // VERTICAL LIST VIEW
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildVerticalListView(String style) {
-    final itemCount =
-        _infiniteScroll ? trendingList.length + 1 : trendingList.length;
-
     return Padding(
       padding: pageSurroundingPadding.copyWith(top: 8),
       child: ListView.separated(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: itemCount,
+        itemCount: _itemCount,
         separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
           if (index >= trendingList.length) {
@@ -488,29 +553,19 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // STYLE 1 — STANDARD (Vertical Card, Image on Top)
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildStandardStyleList() {
-    final itemCount =
-        _infiniteScroll ? trendingList.length + 1 : trendingList.length;
-
     return Padding(
       padding: const EdgeInsets.only(left: 6.0),
       child: SizedBox(
         height: 270,
-        child: ScrollConfiguration(
-          behavior: ScrollConfiguration.of(context).copyWith(
-            dragDevices: {
-              PointerDeviceKind.touch,
-              PointerDeviceKind.mouse,
-              PointerDeviceKind.trackpad,
-            },
-          ),
-          child: ListView.separated(
+        child: _withScrollConfig(
+          ListView.separated(
             controller: _scrollController,
             separatorBuilder: (context, index) => const SizedBox(width: 10),
             shrinkWrap: false,
             cacheExtent: 9999,
             physics: const AlwaysScrollableScrollPhysics(),
             scrollDirection: Axis.horizontal,
-            itemCount: itemCount,
+            itemCount: _itemCount,
             itemBuilder: (context, index) {
               if (index >= trendingList.length) {
                 return _buildLoadingIndicator();
@@ -533,15 +588,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final textTheme = Theme.of(context).textTheme;
     final productName = ProductHelper.getProductName(product);
     final imageUrl = ProductHelper.getProductImage(product);
-    final productType = priceInfo['productType'];
-
-    // Price parsing for the new design
-    final displayPrice = priceInfo['productPrice']?.toString() ?? '0';
-    final originalPrice = priceInfo['salePrice']?.toString() ?? '0';
-    final hasDiscount = originalPrice != '0' &&
-        originalPrice.isNotEmpty &&
-        originalPrice != displayPrice;
-    final discountRate = priceInfo['discountRate']?.toString() ?? '';
+    final (:displayPrice, :originalPrice, :hasDiscount, :discountRate) =
+        _parsePriceData(priceInfo);
 
     return GestureDetector(
       onTap: () => _navigateToProduct(product),
@@ -701,15 +749,12 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // STYLE 2 — HORIZONTAL (Image Left, Info Right Card)
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildHorizontalStyleList() {
-    final itemCount =
-        _infiniteScroll ? trendingList.length + 1 : trendingList.length;
-
     return Padding(
       padding: pageSurroundingPadding,
       child: ListView.separated(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: itemCount,
+        itemCount: _itemCount,
         separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
           if (index >= trendingList.length) {
@@ -730,9 +775,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final textTheme = Theme.of(context).textTheme;
     final productName = ProductHelper.getProductName(product);
     final imageUrl = ProductHelper.getProductImage(product);
+    print("imageUrl === $imageUrl");
     final productType = priceInfo['productType'];
-
-    // print('product image url $imageUrl');
+    final (:displayPrice, :originalPrice, :hasDiscount, :discountRate) =
+        _parsePriceData(priceInfo);
 
     return GestureDetector(
       onTap: () => _navigateToProduct(product),
@@ -816,9 +862,16 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                     ),
                     const SizedBox(height: 6),
                     if (productType == 'variable')
-                      _buildVariablePrice(priceInfo)
+                      Text(
+                        '₹${priceInfo['lowestPrice']} - ₹${priceInfo['highestPrice']}',
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.primary,
+                        ),
+                      )
                     else
-                      _buildSimplePrice(priceInfo),
+                      _buildPriceRichText(
+                          displayPrice, originalPrice, discountRate),
                     const Spacer(),
                     // Add to cart hint
                     Row(
@@ -860,29 +913,19 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // STYLE 3 — OVERLAY (Full Image Card with Overlay Text)
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildOverlayStyleList() {
-    final itemCount =
-        _infiniteScroll ? trendingList.length + 1 : trendingList.length;
-
     return Padding(
       padding: const EdgeInsets.only(left: 6.0),
       child: SizedBox(
         height: 260,
-        child: ScrollConfiguration(
-          behavior: ScrollConfiguration.of(context).copyWith(
-            dragDevices: {
-              PointerDeviceKind.touch,
-              PointerDeviceKind.mouse,
-              PointerDeviceKind.trackpad,
-            },
-          ),
-          child: ListView.separated(
+        child: _withScrollConfig(
+          ListView.separated(
             controller: _scrollController,
             separatorBuilder: (_, __) => const SizedBox(width: 10),
             shrinkWrap: false,
             cacheExtent: 9999,
             physics: const AlwaysScrollableScrollPhysics(),
             scrollDirection: Axis.horizontal,
-            itemCount: itemCount,
+            itemCount: _itemCount,
             itemBuilder: (context, index) {
               if (index >= trendingList.length) {
                 return _buildLoadingIndicator();
@@ -906,6 +949,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final productName = ProductHelper.getProductName(product);
     final imageUrl = ProductHelper.getProductImage(product);
     final productType = priceInfo['productType'];
+    final (:displayPrice, :originalPrice, :hasDiscount, :discountRate) =
+        _parsePriceData(priceInfo);
 
     return GestureDetector(
       onTap: () => _navigateToProduct(product),
@@ -973,9 +1018,16 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                       ),
                       const SizedBox(height: 4),
                       if (productType == 'variable')
-                        _buildVariablePrice(priceInfo)
+                        Text(
+                          '₹${priceInfo['lowestPrice']} - ₹${priceInfo['highestPrice']}',
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.primary,
+                          ),
+                        )
                       else
-                        _buildSimplePrice(priceInfo),
+                        _buildPriceRichText(
+                            displayPrice, originalPrice, discountRate),
                     ],
                   ),
                 ),
@@ -1129,47 +1181,47 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   }
 
   /// Variable product price display
-  Widget _buildVariablePrice(Map<String, dynamic> priceInfo) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+  // Widget _buildVariablePrice(Map<String, dynamic> priceInfo) {
+  //   final colorScheme = Theme.of(context).colorScheme;
+  //   final textTheme = Theme.of(context).textTheme;
 
-    return Text(
-      '₹${priceInfo['lowestPrice']} - ₹${priceInfo['highestPrice']}',
-      style: textTheme.bodyMedium?.copyWith(
-        fontWeight: FontWeight.w600,
-        color: colorScheme.primary,
-      ),
-    );
-  }
+  //   return Text(
+  //     '₹${priceInfo['lowestPrice']} - ₹${priceInfo['highestPrice']}',
+  //     style: textTheme.bodyMedium?.copyWith(
+  //       fontWeight: FontWeight.w600,
+  //       color: colorScheme.primary,
+  //     ),
+  //   );
+  // }
 
   /// Simple product price display with discount
-  Widget _buildSimplePrice(Map<String, dynamic> priceInfo) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+  // Widget _buildSimplePrice(Map<String, dynamic> priceInfo) {
+  //   final colorScheme = Theme.of(context).colorScheme;
+  //   final textTheme = Theme.of(context).textTheme;
 
-    return RichText(
-      text: TextSpan(
-        text: '₹${priceInfo['productPrice']}',
-        style: textTheme.bodyMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: colorScheme.primary,
-        ),
-        children: [
-          if (priceInfo['discountRate'] != null &&
-              priceInfo['discountRate'].toString().isNotEmpty) ...[
-            const TextSpan(text: '  '),
-            TextSpan(
-              text: '₹${priceInfo['discountPrice']}',
-              style: textTheme.bodySmall?.copyWith(
-                decoration: TextDecoration.lineThrough,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
+  //   return RichText(
+  //     text: TextSpan(
+  //       text: '₹${priceInfo['productPrice']}',
+  //       style: textTheme.bodyMedium?.copyWith(
+  //         fontWeight: FontWeight.w600,
+  //         color: colorScheme.primary,
+  //       ),
+  //       children: [
+  //         if (priceInfo['discountRate'] != null &&
+  //             priceInfo['discountRate'].toString().isNotEmpty) ...[
+  //           const TextSpan(text: '  '),
+  //           TextSpan(
+  //             text: '₹${priceInfo['discountPrice']}',
+  //             style: textTheme.bodySmall?.copyWith(
+  //               decoration: TextDecoration.lineThrough,
+  //               color: colorScheme.onSurfaceVariant,
+  //             ),
+  //           ),
+  //         ],
+  //       ],
+  //     ),
+  //   );
+  // }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

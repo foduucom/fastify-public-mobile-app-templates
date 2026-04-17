@@ -30,8 +30,11 @@ class ProductHelper {
     }
 
     final variant = variants[variantIndex];
-    final salePrice = HelperFunctions.parseAmount(variant['sale_price'] ?? variant['price']);
+    final salePrice =
+        HelperFunctions.parseAmount(variant['sale_price'] ?? variant['price']);
     final regularPrice = HelperFunctions.parseAmount(variant['price']);
+    print("RAGULAR PRICE: $regularPrice");
+    print("SALE PRICE: $salePrice");
 
     String productPrice = salePrice.toString();
     String discountPrice = regularPrice.toString();
