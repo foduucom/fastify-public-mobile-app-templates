@@ -3,6 +3,7 @@ import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
+import 'address_list_controller.dart';
 
 class AddressFormController extends GetxController with BaseController {
   AddressFormController();
@@ -230,7 +231,7 @@ class AddressFormController extends GetxController with BaseController {
         'city': selectedCity['_id'],
         'postal_code': postal_code.text,
         'address_type': addressType.value,
-        'is_default': isDefault.value ? 1 : 1
+        'is_default': isDefault.value ? 1 : 0
       };
 
       print('postman body ${body}');
@@ -240,7 +241,7 @@ class AddressFormController extends GetxController with BaseController {
       if (isEditMode) {
         try {
           var response =
-              await BasicProvider('customer/addresses/update/$editAddressId')
+              await BasicProvider('customer/addresses/$editAddressId')
                   .patchRequest(body);
           print('address update response ${response}');
           isSuccess = true;
@@ -259,7 +260,7 @@ class AddressFormController extends GetxController with BaseController {
       } else {
         try {
           var response =
-              await BasicProvider('customer/addresses/add').patchRequest(body);
+              await BasicProvider('customer/addresses/add').postRequest(body);
           print('address update response 1: ${response}');
           isSuccess = true;
         } catch (e) {
@@ -273,13 +274,18 @@ class AddressFormController extends GetxController with BaseController {
           }
         }
       }
+
+      if (isSuccess) {
+        if (Get.isRegistered<AddressListController>()) {
+          Get.find<AddressListController>().refreshAddresses();
+        }
+        Get.back(result: true);
+      }
     } catch (e) {
       print('Error saving address: $e');
     } finally {
       // Close loader
-      if (Get.isDialogOpen ?? false) {
-        Get.back();
-      }
+      HelperFunctions().hideOverlayLoader();
       isLoading.value = false;
     }
   }

@@ -73,7 +73,7 @@ class AddressListController extends GetxController with BaseController {
       var response = await BasicProvider('address/remove/$id')
           .deleteRequest()
           .catchError(handleError);
-      Get.until((route) => !Get.isDialogOpen!);
+      HelperFunctions().hideOverlayLoader();
 
       if (response != null) {
         userAddressList.removeAt(index);
@@ -84,7 +84,7 @@ class AddressListController extends GetxController with BaseController {
         update();
       }
     } catch (e) {
-      Get.until((route) => !Get.isDialogOpen!);
+      HelperFunctions().hideOverlayLoader();
       print('Error removing address: $e');
     }
   }

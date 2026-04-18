@@ -50,12 +50,6 @@ Future<void> main() async {
     Get.put(StudioSocketRouting(initialSlug: slug));
   }
 
-  // Initialize dynamic theme from storage
-  await DynamicThemeManager().init();
-
-  // Register ThemeController globally
-  Get.put(ThemeController());
-
   // Register all dynamic layout widgets
   registerDefaultWidgets();
 
@@ -68,6 +62,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ThemeController>(
+      init: ThemeController(),
       builder: (themeController) {
         return GetMaterialApp(
           debugShowCheckedModeBanner: false,

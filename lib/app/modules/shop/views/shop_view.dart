@@ -7,6 +7,7 @@ import '/app/modules/product/views/product_view.dart';
 import '/app/modules/shop/bindings/shop_binding.dart';
 import '/app/modules/shop/controllers/shop_controller.dart';
 import '/components/product_grid_card.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 
 class ShopView extends GetView<ShopController> {
   const ShopView({Key? key}) : super(key: key);
@@ -98,7 +99,7 @@ class ShopView extends GetView<ShopController> {
               crossAxisCount: 2,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              childAspectRatio: 0.62,
+              childAspectRatio: 0.70,
             ),
             itemCount: controller.products.length,
             itemBuilder: (context, index) {
@@ -108,8 +109,7 @@ class ShopView extends GetView<ShopController> {
                 onTap: () {
                   final productId = product['_id']?.toString() ?? '';
                   if (productId.isNotEmpty) {
-                    Get.to(() => ProductView(),
-                        binding: ShopBinding(),
+                    Get.toNamed(Routes.PRODUCTDETAILS,
                         arguments: {'productId': productId});
                   }
                 },

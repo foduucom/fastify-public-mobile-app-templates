@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/components/home_component/home_category.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
 import 'package:get/get.dart';
 import '../controllers/category_controller.dart';
@@ -19,6 +20,7 @@ class CategoryView extends GetView<CategoryController> {
           },
           widgetList: controller.widgetList,
           isLoading: controller.isLayoutLoading,
+          loadingWidget: const CategoryPageShimmer(),
         ),
       ),
     );

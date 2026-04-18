@@ -143,17 +143,35 @@ class WishlistController extends GetxController
     try {
       final product = getProduct(index);
       final productId = getProductId(index);
-      final variantId = getVariantId(index);
       final quantity = getItemQuantity(index);
 
       if (productId.isEmpty) return;
 
-      // In this app, CartService.manageCart is used
-      // Simple products might not have a variantId in the wishlist,
-      // but manageCart expects one. Fallback to productId if needed or check how it's handled in ProductController.
+      String? variantId = getVariantId(index);
+
+      // If no variant stored in wishlist, try product's first variant
+      if (variantId == null || variantId.isEmpty) {
+        final variants = product['variants'] as List?;
+        if (variants != null && variants.isNotEmpty) {
+          variantId =
+              (variants.first['_id'] ?? variants.first['id'])?.toString();
+        }
+      }
+
+      if (variantId == null || variantId.isEmpty) {
+        Get.snackbar(
+          "Select Variant",
+          "Please open the product to select a variant before adding to cart",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange.withOpacity(0.7),
+          colorText: Colors.white,
+        );
+        return;
+      }
+
       await Get.find<CartService>().manageCart(
         productId: productId,
-        variantId: variantId ?? productId, // Fallback if no variant
+        variantId: variantId,
         quantity: quantity,
         product: product,
       );

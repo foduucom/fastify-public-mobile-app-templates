@@ -164,6 +164,7 @@ class BasicProvider {
           .delete(
             Uri.parse(fetchUrl()),
             headers: headerType(),
+            body: '{}',
           )
           .timeout(Duration(seconds: 60));
 

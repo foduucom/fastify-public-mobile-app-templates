@@ -24,7 +24,7 @@ String _cap(dynamic value) {
 
 class SearchView extends GetView<SearchsController> {
   const SearchView({Key? key}) : super(key: key);
-  
+
   ColorScheme get colorScheme => Theme.of(Get.context!).colorScheme;
   TextTheme get textTheme => Theme.of(Get.context!).textTheme;
 
@@ -275,7 +275,7 @@ class SearchView extends GetView<SearchsController> {
                               crossAxisCount: 2,
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
-                              childAspectRatio: 0.62,
+                              childAspectRatio: 0.70,
                             ),
                             itemCount: controller.searchProduct.length,
                             itemBuilder: (context, index) {
@@ -292,8 +292,7 @@ class SearchView extends GetView<SearchsController> {
                                         id: productId,
                                         name: productName,
                                         type: 'product');
-                                    Get.to(() => ProductView(),
-                                        binding: ShopBinding(),
+                                    Get.toNamed(Routes.PRODUCTDETAILS,
                                         arguments: {'productId': productId});
                                   }
                                 },

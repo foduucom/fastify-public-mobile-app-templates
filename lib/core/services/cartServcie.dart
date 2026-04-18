@@ -81,6 +81,10 @@ class CartService extends GetxService with BaseController {
         .catchError(handleError);
     if (response != null) {
       parseCartResponse(response);
+      // Re-fetch to get fully populated featured_image objects; the manage
+      // endpoint returns featured_image as a bare string ID which breaks
+      // image URL construction.
+      await fetchCart();
     }
     return response;
   }

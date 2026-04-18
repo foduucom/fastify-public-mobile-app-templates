@@ -38,6 +38,10 @@ class FoduuStudioLayoutView extends StatelessWidget {
   /// so this widget can live inside any existing scroll parent.
   final bool embedded;
 
+  /// Optional widget shown while [isLoading] is true. Falls back to a
+  /// CircularProgressIndicator when not provided.
+  final Widget? loadingWidget;
+
   /// Full-page constructor (with its own scroll + pull-to-refresh).
   const FoduuStudioLayoutView({
     super.key,
@@ -45,6 +49,7 @@ class FoduuStudioLayoutView extends StatelessWidget {
     required this.isLoading,
     required this.onRefresh,
     this.embedded = false,
+    this.loadingWidget,
   });
 
   /// Embedded constructor — no scroll wrapper, safe inside Column/ListView.
@@ -53,7 +58,8 @@ class FoduuStudioLayoutView extends StatelessWidget {
     required this.widgetList,
     required this.isLoading,
   })  : onRefresh = null,
-        embedded = true;
+        embedded = true,
+        loadingWidget = null;
 
   @override
   Widget build(BuildContext context) {
@@ -61,12 +67,7 @@ class FoduuStudioLayoutView extends StatelessWidget {
       print("widgetList.length: ${widgetList.length}");
 
       if (isLoading.value) {
-        return Column(
-          children: [
-            Text(widgetList.toString()),
-            Center(child: HelperFunctions().loadingIndicator()),
-          ],
-        );
+        return loadingWidget ?? Center(child: HelperFunctions().loadingIndicator());
       }
 
       if (widgetList.isEmpty) {

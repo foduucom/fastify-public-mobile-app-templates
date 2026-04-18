@@ -433,13 +433,16 @@ class ProductController extends GetxController
     final variants = productDetials['variants'];
     if (variants == null || (variants as List).isEmpty) return;
 
-    await CartService.to.manageCart(
-        productId: productId,
-        variantId: variants[selectedVariantIndex.value]['_id'],
-        quantity: count.value,
-        product: Map<String, dynamic>.from(productDetials));
-    isLoading.value = false;
-    Get.until((route) => !Get.isDialogOpen!);
+    isLoading.value = true;
+    try {
+      await CartService.to.manageCart(
+          productId: productId,
+          variantId: variants[selectedVariantIndex.value]['_id'],
+          quantity: count.value,
+          product: Map<String, dynamic>.from(productDetials));
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   @override

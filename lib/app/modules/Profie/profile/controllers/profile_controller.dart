@@ -271,6 +271,7 @@ class ProfileController extends GetxController with BaseController {
         HelperFunctions().showSnackBarSuccess('Profile update successfully');
       } catch (e) {
         print('profile update error $e');
+        rethrow;
       }
     }
   }

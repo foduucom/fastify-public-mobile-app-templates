@@ -64,26 +64,26 @@ class CartController extends GetxController
 
   Future<dynamic> applyCoupon({required String coupon}) async {
     HelperFunctions().showOverlayLoader();
-    var form = {'coupon': coupon};
+    try {
+      var form = {'coupon': coupon};
 
-    Map<String, dynamic>? response = await BasicProvider(
-      "cart/apply/coupon",
-    ).postRequest(form).catchError(handleError);
+      Map<String, dynamic>? response = await BasicProvider(
+        "cart/apply/coupon",
+      ).postRequest(form).catchError(handleError);
 
-    if (response == null || response.isEmpty) {
-      Get.until((route) => !Get.isDialogOpen!);
-      return;
+      if (response == null || response.isEmpty) {
+        return;
+      }
+
+      couponDetails.clear();
+      couponDetails.addAll(response);
+
+      return response;
+    } catch (e) {
+      debugPrint('CartController.applyCoupon error: $e');
+    } finally {
+      HelperFunctions().hideOverlayLoader();
     }
-
-    couponDetails.clear();
-    couponDetails.addAll(response);
-
-    // Refresh cart after coupon apply
-    //await getCartProduct();
-
-    Get.until((route) => !Get.isDialogOpen!);
-    //getOrderDetails();
-    return response;
   }
 
   Future<void> incrementItem(String productId, String variantId) async {
@@ -126,9 +126,9 @@ class CartController extends GetxController
   }
 
   Future<void> removeItem(String productId, String variantSlug) async {
+    HelperFunctions().showOverlayLoader();
     try {
       isUpdating.value = true;
-      HelperFunctions().showOverlayLoader();
 
       var response = await _cartService.removeFromCart(
         productId: productId,
@@ -140,14 +140,11 @@ class CartController extends GetxController
       if (response == null) {
         await _cartService.fetchCart();
       }
-
-      if (Get.isDialogOpen ?? false) {
-        Get.until((route) => !Get.isDialogOpen!);
-      }
     } catch (e) {
       debugPrint('CartController.removeItem error: $e');
     } finally {
       isUpdating.value = false;
+      HelperFunctions().hideOverlayLoader();
     }
   }
 

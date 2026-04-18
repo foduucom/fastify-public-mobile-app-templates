@@ -15,7 +15,12 @@ class SplashScreenController extends GetxController with BaseController {
   @override
   void onInit() {
     super.onInit();
-    fetchSettings();
+
+    // 1. Initialize the Theme Manager (delayed from main.dart)
+    Get.find<ThemeController>().initThemeManager().then((_) {
+      // 2. Then proceed to fetch the latest settings and route
+      fetchSettings();
+    });
   }
 
   Future<void> fetchSettings() async {

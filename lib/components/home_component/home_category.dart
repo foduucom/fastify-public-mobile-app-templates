@@ -59,7 +59,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
       );
     } else {
       return SizedBox(
-        height: style == 'circular' ? 110 : 140, // Reduced height slightly
+        height: style == 'circular' ? 140 : 140, // Reduced height slightly
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(
             dragDevices: {
@@ -96,8 +96,12 @@ class _TopCategoryHomeState extends State<CategoryHome>
     );
   }
 
-  Widget _buildCategoryItem(dynamic category, String style,
-      {bool isVerticalList = false, bool isGrid = false}) {
+  Widget _buildCategoryItem(
+    dynamic category,
+    String style, {
+    bool isVerticalList = false,
+    bool isGrid = false,
+  }) {
     return GestureDetector(
       onTap: () {
         {
@@ -109,12 +113,15 @@ class _TopCategoryHomeState extends State<CategoryHome>
             _showCategoryDialog(Get.context!, category);
           } else {
             // If no children, navigate directly to product list
-            Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-              'productId': category['_id'],
-              'categorySlug': category['slug'],
-              'name': category['name'],
-              'source': 'category'
-            });
+            Get.toNamed(
+              Routes.SHOPPRODUCTLISTVIEW,
+              arguments: {
+                'productId': category['_id'],
+                'categorySlug': category['slug'],
+                'name': category['name'],
+                'source': 'category',
+              },
+            );
           }
           //------------
         }
@@ -127,9 +134,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
 
   Widget _buildCircularItem(dynamic category, bool isGrid) {
     return Container(
-      constraints: BoxConstraints(
-        maxWidth: isGrid ? double.infinity : 80,
-      ),
+      constraints: BoxConstraints(maxWidth: isGrid ? double.infinity : 80),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -142,8 +147,9 @@ class _TopCategoryHomeState extends State<CategoryHome>
               color: Theme.of(context).colorScheme.surfaceVariant,
               child: CachedNetworkImage(
                 fit: BoxFit.cover,
-                imageUrl:
-                    HelperFunctions().getImage(category['featured_image']),
+                imageUrl: HelperFunctions().getImage(
+                  category['featured_image'],
+                ),
                 errorWidget: (_, __, ___) =>
                     const Icon(Icons.category_outlined),
                 progressIndicatorBuilder: (_, __, ___) =>
@@ -157,7 +163,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
               category['name'].toString(),
               style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
-              maxLines: 2,
+              maxLines: 4,
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -167,14 +173,14 @@ class _TopCategoryHomeState extends State<CategoryHome>
   }
 
   void _showCategoryDialog(
-      BuildContext context, Map<String, dynamic> category) {
+    BuildContext context,
+    Map<String, dynamic> category,
+  ) {
     final children = category['children'] as List;
 
     // Show the dialog using the updated CategoryDialog class
     Get.dialog(
-      CategoryDialog(
-        category: category,
-      ),
+      CategoryDialog(category: category),
       barrierDismissible: true, // Allow tapping outside to close
     );
   }
@@ -192,12 +198,15 @@ class _TopCategoryHomeState extends State<CategoryHome>
             onTap: () => category['children'] != null &&
                     (category['children'] as List).isNotEmpty
                 ? _showCategoryDialog(context, category)
-                :  Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-              'productId': category['_id'],
-              'categorySlug': category['slug'],
-              'name': category['name'],
-              'source': 'category'
-            }),
+                : Get.toNamed(
+                    Routes.SHOPPRODUCTLISTVIEW,
+                    arguments: {
+                      'productId': category['_id'],
+                      'categorySlug': category['slug'],
+                      'name': category['name'],
+                      'source': 'category',
+                    },
+                  ),
             borderRadius: BorderRadius.circular(Get.height * 0.015),
             splashColor: Theme.of(context).primaryColor.withOpacity(0.3),
             highlightColor: Theme.of(context).primaryColor.withOpacity(0.1),
@@ -257,8 +266,9 @@ class _TopCategoryHomeState extends State<CategoryHome>
                   top: Radius.circular(12),
                 ),
                 child: CachedNetworkImage(
-                  imageUrl:
-                      HelperFunctions().getImage(category['featured_image']),
+                  imageUrl: HelperFunctions().getImage(
+                    category['featured_image'],
+                  ),
                   width: double.infinity,
                   fit: BoxFit.cover,
                   errorWidget: (_, __, ___) => const Icon(Icons.category),
@@ -269,8 +279,10 @@ class _TopCategoryHomeState extends State<CategoryHome>
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 category['name'].toString(),
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -291,37 +303,79 @@ class CategoryHomeShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-        baseColor: Theme.of(context).colorScheme.surfaceVariant,
-        highlightColor: Theme.of(context).colorScheme.surface,
-        child: SizedBox(
-          height: 110, // Reduced to match the new height
-          child: ListView.separated(
-            itemCount: 10,
-            scrollDirection: Axis.horizontal,
-            separatorBuilder: (context, index) => const SizedBox(width: 10),
-            itemBuilder: (context, index) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(50)),
-                    width: 70,
-                    height: 70,
+      baseColor: Theme.of(context).colorScheme.surfaceVariant,
+      highlightColor: Theme.of(context).colorScheme.surface,
+      child: SizedBox(
+        height: 110, // Reduced to match the new height
+        child: ListView.separated(
+          itemCount: 10,
+          scrollDirection: Axis.horizontal,
+          separatorBuilder: (context, index) => const SizedBox(width: 10),
+          itemBuilder: (context, index) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(50),
                   ),
-                  const SizedBox(height: 6),
-                  Container(
-                    decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(50)),
-                    width: 40,
-                    height: 10,
+                  width: 70,
+                  height: 70,
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(50),
                   ),
-                ],
-              );
-            },
+                  width: 40,
+                  height: 10,
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class CategoryPageShimmer extends StatelessWidget {
+  const CategoryPageShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: List.generate(
+          4,
+          (i) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Shimmer.fromColors(
+                  baseColor: Theme.of(context).colorScheme.surfaceVariant,
+                  highlightColor: Theme.of(context).colorScheme.surface,
+                  child: Container(
+                    width: 140,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const CategoryHomeShimmer(),
+              ],
+            ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }

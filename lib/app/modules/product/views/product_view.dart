@@ -848,10 +848,15 @@ class ProductView extends GetView<ProductController> {
                               Container(
                                 width: width * 0.92,
                                 child: Obx(() {
-                                  final description = controller
+                                  String description = controller
                                           .productDetials['long_content'] ??
                                       controller.productDetials['content'] ??
                                       "";
+                                  // Workaround for flutter_html parsing error with invalid font feature settings
+                                  description = description.replaceAll(
+                                      'font-feature-settings',
+                                      'disabled-font-feature-settings');
+
                                   return Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -1054,11 +1059,15 @@ class ProductView extends GetView<ProductController> {
                   isLoading: controller.isLoading.value,
                   onPressed: () async {
                     HelperFunctions().showOverlayLoader();
-
-                    await controller.addToCart().then((value) {
-                      Get.until((route) => !Get.isDialogOpen!);
-                      return Get.toNamed(Routes.CART);
-                    });
+                    try {
+                      await controller.addToCart();
+                      Get.toNamed(Routes.CART);
+                    } catch (e) {
+                      HelperFunctions().showSnackBarError(
+                          'Failed to add to cart. Please try again.');
+                    } finally {
+                      HelperFunctions().hideOverlayLoader();
+                    }
                   },
                 )),
           ),

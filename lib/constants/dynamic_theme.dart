@@ -638,14 +638,17 @@ class ThemeController extends GetxController {
     super.onInit();
     _loadThemeMode();
 
-    // Initialize theme manager
-    _themeManager.init();
-    debugPrint("we are gettinmg this after debugg");
-
     // Listen to theme mode changes
     ever(_themeMode, (_) {
       update(); // Trigger rebuild when theme mode changes
     });
+  }
+
+  /// Initialize theme manager (Now called from Splash Screen)
+  Future<void> initThemeManager() async {
+    await _themeManager.init();
+    debugPrint("we are gettinmg this after debugg");
+    refreshTheme();
   }
 
   void _loadThemeMode() {
