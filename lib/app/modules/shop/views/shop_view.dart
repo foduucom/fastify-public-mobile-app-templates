@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '/app/modules/product/views/product_view.dart';
 import '/app/modules/shop/bindings/shop_binding.dart';
 import '/app/modules/shop/controllers/shop_controller.dart';
+import '/constants/constants.dart';
 
 class ShopView extends GetView<ShopController> {
   const ShopView({Key? key}) : super(key: key);
@@ -446,13 +447,11 @@ class _ProductGridCard extends StatelessWidget {
   String _getImageUrl() {
     final featuredImg = product['featured_image'];
     if (featuredImg != null && featuredImg is Map) {
-      final downloadUrl = featuredImg['download_url']?.toString() ?? '';
       final filepath = featuredImg['filepath']?.toString() ?? '';
-      if (downloadUrl.isNotEmpty) return downloadUrl;
       if (filepath.isNotEmpty) {
         final cleanPath =
             filepath.startsWith('/') ? filepath.substring(1) : filepath;
-        return 'https://food-restuarant.vbought.com/images/$cleanPath';
+        return '$imageBase$cleanPath';
       }
     }
     return '';
@@ -515,7 +514,7 @@ class _ProductGridCard extends StatelessWidget {
           children: [
             // ── Image + Overlays ──
             Expanded(
-              flex: 4,
+              flex: 5,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -602,17 +601,18 @@ class _ProductGridCard extends StatelessWidget {
 
             // ── Info Section ──
             Expanded(
-              flex: 1,
+              flex: 2,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(name.toUpperCase(),
                         style: textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600, height: 1.2),
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,

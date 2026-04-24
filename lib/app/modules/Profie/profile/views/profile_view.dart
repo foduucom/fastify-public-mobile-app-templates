@@ -89,6 +89,16 @@ class ProfileView extends GetView<ProfileController> {
                               fit: BoxFit.cover,
                               imageUrl: HelperFunctions().getImage(
                                   controller.profiledata['featured_image']),
+                              errorWidget: (context, url, error) => Container(
+                                height: 56,
+                                width: 56,
+                                color: colorScheme.surfaceContainerHighest,
+                                child: Image.asset(
+                                  'assets/images/user.png',
+                                  color: colorScheme.onSurface,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
                             ),
                     )),
                 const SizedBox(width: 14),
@@ -231,7 +241,8 @@ class ProfileView extends GetView<ProfileController> {
   }
 
   // ── Section Label ─────────────────────────────────────────────────────
-  Widget _sectionLabel(BuildContext context, String label, TextTheme textTheme) {
+  Widget _sectionLabel(
+      BuildContext context, String label, TextTheme textTheme) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
       child: Text(

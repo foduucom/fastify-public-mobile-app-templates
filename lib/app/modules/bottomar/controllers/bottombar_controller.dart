@@ -3,6 +3,7 @@ import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/core/services/cartServcie.dart';
+import '/core/services/wishlistService.dart';
 import '/app/data/basic_provider.dart';
 import '/app/modules/auth/auth_details.dart';
 import '/app/routes/app_pages.dart';
@@ -53,6 +54,10 @@ class BottombarController extends GetxController with BaseController {
     currentPageIndex.value = value;
     pageController.jumpToPage(value);
     update();
+    // Refresh wishlist data whenever the wishlist tab (index 3) is opened
+    if (value == 3 && AuthDetails.isUserLogin()) {
+      WishListService.to.fetchWishList();
+    }
   }
 
   @override

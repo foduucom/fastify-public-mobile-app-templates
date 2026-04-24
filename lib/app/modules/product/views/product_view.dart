@@ -186,6 +186,44 @@ class ProductView extends GetView<ProductController> {
                         );
                       }),
 
+                      // ── Brand & Tags ────────────────────────────────
+                      Obx(() {
+                        if (controller.isLoading.value) {
+                          return const SizedBox.shrink();
+                        }
+                        final p = controller.productDetials;
+                        final brand = p['brand'];
+                        final tags = p['tags'];
+
+                        final brandName =
+                            brand is Map ? brand['name']?.toString() : null;
+                        final tagNames = tags is List
+                            ? tags
+                                .whereType<Map>()
+                                .map((t) => t['name']?.toString() ?? '')
+                                .where((n) => n.isNotEmpty)
+                                .toList()
+                            : <String>[];
+
+                        if (brandName == null && tagNames.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 6,
+                            children: [
+                              if (brandName != null)
+                                _pill('🏷 $brandName',
+                                    Colors.indigo.shade400, colorScheme),
+                              ...tagNames.map((t) => _pill(
+                                  '# $t', Colors.teal.shade600, colorScheme)),
+                            ],
+                          ),
+                        );
+                      }),
+
                       const SizedBox(height: 14),
 
                       // ── Divider ────────────────────────────────────
@@ -960,3 +998,15 @@ class _OrderButton extends StatelessWidget {
 
 // Keep public export alias so callers that use `OrderButton` still compile.
 typedef OrderButton = _OrderButton;
+
+Widget _pill(String label, Color color, ColorScheme cs) => Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(label,
+          style: TextStyle(
+              color: color, fontSize: 11, fontWeight: FontWeight.w600)),
+    );

@@ -370,7 +370,10 @@ class HelperFunctions {
           featuredImage['filename'];
 
       if (path != null && path.toString().isNotEmpty) {
-        final imageUrl = '${url}images/$path';
+        final cleanPath = path.toString().startsWith('/')
+            ? path.toString().substring(1)
+            : path.toString();
+        final imageUrl = '$imageBase$cleanPath';
 
         if (isLog == true) {
           print('swapnil path $moduleName => $imageUrl');

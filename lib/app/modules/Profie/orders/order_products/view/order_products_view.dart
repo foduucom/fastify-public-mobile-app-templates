@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '/app/routes/app_pages.dart';
+import '/constants/constants.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
@@ -329,20 +330,9 @@ class _ProductTile extends StatelessWidget {
     final filepath = imageObj['filepath']?.toString() ?? '';
     if (filepath.isNotEmpty) {
       final cleanPath = filepath.startsWith('/') ? filepath.substring(1) : filepath;
-      return 'https://mywatch.vbought.com/images/$cleanPath';
+      return '$imageBase$cleanPath';
     }
-    final url = imageObj['download_url']?.toString() ?? '';
-    return _fixImageUrl(url);
-  }
-
-  String _fixImageUrl(String url) {
-    if (url.isEmpty) return '';
-    final uri = Uri.tryParse(url);
-    if (uri == null) return url;
-    if (uri.host.endsWith('.vbought.com') && uri.host != 'mywatch.vbought.com') {
-      return url.replaceFirst(uri.host, 'mywatch.vbought.com');
-    }
-    return url;
+    return '';
   }
 
   String? _extractImageUrl(dynamic product) {
@@ -377,7 +367,7 @@ class _ProductTile extends StatelessWidget {
         return _constructImageUrl(directImage);
       }
       if (directImage is String && directImage.startsWith('http')) {
-        return _fixImageUrl(directImage);
+        return directImage;
       }
 
     } catch (e) {

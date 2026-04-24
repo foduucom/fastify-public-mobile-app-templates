@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:new_fastify_template/core/foduuStudio/foduu_studio_layout_mixin.dart';
 import '/app/data/basic_provider.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
+import '/constants/constants.dart';
 
 class CategoryController extends GetxController with BaseController, FoduuStudioLayoutMixin {
   final isLoading   = false.obs;
@@ -15,7 +16,7 @@ class CategoryController extends GetxController with BaseController, FoduuStudio
   var maxPage = 1.obs;
   var pageSlug = 'category';
 
-  static const String _baseImageUrl = 'https://mywatch.vbought.com/images/';
+  static String get _baseImageUrl => imageBase;
 
   // ── Static Categories (assets) ─────────────────────────────────────
   final List<Map<String, String>> categories = [

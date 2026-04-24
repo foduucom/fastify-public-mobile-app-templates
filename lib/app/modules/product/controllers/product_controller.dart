@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import '/core/services/cartServcie.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
+import '/constants/constants.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
@@ -71,7 +72,7 @@ class ProductController extends GetxController with BaseController, GetTickerPro
         urls.add(dUrl);
       } else if (path.isNotEmpty) {
         final cleanPath = path.startsWith('/') ? path.substring(1) : path;
-        urls.add('https://food-restuarant.vbought.com/images/$cleanPath');
+        urls.add('$imageBase$cleanPath');
       }
     }
 

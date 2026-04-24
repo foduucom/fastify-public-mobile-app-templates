@@ -5,6 +5,7 @@ import 'package:shimmer/shimmer.dart';
 import '/app/modules/product/views/product_view.dart';
 import '/app/modules/shop/bindings/shop_binding.dart';
 import '/app/routes/app_pages.dart';
+import '/constants/constants.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import '../controllers/search_controller.dart';
@@ -15,7 +16,7 @@ class SearchView extends GetView<SearchsController> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme   = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return GestureDetector(
       onTap: () => HelperFunctions().closeKeyboard(context),
@@ -32,7 +33,8 @@ class SearchView extends GetView<SearchsController> {
             child: GestureDetector(
               onTap: () => Get.back(),
               child: Container(
-                width: 40, height: 40,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: colorScheme.surfaceContainerHighest,
                   shape: BoxShape.circle,
@@ -80,14 +82,16 @@ class SearchView extends GetView<SearchsController> {
                 child: Row(
                   children: [
                     const SizedBox(width: 14),
-                    Icon(Icons.search, color: colorScheme.onSurfaceVariant, size: 22),
+                    Icon(Icons.search,
+                        color: colorScheme.onSurfaceVariant, size: 22),
                     const SizedBox(width: 8),
-
                     Expanded(
                       child: TextField(
                         controller: controller.searchTextController,
-                        onChanged: (v) => controller.getSearchSuggestion(text: v),
-                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                        onChanged: (v) =>
+                            controller.getSearchSuggestion(text: v),
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: colorScheme.onSurface),
                         decoration: InputDecoration(
                           hintText: 'Search...',
                           hintStyle: TextStyle(
@@ -96,7 +100,7 @@ class SearchView extends GetView<SearchsController> {
                           ),
                           isDense: true,
                           contentPadding:
-                          const EdgeInsets.symmetric(vertical: 14),
+                              const EdgeInsets.symmetric(vertical: 14),
 
                           // ✅ these 3 lines make TextField fully transparent
                           filled: true,
@@ -109,33 +113,32 @@ class SearchView extends GetView<SearchsController> {
                         ),
                       ),
                     ),
-
                     AnimatedBuilder(
                       animation: controller.searchTextController,
                       builder: (_, __) {
                         return controller.searchTextController.text.isNotEmpty
                             ? GestureDetector(
-                          onTap: () {
-                            controller.searchTextController.clear();
-                            controller.getSearchSuggestion(text: '');
-                            HelperFunctions().closeKeyboard(context);
-                          },
-                          child: Padding(
-                            padding:
-                            const EdgeInsets.symmetric(horizontal: 6),
-                            child: Icon(Icons.cancel_outlined,
-                                size: 18, color: colorScheme.onSurfaceVariant),
-                          ),
-                        )
+                                onTap: () {
+                                  controller.searchTextController.clear();
+                                  controller.getSearchSuggestion(text: '');
+                                  HelperFunctions().closeKeyboard(context);
+                                },
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 6),
+                                  child: Icon(Icons.cancel_outlined,
+                                      size: 18,
+                                      color: colorScheme.onSurfaceVariant),
+                                ),
+                              )
                             : const SizedBox.shrink();
                       },
                     ),
-
                     Container(
-                      width: 1, height: 22,
+                      width: 1,
+                      height: 22,
                       color: colorScheme.outline,
                     ),
-
                     GestureDetector(
                       onTap: () {},
                       child: Padding(
@@ -166,7 +169,6 @@ class SearchView extends GetView<SearchsController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       // ── Recent Searches ──────────────────────────────
                       if (controller.recentSearchList.isNotEmpty)
                         Padding(
@@ -176,7 +178,7 @@ class SearchView extends GetView<SearchsController> {
                             children: [
                               Row(
                                 mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text('Last Search',
                                       style: textTheme.titleMedium?.copyWith(
@@ -217,8 +219,7 @@ class SearchView extends GetView<SearchsController> {
                                           horizontal: 14, vertical: 8),
                                       decoration: BoxDecoration(
                                         color: colorScheme.surface,
-                                        borderRadius:
-                                        BorderRadius.circular(30),
+                                        borderRadius: BorderRadius.circular(30),
                                         border: Border.all(
                                             color: colorScheme.outline),
                                       ),
@@ -228,7 +229,8 @@ class SearchView extends GetView<SearchsController> {
                                           Text(name,
                                               style: textTheme.bodyMedium
                                                   ?.copyWith(
-                                                color: colorScheme.onSurfaceVariant,
+                                                color: colorScheme
+                                                    .onSurfaceVariant,
                                                 fontWeight: FontWeight.w500,
                                               )),
                                           const SizedBox(width: 6),
@@ -243,7 +245,8 @@ class SearchView extends GetView<SearchsController> {
                                             },
                                             child: Icon(Icons.close,
                                                 size: 14,
-                                                color: colorScheme.onSurfaceVariant),
+                                                color: colorScheme
+                                                    .onSurfaceVariant),
                                           ),
                                         ],
                                       ),
@@ -259,16 +262,14 @@ class SearchView extends GetView<SearchsController> {
                       // ── Search Results ───────────────────────────────
                       if (controller.searchProduct.isNotEmpty) ...[
                         Padding(
-                          padding:
-                          const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 controller.searchTextController.text
-                                    .trim()
-                                    .isEmpty
+                                        .trim()
+                                        .isEmpty
                                     ? 'Last seen'
                                     : 'Search Results',
                                 style: textTheme.titleMedium?.copyWith(
@@ -289,10 +290,9 @@ class SearchView extends GetView<SearchsController> {
                         GridView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          padding:
-                          const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
+                              const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             crossAxisSpacing: 14,
                             mainAxisSpacing: 14,
@@ -301,7 +301,7 @@ class SearchView extends GetView<SearchsController> {
                           itemCount: controller.searchProduct.length,
                           itemBuilder: (context, index) {
                             final product = controller.searchProduct[index]
-                            as Map<String, dynamic>;
+                                as Map<String, dynamic>;
                             return _ProductCard(
                               product: product,
                               colorScheme: colorScheme,
@@ -317,7 +317,7 @@ class SearchView extends GetView<SearchsController> {
                                       name: productName,
                                       type: 'product');
                                   Get.to(
-                                        () => ProductView(),
+                                    () => ProductView(),
                                     binding: ShopBinding(),
                                     arguments: {'productId': productId},
                                   );
@@ -332,14 +332,13 @@ class SearchView extends GetView<SearchsController> {
                       // ── Best Store ───────────────────────────────────
                       if (controller.searchProduct.isNotEmpty)
                         Padding(
-                          padding:
-                          const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text('Best Store',
                                       style: textTheme.titleMedium?.copyWith(
@@ -348,8 +347,7 @@ class SearchView extends GetView<SearchsController> {
                                         fontSize: 17,
                                       )),
                                   GestureDetector(
-                                    onTap: () =>
-                                        Get.toNamed(Routes.EXPLORE),
+                                    onTap: () => Get.toNamed(Routes.EXPLORE),
                                     child: Text('See All',
                                         style: textTheme.bodyMedium?.copyWith(
                                           color: colorScheme.primary,
@@ -360,10 +358,10 @@ class SearchView extends GetView<SearchsController> {
                               ),
                               const SizedBox(height: 14),
                               ..._dummyStores.map((store) => _StoreTile(
-                                store: store,
-                                textTheme: textTheme,
-                                colorScheme: colorScheme,
-                              )),
+                                    store: store,
+                                    textTheme: textTheme,
+                                    colorScheme: colorScheme,
+                                  )),
                             ],
                           ),
                         ),
@@ -377,12 +375,10 @@ class SearchView extends GetView<SearchsController> {
                             child: Column(
                               children: [
                                 Icon(Icons.search_off_rounded,
-                                    size: 80,
-                                    color: colorScheme.outline),
+                                    size: 80, color: colorScheme.outline),
                                 const SizedBox(height: 16),
                                 Text('No products found',
-                                    style: textTheme.titleLarge
-                                        ?.copyWith(
+                                    style: textTheme.titleLarge?.copyWith(
                                         fontWeight: FontWeight.bold)),
                                 const SizedBox(height: 8),
                                 Text(
@@ -399,8 +395,7 @@ class SearchView extends GetView<SearchsController> {
                         const Padding(
                           padding: EdgeInsets.symmetric(vertical: 24),
                           child: Center(
-                              child:
-                              CupertinoActivityIndicator(radius: 14)),
+                              child: CupertinoActivityIndicator(radius: 14)),
                         )
                       else
                         const SizedBox(height: 32),
@@ -430,7 +425,7 @@ class SearchView extends GetView<SearchsController> {
               runSpacing: 10,
               children: List.generate(
                 4,
-                    (_) => Container(
+                (_) => Container(
                     width: 100,
                     height: 36,
                     decoration: BoxDecoration(
@@ -442,8 +437,7 @@ class SearchView extends GetView<SearchsController> {
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 14,
                 mainAxisSpacing: 14,
@@ -471,7 +465,7 @@ class SearchView extends GetView<SearchsController> {
       'rating': '4.4',
       'promo': true,
       'image':
-      'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200',
+          'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200',
     },
     {
       'name': 'Farm to Feast Store',
@@ -480,11 +474,11 @@ class SearchView extends GetView<SearchsController> {
       'rating': '4.4',
       'promo': true,
       'image':
-      'https://images.unsplash.com/photo-1588347818481-1e4bb5a52f21?w=200',
+          'https://images.unsplash.com/photo-1588347818481-1e4bb5a52f21?w=200',
     },
   ];
-
 }
+
 // ── Product Card ──────────────────────────────────────────────────────────────
 class _ProductCard extends StatelessWidget {
   final Map<String, dynamic> product;
@@ -502,12 +496,10 @@ class _ProductCard extends StatelessWidget {
   String _getImageUrl() {
     final fi = product['featured_image'];
     if (fi is Map) {
-      final url = fi['download_url']?.toString() ?? '';
-      if (url.isNotEmpty) return url;
       final path = fi['filepath']?.toString() ?? '';
       if (path.isNotEmpty) {
         final clean = path.startsWith('/') ? path.substring(1) : path;
-        return 'https://mywatch.vbought.com/images/$clean';
+        return '$imageBase$clean';
       }
     }
     return '';
@@ -515,15 +507,15 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl     = _getImageUrl();
-    final name         = product['name']?.toString() ?? '';
-    final price        = double.tryParse(product['price']?.toString() ?? '0') ?? 0.0;
-    final salePrice    = double.tryParse(product['sale_price']?.toString() ?? '0') ?? 0.0;
-    final hasDiscount  = salePrice > 0 && salePrice < price;
+    final imageUrl = _getImageUrl();
+    final name = product['name']?.toString() ?? '';
+    final price = double.tryParse(product['price']?.toString() ?? '0') ?? 0.0;
+    final salePrice =
+        double.tryParse(product['sale_price']?.toString() ?? '0') ?? 0.0;
+    final hasDiscount = salePrice > 0 && salePrice < price;
     final displayPrice = hasDiscount ? salePrice : price;
-    final discountPct  = hasDiscount
-        ? ((price - salePrice) / price * 100).round()
-        : 0;
+    final discountPct =
+        hasDiscount ? ((price - salePrice) / price * 100).round() : 0;
 
     return GestureDetector(
       onTap: onTap,
@@ -541,34 +533,33 @@ class _ProductCard extends StatelessWidget {
               child: Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(15)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(15)),
                     child: SizedBox(
                       width: double.infinity,
                       child: imageUrl.isNotEmpty
                           ? CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) =>
-                            Container(color: colorScheme.surfaceContainerHighest),
-                        errorWidget: (_, __, ___) => Container(
-                          color: colorScheme.surfaceContainerHighest,
-                          child: Icon(
-                              Icons.image_not_supported_outlined,
-                              color: colorScheme.onSurfaceVariant),
-                        ),
-                      )
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              placeholder: (_, __) => Container(
+                                  color: colorScheme.surfaceContainerHighest),
+                              errorWidget: (_, __, ___) => Container(
+                                color: colorScheme.surfaceContainerHighest,
+                                child: Icon(Icons.image_not_supported_outlined,
+                                    color: colorScheme.onSurfaceVariant),
+                              ),
+                            )
                           : Container(
-                        color: colorScheme.surfaceContainerHighest,
-                        child: Icon(
-                            Icons.image_not_supported_outlined,
-                            color: colorScheme.onSurfaceVariant),
-                      ),
+                              color: colorScheme.surfaceContainerHighest,
+                              child: Icon(Icons.image_not_supported_outlined,
+                                  color: colorScheme.onSurfaceVariant),
+                            ),
                     ),
                   ),
                   if (hasDiscount)
                     Positioned(
-                      top: 8, left: 8,
+                      top: 8,
+                      left: 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
@@ -599,10 +590,10 @@ class _ProductCard extends StatelessWidget {
                     Text(
                       name,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                        fontSize: 13,
-                      ),
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                            fontSize: 13,
+                          ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -623,10 +614,10 @@ class _ProductCard extends StatelessWidget {
                                   .textTheme
                                   .titleSmall
                                   ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.onSurface,
-                                fontSize: 13,
-                              ),
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.onSurface,
+                                    fontSize: 13,
+                                  ),
                             ),
                             if (hasDiscount)
                               Text(
@@ -635,19 +626,19 @@ class _ProductCard extends StatelessWidget {
                                     .textTheme
                                     .bodySmall
                                     ?.copyWith(
-                                  decoration:
-                                  TextDecoration.lineThrough,
-                                  color: colorScheme.error,
-                                  decorationColor: colorScheme.error,
-                                  fontSize: 11,
-                                ),
+                                      decoration: TextDecoration.lineThrough,
+                                      color: colorScheme.error,
+                                      decorationColor: colorScheme.error,
+                                      fontSize: 11,
+                                    ),
                               ),
                           ],
                         ),
                         GestureDetector(
                           onTap: onTap,
                           child: Container(
-                            width: 30, height: 30,
+                            width: 30,
+                            height: 30,
                             decoration: BoxDecoration(
                               color: Theme.of(context)
                                   .colorScheme
@@ -656,8 +647,7 @@ class _ProductCard extends StatelessWidget {
                               shape: BoxShape.circle,
                             ),
                             child: Icon(Icons.add,
-                                color:
-                                Theme.of(context).colorScheme.primary,
+                                color: Theme.of(context).colorScheme.primary,
                                 size: 18),
                           ),
                         ),
@@ -696,10 +686,12 @@ class _StoreTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             child: CachedNetworkImage(
               imageUrl: store['image'] as String? ?? '',
-              width: 64, height: 64,
+              width: 64,
+              height: 64,
               fit: BoxFit.cover,
               errorWidget: (_, __, ___) => Container(
-                width: 64, height: 64,
+                width: 64,
+                height: 64,
                 color: colorScheme.surfaceContainerHighest,
                 child: Icon(Icons.store, color: colorScheme.onSurfaceVariant),
               ),

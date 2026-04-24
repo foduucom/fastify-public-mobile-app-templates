@@ -47,8 +47,15 @@ class WishListService extends GetxService with BaseController {
     var response = await BasicProvider("wishlist/add")
         .postRequest(form)
         .catchError(handleError);
-    if (response != null && response is! String) {
-      parseWishListResponse(response);
+    if (response != null) {
+      if (!isInWishlist(productId)) {
+        wishListItems.add({
+          'product_id': {'_id': productId, 'id': productId},
+          'variant_slug': variantSlug,
+          if (variantId != null) 'variant_id': variantId,
+        });
+      }
+      fetchWishList();
     }
     return response;
   }
@@ -67,8 +74,15 @@ class WishListService extends GetxService with BaseController {
     var response = await BasicProvider("wishlist/remove")
         .postRequest(form)
         .catchError(handleError);
-    if (response != null && response is! String) {
-      parseWishListResponse(response);
+    if (response != null) {
+      wishListItems.removeWhere((item) {
+        final p = item['product_id'];
+        if (p is Map) {
+          return (p['_id'] ?? p['id']).toString() == productId.toString();
+        }
+        return p?.toString() == productId.toString();
+      });
+      fetchWishList();
     }
     return response;
   }

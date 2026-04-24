@@ -161,21 +161,10 @@ class OrderCard extends StatelessWidget {
     final filepath = imageObj['filepath']?.toString() ?? '';
     if (filepath.isNotEmpty) {
       final cleanPath =
-      filepath.startsWith('/') ? filepath.substring(1) : filepath;
-      return 'https://mywatch.vbought.com/images/$cleanPath';
+          filepath.startsWith('/') ? filepath.substring(1) : filepath;
+      return '$imageBase$cleanPath';
     }
-    return _fixImageUrl(imageObj['download_url']?.toString() ?? '');
-  }
-
-  String _fixImageUrl(String url) {
-    if (url.isEmpty) return '';
-    final uri = Uri.tryParse(url);
-    if (uri == null) return url;
-    if (uri.host.endsWith('.vbought.com') &&
-        uri.host != 'mywatch.vbought.com') {
-      return url.replaceFirst(uri.host, 'mywatch.vbought.com');
-    }
-    return url;
+    return '';
   }
 
   String _getProductImage() {

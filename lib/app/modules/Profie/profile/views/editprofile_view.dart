@@ -403,16 +403,21 @@ class _ProfileHeaderWidget extends StatelessWidget {
                 color: colorScheme.surfaceContainerHighest,
                 child: controller.profiledata['banner_image'] != null
                     ? CachedNetworkImage(
-                  imageUrl: HelperFunctions().getImage(
-                      controller.profiledata['banner_image']),
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                )
+                        imageUrl: HelperFunctions().getImage(
+                            controller.profiledata['banner_image']),
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        errorWidget: (context, url, error) => Image.asset(
+                          'assets/images/profile_banner.png',
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        ),
+                      )
                     : Image.asset(
-                  'assets/images/profile_banner.png',
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                ),
+                        'assets/images/profile_banner.png',
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                      ),
               ),
             ),
           ),
@@ -469,8 +474,13 @@ class _ProfileHeaderWidget extends StatelessWidget {
                             size: 35, color: colorScheme.onSurface)
                             : CachedNetworkImage(
                             imageUrl: HelperFunctions().getImage(
-                                controller
-                                    .profiledata['featured_image'])),
+                                controller.profiledata['featured_image']),
+                            errorWidget: (context, url, error) => Icon(
+                              Icons.person,
+                              size: 35,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
                       );
                     }
                   }),

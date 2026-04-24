@@ -28,6 +28,8 @@ var socketUrl = "https://studio.vbought.com/";
 var ACCESS_KEY = '729890100c546c681b5a1e3a48c3478107b4a031df03d136';
 
 var assetURL = "${url}images/";
+var imageBase =
+    "${url}images/"; // Change "images/" to "uploads/images/" if server requires a different path
 var apiURL = "${url}api/";
 
 bool isOtpLogin = false;
