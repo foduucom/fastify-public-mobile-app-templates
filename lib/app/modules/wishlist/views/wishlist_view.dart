@@ -278,6 +278,7 @@ class _WishListItemCard extends StatelessWidget {
     final variant = controller.getVariant(index);
     final productId = controller.getProductId(index);
     final variantSlug = controller.getVariantSlug(index);
+    final variantId = controller.getVariantId(index);
     final imageUrl = ProductHelper.getProductImage(product);
 
     // final variantPrice        = HelperFunctions.parseAmount(variant['sale_price'] ?? variant['price']);
@@ -404,6 +405,7 @@ class _WishListItemCard extends StatelessWidget {
                         onTap: () => WishListService.to.removeFromWishlist(
                           productId: productId,
                           variantSlug: variantSlug,
+                          variantId: variantId,
                         ),
                         child: Container(
                           margin: const EdgeInsets.only(left: 6),

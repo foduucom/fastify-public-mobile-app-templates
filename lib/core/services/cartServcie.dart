@@ -77,7 +77,7 @@ class CartService extends GetxService with BaseController {
         .postRequest(form)
         .catchError(handleError);
     if (response != null) {
-      parseCartResponse(response);
+      await fetchCart();
     }
     return response;
   }
@@ -102,7 +102,7 @@ class CartService extends GetxService with BaseController {
         .postRequest(form)
         .catchError(handleError);
     if (response != null) {
-      parseCartResponse(response);
+      await fetchCart();
     }
     return response;
   }
@@ -132,11 +132,8 @@ class CartService extends GetxService with BaseController {
           .postRequest({'items': items}).catchError(handleError);
 
       if (response != null) {
-        parseCartResponse(response);
+        await fetchCart();
       }
-
-      // Clear local cart regardless of response
-      _clearLocalCart();
     } catch (e) {
       debugPrint('CartService.syncLocalCartToServer error: $e');
     }

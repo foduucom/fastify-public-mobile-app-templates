@@ -58,4 +58,12 @@ class WishlistController extends GetxController
     }
     return product?.toString() ?? '';
   }
+
+  String? getVariantId(int index) {
+    final variant = wishlistItems[index]['variant_id'];
+    if (variant is Map) {
+      return (variant['_id'] ?? variant['id'] ?? '').toString();
+    }
+    return variant?.toString();
+  }
 }

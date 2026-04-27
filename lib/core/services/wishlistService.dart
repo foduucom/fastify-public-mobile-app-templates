@@ -60,16 +60,29 @@ class WishListService extends GetxService with BaseController {
     return response;
   }
 
-  // ── Remove item ──────────────────────────────────────────
   Future<dynamic> removeFromWishlist({
     required String productId,
     required String variantSlug,
     String? variantId,
   }) async {
+    // If variantId is null, try to find it in the local wishlist items
+    if (variantId == null || variantId.isEmpty) {
+      final item = wishListItems.firstWhereOrNull((element) {
+        final p = element['product_id'];
+        final pid = (p is Map) ? (p['_id'] ?? p['id']) : p;
+        return pid.toString() == productId.toString();
+      });
+      if (item != null) {
+        final v = item['variant_id'];
+        variantId =
+            (v is Map) ? (v['_id'] ?? v['id'])?.toString() : v?.toString();
+      }
+    }
+
     var form = {
       'product_id': productId,
       'variant_slug': variantSlug,
-      if (variantId != null) 'variant_id': variantId,
+      if (variantId != null && variantId.isNotEmpty) 'variant_id': variantId,
     };
     var response = await BasicProvider("wishlist/remove")
         .postRequest(form)
@@ -77,24 +90,33 @@ class WishListService extends GetxService with BaseController {
     if (response != null) {
       wishListItems.removeWhere((item) {
         final p = item['product_id'];
-        if (p is Map) {
-          return (p['_id'] ?? p['id']).toString() == productId.toString();
+        final pid = (p is Map) ? (p['_id'] ?? p['id']) : p;
+        if (pid.toString() != productId.toString()) return false;
+
+        if (variantId != null && variantId.isNotEmpty) {
+          final v = item['variant_id'];
+          final vid = (v is Map) ? (v['_id'] ?? v['id']) : v;
+          return vid.toString() == variantId.toString();
         }
-        return p?.toString() == productId.toString();
+        return true;
       });
       fetchWishList();
     }
     return response;
   }
 
-  bool isInWishlist(String productId) {
+  bool isInWishlist(String productId, {String? variantId}) {
     return wishListItems.any((item) {
-      final product = item['product_id'];
-      if (product is Map) {
-        return (product['_id'] ?? product['id']).toString() ==
-            productId.toString();
+      final p = item['product_id'];
+      final pid = (p is Map) ? (p['_id'] ?? p['id']) : p;
+      if (pid.toString() != productId.toString()) return false;
+
+      if (variantId != null && variantId.isNotEmpty) {
+        final v = item['variant_id'];
+        final vid = (v is Map) ? (v['_id'] ?? v['id']) : v;
+        return vid.toString() == variantId.toString();
       }
-      return product?.toString() == productId.toString();
+      return true;
     });
   }
 
@@ -103,7 +125,7 @@ class WishListService extends GetxService with BaseController {
     required String variantSlug,
     String? variantId,
   }) async {
-    if (isInWishlist(productId)) {
+    if (isInWishlist(productId, variantId: variantId)) {
       await removeFromWishlist(
           productId: productId, variantSlug: variantSlug, variantId: variantId);
     } else {
