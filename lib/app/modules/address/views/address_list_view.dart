@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import '/components/buttons/appbutton.dart';
-import '/components/buttons/bottombutton.dart';
+import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
+import 'package:foduu_ecommerce/components/buttons/bottombutton.dart';
 import 'package:get/get.dart';
 import '../controllers/address_list_controller.dart';
-import '/app/routes/app_pages.dart';
-import '/constants/constants.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 
 class AddressListView extends GetView<AddressListController> {
   const AddressListView({Key? key}) : super(key: key);

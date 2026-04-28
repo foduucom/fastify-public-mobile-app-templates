@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '/constants/constants.dart';
-import '/core/foduuStudio/foduu_studio_layout_mixin.dart';
-import '/app/controllers/api_exception_handle_controller.dart';
-import '/core/services/cartServcie.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_mixin.dart';
+import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
+import 'package:foduu_ecommerce/core/services/cartServcie.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
 class CartController extends GetxController

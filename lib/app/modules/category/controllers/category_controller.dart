@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
-import '/app/controllers/api_exception_handle_controller.dart';
-import '/core/foduuStudio/foduu_studio_layout_mixin.dart';
-import '/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
+import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_mixin.dart';
+import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:get/get.dart';
 
 class CategoryController extends GetxController

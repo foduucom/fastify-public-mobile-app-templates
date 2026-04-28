@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controller/contact_us_controller.dart';
-import '/constants/constants.dart';
-import '/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 
 class ContactUsView extends GetView<ContactUsController> {
   const ContactUsView({Key? key}) : super(key: key);

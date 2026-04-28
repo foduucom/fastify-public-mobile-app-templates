@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '/app/routes/app_pages.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
 class OrderProductsView extends StatelessWidget {

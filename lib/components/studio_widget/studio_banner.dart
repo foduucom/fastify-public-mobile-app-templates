@@ -1,10 +1,10 @@
 // ignore_for_file: prefer_typing_uninitialized_variables
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '/app/modules/homepage/controllers/homepage_controller.dart';
-import '/app/routes/app_pages.dart';
-import '/constants/constants.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/app/modules/homepage/controllers/homepage_controller.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'dart:async';
 

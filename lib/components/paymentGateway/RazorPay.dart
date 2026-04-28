@@ -1,4 +1,4 @@
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 class RazorPayPayment {

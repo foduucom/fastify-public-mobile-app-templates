@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '/app/modules/cart/controllers/cart_controller.dart';
+import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import '../controllers/checkout_controller.dart';
-import '/constants/constants.dart';
-import '/constants/theme.dart';
-import '/components/buttons/bottombutton.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/theme.dart';
+import 'package:foduu_ecommerce/components/buttons/bottombutton.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 

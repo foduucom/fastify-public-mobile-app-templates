@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '/app/controllers/api_exception_handle_controller.dart';
-import '/app/data/basic_provider.dart';
-import '/constants/helper_functions.dart'; // Make sure this is imported for loaders/snackbars
+import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
+import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart'; // Make sure this is imported for loaders/snackbars
 
 class AddressController extends GetxController with BaseController {
   var isLoading = false.obs;

@@ -1,9 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
-import '/app/modules/blog/controller/blog_detail_controller.dart';
-import '/constants/constants.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/app/modules/blog/controller/blog_detail_controller.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';

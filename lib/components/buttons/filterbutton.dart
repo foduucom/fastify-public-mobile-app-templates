@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
 
 class filterButton extends StatelessWidget {
   filterButton({

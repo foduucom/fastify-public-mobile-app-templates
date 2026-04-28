@@ -1,13 +1,13 @@
 import 'package:badges/badges.dart' as badges;
 // import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import '/app/controllers/api_exception_handle_controller.dart';
-import '/core/services/cartServcie.dart';
-import '/app/data/basic_provider.dart';
-import '/app/modules/auth/auth_details.dart';
-import '/app/routes/app_pages.dart';
-import '/constants/constants.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
+import 'package:foduu_ecommerce/core/services/cartServcie.dart';
+import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 

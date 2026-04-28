@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import '../../app/modules/bottomar/controllers/bottombar_controller.dart';
 
 class SpacerComponent extends StatelessWidget {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '/app/modules/Profie/delete_account/controller/delete_account_controller.dart';
-import '/app/routes/app_pages.dart';
-import '/constants/constants.dart';
+import 'package:foduu_ecommerce/app/modules/Profie/delete_account/controller/delete_account_controller.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:get/get.dart';
 
 class DeleteAccountView extends GetView<DeleteAccountController> {

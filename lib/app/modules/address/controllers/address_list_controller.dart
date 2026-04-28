@@ -1,8 +1,8 @@
-import '/app/controllers/api_exception_handle_controller.dart';
-import '/app/data/basic_provider.dart';
-import '/app/modules/auth/auth_details.dart';
-import '/constants/helper_functions.dart';
-import '/core/services/cartServcie.dart';
+import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
+import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:get/get.dart';
 
 class AddressListController extends GetxController with BaseController {

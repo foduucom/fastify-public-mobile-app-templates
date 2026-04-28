@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
-import '/app/data/basic_provider.dart';
-import '/app/routes/app_pages.dart';
-import '/app/modules/auth/auth_settings_helper.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_settings_helper.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter/material.dart';

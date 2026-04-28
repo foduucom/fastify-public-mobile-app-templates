@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '/constants/theme.dart';
+import 'package:foduu_ecommerce/constants/theme.dart';
 
 class OrderDetail extends StatelessWidget {
   OrderDetail({

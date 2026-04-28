@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '/app/routes/app_pages.dart';
-import '/app/modules/auth/auth_details.dart';
-import '/app/modules/homepage/controllers/homepage_controller.dart';
-import '/components/drawerList.dart';
-import '/constants/dynamic_theme.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
+import 'package:foduu_ecommerce/app/modules/homepage/controllers/homepage_controller.dart';
+import 'package:foduu_ecommerce/components/drawerList.dart';
+import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:get/get.dart';
 
 class CustomDrawer extends GetView<HomepageController> {

@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 
 class FoduuCachedNetworkImage extends StatelessWidget {
   const FoduuCachedNetworkImage({

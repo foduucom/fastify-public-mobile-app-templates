@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 
-import '../controllers/login_controller.dart';
+import 'package:foduu_ecommerce/app/modules/auth/login/controllers/login_controller.dart';
 
 class LoginBinding extends Bindings {
   @override

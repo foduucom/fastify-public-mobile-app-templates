@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '/app/modules/auth/otp/controller.dart/otp_controller.dart';
-import '/constants/constants.dart';
-import '/constants/helper_functions.dart';
-import '/constants/otp_timer.dart';
+import 'package:foduu_ecommerce/app/modules/auth/otp/controller.dart/otp_controller.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/constants/otp_timer.dart';
 import 'package:get/get.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 

@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../widgets/paypal_view.dart';
-import '/app/routes/app_pages.dart';
-import '/app/controllers/api_exception_handle_controller.dart';
-import '/app/data/basic_provider.dart';
-import '/constants/helper_functions.dart';
-import '/app/modules/cart/controllers/cart_controller.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
+import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import '/components/paymentGateway/Stripe.dart';
-import '/components/paymentGateway/PhonePe.dart';
-import '/components/paymentGateway/COD.dart';
-import '/components/paymentGateway/RazorPay.dart';
-import '/app/modules/address/controllers/address_list_controller.dart';
+import 'package:foduu_ecommerce/components/paymentGateway/Stripe.dart';
+import 'package:foduu_ecommerce/components/paymentGateway/PhonePe.dart';
+import 'package:foduu_ecommerce/components/paymentGateway/COD.dart';
+import 'package:foduu_ecommerce/components/paymentGateway/RazorPay.dart';
+import 'package:foduu_ecommerce/app/modules/address/controllers/address_list_controller.dart';
 
 class CheckOutController extends GetxController with BaseController {
   // ── Observable state ──────────────────────────────────────────────────
@@ -188,13 +188,20 @@ class CheckOutController extends GetxController with BaseController {
     String addressId = "";
 
     try {
+      String name = "";
+      String phone = "";
+      String email = "";
+
       if (Get.isRegistered<AddressListController>()) {
         final addressController = Get.find<AddressListController>();
         final int selectedAddrIndex = addressController.selectAddress.value;
         if (addressController.userAddressList.isNotEmpty &&
             selectedAddrIndex < addressController.userAddressList.length) {
-          addressId =
-          addressController.userAddressList[selectedAddrIndex]['_id'];
+          final addr = addressController.userAddressList[selectedAddrIndex];
+          addressId = (addr['_id'] ?? addr['id'] ?? "").toString();
+          name = (addr['name'] ?? "").toString();
+          phone = (addr['mobile'] ?? addr['phone'] ?? "").toString();
+          email = (addr['email'] ?? "").toString();
         }
       }
 
@@ -207,7 +214,11 @@ class CheckOutController extends GetxController with BaseController {
       var form = <String, String>{
         "address_id": addressId,
         "primary_method": methodName,
-        "currency": currency, // ✅ tells backend which currency to use for payment gateway
+        "currency":
+            currency, // ✅ tells backend which currency to use for payment gateway
+        "name": name,
+        "phone": phone,
+        "email": email,
       };
 
       if (methodName == 'cod') {
@@ -234,7 +245,6 @@ class CheckOutController extends GetxController with BaseController {
     }
     return null;
   }
-
 
   // Future<Map<String, dynamic>?> createOrder() async {
   //   final String methodName = deliveryOption['name'];
@@ -406,7 +416,6 @@ class CheckOutController extends GetxController with BaseController {
     }
   }
 
-
   // Future<void> processOrder() async {
   //   if (deliveryOption.isEmpty) {
   //     HelperFunctions().showSnackBarError('Please select a payment method');
@@ -535,7 +544,7 @@ class CheckOutController extends GetxController with BaseController {
         );
         break;
 
-    // ✅ ADD THIS CASE
+      // ✅ ADD THIS CASE
       case 'paypal':
         final clientId = paymentConfig['paypal']['client_id'];
         final secretKey = paymentConfig['paypal']['client_secret'];

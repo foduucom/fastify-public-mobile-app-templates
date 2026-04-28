@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
-import '/core/services/cartServcie.dart';
-import '/app/controllers/api_exception_handle_controller.dart';
-import '/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/core/services/cartServcie.dart';
+import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
+import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';

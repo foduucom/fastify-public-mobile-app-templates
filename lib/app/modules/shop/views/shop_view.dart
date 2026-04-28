@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:get/get.dart';
 
-import '/app/modules/product/views/product_view.dart';
-import '/app/modules/shop/bindings/shop_binding.dart';
-import '/app/modules/shop/controllers/shop_controller.dart';
+import 'package:foduu_ecommerce/app/modules/product/views/product_view.dart';
+import 'package:foduu_ecommerce/app/modules/shop/bindings/shop_binding.dart';
+import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_controller.dart';
 
 class ShopView extends GetView<ShopController> {
   const ShopView({Key? key}) : super(key: key);

@@ -1,10 +1,10 @@
-import '/app/data/basic_provider.dart';
-import '/core/foduuStudio/foduu_studio_layout_mixin.dart';
+import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_mixin.dart';
 
-import '/app/controllers/api_exception_handle_controller.dart';
+import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import '/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 
 class CategeorydetaiController extends GetxController
     with BaseController, FoduuStudioLayoutMixin {

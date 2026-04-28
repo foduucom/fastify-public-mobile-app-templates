@@ -1,16 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../../../components/shimmer/cart_shimmer.dart';
-import '/app/modules/auth/auth_details.dart';
-import '/constants/constants.dart';
-import '/constants/product_helper.dart';
-import '/core/foduuStudio/foduu_studio_layout_view.dart';
-import '/app/modules/bottomar/controllers/bottombar_controller.dart';
-import '/app/routes/app_pages.dart';
-import '/components/buttons/appbutton.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/product_helper.dart';
+import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
+import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
-import '/core/services/wishlistService.dart';
+import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import '../controllers/wishlist_controller.dart';
 
 class WishlistView extends GetView<WishlistController> {
@@ -59,6 +59,7 @@ class WishlistView extends GetView<WishlistController> {
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(
+        heroTag: 'wishlist_fab',
         onPressed: () {
           controller.fetchWishlist();
         },

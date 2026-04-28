@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '/components/studio_widget/studio_icon_button_section.dart';
-import '/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/studio_widget/studio_icon_button_section.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import '../../components/studio_widget/studio_products.dart';
 import '../../components/studio_widget/studio_rich_text_component.dart';
 import '../../components/studio_widget/studio_slider.dart';
@@ -10,7 +10,7 @@ import '../../components/studio_widget/studio_category.dart';
 import '../../components/studio_widget/studio_common_widgets.dart';
 import '../../components/studio_widget/studio_price_filter.dart';
 import '../../components/studio_widget/studio_search_bar_rounded.dart';
-import '/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:get/get.dart';
 
 import 'widget_registry.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
 /// A reusable view widget that renders a dynamic layout from an observable

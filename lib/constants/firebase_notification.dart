@@ -5,11 +5,11 @@
 // import 'package:flutter/cupertino.dart';
 // import 'package:flutter/material.dart';
 // import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-// import '/app/modules/auth/auth_details.dart';
-// import '/app/routes/app_pages.dart';
+// import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
+// import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 
-// import '/constants/constants.dart';
-// import '/constants/helper_functions.dart';
+// import 'package:foduu_ecommerce/constants/constants.dart';
+// import 'package:foduu_ecommerce/constants/helper_functions.dart';
 // import 'package:get/get.dart';
 // import 'package:get_storage/get_storage.dart';
 

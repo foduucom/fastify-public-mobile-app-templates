@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import '/core/services/cartServcie.dart';
+import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:flutter_svg/svg.dart';
-import '/app/modules/homepage/views/home_view.dart';
-import '/app/modules/cart/controllers/cart_controller.dart';
-import '/app/modules/cart/views/cart_view.dart';
-import '/app/modules/category/views/category_view.dart';
-import '/app/modules/Profie/profile/views/profile_view.dart';
-import '/app/modules/notification/controller/notification_controller.dart';
-import '/app/modules/wishlist/controllers/wishlist_controller.dart';
-import '/app/modules/wishlist/views/wishlist_view.dart';
+import 'package:foduu_ecommerce/app/modules/homepage/views/home_view.dart';
+import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
+import 'package:foduu_ecommerce/app/modules/cart/views/cart_view.dart';
+import 'package:foduu_ecommerce/app/modules/category/views/category_view.dart';
+import 'package:foduu_ecommerce/app/modules/Profie/profile/views/profile_view.dart';
+import 'package:foduu_ecommerce/app/modules/notification/controller/notification_controller.dart';
+import 'package:foduu_ecommerce/app/modules/wishlist/controllers/wishlist_controller.dart';
+import 'package:foduu_ecommerce/app/modules/wishlist/views/wishlist_view.dart';
 import 'package:get/get.dart';
 
 import '../../../../../constants/constants.dart';

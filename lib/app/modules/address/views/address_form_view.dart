@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '/app/modules/auth/auth_details.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:get/get.dart';
 import '../controllers/address_form_controller.dart';
-import '/components/foduuformtextfield.dart';
-import '/constants/constants.dart';
-import '/constants/theme.dart';
+import 'package:foduu_ecommerce/components/foduuformtextfield.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/theme.dart';
 
 class AddressFormView extends GetView<AddressFormController> {
   const AddressFormView({Key? key}) : super(key: key);
@@ -15,6 +15,7 @@ class AddressFormView extends GetView<AddressFormController> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         floatingActionButton: FloatingActionButton(
+          heroTag: 'address_form_fab',
           onPressed: () {
             // controller.fetchCountries();
             print(AuthDetails.getToken());

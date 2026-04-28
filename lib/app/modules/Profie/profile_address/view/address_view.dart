@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/address_controlle.dart';
-import '/app/routes/app_pages.dart';
-import '/components/buttons/appbutton.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 
 class AddressView extends GetView<AddressController> {
   const AddressView({Key? key}) : super(key: key);

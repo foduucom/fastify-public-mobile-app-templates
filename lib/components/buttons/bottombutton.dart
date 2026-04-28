@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '/app/modules/cart/controllers/cart_controller.dart';
-import '/components/oderdetail.dart';
-import '/constants/theme.dart';
+import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
+import 'package:foduu_ecommerce/components/oderdetail.dart';
+import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:get/get.dart';
 import '../../constants/constants.dart';
 

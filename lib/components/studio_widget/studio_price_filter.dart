@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '/constants/constants.dart';
-import '/constants/theme.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:get/get.dart';
-import '/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 
 class PriceFilter extends StatefulWidget {
   final Map<String, dynamic> contentJson;

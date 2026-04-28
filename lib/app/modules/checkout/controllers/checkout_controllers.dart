@@ -3,19 +3,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:foduu_ecommerce/helpers/dialog_helper.dart';
 import '../widgets/paypal_view.dart';
-import '/app/routes/app_pages.dart';
-import '/app/controllers/api_exception_handle_controller.dart';
-import '/app/data/basic_provider.dart';
-import '/constants/helper_functions.dart';
-import '/app/modules/cart/controllers/cart_controller.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
+import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import '/components/paymentGateway/Stripe.dart';
-import '/components/paymentGateway/PhonePe.dart';
-import '/components/paymentGateway/COD.dart';
-import '/components/paymentGateway/RazorPay.dart';
-import '/app/modules/address/controllers/address_list_controller.dart';
-import '/constants/app_exceptions.dart';
+import 'package:foduu_ecommerce/components/paymentGateway/Stripe.dart';
+import 'package:foduu_ecommerce/components/paymentGateway/PhonePe.dart';
+import 'package:foduu_ecommerce/components/paymentGateway/COD.dart';
+import 'package:foduu_ecommerce/components/paymentGateway/RazorPay.dart';
+import 'package:foduu_ecommerce/app/modules/address/controllers/address_list_controller.dart';
+import 'package:foduu_ecommerce/constants/app_exceptions.dart';
 
 class CheckOutController extends GetxController with BaseController {
   // ── Observable state ──────────────────────────────────────────────────
@@ -312,11 +312,21 @@ class CheckOutController extends GetxController with BaseController {
     String addressId = "";
 
     try {
-      // Prioritize retrieving addressId from selectedAddressData which is already in this controller
+      String name = "";
+      String phone = "";
+      String email = "";
+
+      // Prioritize retrieving details from selectedAddressData which is already in this controller
       if (selectedAddressData.isNotEmpty) {
         addressId =
             (selectedAddressData['_id'] ?? selectedAddressData['id'] ?? "")
                 .toString();
+        name = (selectedAddressData['name'] ?? "").toString();
+        phone = (selectedAddressData['mobile'] ??
+                selectedAddressData['phone'] ??
+                "")
+            .toString();
+        email = (selectedAddressData['email'] ?? "").toString();
       }
 
       // Fallback/Validation with AddressListController if addressId is still empty
@@ -327,6 +337,9 @@ class CheckOutController extends GetxController with BaseController {
             selectedAddrIndex < addressController.userAddressList.length) {
           final addr = addressController.userAddressList[selectedAddrIndex];
           addressId = (addr['_id'] ?? addr['id'] ?? "").toString();
+          name = (addr['name'] ?? "").toString();
+          phone = (addr['mobile'] ?? addr['phone'] ?? "").toString();
+          email = (addr['email'] ?? "").toString();
         }
       }
 
@@ -341,6 +354,9 @@ class CheckOutController extends GetxController with BaseController {
         "primary_method": methodName,
         "currency":
             currency, // ✅ tells backend which currency to use for payment gateway
+        "name": name,
+        "phone": phone,
+        "email": email,
       };
 
       if (methodName == 'cod') {

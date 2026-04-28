@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import '/app/modules/bottomar/controllers/bottombar_controller.dart';
-import '/app/routes/app_pages.dart';
-import '/components/buttons/appbutton.dart';
-import '/constants/constants.dart';
+import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 

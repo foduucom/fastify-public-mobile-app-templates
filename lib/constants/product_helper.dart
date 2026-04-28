@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 
 /// Helper class for product-related calculations and utilities
 class ProductHelper {

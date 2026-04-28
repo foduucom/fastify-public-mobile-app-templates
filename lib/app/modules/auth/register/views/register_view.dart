@@ -1,11 +1,11 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
-import '/app/routes/app_pages.dart';
-import '/components/buttons/appbutton.dart';
-import '/components/foduuformtextfield.dart';
-import '/constants/constants.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
+import 'package:foduu_ecommerce/components/foduuformtextfield.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 
 import 'package:get/get.dart';
 // import 'package:multicartapp/ants/ants.dart';
@@ -20,6 +20,7 @@ class RegisterView extends GetView<RegisterController> {
     return SafeArea(
       child: Scaffold(
         floatingActionButton: FloatingActionButton(
+          heroTag: 'register_fab',
           onPressed: () {
             print(controller.box.read('auth_preference'));
           },

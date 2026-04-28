@@ -1,6 +1,6 @@
-import '/constants/app_exceptions.dart';
-import '/constants/constants.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/constants/app_exceptions.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get_connect/connect.dart';
 import 'dart:convert'; // Add this import
 

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import '/app/modules/auth/auth_details.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:http/http.dart' as http;
 
 import '../../constants/app_exceptions.dart';

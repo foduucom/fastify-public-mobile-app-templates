@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 
 class ContactUsController extends GetxController {
   final formKey = GlobalKey<FormState>();

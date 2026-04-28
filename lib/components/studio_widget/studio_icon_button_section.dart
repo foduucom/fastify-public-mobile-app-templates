@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '/app/modules/bottomar/controllers/bottombar_controller.dart';
-import '/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 
 class IconButtonComponent extends StatelessWidget {

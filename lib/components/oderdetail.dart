@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '/app/modules/auth/auth_details.dart';
-import '/app/modules/cart/controllers/cart_controller.dart';
-import '/constants/constants.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
+import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:shimmer/shimmer.dart';
 
 class orderDetial extends StatelessWidget {

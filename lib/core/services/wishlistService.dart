@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import '/app/data/basic_provider.dart';
-import '/app/controllers/api_exception_handle_controller.dart';
+import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 
 class WishListService extends GetxService with BaseController {
   /// Convenience accessor: CartService.to

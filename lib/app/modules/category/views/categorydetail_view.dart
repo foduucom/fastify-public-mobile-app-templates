@@ -1,11 +1,11 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
-import '/core/services/wishlistService.dart';
-import '/app/modules/bottomar/controllers/bottombar_controller.dart';
-import '/app/routes/app_pages.dart';
-import '/components/commonWidgets/appbarIcons.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/core/services/wishlistService.dart';
+import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/commonWidgets/appbarIcons.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import '../../../../../constants/constants.dart';
 import '../controllers/categorydetial_controller.dart';

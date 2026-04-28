@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
-import '/app/modules/bottomar/controllers/bottombar_controller.dart';
-import '/app/routes/app_pages.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
-import '/app/modules/Profie/orders/controller/orders_controller.dart';
+import 'package:foduu_ecommerce/app/modules/Profie/orders/controller/orders_controller.dart';
 
 class OrdersView extends GetView<OrdersController> {
   OrdersView({Key? key}) : super(key: key);

@@ -1,17 +1,17 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
-import '/app/modules/auth/auth_details.dart';
-import '/app/routes/app_pages.dart';
-import '/components/buttons/appbutton.dart';
-import '/components/foduuformtextfield.dart';
-import '/constants/constants.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
+import 'package:foduu_ecommerce/components/foduuformtextfield.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
-import '../controllers/login_controller.dart';
+import 'package:foduu_ecommerce/app/modules/auth/login/controllers/login_controller.dart';
 
 class LoginView extends GetView<LoginController> {
-  LoginView({Key? key}) : super(key: key);
+  const LoginView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -183,7 +183,7 @@ class LoginView extends GetView<LoginController> {
                       child: TextButton(
                         onPressed: () {
                           HelperFunctions().closeKeyboard(context);
-                          Get.toNamed(Routes.REGISTER);
+                          Get.offNamed(Routes.REGISTER);
                         },
                         child: RichText(
                           text: TextSpan(

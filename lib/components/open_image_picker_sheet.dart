@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 

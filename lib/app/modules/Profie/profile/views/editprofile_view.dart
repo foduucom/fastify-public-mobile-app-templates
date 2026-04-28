@@ -4,13 +4,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '/app/modules/Profie/profile/controllers/profile_controller.dart';
-import '/app/modules/Profie/profile/views/change_password_view.dart';
-import '/app/routes/app_pages.dart';
-import '/components/check_internet_widget.dart';
-import '/components/foduuformtextfield.dart';
-import '/components/open_image_picker_sheet.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/app/modules/Profie/profile/controllers/profile_controller.dart';
+import 'package:foduu_ecommerce/app/modules/Profie/profile/views/change_password_view.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/check_internet_widget.dart';
+import 'package:foduu_ecommerce/components/foduuformtextfield.dart';
+import 'package:foduu_ecommerce/components/open_image_picker_sheet.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
 class EditprofileView extends GetView<ProfileController> {

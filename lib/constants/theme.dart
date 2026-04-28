@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
 
 TextTheme txtTheme() {
   return const TextTheme(

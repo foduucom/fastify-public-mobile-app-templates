@@ -1,9 +1,9 @@
 // import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import '/app/modules/intro/controllers/intro_controller.dart';
-import '/components/buttons/appbutton.dart';
-import '/constants/constants.dart';
+import 'package:foduu_ecommerce/app/modules/intro/controllers/intro_controller.dart';
+import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 

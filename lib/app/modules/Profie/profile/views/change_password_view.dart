@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '/app/modules/Profie/profile/controllers/profile_controller.dart';
-import '/components/foduuformtextfield.dart';
-import '/constants/constants.dart';
+import 'package:foduu_ecommerce/app/modules/Profie/profile/controllers/profile_controller.dart';
+import 'package:foduu_ecommerce/components/foduuformtextfield.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
 
 import 'package:get/get.dart';
 import '../../../../../components/buttons/appbutton.dart';

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import '/app/modules/contact/controller/contact_controller.dart';
-import '/components/buttons/appbutton.dart';
-import '/components/check_internet_widget.dart';
-import '/components/foduuformtextfield.dart';
-import '/constants/constants.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/app/modules/contact/controller/contact_controller.dart';
+import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
+import 'package:foduu_ecommerce/components/check_internet_widget.dart';
+import 'package:foduu_ecommerce/components/foduuformtextfield.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
 class ContactView extends GetView<ContactController> {

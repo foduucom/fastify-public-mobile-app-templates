@@ -1,14 +1,14 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
-import '/app/modules/Profie/orders/controller/orders_controller.dart';
+import 'package:foduu_ecommerce/app/modules/Profie/orders/controller/orders_controller.dart';
 import '../controllers/ordersucess_controller.dart';
-import '/app/routes/app_pages.dart';
-import '/components/buttons/bottombutton.dart';
-import '/components/oderdetail.dart';
-import '/constants/constants.dart';
-import '/constants/helper_functions.dart';
-import '/constants/theme.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/buttons/bottombutton.dart';
+import 'package:foduu_ecommerce/components/oderdetail.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 

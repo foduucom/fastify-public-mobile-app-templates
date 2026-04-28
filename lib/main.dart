@@ -1,21 +1,21 @@
 import 'package:flutter_stripe/flutter_stripe.dart';
 
-import '/constants/firebase_helper_notification.dart'
+import 'package:foduu_ecommerce/constants/firebase_helper_notification.dart'
     if (dart.library.js_util) '/constants/firebase_helper_stub.dart';
 
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import '/core/services/wishlistService.dart';
-import '/core/studio_socket_routing.dart';
-import '/constants/constants.dart';
-import '/core/services/cartServcie.dart';
-import '/constants/dynamic_theme.dart';
-import '/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/core/services/wishlistService.dart';
+import 'package:foduu_ecommerce/core/studio_socket_routing.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/core/services/cartServcie.dart';
+import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
+import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'core/foduuStudio/register_default_widgets.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();

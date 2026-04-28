@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '/app/modules/custompage/controllers/custompage_controller.dart';
+import 'package:foduu_ecommerce/app/modules/custompage/controllers/custompage_controller.dart';
 import '../../../../core/foduuStudio/foduu_studio_layout_view.dart';
-import '/helpers/socket_helper.dart';
+import 'package:foduu_ecommerce/helpers/socket_helper.dart';
 import 'package:get/get.dart';
 
 class CustomPageView extends GetView<CustomPageController> {

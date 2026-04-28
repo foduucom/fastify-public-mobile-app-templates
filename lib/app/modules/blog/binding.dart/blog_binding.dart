@@ -1,5 +1,5 @@
-import '/app/modules/blog/controller/blog_controller.dart';
-import '/app/modules/blog/controller/blog_detail_controller.dart';
+import 'package:foduu_ecommerce/app/modules/blog/controller/blog_controller.dart';
+import 'package:foduu_ecommerce/app/modules/blog/controller/blog_detail_controller.dart';
 import 'package:get/get.dart';
 
 class BlogBinding extends Bindings {

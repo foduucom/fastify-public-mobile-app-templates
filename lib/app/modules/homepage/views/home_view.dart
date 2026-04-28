@@ -2,20 +2,20 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import '../../../../components/shimmer/home_shimmer.dart';
-import '/core/services/wishlistService.dart';
-import '/app/modules/auth/auth_details.dart';
-import '/app/modules/bottomar/controllers/bottombar_controller.dart';
-import '/app/modules/homepage/controllers/homepage_controller.dart';
-import '/app/modules/notification/controller/notification_controller.dart';
-import '/app/modules/wishlist/controllers/wishlist_controller.dart';
-import '/app/routes/app_pages.dart';
-import '/components/buttons/appbutton.dart';
-import '/components/commonWidgets/appbarIcons.dart';
+import 'package:foduu_ecommerce/core/services/wishlistService.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
+import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
+import 'package:foduu_ecommerce/app/modules/homepage/controllers/homepage_controller.dart';
+import 'package:foduu_ecommerce/app/modules/notification/controller/notification_controller.dart';
+import 'package:foduu_ecommerce/app/modules/wishlist/controllers/wishlist_controller.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
+import 'package:foduu_ecommerce/components/commonWidgets/appbarIcons.dart';
 import '../../../../components/studio_widget/customDrawer.dart';
-import '/constants/constants.dart';
-import '/constants/theme.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/theme.dart';
 import '../../../../core/foduuStudio/foduu_studio_layout_view.dart';
-import '/helpers/socket_helper.dart';
+import 'package:foduu_ecommerce/helpers/socket_helper.dart';
 import 'package:get/get.dart';
 
 // 👇 IMPORTANT: Make sure to import your new shimmer file here
@@ -31,6 +31,7 @@ class Testinghome extends GetView<HomepageController> {
     var scaffoldKey = GlobalKey<ScaffoldState>();
     return Scaffold(
       floatingActionButton: FloatingActionButton(
+        heroTag: 'home_fab',
         onPressed: () {
           Get.toNamed(Routes.SHOPPRODUCTLISTVIEW);
         },

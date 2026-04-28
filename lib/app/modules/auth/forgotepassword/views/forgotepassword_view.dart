@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-// import '/app/modules/auth/resetpassword/views/resetpassword_view.dart';
-import '/app/routes/app_pages.dart';
-import '/components/buttons/appbutton.dart';
-import '/constants/constants.dart';
+// import 'package:foduu_ecommerce/app/modules/auth/resetpassword/views/resetpassword_view.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:get/get.dart';
 import '../controllers/forgotepassword_controller.dart';
 

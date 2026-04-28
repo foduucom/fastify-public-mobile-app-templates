@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '/core/foduuStudio/foduu_studio_layout_view.dart';
-import '/core/services/wishlistService.dart';
-import '/app/modules/bottomar/controllers/bottombar_controller.dart';
-import '/app/modules/wishlist/controllers/wishlist_controller.dart';
-import '/components/commonWidgets/appbarIcons.dart';
+import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
+import 'package:foduu_ecommerce/core/services/wishlistService.dart';
+import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
+import 'package:foduu_ecommerce/app/modules/wishlist/controllers/wishlist_controller.dart';
+import 'package:foduu_ecommerce/components/commonWidgets/appbarIcons.dart';
 import 'package:get/get.dart';
 import '../controllers/category_controller.dart';
 

@@ -6,7 +6,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import '/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -369,6 +369,11 @@ class HelperFunctions {
     }
 
     if (featuredImage is String && featuredImage.isNotEmpty) {
+      // A bare MongoDB ObjectId (24 hex chars, no path separators) is not a
+      // valid image path — guard against the cart/manage response inconsistency.
+      final isRawId = RegExp(r'^[a-f0-9]{24}$').hasMatch(featuredImage);
+      if (isRawId) return HelperFunctions.getNoImage();
+
       final imageUrl = '${url}images/$featuredImage';
 
       if (isLog == true) {

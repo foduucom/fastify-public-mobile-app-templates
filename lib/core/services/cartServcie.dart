@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import '/app/data/basic_provider.dart';
-import '/app/modules/auth/auth_details.dart';
-import '/app/controllers/api_exception_handle_controller.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
+import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 
 class CartService extends GetxService with BaseController {
   /// Convenience accessor: CartService.to
@@ -147,7 +147,40 @@ class CartService extends GetxService with BaseController {
   // ══════════════════════════════════════════════════════════
   void parseCartResponse(Map<String, dynamic> data) {
     final items = data['items'] as List? ?? [];
-    cartItems.value = items.map((e) => Map<String, dynamic>.from(e)).toList();
+
+    // Build a lookup of existing image objects keyed by product ID so we can
+    // restore them when cart/manage returns featured_image as a bare string ID.
+    final Map<String, dynamic> existingImages = {};
+    for (final item in cartItems) {
+      final p = item['product_id'];
+      if (p is Map) {
+        final pid = (p['_id'] ?? p['id'] ?? '').toString();
+        final img = p['featured_image'];
+        if (pid.isNotEmpty && img is Map) {
+          existingImages[pid] = img;
+        }
+      }
+    }
+
+    cartItems.value = items.map((e) {
+      final item = Map<String, dynamic>.from(e);
+      final p = item['product_id'];
+      if (p is Map) {
+        final product = Map<String, dynamic>.from(p);
+        final img = product['featured_image'];
+        // API returned a bare ID string — restore the full image object if we
+        // have it from the previous fetch so the URL builds correctly.
+        if (img is String && img.isNotEmpty) {
+          final restored = existingImages[img] ?? existingImages[product['_id'] ?? product['id'] ?? ''];
+          if (restored != null) {
+            product['featured_image'] = restored;
+          }
+        }
+        item['product_id'] = product;
+      }
+      return item;
+    }).toList();
+
     subTotal.value = HelperFunctions.parseAmount(data['sub_total']);
     total.value = HelperFunctions.parseAmount(data['total']);
   }

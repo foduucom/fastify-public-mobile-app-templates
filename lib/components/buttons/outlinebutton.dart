@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '/constants/theme.dart';
+import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:get/get.dart';
 
 class outLineButton extends StatelessWidget {

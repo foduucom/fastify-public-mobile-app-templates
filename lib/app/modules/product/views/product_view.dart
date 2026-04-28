@@ -3,15 +3,15 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
-import '/components/ProductGallery.dart';
-import '/app/modules/product/controllers/product_controller.dart';
-import '/core/services/wishlistService.dart';
-import '/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/ProductGallery.dart';
+import 'package:foduu_ecommerce/app/modules/product/controllers/product_controller.dart';
+import 'package:foduu_ecommerce/core/services/wishlistService.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import '../../../../components/shimmer/shimmer_effects.dart';
-import '/constants/constants.dart';
-import '/constants/helper_functions.dart';
-import '/constants/product_helper.dart';
-import '/constants/theme.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/constants/product_helper.dart';
+import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:get/get.dart';
 
 class ProductView extends GetView<ProductController> {

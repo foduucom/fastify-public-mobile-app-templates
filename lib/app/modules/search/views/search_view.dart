@@ -2,12 +2,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import '/app/modules/product/views/product_view.dart';
-import '/app/modules/shop/bindings/shop_binding.dart';
-import '/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/app/modules/product/views/product_view.dart';
+import 'package:foduu_ecommerce/app/modules/shop/bindings/shop_binding.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import '../../../../components/studio_widget/studio_search_bar_rounded.dart';
-import '/constants/constants.dart';
-import '/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
 import '../controllers/search_controller.dart';

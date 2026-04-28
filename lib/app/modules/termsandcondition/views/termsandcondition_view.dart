@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
-import '/constants/helper_functions.dart';
-import '/constants/theme.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:get/get.dart';
 import '../../../../../constants/constants.dart';
 import '../controllers/termsandcondition_controller.dart';
