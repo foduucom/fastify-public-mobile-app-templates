@@ -199,9 +199,9 @@ class CheckOutController extends GetxController with BaseController {
             selectedAddrIndex < addressController.userAddressList.length) {
           final addr = addressController.userAddressList[selectedAddrIndex];
           addressId = (addr['_id'] ?? addr['id'] ?? "").toString();
-          name = (addr['name'] ?? "").toString();
-          phone = (addr['mobile'] ?? addr['phone'] ?? "").toString();
-          email = (addr['email'] ?? "").toString();
+          // name = (addr['name'] ?? "").toString();
+          // phone = (addr['mobile'] ?? addr['phone'] ?? "").toString();
+          // email = (addr['email'] ?? "").toString();
         }
       }
 
@@ -216,9 +216,9 @@ class CheckOutController extends GetxController with BaseController {
         "primary_method": methodName,
         "currency":
             currency, // ✅ tells backend which currency to use for payment gateway
-        "name": name,
-        "phone": phone,
-        "email": email,
+        // "name": name,
+        // "phone": phone,
+        // "email": email,
       };
 
       if (methodName == 'cod') {
@@ -229,6 +229,8 @@ class CheckOutController extends GetxController with BaseController {
           form['secondary_method'] = secondaryPaymentGateway.value;
         }
       }
+
+      print("order/create form:: ${form}");
 
       var response = await BasicProvider("order/create")
           .postRequest(form)

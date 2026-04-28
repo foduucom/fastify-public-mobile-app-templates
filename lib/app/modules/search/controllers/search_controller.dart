@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:get/get.dart';
@@ -141,11 +140,25 @@ class SearchsController extends GetxController with BaseController {
   }
 
   // ── Parser ──
+  // API shape: { status, data: { data: [...], total, current_page, has_next } }
   void _parseAndSetProducts(dynamic response, {required bool isRefresh}) {
     if (response == null) return;
 
     if (response is Map) {
-      // Check if it's the paginated format
+      // Unwrap outer { data: { data: [...], has_next } }
+      final outer = response['data'];
+      if (outer is Map) {
+        final List newItems = (outer['data'] as List?) ?? [];
+        if (isRefresh) {
+          searchProduct.assignAll(newItems);
+        } else {
+          searchProduct.addAll(newItems);
+        }
+        hasNextPage = outer['has_next'] == true;
+        return;
+      }
+
+      // Flat { data: [...] }
       if (response.containsKey('data') && response['data'] is List) {
         final List newItems = response['data'];
         if (isRefresh) {
@@ -153,23 +166,19 @@ class SearchsController extends GetxController with BaseController {
         } else {
           searchProduct.addAll(newItems);
         }
-        // Grab pagination flags from API
-        hasNextPage = response['hasNextPage'] ?? false;
+        hasNextPage = response['has_next'] == true || response['hasNextPage'] == true;
+        return;
       }
-      // Direct map but not paginated wrapper
-      else {
-        if (isRefresh) searchProduct.clear();
-        hasNextPage = false;
-      }
-    }
-    // Direct array format
-    else if (response is List) {
+
+      if (isRefresh) searchProduct.clear();
+      hasNextPage = false;
+    } else if (response is List) {
       if (isRefresh) {
         searchProduct.assignAll(response);
       } else {
         searchProduct.addAll(response);
       }
-      hasNextPage = false; // No pagination data attached
+      hasNextPage = false;
     }
   }
 }

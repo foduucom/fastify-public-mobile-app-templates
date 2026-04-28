@@ -4,10 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:foduu_ecommerce/app/modules/product/views/product_view.dart';
 import 'package:foduu_ecommerce/app/modules/shop/bindings/shop_binding.dart';
-import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import '../../../../components/studio_widget/studio_search_bar_rounded.dart';
-import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/constants/product_helper.dart';
 import 'package:get/get.dart';
 
 import '../controllers/search_controller.dart';
@@ -237,20 +236,39 @@ class _ProductGridCard extends StatelessWidget {
 
   const _ProductGridCard({required this.product, required this.onTap});
 
-  // Safe Image URL Extractor
   String _getImageUrl() {
     final featuredImg = product['featured_image'];
-    if (featuredImg != null && featuredImg is Map) {
-      final downloadUrl = featuredImg['download_url']?.toString() ?? '';
+    if (featuredImg is Map) {
+      final url = featuredImg['download_url']?.toString() ?? '';
+      if (url.isNotEmpty) return url;
       final filepath = featuredImg['filepath']?.toString() ?? '';
-
-      if (downloadUrl.isNotEmpty) return downloadUrl;
       if (filepath.isNotEmpty) {
-        final cleanPath = filepath.startsWith('/') ? filepath.substring(1) : filepath;
-        return 'https://mywatch.vbought.com/images/$cleanPath';
+        final clean = filepath.startsWith('/') ? filepath.substring(1) : filepath;
+        return 'https://mywatch.vbought.com/images/$clean';
       }
     }
+    final frontImg = product['front_image'];
+    if (frontImg is Map) {
+      final url = frontImg['download_url']?.toString() ?? '';
+      if (url.isNotEmpty) return url;
+    }
+    final gallery = product['gallery'];
+    if (gallery is List && gallery.isNotEmpty && gallery.first is Map) {
+      final url = gallery.first['download_url']?.toString() ?? '';
+      if (url.isNotEmpty) return url;
+    }
     return '';
+  }
+
+  List<String> _getBadges() {
+    const keys = ['featured', 'hot', 'trending', 'recommended'];
+    return keys.where((k) => product[k] == true).toList();
+  }
+
+  String? _getBrandName() {
+    final brand = product['brand'];
+    if (brand is Map) return brand['name']?.toString();
+    return null;
   }
 
   @override
@@ -260,12 +278,19 @@ class _ProductGridCard extends StatelessWidget {
 
     final String imageUrl = _getImageUrl();
     final String name = product['name']?.toString() ?? 'Unknown Product';
+    final String? brandName = _getBrandName();
+    final List<String> badges = _getBadges();
+    final bool isVariable = product['type'] == 'variable';
 
-    // Safely parse prices
-    final double price = double.tryParse(product['price']?.toString() ?? '0') ?? 0.0;
-    final double salePrice = double.tryParse(product['sale_price']?.toString() ?? '0') ?? 0.0;
-    final bool hasDiscount = salePrice > 0 && salePrice < price;
-    final double displayPrice = hasDiscount ? salePrice : price;
+    // Use ProductHelper for correct variant-aware pricing
+    final priceInfo = ProductHelper.calculatePriceInfo(product);
+    final String displayPrice = priceInfo['productPrice']?.toString() ?? '0';
+    final String originalPrice = priceInfo['salePrice']?.toString() ?? '';
+    final String discountRate = priceInfo['discountRate']?.toString() ?? '';
+    final bool hasSale = discountRate.isNotEmpty;
+    final String lowestPrice = priceInfo['lowestPrice']?.toString() ?? '0';
+    final String highestPrice = priceInfo['highestPrice']?.toString() ?? '0';
+    final bool hasRange = isVariable && lowestPrice != highestPrice && lowestPrice != '0';
 
     return InkWell(
       onTap: onTap,
@@ -298,17 +323,19 @@ class _ProductGridCard extends StatelessWidget {
                       color: colorScheme.surfaceVariant.withOpacity(0.5),
                       child: imageUrl.isNotEmpty
                           ? CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => const Center(child: CupertinoActivityIndicator()),
-                        errorWidget: (context, url, error) =>
-                            Icon(Icons.image_not_supported_outlined, color: colorScheme.outline),
-                      )
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) =>
+                                  const Center(child: CupertinoActivityIndicator()),
+                              errorWidget: (context, url, error) =>
+                                  Icon(Icons.image_not_supported_outlined, color: colorScheme.outline),
+                            )
                           : Icon(Icons.image_not_supported_outlined, color: colorScheme.outline),
                     ),
                   ),
-                  // Discount Badge
-                  if (hasDiscount && price > 0)
+
+                  // Discount badge (top-left)
+                  if (hasSale)
                     Positioned(
                       top: 8,
                       left: 8,
@@ -319,9 +346,41 @@ class _ProductGridCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          "${((price - salePrice) / price * 100).round()}% OFF",
-                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          discountRate.trim(),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                         ),
+                      ),
+                    ),
+
+                  // Feature badges (top-right column)
+                  if (badges.isNotEmpty)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: badges.map((badge) {
+                          final colors = {
+                            'featured': Colors.amber.shade700,
+                            'hot': Colors.deepOrange,
+                            'trending': Colors.purple,
+                            'recommended': Colors.teal,
+                          };
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: colors[badge] ?? colorScheme.primary,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              _cap(badge),
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ),
                 ],
@@ -337,6 +396,18 @@ class _ProductGridCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    // Brand name (if populated)
+                    if (brandName != null && brandName.isNotEmpty)
+                      Text(
+                        brandName,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
                     // Product Title
                     Text(
                       name,
@@ -349,21 +420,32 @@ class _ProductGridCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (hasDiscount)
+                        // Variable: show range
+                        if (hasRange)
                           Text(
-                            "₹${price.toStringAsFixed(2)}",
-                            style: textTheme.bodySmall?.copyWith(
-                              decoration: TextDecoration.lineThrough,
-                              color: colorScheme.onSurfaceVariant,
+                            "₹$lowestPrice – ₹$highestPrice",
+                            style: textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          )
+                        else ...[
+                          if (hasSale && originalPrice.isNotEmpty)
+                            Text(
+                              "₹$originalPrice",
+                              style: textTheme.bodySmall?.copyWith(
+                                decoration: TextDecoration.lineThrough,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          Text(
+                            "₹$displayPrice",
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
                             ),
                           ),
-                        Text(
-                          "₹${displayPrice.toStringAsFixed(2)}",
-                          style: textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.primary,
-                          ),
-                        ),
+                        ],
                       ],
                     ),
                   ],

@@ -99,9 +99,18 @@ class WishListService extends GetxService with BaseController {
   }
 
   void parseWishListResponse(dynamic data) {
+    List<dynamic>? items;
     if (data is List) {
+      items = data;
+    } else if (data is Map) {
+      // API returns { "status": "success", "data": [...] }
+      final d = data['data'];
+      if (d is List) items = d;
+    }
+
+    if (items != null) {
       wishListItems.value =
-          data.map((e) => Map<String, dynamic>.from(e)).toList();
+          items.map((e) => Map<String, dynamic>.from(e as Map)).toList();
     } else {
       wishListItems.clear();
     }

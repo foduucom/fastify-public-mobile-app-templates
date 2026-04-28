@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../components/shimmer/cart_shimmer.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
-import 'package:foduu_ecommerce/constants/product_helper.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
@@ -190,17 +189,15 @@ class _WishListItemCard extends StatelessWidget {
     final variant = controller.getVariant(index);
     final productId = controller.getProductId(index);
     final variantSlug = controller.getVariantSlug(index);
+    final imageUrl = controller.getImageUrl(index);
+    final priceInfo = controller.getPriceInfo(index);
+    final badges = controller.getBadges(index);
+    final brand = controller.getBrand(index);
+    final tags = controller.getTags(index);
 
-    print('varienat in wishlist ${variant.toString()}');
-
-    // Use ProductHelper to get image and price info
-    final imageUrl = ProductHelper.getProductImage(product);
-
-    // Get variant's effective price
-    final variantPrice = HelperFunctions.parseAmount(variant['sale_price'] ?? variant['price']);
-    final variantRegularPrice = HelperFunctions.parseAmount(variant['price']);
-    final hasDiscount = HelperFunctions.parseAmount(variant['sale_price']) > 0 &&
-        variantRegularPrice > HelperFunctions.parseAmount(variant['sale_price']);
+    final variantPrice = HelperFunctions.parseAmount(priceInfo.finalPrice);
+    final variantRegularPrice = HelperFunctions.parseAmount(priceInfo.originalPrice);
+    final hasDiscount = priceInfo.hasSale;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -336,6 +333,75 @@ class _WishListItemCard extends StatelessWidget {
                     ],
                   ],
                 ),
+
+                // Badges (featured / hot / trending / recommended)
+                if (badges.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    children: badges.map((badge) {
+                      final color = switch (badge) {
+                        'hot'         => Colors.red.shade600,
+                        'trending'    => Colors.orange.shade700,
+                        'featured'    => Colors.purple.shade600,
+                        'recommended' => Colors.blue.shade600,
+                        _             => colorScheme.primary,
+                      };
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: color.withAlpha(26),
+                          border: Border.all(color: color, width: 0.8),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          badge.toUpperCase(),
+                          style: textTheme.labelSmall?.copyWith(
+                            color: color,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 9,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+
+                // Brand
+                if (brand != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    brand['name']!,
+                    style: textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+
+                // Tags
+                if (tags.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    children: tags.map((tag) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        tag['name']!,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontSize: 10,
+                        ),
+                      ),
+                    )).toList(),
+                  ),
+                ],
               ],
             ),
           ),

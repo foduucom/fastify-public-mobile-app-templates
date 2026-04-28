@@ -242,7 +242,9 @@ class profileSection extends StatelessWidget {
         onTap: ontap,
         child: Row(
           children: [
-            SvgPicture.asset(assetIcon, width: 25),
+            assetIcon.endsWith('.svg')
+                ? SvgPicture.asset(assetIcon, width: 25)
+                : Image.asset(assetIcon, width: 25),
             const SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
