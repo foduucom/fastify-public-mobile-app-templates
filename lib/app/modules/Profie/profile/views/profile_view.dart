@@ -175,7 +175,7 @@ class ProfileView extends GetView<ProfileController> {
                                       Get.toNamed(Routes.PAYMENT);
                                       break;
                                     case 3:
-                                      Get.toNamed(Routes.ADDRESS_LIST1);
+                                      Get.toNamed(Routes.ADDRESS_LIST);
                                       break;
                                     case 4:
                                       Get.toNamed(Routes.NOTIFICATION);

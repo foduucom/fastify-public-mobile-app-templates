@@ -94,7 +94,7 @@ class AuthDetails with BaseController {
 
   dynamic updateUserDetailsFromServer() async {
     if (isUserLogin()) {
-      var response = await BasicProvider("public/customer/profile")
+      var response = await BasicProvider("auth/customer/profile")
           .getRequest()
           .catchError(handleError);
       if (response != null) {

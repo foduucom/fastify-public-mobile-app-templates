@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:foduu_ecommerce/app/modules/address/controllers/address_list_controller.dart';
 import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import '../controllers/checkout_controller.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/theme.dart';
@@ -12,6 +14,8 @@ class CheckOutView extends GetView<CheckOutController> {
   CheckOutView({Key? key}) : super(key: key);
 
   final cartController = Get.find<CartController>();
+
+  AddressListController get _addrCtrl => Get.find<AddressListController>();
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +51,19 @@ class CheckOutView extends GetView<CheckOutController> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          const Text(
+                            'Delivery Address',
+                            style: TextStyle(
+                              fontFamily: 'Lato',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          _buildDeliveryAddressCard(context),
+                          const SizedBox(height: 20),
+                          const Divider(thickness: 1),
+                          const SizedBox(height: 20),
                           const Text(
                             'Payment Method',
                             style: TextStyle(
@@ -98,6 +115,104 @@ class CheckOutView extends GetView<CheckOutController> {
         ),
       ),
     );
+  }
+
+  // ── Delivery address card ─────────────────────────────────────────────
+
+  Widget _buildDeliveryAddressCard(BuildContext context) {
+    return Obx(() {
+      final ctrl = _addrCtrl;
+      if (ctrl.isLoading.value && ctrl.userAddressList.isEmpty) {
+        return const SizedBox(
+          height: 50,
+          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        );
+      }
+      if (ctrl.userAddressList.isEmpty) {
+        return Row(
+          children: [
+            const Text('No address selected.', style: TextStyle(fontSize: 13)),
+            TextButton(
+              onPressed: () => Get.toNamed(Routes.ADDRESS_LIST),
+              child: const Text('Add Address', style: TextStyle(fontSize: 13)),
+            ),
+          ],
+        );
+      }
+      final addr = ctrl.selectedAddress;
+      if (addr == null) return const SizedBox.shrink();
+      final streetLine = [
+        if (addr['street']?.toString().isNotEmpty == true) addr['street'],
+        if (addr['landmark']?.toString().isNotEmpty == true) addr['landmark'],
+      ].join(', ');
+      final cityLine = [
+        addr['city'] is Map ? addr['city']['name'] : addr['city'],
+        addr['state']?['name'],
+        addr['postal_code'] ?? addr['pincode'],
+      ].where((e) => e != null && e.toString().isNotEmpty).join(', ');
+
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(context)
+              .colorScheme
+              .surfaceContainerHighest
+              .withValues(alpha: 0.25),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+              color: Theme.of(context).colorScheme.outline, width: 0.9),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (addr['name'] != null)
+                    Text(
+                      addr['name'].toString(),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          fontFamily: 'Lato'),
+                    ),
+                  if (streetLine.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(streetLine,
+                        style: TextStyle(
+                            fontSize: 13,
+                            color: Theme.of(context).colorScheme.onSurface)),
+                  ],
+                  if (cityLine.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(cityLine,
+                        style: TextStyle(
+                            fontSize: 13,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant)),
+                  ],
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: () => Get.toNamed(Routes.ADDRESS_LIST),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(40, 28),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text('Edit',
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'Lato')),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   // ── Payment tile ──────────────────────────────────────────────────────

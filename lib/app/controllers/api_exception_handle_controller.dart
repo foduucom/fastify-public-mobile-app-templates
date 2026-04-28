@@ -8,7 +8,7 @@ import 'package:get_storage/get_storage.dart';
 mixin BaseController {
   var getbox = GetStorage();
   Future<void> handleError(error) async {
-    // hideLoading();
+    HelperFunctions().hideOverlayLoader();
     if (error is BadRequestException) {
       var message = error.message;
       HelperFunctions().showSnackBarError(message.toString());

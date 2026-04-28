@@ -53,20 +53,22 @@ class AddressFormController extends GetxController with BaseController {
       if (isEditMode && Get.arguments['address'] != null) {
         var addr = Get.arguments['address'];
         editAddressId = addr['_id'];
-        name.text = addr['name'] ?? '';
-        email.text = addr['email'] ?? '';
-        mobile.text = addr['mobile'] ?? '';
-        postal_code.text = addr['postal_code'] ?? '';
+        name.text = (addr['name'] ?? '').toString();
+        email.text = (addr['email'] ?? '').toString();
+        mobile.text = (addr['mobile'] ?? '').toString();
+        postal_code.text = (addr['postal_code'] ?? '').toString();
 
-        landmark.text = addr['landmark'] ?? '';
-        street.text = addr['street'] ?? '';
-        addressType.value = addr['address_type'] ?? 'Home';
-        isDefault.value = (addr['is_default'] == 1);
+        landmark.text = (addr['landmark'] ?? '').toString();
+        street.text = (addr['street'] ?? '').toString();
+        addressType.value = (addr['address_type'] ?? 'Home').toString();
+        isDefault.value = (addr['is_default'] == 1 ||
+            addr['is_default'] == true ||
+            addr['is_default'] == '1');
 
         // Initial values for dropdowns (will be populated fully when lists load)
-        selectedCountry.value = addr['country'] ?? {};
-        selectedState.value = addr['state'] ?? {};
-        selectedCity.value = addr['city'] ?? {};
+        selectedCountry.value = (addr['country'] is Map) ? addr['country'] : {};
+        selectedState.value = (addr['state'] is Map) ? addr['state'] : {};
+        selectedCity.value = (addr['city'] is Map) ? addr['city'] : {};
 
         if (selectedCountry.isNotEmpty) _fetchStates(selectedCountry['_id']);
         if (selectedState.isNotEmpty) _fetchCities(selectedState['_id']);

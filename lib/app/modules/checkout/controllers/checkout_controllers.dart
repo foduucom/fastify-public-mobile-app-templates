@@ -44,16 +44,14 @@ class CheckOutController extends GetxController with BaseController {
 
     if (Get.isRegistered<AddressListController>()) {
       final addressController = Get.find<AddressListController>();
-      final int selectedAddrIndex = addressController.selectAddress.value;
+      final addressId = addressController.selectAddressId.value;
 
-      print('Selected index: $selectedAddrIndex');
+      print('Selected ID: $addressId');
       print('Address list length: ${addressController.userAddressList.length}');
 
-      if (addressController.userAddressList.isNotEmpty &&
-          selectedAddrIndex < addressController.userAddressList.length) {
+      if (addressController.userAddressList.isNotEmpty) {
         // Store the full address data
-        final addressData =
-            addressController.userAddressList[selectedAddrIndex];
+        final addressData = addressController.selectedAddress;
         print('Address data type: ${addressData.runtimeType}');
         print('Address data: $addressData');
 
@@ -332,10 +330,8 @@ class CheckOutController extends GetxController with BaseController {
       // Fallback/Validation with AddressListController if addressId is still empty
       if (addressId.isEmpty && Get.isRegistered<AddressListController>()) {
         final addressController = Get.find<AddressListController>();
-        final int selectedAddrIndex = addressController.selectAddress.value;
-        if (addressController.userAddressList.isNotEmpty &&
-            selectedAddrIndex < addressController.userAddressList.length) {
-          final addr = addressController.userAddressList[selectedAddrIndex];
+        final addr = addressController.selectedAddress;
+        if (addr != null) {
           addressId = (addr['_id'] ?? addr['id'] ?? "").toString();
           name = (addr['name'] ?? "").toString();
           phone = (addr['mobile'] ?? addr['phone'] ?? "").toString();

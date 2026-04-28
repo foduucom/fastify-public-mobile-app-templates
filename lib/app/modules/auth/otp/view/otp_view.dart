@@ -57,7 +57,8 @@ class OTPView extends GetView<OtpController> {
                                       .textTheme
                                       .bodyLarge!
                                       .fontSize,
-                                  // color: themeTextColor
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
                                 children: <TextSpan>[
                                   TextSpan(
@@ -76,14 +77,17 @@ class OTPView extends GetView<OtpController> {
                                 codeLength: controller.otpLength.value,
                                 keyboardType: TextInputType.number,
                                 decoration: BoxLooseDecoration(
-                                    textStyle: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    bgColorBuilder: FixedColorBuilder(
-                                        Theme.of(context).colorScheme.surface),
-                                    strokeColorBuilder: FixedColorBuilder(
-                                        Theme.of(context).colorScheme.primary)),
+                                  textStyle: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w500,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                  bgColorBuilder: FixedColorBuilder(
+                                      Theme.of(context).colorScheme.surface),
+                                  strokeColorBuilder: FixedColorBuilder(
+                                      Theme.of(context).colorScheme.primary),
+                                ),
                                 autoFocus: true,
                                 onCodeSubmitted: (value) {
                                   print(value);
@@ -113,7 +117,7 @@ class OTPView extends GetView<OtpController> {
                           //   }
                           //   return const SizedBox.shrink();
                           // }),
-                          const SizedBox(height: 15.0),
+                          const SizedBox(height: 2.0),
                           Obx(() {
                             if (!controller.isResendVisible.value) {
                               return OtpTimer(

@@ -132,8 +132,10 @@ class ProfileController extends GetxController with BaseController {
         phoneController.text = response["mobile"]?.toString() ?? "";
         DateTime? dob =
             response['dob'] != null ? DateTime.tryParse(response['dob']) : null;
-        dobController.text =
-            dob != null ? DateFormat('dd-MM-yyyy').format(dob) : '';
+        if (dob != null) {
+          selectedDate = dob;
+          dobController.text = DateFormat('dd-MM-yyyy').format(dob);
+        }
         genderController.text = response["gender"]?.toString() ?? 'female';
       }
     } catch (e) {
@@ -173,17 +175,17 @@ class ProfileController extends GetxController with BaseController {
   }
 
   Future<void> sendFormData() async {
-    if (dobController.text == "") {
-      HelperFunctions().showSnackBarError("Please select your Date Of Birth");
-      return;
-    }
+    // if (dobController.text == "") {
+    //   HelperFunctions().showSnackBarError("Please select your Date Of Birth");
+    //   return;
+    // }
     if (formKey.currentState!.validate()) {
       isLoading(true);
 
       var form = FormData({
         'name': nameController.text,
         'mobile': phoneController.text,
-        'dob': selectedDate,
+        'dob': selectedDate != null ? DateFormat('yyyy-MM-dd').format(selectedDate!) : "",
         'gender': gender.value,
         'email': emailController.text,
         'featured_image':
@@ -197,26 +199,29 @@ class ProfileController extends GetxController with BaseController {
       });
 
       try {
+        debugPrint("form To UPDATE Profile");
         var response = await BasicProvider("auth/customer/profile/update")
             .postRequest(form)
             .catchError(handleError);
-        Get.until((route) => !Get.isDialogOpen!);
 
-        if (response == null) return;
-        fetchDataFromServer();
+        if (response == null) {
+          HelperFunctions().hideOverlayLoader();
+          return;
+        }
+
+        await fetchDataFromServer();
         isLoading(false);
 
-        Get.until((route) => !Get.isDialogOpen!);
-        var updatedprofile = AuthDetails().updateUserDetailsFromServer();
+        var updatedprofile = await AuthDetails().updateUserDetailsFromServer();
         Get.find<BottombarController>().authDetails.value = updatedprofile;
-        // HelperFunctions().showSnackBarSuccess(response["status"]);
-        Get.until((route) => !Get.isDialogOpen!);
-        // Get.back();
-        // Get.back();
 
+        HelperFunctions().hideOverlayLoader();
         HelperFunctions().showSnackBarSuccess('Profile update successfully');
       } catch (e) {
         print('profile update error $e');
+        HelperFunctions().hideOverlayLoader();
+      } finally {
+        isLoading(false);
       }
     }
   }

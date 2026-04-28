@@ -200,11 +200,13 @@ class EditprofileView extends GetView<ProfileController> {
                       ),
                       onPressed: () async {
                         HelperFunctions().showOverlayLoader();
-                        await controller.sendFormData();
-
-                        HelperFunctions().showSnackBarSuccess(
-                            'Profile update successfffully');
-                        // });
+                        try {
+                          await controller.sendFormData();
+                        } catch (e) {
+                          debugPrint("Error updating profile: $e");
+                        } finally {
+                          HelperFunctions().hideOverlayLoader();
+                        }
                       },
                       child: Text('SAVE DETAILS'.tr,
                           style: TextStyle(

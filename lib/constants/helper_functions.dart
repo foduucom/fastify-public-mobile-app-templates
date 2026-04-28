@@ -58,46 +58,45 @@ class HelperFunctions {
   }
 
   void showOverlayLoader({barrierDismissible = false}) {
-    bool isKeyboardOpen() {
-      return WidgetsBinding.instance.focusManager.primaryFocus?.hasFocus ??
-          false;
-    }
-
-    if (isKeyboardOpen()) {
-      Get.dialog(
-        Center(
-          child: Container(
-            height: 130,
-            width: 100,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 30,
-                      width: 30,
-                      child: HelperFunctions().loadingIndicator(),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      "Loading...",
-                      style: TextStyle(fontSize: 14, color: Colors.black),
-                    ),
-                  ],
-                ),
+    Get.dialog(
+      Center(
+        child: Container(
+          height: 130,
+          width: 100,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.8),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Center(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    height: 30,
+                    width: 30,
+                    child: HelperFunctions().loadingIndicator(),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Loading...",
+                    style: TextStyle(fontSize: 14, color: Colors.black),
+                  ),
+                ],
               ),
             ),
           ),
         ),
-        barrierDismissible: barrierDismissible,
-      );
+      ),
+      barrierDismissible: barrierDismissible,
+    );
+  }
+
+  void hideOverlayLoader() {
+    if (Get.isDialogOpen == true) {
+      Get.back();
     }
   }
 

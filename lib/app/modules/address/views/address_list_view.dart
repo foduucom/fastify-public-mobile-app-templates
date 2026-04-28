@@ -13,9 +13,9 @@ class AddressListView extends GetView<AddressListController> {
 
   @override
   Widget build(BuildContext context) {
+    print("AddressListView build called");
     return SafeArea(
       child: Scaffold(
-        // ✅ REMOVED debug FAB — was causing Hero tag conflict
         appBar: AppBar(
           title: const Text(
             'Addresses',
@@ -52,177 +52,146 @@ class AddressListView extends GetView<AddressListController> {
                           ),
                         )
                       else
-                      // ✅ FIXED: Obx wraps each item so selectAddress
-                      //    change actually rebuilds the radio + border
-                        ListView.separated(
-                          separatorBuilder: (_, __) =>
-                          const SizedBox(height: 15),
+                        ListView.builder(
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: controller.userAddressList.length,
                           shrinkWrap: true,
                           itemBuilder: (context, index) {
                             final userAddress =
-                            controller.userAddressList[index];
-                            // ✅ Wrap each card in Obx so selection reacts
+                                controller.userAddressList[index];
+
+                            // ✅ Consistent ID extraction matching controller logic
+                            final addressId = (userAddress['_id'] ??
+                                    userAddress['id'] ??
+                                    userAddress['temp_id'] ??
+                                    "addr_$index")
+                                .toString();
+
                             return Obx(() {
                               final isSelected =
-                                  controller.selectAddress.value == index;
-                              return GestureDetector(
-                                onTap: () =>
-                                    controller.selectNewAddress(index),
-                                child: Stack(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(8.0),
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? Theme.of(context)
-                                            .colorScheme
-                                            .primary
-                                            .withOpacity(0.05)
-                                            : Theme.of(context)
-                                            .colorScheme
-                                            .surfaceVariant
-                                            .withOpacity(0.25),
-                                        borderRadius:
-                                        BorderRadius.circular(3),
-                                        border: Border.all(
+                                  controller.selectAddressId.value == addressId;
+
+                              return Padding(
+                                key: ValueKey("item_$addressId"),
+                                padding: const EdgeInsets.only(bottom: 15),
+                                child: GestureDetector(
+                                  // ✅ Using GestureDetector with opaque behavior for maximum coverage
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    print(
+                                        "Card gesture detected for ID: $addressId");
+                                    controller.selectNewAddress(addressId);
+                                  },
+                                  child: Stack(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8.0),
+                                        decoration: BoxDecoration(
                                           color: isSelected
                                               ? Theme.of(context)
-                                              .colorScheme
-                                              .primary
+                                                  .colorScheme
+                                                  .primary
+                                                  .withOpacity(0.05)
                                               : Theme.of(context)
-                                              .colorScheme
-                                              .outline,
-                                          width: 0.9,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        children: [
-                                          Radio(
-                                            value: index,
-                                            groupValue:
-                                            controller.selectAddress.value,
-                                            activeColor: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
-                                            onChanged: (_) =>
-                                                controller
-                                                    .selectNewAddress(index),
+                                                  .colorScheme
+                                                  .surfaceVariant
+                                                  .withOpacity(0.25),
+                                          borderRadius:
+                                              BorderRadius.circular(3),
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .primary
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .outline,
+                                            width: isSelected ? 1.5 : 0.9,
                                           ),
-                                          Expanded(
-                                            child: Padding(
-                                              padding:
-                                              const EdgeInsets.all(10.0),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                                children: [
-                                                  // ── Name ──────────
-                                                  if (userAddress['name'] !=
-                                                      null)
-                                                    Text(
-                                                      userAddress['name']
-                                                          .toString()
-                                                          .capitalizeFirst ??
-                                                          '',
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                        FontWeight.bold,
-                                                        fontSize: 16,
-                                                        color: Theme.of(context)
-                                                            .colorScheme
-                                                            .onSurface,
+                                        ),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.all(10),
+                                              child: Container(
+                                                width: 20,
+                                                height: 20,
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                    color: isSelected
+                                                        ? Theme.of(context).colorScheme.primary
+                                                        : Theme.of(context).colorScheme.outline,
+                                                    width: 2,
+                                                  ),
+                                                ),
+                                                child: isSelected
+                                                    ? Center(
+                                                        child: Container(
+                                                          width: 10,
+                                                          height: 10,
+                                                          decoration: BoxDecoration(
+                                                            shape: BoxShape.circle,
+                                                            color: Theme.of(context).colorScheme.primary,
+                                                          ),
+                                                        ),
+                                                      )
+                                                    : null,
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(10.0),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    // ── Name ──────────
+                                                    if (userAddress['name'] !=
+                                                        null)
+                                                      Text(
+                                                        userAddress['name']
+                                                                .toString()
+                                                                .capitalizeFirst ??
+                                                            '',
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 16,
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .onSurface,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  if (userAddress['name'] !=
-                                                      null)
-                                                    const SizedBox(height: 4),
+                                                    if (userAddress['name'] !=
+                                                        null)
+                                                      const SizedBox(height: 4),
 
-                                                  // ── Street ────────
-                                                  Text(
-                                                    [
-                                                      if (userAddress[
-                                                      'street'] !=
-                                                          null &&
-                                                          userAddress['street']
-                                                              .toString()
-                                                              .isNotEmpty)
-                                                        userAddress['street'],
-                                                      if (userAddress[
-                                                      'landmark'] !=
-                                                          null &&
-                                                          userAddress[
-                                                          'landmark']
-                                                              .toString()
-                                                              .isNotEmpty)
-                                                        userAddress['landmark'],
-                                                    ].join(', '),
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .onSurface,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 4),
-
-                                                  // ── City/State ────
-                                                  Text(
-                                                    [
-                                                      if (userAddress[
-                                                      'city'] !=
-                                                          null)
-                                                        (userAddress[
-                                                        'city']
-                                                        is Map
-                                                            ? userAddress[
-                                                        'city']
-                                                        ['name']
-                                                            : userAddress[
-                                                        'city']),
-                                                      if (userAddress[
-                                                      'state']
-                                                      ?['name'] !=
-                                                          null)
-                                                        userAddress['state']
-                                                        ['name'],
-                                                      if (userAddress[
-                                                      'country']
-                                                      ?['name'] !=
-                                                          null)
-                                                        userAddress[
-                                                        'country']
-                                                        ['name'],
-                                                    ]
-                                                        .where(
-                                                            (e) => e != null)
-                                                        .join(', ') +
-                                                        (userAddress[
-                                                        'postal_code'] !=
-                                                            null
-                                                            ? ' - ${userAddress['postal_code']}'
-                                                            : (userAddress[
-                                                        'pincode'] !=
-                                                            null
-                                                            ? ' - ${userAddress['pincode']}'
-                                                            : '')),
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .onSurfaceVariant,
-                                                    ),
-                                                  ),
-
-                                                  // ── Phone ─────────
-                                                  if (userAddress['mobile'] !=
-                                                      null) ...[
-                                                    const SizedBox(height: 4),
+                                                    // ── Street ────────
                                                     Text(
-                                                      'Phone: ${userAddress['mobile']}',
+                                                      [
+                                                        if (userAddress[
+                                                                    'street'] !=
+                                                                null &&
+                                                            userAddress[
+                                                                    'street']
+                                                                .toString()
+                                                                .isNotEmpty)
+                                                          userAddress['street'],
+                                                        if (userAddress[
+                                                                    'landmark'] !=
+                                                                null &&
+                                                            userAddress[
+                                                                    'landmark']
+                                                                .toString()
+                                                                .isNotEmpty)
+                                                          userAddress[
+                                                              'landmark'],
+                                                      ].join(', '),
                                                       style: TextStyle(
                                                         fontSize: 14,
                                                         color: Theme.of(context)
@@ -230,161 +199,161 @@ class AddressListView extends GetView<AddressListController> {
                                                             .onSurface,
                                                       ),
                                                     ),
-                                                  ],
-                                                  const SizedBox(height: 12),
+                                                    const SizedBox(height: 4),
 
-                                                  // ── Edit / Remove ─
-                                                  Row(
-                                                    children: [
-                                                      _buildActionButton(
-                                                        "Edit",
-                                                            () => Get.toNamed(
-                                                          Routes.ADDRESS_FORM,
-                                                          arguments: {
-                                                            'isEdit': true,
-                                                            'address':
-                                                            userAddress,
-                                                          },
-                                                        ),
+                                                    // ── City/State ────
+                                                    Text(
+                                                      [
+                                                            if (userAddress[
+                                                                    'city'] !=
+                                                                null)
+                                                              (userAddress[
+                                                                          'city']
+                                                                      is Map
+                                                                  ? userAddress[
+                                                                          'city']
+                                                                      ['name']
+                                                                  : userAddress[
+                                                                      'city']),
+                                                            if (userAddress[
+                                                                        'state']
+                                                                    ?['name'] !=
+                                                                null)
+                                                              userAddress[
+                                                                      'state']
+                                                                  ['name'],
+                                                            if (userAddress[
+                                                                        'country']
+                                                                    ?['name'] !=
+                                                                null)
+                                                              userAddress[
+                                                                      'country']
+                                                                  ['name'],
+                                                          ]
+                                                              .where((e) =>
+                                                                  e != null)
+                                                              .join(', ') +
+                                                          (userAddress[
+                                                                      'postal_code'] !=
+                                                                  null
+                                                              ? ' - ${userAddress['postal_code']}'
+                                                              : (userAddress[
+                                                                          'pincode'] !=
+                                                                      null
+                                                                  ? ' - ${userAddress['pincode']}'
+                                                                  : '')),
+                                                      style: TextStyle(
+                                                        fontSize: 14,
                                                         color: Theme.of(context)
                                                             .colorScheme
-                                                            .primary,
+                                                            .onSurfaceVariant,
                                                       ),
-                                                      const SizedBox(width: 15),
-                                                      _buildActionButton(
-                                                        "Remove",
-                                                            () => _showDeleteDialog(
-                                                          context,
-                                                          userAddress['_id']
-                                                              .toString(),
-                                                          index,
+                                                    ),
+
+                                                    // ── Phone ─────────
+                                                    if (userAddress['mobile'] !=
+                                                        null) ...[
+                                                      const SizedBox(height: 4),
+                                                      Text(
+                                                        'Phone: ${userAddress['mobile']}',
+                                                        style: TextStyle(
+                                                          fontSize: 14,
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .onSurface,
                                                         ),
-                                                        color: Theme.of(context)
-                                                            .colorScheme
-                                                            .error,
                                                       ),
                                                     ],
-                                                  ),
+                                                    const SizedBox(height: 12),
 
-                                                  // ── Shipping warning
-                                                  if (controller.shippingDetails[
-                                                  'is_shipping'] ==
-                                                      false &&
-                                                      isSelected)
-                                                    Padding(
-                                                      padding:
-                                                      const EdgeInsets.only(
-                                                          top: 10),
-                                                      child: Row(
-                                                        children: [
-                                                          SvgPicture.asset(
-                                                            "assets/images/trucknew.svg",
-                                                            height: 16,
-                                                            colorFilter:
-                                                            ColorFilter.mode(
+                                                    // ── Edit / Remove ─
+                                                    Row(
+                                                      children: [
+                                                        _buildActionButton(
+                                                          "Edit",
+                                                          () => Get.toNamed(
+                                                            Routes.ADDRESS_FORM,
+                                                            arguments: {
+                                                              'isEdit': true,
+                                                              'address':
+                                                                  userAddress,
+                                                            },
+                                                          ),
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .primary,
+                                                        ),
+                                                        const SizedBox(
+                                                            width: 15),
+                                                        _buildActionButton(
+                                                          "Remove",
+                                                          () =>
+                                                              _showDeleteDialog(
+                                                            context,
+                                                            userAddress['_id']
+                                                                .toString(),
+                                                            index,
+                                                          ),
+                                                          color:
                                                               Theme.of(context)
                                                                   .colorScheme
                                                                   .error,
-                                                              BlendMode.srcIn,
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                              width: 10),
-                                                          Text(
-                                                            "Shipping not available at this address!",
-                                                            style: TextStyle(
-                                                              fontSize: 12,
-                                                              color: Theme.of(
-                                                                  context)
-                                                                  .colorScheme
-                                                                  .error,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
+                                                        ),
+                                                      ],
                                                     ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
 
-                                    // ── DEFAULT / TYPE badges ──────────
-                                    Positioned(
-                                      top: 10,
-                                      right: 10,
-                                      child: Row(
-                                        children: [
-                                          if (userAddress['is_default'] == true)
-                                            Container(
-                                              margin: const EdgeInsets.only(
-                                                  right: 8),
-                                              padding:
-                                              const EdgeInsets.symmetric(
-                                                  horizontal: 8,
-                                                  vertical: 4),
-                                              decoration: BoxDecoration(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .secondary
-                                                    .withOpacity(0.1),
-                                                borderRadius:
-                                                BorderRadius.circular(3),
-                                                border: Border.all(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .secondary,
-                                                  width: 0.5,
-                                                ),
-                                              ),
-                                              child: Text(
-                                                'DEFAULT',
-                                                style: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .secondary,
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                          if ((userAddress['type'] ??
-                                              userAddress[
-                                              'address_type']) !=
-                                              null)
-                                            Container(
-                                              padding:
-                                              const EdgeInsets.symmetric(
-                                                  horizontal: 8,
-                                                  vertical: 4),
-                                              decoration: BoxDecoration(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary,
-                                                borderRadius:
-                                                BorderRadius.circular(3),
-                                              ),
-                                              child: Text(
-                                                (userAddress['type'] ??
-                                                    userAddress[
-                                                    'address_type'])
-                                                    .toString()
-                                                    .toUpperCase(),
-                                                style: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onPrimary,
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
+                                                    // ── Shipping warning
+                                                    if (controller.shippingDetails[
+                                                                'is_shipping'] ==
+                                                            false &&
+                                                        isSelected)
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .only(top: 10),
+                                                        child: Row(
+                                                          children: [
+                                                            SvgPicture.asset(
+                                                              "assets/images/trucknew.svg",
+                                                              height: 16,
+                                                              colorFilter:
+                                                                  ColorFilter
+                                                                      .mode(
+                                                                Theme.of(
+                                                                        context)
+                                                                    .colorScheme
+                                                                    .error,
+                                                                BlendMode.srcIn,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                                width: 10),
+                                                            Text(
+                                                              "Shipping not available at this address!",
+                                                              style: TextStyle(
+                                                                fontSize: 12,
+                                                                color: Theme.of(
+                                                                        context)
+                                                                    .colorScheme
+                                                                    .error,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                  ],
                                                 ),
                                               ),
                                             ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                      // Positioned badges are still there, they will receive taps if clicked
+                                      // but they are small so it's fine.
+                                    ],
+                                  ),
                                 ),
                               );
                             });
@@ -403,15 +372,15 @@ class AddressListView extends GetView<AddressListController> {
 
               // ── Bottom Continue Button ────────────────────────────
               Obx(() => bottomButton(
-                buttonText: 'Continue',
-                priceText: controller.total.value.toStringAsFixed(2),
-                keypressEvent: controller.userAddressList.isEmpty
-                    ? null
-                    : () => Get.toNamed(Routes.PAYMENT),
-                otherText: 'Details',
-                opacity: controller.userAddressList.isEmpty ? 0.5 : 1,
-                deliveryAmount: '0',
-              )),
+                    buttonText: 'Continue',
+                    priceText: controller.total.value.toStringAsFixed(2),
+                    keypressEvent: controller.userAddressList.isEmpty
+                        ? null
+                        : () => Get.toNamed(Routes.PAYMENT),
+                    otherText: 'Details',
+                    opacity: controller.userAddressList.isEmpty ? 0.5 : 1,
+                    deliveryAmount: '0',
+                  )),
             ],
           );
         }),
@@ -419,8 +388,7 @@ class AddressListView extends GetView<AddressListController> {
     );
   }
 
-  Widget _buildActionButton(String label, VoidCallback onTap,
-      {Color? color}) {
+  Widget _buildActionButton(String label, VoidCallback onTap, {Color? color}) {
     return InkWell(
       onTap: onTap,
       child: Text(
@@ -439,21 +407,18 @@ class AddressListView extends GetView<AddressListController> {
     Get.dialog(
       AlertDialog(
         title: const Text('Remove Address'),
-        content:
-        const Text("Are you sure you want to remove this address?"),
+        content: const Text("Are you sure you want to remove this address?"),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text('Cancel',
-                style: TextStyle(color: Colors.grey)),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
           TextButton(
             onPressed: () {
               Get.back();
               controller.removeAddress(id, index);
             },
-            child: const Text('Remove',
-                style: TextStyle(color: Colors.red)),
+            child: const Text('Remove', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

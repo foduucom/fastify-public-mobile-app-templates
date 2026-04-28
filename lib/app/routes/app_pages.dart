@@ -1,7 +1,5 @@
 import '../modules/Profie/contact/view/contact_us_view.dart';
 import '../modules/Profie/privacy_policy/view/privacy_policy_view.dart';
-import '../modules/Profie/profile_address/binding/address_binding.dart';
-import '../modules/Profie/profile_address/view/address_view.dart';
 import '../modules/Profie/terms&condition/view/terms_conditions_view.dart';
 import 'package:foduu_ecommerce/app/modules/orderResponse/bindings/checkout_binding.dart';
 import 'package:foduu_ecommerce/app/modules/orderResponse/views/ordersucess_view.dart';
@@ -228,17 +226,18 @@ class AppPages {
       binding: AddressListBinding(),
     ),
 
-    GetPage(
-      name: _Paths.ADDRESS_LIST1, // ensure this is defined in app_routes.dart
-      page: () => const AddressView(),
-      binding: AddressBinding(),
-    ),
+    // GetPage(
+    //   name: _Paths.ADDRESS_LIST1, // ensure this is defined in app_routes.dart
+    //   page: () => const AddressView(),
+    //   binding: AddressBinding(),
+    // ),
 
-    GetPage(
-      name: _Paths.ADDRESS_ADD, // ensure this is defined in app_routes.dart
-      page: () => const AddressView(),
-      binding: AddressBinding(),
-    ),
+    // GetPage(
+    //   name: _Paths.ADDRESS_ADD, // ensure this is defined in app_routes.dart
+    //   page: () => const AddressView(),
+    //   binding: AddressBinding(),
+    // ),
+
     GetPage(
       name: _Paths.ADDRESS_FORM,
       page: () => AddressFormView(),
@@ -268,7 +267,6 @@ class AppPages {
     GetPage(
       name: _Paths.CONTACTUS,
       page: () => ContactUsView(),
-
     ),
 
     GetPage(

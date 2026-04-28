@@ -58,6 +58,19 @@ class CheckOutController extends GetxController with BaseController {
   void onInit() async {
     super.onInit();
     await getPaymentOption();
+    _ensureAddressController();
+  }
+
+  void _ensureAddressController() {
+    final AddressListController addrCtrl;
+    if (Get.isRegistered<AddressListController>()) {
+      addrCtrl = Get.find<AddressListController>();
+    } else {
+      addrCtrl = Get.put(AddressListController());
+    }
+    if (addrCtrl.userAddressList.isEmpty) {
+      addrCtrl.refreshAddresses();
+    }
   }
 
   @override
@@ -194,19 +207,11 @@ class CheckOutController extends GetxController with BaseController {
 
       if (Get.isRegistered<AddressListController>()) {
         final addressController = Get.find<AddressListController>();
-        final int selectedAddrIndex = addressController.selectAddress.value;
-        if (addressController.userAddressList.isNotEmpty &&
-            selectedAddrIndex < addressController.userAddressList.length) {
-          final addr = addressController.userAddressList[selectedAddrIndex];
-          addressId = (addr['_id'] ?? addr['id'] ?? "").toString();
-          // name = (addr['name'] ?? "").toString();
-          // phone = (addr['mobile'] ?? addr['phone'] ?? "").toString();
-          // email = (addr['email'] ?? "").toString();
-        }
+        addressId = addressController.selectAddressId.value;
       }
 
       if (addressId.isEmpty) {
-        Get.snackbar("Error", "Selected address not found");
+        Get.snackbar("Error", "Please select a delivery address");
         return null;
       }
 
