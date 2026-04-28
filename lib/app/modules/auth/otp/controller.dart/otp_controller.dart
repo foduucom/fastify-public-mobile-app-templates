@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/constants/firebase_notification.dart';
 import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
@@ -87,6 +89,11 @@ class OtpController extends GetxController with BaseController {
 
         // Sync any local (guest) cart items to the server
         await CartService.to.syncLocalCartToServer();
+
+        if (!kIsWeb) {
+          await FirebaseHelpers.getFCMToken();
+          await FirebaseHelpers.afterLoginSubscribe();
+        }
 
         Get.toNamed(Routes.BOTTOMBAR);
       }

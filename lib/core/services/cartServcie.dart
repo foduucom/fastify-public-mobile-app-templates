@@ -77,7 +77,14 @@ class CartService extends GetxService with BaseController {
         .postRequest(form)
         .catchError(handleError);
     if (response != null) {
+      // Apply the manage response immediately so quantity updates are instant.
       parseCartResponse(response);
+
+      // cart/manage returns featured_image as a bare ObjectId string (not the
+      // full image object), so we follow up with a fetchCart() call to get the
+      // complete product data — including the correct image URL — without
+      // requiring the user to pull-to-refresh manually.
+      await fetchCart();
     }
     return response;
   }
@@ -171,7 +178,8 @@ class CartService extends GetxService with BaseController {
         // API returned a bare ID string — restore the full image object if we
         // have it from the previous fetch so the URL builds correctly.
         if (img is String && img.isNotEmpty) {
-          final restored = existingImages[img] ?? existingImages[product['_id'] ?? product['id'] ?? ''];
+          final restored = existingImages[img] ??
+              existingImages[product['_id'] ?? product['id'] ?? ''];
           if (restored != null) {
             product['featured_image'] = restored;
           }

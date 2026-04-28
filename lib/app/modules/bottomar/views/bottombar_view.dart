@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/views/home_view.dart';
@@ -24,157 +25,180 @@ class BottombarView extends GetView<BottombarController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          SizedBox.expand(
-            child: PageView(
-                controller: controller.pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  // HomepageView(),
-                  Testinghome(),
-                  // DemoHomePage(),
-                  CategoryView(),
-                  CartView(),
-                  WishlistView(),
-
-                  ProfileView()
-                ]),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final shouldExit = await Get.dialog<bool>(
+          AlertDialog(
+            title: const Text('Exit App'),
+            content: const Text('Are you sure you want to quit?'),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(result: false),
+                child: const Text('No'),
+              ),
+              TextButton(
+                onPressed: () => Get.back(result: true),
+                child: const Text('Yes'),
+              ),
+            ],
           ),
-        ],
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-                color:
-                    Theme.of(context).colorScheme.onSurface.withOpacity(0.15),
-                // color: Color.fromARGB(96, 168, 164, 164),
-                spreadRadius: 0,
-                blurRadius: 10),
+        );
+        if (shouldExit == true) SystemNavigator.pop();
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            SizedBox.expand(
+              child: PageView(
+                  controller: controller.pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    // HomepageView(),
+                    Testinghome(),
+                    // DemoHomePage(),
+                    CategoryView(),
+                    CartView(),
+                    WishlistView(),
+
+                    ProfileView()
+                  ]),
+            ),
           ],
         ),
-        child: Obx(
-          () => BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            // unselectedItemColor: Theme.of(context).colorScheme.secondary,
-            // selectedItemColor: Theme.of(context).colorScheme.primary,
-            showSelectedLabels: true,
-            showUnselectedLabels: true,
-            unselectedLabelStyle: const TextStyle(
-              fontFamily: 'Lato',
-              fontSize: 10,
-              height: 2,
-            ),
-            selectedLabelStyle: const TextStyle(
-              fontFamily: 'Lato',
-              fontSize: 10,
-              height: 2,
-            ),
-            onTap: (value) {
-              controller.onTabChange(value);
-            },
-            currentIndex: controller.currentPageIndex.value,
-            items: [
-              BottomNavigationBarItem(
-                icon: SvgPicture.asset(
-                  'assets/icon/fill2.svg',
-                  colorFilter: ColorFilter.mode(
-                    Theme.of(context).colorScheme.onSurfaceVariant,
-                    BlendMode.srcIn,
-                  ),
-                ),
-                activeIcon: SvgPicture.asset(
-                  'assets/icon/home.svg',
-                  colorFilter: ColorFilter.mode(
-                    Theme.of(context).colorScheme.primary,
-                    BlendMode.srcIn,
-                  ),
-                ),
-                label: 'HOME',
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.15),
+                  // color: Color.fromARGB(96, 168, 164, 164),
+                  spreadRadius: 0,
+                  blurRadius: 10),
+            ],
+          ),
+          child: Obx(
+            () => BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
+              // unselectedItemColor: Theme.of(context).colorScheme.secondary,
+              // selectedItemColor: Theme.of(context).colorScheme.primary,
+              showSelectedLabels: true,
+              showUnselectedLabels: true,
+              unselectedLabelStyle: const TextStyle(
+                fontFamily: 'Lato',
+                fontSize: 10,
+                height: 2,
               ),
-              BottomNavigationBarItem(
-                icon: SvgPicture.asset(
-                  'assets/icon/cateorey.svg',
-                  colorFilter: ColorFilter.mode(
-                    Theme.of(context).colorScheme.onSurfaceVariant,
-                    BlendMode.srcIn,
-                  ),
-                ),
-                activeIcon: SvgPicture.asset(
-                  'assets/icon/activecategory.svg',
-                  colorFilter: ColorFilter.mode(
-                    Theme.of(context).colorScheme.primary,
-                    BlendMode.srcIn,
-                  ),
-                ),
-                label: 'CATEGORY',
+              selectedLabelStyle: const TextStyle(
+                fontFamily: 'Lato',
+                fontSize: 10,
+                height: 2,
               ),
-              BottomNavigationBarItem(
-                icon: controller.cartbadge(
-                  onTap: () {
-                    controller.currentPageIndex.value = 2;
-                    controller.pageController.jumpToPage(2);
-                  },
-                  child: SvgPicture.asset(
-                    'assets/icon/bottombarcart.svg',
+              onTap: (value) {
+                controller.onTabChange(value);
+              },
+              currentIndex: controller.currentPageIndex.value,
+              items: [
+                BottomNavigationBarItem(
+                  icon: SvgPicture.asset(
+                    'assets/icon/fill2.svg',
                     colorFilter: ColorFilter.mode(
                       Theme.of(context).colorScheme.onSurfaceVariant,
                       BlendMode.srcIn,
                     ),
                   ),
-                  badgeNumber: CartService.to.cartItemCount,
-                ),
-                activeIcon: controller.cartbadge(
-                  onTap: () {},
-                  child: SvgPicture.asset(
-                    'assets/icon/cartfilledicon.svg',
+                  activeIcon: SvgPicture.asset(
+                    'assets/icon/home.svg',
                     colorFilter: ColorFilter.mode(
                       Theme.of(context).colorScheme.primary,
                       BlendMode.srcIn,
                     ),
                   ),
-                  badgeNumber: CartService.to.cartItemCount,
+                  label: 'HOME',
                 ),
-                label: 'CART',
-              ),
-              BottomNavigationBarItem(
-                icon: SvgPicture.asset(
-                  'assets/icon/bottomicon.svg',
-                  colorFilter: ColorFilter.mode(
-                    Theme.of(context).colorScheme.onSurfaceVariant,
-                    BlendMode.srcIn,
+                BottomNavigationBarItem(
+                  icon: SvgPicture.asset(
+                    'assets/icon/cateorey.svg',
+                    colorFilter: ColorFilter.mode(
+                      Theme.of(context).colorScheme.onSurfaceVariant,
+                      BlendMode.srcIn,
+                    ),
                   ),
-                ),
-                activeIcon: SvgPicture.asset(
-                  'assets/icon/bottomlikeicon.svg',
-                  colorFilter: ColorFilter.mode(
-                    Theme.of(context).colorScheme.primary,
-                    BlendMode.srcIn,
+                  activeIcon: SvgPicture.asset(
+                    'assets/icon/activecategory.svg',
+                    colorFilter: ColorFilter.mode(
+                      Theme.of(context).colorScheme.primary,
+                      BlendMode.srcIn,
+                    ),
                   ),
+                  label: 'CATEGORY',
                 ),
-                label: 'WISHLIST',
-              ),
-              BottomNavigationBarItem(
-                icon: SvgPicture.asset(
-                  'assets/icon/bottomprofile.svg',
-                  colorFilter: ColorFilter.mode(
-                    Theme.of(context).colorScheme.onSurfaceVariant,
-                    BlendMode.srcIn,
+                BottomNavigationBarItem(
+                  icon: controller.cartbadge(
+                    onTap: () {
+                      controller.currentPageIndex.value = 2;
+                      controller.pageController.jumpToPage(2);
+                    },
+                    child: SvgPicture.asset(
+                      'assets/icon/bottombarcart.svg',
+                      colorFilter: ColorFilter.mode(
+                        Theme.of(context).colorScheme.onSurfaceVariant,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    badgeNumber: CartService.to.cartItemCount,
                   ),
-                ),
-                activeIcon: SvgPicture.asset(
-                  'assets/icon/bottomactiveprofile.svg',
-                  colorFilter: ColorFilter.mode(
-                    Theme.of(context).colorScheme.primary,
-                    BlendMode.srcIn,
+                  activeIcon: controller.cartbadge(
+                    onTap: () {},
+                    child: SvgPicture.asset(
+                      'assets/icon/cartfilledicon.svg',
+                      colorFilter: ColorFilter.mode(
+                        Theme.of(context).colorScheme.primary,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    badgeNumber: CartService.to.cartItemCount,
                   ),
+                  label: 'CART',
                 ),
-                label: 'PROFILE',
-              ),
-            ],
+                BottomNavigationBarItem(
+                  icon: SvgPicture.asset(
+                    'assets/icon/bottomicon.svg',
+                    colorFilter: ColorFilter.mode(
+                      Theme.of(context).colorScheme.onSurfaceVariant,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  activeIcon: SvgPicture.asset(
+                    'assets/icon/bottomlikeicon.svg',
+                    colorFilter: ColorFilter.mode(
+                      Theme.of(context).colorScheme.primary,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  label: 'WISHLIST',
+                ),
+                BottomNavigationBarItem(
+                  icon: SvgPicture.asset(
+                    'assets/icon/bottomprofile.svg',
+                    colorFilter: ColorFilter.mode(
+                      Theme.of(context).colorScheme.onSurfaceVariant,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  activeIcon: SvgPicture.asset(
+                    'assets/icon/bottomactiveprofile.svg',
+                    colorFilter: ColorFilter.mode(
+                      Theme.of(context).colorScheme.primary,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  label: 'PROFILE',
+                ),
+              ],
+            ),
           ),
         ),
       ),

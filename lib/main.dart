@@ -1,7 +1,6 @@
 import 'package:flutter_stripe/flutter_stripe.dart';
-
-import 'package:foduu_ecommerce/constants/firebase_helper_notification.dart'
-    if (dart.library.js_util) '/constants/firebase_helper_stub.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:foduu_ecommerce/constants/firebase_notification.dart';
 
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:foduu_ecommerce/core/services/wishlistService.dart';
@@ -53,6 +52,13 @@ Future<void> main() async {
     }
 
     Get.put(StudioSocketRouting(initialSlug: slug));
+  }
+
+  // Initialize Firebase and push notifications
+  if (!kIsWeb) {
+    await Firebase.initializeApp();
+    await FirebaseHelpers.firebaseInitialise();
+    await FirebaseHelpers.getFCMToken();
   }
 
   // Initialize dynamic theme from storage
