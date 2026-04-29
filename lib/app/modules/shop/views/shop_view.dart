@@ -612,7 +612,7 @@ class _ProductGridCard extends StatelessWidget {
                     Text(name.toUpperCase(),
                         style: textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600, height: 1.2),
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,

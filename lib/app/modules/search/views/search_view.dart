@@ -8,6 +8,7 @@ import '/app/routes/app_pages.dart';
 import '/constants/constants.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
+import '/constants/product_helper.dart';
 import '../controllers/search_controller.dart';
 
 class SearchView extends GetView<SearchsController> {
@@ -493,29 +494,20 @@ class _ProductCard extends StatelessWidget {
     required this.onTap,
   });
 
-  String _getImageUrl() {
-    final fi = product['featured_image'];
-    if (fi is Map) {
-      final path = fi['filepath']?.toString() ?? '';
-      if (path.isNotEmpty) {
-        final clean = path.startsWith('/') ? path.substring(1) : path;
-        return '$imageBase$clean';
-      }
-    }
-    return '';
-  }
-
   @override
   Widget build(BuildContext context) {
-    final imageUrl = _getImageUrl();
-    final name = product['name']?.toString() ?? '';
-    final price = double.tryParse(product['price']?.toString() ?? '0') ?? 0.0;
-    final salePrice =
-        double.tryParse(product['sale_price']?.toString() ?? '0') ?? 0.0;
-    final hasDiscount = salePrice > 0 && salePrice < price;
-    final displayPrice = hasDiscount ? salePrice : price;
-    final discountPct =
-        hasDiscount ? ((price - salePrice) / price * 100).round() : 0;
+    final priceInfo = ProductHelper.calculatePriceInfo(product);
+    final imageUrl = ProductHelper.getProductImage(product);
+    final name = ProductHelper.getProductName(product);
+
+    final displayPrice =
+        double.tryParse(priceInfo['productPrice']?.toString() ?? '0') ?? 0.0;
+    final originalPrice =
+        double.tryParse(priceInfo['salePrice']?.toString() ?? '0') ?? 0.0;
+    final hasDiscount = originalPrice > 0 && originalPrice > displayPrice;
+    final discountPct = hasDiscount
+        ? ((originalPrice - displayPrice) / originalPrice * 100).round()
+        : 0;
 
     return GestureDetector(
       onTap: onTap,
@@ -529,7 +521,7 @@ class _ProductCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              flex: 5,
+              flex: 11,
               child: Stack(
                 children: [
                   ClipRRect(
@@ -537,6 +529,7 @@ class _ProductCard extends StatelessWidget {
                         const BorderRadius.vertical(top: Radius.circular(15)),
                     child: SizedBox(
                       width: double.infinity,
+                      height: double.infinity,
                       child: imageUrl.isNotEmpty
                           ? CachedNetworkImage(
                               imageUrl: imageUrl,
@@ -580,9 +573,9 @@ class _ProductCard extends StatelessWidget {
               ),
             ),
             Expanded(
-              flex: 3,
+              flex: 4,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -597,11 +590,11 @@ class _ProductCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text(
-                      'For 1Kg',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant, fontSize: 11),
-                    ),
+                    // Text(
+                    //   'For 1Kg',
+                    //   style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    //       color: colorScheme.onSurfaceVariant, fontSize: 11),
+                    // ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -609,7 +602,7 @@ class _ProductCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '\$${displayPrice.toStringAsFixed(2)}',
+                              '₹${displayPrice.toStringAsFixed(2)}',
                               style: Theme.of(context)
                                   .textTheme
                                   .titleSmall
@@ -621,7 +614,7 @@ class _ProductCard extends StatelessWidget {
                             ),
                             if (hasDiscount)
                               Text(
-                                '\$${price.toStringAsFixed(2)}',
+                                '₹${originalPrice.toStringAsFixed(2)}',
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall
