@@ -418,7 +418,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     return Padding(
       padding: const EdgeInsets.only(left: 6.0),
       child: SizedBox(
-        height: 280, // Increased height to accommodate content
+        height: 250, // Increased height to accommodate content
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(
             dragDevices: {
@@ -465,13 +465,13 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final productName = ProductHelper.getProductName(product);
     final imageUrl = ProductHelper.getProductImage(product);
     final productType = priceInfo['productType'];
-    final storeName = product['storeName'] ?? 'Store Name';
+    final storeName = product['brand']?['name'] ?? 'Store Name';
 
     // Calculate responsive width based on screen size
     final screenWidth = MediaQuery.of(context).size.width;
     final itemWidth = screenWidth > 600
         ? screenWidth * 0.25 // Tablet: 25% of screen width
-        : screenWidth * 0.45; // Mobile: 45% of screen width
+        : screenWidth * 0.30; // Mobile: 30% of screen width
     final clampedWidth = itemWidth.clamp(150.0, 220.0);
 
     return GestureDetector(

@@ -30,14 +30,14 @@ class DeleteAccountController extends GetxController with BaseController {
       return;
     }
 
-    // if (await FirebaseHelpers().unsubscribeFromAllTopics()) {
-    //   isLoading.value = false;
-    //   box.erase();
-    //   Get.until((route) => !Get.isDialogOpen!);
-    //   HelperFunctions()
-    //       .showSnackBarSuccess("Your account has been permanently deleted!");
-    //   Get.offAllNamed(Routes.LOGIN);
-    // }
+    if (await FirebaseHelpers.unsubscribeFromAllTopics()) {
+      isLoading.value = false;
+      box.erase();
+      Get.until((route) => !Get.isDialogOpen!);
+      HelperFunctions()
+          .showSnackBarSuccess("Your account has been permanently deleted!");
+      Get.offAllNamed(Routes.LOGIN);
+    }
   }
 
   @override

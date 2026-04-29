@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "490586987672",
+    "project_id": "fastify-flutter",
+    "storage_bucket": "fastify-flutter.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:490586987672:android:5e6a15ce63735e50c544ed",
+        "android_client_info": {
+          "package_name": "com.foduu.foduu_ecommerce"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSPFyXvfLUf27Eg4BXkCn8tZbK8PIz4S8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

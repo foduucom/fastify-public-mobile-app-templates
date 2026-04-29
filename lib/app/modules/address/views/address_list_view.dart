@@ -383,7 +383,14 @@ class AddressListView extends GetView<AddressListController> {
                       ? null
                       : () {
                           print("Payment Triggered");
-                          Get.toNamed(Routes.PAYMENT);
+                          // If we came from checkout, just go back
+                          if (Get.previousRoute == Routes.PAYMENT ||
+                              Get.previousRoute == Routes.CHECKOUT ||
+                              Get.arguments?['selectMode'] == true) {
+                            Get.back();
+                          } else {
+                            Get.toNamed(Routes.PAYMENT);
+                          }
                         },
                   otherText: 'Details',
                   opacity: controller.userAddressList.isEmpty ? 0.5 : 1,

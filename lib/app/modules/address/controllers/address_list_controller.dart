@@ -70,10 +70,10 @@ class AddressListController extends GetxController with BaseController {
     try {
       HelperFunctions().showOverlayLoader();
 
-      var response = await BasicProvider('address/remove/$id')
-          .deleteRequest()
-          .catchError(handleError);
+      var response = await BasicProvider('customer/addresses/$id')
+          .postRequest({}).catchError(handleError);
       HelperFunctions().hideOverlayLoader();
+      print('remove address $response');
 
       if (response != null) {
         userAddressList.removeAt(index);

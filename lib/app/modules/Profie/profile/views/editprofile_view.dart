@@ -214,8 +214,8 @@ class EditprofileView extends GetView<ProfileController> {
                           icon: Icons.email_outlined,
                           enabled: true,
                           onTap: () {
-                            _showEditDialog(
-                                context, 'Email'.tr, controller.emailController);
+                            _showEditDialog(context, 'Email'.tr,
+                                controller.emailController);
                           },
                         ),
 
@@ -237,25 +237,15 @@ class EditprofileView extends GetView<ProfileController> {
 
                         SizedBox(height: height * 0.015),
 
-                        // Gender Field (Read Only)
+                        // Gender Field
                         Obx(() => _profileFieldRow(
                               title: 'Gender'.tr,
                               value: controller.selectedGender.value,
                               icon: Icons.person_search_outlined,
-                              enabled: false,
-                            )),
-
-                        SizedBox(height: height * 0.015),
-
-                        // Date of Birth Field (Read Only)
-                        Obx(() => _profileFieldRow(
-                              title: 'Date of Birth'.tr,
-                              value: controller.selectedDob.value != null
-                                  ? DateFormat('dd-MM-yyyy')
-                                      .format(controller.selectedDob.value!)
-                                  : '',
-                              icon: Icons.calendar_today_outlined,
-                              enabled: false,
+                              enabled: true,
+                              onTap: () {
+                                _showGenderSelection(context);
+                              },
                             )),
                       ],
                     ),
@@ -390,6 +380,49 @@ class EditprofileView extends GetView<ProfileController> {
               child: Text('SAVE'.tr),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void _showGenderSelection(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.male),
+                title: Text('Male'.tr),
+                onTap: () {
+                  controller.selectedGender.value = 'Male';
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.female),
+                title: Text('Female'.tr),
+                onTap: () {
+                  controller.selectedGender.value = 'Female';
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.transgender),
+                title: Text('Other'.tr),
+                onTap: () {
+                  controller.selectedGender.value = 'Other';
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
         );
       },
     );

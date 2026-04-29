@@ -31,6 +31,12 @@ class FoduuStudioLayoutView extends StatelessWidget {
   /// Observable loading flag from [DynamicLayoutMixin.isLayoutLoading].
   final RxBool isLoading;
 
+  /// Observable error flag from [DynamicLayoutMixin.hasError].
+  final RxBool hasError;
+
+  /// Observable error message from [DynamicLayoutMixin.errorMessage].
+  final RxString errorMessage;
+
   /// Callback for pull-to-refresh. Required only in full-page mode.
   final Future<void> Function()? onRefresh;
 
@@ -47,6 +53,8 @@ class FoduuStudioLayoutView extends StatelessWidget {
     super.key,
     required this.widgetList,
     required this.isLoading,
+    required this.hasError,
+    required this.errorMessage,
     required this.onRefresh,
     this.embedded = false,
     this.loadingWidget,
@@ -57,6 +65,8 @@ class FoduuStudioLayoutView extends StatelessWidget {
     super.key,
     required this.widgetList,
     required this.isLoading,
+    required this.hasError,
+    required this.errorMessage,
   })  : onRefresh = null,
         embedded = true,
         loadingWidget = null;
@@ -67,7 +77,43 @@ class FoduuStudioLayoutView extends StatelessWidget {
       print("widgetList.length: ${widgetList.length}");
 
       if (isLoading.value) {
-        return loadingWidget ?? Center(child: HelperFunctions().loadingIndicator());
+        return loadingWidget ??
+            Center(child: HelperFunctions().loadingIndicator());
+      }
+
+      if (hasError.value) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 60, color: Colors.red),
+                const SizedBox(height: 16),
+                const Text(
+                  "Oops! Something went wrong",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  errorMessage.value,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: onRefresh,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text("Try Again"),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       }
 
       if (widgetList.isEmpty) {

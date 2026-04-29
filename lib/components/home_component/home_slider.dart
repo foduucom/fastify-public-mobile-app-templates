@@ -29,10 +29,24 @@ class _FoduuSliderState extends State<FoduuSlider>
   final PageController _pageController = PageController(
     initialPage: 0,
   );
+  Timer? _timer;
+
+  List get sliderContent {
+    try {
+      if (widget.sliderData == null) return [];
+      if (widget.sliderData['slider'] == null) return [];
+      if (widget.sliderData['slider']['content'] == null) return [];
+      if (widget.sliderData['slider']['content'] is! List) return [];
+      return widget.sliderData['slider']['content'];
+    } catch (e) {
+      return [];
+    }
+  }
 
   List<Widget> _buildPageIndicator() {
     List<Widget> list = [];
-    for (int i = 0; i < widget.sliderData['slider']['content'].length; i++) {
+    final content = sliderContent;
+    for (int i = 0; i < content.length; i++) {
       list.add(i == _currentPage ? _indicator(true) : _indicator(false));
     }
     return list;
@@ -45,20 +59,30 @@ class _FoduuSliderState extends State<FoduuSlider>
     // sliderImage.clear();
     // initFetchSliderImage(widget.id);
 
-    Timer.periodic(const Duration(seconds: 8), (Timer timer) {
-      if (_currentPage < widget.sliderData['slider']['content'].length - 1) {
-        _currentPage++;
-      } else {
-        _currentPage = 0;
-      }
-      if (_pageController.hasClients) {
-        _pageController.animateToPage(
-          _currentPage,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeIn,
-        );
+    _timer = Timer.periodic(const Duration(seconds: 8), (Timer timer) {
+      final content = sliderContent;
+      if (content.isNotEmpty) {
+        if (_currentPage < content.length - 1) {
+          _currentPage++;
+        } else {
+          _currentPage = 0;
+        }
+        if (_pageController.hasClients) {
+          _pageController.animateToPage(
+            _currentPage,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeIn,
+          );
+        }
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -74,7 +98,7 @@ class _FoduuSliderState extends State<FoduuSlider>
             color: Colors.transparent,
           ),
           height: 200,
-          child: widget.sliderData['slider']['content'].isEmpty
+          child: sliderContent.isEmpty
               ? Shimmer.fromColors(
                   child: Padding(
                     padding: pageSurroundingPadding,
@@ -98,33 +122,25 @@ class _FoduuSliderState extends State<FoduuSlider>
                       _currentPage = page;
                     });
                   },
-                  itemCount: widget.sliderData['slider']['content'].length,
+                  itemCount: sliderContent.length,
                   itemBuilder: (context, index) {
                     return Stack(
                       children: [
                         GestureDetector(
                           onTap: () {
-                            if (widget.sliderData['slider']['content'][index]
-                                    ['sliderType'] ==
-                                'categories') {
+                            final item = sliderContent[index];
+                            if (item['sliderType'] == 'categories') {
                               Get.toNamed(Routes.SHOPPRODUCTLISTVIEW,
                                   arguments: {
                                     'source': 'category',
-                                    'productId': widget.sliderData['slider']
-                                        ['content'][index]['link'],
-                                    'name': widget.sliderData['slider']
-                                        ['content'][index]['heading']
+                                    'productId': item['link'],
+                                    'name': item['heading']
                                   });
                             }
-                            if (widget.sliderData['slider']['content'][index]
-                                    ['sliderType'] ==
-                                'page') {}
-                            if (widget.sliderData['slider']['content'][index]
-                                    ['sliderType'] ==
-                                'blog') {
+                            if (item['sliderType'] == 'page') {}
+                            if (item['sliderType'] == 'blog') {
                               Get.toNamed(Routes.BLOG, arguments: {
-                                'id': widget.sliderData['slider']['content']
-                                    [index]['link'],
+                                'id': item['link'],
                               });
                             }
                           },
@@ -134,8 +150,8 @@ class _FoduuSliderState extends State<FoduuSlider>
                               borderRadius: BorderRadius.circular(12.0),
                               child: CachedNetworkImage(
                                   height: 200,
-                                  imageUrl: HelperFunctions().getImage(widget
-                                      .sliderData['slider']['content'][index]),
+                                  imageUrl: HelperFunctions()
+                                      .getImage(sliderContent[index]),
                                   fit: BoxFit.cover,
                                   width: Get.width,
                                   errorWidget: ((context, url, error) =>
@@ -182,8 +198,7 @@ class _FoduuSliderState extends State<FoduuSlider>
                             children: [
                               SizedBox(height: 6),
                               Text(
-                                widget.sliderData['slider']['content'][index]
-                                    ['heading'],
+                                sliderContent[index]['heading'] ?? '',
                                 style: TextStyle(
                                   fontFamily: 'Lato',
                                   fontSize: 20,
@@ -192,8 +207,7 @@ class _FoduuSliderState extends State<FoduuSlider>
                               ),
                               SizedBox(height: 6),
                               Text(
-                                widget.sliderData['slider']['content'][index]
-                                    ['description'],
+                                sliderContent[index]['description'] ?? '',
                                 style: TextStyle(
                                   fontFamily: 'Lato',
                                   fontSize: 12,

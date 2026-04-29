@@ -141,7 +141,10 @@ class WishlistView extends GetView<WishlistController> {
           Obx(() => controller.widgetList.isNotEmpty
               ? FoduuStudioLayoutView.embedded(
                   widgetList: controller.widgetList,
-                  isLoading: controller.isLayoutLoading)
+                  isLoading: controller.isLayoutLoading,
+                  hasError: controller.hasError,
+                  errorMessage: controller.errorMessage,
+                )
               : const SizedBox.shrink()),
 
           const SizedBox(height: 16),

@@ -134,7 +134,8 @@ class CheckoutViews extends GetView<CheckOutController> {
                 _showEditAddressBottomSheet(width, height, context);
               } else {
                 // If no address selected, navigate to address list
-                Get.toNamed(Routes.ADDRESS_LIST)?.then((_) {
+                Get.toNamed(Routes.ADDRESS_LIST,
+                    arguments: {'selectMode': true})?.then((_) {
                   // Refresh address when coming back
                   controller.refreshAddress();
                 });

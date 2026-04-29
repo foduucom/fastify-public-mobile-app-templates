@@ -36,6 +36,8 @@ mixin FoduuStudioLayoutMixin on GetxController {
   // ─── Observable state ────────────────────────────────────────
   final widgetList = <Widget>[].obs;
   final isLayoutLoading = true.obs;
+  final hasError = false.obs;
+  final errorMessage = "".obs;
 
   // ─── Internal state ──────────────────────────────────────────
   List _initialComponents = [];
@@ -84,6 +86,8 @@ mixin FoduuStudioLayoutMixin on GetxController {
   Future<dynamic> fetchLayout(String slug, {dynamic requestBody}) async {
     try {
       isLayoutLoading.value = true;
+      hasError.value = false;
+      errorMessage.value = "";
       dynamic response;
 
       // Ensure socket is connected and listener is enabled on web
@@ -127,6 +131,8 @@ mixin FoduuStudioLayoutMixin on GetxController {
       return response;
     } catch (e) {
       print('DynamicLayoutMixin fetchLayout error: $e');
+      hasError.value = true;
+      errorMessage.value = e.toString();
     } finally {
       isLayoutLoading.value = false;
     }

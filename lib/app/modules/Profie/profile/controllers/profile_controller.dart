@@ -21,7 +21,6 @@ class ProfileController extends GetxController with BaseController {
       passwordController,
       emailController,
       phoneController,
-      dobController,
       oldPasswordController,
       newPasswordController,
       comfirmPasswordController;
@@ -35,7 +34,6 @@ class ProfileController extends GetxController with BaseController {
   var selectedGender = 'Male'.obs;
   final addressController = TextEditingController();
   var selectNotification = 0.obs;
-  var selectedDob = Rx<DateTime?>(null);
   var addresses = <dynamic>[].obs;
 
   @override
@@ -47,7 +45,6 @@ class ProfileController extends GetxController with BaseController {
     nameController = TextEditingController();
     emailController = TextEditingController();
     phoneController = TextEditingController();
-    dobController = TextEditingController();
     lastNameController = TextEditingController();
     genderController = TextEditingController();
     passwordController = TextEditingController();
@@ -109,22 +106,6 @@ class ProfileController extends GetxController with BaseController {
     }
   }
 
-  Future<void> selectDate(BuildContext context) async {
-    DateTime currentDate = DateTime.now();
-    DateTime? selectDate = await showDatePicker(
-      context: context,
-      initialDate: currentDate,
-      firstDate: currentDate.subtract(const Duration(days: 365)),
-      lastDate: currentDate.add(const Duration(days: 365)),
-    );
-
-    if (selectDate != null) {
-      selectedDate = selectDate;
-      dobController.text = DateFormat('dd-MM-yyyy').format(selectDate);
-      // print('selected date ${selectedDate}');
-    }
-  }
-
   void getImageFromGalleryOrCamera(imageSource) {
     HelperFunctions().getImageFromGalleryOrCamera(imageSource).then((value) {
       imagePath.value = value;
@@ -154,19 +135,6 @@ class ProfileController extends GetxController with BaseController {
         genderController.text = rawGender;
         selectedGender.value = rawGender == 'female' ? 'Female' : 'Male';
         gender.value = rawGender;
-
-        // Date of Birth parsing (API uses "date_of_birth" while previous code used "dob")
-        final String? dobString = response['date_of_birth'] ?? response['dob'];
-        final DateTime? dob =
-            dobString != null ? DateTime.tryParse(dobString) : null;
-
-        if (dob != null) {
-          selectedDob.value = dob;
-          dobController.text = DateFormat('dd-MM-yyyy').format(dob);
-        } else {
-          selectedDob.value = null;
-          dobController.text = '';
-        }
 
         // Addresses parsing
         if (response['addresses'] != null && response['addresses'] is List) {
@@ -200,7 +168,6 @@ class ProfileController extends GetxController with BaseController {
     nameController.dispose();
     emailController.dispose();
     phoneController.dispose();
-    dobController.dispose();
     lastNameController.dispose();
     genderController.dispose();
     passwordController.dispose();
@@ -216,18 +183,7 @@ class ProfileController extends GetxController with BaseController {
     {"name": "Payment"},
   ];
 
-  String dobFormatToStoreInDB(String dob) {
-    DateTime dt = DateFormat('dd MMM yyyy').parse(dob);
-    final DateFormat formatter = DateFormat('yyyy-MM-dd');
-    final String formatted = formatter.format(dt);
-    return formatted;
-  }
-
   Future<void> sendFormData() async {
-    if (dobController.text == "") {
-      HelperFunctions().showSnackBarError("Please select your Date Of Birth");
-      return;
-    }
     if (formKey.currentState!.validate()) {
       isLoading(true);
 
@@ -236,8 +192,6 @@ class ProfileController extends GetxController with BaseController {
         'mobile': phoneController.text,
         'email': emailController.text,
         'gender': selectedGender.value.toLowerCase(),
-        if (selectedDob.value != null)
-          'date_of_birth': DateFormat('yyyy-MM-dd').format(selectedDob.value!),
         'featured_image':
             !imagePath.value.contains("http") && imagePath.value != ""
                 ? MultipartFile(imagePath.value,

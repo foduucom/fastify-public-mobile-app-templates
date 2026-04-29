@@ -67,11 +67,7 @@ class WishlistController extends GetxController
   String getStoreName(int index) {
     if (index >= wishlistItems.length) return 'Store Name';
     final product = getProduct(index);
-    return (product['shop_id']?['name'] ??
-            product['storeName'] ??
-            product['shop_name'] ??
-            'Store Name')
-        .toString();
+    return (product['brand']?['name'] ?? 'Store Name').toString();
   }
 
   int getQuantity(int index) {
