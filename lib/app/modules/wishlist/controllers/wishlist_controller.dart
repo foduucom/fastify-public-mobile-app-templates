@@ -38,7 +38,11 @@ class WishlistController extends GetxController
   }
 
   Map<String, dynamic> getProduct(int index) {
-    return Map<String, dynamic>.from(wishlistItems[index]['product_id'] ?? {});
+    final product = wishlistItems[index]['product_id'];
+    if (product is Map) {
+      return Map<String, dynamic>.from(product);
+    }
+    return {};
   }
 
   Map<String, dynamic> getVariant(int index) {

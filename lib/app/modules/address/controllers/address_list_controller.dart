@@ -54,15 +54,12 @@ class AddressListController extends GetxController with BaseController {
             .getRequest()
             .catchError(handleError);
 
-        isLoading.value = false;
-        addressLoading.value = false;
-
         if (response == null) {
+          isLoading.value = false;
+          addressLoading.value = false;
           print("refreshAddresses: Response is null");
           return;
         }
-
-        userAddressList.clear();
 
         // ✅ Handle both List and Map response formats
         List rawList = [];
@@ -72,6 +69,7 @@ class AddressListController extends GetxController with BaseController {
           rawList = response['data'];
         }
 
+        List tempList = [];
         // ✅ Ensure each address has a unique temp_id if real ID is missing
         for (int i = 0; i < rawList.length; i++) {
           var addr = rawList[i];
@@ -79,10 +77,11 @@ class AddressListController extends GetxController with BaseController {
             if (addr['_id'] == null && addr['id'] == null) {
               addr['temp_id'] = "temp_$i";
             }
-            userAddressList.add(addr);
+            tempList.add(addr);
           }
         }
 
+        userAddressList.assignAll(tempList);
         print("refreshAddresses: Loaded ${userAddressList.length} addresses");
 
         if (userAddressList.isNotEmpty) {
@@ -124,6 +123,8 @@ class AddressListController extends GetxController with BaseController {
           }
         }
       }
+      isLoading.value = false;
+      addressLoading.value = false;
     } catch (e) {
       isLoading.value = false;
       addressLoading.value = false;
@@ -136,8 +137,9 @@ class AddressListController extends GetxController with BaseController {
     try {
       HelperFunctions().showOverlayLoader();
 
+      // ✅ FIXED: using postRequest with empty body {} as required by backend
       var response = await BasicProvider('customer/addresses/$id')
-          .deleteRequest()
+          .postRequest({})
           .catchError(handleError);
 
       Get.until((route) => !Get.isDialogOpen!);

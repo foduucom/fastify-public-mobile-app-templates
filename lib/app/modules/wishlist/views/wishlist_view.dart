@@ -74,7 +74,7 @@ class WishlistView extends GetView<WishlistController> {
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return  const CartShimmer();
+          return const CartShimmer();
         }
 
         if (controller.wishlistItems.isEmpty) {
@@ -196,7 +196,8 @@ class _WishListItemCard extends StatelessWidget {
     final tags = controller.getTags(index);
 
     final variantPrice = HelperFunctions.parseAmount(priceInfo.finalPrice);
-    final variantRegularPrice = HelperFunctions.parseAmount(priceInfo.originalPrice);
+    final variantRegularPrice =
+        HelperFunctions.parseAmount(priceInfo.originalPrice);
     final hasDiscount = priceInfo.hasSale;
 
     return Padding(
@@ -342,14 +343,15 @@ class _WishListItemCard extends StatelessWidget {
                     runSpacing: 4,
                     children: badges.map((badge) {
                       final color = switch (badge) {
-                        'hot'         => Colors.red.shade600,
-                        'trending'    => Colors.orange.shade700,
-                        'featured'    => Colors.purple.shade600,
+                        'hot' => Colors.red.shade600,
+                        'trending' => Colors.orange.shade700,
+                        'featured' => Colors.purple.shade600,
                         'recommended' => Colors.blue.shade600,
-                        _             => colorScheme.primary,
+                        _ => colorScheme.primary,
                       };
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: color.withAlpha(26),
                           border: Border.all(color: color, width: 0.8),
@@ -386,20 +388,23 @@ class _WishListItemCard extends StatelessWidget {
                   Wrap(
                     spacing: 4,
                     runSpacing: 4,
-                    children: tags.map((tag) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        tag['name']!,
-                        style: textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                          fontSize: 10,
-                        ),
-                      ),
-                    )).toList(),
+                    children: tags
+                        .map((tag) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                tag['name']!,
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ))
+                        .toList(),
                   ),
                 ],
               ],

@@ -88,13 +88,44 @@ class WishListService extends GetxService with BaseController {
     required String productId,
     required String variantSlug,
     String? variantId,
+    Map<String, dynamic>? productData,
   }) async {
-    if (isInWishlist(productId)) {
-      await removeFromWishlist(
-          productId: productId, variantSlug: variantSlug, variantId: variantId);
+    final bool currentlyInWishlist = isInWishlist(productId);
+
+    // --- Optimistic Update: Update UI instantly ---
+    if (currentlyInWishlist) {
+      wishListItems.removeWhere((item) {
+        final id = item['product_id'];
+        if (id is Map) {
+          return (id['_id'] ?? id['id']).toString() == productId.toString();
+        }
+        return id?.toString() == productId.toString();
+      });
     } else {
-      await addWishlist(
-          productId: productId, variantSlug: variantSlug, variantId: variantId);
+      // Add a placeholder item to reflect in UI immediately
+      wishListItems.add({
+        'product_id': productData ?? productId,
+        'variant_slug': variantSlug,
+        if (variantId != null) 'variant_id': variantId,
+      });
+    }
+
+    try {
+      if (currentlyInWishlist) {
+        await removeFromWishlist(
+            productId: productId,
+            variantSlug: variantSlug,
+            variantId: variantId);
+      } else {
+        await addWishlist(
+            productId: productId,
+            variantSlug: variantSlug,
+            variantId: variantId);
+      }
+    } catch (e) {
+      // Revert if API fails by re-fetching the true state
+      debugPrint('Wishlist toggle failed, reverting... $e');
+      await fetchWishList();
     }
   }
 
@@ -103,16 +134,21 @@ class WishListService extends GetxService with BaseController {
     if (data is List) {
       items = data;
     } else if (data is Map) {
-      // API returns { "status": "success", "data": [...] }
+      // API might return { "status": "success", "data": [...] }
+      // Or { "status": "success", "data": "Product added..." }
       final d = data['data'];
-      if (d is List) items = d;
+      if (d is List) {
+        items = d;
+      } else {
+        // If data is a String (success message), don't clear the list
+        // as we've already updated it optimistically.
+        return;
+      }
     }
 
     if (items != null) {
       wishListItems.value =
           items.map((e) => Map<String, dynamic>.from(e as Map)).toList();
-    } else {
-      wishListItems.clear();
     }
   }
 }

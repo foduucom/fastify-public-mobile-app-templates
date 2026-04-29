@@ -30,6 +30,9 @@ class AddressListView extends GetView<AddressListController> {
           ],
         ),
         body: Obx(() {
+          // ✅ Ensure Obx tracks changes to the list content even if length stays same
+          final _ = controller.userAddressList.length;
+
           if (controller.isLoading.value &&
               controller.userAddressList.isEmpty) {
             return HelperFunctions().loadingIndicator();
@@ -122,8 +125,12 @@ class AddressListView extends GetView<AddressListController> {
                                                   shape: BoxShape.circle,
                                                   border: Border.all(
                                                     color: isSelected
-                                                        ? Theme.of(context).colorScheme.primary
-                                                        : Theme.of(context).colorScheme.outline,
+                                                        ? Theme.of(context)
+                                                            .colorScheme
+                                                            .primary
+                                                        : Theme.of(context)
+                                                            .colorScheme
+                                                            .outline,
                                                     width: 2,
                                                   ),
                                                 ),
@@ -132,9 +139,14 @@ class AddressListView extends GetView<AddressListController> {
                                                         child: Container(
                                                           width: 10,
                                                           height: 10,
-                                                          decoration: BoxDecoration(
-                                                            shape: BoxShape.circle,
-                                                            color: Theme.of(context).colorScheme.primary,
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            shape:
+                                                                BoxShape.circle,
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .colorScheme
+                                                                .primary,
                                                           ),
                                                         ),
                                                       )
@@ -272,14 +284,24 @@ class AddressListView extends GetView<AddressListController> {
                                                       children: [
                                                         _buildActionButton(
                                                           "Edit",
-                                                          () => Get.toNamed(
-                                                            Routes.ADDRESS_FORM,
-                                                            arguments: {
-                                                              'isEdit': true,
-                                                              'address':
-                                                                  userAddress,
-                                                            },
-                                                          ),
+                                                          () async {
+                                                            var result =
+                                                                await Get
+                                                                    .toNamed(
+                                                              Routes
+                                                                  .ADDRESS_FORM,
+                                                              arguments: {
+                                                                'isEdit': true,
+                                                                'address':
+                                                                    userAddress,
+                                                              },
+                                                            );
+                                                            if (result ==
+                                                                true) {
+                                                              controller
+                                                                  .refreshAddresses();
+                                                            }
+                                                          },
                                                           color:
                                                               Theme.of(context)
                                                                   .colorScheme
@@ -361,7 +383,12 @@ class AddressListView extends GetView<AddressListController> {
                         ),
                       const SizedBox(height: 20),
                       AppButton(
-                        keypressEvent: () => Get.toNamed(Routes.ADDRESS_FORM),
+                        keypressEvent: () async {
+                          var result = await Get.toNamed(Routes.ADDRESS_FORM);
+                          if (result == true) {
+                            controller.refreshAddresses();
+                          }
+                        },
                         itemText: 'Add New Address',
                       ),
                       const SizedBox(height: 80),

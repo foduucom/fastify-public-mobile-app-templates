@@ -46,21 +46,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     _infiniteScroll = widget.contentJson?['infinite_scroll'] == true;
     _countPerPage = widget.contentJson?['count'] ?? 10;
 
-    // Handle products and pagination from contentJson
-    final productData =
-        widget.contentJson?['product'] ?? widget.contentJson?['products'];
-
-    if (productData != null) {
-      if (productData is Map) {
-        trendingList.value = productData['data'] ?? [];
-        _hasMore.value = productData['hasNextPage'] ?? false;
-        _currentPage.value = productData['next'] ??
-            ((productData['current_page'] ?? 1) + 1).toInt();
-      } else {
-        trendingList.value = productData;
-        _hasMore.value = false;
-      }
-    }
+    // Pagination state is already handled by _loadProducts() or _fetchProductsFromApi()
+    // No need to set trendingList.value here as it's redundant with _loadProducts()
 
     if (_infiniteScroll) {
       _determineScrollMode();
@@ -537,7 +524,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     return GestureDetector(
       onTap: () => _navigateToProduct(product),
       child: SizedBox(
-        width: Get.width,
+        width: 160,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1039,6 +1026,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       productId: productId,
       variantSlug: variantSlug,
       variantId: variantId,
+      productData: product,
     );
   }
 
@@ -1073,7 +1061,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
               priceInfo['discountRate'].toString().isNotEmpty) ...[
             const TextSpan(text: '  '),
             TextSpan(
-              text: '₹${priceInfo['discountPrice']}',
+              text: '₹${priceInfo['salePrice']}',
               style: textTheme.bodySmall?.copyWith(
                 decoration: TextDecoration.lineThrough,
                 color: colorScheme.onSurfaceVariant,

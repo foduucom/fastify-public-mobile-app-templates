@@ -185,7 +185,9 @@ class ProfileController extends GetxController with BaseController {
       var form = FormData({
         'name': nameController.text,
         'mobile': phoneController.text,
-        'dob': selectedDate != null ? DateFormat('yyyy-MM-dd').format(selectedDate!) : "",
+        'dob': selectedDate != null
+            ? DateFormat('yyyy-MM-dd').format(selectedDate!)
+            : "",
         'gender': gender.value,
         'email': emailController.text,
         'featured_image':
@@ -199,7 +201,7 @@ class ProfileController extends GetxController with BaseController {
       });
 
       try {
-        debugPrint("form To UPDATE Profile");
+        debugPrint("form To UPDATE Profile ${form.files}");
         var response = await BasicProvider("auth/customer/profile/update")
             .postRequest(form)
             .catchError(handleError);

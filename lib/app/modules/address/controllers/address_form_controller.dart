@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/app/modules/address/controllers/address_list_controller.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
@@ -172,10 +173,10 @@ class AddressFormController extends GetxController with BaseController {
 
       dynamic response;
       if (isEditMode) {
-        response =
-            await BasicProvider('customer/addresses/update/$editAddressId')
-                .postRequest(body)
-                .catchError(handleError);
+        print("Here We are In Edit Mode");
+        response = await BasicProvider('customer/addresses/$editAddressId')
+            .patchRequest(body)
+            .catchError(handleError);
       } else {
         response = await BasicProvider('customer/addresses/add')
             .postRequest(body)
@@ -188,6 +189,10 @@ class AddressFormController extends GetxController with BaseController {
       isLoading.value = false;
 
       if (response != null) {
+        // ✅ Proactively trigger refresh in AddressListController if it exists
+        if (Get.isRegistered<AddressListController>()) {
+          Get.find<AddressListController>().refreshAddresses();
+        }
         Get.back(result: true); // Return true to indicate success for refresh
       }
     } catch (e) {

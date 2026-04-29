@@ -50,6 +50,7 @@ class BasicProvider {
   }
 
   Future<dynamic> postRequest(form) async {
+    form ??= {};
     try {
       http.Response response;
       if (form is get_x.FormData) {
@@ -118,6 +119,7 @@ class BasicProvider {
   }
 
   Future<dynamic> patchRequest(form) async {
+    form ??= {};
     try {
       final response = await http
           .patch(
