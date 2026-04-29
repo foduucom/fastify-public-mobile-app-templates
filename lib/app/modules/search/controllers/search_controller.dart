@@ -15,6 +15,11 @@ class SearchsController extends GetxController with BaseController {
   var isSearching = false.obs; // True for initial load
   var isFetchingMore = false.obs; // True for pagination load
 
+  // Brand state
+  var brands = [].obs;
+  var isBrandsLoading = false.obs;
+  var selectedBrandSlug = "".obs;
+
   var box = GetStorage();
   late TextEditingController searchTextController;
   late ScrollController scrollController;
@@ -36,6 +41,7 @@ class SearchsController extends GetxController with BaseController {
 
     getRecentSearch();
     loadAllProducts();
+    fetchBrands();
     super.onInit();
   }
 
@@ -108,6 +114,7 @@ class SearchsController extends GetxController with BaseController {
     }
 
     try {
+      selectedBrandSlug.value = ""; // Clear brand selection on search
       currentPage = 1;
       hasNextPage = false;
       isSearching.value = true;
@@ -125,6 +132,56 @@ class SearchsController extends GetxController with BaseController {
       _parseAndSetProducts(response, isRefresh: true);
     } catch (e) {
       debugPrint('❌ search error: $e');
+    } finally {
+      isSearching.value = false;
+    }
+  }
+
+  // ── Brand Fetching ──
+  void fetchBrands() async {
+    try {
+      isBrandsLoading.value = true;
+      var response =
+          await BasicProvider('brands').getRequest().catchError(handleError);
+
+      if (response != null && response is Map && response['data'] is List) {
+        brands.assignAll(response['data']);
+
+        // Default view: Show products for first brand if no products are loaded yet
+        // OR if the user explicitly wants to show first brand by default
+        /*
+        if (brands.isNotEmpty && searchProduct.isEmpty) {
+          fetchProductsByBrand(brands[0]['slug']);
+        }
+        */
+      }
+    } catch (e) {
+      debugPrint('❌ fetchBrands error: $e');
+    } finally {
+      isBrandsLoading.value = false;
+    }
+  }
+
+  // ── Products by Brand ──
+  void fetchProductsByBrand(String slug) async {
+    try {
+      selectedBrandSlug.value = slug;
+      searchTextController.clear(); // Clear search text when filtering by brand
+
+      currentPage = 1;
+      hasNextPage = false;
+      isSearching.value = true;
+      searchProduct.clear();
+
+      var response = await BasicProvider('products').getRequest(queryParams: {
+        'brand': slug,
+        'page': '1',
+        // Add other filters if needed
+      }).catchError(handleError);
+
+      _parseAndSetProducts(response, isRefresh: true);
+    } catch (e) {
+      debugPrint('❌ fetchProductsByBrand error: $e');
     } finally {
       isSearching.value = false;
     }
@@ -229,9 +286,11 @@ class SearchsController extends GetxController with BaseController {
       if (f.recommended && !_isFlagTrue(product['recommended'])) return false;
       return true;
     }).toList();
-    debugPrint('🔍 Filter applied: before=$before, after=${searchProduct.length}, trending=${f.trending}, recommended=${f.recommended}');
+    debugPrint(
+        '🔍 Filter applied: before=$before, after=${searchProduct.length}, trending=${f.trending}, recommended=${f.recommended}');
     if (searchProduct.isNotEmpty) {
-      debugPrint('🔍 Sample product flags → trending=${searchProduct[0]['trending']}, recommended=${searchProduct[0]['recommended']}');
+      debugPrint(
+          '🔍 Sample product flags → trending=${searchProduct[0]['trending']}, recommended=${searchProduct[0]['recommended']}');
     }
   }
 }

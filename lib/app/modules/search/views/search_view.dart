@@ -70,7 +70,7 @@ class SearchView extends GetView<SearchsController> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Popular keyword",
+                          "Popular Brands",
                           style: textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: colorScheme.onSurface,
@@ -128,24 +128,29 @@ class SearchView extends GetView<SearchsController> {
                   // Wrap with popular keyword buttons
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Wrap(
-                      spacing: 1, // Horizontal gap between buttons
-                      runSpacing: 2, // Vertical gap between rows
-                      children: [
-                        // Example keywords - you can replace with dynamic data from controller
-                        _buildKeywordButton(context, "Accessories"),
-                        _buildKeywordButton(context, "Dresses"),
-                        _buildKeywordButton(context, "Shoes"),
-                        _buildKeywordButton(context, "Tops"),
-                        _buildKeywordButton(context, "Jeans"),
-                        _buildKeywordButton(context, "Books & Stationery"),
-                        _buildKeywordButton(context, "Toys & Games"),
-                        _buildKeywordButton(context, "Food & Beverages"),
-                        _buildKeywordButton(context, "Health & Wellness"),
-                        _buildKeywordButton(context, "Automotive"),
-                        // Add more keywords as needed
-                      ],
-                    ),
+                    child: Obx(() {
+                      if (controller.isBrandsLoading.value) {
+                        return _buildBrandsShimmer();
+                      }
+
+                      if (controller.brands.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+
+                      return Wrap(
+                        spacing: 8, // Horizontal gap between buttons
+                        runSpacing: 8, // Vertical gap between rows
+                        children: controller.brands.map((brand) {
+                          final name = brand['name']?.toString() ?? '';
+                          final slug = brand['slug']?.toString() ?? '';
+                          final isSelected =
+                              controller.selectedBrandSlug.value == slug;
+
+                          return _buildKeywordButton(
+                              context, name, slug, isSelected);
+                        }).toList(),
+                      );
+                    }),
                   ),
                 ],
               ),
@@ -334,45 +339,69 @@ class SearchView extends GetView<SearchsController> {
     );
   }
 
-  // Add this helper method inside your SearchView class
-  Widget _buildKeywordButton(BuildContext context, String keyword) {
+  // Update this helper method inside your SearchView class
+  Widget _buildKeywordButton(
+      BuildContext context, String keyword, String slug, bool isSelected) {
     var controller = Get.find<SearchsController>();
     return ElevatedButton(
       onPressed: () {
-        // When keyword is tapped, populate search field and trigger search
-        controller.searchTextController.text = keyword;
-        controller.getSearchSuggestion(text: keyword);
+        // When brand is tapped, fetch products by brand
+        controller.fetchProductsByBrand(slug);
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.transparent,
         shadowColor: Colors.transparent,
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
         minimumSize: Size.zero,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(
-              30), // Using height value for consistent rounding
+          borderRadius: BorderRadius.circular(30),
         ),
       ),
       child: Ink(
         decoration: BoxDecoration(
-          borderRadius:
-              BorderRadius.circular(30), // Matching parent container style
+          color:
+              isSelected ? Theme.of(context).primaryColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(30),
           border: Border.all(
-            color: colorScheme.outline,
+            color: isSelected
+                ? Theme.of(context).primaryColor
+                : colorScheme.outline.withOpacity(0.3),
           ),
         ),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
             keyword,
             style: textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: colorScheme.onSurface,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              color: isSelected ? Colors.white : colorScheme.onSurface,
             ),
           ),
         ),
       ),
+    );
+  }
+
+  // ── BRANDS SHIMMER EFFECT ──
+  Widget _buildBrandsShimmer() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: List.generate(6, (index) {
+        return Shimmer.fromColors(
+          baseColor: colorScheme.surfaceVariant,
+          highlightColor: colorScheme.surface,
+          child: Container(
+            width: 80 + (index % 3) * 20.0,
+            height: 36,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(30),
+            ),
+          ),
+        );
+      }),
     );
   }
 
