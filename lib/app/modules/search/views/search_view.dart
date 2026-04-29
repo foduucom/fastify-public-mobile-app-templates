@@ -43,7 +43,8 @@ class SearchView extends GetView<SearchsController> {
               titleSpacing: 0,
               iconTheme: IconThemeData(color: colorScheme.onBackground),
               title: Padding(
-                padding: const EdgeInsets.only(right: 16.0, top: 8.0, bottom: 8.0),
+                padding:
+                    const EdgeInsets.only(right: 16.0, top: 8.0, bottom: 8.0),
                 child: SearchBarRounded(
                   SearchsController: controller.searchTextController,
                   onChanged: (value) {
@@ -58,12 +59,14 @@ class SearchView extends GetView<SearchsController> {
           // ── SCROLLABLE CONTENT ──
           body: Obx(() {
             // ── INITIAL LOADING STATE ──
-            if (controller.isSearching.value && controller.searchProduct.isEmpty) {
+            if (controller.isSearching.value &&
+                controller.searchProduct.isEmpty) {
               return _buildGridShimmer(colorScheme);
             }
 
             return SingleChildScrollView(
-              controller: controller.scrollController, // ✅ Attached Pagination Controller
+              controller: controller
+                  .scrollController, // ✅ Attached Pagination Controller
               physics: const BouncingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,23 +89,33 @@ class SearchView extends GetView<SearchsController> {
                                   color: colorScheme.onSurface,
                                 ),
                               ),
-                              Icon(Icons.history, size: 20, color: colorScheme.onSurfaceVariant),
+                              Icon(Icons.history,
+                                  size: 20,
+                                  color: colorScheme.onSurfaceVariant),
                             ],
                           ),
                           const SizedBox(height: 12),
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
-                            children: controller.recentSearchList.take(6).map((item) {
+                            children:
+                                controller.recentSearchList.take(6).map((item) {
                               return ActionChip(
                                 label: Text(item['name']?.toString() ?? ''),
-                                backgroundColor: colorScheme.surfaceVariant.withOpacity(0.4),
+                                backgroundColor:
+                                    colorScheme.surfaceVariant.withOpacity(0.4),
                                 side: BorderSide.none,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                labelStyle: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface, fontWeight: FontWeight.w500),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20)),
+                                labelStyle: textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurface,
+                                    fontWeight: FontWeight.w500),
                                 onPressed: () {
-                                  controller.searchTextController.text = item['name']?.toString() ?? '';
-                                  controller.getSearchSuggestion(text: controller.searchTextController.text);
+                                  controller.searchTextController.text =
+                                      item['name']?.toString() ?? '';
+                                  controller.getSearchSuggestion(
+                                      text:
+                                          controller.searchTextController.text);
                                 },
                               );
                             }).toList(),
@@ -126,20 +139,24 @@ class SearchView extends GetView<SearchsController> {
                   ),
 
                   // ── EMPTY STATE ──
-                  if (!controller.isSearching.value && controller.searchProduct.isEmpty)
+                  if (!controller.isSearching.value &&
+                      controller.searchProduct.isEmpty)
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.only(top: 60),
                         child: Column(
                           children: [
                             Icon(Icons.search_off_rounded,
-                                size: 80, color: colorScheme.outline.withOpacity(0.5)),
+                                size: 80,
+                                color: colorScheme.outline.withOpacity(0.5)),
                             const SizedBox(height: 16),
                             Text("No products found",
-                                style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                                style: textTheme.titleLarge
+                                    ?.copyWith(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 8),
                             Text("Try searching with a different keyword.",
-                                style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                                style: TextStyle(
+                                    color: colorScheme.onSurfaceVariant)),
                           ],
                         ),
                       ),
@@ -149,9 +166,12 @@ class SearchView extends GetView<SearchsController> {
                   if (controller.searchProduct.isNotEmpty)
                     GridView.builder(
                       shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(), // Scroll handled by SingleChildScrollView
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      physics:
+                          const NeverScrollableScrollPhysics(), // Scroll handled by SingleChildScrollView
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 16,
@@ -164,12 +184,16 @@ class SearchView extends GetView<SearchsController> {
                           product: product,
                           onTap: () {
                             final productId = product['_id']?.toString() ?? '';
-                            final productName = product['name']?.toString() ?? '';
+                            final productName =
+                                product['name']?.toString() ?? '';
                             if (productId.isNotEmpty) {
                               controller.saveRecentSearch(
-                                  id: productId, name: productName, type: 'product');
+                                  id: productId,
+                                  name: productName,
+                                  type: 'product');
                               Get.to(() => ProductView(),
-                                  binding: ShopBinding(), arguments: {'productId': productId});
+                                  binding: ShopBinding(),
+                                  arguments: {'productId': productId});
                             }
                           },
                         );
@@ -185,11 +209,14 @@ class SearchView extends GetView<SearchsController> {
                           child: CupertinoActivityIndicator(radius: 14),
                         ),
                       );
-                    } else if (!controller.hasNextPage && controller.searchProduct.isNotEmpty) {
+                    } else if (!controller.hasNextPage &&
+                        controller.searchProduct.isNotEmpty) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24),
                         child: Center(
-                          child: Text("No more products", style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                          child: Text("No more products",
+                              style: TextStyle(
+                                  color: colorScheme.onSurfaceVariant)),
                         ),
                       );
                     }
@@ -243,7 +270,8 @@ class _ProductGridCard extends StatelessWidget {
       if (url.isNotEmpty) return url;
       final filepath = featuredImg['filepath']?.toString() ?? '';
       if (filepath.isNotEmpty) {
-        final clean = filepath.startsWith('/') ? filepath.substring(1) : filepath;
+        final clean =
+            filepath.startsWith('/') ? filepath.substring(1) : filepath;
         return 'https://mywatch.vbought.com/images/$clean';
       }
     }
@@ -290,7 +318,8 @@ class _ProductGridCard extends StatelessWidget {
     final bool hasSale = discountRate.isNotEmpty;
     final String lowestPrice = priceInfo['lowestPrice']?.toString() ?? '0';
     final String highestPrice = priceInfo['highestPrice']?.toString() ?? '0';
-    final bool hasRange = isVariable && lowestPrice != highestPrice && lowestPrice != '0';
+    final bool hasRange =
+        isVariable && lowestPrice != highestPrice && lowestPrice != '0';
 
     return InkWell(
       onTap: onTap,
@@ -317,7 +346,8 @@ class _ProductGridCard extends StatelessWidget {
               child: Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(15)),
                     child: Container(
                       width: double.infinity,
                       color: colorScheme.surfaceVariant.withOpacity(0.5),
@@ -325,12 +355,14 @@ class _ProductGridCard extends StatelessWidget {
                           ? CachedNetworkImage(
                               imageUrl: imageUrl,
                               fit: BoxFit.cover,
-                              placeholder: (context, url) =>
-                                  const Center(child: CupertinoActivityIndicator()),
-                              errorWidget: (context, url, error) =>
-                                  Icon(Icons.image_not_supported_outlined, color: colorScheme.outline),
+                              placeholder: (context, url) => const Center(
+                                  child: CupertinoActivityIndicator()),
+                              errorWidget: (context, url, error) => Icon(
+                                  Icons.image_not_supported_outlined,
+                                  color: colorScheme.outline),
                             )
-                          : Icon(Icons.image_not_supported_outlined, color: colorScheme.outline),
+                          : Icon(Icons.image_not_supported_outlined,
+                              color: colorScheme.outline),
                     ),
                   ),
 
@@ -340,7 +372,8 @@ class _ProductGridCard extends StatelessWidget {
                       top: 8,
                       left: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.red.shade600,
                           borderRadius: BorderRadius.circular(8),
@@ -348,7 +381,9 @@ class _ProductGridCard extends StatelessWidget {
                         child: Text(
                           discountRate.trim(),
                           style: const TextStyle(
-                              color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
@@ -369,7 +404,8 @@ class _ProductGridCard extends StatelessWidget {
                           };
                           return Container(
                             margin: const EdgeInsets.only(bottom: 4),
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 3),
                             decoration: BoxDecoration(
                               color: colors[badge] ?? colorScheme.primary,
                               borderRadius: BorderRadius.circular(6),
@@ -377,7 +413,9 @@ class _ProductGridCard extends StatelessWidget {
                             child: Text(
                               _cap(badge),
                               style: const TextStyle(
-                                  color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold),
                             ),
                           );
                         }).toList(),
@@ -411,7 +449,8 @@ class _ProductGridCard extends StatelessWidget {
                     // Product Title
                     Text(
                       name,
-                      style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, height: 1.2),
+                      style: textTheme.titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w600, height: 1.2),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),

@@ -56,7 +56,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
       );
     } else {
       return SizedBox(
-        height: style == 'circular' ? 115 : 140, // Adjust height based on style
+        height: style == 'circular' ? 140 : 115, // Adjust height based on style
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(
             dragDevices: {

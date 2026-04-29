@@ -228,32 +228,46 @@ class ShopView extends GetView<ShopController> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Obx(() => Row(
-                        children: [
-                          Text("Sort & Filter",
-                              style: textTheme.titleLarge
-                                  ?.copyWith(fontWeight: FontWeight.bold)),
-                          if (controller.activeFilterCount > 0) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: colorScheme.primary,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                '${controller.activeFilterCount}',
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 12),
-                              ),
+                  Obx(() {
+                    // Calculate count from temp values for immediate feedback
+                    int tempCount = 0;
+                    if (tempFeatured.value) tempCount++;
+                    if (tempHot.value) tempCount++;
+                    if (tempTrending.value) tempCount++;
+                    if (tempRecommended.value) tempCount++;
+                    tempCount += tempCategories.length;
+                    tempCount += tempBrands.length;
+                    if (tempPriceRange.value.start > 0 ||
+                        tempPriceRange.value.end < 10000) tempCount++;
+                    if (tempSortBy.value != "created_at") tempCount++;
+
+                    return Row(
+                      children: [
+                        Text("Sort & Filter",
+                            style: textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.bold)),
+                        if (tempCount > 0) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary,
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                          ],
+                            child: Text(
+                              '$tempCount',
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 12),
+                            ),
+                          ),
                         ],
-                      )),
+                      ],
+                    );
+                  }),
                   TextButton(
                     onPressed: () {
-                      // Reset all temp values
+                      // ✅ RESET ALL TEMP VALUES
                       tempFeatured.value = false;
                       tempHot.value = false;
                       tempTrending.value = false;
@@ -263,6 +277,7 @@ class ShopView extends GetView<ShopController> {
                       tempPriceRange.value = const RangeValues(0, 10000);
                       tempSortBy.value = "created_at";
                       tempSortOrder.value = "desc";
+                      debugPrint("🔄 Filters Reset in UI");
                     },
                     child: Text("Reset All",
                         style: TextStyle(color: colorScheme.error)),
@@ -551,15 +566,6 @@ class ShopView extends GetView<ShopController> {
     RxSet<String> tempCategories,
   ) {
     // ✅ Replace with your actual categories from API
-    final List<Map<String, String>> availableCategories = [
-      {'slug': 'electronics', 'name': 'Electronics'},
-      {'slug': 'clothing', 'name': 'Clothing'},
-      {'slug': 'home-decor', 'name': 'Home Decor'},
-      {'slug': 'toys', 'name': 'Toys'},
-      {'slug': 'books', 'name': 'Books'},
-      {'slug': 'sports', 'name': 'Sports'},
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -567,25 +573,43 @@ class ShopView extends GetView<ShopController> {
             style:
                 textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
-        Obx(() => Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: availableCategories.map((cat) {
-                bool isSelected = tempCategories.contains(cat['slug']);
-                return FilterChip(
-                  label: Text(cat['name']!),
-                  selected: isSelected,
-                  selectedColor: colorScheme.primaryContainer,
-                  onSelected: (val) {
-                    if (val) {
-                      tempCategories.add(cat['slug']!);
-                    } else {
-                      tempCategories.remove(cat['slug']!);
-                    }
-                  },
-                );
-              }).toList(),
-            )),
+        Obx(() {
+          if (controller.isCategoriesLoading.value &&
+              controller.availableCategories.isEmpty) {
+            return const Center(
+                child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: CupertinoActivityIndicator(),
+            ));
+          }
+
+          if (controller.availableCategories.isEmpty) {
+            return const Text("No categories available",
+                style: TextStyle(fontSize: 12, color: Colors.grey));
+          }
+
+          return Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: controller.availableCategories.map((cat) {
+              final String slug = cat['slug']?.toString() ?? '';
+              final String name = cat['name']?.toString() ?? 'Unknown';
+              bool isSelected = tempCategories.contains(slug);
+              return FilterChip(
+                label: Text(name),
+                selected: isSelected,
+                selectedColor: colorScheme.primaryContainer,
+                onSelected: (val) {
+                  if (val) {
+                    tempCategories.add(slug);
+                  } else {
+                    tempCategories.remove(slug);
+                  }
+                },
+              );
+            }).toList(),
+          );
+        }),
       ],
     );
   }
@@ -597,14 +621,6 @@ class ShopView extends GetView<ShopController> {
     RxSet<String> tempBrands,
   ) {
     // ✅ Replace with your actual brands from API
-    final List<Map<String, String>> availableBrands = [
-      {'slug': 'nike', 'name': 'Nike'},
-      {'slug': 'adidas', 'name': 'Adidas'},
-      {'slug': 'apple', 'name': 'Apple'},
-      {'slug': 'samsung', 'name': 'Samsung'},
-      {'slug': 'sony', 'name': 'Sony'},
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -612,25 +628,43 @@ class ShopView extends GetView<ShopController> {
             style:
                 textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
-        Obx(() => Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: availableBrands.map((brand) {
-                bool isSelected = tempBrands.contains(brand['slug']);
-                return FilterChip(
-                  label: Text(brand['name']!),
-                  selected: isSelected,
-                  selectedColor: colorScheme.primaryContainer,
-                  onSelected: (val) {
-                    if (val) {
-                      tempBrands.add(brand['slug']!);
-                    } else {
-                      tempBrands.remove(brand['slug']!);
-                    }
-                  },
-                );
-              }).toList(),
-            )),
+        Obx(() {
+          if (controller.isBrandsLoading.value &&
+              controller.availableBrands.isEmpty) {
+            return const Center(
+                child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: CupertinoActivityIndicator(),
+            ));
+          }
+
+          if (controller.availableBrands.isEmpty) {
+            return const Text("No brands available",
+                style: TextStyle(fontSize: 12, color: Colors.grey));
+          }
+
+          return Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: controller.availableBrands.map((brand) {
+              final String slug = brand['slug']?.toString() ?? '';
+              final String name = brand['name']?.toString() ?? 'Unknown';
+              bool isSelected = tempBrands.contains(slug);
+              return FilterChip(
+                label: Text(name),
+                selected: isSelected,
+                selectedColor: colorScheme.primaryContainer,
+                onSelected: (val) {
+                  if (val) {
+                    tempBrands.add(slug);
+                  } else {
+                    tempBrands.remove(slug);
+                  }
+                },
+              );
+            }).toList(),
+          );
+        }),
       ],
     );
   }

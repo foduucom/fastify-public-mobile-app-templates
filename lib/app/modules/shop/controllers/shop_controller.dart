@@ -9,7 +9,12 @@ class ShopController extends GetxController with BaseController {
   var products = [].obs;
   var isLoading = true.obs;
   var isFetchingMore = false.obs;
+  var isBrandsLoading = false.obs;
+  var isCategoriesLoading = false.obs;
   var totalProducts = 0.obs;
+
+  var availableBrands = [].obs;
+  var availableCategories = [].obs;
 
   late ScrollController scrollController;
   int currentPage = 1;
@@ -51,6 +56,8 @@ class ShopController extends GetxController with BaseController {
       maxPrice.value = values.end;
     });
 
+    fetchBrands();
+    fetchCategories();
     fetchProducts(isRefresh: true);
   }
 
@@ -193,6 +200,52 @@ class ShopController extends GetxController with BaseController {
     } finally {
       isLoading.value = false;
       isFetchingMore.value = false;
+    }
+  }
+
+  // ─── FETCH BRANDS ─────────────────────────────────────────────
+  Future<void> fetchBrands() async {
+    try {
+      isBrandsLoading.value = true;
+      var response = await BasicProvider("brands")
+          .getRequest()
+          .catchError(handleError);
+
+      if (response != null && response is Map<String, dynamic>) {
+        if (response.containsKey('data') && response['data'] is List) {
+          availableBrands.assignAll(response['data']);
+        }
+      } else if (response is List) {
+        availableBrands.assignAll(response);
+      }
+      debugPrint('✅ Loaded ${availableBrands.length} brands');
+    } catch (e) {
+      debugPrint('❌ Fetch Brands Error: $e');
+    } finally {
+      isBrandsLoading.value = false;
+    }
+  }
+
+  // ─── FETCH CATEGORIES ──────────────────────────────────────────
+  Future<void> fetchCategories() async {
+    try {
+      isCategoriesLoading.value = true;
+      var response = await BasicProvider("categories")
+          .getRequest()
+          .catchError(handleError);
+
+      if (response != null && response is Map<String, dynamic>) {
+        if (response.containsKey('data') && response['data'] is List) {
+          availableCategories.assignAll(response['data']);
+        }
+      } else if (response is List) {
+        availableCategories.assignAll(response);
+      }
+      debugPrint('✅ Loaded ${availableCategories.length} categories');
+    } catch (e) {
+      debugPrint('❌ Fetch Categories Error: $e');
+    } finally {
+      isCategoriesLoading.value = false;
     }
   }
 
