@@ -107,6 +107,19 @@ class FirebaseHelpers {
   static Future<void> firebaseInitialise() async {
     if (kIsWeb) return;
 
+    // Request Firebase Messaging permissions
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    // Request Awesome Notifications permissions if not allowed
+    bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+    if (!isAllowed) {
+      await AwesomeNotifications().requestPermissionToSendNotifications();
+    }
+
     await _initAwesomeNotifications();
     await _initLocalNotifications();
 
