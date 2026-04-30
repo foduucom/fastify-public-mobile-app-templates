@@ -88,7 +88,7 @@ class OtpController extends GetxController with BaseController {
         // Sync any local (guest) cart items to the server
         await CartService.to.syncLocalCartToServer();
 
-        Get.toNamed(Routes.BOTTOMBAR);
+        Get.offAllNamed(Routes.BOTTOMBAR);
       }
 
       // if()

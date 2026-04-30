@@ -297,7 +297,7 @@ class SearchView extends GetView<SearchsController> {
                             crossAxisCount: 2,
                             crossAxisSpacing: 14,
                             mainAxisSpacing: 14,
-                            childAspectRatio: 0.82,
+                            childAspectRatio: 0.88,
                           ),
                           itemCount: controller.searchProduct.length,
                           itemBuilder: (context, index) {
@@ -416,43 +416,46 @@ class SearchView extends GetView<SearchsController> {
     return Shimmer.fromColors(
       baseColor: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
       highlightColor: isDark ? Colors.grey.shade600 : Colors.grey.shade100,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: List.generate(
-                4,
-                (_) => Container(
-                    width: 100,
-                    height: 36,
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30))),
-              ),
-            ),
-            const SizedBox(height: 24),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 14,
-                mainAxisSpacing: 14,
-                childAspectRatio: 0.68,
-              ),
-              itemCount: 4,
-              itemBuilder: (_, __) => Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: List.generate(
+                  4,
+                  (_) => Container(
+                      width: 100,
+                      height: 36,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(30))),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 14,
+                  mainAxisSpacing: 14,
+                  childAspectRatio: 0.88,
+                ),
+                itemCount: 4,
+                itemBuilder: (_, __) => Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -575,7 +578,7 @@ class _ProductCard extends StatelessWidget {
               ),
             ),
             Expanded(
-              flex: 3,
+              flex: 4,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
                 child: Column(

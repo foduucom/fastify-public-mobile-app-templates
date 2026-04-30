@@ -384,7 +384,7 @@ class ShopView extends GetView<ShopController> {
               crossAxisCount: 2,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              childAspectRatio: 0.62,
+              childAspectRatio: 0.66,
             ),
             itemCount: controller.products.length,
             itemBuilder: (context, index) {
@@ -425,7 +425,7 @@ class ShopView extends GetView<ShopController> {
             crossAxisCount: 2,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: 0.62,
+            childAspectRatio: 0.55,
           ),
           itemCount: 6,
           itemBuilder: (_, __) => Container(
@@ -514,7 +514,7 @@ class _ProductGridCard extends StatelessWidget {
           children: [
             // ── Image + Overlays ──
             Expanded(
-              flex: 5,
+              flex: 6,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -601,9 +601,9 @@ class _ProductGridCard extends StatelessWidget {
 
             // ── Info Section ──
             Expanded(
-              flex: 2,
+              flex: 3,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -640,17 +640,19 @@ class _ProductGridCard extends StatelessWidget {
                           ),
 
                         // Price row
-                        if (displayPrice > 0)
+                        if (displayPrice > 0) ...[
                           Text("₹${displayPrice.toStringAsFixed(2)}",
                               style: textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: colorScheme.primary)),
-                        if (hasDiscount)
-                          Text("₹${price.toStringAsFixed(2)}",
-                              style: textTheme.bodySmall?.copyWith(
-                                  decoration: TextDecoration.lineThrough,
-                                  color: colorScheme.onSurfaceVariant))
-                        else
+                          if (hasDiscount) ...[
+                            const SizedBox(width: 4),
+                            Text("₹${price.toStringAsFixed(2)}",
+                                style: textTheme.bodySmall?.copyWith(
+                                    decoration: TextDecoration.lineThrough,
+                                    color: colorScheme.onSurfaceVariant)),
+                          ],
+                        ] else
                           Text("Price on request",
                               style: textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurfaceVariant)),

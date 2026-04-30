@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:new_fastify_template/app/modules/homepage/views/home_view.dart';
 import '../../explore/view/explore_view.dart';
 import '../../homepage/controllers/home_controller2.dart';
@@ -34,133 +35,156 @@ class BottombarView extends GetView<BottombarController> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      body: SizedBox.expand(
-        child: PageView(
-          controller: controller.pageController,
-          physics: const NeverScrollableScrollPhysics(),
-          children: [
-            // ← use const where possible
-            //const HomeView(),
-            Testinghome(),
-            //const ExploreView(),
-            CategoryView(),
-            const CartView(),
-            WishlistView(),
-            ProfileView(),
-          ],
-        ),
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              spreadRadius: 0,
-              blurRadius: 12,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: Obx(
-          () => BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: colorScheme.surface,
-            elevation: 0,
-            showSelectedLabels: false,
-            showUnselectedLabels: false,
-            selectedItemColor: colorScheme.primary,
-            unselectedItemColor: colorScheme.onSurfaceVariant,
-            currentIndex: controller.currentPageIndex.value,
-            onTap: (value) => controller.onTabChange(value),
-            items: [
-              // ── Home ─────────────────────────────────────────────
-              BottomNavigationBarItem(
-                label: '',
-                icon: SvgPicture.asset(
-                  'assets/icon/fill2.svg',
-                  colorFilter: ColorFilter.mode(
-                      colorScheme.onSurfaceVariant, BlendMode.srcIn),
-                ),
-                activeIcon: SvgPicture.asset(
-                  'assets/icon/home.svg',
-                  colorFilter:
-                      ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
-                ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final shouldExit = await Get.dialog<bool>(
+          AlertDialog(
+            title: const Text('Exit App'),
+            content: const Text('Are you sure you want to quit?'),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(result: false),
+                child: const Text('No'),
               ),
-
-              // ── Category ─────────────────────────────────────────
-              BottomNavigationBarItem(
-                label: '',
-                icon: SvgPicture.asset(
-                  'assets/icon/Discovery.svg',
-                  colorFilter: ColorFilter.mode(
-                      colorScheme.onSurfaceVariant, BlendMode.srcIn),
-                ),
-                activeIcon: SvgPicture.asset(
-                  'assets/icon/Discovery.svg',
-                  colorFilter:
-                      ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
-                ),
+              TextButton(
+                onPressed: () => Get.back(result: true),
+                child: const Text('Yes'),
               ),
-
-              // ── Cart (with badge) ─────────────────────────────────
-              BottomNavigationBarItem(
-                label: '',
-                icon: controller.cartbadge(
-                  onTap: () {
-                    controller.currentPageIndex.value = 2;
-                    controller.pageController.jumpToPage(2);
-                  },
-                  child: SvgPicture.asset(
-                    'assets/icon/cart.svg',
+            ],
+          ),
+        );
+        if (shouldExit == true) SystemNavigator.pop();
+      },
+      child: Scaffold(
+        body: SizedBox.expand(
+          child: PageView(
+            controller: controller.pageController,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              // ← use const where possible
+              //const HomeView(),
+              Testinghome(),
+              //const ExploreView(),
+              CategoryView(),
+              const CartView(),
+              WishlistView(),
+              ProfileView(),
+            ],
+          ),
+        ),
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                spreadRadius: 0,
+                blurRadius: 12,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          child: Obx(
+            () => BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: colorScheme.surface,
+              elevation: 0,
+              showSelectedLabels: false,
+              showUnselectedLabels: false,
+              selectedItemColor: colorScheme.primary,
+              unselectedItemColor: colorScheme.onSurfaceVariant,
+              currentIndex: controller.currentPageIndex.value,
+              onTap: (value) => controller.onTabChange(value),
+              items: [
+                // ── Home ─────────────────────────────────────────────
+                BottomNavigationBarItem(
+                  label: '',
+                  icon: SvgPicture.asset(
+                    'assets/icon/fill2.svg',
                     colorFilter: ColorFilter.mode(
                         colorScheme.onSurfaceVariant, BlendMode.srcIn),
                   ),
-                  badgeNumber: CartService.to.cartItemCount,
-                ),
-                activeIcon: controller.cartbadge(
-                  onTap: () {},
-                  child: SvgPicture.asset(
-                    'assets/icon/cart_fill.svg',
+                  activeIcon: SvgPicture.asset(
+                    'assets/icon/home.svg',
                     colorFilter:
                         ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
                   ),
-                  badgeNumber: CartService.to.cartItemCount,
                 ),
-              ),
 
-              // ── Wishlist ──────────────────────────────────────────
-              BottomNavigationBarItem(
-                label: '',
-                icon: SvgPicture.asset(
-                  'assets/icon/heart.svg', // ← use .svg not .png
-                  colorFilter: ColorFilter.mode(
-                      colorScheme.onSurfaceVariant, BlendMode.srcIn),
+                // ── Category ─────────────────────────────────────────
+                BottomNavigationBarItem(
+                  label: '',
+                  icon: SvgPicture.asset(
+                    'assets/icon/Discovery.svg',
+                    colorFilter: ColorFilter.mode(
+                        colorScheme.onSurfaceVariant, BlendMode.srcIn),
+                  ),
+                  activeIcon: SvgPicture.asset(
+                    'assets/icon/Discovery.svg',
+                    colorFilter:
+                        ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
+                  ),
                 ),
-                activeIcon: SvgPicture.asset(
-                  'assets/icon/like.svg', // ← filled heart variant
-                  colorFilter:
-                      ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
-                ),
-              ),
 
-              // ── Profile ───────────────────────────────────────────
-              BottomNavigationBarItem(
-                label: '',
-                icon: SvgPicture.asset(
-                  'assets/icon/bottomprofile.svg',
-                  colorFilter: ColorFilter.mode(
-                      colorScheme.onSurfaceVariant, BlendMode.srcIn),
+                // ── Cart (with badge) ─────────────────────────────────
+                BottomNavigationBarItem(
+                  label: '',
+                  icon: controller.cartbadge(
+                    onTap: () {
+                      controller.currentPageIndex.value = 2;
+                      controller.pageController.jumpToPage(2);
+                    },
+                    child: SvgPicture.asset(
+                      'assets/icon/cart.svg',
+                      colorFilter: ColorFilter.mode(
+                          colorScheme.onSurfaceVariant, BlendMode.srcIn),
+                    ),
+                    badgeNumber: CartService.to.cartItemCount,
+                  ),
+                  activeIcon: controller.cartbadge(
+                    onTap: () {},
+                    child: SvgPicture.asset(
+                      'assets/icon/cart_fill.svg',
+                      colorFilter: ColorFilter.mode(
+                          colorScheme.primary, BlendMode.srcIn),
+                    ),
+                    badgeNumber: CartService.to.cartItemCount,
+                  ),
                 ),
-                activeIcon: SvgPicture.asset(
-                  'assets/icon/bottomactiveprofile.svg',
-                  colorFilter:
-                      ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
+
+                // ── Wishlist ──────────────────────────────────────────
+                BottomNavigationBarItem(
+                  label: '',
+                  icon: SvgPicture.asset(
+                    'assets/icon/heart.svg', // ← use .svg not .png
+                    colorFilter: ColorFilter.mode(
+                        colorScheme.onSurfaceVariant, BlendMode.srcIn),
+                  ),
+                  activeIcon: SvgPicture.asset(
+                    'assets/icon/like.svg', // ← filled heart variant
+                    colorFilter:
+                        ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
+                  ),
                 ),
-              ),
-            ],
+
+                // ── Profile ───────────────────────────────────────────
+                BottomNavigationBarItem(
+                  label: '',
+                  icon: SvgPicture.asset(
+                    'assets/icon/bottomprofile.svg',
+                    colorFilter: ColorFilter.mode(
+                        colorScheme.onSurfaceVariant, BlendMode.srcIn),
+                  ),
+                  activeIcon: SvgPicture.asset(
+                    'assets/icon/bottomactiveprofile.svg',
+                    colorFilter:
+                        ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

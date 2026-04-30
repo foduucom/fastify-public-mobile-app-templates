@@ -187,10 +187,10 @@ class ProfileController extends GetxController with BaseController {
   }
 
   Future<void> sendFormData() async {
-    if (dobController.text == "") {
-      HelperFunctions().showSnackBarError("Please select your Date Of Birth");
-      return;
-    }
+    // if (dobController.text == "") {
+    //   HelperFunctions().showSnackBarError("Please select your Date Of Birth");
+    //   return;
+    // }
     if (formKey.currentState!.validate()) {
       isLoading(true);
 
