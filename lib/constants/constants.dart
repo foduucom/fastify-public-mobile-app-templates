@@ -30,7 +30,8 @@ bool isOtpLogin = false;
 
 const Latofont = TextStyle(fontFamily: 'lato');
 
-const pageSurroundingPadding = EdgeInsets.all(12.0);
+const pageSurroundingPadding =
+    EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0);
 const pageGridPadding = EdgeInsets.symmetric(horizontal: 12.0);
 
 BorderRadiusGeometry themeBorderRadius = BorderRadius.circular(30.0);

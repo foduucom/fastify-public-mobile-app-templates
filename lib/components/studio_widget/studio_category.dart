@@ -7,6 +7,7 @@ import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
+import 'studio_common_widgets.dart';
 
 class CategoryHome extends StatefulWidget {
   final dynamic categoryData;
@@ -24,6 +25,11 @@ class _TopCategoryHomeState extends State<CategoryHome>
 
     var contentJson = widget.categoryData ?? {};
     var categories = contentJson['categories'] ?? [];
+    var title = contentJson['heading'] ?? '';
+    var subtitle = contentJson['subheading'] ?? '';
+    print('🔥 ${title}');
+    print("🔥 ${subtitle}");
+
     if (categories.isEmpty) return const SizedBox.shrink();
 
     // ─── Layout Configuration ───
@@ -36,11 +42,27 @@ class _TopCategoryHomeState extends State<CategoryHome>
     // 'columns': 2 (default)
     int columns = int.tryParse(contentJson['columns'].toString()) ?? 2;
 
-    return Padding(
-      padding: pageSurroundingPadding,
-      child: viewMode == 'grid'
-          ? _buildGridView(categories, style, columns)
-          : _buildListView(categories, style, orientation),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (title.isNotEmpty && subtitle.isNotEmpty)
+          Padding(
+            padding: pageSurroundingPadding,
+            child: StudioSectionHeader(
+              title: title,
+              subtitle: subtitle,
+              onSeeAll: () {
+                Get.toNamed(Routes.CATEGORY_SEARCH_FILTER);
+              },
+            ),
+          ),
+        Padding(
+          padding: pageSurroundingPadding,
+          child: viewMode == 'grid'
+              ? _buildGridView(categories, style, columns)
+              : _buildListView(categories, style, orientation),
+        ),
+      ],
     );
   }
 
@@ -56,7 +78,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
       );
     } else {
       return SizedBox(
-        height: style == 'circular' ? 140 : 115, // Adjust height based on style
+        height: style == 'circular' ? 110 : 140, // Adjust height based on style
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(
             dragDevices: {
@@ -68,7 +90,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: categories.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 13),
+            separatorBuilder: (_, __) => const SizedBox(width: 4),
             itemBuilder: (context, index) =>
                 _buildCategoryItem(categories[index], style),
           ),
@@ -85,7 +107,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
         crossAxisCount: columns,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: style == 'circular' ? 0.8 : 1.1,
+        childAspectRatio: style == 'circular' ? 0.7 : 1.1,
       ),
       itemCount: categories.length,
       itemBuilder: (context, index) =>
@@ -127,41 +149,64 @@ class _TopCategoryHomeState extends State<CategoryHome>
       },
       child: style == 'rectangular'
           ? _buildRectangularItem(category, isVerticalList)
-          : _buildCircularItem(category, isGrid),
+          : _buildCircularItem(category, isGrid,
+              isVerticalList: isVerticalList),
     );
   }
 
-  Widget _buildCircularItem(dynamic category, bool isGrid) {
+  Widget _buildCircularItem(dynamic category, bool isGrid,
+      {bool isVerticalList = false}) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: isGrid ? MainAxisSize.max : MainAxisSize.min,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(50),
-          child: Container(
-            width: 70,
-            height: 65,
-            color: Theme.of(context).colorScheme.surfaceVariant,
-            child: CachedNetworkImage(
-              fit: BoxFit.cover,
-              imageUrl: HelperFunctions().getImage(category['featured_image']),
-              errorWidget: (_, __, ___) => const Icon(Icons.category_outlined),
-              progressIndicatorBuilder: (_, __, ___) =>
-                  HelperFunctions().loadingIndicator(),
+        if (isVerticalList)
+          _buildCircularImage(category, 60, 60)
+        else if (isGrid)
+          Expanded(
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: 1.0,
+                child: _buildCircularImage(category),
+              ),
             ),
-          ),
-        ),
-        const SizedBox(height: 4),
+          )
+        else
+          _buildCircularImage(category, 70, 65),
+        const SizedBox(height: 6),
         SizedBox(
           width: isGrid ? null : 80,
           child: Text(
             category['name'].toString(),
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontSize: isGrid ? 11 : 12,
+                ),
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
         )
       ],
+    );
+  }
+
+  Widget _buildCircularImage(dynamic category,
+      [double? width, double? height]) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Theme.of(context).colorScheme.surfaceVariant,
+      ),
+      child: ClipOval(
+        child: CachedNetworkImage(
+          fit: BoxFit.cover,
+          imageUrl: HelperFunctions().getImage(category['featured_image']),
+          errorWidget: (_, __, ___) => const Icon(Icons.category_outlined),
+          progressIndicatorBuilder: (_, __, ___) =>
+              HelperFunctions().loadingIndicator(),
+        ),
+      ),
     );
   }
 

@@ -230,7 +230,7 @@ class ShopController extends GetxController with BaseController {
   Future<void> fetchCategories() async {
     try {
       isCategoriesLoading.value = true;
-      var response = await BasicProvider("categories")
+      var response = await BasicProvider("category")
           .getRequest()
           .catchError(handleError);
 

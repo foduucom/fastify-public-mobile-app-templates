@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:get/get.dart';
+import 'studio_common_widgets.dart';
+
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 
 class PriceFilter extends StatefulWidget {
@@ -33,20 +35,18 @@ class _PriceFilterState extends State<PriceFilter> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Filter by Price",
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              if (showSlider)
-                Text(
-                  "Under ₹${pricePoints[_currentSliderValue.toInt()]}",
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-            ],
+          StudioSectionHeader(
+            title: widget.contentJson['heading'] ?? "Filter by Price",
+            subtitle: widget.contentJson['subheading'] ?? '',
           ),
+          if (showSlider)
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                "Under ₹${pricePoints[_currentSliderValue.toInt()]}",
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+            ),
           const SizedBox(height: 10),
           showSlider ? _buildSlider(pricePoints) : _buildChipList(pricePoints),
         ],

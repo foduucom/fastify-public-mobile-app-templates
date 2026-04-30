@@ -87,10 +87,6 @@ class CategeorydetaiController extends GetxController
     mainCategoryId.value = arguments['id'];
     print('main category idd id id id id id id id id ${mainCategoryId.value}');
 
-    if (arguments['children'] != null) {
-      parentCategor.addAll(arguments['children']);
-    }
-
     getChildrenCategories(mainCategoryId.value);
   }
 

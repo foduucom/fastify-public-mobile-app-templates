@@ -7,6 +7,8 @@ import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'dart:async';
+import 'studio_common_widgets.dart';
+
 
 class HomeBanner extends StatefulWidget {
   final Map<String, dynamic> bannerContent;
@@ -41,8 +43,20 @@ class _HomeBannerState extends State<HomeBanner>
     super.build(context);
     if (banners.isEmpty) return const SizedBox();
 
+    final title = widget.bannerContent['heading'] ?? '';
+    final subtitle = widget.bannerContent['subheading'] ?? '';
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (title.isNotEmpty && subtitle.isNotEmpty)
+          Padding(
+            padding: pageSurroundingPadding,
+            child: StudioSectionHeader(
+              title: title,
+              subtitle: subtitle,
+            ),
+          ),
         for (var banner in banners) _buildBannerByType(banner),
       ],
     );

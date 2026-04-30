@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
@@ -46,6 +47,7 @@ class _FoduuSliderState extends State<FoduuSlider>
 
   List<Widget> _buildPageIndicator() {
     List<Widget> list = [];
+    print("Slide Data : ${widget.sliderData['slider']['content']}");
     for (int i = 0; i < widget.sliderData['slider']['content'].length; i++) {
       list.add(i == _currentPage ? _indicator(true) : _indicator(false));
     }
@@ -124,35 +126,48 @@ class _FoduuSliderState extends State<FoduuSlider>
                       },
                       itemCount: widget.sliderData['slider']['content'].length,
                       itemBuilder: (context, index) {
-                        return Stack(
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                if (widget.sliderData['slider']['content']
-                                        [index]['sliderType'] ==
-                                    'categories') {
-                                  Get.toNamed(Routes.SHOPPRODUCTLISTVIEW,
-                                      arguments: {
-                                        'source': 'category',
-                                        'productId': widget.sliderData['slider']
-                                            ['content'][index]['link'],
-                                        'name': widget.sliderData['slider']
-                                            ['content'][index]['heading']
-                                      });
-                                }
-                                if (widget.sliderData['slider']['content']
-                                        [index]['sliderType'] ==
-                                    'page') {}
-                                if (widget.sliderData['slider']['content']
-                                        [index]['sliderType'] ==
-                                    'blog') {
-                                  Get.toNamed(Routes.BLOG, arguments: {
-                                    'id': widget.sliderData['slider']['content']
-                                        [index]['link'],
+                        final sliderItem =
+                            widget.sliderData['slider']['content'][index];
+                        return GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () async {
+                            final String? link = sliderItem['link'];
+                            final String? sliderType = sliderItem['sliderType'];
+
+                            if (sliderType == 'categories') {
+                              Get.toNamed(Routes.SHOPPRODUCTLISTVIEW,
+                                  arguments: {
+                                    'source': 'category',
+                                    'productId': link,
+                                    'name': sliderItem['heading']
                                   });
+                            } else if (sliderType == 'blog') {
+                              Get.toNamed(Routes.BLOG, arguments: {
+                                'id': link,
+                              });
+                            } else if (link != null && link.isNotEmpty) {
+                              if (link.startsWith('http')) {
+                                final Uri url = Uri.parse(link);
+                                if (await canLaunchUrl(url)) {
+                                  await launchUrl(url,
+                                      mode: LaunchMode.externalApplication);
+                                } else {
+                                  HelperFunctions().showSnackBarError(
+                                      "Could not launch the link.");
                                 }
-                              },
-                              child: Padding(
+                              } else {
+                                // If it's not a URL, it might be an internal page or invalid
+                                HelperFunctions().showSnackBarError(
+                                    "Invalid link or unsupported slider type.");
+                              }
+                            } else {
+                              HelperFunctions().showSnackBarError(
+                                  "No link associated with this slide.");
+                            }
+                          },
+                          child: Stack(
+                            children: [
+                              Padding(
                                 padding: pageSurroundingPadding,
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(12.0),
@@ -197,40 +212,40 @@ class _FoduuSliderState extends State<FoduuSlider>
                                               ))),
                                 ),
                               ),
-                            ),
-                            Positioned(
-                                child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 20,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(height: 6),
-                                  Text(
-                                    widget.sliderData['slider']['content']
-                                        [index]['heading'],
-                                    style: TextStyle(
-                                      fontFamily: 'Lato',
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w700,
+                              Positioned(
+                                  child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(height: 6),
+                                    Text(
+                                      widget.sliderData['slider']['content']
+                                          [index]['heading'],
+                                      style: TextStyle(
+                                        fontFamily: 'Lato',
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(height: 6),
-                                  Text(
-                                    widget.sliderData['slider']['content']
-                                        [index]['description'],
-                                    style: TextStyle(
-                                      fontFamily: 'Lato',
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w300,
+                                    SizedBox(height: 6),
+                                    Text(
+                                      widget.sliderData['slider']['content']
+                                          [index]['description'],
+                                      style: TextStyle(
+                                        fontFamily: 'Lato',
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w300,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ))
-                          ],
+                                  ],
+                                ),
+                              ))
+                            ],
+                          ),
                         );
                       }),
                 ),

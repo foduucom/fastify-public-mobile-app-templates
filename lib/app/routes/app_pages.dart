@@ -39,7 +39,9 @@ import 'package:foduu_ecommerce/app/modules/bottomar/views/bottombar_view.dart';
 import 'package:foduu_ecommerce/app/modules/cart/bindings/cart_binding.dart';
 import 'package:foduu_ecommerce/app/modules/cart/views/cart_view.dart';
 import 'package:foduu_ecommerce/app/modules/category/bindings/category_binding.dart';
+import 'package:foduu_ecommerce/app/modules/category/bindings/category_search_filter_binding.dart';
 import 'package:foduu_ecommerce/app/modules/category/views/category_view.dart';
+import 'package:foduu_ecommerce/app/modules/category/views/category_search_filter_view.dart';
 import 'package:foduu_ecommerce/app/modules/category/views/categorydetail_view.dart';
 import 'package:foduu_ecommerce/app/modules/contact/binding/contact_binding.dart';
 import 'package:foduu_ecommerce/app/modules/contact/views/contact_view.dart';
@@ -131,6 +133,11 @@ class AppPages {
       name: _Paths.CATEGORY,
       page: () => CategoryView(),
       binding: CategoryBinding(),
+    ),
+    GetPage(
+      name: _Paths.CATEGORY_SEARCH_FILTER,
+      page: () => const CategorySearchFilterView(),
+      binding: CategorySearchFilterBinding(),
     ),
     GetPage(
       name: _Paths.NOTIFICATION,

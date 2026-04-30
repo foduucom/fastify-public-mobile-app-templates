@@ -156,7 +156,8 @@ class CategeorydetailView extends GetView<CategeorydetaiController> {
                                   (BuildContext context, bool isExpanded) {
                                 return ListTile(
                                   title: Text(
-                                    controller.parentCategor[index]['name'],
+                                    controller.parentCategor[index]['name'] ??
+                                        '',
                                     // 'df',
                                     style: TextStyle(
                                         fontFamily: 'lato',

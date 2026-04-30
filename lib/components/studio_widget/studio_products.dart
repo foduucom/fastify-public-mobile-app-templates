@@ -12,6 +12,8 @@ import 'package:foduu_ecommerce/constants/product_helper.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
+import 'studio_common_widgets.dart';
+
 
 class TrendingProductSection extends StatefulWidget {
   final Map<String, dynamic>? contentJson;
@@ -275,40 +277,17 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 if (!_infiniteScroll)
                   Padding(
                     padding: pageSurroundingPadding,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(heading, style: textTheme.titleLarge),
-                              subheading.isEmpty
-                                  ? Container()
-                                  : Text(subheading,
-                                      style: textTheme.titleSmall!.copyWith(
-                                          color: colorScheme.onSurfaceVariant)),
-                            ],
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-                              'productId': categoryIds,
-                              'name': heading,
-                              'productype': categoryType,
-                              'source': 'dashboard'
-                            });
-                          },
-                          child: Text(
-                            'See all',
-                            style: textTheme.labelMedium?.copyWith(
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                        ),
-                      ],
+                    child: StudioSectionHeader(
+                      title: heading,
+                      subtitle: subheading,
+                      onSeeAll: () {
+                        Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+                          'productId': categoryIds,
+                          'name': heading,
+                          'productype': categoryType,
+                          'source': 'dashboard'
+                        });
+                      },
                     ),
                   ),
                 const SizedBox(height: 4),

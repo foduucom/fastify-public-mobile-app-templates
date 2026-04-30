@@ -137,11 +137,17 @@ class ShopView extends GetView<ShopController> {
               controller.fetchProducts(isRefresh: true);
             }, colorScheme),
 
-          ...controller.selectedCategories
-              .map((cat) => _activeChip(cat.capitalizeFirst!, () {
-                    controller.toggleCategory(cat);
-                    controller.fetchProducts(isRefresh: true);
-                  }, colorScheme)),
+          // ...controller.selectedCategories.map((cat) => _activeChip(
+          //       controller.availableCategories
+          //               .firstWhereOrNull((c) => c['slug'] == cat)?['name']
+          //               ?.toString() ??
+          //           cat.capitalizeFirst!,
+          //       () {
+          //         controller.toggleCategory(cat);
+          //         controller.fetchProducts(isRefresh: true);
+          //       },
+          //       colorScheme,
+          //     )),
 
           ...controller.selectedBrands
               .map((brand) => _activeChip(brand.capitalizeFirst!, () {
