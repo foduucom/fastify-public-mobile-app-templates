@@ -26,6 +26,17 @@ class AddressListController extends GetxController with BaseController {
 
   Future<void> refreshAddresses() async {
     try {
+      print(
+          'refreshAddresses started. Current selection index: ${selectAddress.value}');
+
+      // Store current selected ID to restore it after refresh
+      String? currentSelectedId;
+      if (userAddressList.isNotEmpty &&
+          selectAddress.value < userAddressList.length) {
+        currentSelectedId =
+            userAddressList[selectAddress.value]['_id']?.toString();
+      }
+
       isLoading.value = true;
       addressLoading.value = true;
 
@@ -42,21 +53,45 @@ class AddressListController extends GetxController with BaseController {
         userAddressList.clear();
 
         // ✅ Handle both List and Map response formats
+        List<dynamic> fetchedList = [];
         if (response is List) {
-          userAddressList.addAll(response);
+          fetchedList = response;
         } else if (response is Map && response['data'] is List) {
-          userAddressList.addAll(response['data']);
+          fetchedList = response['data'];
         }
 
-        // ✅ Find default address index
-        selectAddress.value = 0;
-        for (var i = 0; i < userAddressList.length; i++) {
-          if (userAddressList[i]['is_default'] == true ||
-              userAddressList[i]['is_default'] == 1) {
-            selectAddress.value = i;
-            break;
+        userAddressList.assignAll(fetchedList);
+        print('refreshAddresses: Loaded ${userAddressList.length} addresses');
+
+        // ✅ Restore selection by ID
+        bool selectionStillValid = false;
+        if (currentSelectedId != null) {
+          for (var i = 0; i < userAddressList.length; i++) {
+            if (userAddressList[i]['_id']?.toString() == currentSelectedId) {
+              selectAddress.value = i;
+              selectionStillValid = true;
+              print(
+                  'refreshAddresses: selectionStillValid = true, Keeping existing selection ID: $currentSelectedId');
+              break;
+            }
           }
         }
+
+        // If selection not found (e.g. deleted or first time), find default
+        if (!selectionStillValid) {
+          selectAddress.value = 0;
+          for (var i = 0; i < userAddressList.length; i++) {
+            if (userAddressList[i]['is_default'] == true ||
+                userAddressList[i]['is_default'] == 1) {
+              selectAddress.value = i;
+              print('refreshAddresses: Found default address at index $i');
+              break;
+            }
+          }
+        }
+
+        // Force UI refresh just in case
+        userAddressList.refresh();
       }
     } catch (e) {
       isLoading.value = false;

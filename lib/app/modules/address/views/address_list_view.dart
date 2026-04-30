@@ -16,36 +16,24 @@ class AddressListView extends GetView<AddressListController> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        // ✅ REMOVED debug FAB — was causing Hero tag conflict
-        // appBar: AppBar(
-        //   title: const Text(
-        //     'Addresses',
-        //     style: TextStyle(fontWeight: FontWeight.bold),
-        //   ),
-        //   elevation: 0,
-        //   actions: [
-        //     IconButton(
-        //       icon: const Icon(Icons.refresh),
-        //       onPressed: controller.refreshAddresses,
-        //     ),
-        //   ],
-        // ),
-        appBar:  CustomAppBar(title: 'Addresses',),
-        body: Obx(() {
-          if (controller.isLoading.value &&
-              controller.userAddressList.isEmpty) {
-            return HelperFunctions().loadingIndicator();
-          }
-
-          return Stack(
-            children: [
-              Positioned.fill(
-                child: SingleChildScrollView(
-                  padding: pageSurroundingPadding,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        appBar: CustomAppBar(title: 'Addresses'),
+        body: RefreshIndicator(
+          onRefresh: controller.refreshAddresses,
+          child: Obx(
+            () => Stack(
+              children: [
+                Positioned.fill(
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: pageSurroundingPadding,
                     children: [
-                      if (controller.userAddressList.isEmpty)
+                      if (controller.isLoading.value &&
+                          controller.userAddressList.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(50.0),
+                          child: HelperFunctions().loadingIndicator(),
+                        )
+                      else if (controller.userAddressList.isEmpty)
                         const Center(
                           child: Padding(
                             padding: EdgeInsets.symmetric(vertical: 50),
@@ -54,85 +42,79 @@ class AddressListView extends GetView<AddressListController> {
                           ),
                         )
                       else
-                      // ✅ FIXED: Obx wraps each item so selectAddress
-                      //    change actually rebuilds the radio + border
                         ListView.separated(
                           separatorBuilder: (_, __) =>
-                          const SizedBox(height: 15),
+                              const SizedBox(height: 15),
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: controller.userAddressList.length,
                           shrinkWrap: true,
                           itemBuilder: (context, index) {
                             final userAddress =
-                            controller.userAddressList[index];
-                            // ✅ Wrap each card in Obx so selection reacts
-                            return Obx(() {
-                              final isSelected =
-                                  controller.selectAddress.value == index;
-                              return GestureDetector(
-                                onTap: () =>
-                                    controller.selectNewAddress(index),
+                                controller.userAddressList[index];
+                            return Obx(
+                              () => GestureDetector(
+                                onTap: () => controller.selectNewAddress(index),
                                 child: Stack(
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.all(8.0),
                                       decoration: BoxDecoration(
-                                        color: isSelected
+                                        color: controller.selectAddress.value ==
+                                                index
                                             ? Theme.of(context)
-                                            .colorScheme
-                                            .primary
-                                            .withValues(alpha: 0.05)
+                                                .colorScheme
+                                                .primary
+                                                .withValues(alpha: 0.05)
                                             : Theme.of(context)
-                                            .colorScheme
-                                            .surfaceVariant
-                                            .withValues(alpha: 0.25),
-                                        borderRadius:
-                                        BorderRadius.circular(3),
+                                                .colorScheme
+                                                .surfaceVariant
+                                                .withValues(alpha: 0.25),
+                                        borderRadius: BorderRadius.circular(3),
                                         border: Border.all(
-                                          color: isSelected
-                                              ? Theme.of(context)
-                                              .colorScheme
-                                              .primary
-                                              : Theme.of(context)
-                                              .colorScheme
-                                              .outline,
+                                          color:
+                                              controller.selectAddress.value ==
+                                                      index
+                                                  ? Theme.of(context)
+                                                      .colorScheme
+                                                      .primary
+                                                  : Theme.of(context)
+                                                      .colorScheme
+                                                      .outline,
                                           width: 0.9,
                                         ),
                                       ),
                                       child: Row(
                                         crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Radio(
                                             value: index,
                                             groupValue:
-                                            controller.selectAddress.value,
+                                                controller.selectAddress.value,
                                             activeColor: Theme.of(context)
                                                 .colorScheme
                                                 .primary,
-                                            onChanged: (_) =>
-                                                controller
-                                                    .selectNewAddress(index),
+                                            onChanged: (_) => controller
+                                                .selectNewAddress(index),
                                           ),
                                           Expanded(
                                             child: Padding(
                                               padding:
-                                              const EdgeInsets.all(10.0),
+                                                  const EdgeInsets.all(10.0),
                                               child: Column(
                                                 crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                                    CrossAxisAlignment.start,
                                                 children: [
-                                                  // ── Name ──────────
                                                   if (userAddress['name'] !=
                                                       null)
                                                     Text(
                                                       userAddress['name']
-                                                          .toString()
-                                                          .capitalizeFirst ??
+                                                              .toString()
+                                                              .capitalizeFirst ??
                                                           '',
                                                       style: TextStyle(
                                                         fontWeight:
-                                                        FontWeight.bold,
+                                                            FontWeight.bold,
                                                         fontSize: 16,
                                                         color: Theme.of(context)
                                                             .colorScheme
@@ -142,22 +124,20 @@ class AddressListView extends GetView<AddressListController> {
                                                   if (userAddress['name'] !=
                                                       null)
                                                     const SizedBox(height: 4),
-
-                                                  // ── Street ────────
                                                   Text(
                                                     [
                                                       if (userAddress[
-                                                      'street'] !=
-                                                          null &&
+                                                                  'street'] !=
+                                                              null &&
                                                           userAddress['street']
                                                               .toString()
                                                               .isNotEmpty)
                                                         userAddress['street'],
                                                       if (userAddress[
-                                                      'landmark'] !=
-                                                          null &&
+                                                                  'landmark'] !=
+                                                              null &&
                                                           userAddress[
-                                                          'landmark']
+                                                                  'landmark']
                                                               .toString()
                                                               .isNotEmpty)
                                                         userAddress['landmark'],
@@ -170,47 +150,44 @@ class AddressListView extends GetView<AddressListController> {
                                                     ),
                                                   ),
                                                   const SizedBox(height: 4),
-
-                                                  // ── City/State ────
                                                   Text(
                                                     [
-                                                      if (userAddress[
-                                                      'city'] !=
-                                                          null)
+                                                          if (userAddress[
+                                                                  'city'] !=
+                                                              null)
+                                                            (userAddress['city']
+                                                                    is Map
+                                                                ? userAddress[
+                                                                        'city']
+                                                                    ['name']
+                                                                : userAddress[
+                                                                    'city']),
+                                                          if (userAddress[
+                                                                      'state']
+                                                                  ?['name'] !=
+                                                              null)
+                                                            userAddress['state']
+                                                                ['name'],
+                                                          if (userAddress[
+                                                                      'country']
+                                                                  ?['name'] !=
+                                                              null)
+                                                            userAddress[
+                                                                    'country']
+                                                                ['name'],
+                                                        ]
+                                                            .where((e) =>
+                                                                e != null)
+                                                            .join(', ') +
                                                         (userAddress[
-                                                        'city']
-                                                        is Map
-                                                            ? userAddress[
-                                                        'city']
-                                                        ['name']
-                                                            : userAddress[
-                                                        'city']),
-                                                      if (userAddress[
-                                                      'state']
-                                                      ?['name'] !=
-                                                          null)
-                                                        userAddress['state']
-                                                        ['name'],
-                                                      if (userAddress[
-                                                      'country']
-                                                      ?['name'] !=
-                                                          null)
-                                                        userAddress[
-                                                        'country']
-                                                        ['name'],
-                                                    ]
-                                                        .where(
-                                                            (e) => e != null)
-                                                        .join(', ') +
-                                                        (userAddress[
-                                                        'postal_code'] !=
-                                                            null
+                                                                    'postal_code'] !=
+                                                                null
                                                             ? ' - ${userAddress['postal_code']}'
                                                             : (userAddress[
-                                                        'pincode'] !=
-                                                            null
-                                                            ? ' - ${userAddress['pincode']}'
-                                                            : '')),
+                                                                        'pincode'] !=
+                                                                    null
+                                                                ? ' - ${userAddress['pincode']}'
+                                                                : '')),
                                                     style: TextStyle(
                                                       fontSize: 14,
                                                       color: Theme.of(context)
@@ -218,8 +195,6 @@ class AddressListView extends GetView<AddressListController> {
                                                           .onSurfaceVariant,
                                                     ),
                                                   ),
-
-                                                  // ── Phone ─────────
                                                   if (userAddress['mobile'] !=
                                                       null) ...[
                                                     const SizedBox(height: 4),
@@ -234,21 +209,26 @@ class AddressListView extends GetView<AddressListController> {
                                                     ),
                                                   ],
                                                   const SizedBox(height: 12),
-
-                                                  // ── Edit / Remove ─
                                                   Row(
                                                     children: [
                                                       _buildActionButton(
                                                         context,
                                                         "Edit",
-                                                            () => Get.toNamed(
-                                                          Routes.ADDRESS_FORM,
-                                                          arguments: {
-                                                            'isEdit': true,
-                                                            'address':
-                                                            userAddress,
-                                                          },
-                                                        ),
+                                                        () async {
+                                                          var result =
+                                                              await Get.toNamed(
+                                                            Routes.ADDRESS_FORM,
+                                                            arguments: {
+                                                              'isEdit': true,
+                                                              'address':
+                                                                  userAddress
+                                                            },
+                                                          );
+                                                          if (result == true) {
+                                                            controller
+                                                                .refreshAddresses();
+                                                          }
+                                                        },
                                                         color: Theme.of(context)
                                                             .colorScheme
                                                             .primary,
@@ -257,7 +237,7 @@ class AddressListView extends GetView<AddressListController> {
                                                       _buildActionButton(
                                                         context,
                                                         "Remove",
-                                                            () => _showDeleteDialog(
+                                                        () => _showDeleteDialog(
                                                           context,
                                                           userAddress['_id']
                                                               .toString(),
@@ -269,23 +249,24 @@ class AddressListView extends GetView<AddressListController> {
                                                       ),
                                                     ],
                                                   ),
-
-                                                  // ── Shipping warning
                                                   if (controller.shippingDetails[
-                                                  'is_shipping'] ==
-                                                      false &&
-                                                      isSelected)
+                                                              'is_shipping'] ==
+                                                          false &&
+                                                      controller.selectAddress
+                                                              .value ==
+                                                          index)
                                                     Padding(
                                                       padding:
-                                                      const EdgeInsets.only(
-                                                          top: 10),
+                                                          const EdgeInsets.only(
+                                                              top: 10),
                                                       child: Row(
                                                         children: [
                                                           SvgPicture.asset(
                                                             "assets/images/trucknew.svg",
                                                             height: 16,
                                                             colorFilter:
-                                                            ColorFilter.mode(
+                                                                ColorFilter
+                                                                    .mode(
                                                               Theme.of(context)
                                                                   .colorScheme
                                                                   .error,
@@ -299,7 +280,7 @@ class AddressListView extends GetView<AddressListController> {
                                                             style: TextStyle(
                                                               fontSize: 12,
                                                               color: Theme.of(
-                                                                  context)
+                                                                      context)
                                                                   .colorScheme
                                                                   .error,
                                                             ),
@@ -314,8 +295,6 @@ class AddressListView extends GetView<AddressListController> {
                                         ],
                                       ),
                                     ),
-
-                                    // ── DEFAULT / TYPE badges ──────────
                                     Positioned(
                                       top: 10,
                                       right: 10,
@@ -326,16 +305,16 @@ class AddressListView extends GetView<AddressListController> {
                                               margin: const EdgeInsets.only(
                                                   right: 8),
                                               padding:
-                                              const EdgeInsets.symmetric(
-                                                  horizontal: 8,
-                                                  vertical: 4),
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4),
                                               decoration: BoxDecoration(
                                                 color: Theme.of(context)
                                                     .colorScheme
                                                     .secondary
                                                     .withValues(alpha: 0.1),
                                                 borderRadius:
-                                                BorderRadius.circular(3),
+                                                    BorderRadius.circular(3),
                                                 border: Border.all(
                                                   color: Theme.of(context)
                                                       .colorScheme
@@ -355,25 +334,25 @@ class AddressListView extends GetView<AddressListController> {
                                               ),
                                             ),
                                           if ((userAddress['type'] ??
-                                              userAddress[
-                                              'address_type']) !=
+                                                  userAddress[
+                                                      'address_type']) !=
                                               null)
                                             Container(
                                               padding:
-                                              const EdgeInsets.symmetric(
-                                                  horizontal: 8,
-                                                  vertical: 4),
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4),
                                               decoration: BoxDecoration(
                                                 color: Theme.of(context)
                                                     .colorScheme
                                                     .primary,
                                                 borderRadius:
-                                                BorderRadius.circular(3),
+                                                    BorderRadius.circular(3),
                                               ),
                                               child: Text(
                                                 (userAddress['type'] ??
-                                                    userAddress[
-                                                    'address_type'])
+                                                        userAddress[
+                                                            'address_type'])
                                                     .toString()
                                                     .toUpperCase(),
                                                 style: TextStyle(
@@ -390,40 +369,46 @@ class AddressListView extends GetView<AddressListController> {
                                     ),
                                   ],
                                 ),
-                              );
-                            });
+                              ),
+                            );
                           },
                         ),
                       const SizedBox(height: 20),
                       AppButton(
-                        keypressEvent: () => Get.toNamed(Routes.ADDRESS_FORM),
+                        keypressEvent: () async {
+                          var result = await Get.toNamed(Routes.ADDRESS_FORM);
+                          if (result == true) {
+                            controller.refreshAddresses();
+                          }
+                        },
                         itemText: 'Add New Address',
                       ),
                       const SizedBox(height: 80),
                     ],
                   ),
                 ),
-              ),
-
-              // ── Bottom Continue Button ────────────────────────────
-              Obx(() => bottomButton(
-                buttonText: 'Continue',
-                priceText: controller.total.value.toStringAsFixed(2),
-                keypressEvent: controller.userAddressList.isEmpty
-                    ? null
-                    : () => Get.toNamed(Routes.PAYMENT),
-                otherText: 'Details',
-                opacity: controller.userAddressList.isEmpty ? 0.5 : 1,
-                deliveryAmount: '0',
-              )),
-            ],
-          );
-        }),
+                Obx(
+                  () => bottomButton(
+                    buttonText: 'Continue',
+                    priceText: controller.total.value.toStringAsFixed(2),
+                    keypressEvent: controller.userAddressList.isEmpty
+                        ? null
+                        : () => Get.toNamed(Routes.PAYMENT),
+                    otherText: 'Details',
+                    opacity: controller.userAddressList.isEmpty ? 0.5 : 1,
+                    deliveryAmount: '0',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildActionButton(BuildContext context, String label, VoidCallback onTap,
+  Widget _buildActionButton(
+      BuildContext context, String label, VoidCallback onTap,
       {Color? color}) {
     return InkWell(
       onTap: onTap,
@@ -443,13 +428,13 @@ class AddressListView extends GetView<AddressListController> {
     Get.dialog(
       AlertDialog(
         title: const Text('Remove Address'),
-        content:
-        const Text("Are you sure you want to remove this address?"),
+        content: const Text("Are you sure you want to remove this address?"),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
             child: Text('Cancel',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant)),
           ),
           TextButton(
             onPressed: () {

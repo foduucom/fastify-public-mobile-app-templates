@@ -297,7 +297,7 @@ class SearchView extends GetView<SearchsController> {
                             crossAxisCount: 2,
                             crossAxisSpacing: 14,
                             mainAxisSpacing: 14,
-                            childAspectRatio: 0.68,
+                            childAspectRatio: 0.82,
                           ),
                           itemCount: controller.searchProduct.length,
                           itemBuilder: (context, index) {
@@ -515,18 +515,20 @@ class _ProductCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colorScheme.outline),
+          //border: Border.all(color: colorScheme.outline),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              flex: 11,
+              flex: 7,
               child: Stack(
                 children: [
                   ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(15)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(15),
+                      bottom: Radius.circular(15),
+                    ),
                     child: SizedBox(
                       width: double.infinity,
                       height: double.infinity,
@@ -573,7 +575,7 @@ class _ProductCard extends StatelessWidget {
               ),
             ),
             Expanded(
-              flex: 4,
+              flex: 3,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
                 child: Column(
@@ -598,7 +600,8 @@ class _ProductCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
+                        // 👇 Single container wrapping both price texts
+                        Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
@@ -627,11 +630,12 @@ class _ProductCard extends StatelessWidget {
                               ),
                           ],
                         ),
+                        // 👇 Add button
                         GestureDetector(
                           onTap: onTap,
                           child: Container(
-                            width: 30,
-                            height: 30,
+                            width: 28,
+                            height: 28,
                             decoration: BoxDecoration(
                               color: Theme.of(context)
                                   .colorScheme

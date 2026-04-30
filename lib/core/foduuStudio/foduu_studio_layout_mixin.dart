@@ -127,8 +127,19 @@ mixin FoduuStudioLayoutMixin on GetxController {
             .catchError((e, stackTrace) => _handleApiError(e, stackTrace));
       }
 
-      if (response != null) {
-        var list = response['sections'];
+      if (response != null && response is Map) {
+        // ── Handle Theme from initial response ──
+        final themeData = response['theme_color'];
+        if (themeData != null) {
+          debugPrint('🎨 DynamicLayout: Theme detected in initial load');
+          DynamicThemeManager().updateFromApi(themeData);
+          if (Get.isRegistered<ThemeController>()) {
+            Get.find<ThemeController>().refreshTheme();
+          }
+        }
+
+        // ── Handle Sections ──
+        final list = response['sections'];
         if (list != null && list is List) {
           _initialComponents = list;
           buildLayout(_resolvePlaceholders(list));

@@ -52,15 +52,12 @@ void registerDefaultWidgets() {
 
   // ─── Blog Section ───────────────────────────────────────────
   r.register('blog', (json) {
-    return BlogSection(blogData: json);
+    return BlogSection(blogData: json ?? {});
   });
 
   // ─── Banner ─────────────────────────────────────────────────
   r.register('banner', (json) {
-    if (json != null) {
-      return HomeBanner(bannerContent: json);
-    }
-    return const SizedBox.shrink();
+    return HomeBanner(bannerContent: json ?? {});
   });
 
   // ─── Price Filter ───────────────────────────────────────────
@@ -85,7 +82,7 @@ void registerDefaultWidgets() {
 
   // ─── Products ───────────────────────────────────────────────
   r.register('products', (json) {
-    return TrendingProductSection(contentJson: json);
+    return TrendingProductSection(contentJson: json ?? {});
   });
 
   // ─── Rich Text ──────────────────────────────────────────────

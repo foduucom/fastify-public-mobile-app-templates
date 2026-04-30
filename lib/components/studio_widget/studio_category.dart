@@ -26,7 +26,6 @@ class CategoryHome extends StatefulWidget {
 
 class _TopCategoryHomeState extends State<CategoryHome>
     with AutomaticKeepAliveClientMixin, BaseController {
-
   // ── Helpers used only by vertical rectangular list ───────────────────────────
 
   bool _isHot(dynamic category) => category['is_featured'] == true;
@@ -129,7 +128,9 @@ class _TopCategoryHomeState extends State<CategoryHome>
       );
     } else {
       return SizedBox(
-        height: style == 'rectangular' ? 140 : 82, // Adjust height based on style
+        height: style == 'rectangular'
+            ? 140
+            : 110, // Increased to 110 to prevent overflows
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(
             dragDevices: {
@@ -158,7 +159,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
         crossAxisCount: columns,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: style == 'circular' ? 0.8 : 1.1,
+        childAspectRatio: style == 'rectangular' ? 1.1 : 0.7,
       ),
       itemCount: categories.length,
       itemBuilder: (context, index) =>
@@ -204,8 +205,8 @@ class _TopCategoryHomeState extends State<CategoryHome>
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 60,
-          height: 60,
+          width: 52,
+          height: 52,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: colorScheme.surfaceContainerHighest,
@@ -223,17 +224,19 @@ class _TopCategoryHomeState extends State<CategoryHome>
                 HelperFunctions().loadingIndicator(),
           ),
         ),
-        const SizedBox(height: 6),
-        Text(
-          category['name'].toString(),
-          style: textTheme.bodySmall?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
+        const SizedBox(height: 4),
+        Flexible(
+          child: Text(
+            category['name'].toString(),
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
@@ -390,7 +393,9 @@ class CategoryHomeShimmer extends StatelessWidget {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(50)),
                     width: 70,
                     height: 70,
@@ -398,7 +403,9 @@ class CategoryHomeShimmer extends StatelessWidget {
                   const SizedBox(height: 5),
                   Container(
                     decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(50)),
                     width: 40,
                     height: 10,

@@ -30,9 +30,19 @@ class WidgetRegistry {
   /// Returns `null` if the type is unknown.
   Widget? build(Map<String, dynamic> section) {
     final type = section['type'] as String?;
-    final visible = section['visible'] as bool;
+    // Use a safe default for visibility if the key is missing or null
+    final bool visible = section['visible'] == null ? true : (section['visible'] == true);
+
     if (type == null || !_builders.containsKey(type) || !visible) return null;
-    return _builders[type]!(section['content_json'] as Map<String, dynamic>?);
+
+    final contentJson = section['content_json'] as Map<String, dynamic>?;
+
+    try {
+      return _builders[type]!(contentJson);
+    } catch (e) {
+      debugPrint('❌ WidgetRegistry: Failed to build widget of type "$type": $e');
+      return null;
+    }
   }
 
   /// Check whether a builder exists for [type].

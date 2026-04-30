@@ -22,7 +22,8 @@ class _BlogSectionState extends State<BlogSection>
   Widget build(BuildContext context) {
     super.build(context);
 
-    var blogs = widget.blogData['blogs'] ?? [];
+    var contentJson = widget.blogData ?? {};
+    var blogs = contentJson['blogs'] ?? [];
 
     if (blogs.isEmpty) return const SizedBox();
 
@@ -62,7 +63,7 @@ class _BlogSectionState extends State<BlogSection>
                 crossAxisCount: 2,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
-                mainAxisExtent: 240, // Slightly increased to fit description
+                mainAxisExtent: 260, // Increased to 260 to prevent overflows
               ),
               itemCount: blogs.length,
               itemBuilder: ((context, index) {

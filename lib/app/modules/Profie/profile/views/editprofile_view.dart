@@ -15,7 +15,7 @@ class EditprofileView extends GetView<ProfileController> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme   = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -29,7 +29,6 @@ class EditprofileView extends GetView<ProfileController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   // ── Banner + Avatar ───────────────────────────────
                   _ProfileHeaderWidget(controller: controller),
 
@@ -40,7 +39,6 @@ class EditprofileView extends GetView<ProfileController> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-
                         // ── First Name ──────────────────────────────
                         _fieldLabel('First Name', textTheme),
                         const SizedBox(height: 8),
@@ -98,116 +96,116 @@ class EditprofileView extends GetView<ProfileController> {
                           },
                         ),
 
-                        const SizedBox(height: 16),
+                        //const SizedBox(height: 16),
 
-                        // ── Date of Birth ───────────────────────────
-                        _fieldLabel('Date of Birth', textTheme),
-                        const SizedBox(height: 8),
-                        Obx(() => GestureDetector(
-                          onTap: () async {
-                            final picked = await showDatePicker(
-                              context: context,
-                              initialDate: controller.selectedDob.value ??
-                                  DateTime(1996, 2, 24),
-                              firstDate: DateTime(1900),
-                              lastDate: DateTime.now(),
-                              builder: (context, child) => Theme(
-                                data: Theme.of(context)
-                                    .copyWith(colorScheme: colorScheme),
-                                child: child!,
-                              ),
-                            );
-                            if (picked != null) {
-                              controller.selectedDob.value = picked;
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 18, vertical: 16),
-                            decoration: BoxDecoration(
-                              color: colorScheme.surface,
-                              border: Border.all(
-                                  color: colorScheme.primary, width: 1.2),
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: Row(
-                              mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  controller.selectedDob.value != null
-                                      ? '${controller.selectedDob.value!.day} '
-                                      '${_monthName(controller.selectedDob.value!.month)} '
-                                      '${controller.selectedDob.value!.year}'
-                                      : '24 february 1996',
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onSurface,
-                                  ),
-                                ),
-                                Icon(Icons.calendar_month_outlined,
-                                    color: colorScheme.primary, size: 22),
-                              ],
-                            ),
-                          ),
-                        )),
+                        // // ── Date of Birth ───────────────────────────
+                        // _fieldLabel('Date of Birth', textTheme),
+                        // const SizedBox(height: 8),
+                        // Obx(() => GestureDetector(
+                        //   onTap: () async {
+                        //     final picked = await showDatePicker(
+                        //       context: context,
+                        //       initialDate: controller.selectedDob.value ??
+                        //           DateTime(1996, 2, 24),
+                        //       firstDate: DateTime(1900),
+                        //       lastDate: DateTime.now(),
+                        //       builder: (context, child) => Theme(
+                        //         data: Theme.of(context)
+                        //             .copyWith(colorScheme: colorScheme),
+                        //         child: child!,
+                        //       ),
+                        //     );
+                        //     if (picked != null) {
+                        //       controller.selectedDob.value = picked;
+                        //     }
+                        //   },
+                        //   child: Container(
+                        //     padding: const EdgeInsets.symmetric(
+                        //         horizontal: 18, vertical: 16),
+                        //     decoration: BoxDecoration(
+                        //       color: colorScheme.surface,
+                        //       border: Border.all(
+                        //           color: colorScheme.primary, width: 1.2),
+                        //       borderRadius: BorderRadius.circular(30),
+                        //     ),
+                        //     child: Row(
+                        //       mainAxisAlignment:
+                        //       MainAxisAlignment.spaceBetween,
+                        //       children: [
+                        //         Text(
+                        //           controller.selectedDob.value != null
+                        //               ? '${controller.selectedDob.value!.day} '
+                        //               '${_monthName(controller.selectedDob.value!.month)} '
+                        //               '${controller.selectedDob.value!.year}'
+                        //               : '24 february 1996',
+                        //           style: textTheme.bodyMedium?.copyWith(
+                        //             color: colorScheme.onSurface,
+                        //           ),
+                        //         ),
+                        //         Icon(Icons.calendar_month_outlined,
+                        //             color: colorScheme.primary, size: 22),
+                        //       ],
+                        //     ),
+                        //   ),
+                        // )),
 
-                        const SizedBox(height: 16),
+                        // const SizedBox(height: 16),
 
-                        // ── Gender ──────────────────────────────────
-                        _fieldLabel('Gender', textTheme),
-                        const SizedBox(height: 10),
-                        Obx(() => Row(
-                          children: [
-                            _genderOption(
-                              context: context,
-                              label: 'Male',
-                              isSelected:
-                              controller.selectedGender.value == 'Male',
-                              onTap: () =>
-                              controller.selectedGender.value = 'Male',
-                            ),
-                            const SizedBox(width: 14),
-                            _genderOption(
-                              context: context,
-                              label: 'Female',
-                              isSelected:
-                              controller.selectedGender.value == 'Female',
-                              onTap: () =>
-                              controller.selectedGender.value = 'Female',
-                            ),
-                          ],
-                        )),
+                        // // ── Gender ──────────────────────────────────
+                        // _fieldLabel('Gender', textTheme),
+                        // const SizedBox(height: 10),
+                        // Obx(() => Row(
+                        //   children: [
+                        //     _genderOption(
+                        //       context: context,
+                        //       label: 'Male',
+                        //       isSelected:
+                        //       controller.selectedGender.value == 'Male',
+                        //       onTap: () =>
+                        //       controller.selectedGender.value = 'Male',
+                        //     ),
+                        //     const SizedBox(width: 14),
+                        //     _genderOption(
+                        //       context: context,
+                        //       label: 'Female',
+                        //       isSelected:
+                        //       controller.selectedGender.value == 'Female',
+                        //       onTap: () =>
+                        //       controller.selectedGender.value = 'Female',
+                        //     ),
+                        //   ],
+                        // )),
 
-                        const SizedBox(height: 16),
+                        // const SizedBox(height: 16),
 
-                        // ── Location ────────────────────────────────
-                        _fieldLabel('Location', textTheme),
-                        const SizedBox(height: 8),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.surface,
-                            border: Border.all(
-                                color: colorScheme.primary, width: 1.2),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: TextFormField(
-                            controller: controller.addressController,
-                            maxLines: 4,
-                            keyboardType: TextInputType.multiline,
-                            style: textTheme.bodyMedium
-                                ?.copyWith(color: colorScheme.onSurface),
-                            decoration: InputDecoration(
-                              hintText: 'Enter your location',
-                              hintStyle: TextStyle(
-                                  color: colorScheme.onSurfaceVariant,
-                                  fontSize: 14),
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.all(16),
-                            ),
-                          ),
-                        ),
+                        // // ── Location ────────────────────────────────
+                        // _fieldLabel('Location', textTheme),
+                        // const SizedBox(height: 8),
+                        // Container(
+                        //   decoration: BoxDecoration(
+                        //     color: colorScheme.surface,
+                        //     border: Border.all(
+                        //         color: colorScheme.primary, width: 1.2),
+                        //     borderRadius: BorderRadius.circular(16),
+                        //   ),
+                        //   child: TextFormField(
+                        //     controller: controller.addressController,
+                        //     maxLines: 4,
+                        //     keyboardType: TextInputType.multiline,
+                        //     style: textTheme.bodyMedium
+                        //         ?.copyWith(color: colorScheme.onSurface),
+                        //     decoration: InputDecoration(
+                        //       hintText: 'Enter your location',
+                        //       hintStyle: TextStyle(
+                        //           color: colorScheme.onSurfaceVariant,
+                        //           fontSize: 14),
+                        //       border: InputBorder.none,
+                        //       contentPadding: const EdgeInsets.all(16),
+                        //     ),
+                        //   ),
+                        // ),
 
-                        const SizedBox(height: 32),
+                        //const SizedBox(height: 32),
                       ],
                     ),
                   ),
@@ -255,13 +253,14 @@ class EditprofileView extends GetView<ProfileController> {
 
   // ── Field Label ────────────────────────────────────────────────────
   Widget _fieldLabel(String label, TextTheme textTheme) {
-    return Builder(builder: (context) => Text(
-      label,
-      style: textTheme.bodyMedium?.copyWith(
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-        fontWeight: FontWeight.w500,
-      ),
-    ));
+    return Builder(
+        builder: (context) => Text(
+              label,
+              style: textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
+            ));
   }
 
   // ── Reusable Input Field ───────────────────────────────────────────
@@ -275,7 +274,7 @@ class EditprofileView extends GetView<ProfileController> {
     String? Function(String?)? validator,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme   = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return TextFormField(
       controller: controller,
@@ -290,16 +289,14 @@ class EditprofileView extends GetView<ProfileController> {
         filled: true,
         fillColor: colorScheme.surface,
         contentPadding:
-        const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
-          borderSide:
-          BorderSide(color: colorScheme.primary, width: 1.2),
+          borderSide: BorderSide(color: colorScheme.primary, width: 1.2),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
-          borderSide:
-          BorderSide(color: colorScheme.primary, width: 1.8),
+          borderSide: BorderSide(color: colorScheme.primary, width: 1.8),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
@@ -321,7 +318,7 @@ class EditprofileView extends GetView<ProfileController> {
     required VoidCallback onTap,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme   = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Expanded(
       child: GestureDetector(
@@ -340,17 +337,16 @@ class EditprofileView extends GetView<ProfileController> {
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: isSelected ? colorScheme.onPrimary : Colors.transparent,
+                  color:
+                      isSelected ? colorScheme.onPrimary : Colors.transparent,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isSelected
-                        ? Colors.transparent
-                        : colorScheme.outline,
+                    color:
+                        isSelected ? Colors.transparent : colorScheme.outline,
                   ),
                 ),
                 child: isSelected
-                    ? Icon(Icons.check,
-                    size: 16, color: colorScheme.primary)
+                    ? Icon(Icons.check, size: 16, color: colorScheme.primary)
                     : null,
               ),
               const SizedBox(width: 10),
@@ -358,7 +354,9 @@ class EditprofileView extends GetView<ProfileController> {
                 label,
                 style: textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
+                  color: isSelected
+                      ? colorScheme.onPrimary
+                      : colorScheme.onSurface,
                 ),
               ),
             ],
@@ -371,8 +369,19 @@ class EditprofileView extends GetView<ProfileController> {
   // ── Month Name Helper ──────────────────────────────────────────────
   String _monthName(int month) {
     const months = [
-      '', 'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      '',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
     return months[month];
   }
@@ -392,10 +401,11 @@ class _ProfileHeaderWidget extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-
           // ── Banner ─────────────────────────────────────────────────
           Positioned(
-            top: 0, left: 16, right: 16,
+            top: 0,
+            left: 16,
+            right: 16,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: Container(
@@ -403,8 +413,8 @@ class _ProfileHeaderWidget extends StatelessWidget {
                 color: colorScheme.surfaceContainerHighest,
                 child: controller.profiledata['banner_image'] != null
                     ? CachedNetworkImage(
-                        imageUrl: HelperFunctions().getImage(
-                            controller.profiledata['banner_image']),
+                        imageUrl: HelperFunctions()
+                            .getImage(controller.profiledata['banner_image']),
                         fit: BoxFit.cover,
                         width: double.infinity,
                         errorWidget: (context, url, error) => Image.asset(
@@ -424,11 +434,13 @@ class _ProfileHeaderWidget extends StatelessWidget {
 
           // ── Banner Edit FAB ────────────────────────────────────────
           Positioned(
-            top: 10, right: 26,
+            top: 10,
+            right: 26,
             child: GestureDetector(
               onTap: () {},
               child: Container(
-                width: 34, height: 34,
+                width: 34,
+                height: 34,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: colorScheme.primary,
@@ -436,7 +448,8 @@ class _ProfileHeaderWidget extends StatelessWidget {
                 ),
                 child: Image.asset(
                   'assets/icon/edit.png',
-                  width: 16, height: 16,
+                  width: 16,
+                  height: 16,
                   color: colorScheme.onPrimary,
                   fit: BoxFit.contain,
                 ),
@@ -446,7 +459,8 @@ class _ProfileHeaderWidget extends StatelessWidget {
 
           // ── Avatar ─────────────────────────────────────────────────
           Positioned(
-            bottom: 5, left: 136,
+            bottom: 5,
+            left: 136,
             child: Stack(
               children: [
                 ClipOval(
@@ -455,32 +469,34 @@ class _ProfileHeaderWidget extends StatelessWidget {
                         !controller.imagePath.value.contains('http')) {
                       return Image.file(
                         File(controller.imagePath.value),
-                        height: 89, width: 89, fit: BoxFit.cover,
+                        height: 89,
+                        width: 89,
+                        fit: BoxFit.cover,
                       );
-                    } else if (controller.imagePath.value
-                        .contains('http') &&
+                    } else if (controller.imagePath.value.contains('http') &&
                         !controller.imagePath.value.contains('.svg')) {
                       return Image.network(
                         controller.imagePath.value,
-                        height: 89, width: 89, fit: BoxFit.cover,
+                        height: 89,
+                        width: 89,
+                        fit: BoxFit.cover,
                       );
                     } else {
                       return CircleAvatar(
                         radius: 40,
                         backgroundColor: colorScheme.surfaceContainerHighest,
-                        child: controller.profiledata['featured_image'] ==
-                            null
+                        child: controller.profiledata['featured_image'] == null
                             ? Icon(Icons.person,
-                            size: 35, color: colorScheme.onSurface)
+                                size: 35, color: colorScheme.onSurface)
                             : CachedNetworkImage(
-                            imageUrl: HelperFunctions().getImage(
-                                controller.profiledata['featured_image']),
-                            errorWidget: (context, url, error) => Icon(
-                              Icons.person,
-                              size: 35,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
+                                imageUrl: HelperFunctions().getImage(
+                                    controller.profiledata['featured_image']),
+                                errorWidget: (context, url, error) => Icon(
+                                  Icons.person,
+                                  size: 35,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
                       );
                     }
                   }),
@@ -488,21 +504,24 @@ class _ProfileHeaderWidget extends StatelessWidget {
 
                 // ── Avatar Edit FAB ───────────────────────────────
                 Positioned(
-                  right: 0, bottom: 0,
+                  right: 0,
+                  bottom: 0,
                   child: GestureDetector(
                     onTap: () => openImagePickerSheet(controller),
                     child: Container(
-                      width: 26, height: 26,
+                      width: 26,
+                      height: 26,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: colorScheme.primary,
                         shape: BoxShape.circle,
                         border:
-                        Border.all(color: colorScheme.surface, width: 2),
+                            Border.all(color: colorScheme.surface, width: 2),
                       ),
                       child: Image.asset(
                         'assets/icon/edit.png',
-                        width: 12, height: 12,
+                        width: 12,
+                        height: 12,
                         color: colorScheme.onPrimary,
                         fit: BoxFit.contain,
                       ),
@@ -513,20 +532,22 @@ class _ProfileHeaderWidget extends StatelessWidget {
                 // ── Clear Image ───────────────────────────────────
                 Obx(() => controller.imagePath.value.isNotEmpty
                     ? Positioned(
-                  right: 0, top: 0,
-                  child: GestureDetector(
-                    onTap: () => controller.imagePath.value = '',
-                    child: Container(
-                      width: 22, height: 22,
-                      decoration: BoxDecoration(
-                        color: colorScheme.onSurfaceVariant,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.close,
-                          size: 13, color: colorScheme.surface),
-                    ),
-                  ),
-                )
+                        right: 0,
+                        top: 0,
+                        child: GestureDetector(
+                          onTap: () => controller.imagePath.value = '',
+                          child: Container(
+                            width: 22,
+                            height: 22,
+                            decoration: BoxDecoration(
+                              color: colorScheme.onSurfaceVariant,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.close,
+                                size: 13, color: colorScheme.surface),
+                          ),
+                        ),
+                      )
                     : const SizedBox.shrink()),
               ],
             ),

@@ -94,16 +94,20 @@ class Testinghome extends GetView<HomepageController> {
               children: [
                 Icon(Icons.location_on, color: colorScheme.primary, size: 16),
                 const SizedBox(width: 6),
-                Obx(() => Text(
-                      controller.selectcategory.value.toString().isNotEmpty
-                          ? controller.selectcategory.value.toString()
-                          : 'Select Location',
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 13,
-                      ),
-                    )),
+                Flexible(
+                  child: Obx(() => Text(
+                        controller.selectcategory.value.toString().isNotEmpty
+                            ? controller.selectcategory.value.toString()
+                            : 'Select Location',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurface,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 13,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      )),
+                ),
                 const SizedBox(width: 4),
                 Icon(Icons.keyboard_arrow_down,
                     color: colorScheme.onSurface, size: 18),

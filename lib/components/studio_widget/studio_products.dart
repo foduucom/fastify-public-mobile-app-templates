@@ -53,10 +53,13 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     if (productData != null) {
       if (productData is Map) {
         trendingList.value = productData['data'] ?? [];
-        _hasMore.value = productData['hasNextPage'] ?? false;
-        _currentPage.value = productData['next'] ??
-            ((productData['current_page'] ?? 1) + 1).toInt();
-      } else {
+        _hasMore.value = productData['hasNextPage'] == true;
+        _currentPage.value =
+            int.tryParse(productData['next']?.toString() ?? '') ??
+                ((int.tryParse(productData['current_page']?.toString() ?? '') ??
+                        1) +
+                    1);
+      } else if (productData is List) {
         trendingList.value = productData;
         _hasMore.value = false;
       }
@@ -308,7 +311,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                         ),
                         GestureDetector(
                           onTap: () {
-                            Get.toNamed(Routes.EXPLORE);
+                            //Get.toNamed(Routes.EXPLORE);
+
+                            Get.toNamed(Routes.CATEGORY);
+
                             // Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
                             //   'productId': categoryIds,
                             //   'name': heading,
@@ -556,7 +562,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     return Padding(
       padding: const EdgeInsets.only(left: 6.0),
       child: SizedBox(
-        height: 270,
+        height: 270, // Increased to 320 to prevent overflows
         child: _withScrollConfig(
           ListView.separated(
             controller: _scrollController,
@@ -916,7 +922,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     return Padding(
       padding: const EdgeInsets.only(left: 6.0),
       child: SizedBox(
-        height: 260,
+        height: 260, // Increased to 320 to be extra safe against overflows
         child: _withScrollConfig(
           ListView.separated(
             controller: _scrollController,

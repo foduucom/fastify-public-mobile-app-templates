@@ -21,9 +21,9 @@ class CategoryView extends GetView<CategoryController> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       // ── AppBar ──────────────────────────────────────────────────────
-      appBar: CustomAppBar2(title: 'Category'),
+      appBar: CustomAppBar2(title: 'Explore'),
 
-       body: FoduuStudioLayoutView(
+      body: FoduuStudioLayoutView(
         onRefresh: () async {
           await controller.onPullTorefresh();
         },

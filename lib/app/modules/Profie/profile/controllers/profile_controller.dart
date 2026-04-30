@@ -30,10 +30,10 @@ class ProfileController extends GetxController with BaseController {
   var newPasswordObsecureValue = true.obs;
   var oldPasswordObsecureValue = true.obs;
   var comfirmPasswordObsecureValue = true.obs;
-  var selectedGender = 'Male'.obs;
+  //var selectedGender = 'Male'.obs;
   final addressController = TextEditingController();
   var selectNotification = 0.obs;
-  var selectedDob = Rx<DateTime?>(null);
+  //var selectedDob = Rx<DateTime?>(null);
   @override
   Future<void> onInit() async {
     super.onInit();
@@ -132,23 +132,23 @@ class ProfileController extends GetxController with BaseController {
         emailController.text = response["email"]?.toString() ?? "";
         phoneController.text = response["mobile"]?.toString() ?? "";
 
-        // ✅ DOB — populate both controller + observable
-        final DateTime? dob =
-            response['dob'] != null ? DateTime.tryParse(response['dob']) : null;
-        if (dob != null) {
-          selectedDob.value = dob;
-          dobController.text = DateFormat('dd-MM-yyyy').format(dob);
-        } else {
-          selectedDob.value = null;
-          dobController.text = '';
-        }
+        // // ✅ DOB — populate both controller + observable
+        // final DateTime? dob =
+        //     response['dob'] != null ? DateTime.tryParse(response['dob']) : null;
+        // if (dob != null) {
+        //   selectedDob.value = dob;
+        //   dobController.text = DateFormat('dd-MM-yyyy').format(dob);
+        // } else {
+        //   selectedDob.value = null;
+        //   dobController.text = '';
+        // }
 
-        // ✅ Gender — sync both controller + observable pill selector
-        final String rawGender =
-            response["gender"]?.toString().toLowerCase() ?? 'male';
-        genderController.text = rawGender;
-        selectedGender.value = rawGender == 'female' ? 'Female' : 'Male';
-        gender.value = rawGender;
+        // // ✅ Gender — sync both controller + observable pill selector
+        // final String rawGender =
+        //     response["gender"]?.toString().toLowerCase() ?? 'male';
+        // genderController.text = rawGender;
+        // selectedGender.value = rawGender == 'female' ? 'Female' : 'Male';
+        // gender.value = rawGender;
       }
     } catch (e) {
       debugPrint('profile error $e');
@@ -197,8 +197,8 @@ class ProfileController extends GetxController with BaseController {
       var form = FormData({
         'name': nameController.text,
         'mobile': phoneController.text,
-        'dob': selectedDob.value,
-        'gender': gender.value,
+        // 'dob': selectedDob.value,
+        // 'gender': gender.value,
         'email': emailController.text,
         'featured_image':
             !imagePath.value.contains("http") && imagePath.value != ""
