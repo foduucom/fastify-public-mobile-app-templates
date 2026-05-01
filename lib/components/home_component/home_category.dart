@@ -10,6 +10,7 @@ import '/constants/helper_functions.dart';
 import '/constants/theme.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
+import 'home_common_widgets.dart';
 
 class CategoryHome extends StatefulWidget {
   final dynamic categoryData;
@@ -38,12 +39,25 @@ class _TopCategoryHomeState extends State<CategoryHome>
     String orientation = contentJson['list_view_type'] ?? 'horizontal';
     // 'columns': 2 (default)
     int columns = int.tryParse(contentJson['columns'].toString()) ?? 2;
+    String heading =
+        (contentJson['heading'] ?? contentJson['title'] ?? '').toString();
+    String subheading =
+        (contentJson['subheading'] ?? contentJson['subtitle'] ?? '').toString();
 
-    return Padding(
-      padding: pageSurroundingPadding,
-      child: viewMode == 'grid'
-          ? _buildGridView(categories, style, columns)
-          : _buildListView(categories, style, orientation),
+    return Column(
+      children: [
+        StudioSectionHeader(
+          title: heading,
+          subtitle: subheading,
+          onSeeAll: () => Get.toNamed(Routes.CATEGORY_SEARCH),
+        ),
+        Padding(
+          padding: pageSurroundingPadding,
+          child: viewMode == 'grid'
+              ? _buildGridView(categories, style, columns)
+              : _buildListView(categories, style, orientation),
+        ),
+      ],
     );
   }
 

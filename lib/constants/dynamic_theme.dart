@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class DefaultThemeColors {
   DefaultThemeColors._(); // Private constructor - prevents instantiation
@@ -279,6 +280,9 @@ class DynamicThemeManager {
   AppThemeColors _lightColors = AppThemeColors.defaultsLight();
   AppThemeColors _darkColors = AppThemeColors.defaultsDark();
 
+  ThemeData? _cachedLightTheme;
+  ThemeData? _cachedDarkTheme;
+
   AppThemeColors get lightColors => _lightColors;
   AppThemeColors get darkColors => _darkColors;
 
@@ -299,6 +303,7 @@ class DynamicThemeManager {
         Map<String, dynamic>.from(storedLight),
         false,
       );
+      _cachedLightTheme = null;
     } else {
       debugPrint('ℹ️ No stored light theme found, using defaults');
     }
@@ -311,6 +316,7 @@ class DynamicThemeManager {
         Map<String, dynamic>.from(storedDark),
         true,
       );
+      _cachedDarkTheme = null;
     } else {
       debugPrint('ℹ️ No stored dark theme found, using defaults');
     }
@@ -327,6 +333,7 @@ class DynamicThemeManager {
         Map<String, dynamic>.from(appThemeColor['light']),
         false,
       );
+      _cachedLightTheme = null;
       _box.write(_lightThemeKey, _lightColors.toJson());
       debugPrint('✅ Light theme updated & saved successfully');
     } else {
@@ -339,6 +346,7 @@ class DynamicThemeManager {
         Map<String, dynamic>.from(appThemeColor['dark']),
         true,
       );
+      _cachedDarkTheme = null;
       _box.write(_darkThemeKey, _darkColors.toJson());
       debugPrint('✅ Dark theme updated & saved successfully');
     } else {
@@ -353,18 +361,20 @@ class DynamicThemeManager {
     _box.remove(_darkThemeKey);
     _lightColors = AppThemeColors.defaultsLight();
     _darkColors = AppThemeColors.defaultsDark();
+    _cachedLightTheme = null;
+    _cachedDarkTheme = null;
   }
 
   /// Build LIGHT ThemeData
   ThemeData buildLightTheme() {
-    debugPrint('🎭 Building LIGHT ThemeData');
-    return _buildTheme(_lightColors, Brightness.light);
+    _cachedLightTheme ??= _buildTheme(_lightColors, Brightness.light);
+    return _cachedLightTheme!;
   }
 
   /// Build DARK ThemeData
   ThemeData buildDarkTheme() {
-    debugPrint('🎭 Building DARK ThemeData');
-    return _buildTheme(_darkColors, Brightness.dark);
+    _cachedDarkTheme ??= _buildTheme(_darkColors, Brightness.dark);
+    return _cachedDarkTheme!;
   }
 
   /// Internal method to build ThemeData from colors
@@ -391,7 +401,7 @@ class DynamicThemeManager {
         backgroundColor: colors.surface,
         elevation: 0,
       ),
-      fontFamily: 'Lato',
+      fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
       scaffoldBackgroundColor: colors.background,
       colorScheme: ColorScheme(
         brightness: brightness,
@@ -545,7 +555,7 @@ class DynamicThemeManager {
   }
 
   TextTheme _buildTextTheme(AppThemeColors colors) {
-    return TextTheme(
+    return GoogleFonts.plusJakartaSansTextTheme(TextTheme(
       displayLarge: TextStyle(
         fontSize: 32,
         fontWeight: FontWeight.w600,
@@ -617,7 +627,7 @@ class DynamicThemeManager {
         fontSize: 10,
         color: colors.onSurfaceVariant,
       ),
-    );
+    ));
   }
 }
 

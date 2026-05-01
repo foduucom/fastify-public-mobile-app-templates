@@ -98,19 +98,27 @@ class CustomDrawer extends GetView<HomepageController> {
   }
 
   Widget _emptyState() {
-    return const Center(
+    return Center(
       child: Padding(
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.inbox_outlined,
+            const Icon(
+              Icons.cloud_off_outlined,
               size: 48,
+              color: Colors.grey,
             ),
-            SizedBox(height: 12),
-            Text(
-              'No navigation items',
+            const SizedBox(height: 12),
+            const Text(
+              'No navigation items found',
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () => controller.getDrawerNavigation(),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
             ),
           ],
         ),

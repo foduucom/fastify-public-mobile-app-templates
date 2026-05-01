@@ -51,8 +51,12 @@ class HomepageController extends GetxController
           .catchError(handleError);
 
       if (response != null) {
-        var list = response['value'];
-        drawernavigationItems.assignAll(list);
+        // Handle both 'data' (from BasicProvider) and direct list if applicable
+        var list = response is List ? response : (response['value'] ?? response['data'] ?? []);
+        drawernavigationItems.assignAll(list is List ? list : []);
+      } else {
+        print('WARNING: Drawer navigation data is null');
+        drawernavigationItems.assignAll([]);
       }
 
       return response;

@@ -67,6 +67,7 @@ abstract class Routes {
   static const CONTACTUS = _Paths.CONTACTUS;
   static const PRIVACY_POLICY = _Paths.PRIVACY_POLICY;
   static const TERMS_CONDITIONS = _Paths.TERMS_CONDITIONS;
+  static const CATEGORY_SEARCH = _Paths.CATEGORY_SEARCH;
 
   //
 }
@@ -132,4 +133,5 @@ abstract class _Paths {
   static const CONTACTUS = '/contactus';
   static const PRIVACY_POLICY = '/privacy_policy';
   static const TERMS_CONDITIONS = '/terms_condition';
+  static const CATEGORY_SEARCH = '/category-search';
 }

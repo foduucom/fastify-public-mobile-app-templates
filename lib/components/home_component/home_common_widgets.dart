@@ -85,3 +85,61 @@ class TextBlockComponent extends StatelessWidget {
     );
   }
 }
+
+class StudioSectionHeader extends StatelessWidget {
+  final String? title;
+  final String? subtitle;
+  final VoidCallback? onSeeAll;
+
+  const StudioSectionHeader({
+    Key? key,
+    this.title,
+    this.subtitle,
+    this.onSeeAll,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final t = title?.trim() ?? '';
+    final s = subtitle?.trim() ?? '';
+
+    // Only show if BOTH title and subtitle are non-empty
+    if (t.isEmpty || s.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(t, style: textTheme.titleLarge),
+                Text(s,
+                    style: textTheme.titleSmall!.copyWith(
+                        color: colorScheme.onSurfaceVariant)),
+              ],
+            ),
+          ),
+          if (onSeeAll != null)
+            GestureDetector(
+              onTap: onSeeAll,
+              child: Text(
+                'See all',
+                style: textTheme.labelMedium?.copyWith(
+                  color: colorScheme.primary,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}

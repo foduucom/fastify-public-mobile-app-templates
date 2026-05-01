@@ -234,8 +234,15 @@ class BasicProvider {
 
     switch (response.statusCode) {
       case 200:
-        var responseJson = json.decode(response.body)["data"];
-        print("responseJson: $responseJson");
+        var decoded = json.decode(response.body);
+        var responseJson = decoded["data"];
+        print("━━━━━━━━━━━━━━━ API SUCCESS ━━━━━━━━━━━━━━━");
+        print("URL: $url");
+        print("RESPONSE JSON: $responseJson");
+        if (responseJson == null) {
+          print("WARNING: Data is NULL but status is 200 SUCCESS");
+        }
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         return responseJson;
       case 201:
         var responseJson = json.decode(response.body)["data"];

@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/controllers/homepage_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
@@ -100,6 +101,8 @@ class _FoduuSliderState extends State<FoduuSlider>
           height: 200,
           child: sliderContent.isEmpty
               ? Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
                   child: Padding(
                     padding: pageSurroundingPadding,
                     child: Container(
@@ -111,8 +114,6 @@ class _FoduuSliderState extends State<FoduuSlider>
                           borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
                 )
               : PageView.builder(
                   physics: const ClampingScrollPhysics(),
@@ -124,34 +125,58 @@ class _FoduuSliderState extends State<FoduuSlider>
                   },
                   itemCount: sliderContent.length,
                   itemBuilder: (context, index) {
-                    return Stack(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            final item = sliderContent[index];
-                            if (item['sliderType'] == 'categories') {
-                              Get.toNamed(Routes.SHOPPRODUCTLISTVIEW,
-                                  arguments: {
-                                    'source': 'category',
-                                    'productId': item['link'],
-                                    'name': item['heading']
-                                  });
+                    final item = sliderContent[index];
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () async {
+                        final String link = item['link']?.toString() ?? '';
+                        if (link.isEmpty) {
+                          HelperFunctions()
+                              .showSnackBarError("No link available");
+                          return;
+                        }
+
+                        // Handle external URL
+                        if (link.startsWith('http://') ||
+                            link.startsWith('https://')) {
+                          final Uri url = Uri.parse(link);
+                          try {
+                            if (await canLaunchUrl(url)) {
+                              await launchUrl(url,
+                                  mode: LaunchMode.externalApplication);
+                            } else {
+                              HelperFunctions()
+                                  .showSnackBarError("Could not launch $link");
                             }
-                            if (item['sliderType'] == 'page') {}
-                            if (item['sliderType'] == 'blog') {
-                              Get.toNamed(Routes.BLOG, arguments: {
-                                'id': item['link'],
-                              });
-                            }
-                          },
-                          child: Padding(
+                          } catch (e) {
+                            HelperFunctions()
+                                .showSnackBarError("Error launching link: $e");
+                          }
+                          return;
+                        }
+
+                        // Fallback to internal navigation based on sliderType
+                        if (item['sliderType'] == 'categories') {
+                          Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+                            'source': 'category',
+                            'productId': link,
+                            'name': item['heading']
+                          });
+                        } else if (item['sliderType'] == 'blog') {
+                          Get.toNamed(Routes.BLOG, arguments: {
+                            'id': link,
+                          });
+                        }
+                      },
+                      child: Stack(
+                        children: [
+                          Padding(
                             padding: pageSurroundingPadding,
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12.0),
                               child: CachedNetworkImage(
                                   height: 200,
-                                  imageUrl: HelperFunctions()
-                                      .getImage(sliderContent[index]),
+                                  imageUrl: HelperFunctions().getImage(item),
                                   fit: BoxFit.cover,
                                   width: Get.width,
                                   errorWidget: ((context, url, error) =>
@@ -162,7 +187,7 @@ class _FoduuSliderState extends State<FoduuSlider>
                                         height: 200,
                                         decoration: BoxDecoration(
                                             color: Colors.grey.shade300),
-                                        child: Center(
+                                        child: const Center(
                                           child: Icon(Icons.error),
                                         ),
                                       )),
@@ -186,38 +211,38 @@ class _FoduuSliderState extends State<FoduuSlider>
                                           ))),
                             ),
                           ),
-                        ),
-                        Positioned(
-                            child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 20,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(height: 6),
-                              Text(
-                                sliderContent[index]['heading'] ?? '',
-                                style: TextStyle(
-                                  fontFamily: 'Lato',
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
+                          Positioned(
+                              child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const SizedBox(height: 6),
+                                Text(
+                                  item['heading'] ?? '',
+                                  style: const TextStyle(
+                                    fontFamily: 'Lato',
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: 6),
-                              Text(
-                                sliderContent[index]['description'] ?? '',
-                                style: TextStyle(
-                                  fontFamily: 'Lato',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w300,
+                                const SizedBox(height: 6),
+                                Text(
+                                  item['description'] ?? '',
+                                  style: const TextStyle(
+                                    fontFamily: 'Lato',
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w300,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ))
-                      ],
+                              ],
+                            ),
+                          ))
+                        ],
+                      ),
                     );
                   }),
         ),

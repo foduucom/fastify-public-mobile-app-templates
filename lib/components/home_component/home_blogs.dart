@@ -5,7 +5,7 @@ import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
+import 'home_common_widgets.dart';
 
 class BlogSection extends StatefulWidget {
   final dynamic blogData;
@@ -26,110 +26,105 @@ class _BlogSectionState extends State<BlogSection>
 
     if (blogs.isEmpty) return const SizedBox();
 
-    return Padding(
-      padding: pageSurroundingPadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 10),
-          Row(
+    String heading =
+        (widget.blogData['heading'] ?? widget.blogData['title'] ?? '')
+            .toString();
+    String subheading =
+        (widget.blogData['subheading'] ?? widget.blogData['subtitle'] ?? '')
+            .toString();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        StudioSectionHeader(
+          title: heading,
+          subtitle: subheading,
+          onSeeAll: () => Get.toNamed(Routes.BLOG),
+        ),
+        Padding(
+          padding: pageSurroundingPadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Blogs',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const Spacer(),
-              TextButton(
-                onPressed: () {
-                  Get.toNamed(Routes.BLOG);
-                },
-                child: Text(
-                  'See all',
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelLarge!
-                      .copyWith(color: Theme.of(context).colorScheme.primary),
+              const SizedBox(height: 5),
+              Container(
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    mainAxisExtent: 240,
+                  ),
+                  itemCount: blogs.length,
+                  itemBuilder: ((context, index) {
+                    var blog = blogs[index];
+                    return InkWell(
+                      onTap: () {},
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.vertical(
+                              bottom: Radius.circular(10)),
+                          color: Theme.of(context).colorScheme.surface,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(10)),
+                              child: CachedNetworkImage(
+                                imageUrl: HelperFunctions()
+                                    .getImage(blog['featured_image']),
+                                height: 160,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorWidget: (context, url, error) =>
+                                    const SizedBox(
+                                  child: Icon(Icons.error),
+                                ),
+                                progressIndicatorBuilder:
+                                    (context, url, progress) =>
+                                        HelperFunctions().loadingIndicator(),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0, vertical: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    blog['name'] ?? '',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontFamily: 'Lato',
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  _buildDescription(blog),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 5),
-          Container(
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                mainAxisExtent: 240, // Slightly increased to fit description
-              ),
-              itemCount: blogs.length,
-              itemBuilder: ((context, index) {
-                var blog = blogs[index];
-                return InkWell(
-                  onTap: () {},
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.vertical(bottom: Radius.circular(10)),
-                      color: Theme.of(context).colorScheme.surface,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(10)),
-                          child: CachedNetworkImage(
-                            imageUrl: HelperFunctions()
-                                .getImage(blog['featured_image']),
-                            height: 160,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorWidget: (context, url, error) =>
-                                const SizedBox(
-                              child: Icon(Icons.error),
-                            ),
-                            progressIndicatorBuilder:
-                                (context, url, progress) =>
-                                    HelperFunctions().loadingIndicator(),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0, vertical: 8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                blog['name'] ?? '',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    fontFamily: 'Lato',
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant),
-                              ),
-                              const SizedBox(height: 4),
-                              _buildDescription(blog),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -137,16 +132,13 @@ class _BlogSectionState extends State<BlogSection>
     String content = blog['excerpt'] ?? blog['content'] ?? '';
 
     return SizedBox(
-      // height: 35, // Approximate height for 2 lines
       child: HtmlWidget(
         content.length > 60 ? content.substring(0, 50) + '...' : content,
         textStyle: TextStyle(
             fontSize: 12,
             fontFamily: 'Lato',
             color: Theme.of(context).colorScheme.onSurfaceVariant,
-            overflow: TextOverflow
-                .ellipsis // Helper for text overflow if supported by HtmlWidget context
-            ),
+            overflow: TextOverflow.ellipsis),
       ),
     );
   }

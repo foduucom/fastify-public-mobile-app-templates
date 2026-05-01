@@ -32,9 +32,10 @@ class BottombarView extends GetView<BottombarController> {
     var width = Get.width;
     var height = Get.height;
 
-    return SafeArea(
-      child: Scaffold(
-        body: Column(
+    return Scaffold(
+      body: SafeArea(
+        bottom: false,
+        child: Column(
           children: [
             // ONE COMMON HEADER FOR ALL PAGES
             Obx(() {
@@ -59,19 +60,17 @@ class BottombarView extends GetView<BottombarController> {
                 controller: controller.pageController,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  // REMOVE HEADERS FROM ALL THESE PAGES
                   HomePageView(),
                   CategoryView(),
                   WishlistView(),
                   ProfileView(),
-                  //TempraryProfileView(),
                 ],
               ),
             ),
           ],
         ),
-        bottomNavigationBar: _buildBottomNav(context),
       ),
+      bottomNavigationBar: _buildBottomNav(context),
     );
   }
 
@@ -81,29 +80,30 @@ class BottombarView extends GetView<BottombarController> {
         height: Get.height,
         currentIndex: controller.currentPageIndex.value,
         onTap: controller.onTabChange,
-        backgroundColor: context.surfaceColor, // Theme-aware background
-        activeColor: colorScheme.primary, // Dynamic primary color
-        inactiveColor: context.onSurfaceVariantColor, // Theme-aware inactive
-        borderColor: context.outlineColor, // Theme-aware border
-        items: const [
-          BottomNavItem(
-            activeIcon: Icons.home_filled,
+        backgroundColor: context.surfaceColor,
+        activeColor: colorScheme.primary,
+        inactiveColor: context.onSurfaceVariantColor,
+        borderColor: context.outlineColor,
+        items: [
+          const BottomNavItem(
+            activeIcon: Icons.home_rounded,
             inactiveIcon: Icons.home_outlined,
             label: 'Home',
           ),
-          BottomNavItem(
-            activeIcon: Icons.category,
-            inactiveIcon: Icons.category_outlined,
+          const BottomNavItem(
+            activeIcon: Icons.grid_view_rounded,
+            inactiveIcon: Icons.grid_view_outlined,
             label: 'Category',
           ),
           BottomNavItem(
-            activeIcon: Icons.favorite,
-            inactiveIcon: Icons.favorite_border,
+            activeIcon: Icons.favorite_rounded,
+            inactiveIcon: Icons.favorite_outline_rounded,
             label: 'Wishlist',
+            badgeCount: wishListController.wishlistItems.length,
           ),
-          BottomNavItem(
-            activeIcon: Icons.person,
-            inactiveIcon: Icons.person_outline,
+          const BottomNavItem(
+            activeIcon: Icons.person_rounded,
+            inactiveIcon: Icons.person_outline_rounded,
             label: 'Profile',
           ),
         ],

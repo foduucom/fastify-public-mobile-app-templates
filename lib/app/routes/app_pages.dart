@@ -1,4 +1,6 @@
 import 'package:foduu_ecommerce/app/modules/Profie/contact/view/contact_us_view.dart';
+import 'package:foduu_ecommerce/app/modules/category_search/bindings/category_search_binding.dart';
+import 'package:foduu_ecommerce/app/modules/category_search/views/category_search_view.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/binding/order_binding.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/order_products/binding/order_products_binding.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/order_products/view/order_view.dart';
@@ -326,6 +328,11 @@ class AppPages {
     GetPage(
       name: _Paths.TERMS_CONDITIONS,
       page: () => const TermsConditionsView(),
+    ),
+    GetPage(
+      name: _Paths.CATEGORY_SEARCH,
+      page: () => const CategorySearchView(),
+      binding: CategorySearchBinding(),
     ),
   ];
 

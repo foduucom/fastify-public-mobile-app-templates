@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_typing_uninitialized_variables
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/controllers/homepage_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
@@ -251,9 +252,21 @@ class _HomeBannerState extends State<HomeBanner>
         'name': link['label'] ?? link['name']
       });
     } else if (linkType == 'url') {
-      // Handle external URL
-      // You can use url_launcher package here
-      // launchUrl(Uri.parse(link['value']));
+      final String urlString = link['value']?.toString() ?? '';
+      if (urlString.isNotEmpty) {
+        final Uri url = Uri.parse(urlString);
+        canLaunchUrl(url).then((canLaunch) {
+          if (canLaunch) {
+            launchUrl(url, mode: LaunchMode.externalApplication);
+          } else {
+            HelperFunctions().showSnackBarError("Could not launch $urlString");
+          }
+        }).catchError((e) {
+          HelperFunctions().showSnackBarError("Error launching link: $e");
+        });
+      } else {
+        HelperFunctions().showSnackBarError("Link is empty");
+      }
     }
   }
 
