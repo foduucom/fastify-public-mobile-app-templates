@@ -5,6 +5,7 @@ import '/app/modules/homepage/controllers/homepage_controller.dart';
 import '/app/routes/app_pages.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
+import 'studio_common_widgets.dart';
 import 'dart:async';
 
 class HomeBanner extends StatefulWidget {
@@ -41,7 +42,14 @@ class _HomeBannerState extends State<HomeBanner>
     if (banners.isEmpty) return const SizedBox();
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        StudioSectionHeader(
+          title: widget.bannerContent['section_title'] ??
+              widget.bannerContent['heading'],
+          subtitle: widget.bannerContent['section_subtitle'] ??
+              widget.bannerContent['subheading'],
+        ),
         for (var banner in banners) _buildBannerByType(banner),
       ],
     );

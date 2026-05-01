@@ -7,6 +7,7 @@ import '/constants/constants.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
+import 'studio_common_widgets.dart';
 
 // ── Private value object for type-based styling ───────────────────────────────
 class _CategoryTypeStyle {
@@ -108,11 +109,22 @@ class _TopCategoryHomeState extends State<CategoryHome>
     // 'columns': 2 (default)
     int columns = int.tryParse(contentJson['columns'].toString()) ?? 2;
 
-    return Padding(
-      padding: pageSurroundingPadding.copyWith(bottom: 0),
-      child: viewMode == 'grid'
-          ? _buildGridView(categories, style, columns)
-          : _buildListView(categories, style, orientation),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        StudioSectionHeader(
+          title: contentJson['heading'] ?? contentJson['heading'] ?? '',
+          subtitle:
+              contentJson['subheading'] ?? contentJson['subheading'] ?? '',
+          onSeeAll: () => Get.toNamed(Routes.CATEGORY),
+        ),
+        Padding(
+          padding: pageSurroundingPadding.copyWith(bottom: 0),
+          child: viewMode == 'grid'
+              ? _buildGridView(categories, style, columns)
+              : _buildListView(categories, style, orientation),
+        ),
+      ],
     );
   }
 

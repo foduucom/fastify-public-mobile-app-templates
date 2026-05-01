@@ -6,6 +6,7 @@ import '/constants/constants.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'studio_common_widgets.dart';
 
 class BlogSection extends StatefulWidget {
   final dynamic blogData;
@@ -33,26 +34,14 @@ class _BlogSectionState extends State<BlogSection>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 10),
-          Row(
-            children: [
-              Text(
+          StudioSectionHeader(
+            title: contentJson['section_title'] ??
+                contentJson['heading'] ??
                 'Blogs',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const Spacer(),
-              TextButton(
-                onPressed: () {
-                  Get.toNamed(Routes.BLOG);
-                },
-                child: Text(
-                  'See all',
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelLarge!
-                      .copyWith(color: Theme.of(context).colorScheme.primary),
-                ),
-              ),
-            ],
+            subtitle: contentJson['section_subtitle'] ??
+                contentJson['subheading'] ??
+                '',
+            onSeeAll: () => Get.toNamed(Routes.BLOG),
           ),
           const SizedBox(height: 5),
           Container(

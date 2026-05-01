@@ -12,6 +12,7 @@ import '/constants/constants.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
+import 'studio_common_widgets.dart';
 
 class FoduuSlider extends StatefulWidget {
   final sliderData;
@@ -84,93 +85,104 @@ class _FoduuSliderState extends State<FoduuSlider>
         context); // Call to the super method for AutomaticKeepAliveClientMixin
     final double sliderHeight = _getSliderHeight();
 
-    return Stack(
-      alignment: Alignment.bottomCenter,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: Colors.transparent,
-          ),
-          height: sliderHeight,
-          child: _sliderContent.isEmpty
-              ? Shimmer.fromColors(
-                  child: Padding(
-                    padding: pageSurroundingPadding,
-                    child: Container(
-                      padding: pageSurroundingPadding,
-                      width: Get.width,
-                      height: sliderHeight,
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                )
-              : ScrollConfiguration(
-                  behavior: ScrollConfiguration.of(context).copyWith(
-                    dragDevices: {
-                      PointerDeviceKind.touch,
-                      PointerDeviceKind.mouse,
-                      PointerDeviceKind.trackpad,
-                    },
-                  ),
-                  child: PageView.builder(
-                      physics: const ClampingScrollPhysics(),
-                      controller: _pageController,
-                      onPageChanged: (int page) {
-                        setState(() {
-                          _currentPage = page;
-                        });
-                      },
-                      itemCount: _sliderContent.length,
-                      itemBuilder: (context, index) {
-                        final item = _sliderContent[index];
-                        return Stack(
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                if (item['sliderType'] == 'categories') {
-                                  Get.toNamed(Routes.SHOPPRODUCTLISTVIEW,
-                                      arguments: {
-                                        'source': 'category',
-                                        'productId': item['link'],
-                                        'name': item['heading']
+        StudioSectionHeader(
+          title: widget.sliderData['section_title'] ??
+              widget.sliderData['heading'],
+          subtitle: widget.sliderData['section_subtitle'] ??
+              widget.sliderData['description'],
+        ),
+        Stack(
+          alignment: Alignment.bottomCenter,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: Colors.transparent,
+              ),
+              height: sliderHeight,
+              child: _sliderContent.isEmpty
+                  ? Shimmer.fromColors(
+                      child: Padding(
+                        padding: pageSurroundingPadding,
+                        child: Container(
+                          padding: pageSurroundingPadding,
+                          width: Get.width,
+                          height: sliderHeight,
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                      baseColor: Colors.grey[300]!,
+                      highlightColor: Colors.grey[100]!,
+                    )
+                  : ScrollConfiguration(
+                      behavior: ScrollConfiguration.of(context).copyWith(
+                        dragDevices: {
+                          PointerDeviceKind.touch,
+                          PointerDeviceKind.mouse,
+                          PointerDeviceKind.trackpad,
+                        },
+                      ),
+                      child: PageView.builder(
+                          physics: const ClampingScrollPhysics(),
+                          controller: _pageController,
+                          onPageChanged: (int page) {
+                            setState(() {
+                              _currentPage = page;
+                            });
+                          },
+                          itemCount: _sliderContent.length,
+                          itemBuilder: (context, index) {
+                            final item = _sliderContent[index];
+                            return Stack(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    if (item['sliderType'] == 'categories') {
+                                      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW,
+                                          arguments: {
+                                            'source': 'category',
+                                            'productId': item['link'],
+                                            'name': item['heading']
+                                          });
+                                    }
+                                    if (item['sliderType'] == 'page') {}
+                                    if (item['sliderType'] == 'blog') {
+                                      Get.toNamed(Routes.BLOG, arguments: {
+                                        'id': item['link'],
                                       });
-                                }
-                                if (item['sliderType'] == 'page') {}
-                                if (item['sliderType'] == 'blog') {
-                                  Get.toNamed(Routes.BLOG, arguments: {
-                                    'id': item['link'],
-                                  });
-                                }
-                              },
-                              child: Padding(
-                                padding: pageSurroundingPadding,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  child: CachedNetworkImage(
-                                      height: sliderHeight,
-                                      imageUrl: HelperFunctions().getImage(item),
-                                      fit: BoxFit.cover,
-                                      width: Get.width,
-                                      errorWidget: ((context, url, error) =>
-                                          Container(
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width -
-                                                20,
-                                            height: sliderHeight,
-                                            decoration: BoxDecoration(
-                                                color: Colors.grey.shade300),
-                                            child: Center(
-                                              child: Icon(Icons.error),
-                                            ),
-                                          )),
-                                      progressIndicatorBuilder:
-                                          ((context, url, progress) =>
+                                    }
+                                  },
+                                  child: Padding(
+                                    padding: pageSurroundingPadding,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(12.0),
+                                      child: CachedNetworkImage(
+                                          height: sliderHeight,
+                                          imageUrl:
+                                              HelperFunctions().getImage(item),
+                                          fit: BoxFit.cover,
+                                          width: Get.width,
+                                          errorWidget: ((context, url, error) =>
+                                              Container(
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width -
+                                                    20,
+                                                height: sliderHeight,
+                                                decoration: BoxDecoration(
+                                                    color:
+                                                        Colors.grey.shade300),
+                                                child: Center(
+                                                  child: Icon(Icons.error),
+                                                ),
+                                              )),
+                                          progressIndicatorBuilder: ((context,
+                                                  url, progress) =>
                                               Container(
                                                 width: MediaQuery.of(context)
                                                     .size
@@ -188,51 +200,54 @@ class _FoduuSliderState extends State<FoduuSlider>
                                                   ),
                                                 ),
                                               ))),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            Positioned(
-                                child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 20,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(height: 6),
-                                  Text(
-                                    item['heading'],
-                                    style: TextStyle(
-                                      fontFamily: 'Lato',
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                                Positioned(
+                                    child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 20,
                                   ),
-                                  SizedBox(height: 6),
-                                  Text(
-                                    item['description'],
-                                    style: TextStyle(
-                                      fontFamily: 'Lato',
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w300,
-                                    ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(height: 6),
+                                      Text(
+                                        item['heading'],
+                                        style: TextStyle(
+                                          fontFamily: 'Lato',
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      SizedBox(height: 6),
+                                      Text(
+                                        item['description'],
+                                        style: TextStyle(
+                                          fontFamily: 'Lato',
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w300,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            ))
-                          ],
-                        );
-                      }),
-                ),
+                                ))
+                              ],
+                            );
+                          }),
+                    ),
+            ),
+            Positioned(
+              bottom: 20,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [..._buildPageIndicator()],
+              ),
+            )
+          ],
         ),
-        Positioned(
-          bottom: 20,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [..._buildPageIndicator()],
-          ),
-        )
       ],
     );
   }
@@ -248,7 +263,9 @@ Widget _indicator(bool isActive) {
     margin: const EdgeInsets.symmetric(horizontal: 4.0),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(50),
-      color: isActive ? Theme.of(Get.context!).colorScheme.primary : Theme.of(Get.context!).colorScheme.outline,
+      color: isActive
+          ? Theme.of(Get.context!).colorScheme.primary
+          : Theme.of(Get.context!).colorScheme.outline,
     ),
   );
 }

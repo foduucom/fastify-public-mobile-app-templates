@@ -35,7 +35,16 @@ class WidgetRegistry {
 
     if (type == null || !_builders.containsKey(type) || !visible) return null;
 
-    final contentJson = section['content_json'] as Map<String, dynamic>?;
+    final Map<String, dynamic> contentJson =
+        Map<String, dynamic>.from(section['content_json'] ?? {});
+
+    // Pass title and subtitle from section level to contentJson for standardization
+    if (section['title'] != null) {
+      contentJson['section_title'] = section['title'];
+    }
+    if (section['subtitle'] != null) {
+      contentJson['section_subtitle'] = section['subtitle'];
+    }
 
     try {
       return _builders[type]!(contentJson);

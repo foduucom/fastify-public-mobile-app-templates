@@ -12,6 +12,7 @@ import '/constants/product_helper.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
+import 'studio_common_widgets.dart';
 
 class TrendingProductSection extends StatefulWidget {
   final Map<String, dynamic>? contentJson;
@@ -271,8 +272,12 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   @override
   Widget build(BuildContext context) {
-    final heading = widget.contentJson?['heading'] ?? 'Trending';
-    final subheading = widget.contentJson?['subheading'] ?? '';
+    final heading = widget.contentJson?['section_title'] ??
+        widget.contentJson?['heading'] ??
+        'Trending';
+    final subheading = widget.contentJson?['section_subtitle'] ??
+        widget.contentJson?['subheading'] ??
+        '';
     final categoryType =
         widget.contentJson?['category_type'] ?? 'random_category';
     final categoryIds = widget.contentJson?['categories'];
@@ -289,48 +294,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
               children: [
                 // ─── Section Header ───
                 if (!_infiniteScroll)
-                  Padding(
-                    padding:
-                        pageSurroundingPadding.copyWith(top: 24, bottom: 4),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(heading, style: textTheme.titleLarge),
-                              subheading.isEmpty
-                                  ? Container()
-                                  : Text(subheading,
-                                      style: textTheme.titleSmall?.copyWith(
-                                          color: colorScheme.onSurfaceVariant)),
-                            ],
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            //Get.toNamed(Routes.EXPLORE);
-
-                            Get.toNamed(Routes.CATEGORY);
-
-                            // Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-                            //   'productId': categoryIds,
-                            //   'name': heading,
-                            //   'productype': categoryType,
-                            //   'source': 'dashboard'
-                            // });
-                          },
-                          child: Text(
-                            'See all',
-                            style: textTheme.labelMedium?.copyWith(
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  StudioSectionHeader(
+                    title: heading,
+                    subtitle: subheading,
+                    onSeeAll: () => Get.toNamed(Routes.CATEGORY),
                   ),
                 const SizedBox(height: 4),
                 // ─── Product Cards ───

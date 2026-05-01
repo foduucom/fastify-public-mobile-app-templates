@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '/app/routes/app_pages.dart';
+import '/constants/constants.dart';
 import '../../app/modules/bottomar/controllers/bottombar_controller.dart';
 
 class SpacerComponent extends StatelessWidget {
@@ -93,5 +94,62 @@ class TextBlockComponent extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class StudioSectionHeader extends StatelessWidget {
+  final String? title;
+  final String? subtitle;
+  final VoidCallback? onSeeAll;
+
+  const StudioSectionHeader({
+    Key? key,
+    this.title,
+    this.subtitle,
+    this.onSeeAll,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // Show if EITHER title or subtitle is non-empty (more flexible than strict BOTH)
+    if ((title != null && title!.isNotEmpty) ||
+        (subtitle != null && subtitle!.isNotEmpty)) {
+      final colorScheme = Theme.of(context).colorScheme;
+      final textTheme = Theme.of(context).textTheme;
+
+      return Padding(
+        padding: pageSurroundingPadding.copyWith(top: 24, bottom: 4),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (title != null && title!.isNotEmpty)
+                    Text(title!, style: textTheme.titleLarge),
+                  if (subtitle != null && subtitle!.isNotEmpty)
+                    Text(subtitle!,
+                        style: textTheme.titleSmall
+                            ?.copyWith(color: colorScheme.onSurfaceVariant)),
+                ],
+              ),
+            ),
+            if (onSeeAll != null)
+              GestureDetector(
+                onTap: onSeeAll,
+                child: Text(
+                  'See all',
+                  style: textTheme.labelMedium?.copyWith(
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+    return const SizedBox.shrink();
   }
 }
