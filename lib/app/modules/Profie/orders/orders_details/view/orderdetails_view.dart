@@ -408,9 +408,8 @@ class PriceDetails extends StatelessWidget {
                                 ),
                             height: 100,
                             width: 100,
-                            imageUrl: item['products'][index]['image'] == null
-                                ? HelperFunctions.getNoImage()
-                                : url + item['products'][index]['image'],
+                            imageUrl: HelperFunctions()
+                                .getImage(item['products'][index]['image']),
                             fit: BoxFit.cover)),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -77,8 +78,8 @@ class _ImageSliderState extends State<ImageSlider2> {
               scrollPhysics: const BouncingScrollPhysics(),
               builder: (BuildContext context, int index) {
                 return PhotoViewGalleryPageOptions(
-                  imageProvider: CachedNetworkImageProvider(
-                      url + sliderList[index]['image']),
+                  imageProvider: CachedNetworkImageProvider(HelperFunctions()
+                      .getImage(Get.arguments["images"][index])),
                   initialScale: PhotoViewComputedScale.contained * 0.8,
                 );
               },

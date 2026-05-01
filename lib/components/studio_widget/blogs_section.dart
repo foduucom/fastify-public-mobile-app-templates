@@ -34,9 +34,8 @@ class _BlogSectionState extends State<BlogSection>
                             child: Icon(Icons.error),
                           ),
                         ),
-                    imageUrl: widget.blogData['featured_image'] == null
-                        ? HelperFunctions.getNoImage()
-                        : url + widget.blogData['featured_image']['filepath']),
+                    imageUrl: HelperFunctions()
+                        .getImage(widget.blogData['featured_image'])),
               ),
               const SizedBox(
                 height: 10,

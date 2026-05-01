@@ -47,7 +47,7 @@ class _FoduuSliderState extends State<FoduuSlider>
 
   List<Widget> _buildPageIndicator() {
     List<Widget> list = [];
-    print("Slide Data : ${widget.sliderData['slider']['content']}");
+    //print("Slide Data : ${widget.sliderData['slider']['content']}");
     for (int i = 0; i < widget.sliderData['slider']['content'].length; i++) {
       list.add(i == _currentPage ? _indicator(true) : _indicator(false));
     }
@@ -128,18 +128,33 @@ class _FoduuSliderState extends State<FoduuSlider>
                       itemBuilder: (context, index) {
                         final sliderItem =
                             widget.sliderData['slider']['content'][index];
+
+                        // Extract title and content
+                        final String title = sliderItem['heading'] ?? '';
+                        final String description =
+                            sliderItem['description'] ?? '';
+                        // final String buttonText =
+                        //     sliderItem['button_text'] ?? 'Shop Now';
+                        final String? link = sliderItem['link'];
+                        final String? sliderType = sliderItem['sliderType'];
+
+                        // Determine text color based on background (you can customize this)
+                        final bool isDarkBackground =
+                            sliderItem['dark_background'] ?? false;
+                        final Color textColor =
+                            isDarkBackground ? Colors.white : Colors.black;
+                        final Color buttonColor =
+                            Theme.of(context).primaryColor;
+
                         return GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () async {
-                            final String? link = sliderItem['link'];
-                            final String? sliderType = sliderItem['sliderType'];
-
                             if (sliderType == 'categories') {
                               Get.toNamed(Routes.SHOPPRODUCTLISTVIEW,
                                   arguments: {
                                     'source': 'category',
                                     'productId': link,
-                                    'name': sliderItem['heading']
+                                    'name': title
                                   });
                             } else if (sliderType == 'blog') {
                               Get.toNamed(Routes.BLOG, arguments: {
@@ -165,13 +180,15 @@ class _FoduuSliderState extends State<FoduuSlider>
                                   "No link associated with this slide.");
                             }
                           },
-                          child: Stack(
-                            children: [
-                              Padding(
-                                padding: pageSurroundingPadding,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  child: CachedNetworkImage(
+                          child: Container(
+                            child: Stack(
+                              children: [
+                                // Background Image
+                                Padding(
+                                  padding: pageSurroundingPadding,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    child: CachedNetworkImage(
                                       height: sliderHeight,
                                       imageUrl: HelperFunctions().getImage(
                                           widget.sliderData['slider']['content']
@@ -186,9 +203,17 @@ class _FoduuSliderState extends State<FoduuSlider>
                                                 20,
                                             height: sliderHeight,
                                             decoration: BoxDecoration(
-                                                color: Colors.grey.shade300),
+                                                gradient: LinearGradient(
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              colors: [
+                                                Colors.grey.shade400,
+                                                Colors.grey.shade600,
+                                              ],
+                                            )),
                                             child: Center(
-                                              child: Icon(Icons.error),
+                                              child: Icon(Icons.error,
+                                                  color: Colors.white),
                                             ),
                                           )),
                                       progressIndicatorBuilder:
@@ -197,9 +222,16 @@ class _FoduuSliderState extends State<FoduuSlider>
                                                 width: MediaQuery.of(context)
                                                     .size
                                                     .width,
-                                                height: 100,
+                                                height: sliderHeight,
                                                 decoration: BoxDecoration(
-                                                  color: Colors.grey.shade300,
+                                                  gradient: LinearGradient(
+                                                    begin: Alignment.topLeft,
+                                                    end: Alignment.bottomRight,
+                                                    colors: [
+                                                      Colors.grey.shade300,
+                                                      Colors.grey.shade500,
+                                                    ],
+                                                  ),
                                                 ),
                                                 child: Center(
                                                   child: SizedBox(
@@ -209,49 +241,95 @@ class _FoduuSliderState extends State<FoduuSlider>
                                                         .loadingIndicator(),
                                                   ),
                                                 ),
-                                              ))),
+                                              )),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              Positioned(
-                                  child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SizedBox(height: 6),
-                                    Text(
-                                      widget.sliderData['slider']['content']
-                                          [index]['heading'],
-                                      style: TextStyle(
-                                        fontFamily: 'Lato',
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w700,
+
+                                // Gradient Overlay for better text visibility
+                                Positioned.fill(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12.0),
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.transparent,
+                                          Colors.black.withOpacity(0.5),
+                                          Colors.black.withOpacity(0.8),
+                                        ],
+                                        stops: [0.3, 0.6, 1.0],
                                       ),
                                     ),
-                                    SizedBox(height: 6),
-                                    Text(
-                                      widget.sliderData['slider']['content']
-                                          [index]['description'],
-                                      style: TextStyle(
-                                        fontFamily: 'Lato',
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w300,
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ))
-                            ],
+
+                                // Title and Content
+                                Positioned(
+                                  left: 20,
+                                  right: 20,
+                                  bottom: sliderHeight *
+                                      0.25, // Position from bottom
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      if (title.isNotEmpty)
+                                        Text(
+                                          title,
+                                          style: TextStyle(
+                                            fontFamily: 'Lato',
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.w700,
+                                            color: textColor,
+                                            height: 1.2,
+                                            shadows: [
+                                              Shadow(
+                                                blurRadius: 4.0,
+                                                color: Colors.black
+                                                    .withOpacity(0.5),
+                                                offset: Offset(1.0, 1.0),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      if (title.isNotEmpty &&
+                                          description.isNotEmpty)
+                                        SizedBox(height: 8),
+                                      if (description.isNotEmpty)
+                                        Text(
+                                          description,
+                                          style: TextStyle(
+                                            fontFamily: 'Lato',
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400,
+                                            color: textColor,
+                                            shadows: [
+                                              Shadow(
+                                                blurRadius: 3.0,
+                                                color: Colors.black
+                                                    .withOpacity(0.5),
+                                                offset: Offset(1.0, 1.0),
+                                              ),
+                                            ],
+                                          ),
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       }),
                 ),
         ),
         Positioned(
-          bottom: 20,
+          bottom: 10,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [..._buildPageIndicator()],
@@ -266,13 +344,16 @@ class _FoduuSliderState extends State<FoduuSlider>
 }
 
 Widget _indicator(bool isActive) {
-  return Container(
-    height: 10,
-    width: isActive ? 20 : 10,
+  return AnimatedContainer(
+    duration: Duration(milliseconds: 300),
+    height: 8,
+    width: isActive ? 24 : 8,
     margin: const EdgeInsets.symmetric(horizontal: 4.0),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(50),
-      color: isActive ? Theme.of(Get.context!).primaryColor : Colors.grey,
+      color: isActive
+          ? Theme.of(Get.context!).primaryColor
+          : Colors.white.withOpacity(0.6),
     ),
   );
 }

@@ -101,7 +101,7 @@ class ImagePreviewMultipleView extends GetView {
                               height: Get.height * 0.8,
                               width: Get.width,
                               alignment: Alignment.center,
-                              imageUrl: url + item["image"],
+                              imageUrl: HelperFunctions().getImage(item["image"]),
                               fit: BoxFit.cover,
                               progressIndicatorBuilder:
                                   (context, url, downloadProgress) => Container(
@@ -251,7 +251,8 @@ class _ImageSliderState extends State<ImageSlider> {
     }
 
     for (int i = 0; i < sliderList.length; i++) {
-      imagelist.add(CachedNetworkImageProvider(url + sliderList[i]['image']));
+      imagelist.add(CachedNetworkImageProvider(
+          HelperFunctions().getImage(Get.arguments["images"][i])));
     }
   }
 
@@ -289,7 +290,7 @@ class _ImageSliderState extends State<ImageSlider> {
                       heroAttributes:
                           PhotoViewHeroAttributes(tag: 'image$index'),
                       imageProvider: CachedNetworkImageProvider(
-                        url + sliderList[index]['image'],
+                        HelperFunctions().getImage(Get.arguments["images"][index]),
                       ),
                       initialScale: PhotoViewComputedScale.contained,
                     );

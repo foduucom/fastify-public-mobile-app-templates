@@ -13,9 +13,225 @@ import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/product_helper.dart';
 import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+
+class _BadgeData {
+  final String label;
+  final Color fg;
+  final Color bg;
+  _BadgeData(this.label, this.fg, this.bg);
+}
 
 class ProductView extends GetView<ProductController> {
   ProductView({Key? key}) : super(key: key);
+
+  Widget _buildBadges(BuildContext context, Map<String, dynamic> details) {
+    final badges = <_BadgeData>[];
+    // final status = details['status'];
+    // if (status is Map && status['name'] != null) {
+    //   badges.add(_BadgeData(status['name'].toString(), Colors.green.shade700,
+    //       Colors.green.shade50));
+    // }
+    if (details['featured'] == true) {
+      badges.add(
+          _BadgeData('Featured', Colors.amber.shade700, Colors.amber.shade50));
+    }
+    if (details['trending'] == true) {
+      badges.add(_BadgeData(
+          'Trending', Colors.purple.shade700, Colors.purple.shade50));
+    }
+    if (details['hot'] == true) {
+      badges.add(_BadgeData('Hot', Colors.red.shade700, Colors.red.shade50));
+    }
+    if (details['recommended'] == true) {
+      badges.add(
+          _BadgeData('Recommended', Colors.blue.shade700, Colors.blue.shade50));
+    }
+    if (badges.isEmpty) return const SizedBox.shrink();
+    return Wrap(
+      spacing: 6,
+      runSpacing: 4,
+      children: badges
+          .map((b) => Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: b.bg,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: b.fg.withValues(alpha: 0.3)),
+                ),
+                child: Text(b.label,
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: b.fg,
+                        letterSpacing: 0.3)),
+              ))
+          .toList(),
+    );
+  }
+
+  Widget _buildBrandCategories(
+      BuildContext context, Map<String, dynamic> details) {
+    final brand =
+        details['brand'] is Map ? details['brand']['name']?.toString() : null;
+    final cats = details['categories'] is List
+        ? (details['categories'] as List)
+            .map((c) => c['name']?.toString() ?? '')
+            .where((s) => s.isNotEmpty)
+            .join(', ')
+        : null;
+    if ((brand == null || brand.isEmpty) && (cats == null || cats.isEmpty))
+      return const SizedBox.shrink();
+    return Row(
+      children: [
+        if (brand != null && brand.isNotEmpty) ...[
+          Icon(Icons.storefront_outlined,
+              size: 14, color: Theme.of(context).colorScheme.outline),
+          const SizedBox(width: 4),
+          Text(brand,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(fontWeight: FontWeight.w600)),
+        ],
+        if (brand != null &&
+            brand.isNotEmpty &&
+            cats != null &&
+            cats.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text('·',
+                style: TextStyle(color: Theme.of(context).colorScheme.outline)),
+          ),
+        if (cats != null && cats.isNotEmpty) ...[
+          Icon(Icons.category_outlined,
+              size: 14, color: Theme.of(context).colorScheme.outline),
+          const SizedBox(width: 4),
+          Flexible(
+              child: Text(cats,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  overflow: TextOverflow.ellipsis)),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildStockSku(
+      BuildContext context, Map<String, dynamic> details, int variantIndex) {
+    final variants = details['variants'];
+    if (variants is! List || variants.isEmpty) return const SizedBox.shrink();
+    final idx = variantIndex.clamp(0, variants.length - 1);
+    final variant = variants[idx] as Map<String, dynamic>;
+    final qty = int.tryParse(variant['quantity']?.toString() ?? '0') ?? 0;
+    final sku = variant['sku']?.toString() ?? '';
+    final inStock = qty > 0;
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: inStock ? Colors.green.shade50 : Colors.red.shade50,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: inStock ? Colors.green : Colors.red),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                inStock ? 'In Stock ($qty)' : 'Out of Stock',
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color:
+                        inStock ? Colors.green.shade800 : Colors.red.shade800),
+              ),
+            ],
+          ),
+        ),
+        if (sku.isNotEmpty) ...[
+          const SizedBox(width: 10),
+          Text('SKU: $sku',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.outline)),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildTaxInfo(BuildContext context, Map<String, dynamic> details) {
+    final isTaxable = details['isTaxable'] == true;
+    final tax = details['tax']?.toString() ?? '0';
+    return Text(
+      isTaxable ? 'Tax: $tax% applicable' : 'Inclusive of all taxes',
+      style: TextStyle(
+          fontSize: 12,
+          color: isTaxable
+              ? Theme.of(context).colorScheme.outline
+              : Colors.green.shade700,
+          fontWeight: FontWeight.w500),
+    );
+  }
+
+  Widget _buildPublishedDate(
+      BuildContext context, Map<String, dynamic> details) {
+    final raw = details['published_at']?.toString();
+    if (raw == null || raw.isEmpty) return const SizedBox.shrink();
+    try {
+      final dt = DateTime.parse(raw).toLocal();
+      final formatted = DateFormat('MMMM d, yyyy').format(dt);
+      return Row(
+        children: [
+          Icon(Icons.calendar_today_outlined,
+              size: 13, color: Theme.of(context).colorScheme.outline),
+          const SizedBox(width: 5),
+          Text('Published: $formatted',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.outline)),
+        ],
+      );
+    } catch (_) {
+      return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildTags(BuildContext context, Map<String, dynamic> details) {
+    final tags = details['tags'];
+    if (tags is! List || tags.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 8),
+        Text('Tags',
+            style:
+                txtTheme().titleLarge!.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 6,
+          runSpacing: 4,
+          children: tags
+              .map<Widget>((tag) => Chip(
+                    label: Text(tag.toString(),
+                        style: const TextStyle(fontSize: 12)),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                  ))
+              .toList(),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,12 +298,32 @@ class ProductView extends GetView<ProductController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 10),
+                      // Badges row
+                      Obx(() {
+                        if (controller.productDetials['name'] == null)
+                          return const SizedBox.shrink();
+                        return _buildBadges(
+                            context,
+                            Map<String, dynamic>.from(
+                                controller.productDetials));
+                      }),
+                      const SizedBox(height: 8),
                       Obx(() => controller.productDetials['name'] == null
                           ? const ShimmerEffect(height: 10, width: 100)
                           : Text(
                               controller.productDetials['name'].toString(),
                               style: Theme.of(context).textTheme.titleLarge,
                             )),
+                      const SizedBox(height: 6),
+                      // Brand + Categories
+                      Obx(() {
+                        if (controller.productDetials['name'] == null)
+                          return const SizedBox.shrink();
+                        return _buildBrandCategories(
+                            context,
+                            Map<String, dynamic>.from(
+                                controller.productDetials));
+                      }),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 5),
                         child: Obx(() {
@@ -174,6 +410,27 @@ class ProductView extends GetView<ProductController> {
                             ],
                           );
                         }
+                      }),
+                      const SizedBox(height: 8),
+                      // Stock status + SKU
+                      Obx(() {
+                        if (controller.productDetials['name'] == null)
+                          return const SizedBox.shrink();
+                        return _buildStockSku(
+                            context,
+                            Map<String, dynamic>.from(
+                                controller.productDetials),
+                            controller.selectedVariantIndex.value);
+                      }),
+                      const SizedBox(height: 6),
+                      // Tax info
+                      Obx(() {
+                        if (controller.productDetials['name'] == null)
+                          return const SizedBox.shrink();
+                        return _buildTaxInfo(
+                            context,
+                            Map<String, dynamic>.from(
+                                controller.productDetials));
                       }),
                     ],
                   ),
@@ -342,6 +599,24 @@ class ProductView extends GetView<ProductController> {
                           ],
                         ),
                       ),
+                      // Published date
+                      Obx(() {
+                        if (controller.productDetials['name'] == null)
+                          return const SizedBox.shrink();
+                        return _buildPublishedDate(
+                            context,
+                            Map<String, dynamic>.from(
+                                controller.productDetials));
+                      }),
+                      // Tags
+                      Obx(() {
+                        if (controller.productDetials['name'] == null)
+                          return const SizedBox.shrink();
+                        return _buildTags(
+                            context,
+                            Map<String, dynamic>.from(
+                                controller.productDetials));
+                      }),
                       Padding(
                         padding: EdgeInsets.zero,
                         child: Obx(() {

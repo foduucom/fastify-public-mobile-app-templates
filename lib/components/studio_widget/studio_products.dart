@@ -14,7 +14,6 @@ import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 import 'studio_common_widgets.dart';
 
-
 class TrendingProductSection extends StatefulWidget {
   final Map<String, dynamic>? contentJson;
 
