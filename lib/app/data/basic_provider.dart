@@ -36,11 +36,11 @@ class BasicProvider {
     } on SocketException {
       HelperFunctions().showSnackBarError(
           "Please check if your internet connection is stable!");
-      throw Future.error("No internet connection!");
+      throw "No internet connection!";
     } on TimeoutException {
       HelperFunctions().showSnackBarError(
           "Please check if your internet connection is stable!");
-      throw Future.error("Timeout : API is not responding!");
+      throw "Timeout : API is not responding!";
     } on UnAuthorizedException {
       rethrow;
     } catch (e) {
@@ -105,16 +105,16 @@ class BasicProvider {
     } on SocketException {
       HelperFunctions().showSnackBarError(
           "Please check if your internet connection is stable!");
-      throw Future.error("No internet connection!");
+      throw "No internet connection!";
     } on TimeoutException {
       HelperFunctions().showSnackBarError(
           "Please check if your internet connection is stable!");
-      throw Future.error("Timeout : API is not responding!");
+      throw "Timeout : API is not responding!";
     } on UnAuthorizedException {
-      throw Future.error("Unauthorized!");
+      throw "Unauthorized!";
     } catch (e) {
       print("POST request failed with error: $e");
-      throw Future.error(e.toString());
+      rethrow;
     }
   }
 
@@ -133,12 +133,16 @@ class BasicProvider {
     } on SocketException {
       HelperFunctions().showSnackBarError(
           "Please check if your internet connection is stable!");
-      throw Future.error("No internet connection!");
+      throw "No internet connection!";
     } on TimeoutException {
       HelperFunctions().showSnackBarError(
           "Please check if your internet connection is stable!");
-      throw Future.error("Timeout : API is not responding!");
-    } on UnAuthorizedException {}
+      throw "Timeout : API is not responding!";
+    } on UnAuthorizedException {
+      rethrow;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<dynamic> deleteRequest() async {
@@ -154,12 +158,16 @@ class BasicProvider {
     } on SocketException {
       HelperFunctions().showSnackBarError(
           "Please check if your internet connection is stable!");
-      throw Future.error("No internet connection!");
+      throw "No internet connection!";
     } on TimeoutException {
       HelperFunctions().showSnackBarError(
           "Please check if your internet connection is stable!");
-      throw Future.error("Timeout : API is not responding!");
-    } on UnAuthorizedException {}
+      throw "Timeout : API is not responding!";
+    } on UnAuthorizedException {
+      rethrow;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Map<String, String> headerType() {

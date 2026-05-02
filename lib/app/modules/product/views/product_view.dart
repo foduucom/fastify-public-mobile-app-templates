@@ -34,45 +34,54 @@ class ProductView extends GetView<ProductController> {
     // }
     if (details['featured'] == true) {
       badges.add(
-          _BadgeData('Featured', Colors.amber.shade700, Colors.amber.shade50));
+        _BadgeData('Featured', Colors.amber.shade700, Colors.amber.shade50),
+      );
     }
     if (details['trending'] == true) {
-      badges.add(_BadgeData(
-          'Trending', Colors.purple.shade700, Colors.purple.shade50));
+      badges.add(
+        _BadgeData('Trending', Colors.purple.shade700, Colors.purple.shade50),
+      );
     }
     if (details['hot'] == true) {
       badges.add(_BadgeData('Hot', Colors.red.shade700, Colors.red.shade50));
     }
     if (details['recommended'] == true) {
       badges.add(
-          _BadgeData('Recommended', Colors.blue.shade700, Colors.blue.shade50));
+        _BadgeData('Recommended', Colors.blue.shade700, Colors.blue.shade50),
+      );
     }
     if (badges.isEmpty) return const SizedBox.shrink();
     return Wrap(
       spacing: 6,
       runSpacing: 4,
       children: badges
-          .map((b) => Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                decoration: BoxDecoration(
-                  color: b.bg,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: b.fg.withValues(alpha: 0.3)),
+          .map(
+            (b) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(
+                color: b.bg,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: b.fg.withValues(alpha: 0.3)),
+              ),
+              child: Text(
+                b.label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: b.fg,
+                  letterSpacing: 0.3,
                 ),
-                child: Text(b.label,
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: b.fg,
-                        letterSpacing: 0.3)),
-              ))
+              ),
+            ),
+          )
           .toList(),
     );
   }
 
   Widget _buildBrandCategories(
-      BuildContext context, Map<String, dynamic> details) {
+    BuildContext context,
+    Map<String, dynamic> details,
+  ) {
     final brand =
         details['brand'] is Map ? details['brand']['name']?.toString() : null;
     final cats = details['categories'] is List
@@ -86,14 +95,18 @@ class ProductView extends GetView<ProductController> {
     return Row(
       children: [
         if (brand != null && brand.isNotEmpty) ...[
-          Icon(Icons.storefront_outlined,
-              size: 14, color: Theme.of(context).colorScheme.outline),
+          Icon(
+            Icons.storefront_outlined,
+            size: 14,
+            color: Theme.of(context).colorScheme.outline,
+          ),
           const SizedBox(width: 4),
-          Text(brand,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(fontWeight: FontWeight.w600)),
+          Text(
+            brand,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+          ),
         ],
         if (brand != null &&
             brand.isNotEmpty &&
@@ -101,31 +114,45 @@ class ProductView extends GetView<ProductController> {
             cats.isNotEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text('·',
-                style: TextStyle(color: Theme.of(context).colorScheme.outline)),
+            child: Text(
+              '·',
+              style: TextStyle(color: Theme.of(context).colorScheme.outline),
+            ),
           ),
         if (cats != null && cats.isNotEmpty) ...[
-          Icon(Icons.category_outlined,
-              size: 14, color: Theme.of(context).colorScheme.outline),
+          Icon(
+            Icons.category_outlined,
+            size: 14,
+            color: Theme.of(context).colorScheme.outline,
+          ),
           const SizedBox(width: 4),
           Flexible(
-              child: Text(cats,
-                  style: Theme.of(context).textTheme.bodySmall,
-                  overflow: TextOverflow.ellipsis)),
+            child: Text(
+              cats,
+              style: Theme.of(context).textTheme.bodySmall,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ],
     );
   }
 
   Widget _buildStockSku(
-      BuildContext context, Map<String, dynamic> details, int variantIndex) {
+    BuildContext context,
+    Map<String, dynamic> details,
+    int variantIndex,
+  ) {
     final variants = details['variants'];
     if (variants is! List || variants.isEmpty) return const SizedBox.shrink();
     final idx = variantIndex.clamp(0, variants.length - 1);
     final variant = variants[idx] as Map<String, dynamic>;
-    final qty = int.tryParse(variant['quantity']?.toString() ?? '0') ?? 0;
+    final variantQty = variant['quantity'];
+    final bool isUnlimited = variantQty == null;
+    final int qty = int.tryParse(variantQty?.toString() ?? '0') ?? 0;
+    final bool inStock = isUnlimited || qty > 0;
     final sku = variant['sku']?.toString() ?? '';
-    final inStock = qty > 0;
+
     return Row(
       children: [
         Container(
@@ -141,28 +168,32 @@ class ProductView extends GetView<ProductController> {
                 width: 7,
                 height: 7,
                 decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: inStock ? Colors.green : Colors.red),
+                  shape: BoxShape.circle,
+                  color: inStock ? Colors.green : Colors.red,
+                ),
               ),
               const SizedBox(width: 5),
               Text(
-                inStock ? 'In Stock ($qty)' : 'Out of Stock',
+                isUnlimited
+                    ? 'Unlimited'
+                    : (inStock ? 'In Stock ($qty)' : 'Out of Stock'),
                 style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color:
-                        inStock ? Colors.green.shade800 : Colors.red.shade800),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: inStock ? Colors.green.shade800 : Colors.red.shade800,
+                ),
               ),
             ],
           ),
         ),
         if (sku.isNotEmpty) ...[
           const SizedBox(width: 10),
-          Text('SKU: $sku',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.outline)),
+          Text(
+            'SKU: $sku',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+          ),
         ],
       ],
     );
@@ -174,16 +205,19 @@ class ProductView extends GetView<ProductController> {
     return Text(
       isTaxable ? 'Tax: $tax% applicable' : 'Inclusive of all taxes',
       style: TextStyle(
-          fontSize: 12,
-          color: isTaxable
-              ? Theme.of(context).colorScheme.outline
-              : Colors.green.shade700,
-          fontWeight: FontWeight.w500),
+        fontSize: 12,
+        color: isTaxable
+            ? Theme.of(context).colorScheme.outline
+            : Colors.green.shade700,
+        fontWeight: FontWeight.w500,
+      ),
     );
   }
 
   Widget _buildPublishedDate(
-      BuildContext context, Map<String, dynamic> details) {
+    BuildContext context,
+    Map<String, dynamic> details,
+  ) {
     final raw = details['published_at']?.toString();
     if (raw == null || raw.isEmpty) return const SizedBox.shrink();
     try {
@@ -191,14 +225,18 @@ class ProductView extends GetView<ProductController> {
       final formatted = DateFormat('MMMM d, yyyy').format(dt);
       return Row(
         children: [
-          Icon(Icons.calendar_today_outlined,
-              size: 13, color: Theme.of(context).colorScheme.outline),
+          Icon(
+            Icons.calendar_today_outlined,
+            size: 13,
+            color: Theme.of(context).colorScheme.outline,
+          ),
           const SizedBox(width: 5),
-          Text('Published: $formatted',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.outline)),
+          Text(
+            'Published: $formatted',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+          ),
         ],
       );
     } catch (_) {
@@ -213,20 +251,25 @@ class ProductView extends GetView<ProductController> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 8),
-        Text('Tags',
-            style:
-                txtTheme().titleLarge!.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          'Tags',
+          style: txtTheme().titleLarge!.copyWith(fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 6),
         Wrap(
           spacing: 6,
           runSpacing: 4,
           children: tags
-              .map<Widget>((tag) => Chip(
-                    label: Text(tag.toString(),
-                        style: const TextStyle(fontSize: 12)),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                  ))
+              .map<Widget>(
+                (tag) => Chip(
+                  label: Text(
+                    tag.toString(),
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                ),
+              )
               .toList(),
         ),
       ],
@@ -239,447 +282,474 @@ class ProductView extends GetView<ProductController> {
     final controller = Get.find<ProductController>();
 
     return SafeArea(
-        child: Scaffold(
-      appBar: AppBar(
-        title: Obx(() {
-          if (controller.productDetials['name'] == null) {
-            return const ShimmerEffect(height: 10, width: 100);
-          } else {
-            return Text(
-              controller.productDetials['name'].toString(),
-              style: Theme.of(context).textTheme.titleLarge,
-            );
-          }
-        }),
-        actions: const [
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.spaceAround,
-          //   children: [
-          //     IconButton(
-          //         onPressed: () {},
-          //         icon: SvgPicture.asset('assets/icon/appbarshare.svg')),
-          //     Obx(
-          //       () => Get.find<BottombarController>().cartbadge(
-          //           child: CartIcon(() {
-          //             Get.toNamed(Routes.CART);
-          //           }),
-          //           badgeNumber: 0),
-          //     ),
-          //     const SizedBox(
-          //       width: 14,
-          //     )
-          //   ],
-          // )
-        ],
-        titleSpacing: 0.0,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Obx(() {
-              final galleryImages = ProductHelper.getProductGallery(
-                Map<String, dynamic>.from(controller.productDetials),
-                variantIndex: controller.selectedVariantIndex.value,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Obx(() {
+            if (controller.productDetials['name'] == null) {
+              return const ShimmerEffect(height: 10, width: 100);
+            } else {
+              return Text(
+                controller.productDetials['name'].toString(),
+                style: Theme.of(context).textTheme.titleLarge,
               );
+            }
+          }),
+          actions: const [
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.spaceAround,
+            //   children: [
+            //     IconButton(
+            //         onPressed: () {},
+            //         icon: SvgPicture.asset('assets/icon/appbarshare.svg')),
+            //     Obx(
+            //       () => Get.find<BottombarController>().cartbadge(
+            //           child: CartIcon(() {
+            //             Get.toNamed(Routes.CART);
+            //           }),
+            //           badgeNumber: 0),
+            //     ),
+            //     const SizedBox(
+            //       width: 14,
+            //     )
+            //   ],
+            // )
+          ],
+          titleSpacing: 0.0,
+          elevation: 0,
+        ),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Obx(() {
+                final galleryImages = ProductHelper.getProductGallery(
+                  Map<String, dynamic>.from(controller.productDetials),
+                  variantIndex: controller.selectedVariantIndex.value,
+                );
 
-              return ProductGallery(
-                isLoading: controller.isLoading.value,
-                controller: controller,
-                productGallery: galleryImages,
-              );
-            }),
-            const SizedBox(height: 8.0),
-            Column(
-              children: [
-                Padding(
-                  padding: pageSurroundingPadding,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 10),
-                      // Badges row
-                      Obx(() {
-                        if (controller.productDetials['name'] == null)
-                          return const SizedBox.shrink();
-                        return _buildBadges(
+                return ProductGallery(
+                  isLoading: controller.isLoading.value,
+                  controller: controller,
+                  productGallery: galleryImages,
+                );
+              }),
+              const SizedBox(height: 8.0),
+              Column(
+                children: [
+                  Padding(
+                    padding: pageSurroundingPadding,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 10),
+                        // Badges row
+                        Obx(() {
+                          if (controller.productDetials['name'] == null)
+                            return const SizedBox.shrink();
+                          return _buildBadges(
                             context,
                             Map<String, dynamic>.from(
-                                controller.productDetials));
-                      }),
-                      const SizedBox(height: 8),
-                      Obx(() => controller.productDetials['name'] == null
-                          ? const ShimmerEffect(height: 10, width: 100)
-                          : Text(
-                              controller.productDetials['name'].toString(),
-                              style: Theme.of(context).textTheme.titleLarge,
-                            )),
-                      const SizedBox(height: 6),
-                      // Brand + Categories
-                      Obx(() {
-                        if (controller.productDetials['name'] == null)
-                          return const SizedBox.shrink();
-                        return _buildBrandCategories(
-                            context,
-                            Map<String, dynamic>.from(
-                                controller.productDetials));
-                      }),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 5),
-                        child: Obx(() {
-                          return controller.productDetials['content'] != null
-                              ? HtmlWidget(controller.productDetials['content']
-                                  .toString())
-                              : Container();
-                        }),
-                      ),
-                      Obx(
-                        () => Row(
-                          children: [
-                            RatingBarIndicator(
-                              rating:
-                                  controller.productDetials['average_rating'] ==
-                                          null
-                                      ? 0.0
-                                      : double.parse(controller
-                                          .productDetials['average_rating']
-                                          .toString()),
-                              itemBuilder: (context, index) => Icon(
-                                Icons.star,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              unratedColor:
-                                  Theme.of(context).colorScheme.outline,
-                              itemCount: 5,
-                              itemSize: 18.0,
-                              direction: Axis.horizontal,
+                              controller.productDetials,
                             ),
-                            const SizedBox(width: 10),
-                            Text(
-                              controller.productDetials['rating_count'] == null
-                                  ? '0'
-                                  : controller.productDetials['rating_count']
-                                      .toString(),
-                              style: txtTheme().titleLarge!.copyWith(),
-                            )
-                          ],
+                          );
+                        }),
+                        const SizedBox(height: 8),
+                        Obx(
+                          () => controller.productDetials['name'] == null
+                              ? const ShimmerEffect(height: 10, width: 100)
+                              : Text(
+                                  controller.productDetials['name'].toString(),
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      Obx(() {
-                        if (controller.productDetials['name'] == null) {
-                          return const ShimmerEffect(height: 10, width: 50);
-                        } else {
-                          final priceInfo = ProductHelper.calculatePriceInfo(
+                        const SizedBox(height: 6),
+                        // Brand + Categories
+                        Obx(() {
+                          if (controller.productDetials['name'] == null)
+                            return const SizedBox.shrink();
+                          return _buildBrandCategories(
+                            context,
                             Map<String, dynamic>.from(
-                                controller.productDetials),
-                            variantIndex: controller.selectedVariantIndex.value,
+                              controller.productDetials,
+                            ),
                           );
-
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                        }),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 5),
+                          child: Obx(() {
+                            return controller.productDetials['content'] != null
+                                ? HtmlWidget(
+                                    controller.productDetials['content']
+                                        .toString(),
+                                  )
+                                : Container();
+                          }),
+                        ),
+                        Obx(
+                          () => Row(
                             children: [
-                              Text(
-                                "₹${priceInfo['productPrice']}",
-                                style: Theme.of(context).textTheme.titleLarge,
+                              RatingBarIndicator(
+                                rating: controller
+                                            .productDetials['average_rating'] ==
+                                        null
+                                    ? 0.0
+                                    : double.parse(
+                                        controller
+                                            .productDetials['average_rating']
+                                            .toString(),
+                                      ),
+                                itemBuilder: (context, index) => Icon(
+                                  Icons.star,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                unratedColor: Theme.of(
+                                  context,
+                                ).colorScheme.outline,
+                                itemCount: 5,
+                                itemSize: 18.0,
+                                direction: Axis.horizontal,
                               ),
-                              const SizedBox(width: 04),
-                              priceInfo['salePrice'] == "0" ||
-                                      priceInfo['salePrice'] == ""
-                                  ? Container()
-                                  : Text(
-                                      "₹${priceInfo['salePrice']}",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(
-                                            decoration:
-                                                TextDecoration.lineThrough,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .outline,
-                                          ),
-                                    ),
+                              const SizedBox(width: 10),
                               Text(
-                                priceInfo['discountRate'] ?? '',
-                                style: txtTheme().titleLarge!.copyWith(
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              )
+                                controller.productDetials['rating_count'] ==
+                                        null
+                                    ? '0'
+                                    : controller.productDetials['rating_count']
+                                        .toString(),
+                                style: txtTheme().titleLarge!.copyWith(),
+                              ),
                             ],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Obx(() {
+                          if (controller.productDetials['name'] == null) {
+                            return const ShimmerEffect(height: 10, width: 50);
+                          } else {
+                            final priceInfo = ProductHelper.calculatePriceInfo(
+                              Map<String, dynamic>.from(
+                                controller.productDetials,
+                              ),
+                              variantIndex:
+                                  controller.selectedVariantIndex.value,
+                            );
+
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  "₹${priceInfo['productPrice']}",
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                                const SizedBox(width: 04),
+                                priceInfo['salePrice'] == "0" ||
+                                        priceInfo['salePrice'] == ""
+                                    ? Container()
+                                    : Text(
+                                        "₹${priceInfo['salePrice']}",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              decoration:
+                                                  TextDecoration.lineThrough,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.outline,
+                                            ),
+                                      ),
+                                Text(
+                                  priceInfo['discountRate'] ?? '',
+                                  style: txtTheme().titleLarge!.copyWith(
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                              ],
+                            );
+                          }
+                        }),
+                        const SizedBox(height: 8),
+                        // Stock status + SKU
+                        Obx(() {
+                          if (controller.productDetials['name'] == null)
+                            return const SizedBox.shrink();
+                          return _buildStockSku(
+                            context,
+                            Map<String, dynamic>.from(
+                              controller.productDetials,
+                            ),
+                            controller.selectedVariantIndex.value,
                           );
-                        }
-                      }),
-                      const SizedBox(height: 8),
-                      // Stock status + SKU
-                      Obx(() {
-                        if (controller.productDetials['name'] == null)
-                          return const SizedBox.shrink();
-                        return _buildStockSku(
+                        }),
+                        const SizedBox(height: 6),
+                        // Tax info
+                        Obx(() {
+                          if (controller.productDetials['name'] == null)
+                            return const SizedBox.shrink();
+                          return _buildTaxInfo(
                             context,
                             Map<String, dynamic>.from(
-                                controller.productDetials),
-                            controller.selectedVariantIndex.value);
-                      }),
-                      const SizedBox(height: 6),
-                      // Tax info
-                      Obx(() {
-                        if (controller.productDetials['name'] == null)
-                          return const SizedBox.shrink();
-                        return _buildTaxInfo(
-                            context,
-                            Map<String, dynamic>.from(
-                                controller.productDetials));
-                      }),
-                    ],
+                              controller.productDetials,
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
                   ),
-                ),
-                Divider(
-                  color: Theme.of(context).dividerTheme.color,
-                ),
-                Padding(
-                  padding: pageSurroundingPadding,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Obx(
-                        () {
+                  Divider(color: Theme.of(context).dividerTheme.color),
+                  Padding(
+                    padding: pageSurroundingPadding,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Obx(() {
                           return Column(
                             children: [
                               ListView.separated(
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  shrinkWrap: true,
-                                  itemBuilder: (context, parentIndex) {
-                                    return Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                            'Select ${controller.labels[parentIndex]}',
-                                            style: txtTheme()
-                                                .titleLarge!
-                                                .copyWith(
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 8.0),
-                                          child: SizedBox(
-                                            height: 40,
-                                            child: ListView.builder(
-                                              shrinkWrap: true,
-                                              scrollDirection: Axis.horizontal,
-                                              itemCount: controller
-                                                  .labelVariant[parentIndex]
-                                                  .length,
-                                              itemBuilder: (context, index) {
-                                                return GestureDetector(
-                                                  onTap: () {
-                                                    controller.onSelectVariant(
-                                                        controller.labels[
-                                                            parentIndex],
-                                                        controller.labelVariant[
-                                                                parentIndex]
-                                                            [index]);
-                                                  },
-                                                  child: Obx(
-                                                    () {
-                                                      return Container(
-                                                        margin: const EdgeInsets
-                                                            .only(right: 10),
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .symmetric(
-                                                                horizontal: 15,
-                                                                vertical: 2),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          border: Border.all(
-                                                              width: controller.selectedVariant[controller.labels[parentIndex]] ==
-                                                                      controller
-                                                                              .labelVariant[parentIndex]
-                                                                          [
-                                                                          index]
-                                                                  ? 2.5
-                                                                  : 1.5,
-                                                              color: controller.selectedVariant[controller.labels[parentIndex]] ==
-                                                                      controller
-                                                                              .labelVariant[parentIndex]
-                                                                          [
-                                                                          index]
-                                                                  ? Theme.of(context)
-                                                                      .colorScheme
-                                                                      .primary
-                                                                  : Theme.of(context)
-                                                                      .colorScheme
-                                                                      .outline),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(08),
-                                                        ),
-                                                        child: Center(
-                                                          child: Text(
-                                                            controller.labelVariant[
-                                                                    parentIndex]
-                                                                [index],
-                                                            style: Theme.of(
-                                                                    context)
-                                                                .textTheme
-                                                                .labelLarge,
-                                                          ),
-                                                        ),
-                                                      );
-                                                    },
-                                                  ),
-                                                );
-                                              },
+                                physics: const NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                itemBuilder: (context, parentIndex) {
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Select ${controller.labels[parentIndex]}',
+                                        style: txtTheme().titleLarge!.copyWith(
+                                              fontWeight: FontWeight.bold,
                                             ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          top: 8.0,
+                                        ),
+                                        child: SizedBox(
+                                          height: 40,
+                                          child: ListView.builder(
+                                            shrinkWrap: true,
+                                            scrollDirection: Axis.horizontal,
+                                            itemCount: controller
+                                                .labelVariant[parentIndex]
+                                                .length,
+                                            itemBuilder: (context, index) {
+                                              return GestureDetector(
+                                                onTap: () {
+                                                  controller.onSelectVariant(
+                                                    controller
+                                                        .labels[parentIndex],
+                                                    controller.labelVariant[
+                                                        parentIndex][index],
+                                                  );
+                                                },
+                                                child: Obx(() {
+                                                  return Container(
+                                                    margin:
+                                                        const EdgeInsets.only(
+                                                      right: 10,
+                                                    ),
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                      horizontal: 15,
+                                                      vertical: 2,
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                      border: Border.all(
+                                                        width: controller
+                                                                    .selectedVariant[controller
+                                                                        .labels[
+                                                                    parentIndex]] ==
+                                                                controller.labelVariant[
+                                                                        parentIndex]
+                                                                    [index]
+                                                            ? 2.5
+                                                            : 1.5,
+                                                        color: controller
+                                                                    .selectedVariant[controller
+                                                                        .labels[
+                                                                    parentIndex]] ==
+                                                                controller.labelVariant[
+                                                                        parentIndex]
+                                                                    [index]
+                                                            ? Theme.of(context)
+                                                                .colorScheme
+                                                                .primary
+                                                            : Theme.of(context)
+                                                                .colorScheme
+                                                                .outline,
+                                                      ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                        08,
+                                                      ),
+                                                    ),
+                                                    child: Center(
+                                                      child: Text(
+                                                        controller.labelVariant[
+                                                            parentIndex][index],
+                                                        style: Theme.of(
+                                                          context,
+                                                        ).textTheme.labelLarge,
+                                                      ),
+                                                    ),
+                                                  );
+                                                }),
+                                              );
+                                            },
                                           ),
-                                        )
-                                      ],
-                                    );
-                                  },
-                                  separatorBuilder: (context, index) {
-                                    return const SizedBox(
-                                      height: 10,
-                                    );
-                                  },
-                                  itemCount: controller.labels.length)
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                                separatorBuilder: (context, index) {
+                                  return const SizedBox(height: 10);
+                                },
+                                itemCount: controller.labels.length,
+                              ),
                             ],
                           );
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      Text("Quantity:",
-                          style: txtTheme()
-                              .titleLarge!
-                              .copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 10),
-                      Container(
-                        width: Get.width * 0.32,
-                        height: 40,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5)),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
+                        }),
+                        const SizedBox(height: 10),
+                        Text(
+                          "Quantity:",
+                          style: txtTheme().titleLarge!.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          width: Get.width * 0.32,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              IconButton(
                                 onPressed: () {
                                   controller.decrement();
                                 },
                                 icon: Container(
                                   padding: const EdgeInsets.all(0.01),
                                   decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(02),
-                                      border: Border.all(
-                                          width: 1.2,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .outline)),
+                                    borderRadius: BorderRadius.circular(02),
+                                    border: Border.all(
+                                      width: 1.2,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.outline,
+                                    ),
+                                  ),
                                   child: const Icon(Icons.remove, size: 14),
-                                )),
-                            Obx(() {
-                              return Text(controller.count.toString());
-                            }),
-                            IconButton(
+                                ),
+                              ),
+                              Obx(() {
+                                return Text(controller.count.toString());
+                              }),
+                              IconButton(
                                 onPressed: () {
                                   controller.increment();
                                 },
                                 icon: Container(
-                                    padding: const EdgeInsets.all(0.01),
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(02),
-                                        border: Border.all(
-                                            width: 1.2,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .outline)),
-                                    child: const Icon(Icons.add, size: 14))),
-                          ],
-                        ),
-                      ),
-                      // Published date
-                      Obx(() {
-                        if (controller.productDetials['name'] == null)
-                          return const SizedBox.shrink();
-                        return _buildPublishedDate(
-                            context,
-                            Map<String, dynamic>.from(
-                                controller.productDetials));
-                      }),
-                      // Tags
-                      Obx(() {
-                        if (controller.productDetials['name'] == null)
-                          return const SizedBox.shrink();
-                        return _buildTags(
-                            context,
-                            Map<String, dynamic>.from(
-                                controller.productDetials));
-                      }),
-                      Padding(
-                        padding: EdgeInsets.zero,
-                        child: Obx(() {
-                          return Html(
-                            data:
-                                controller.productDetials['long_content'] ?? "",
-                            style: {
-                              "body": Style(
-                                fontFamily: "Lato",
+                                  padding: const EdgeInsets.all(0.01),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(02),
+                                    border: Border.all(
+                                      width: 1.2,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.outline,
+                                    ),
+                                  ),
+                                  child: const Icon(Icons.add, size: 14),
+                                ),
                               ),
-                            },
+                            ],
+                          ),
+                        ),
+                        // Published date
+                        Obx(() {
+                          if (controller.productDetials['name'] == null)
+                            return const SizedBox.shrink();
+                          return _buildPublishedDate(
+                            context,
+                            Map<String, dynamic>.from(
+                              controller.productDetials,
+                            ),
                           );
                         }),
-                      ),
-                    ],
+                        // Tags
+                        Obx(() {
+                          if (controller.productDetials['name'] == null)
+                            return const SizedBox.shrink();
+                          return _buildTags(
+                            context,
+                            Map<String, dynamic>.from(
+                              controller.productDetials,
+                            ),
+                          );
+                        }),
+                        Padding(
+                          padding: EdgeInsets.zero,
+                          child: Obx(() {
+                            return Html(
+                              data: controller.productDetials['long_content'] ??
+                                  "",
+                              style: {"body": Style(fontFamily: "Lato")},
+                            );
+                          }),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const Divider(),
-                const SizedBox(height: 50)
-              ],
-            ),
-          ],
+                  const Divider(),
+                  const SizedBox(height: 50),
+                ],
+              ),
+            ],
+          ),
+        ),
+        bottomNavigationBar: OrderButton(
+          btntext: 'Add to Bag',
+          controller: controller,
+          wishListTap: () async {
+            final productDetails = controller.productDetials;
+            String variantSlug = '';
+            String? variantId;
+            if (productDetails['variants'] != null &&
+                (productDetails['variants'] as List).isNotEmpty) {
+              final variants = productDetails['variants'] as List;
+              final selectedIndex = controller.selectedVariantIndex.value;
+              if (selectedIndex < variants.length) {
+                variantSlug = variants[selectedIndex]['slug'] ?? '';
+                variantId = (variants[selectedIndex]['_id'] ??
+                        variants[selectedIndex]['id'])
+                    ?.toString();
+              }
+            } else {
+              variantSlug = productDetails['variant_slug'] ?? '';
+              variantId =
+                  (productDetails['_id'] ?? productDetails['id'])?.toString();
+            }
+
+            await WishListService.to.toggleWishlist(
+              productId: controller.productId,
+              variantSlug: variantSlug,
+              variantId: variantId,
+            );
+          },
+          addToCartTap: () async {
+            HelperFunctions().showOverlayLoader();
+
+            await controller.addToCart().then((value) {
+              Get.until((route) => !Get.isDialogOpen!);
+              return Get.toNamed(Routes.CART);
+            });
+          },
         ),
       ),
-      bottomNavigationBar: OrderButton(
-        btntext: 'Add to Bag',
-        controller: controller,
-        wishListTap: () async {
-          final productDetails = controller.productDetials;
-          String variantSlug = '';
-          String? variantId;
-          if (productDetails['variants'] != null &&
-              (productDetails['variants'] as List).isNotEmpty) {
-            final variants = productDetails['variants'] as List;
-            final selectedIndex = controller.selectedVariantIndex.value;
-            if (selectedIndex < variants.length) {
-              variantSlug = variants[selectedIndex]['slug'] ?? '';
-              variantId = (variants[selectedIndex]['_id'] ??
-                      variants[selectedIndex]['id'])
-                  ?.toString();
-            }
-          } else {
-            variantSlug = productDetails['variant_slug'] ?? '';
-            variantId =
-                (productDetails['_id'] ?? productDetails['id'])?.toString();
-          }
-
-          await WishListService.to.toggleWishlist(
-            productId: controller.productId,
-            variantSlug: variantSlug,
-            variantId: variantId,
-          );
-        },
-        addToCartTap: () async {
-          HelperFunctions().showOverlayLoader();
-
-          await controller.addToCart().then((value) {
-            Get.until((route) => !Get.isDialogOpen!);
-            return Get.toNamed(Routes.CART);
-          });
-        },
-      ),
-    ));
+    );
   }
 }
 
@@ -711,9 +781,10 @@ class _OrderButtonState extends State<OrderButton>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.5).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.5,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     super.initState();
   }
 
@@ -739,9 +810,7 @@ class _OrderButtonState extends State<OrderButton>
               onTap: () {
                 widget.wishListTap();
                 _controller
-                    .forward(
-                      from: 0.0,
-                    )
+                    .forward(from: 0.0)
                     .then((value) => _controller.reverse());
               },
               child: AnimatedBuilder(
@@ -754,8 +823,9 @@ class _OrderButtonState extends State<OrderButton>
                       Transform.scale(
                         scale: _scaleAnimation.value,
                         child: Obx(() {
-                          final isInWishlist = WishListService.to
-                              .isInWishlist(widget.controller.productId);
+                          final isInWishlist = WishListService.to.isInWishlist(
+                            widget.controller.productId,
+                          );
                           return SvgPicture.asset(
                             isInWishlist
                                 ? 'assets/icon/like.svg'
@@ -764,8 +834,10 @@ class _OrderButtonState extends State<OrderButton>
                         }),
                       ),
                       const SizedBox(width: 10),
-                      Text("WISHLIST",
-                          style: Theme.of(context).textTheme.bodyMedium)
+                      Text(
+                        "WISHLIST",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                     ],
                   );
                 },
@@ -785,13 +857,12 @@ class _OrderButtonState extends State<OrderButton>
                 alignment: WrapAlignment.center,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  SvgPicture.asset(
-                    'assets/icon/addtobag.svg',
-                    width: 16,
-                  ),
+                  SvgPicture.asset('assets/icon/addtobag.svg', width: 16),
                   const SizedBox(width: 10),
-                  Text(widget.btntext,
-                      style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    widget.btntext,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ],
               ),
             ),

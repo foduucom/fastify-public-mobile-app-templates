@@ -498,79 +498,109 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final productName = ProductHelper.getProductName(product);
     final imageUrl = ProductHelper.getProductImage(product);
     final productType = priceInfo['productType'];
-
+    final inStock = ProductHelper.isInStock(product);
+    print('For Product $productName and inStock $inStock');
     return GestureDetector(
-      onTap: () => _navigateToProduct(product),
-      child: SizedBox(
-        width: 160,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Product Image
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    height: 178,
-                    width: 160,
-                    fit: BoxFit.cover,
-                    progressIndicatorBuilder: (_, __, ___) =>
-                        HelperFunctions().loadingIndicator(),
-                    errorWidget: (_, __, ___) => Container(
-                      height: 180,
+      onTap: inStock ? () => _navigateToProduct(product) : null,
+      child: Opacity(
+        opacity: inStock ? 1.0 : 0.5,
+        child: SizedBox(
+          width: 160,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Product Image
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      height: 178,
                       width: 160,
-                      color: colorScheme.surfaceVariant,
-                      child: Icon(Icons.image_outlined,
-                          color: colorScheme.onSurfaceVariant),
+                      fit: BoxFit.cover,
+                      progressIndicatorBuilder: (_, __, ___) =>
+                          HelperFunctions().loadingIndicator(),
+                      errorWidget: (_, __, ___) => Container(
+                        height: 180,
+                        width: 160,
+                        color: colorScheme.surfaceContainerHighest,
+                        child: Icon(Icons.image_outlined,
+                            color: colorScheme.onSurfaceVariant),
+                      ),
                     ),
                   ),
-                ),
-                // Wishlist Button
-                _buildWishlistButton(product),
-                // Discount Badge
-                if (priceInfo['discountRate'] != null &&
-                    priceInfo['discountRate'].toString().isNotEmpty)
-                  Positioned(
-                    right: 6,
-                    top: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: colorScheme.error,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        priceInfo['discountRate'],
-                        style: textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onError,
-                          fontWeight: FontWeight.w600,
+                  // Wishlist Button
+                  _buildWishlistButton(product),
+                  // Discount Badge
+                  if (inStock &&
+                      priceInfo['discountRate'] != null &&
+                      priceInfo['discountRate'].toString().isNotEmpty)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: colorScheme.error,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          priceInfo['discountRate'],
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onError,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // Product Name
-            Text(
-              productName,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 2,
-              style: textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+                  // Out of Stock Badge
+                  if (!inStock)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.6),
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(10),
+                            bottomRight: Radius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Out of Stock',
+                          textAlign: TextAlign.center,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-            ),
-            const SizedBox(height: 4),
-            // Price
-            if (productType == 'variable')
-              _buildVariablePrice(priceInfo)
-            else
-              _buildSimplePrice(priceInfo),
-          ],
+              const SizedBox(height: 8),
+              // Product Name
+              Text(
+                productName,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+                style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              // Price
+              if (productType == 'variable')
+                _buildVariablePrice(priceInfo)
+              else
+                _buildSimplePrice(priceInfo),
+            ],
+          ),
         ),
       ),
     );

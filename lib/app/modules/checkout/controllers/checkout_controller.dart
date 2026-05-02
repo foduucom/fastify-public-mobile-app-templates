@@ -107,17 +107,23 @@ class CheckOutController extends GetxController with BaseController {
 
     printInfo(info: 'payment-methods response: $response');
 
-    if (response != null && response is Map) {
-      // Merge API data into local config.
-      for (final key in response.keys) {
-        paymentConfig[key] = response[key];
-      }
-      // Rebuild options with the updated config.
-      _buildPaymentOptionsFromConfig();
-    } else if (response != null && response is List) {
-      for (var opt in response) {
-        if (!paymentOptions.any((e) => e['name'] == opt['name'])) {
-          paymentOptions.add(opt);
+    if (response != null) {
+      if (response is Map) {
+        // If the response is wrapped in a 'data' key (as seen in user's snippet), unwrap it.
+        final Map actualData = response.containsKey('data') ? response['data'] : response;
+        
+        // Merge API data into local config.
+        actualData.forEach((key, value) {
+          paymentConfig[key] = value;
+        });
+        
+        // Rebuild options with the updated config.
+        _buildPaymentOptionsFromConfig();
+      } else if (response is List) {
+        for (var opt in response) {
+          if (!paymentOptions.any((e) => e['name'] == opt['name'])) {
+            paymentOptions.add(opt);
+          }
         }
       }
     }

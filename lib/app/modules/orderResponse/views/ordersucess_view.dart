@@ -57,25 +57,52 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                       children: [
                                         Center(
                                             child: LottieBuilder.asset(
-                                                'assets/lotti/order-success.json',
+                                                controller.item['payment_status'] ==
+                                                            'paid' ||
+                                                        controller.item[
+                                                                'payment_method'] ==
+                                                            'cod'
+                                                    ? 'assets/lotti/order-success.json'
+                                                    : 'assets/lotti/emptyanimation.json',
                                                 fit: BoxFit.cover,
                                                 height: 180)),
                                         Center(
-                                            child: Text('Order successfully!',
+                                            child: Text(
+                                                controller.item['payment_status'] ==
+                                                            'paid' ||
+                                                        controller.item[
+                                                                'payment_method'] ==
+                                                            'cod'
+                                                    ? 'Order Placed successfully!'
+                                                    : 'Order Placement Failed!',
                                                 style: TextStyle(
                                                     fontWeight: FontWeight.w600,
                                                     fontFamily: 'lato',
-                                                    // color: themeRedColor,
+                                                    color: controller.item[
+                                                                    'payment_status'] ==
+                                                                'paid' ||
+                                                            controller.item[
+                                                                    'payment_method'] ==
+                                                                'cod'
+                                                        ? Colors.black
+                                                        : Colors.black54,
                                                     fontSize: 22))),
                                         SizedBox(height: 20),
-                                        Text(
-                                            'Payment is successfully processsed and your Order is on the way.',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontFamily: 'lato',
-                                              fontSize: 16,
-                                              // color: themeTextColor
-                                            )),
+                                        Center(
+                                          child: Text(
+                                              controller.item['payment_status'] ==
+                                                          'paid' ||
+                                                      controller.item[
+                                                              'payment_method'] ==
+                                                          'cod'
+                                                  ? 'Payment is successfully processed and your Order is on the way.'
+                                                  : 'Payment was not completed. Your order is pending payment.',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontFamily: 'lato',
+                                                fontSize: 16,
+                                              )),
+                                        ),
                                         SizedBox(height: 20),
                                         const Text(
                                           'Order Details:',
@@ -199,11 +226,22 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                 Obx(
                   () => bottomButton(
                     opacity: 1,
-                    deliveryAmount: controller.item['shipping'].toString(),
-                    buttonText: 'Continue Shopping',
-                    priceText: controller.item['total'].toString(),
+                    deliveryAmount:
+                        controller.item['shipping']?.toString() ?? '0',
+                    buttonText: controller.item['payment_status'] == 'paid' ||
+                            controller.item['payment_method'] == 'cod'
+                        ? 'Continue Shopping'
+                        : 'View My Orders',
+                    priceText: controller.item['total']?.toString() ?? '0',
                     keypressEvent: () {
-                      Get.offAllNamed(Routes.BOTTOMBAR);
+                      if (controller.item['payment_status'] == 'paid' ||
+                          controller.item['payment_method'] == 'cod') {
+                        Get.offAllNamed(Routes.BOTTOMBAR);
+                      } else {
+                        // Navigate to orders section if payment failed
+                        Get.offAllNamed(Routes.BOTTOMBAR);
+                        // Optional: trigger navigation to the orders tab if possible
+                      }
                     },
                     otherText: 'View details',
                   ),

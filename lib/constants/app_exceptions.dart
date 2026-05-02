@@ -5,6 +5,10 @@ class AppException implements Exception {
   final int? statusCode;
 
   AppException([this.message, this.prefix, this.url, this.statusCode]);
+  @override
+  String toString() {
+    return (prefix != null ? "$prefix: " : "") + (message ?? "");
+  }
 }
 
 class BadRequestException extends AppException {
