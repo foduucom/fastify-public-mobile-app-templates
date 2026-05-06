@@ -5,6 +5,9 @@ import '/app/data/basic_provider.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
+import '../models/filter_model.dart';
+import '../services/product_service.dart';
+
 class SearchsController extends GetxController with BaseController {
   var searchProduct = [].obs;
   var recentSearchList = [].obs;
@@ -12,9 +15,18 @@ class SearchsController extends GetxController with BaseController {
   var isSearching = false.obs; // True for initial load
   var isFetchingMore = false.obs; // True for pagination load
 
+  // Brand state
+  var brands = [].obs;
+  var isBrandsLoading = false.obs;
+  var selectedBrandSlug = "".obs;
+
   var box = GetStorage();
   late TextEditingController searchTextController;
   late ScrollController scrollController;
+
+  // Filter state
+  var activeFilter = const FilterModel.empty().obs;
+  FilterModel get currentFilter => activeFilter.value;
 
   // Pagination Trackers
   int currentPage = 1;
@@ -30,6 +42,7 @@ class SearchsController extends GetxController with BaseController {
 
     getRecentSearch();
     loadAllProducts();
+    fetchBrands();
     super.onInit();
   }
 
@@ -42,7 +55,8 @@ class SearchsController extends GetxController with BaseController {
 
   void _scrollListener() {
     // If we are near the bottom of the page, NOT already fetching, and there is a next page
-    if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent - 200) {
       if (!isFetchingMore.value && hasNextPage) {
         loadNextPage();
       }
@@ -61,8 +75,8 @@ class SearchsController extends GetxController with BaseController {
     required String name,
     required String type,
   }) {
-    final exists = recentSearchList
-        .any((e) => e['productId'] == id && e['type'] == type);
+    final exists =
+        recentSearchList.any((e) => e['productId'] == id && e['type'] == type);
     if (!exists) {
       recentSearchList.add({'productId': id, 'name': name, 'type': type});
       box.write('recentSearch', recentSearchList.toList());
@@ -78,7 +92,11 @@ class SearchsController extends GetxController with BaseController {
       searchProduct.clear();
 
       var response = await BasicProvider('products')
-          .getRequest(queryParams: {'page': currentPage.toString()})
+          .getRequest(
+              queryParams: ProductService.buildQueryParams(
+            page: 1,
+            filter: activeFilter.value,
+          ))
           .catchError(handleError);
 
       _parseAndSetProducts(response, isRefresh: true);
@@ -97,18 +115,74 @@ class SearchsController extends GetxController with BaseController {
     }
 
     try {
+      selectedBrandSlug.value = ""; // Clear brand selection on search
       currentPage = 1;
       hasNextPage = false;
       isSearching.value = true;
       searchProduct.clear();
 
       var response = await BasicProvider('products')
-          .getRequest(queryParams: {'search': text, 'page': currentPage.toString()})
+          .getRequest(
+              queryParams: ProductService.buildQueryParams(
+            page: 1,
+            search: text,
+            filter: activeFilter.value,
+          ))
           .catchError(handleError);
-
+      debugPrint('response search $response');
       _parseAndSetProducts(response, isRefresh: true);
     } catch (e) {
       debugPrint('❌ search error: $e');
+    } finally {
+      isSearching.value = false;
+    }
+  }
+
+  // ── Brand Fetching ──
+  void fetchBrands() async {
+    try {
+      isBrandsLoading.value = true;
+      var response =
+          await BasicProvider('brands').getRequest().catchError(handleError);
+
+      if (response != null && response is Map && response['data'] is List) {
+        brands.assignAll(response['data']);
+
+        // Default view: Show products for first brand if no products are loaded yet
+        // OR if the user explicitly wants to show first brand by default
+        /*
+        if (brands.isNotEmpty && searchProduct.isEmpty) {
+          fetchProductsByBrand(brands[0]['slug']);
+        }
+        */
+      }
+    } catch (e) {
+      debugPrint('❌ fetchBrands error: $e');
+    } finally {
+      isBrandsLoading.value = false;
+    }
+  }
+
+  // ── Products by Brand ──
+  void fetchProductsByBrand(String slug) async {
+    try {
+      selectedBrandSlug.value = slug;
+      searchTextController.clear(); // Clear search text when filtering by brand
+
+      currentPage = 1;
+      hasNextPage = false;
+      isSearching.value = true;
+      searchProduct.clear();
+
+      var response = await BasicProvider('products').getRequest(queryParams: {
+        'brand': slug,
+        'page': '1',
+        // Add other filters if needed
+      }).catchError(handleError);
+
+      _parseAndSetProducts(response, isRefresh: true);
+    } catch (e) {
+      debugPrint('❌ fetchProductsByBrand error: $e');
     } finally {
       isSearching.value = false;
     }
@@ -120,15 +194,15 @@ class SearchsController extends GetxController with BaseController {
       isFetchingMore.value = true;
       currentPage++;
 
-      // Check if we are searching or just browsing all
-      String text = searchTextController.text.trim();
-      Map<String, String> queryParams = {'page': currentPage.toString()};
-      if (text.isNotEmpty) {
-        queryParams['search'] = text;
-      }
-
       var response = await BasicProvider('products')
-          .getRequest(queryParams: queryParams)
+          .getRequest(
+              queryParams: ProductService.buildQueryParams(
+            page: currentPage,
+            search: searchTextController.text.trim().isEmpty
+                ? null
+                : searchTextController.text.trim(),
+            filter: activeFilter.value,
+          ))
           .catchError(handleError);
 
       _parseAndSetProducts(response, isRefresh: false);
@@ -138,6 +212,22 @@ class SearchsController extends GetxController with BaseController {
     } finally {
       isFetchingMore.value = false;
     }
+  }
+
+  // ── Filter methods ──
+  void applyFilter(FilterModel filter) {
+    activeFilter.value = filter;
+    // Re-fetch from page 1 with current search text + new filters
+    final text = searchTextController.text.trim();
+    if (text.isNotEmpty) {
+      getSearchSuggestion(text: text);
+    } else {
+      loadAllProducts();
+    }
+  }
+
+  void clearFilter() {
+    applyFilter(const FilterModel.empty());
   }
 
   // ── Parser ──
@@ -170,6 +260,38 @@ class SearchsController extends GetxController with BaseController {
         searchProduct.addAll(response);
       }
       hasNextPage = false; // No pagination data attached
+    }
+
+    _applyClientSideFilter();
+  }
+
+  // ── Client-side flag filtering ──
+  // Filters products locally since the backend has no API support for
+  // trending/recommended params. Handles bool true, string "true", and int 1.
+  bool _isFlagTrue(dynamic value) {
+    if (value == null) return false;
+    if (value is bool) return value;
+    if (value is int) return value == 1;
+    return value.toString().toLowerCase() == 'true';
+  }
+
+  void _applyClientSideFilter() {
+    final f = activeFilter.value;
+    if (!f.featured && !f.hot && !f.trending && !f.recommended) return;
+
+    final before = searchProduct.length;
+    searchProduct.value = searchProduct.where((product) {
+      if (f.featured && !_isFlagTrue(product['featured'])) return false;
+      if (f.hot && !_isFlagTrue(product['hot'])) return false;
+      if (f.trending && !_isFlagTrue(product['trending'])) return false;
+      if (f.recommended && !_isFlagTrue(product['recommended'])) return false;
+      return true;
+    }).toList();
+    debugPrint(
+        '🔍 Filter applied: before=$before, after=${searchProduct.length}, trending=${f.trending}, recommended=${f.recommended}');
+    if (searchProduct.isNotEmpty) {
+      debugPrint(
+          '🔍 Sample product flags → trending=${searchProduct[0]['trending']}, recommended=${searchProduct[0]['recommended']}');
     }
   }
 }

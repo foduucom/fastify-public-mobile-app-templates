@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:new_fastify_template/app/modules/search/views/filter_view.dart';
 import 'package:shimmer/shimmer.dart';
 import '/app/modules/product/views/product_view.dart';
 import '/app/modules/shop/bindings/shop_binding.dart';
@@ -279,11 +280,22 @@ class SearchView extends GetView<SearchsController> {
                                   fontSize: 17,
                                 ),
                               ),
-                              Text('See All',
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.primary,
-                                    fontWeight: FontWeight.w500,
-                                  )),
+                              GestureDetector(
+                                onTap: () async {
+                                  final filter = await showFilterBottomSheet(
+                                    context,
+                                    controller.currentFilter,
+                                  );
+                                  if (filter != null) {
+                                    controller.applyFilter(filter);
+                                  }
+                                },
+                                child: Text('See All',
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: colorScheme.primary,
+                                      fontWeight: FontWeight.w500,
+                                    )),
+                              ),
                             ],
                           ),
                         ),
