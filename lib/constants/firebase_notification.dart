@@ -19,6 +19,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   final notification = message.notification;
   if (notification != null) {
+    FirebaseHelpers.saveNotificationLocally(message);
     await AwesomeNotifications().createNotification(
       content: NotificationContent(
         id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
@@ -37,6 +38,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 class FirebaseHelpers {
   static final box = GetStorage();
   static List<String> customerSubscribeList = [];
+  static const String notificationKey = 'local_notifications';
+  static final RxList<dynamic> localNotifications = <dynamic>[].obs;
 
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
     'high_importance_channel',
@@ -128,10 +131,7 @@ class FirebaseHelpers {
       sound: true,
     );
 
-    await _subscribeToDefaultTopics();
-    if (AuthDetails.isUserLogin()) {
-      await _subscribeToUserTopics();
-    }
+    await syncTopics();
 
     // Handle notification that launched app from terminated state
     final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
@@ -144,6 +144,12 @@ class FirebaseHelpers {
     // Handle notification tap when app is in background (resumed)
     FirebaseMessaging.onMessageOpenedApp.listen(openAppFromNotification);
 
+    // Initialize local notifications from storage
+    final stored = box.read(notificationKey);
+    if (stored != null && stored is List) {
+      localNotifications.assignAll(stored);
+    }
+
     firebaseNotificationOnAppOpen();
   }
 
@@ -153,6 +159,8 @@ class FirebaseHelpers {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       final notification = message.notification;
       if (notification == null) return;
+
+      saveNotificationLocally(message);
 
       final myToken = box.read('my_fcm_token');
       final senderId = message.data['sender_id'];
@@ -213,7 +221,37 @@ class FirebaseHelpers {
 
   static void openAppFromNotification(RemoteMessage? message) {
     if (message == null) return;
+    saveNotificationLocally(message);
     navigateOnNotificationClick(message.data);
+  }
+
+  static void saveNotificationLocally(RemoteMessage message) {
+    final notification = message.notification;
+    if (notification == null) return;
+
+    final newNotif = {
+      'title': notification.title,
+      'body': notification.body,
+      'data': message.data,
+      'created_at': DateTime.now().toIso8601String(),
+      'is_local': true,
+    };
+
+    // Add to reactive list (at the top)
+    localNotifications.insert(0, newNotif);
+
+    // Limit to 50 items
+    if (localNotifications.length > 50) {
+      localNotifications.removeLast();
+    }
+
+    // Persist to storage
+    box.write(notificationKey, localNotifications.toList());
+  }
+
+  static void clearLocalNotifications() {
+    localNotifications.clear();
+    box.remove(notificationKey);
   }
 
   // ─── FCM Token ────────────────────────────────────────────────────────────
@@ -252,18 +290,32 @@ class FirebaseHelpers {
 
   // ─── Topic subscriptions ──────────────────────────────────────────────────
 
+  static const List<String> defaultTopics = [
+    'promotions',
+    'news',
+    'general',
+    'newrelease',
+    'deals'
+  ];
+
+  static Future<void> syncTopics() async {
+    await _subscribeToDefaultTopics();
+    if (AuthDetails.isUserLogin()) {
+      await _subscribeToUserTopics();
+    }
+  }
+
   static Future<void> _subscribeToDefaultTopics() async {
     if (kIsWeb || !Platform.isAndroid) return;
-    final topics = [
-      'foduu_ecommerce_blog',
-      'foduu_ecommerce_news',
-      'foduu_ecommerce_order',
-      'foduu_ecommerce_product',
-      'foduu_ecommerce_marketing',
-      'foduu_ecommerce_promotion',
-    ];
+
+    // We keep the prefix if preferred by user, but plan said raw strings for backend alignment.
+    // Based on question 3 in the plan, I will use raw strings for backend topics but keep prefix for user topics as suggested in Phase 2.
+    final topics = defaultTopics;
+
     customerSubscribeList = [...topics];
     for (final topic in topics) {
+      debugPrint(
+          "---------------Subscribing to topic: $topic-------------------");
       await FirebaseMessaging.instance.subscribeToTopic(topic);
     }
   }
@@ -274,13 +326,17 @@ class FirebaseHelpers {
     if (userDetails == null) return;
     final userId = userDetails['_id']?.toString();
     if (userId == null) return;
+
     final userTopics = [
-      'foduu_ecommerce_$userId',
-      'foduu_ecommerce_order_$userId',
+      'foduu_ecommerce_user_$userId',
+      'foduu_ecommerce_orders_$userId',
     ];
+
     for (final topic in userTopics) {
       if (!customerSubscribeList.contains(topic)) {
         customerSubscribeList.add(topic);
+        debugPrint(
+            "---------------Subscribing to user topic: $topic-------------------");
         if (!kIsWeb && Platform.isAndroid) {
           await FirebaseMessaging.instance.subscribeToTopic(topic);
         }
@@ -298,10 +354,12 @@ class FirebaseHelpers {
     if (userDetails == null) return;
     final userId = userDetails['_id']?.toString();
     if (userId != null) {
+      debugPrint(
+          "---------------Unsubscribing from user topics for: $userId-------------------");
       await FirebaseMessaging.instance
-          .unsubscribeFromTopic('foduu_ecommerce_$userId');
+          .unsubscribeFromTopic('foduu_ecommerce_user_$userId');
       await FirebaseMessaging.instance
-          .unsubscribeFromTopic('foduu_ecommerce_order_$userId');
+          .unsubscribeFromTopic('foduu_ecommerce_orders_$userId');
     }
   }
 

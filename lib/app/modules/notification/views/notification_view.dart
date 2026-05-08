@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:foduu_ecommerce/app/modules/notification/controller/notification_controller.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
@@ -108,7 +109,6 @@ class NotificationList extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color.fromARGB(255, 238, 238, 238),
               borderRadius: BorderRadius.circular(10.0),
-              // border: Border.all(color: Colors.blue),
               boxShadow: [
                 BoxShadow(
                   color: Colors.white.withOpacity(0.2),
@@ -118,50 +118,90 @@ class NotificationList extends StatelessWidget {
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Image.asset(
-                    'assets/images/notification.png',
-                    height: 70,
-                    width: 50,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          child: Text(
-                            item["title"] != null
-                                ? item["title"].toString()
-                                : '',
-                            style: const TextStyle(
-                              // color: themeTextColor,
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
+                  // Topic Label Chip if present
+                  if (item['data'] != null && item['data']['topic'] != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: DynamicThemeManager()
+                              .lightColors
+                              .primary
+                              .withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: DynamicThemeManager()
+                                .lightColors
+                                .primary
+                                .withOpacity(0.3),
+                          ),
+                        ),
+                        child: Text(
+                          item['data']['topic']
+                              .toString()
+                              .replaceAll('foduu_ecommerce_', '')
+                              .capitalizeFirst!,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: DynamicThemeManager().lightColors.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/images/notification.png',
+                        height: 70,
+                        width: 50,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              child: Text(
+                                item["title"] != null
+                                    ? item["title"].toString()
+                                    : '',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(height: 5),
+                            SizedBox(
+                              child: Text(
+                                item["body"] != null
+                                    ? item["body"].toString()
+                                    : '',
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 5),
-                        SizedBox(
-                          child: Text(
-                            item["body"] != null ? item["body"].toString() : '',
-                            style: const TextStyle(fontSize: 14),
-                          ),
+                      ),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: Text(
+                          HelperFunctions()
+                              .toCarbonToHumanDateFormat(item["created_at"]),
+                          style: const TextStyle(fontSize: 10),
                         ),
-                      ],
-                    ),
+                      )
+                    ],
                   ),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Text(
-                      HelperFunctions()
-                          .toCarbonToHumanDateFormat(item["created_at"]),
-                    ),
-                  )
                 ],
               ),
             ),

@@ -8,6 +8,7 @@ import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/constants/firebase_notification.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -93,6 +94,10 @@ class BottombarController extends GetxController with BaseController {
     //     .catchError(handleError);
     // print("logout response $response");
     // if (response == null) return;
+    
+    // Cleanup Firebase topics before clearing storage
+    await FirebaseHelpers.afterLogoutUnsubscribe();
+    
     box.erase();
     isLogin(false);
     isOtpLogin

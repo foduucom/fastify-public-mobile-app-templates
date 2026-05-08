@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/constants/firebase_notification.dart';
 import 'package:get/get.dart';
 
 class NotificationsController extends GetxController with BaseController {
@@ -14,9 +15,37 @@ class NotificationsController extends GetxController with BaseController {
   Future<void> onInit() async {
     super.onInit();
     scrollController = ScrollController();
-    // await fetchallnotificationlist();
-    // await fetchMoreDataOnScroll();
+    
+    // Initial fetch
+    await fetchallnotificationlist();
+    await fetchMoreDataOnScroll();
+
+    // Listen for new local notifications
+    ever(FirebaseHelpers.localNotifications, (_) {
+      _mergeNotifications();
+    });
   }
+
+  void _mergeNotifications() {
+    // Combine local and API notifications
+    // Filter out duplicates if they have the same ID or title/body/date
+    var combined = <dynamic>[...FirebaseHelpers.localNotifications];
+    
+    // Add API notifications that aren't already there
+    for (var apiNotif in allnotificationListFromApi) {
+      bool exists = combined.any((local) => 
+        (local['title'] == apiNotif['title'] && local['body'] == apiNotif['body']) ||
+        (apiNotif['id'] != null && local['id'] == apiNotif['id'])
+      );
+      if (!exists) {
+        combined.add(apiNotif);
+      }
+    }
+    
+    allnotificationList.assignAll(combined);
+  }
+
+  var allnotificationListFromApi = <dynamic>[].obs;
 
   Future<void> fetchallnotificationlist() async {
     isLoading.value = true;
@@ -25,8 +54,9 @@ class NotificationsController extends GetxController with BaseController {
         .getRequest()
         .catchError(handleError);
     if (response == null) return;
-    allnotificationList.addAll(response["data"]);
+    allnotificationListFromApi.addAll(response["data"]);
     maxPage(response["last_page"]);
+    _mergeNotifications();
     isLoading.value = false;
   }
 
@@ -45,6 +75,7 @@ class NotificationsController extends GetxController with BaseController {
   Future<void> onPullToRefresh() async {
     currentPage.value = 1;
     maxPage.value = 1;
+    allnotificationListFromApi.clear();
     allnotificationList.clear();
     await fetchallnotificationlist();
   }
