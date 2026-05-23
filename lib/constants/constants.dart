@@ -16,7 +16,8 @@ var websiteDomain = "mywatch.vbought.com";
 var url = "https://${websiteDomain}/";
 var socketUrl = "https://studio.vbought.com/";
 
-var ACCESS_KEY = '72a5a13ab02a20737217279980c33374f41554ec60742815';
+//var ACCESS_KEY = '72a5a13ab02a20737217279980c33374f41554ec60742815';
+var ACCESS_KEY = '385577760a26800f67ba0b18f82f0f14c6589dd351d384b2';
 // var websiteDomain = "Not Provided";
 // var url = "https://${websiteDomain}/";
 // var socketUrl = "https://studio.vbought.com/";
