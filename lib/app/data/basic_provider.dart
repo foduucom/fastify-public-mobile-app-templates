@@ -176,7 +176,7 @@ class BasicProvider {
 
       userHeader = {
         "accept": "application/json",
-        'access_key': ACCESS_KEY,
+        'access-key': ACCESS_KEY,
         "Content-Type": "application/json",
       };
 

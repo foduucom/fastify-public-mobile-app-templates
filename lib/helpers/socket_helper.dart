@@ -35,7 +35,7 @@ class SocketHelper {
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .disableAutoConnect()
-            .setExtraHeaders({'access_key': ACCESS_KEY})
+            .setExtraHeaders({'access-key': ACCESS_KEY})
             .build());
 
     _socket!.connect();
