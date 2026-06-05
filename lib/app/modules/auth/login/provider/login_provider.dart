@@ -20,7 +20,7 @@ class LoginProvider extends GetConnect {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
-          "access_key": ACCESS_KEY,
+          "access-key": ACCESS_KEY,
         },
       ).timeout(const Duration(seconds: 30));
 

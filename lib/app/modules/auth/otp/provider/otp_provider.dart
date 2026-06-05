@@ -31,7 +31,7 @@ class OtpProvider extends GetConnect {
         body: jsonEncode(form),
         headers: {
           "accept": "application/json",
-          "access_key": ACCESS_KEY,
+          "access-key": ACCESS_KEY,
           "Content-Type": "application/json",
         },
       );
@@ -94,7 +94,7 @@ class OtpProvider extends GetConnect {
         body: jsonEncode(form),
         headers: {
           "accept": "application/json",
-          "access_key": ACCESS_KEY,
+          "access-key": ACCESS_KEY,
           "Content-Type": "application/json",
         },
       );

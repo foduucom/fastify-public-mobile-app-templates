@@ -57,7 +57,7 @@ class RegisterProvider extends GetConnect {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
-          "access_key": ACCESS_KEY,
+          "access-key": ACCESS_KEY,
         },
       );
       if (response.status.hasError) {
@@ -80,7 +80,7 @@ class RegisterProvider extends GetConnect {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
-          "access_key": ACCESS_KEY,
+          "access-key": ACCESS_KEY,
         },
       );
       if (response.status.hasError) {
@@ -112,7 +112,7 @@ class RegisterProvider extends GetConnect {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
-          "access_key": ACCESS_KEY,
+          "access-key": ACCESS_KEY,
         },
       );
       // Handle response - check if body is already a Map or needs decoding

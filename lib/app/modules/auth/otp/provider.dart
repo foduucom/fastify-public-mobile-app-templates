@@ -20,7 +20,7 @@ class OTPLoginProvider extends GetConnect {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
-          "access_key": ACCESS_KEY,
+          "access-key": ACCESS_KEY,
         },
       );
       print("OTP send Sucesss msg=====${response.body}");
@@ -47,7 +47,7 @@ class OTPLoginProvider extends GetConnect {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
-          "access_key": ACCESS_KEY,
+          "access-key": ACCESS_KEY,
         },
       );
 
