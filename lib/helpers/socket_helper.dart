@@ -31,12 +31,13 @@ class SocketHelper {
     }
 
     _socket = IO.io(
-        socketUrl,
-        IO.OptionBuilder()
-            .setTransports(['websocket'])
-            .disableAutoConnect()
-            .setExtraHeaders({'access-key': ACCESS_KEY})
-            .build());
+      socketUrl,
+      IO.OptionBuilder()
+          .setTransports(['websocket'])
+          .disableAutoConnect()
+          .setExtraHeaders({'access_key': ACCESS_KEY})
+          .build(),
+    );
 
     _socket!.connect();
 
