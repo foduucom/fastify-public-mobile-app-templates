@@ -306,7 +306,8 @@ class FirebaseHelpers {
   }
 
   static Future<void> _subscribeToDefaultTopics() async {
-    if (kIsWeb || !Platform.isAndroid) return;
+    if (kIsWeb) return;
+    if (!(Platform.isAndroid || Platform.isIOS)) return;
 
     // We keep the prefix if preferred by user, but plan said raw strings for backend alignment.
     // Based on question 3 in the plan, I will use raw strings for backend topics but keep prefix for user topics as suggested in Phase 2.
@@ -316,7 +317,11 @@ class FirebaseHelpers {
     for (final topic in topics) {
       debugPrint(
           "---------------Subscribing to topic: $topic-------------------");
-      await FirebaseMessaging.instance.subscribeToTopic(topic);
+      try {
+        await FirebaseMessaging.instance.subscribeToTopic(topic);
+      } catch (e) {
+        debugPrint("Error subscribing to topic $topic: $e");
+      }
     }
   }
 
@@ -337,8 +342,12 @@ class FirebaseHelpers {
         customerSubscribeList.add(topic);
         debugPrint(
             "---------------Subscribing to user topic: $topic-------------------");
-        if (!kIsWeb && Platform.isAndroid) {
-          await FirebaseMessaging.instance.subscribeToTopic(topic);
+        if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+          try {
+            await FirebaseMessaging.instance.subscribeToTopic(topic);
+          } catch (e) {
+            debugPrint("Error subscribing to user topic $topic: $e");
+          }
         }
       }
     }
@@ -356,16 +365,29 @@ class FirebaseHelpers {
     if (userId != null) {
       debugPrint(
           "---------------Unsubscribing from user topics for: $userId-------------------");
-      await FirebaseMessaging.instance
-          .unsubscribeFromTopic('foduu_ecommerce_user_$userId');
-      await FirebaseMessaging.instance
-          .unsubscribeFromTopic('foduu_ecommerce_orders_$userId');
+      try {
+        await FirebaseMessaging.instance
+            .unsubscribeFromTopic('foduu_ecommerce_user_$userId');
+      } catch (e) {
+        debugPrint("Error unsubscribing from foduu_ecommerce_user_$userId: $e");
+      }
+      try {
+        await FirebaseMessaging.instance
+            .unsubscribeFromTopic('foduu_ecommerce_orders_$userId');
+      } catch (e) {
+        debugPrint(
+            "Error unsubscribing from foduu_ecommerce_orders_$userId: $e");
+      }
     }
   }
 
   static Future<bool> unsubscribeFromAllTopics() async {
     for (final topic in customerSubscribeList) {
-      await FirebaseMessaging.instance.unsubscribeFromTopic(topic);
+      try {
+        await FirebaseMessaging.instance.unsubscribeFromTopic(topic);
+      } catch (e) {
+        debugPrint("Error unsubscribing from topic $topic: $e");
+      }
     }
     customerSubscribeList.clear();
     return true;

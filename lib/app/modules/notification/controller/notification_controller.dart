@@ -16,6 +16,9 @@ class NotificationsController extends GetxController with BaseController {
     super.onInit();
     scrollController = ScrollController();
     
+    // Merge local notifications immediately so they are visible while API is loading
+    _mergeNotifications();
+    
     // Initial fetch
     await fetchallnotificationlist();
     await fetchMoreDataOnScroll();
@@ -49,15 +52,21 @@ class NotificationsController extends GetxController with BaseController {
 
   Future<void> fetchallnotificationlist() async {
     isLoading.value = true;
-    var response = await BasicProvider(
-            "frontend/notifications?count=10&page=${currentPage.value}")
-        .getRequest()
-        .catchError(handleError);
-    if (response == null) return;
-    allnotificationListFromApi.addAll(response["data"]);
-    maxPage(response["last_page"]);
-    _mergeNotifications();
-    isLoading.value = false;
+    try {
+      var response = await BasicProvider(
+              "frontend/notifications?count=10&page=${currentPage.value}")
+          .getRequest()
+          .catchError(handleError);
+      if (response != null && response["data"] != null) {
+        allnotificationListFromApi.addAll(response["data"]);
+        maxPage(response["last_page"] ?? 1);
+        _mergeNotifications();
+      }
+    } catch (e) {
+      debugPrint("Error fetching notifications: $e");
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> fetchMoreDataOnScroll() async {
