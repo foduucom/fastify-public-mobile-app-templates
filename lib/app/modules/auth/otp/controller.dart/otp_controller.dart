@@ -95,7 +95,7 @@ class OtpController extends GetxController with BaseController {
           await FirebaseHelpers.afterLoginSubscribe();
         }
 
-        Get.toNamed(Routes.BOTTOMBAR);
+        Get.offAllNamed(Routes.BOTTOMBAR);
       }
 
       // if()

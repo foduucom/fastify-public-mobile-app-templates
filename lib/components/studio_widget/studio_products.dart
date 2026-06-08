@@ -371,9 +371,31 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   Widget _buildGridView(String style) {
     final columns =
         int.tryParse(widget.contentJson?['columns']?.toString() ?? '1') ?? 1;
-    final aspectRatio = double.tryParse(
-            widget.contentJson?['aspect_ratio']?.toString() ?? '2.4') ??
-        2.4;
+    double defaultAspectRatio = 2.4;
+    if (style == 'standard') {
+      defaultAspectRatio = 0.6;
+    } else if (style == 'overlay') {
+      defaultAspectRatio = 0.7;
+    }
+    double aspectRatio = double.tryParse(
+            widget.contentJson?['aspect_ratio']?.toString() ?? '') ??
+        defaultAspectRatio;
+
+    if (style == 'standard' || style == 'overlay') {
+      final screenWidth = MediaQuery.of(context).size.width;
+      final paddingX = pageSurroundingPadding.horizontal;
+      final spacingVal = double.tryParse(
+              widget.contentJson?['spacing']?.toString() ?? '21') ??
+          21;
+      final cellWidth =
+          (screenWidth - paddingX - (columns - 1) * spacingVal) / columns;
+      final minHeight = style == 'standard' ? 245.0 : 255.0;
+      final maxAspectRatio = cellWidth / minHeight;
+      if (aspectRatio > maxAspectRatio) {
+        aspectRatio = maxAspectRatio;
+      }
+    }
+
     final spacing =
         double.tryParse(widget.contentJson?['spacing']?.toString() ?? '21') ??
             21;
@@ -458,7 +480,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     return Padding(
       padding: const EdgeInsets.only(left: 6.0),
       child: SizedBox(
-        height: 250,
+        height: 270,
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(
             dragDevices: {
@@ -513,21 +535,20 @@ class _TrendingProductCardState extends State<TrendingProductSection>
               // Product Image
               Stack(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      height: 178,
-                      width: 160,
-                      fit: BoxFit.cover,
-                      progressIndicatorBuilder: (_, __, ___) =>
-                          HelperFunctions().loadingIndicator(),
-                      errorWidget: (_, __, ___) => Container(
-                        height: 180,
-                        width: 160,
-                        color: colorScheme.surfaceContainerHighest,
-                        child: Icon(Icons.image_outlined,
-                            color: colorScheme.onSurfaceVariant),
+                  AspectRatio(
+                    aspectRatio: 0.9,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.cover,
+                        progressIndicatorBuilder: (_, __, ___) =>
+                            HelperFunctions().loadingIndicator(),
+                        errorWidget: (_, __, ___) => Container(
+                          color: colorScheme.surfaceContainerHighest,
+                          child: Icon(Icons.image_outlined,
+                              color: colorScheme.onSurfaceVariant),
+                        ),
                       ),
                     ),
                   ),

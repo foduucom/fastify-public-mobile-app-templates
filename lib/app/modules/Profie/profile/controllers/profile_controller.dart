@@ -98,15 +98,14 @@ class ProfileController extends GetxController with BaseController {
     DateTime currentDate = DateTime.now();
     DateTime? selectDate = await showDatePicker(
       context: context,
-      initialDate: currentDate,
-      firstDate: currentDate.subtract(const Duration(days: 365)),
-      lastDate: currentDate.add(const Duration(days: 365)),
+      initialDate: selectedDate ?? DateTime(2000, 1, 1),
+      firstDate: DateTime(1920),
+      lastDate: currentDate,
     );
 
     if (selectDate != null) {
       selectedDate = selectDate;
       dobController.text = DateFormat('dd-MM-yyyy').format(selectDate);
-      // print('selected date ${selectedDate}');
     }
   }
 
@@ -136,7 +135,16 @@ class ProfileController extends GetxController with BaseController {
           selectedDate = dob;
           dobController.text = DateFormat('dd-MM-yyyy').format(dob);
         }
-        genderController.text = response["gender"]?.toString() ?? 'female';
+        String fetchedGender =
+            response["gender"]?.toString().toLowerCase() ?? 'male';
+        if (fetchedGender == 'male' ||
+            fetchedGender == 'female' ||
+            fetchedGender == 'other') {
+          gender.value = fetchedGender;
+        } else {
+          gender.value = 'male';
+        }
+        genderController.text = fetchedGender;
       }
     } catch (e) {
       debugPrint('profile error $e');
@@ -185,7 +193,7 @@ class ProfileController extends GetxController with BaseController {
       var form = FormData({
         'name': nameController.text,
         'mobile': phoneController.text,
-        'dob': selectedDate != null
+        'date_of_birth': selectedDate != null
             ? DateFormat('yyyy-MM-dd').format(selectedDate!)
             : "",
         'gender': gender.value,

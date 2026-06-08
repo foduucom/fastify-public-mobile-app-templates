@@ -184,6 +184,7 @@ class BasicProvider {
         userHeader['Authorization'] = 'Bearer ${AuthDetails.getToken()}';
       }
 
+      print("headers: $userHeader");
       return userHeader;
     } catch (e) {
       print('header error $e');

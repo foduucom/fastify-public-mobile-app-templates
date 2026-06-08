@@ -16,6 +16,7 @@ class FoduuFormTextField extends StatelessWidget {
     this.obsecure = false,
     this.maxLine = 1,
     this.inputFormatters,
+    this.onTap,
   }) : super(key: key);
 
   final String fieldHintText;
@@ -30,6 +31,7 @@ class FoduuFormTextField extends StatelessWidget {
   final int maxLine;
   final List<TextInputFormatter>? inputFormatters;
   final Widget? suffixIcon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +42,7 @@ class FoduuFormTextField extends StatelessWidget {
       readOnly: readOnly,
       keyboardType: keyType,
       obscureText: obsecure,
+      onTap: onTap,
       decoration: InputDecoration(
         floatingLabelAlignment: FloatingLabelAlignment.start,
         floatingLabelBehavior: FloatingLabelBehavior.always,
