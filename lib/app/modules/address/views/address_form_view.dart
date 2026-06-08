@@ -100,10 +100,11 @@ class AddressFormView extends GetView<AddressFormController> {
                     const SizedBox(height: 15),
                     FoduuFormTextField(
                       title: "Landmark",
-                      fieldHintText: "Enter landmark",
+                      fieldHintText: "Enter landmark (optional)",
                       controller: controller.landmark,
-                      validationmsg: "Required",
-                      validCheck: (v) => v!.isEmpty ? "Enter Landmark" : null,
+                      validationmsg: "",
+                      isRequired: false,
+                      validCheck: (v) => null, // Landmark is optional
                     ),
                     const SizedBox(height: 15),
                     _buildDropdownSection(

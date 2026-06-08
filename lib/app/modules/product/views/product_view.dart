@@ -722,13 +722,13 @@ class ProductView extends GetView<ProductController> {
               final variants = productDetails['variants'] as List;
               final selectedIndex = controller.selectedVariantIndex.value;
               if (selectedIndex < variants.length) {
-                variantSlug = variants[selectedIndex]['slug'] ?? '';
+                variantSlug = variants[selectedIndex]['slug'] ?? variants[selectedIndex]['variant_slug'] ?? '';
                 variantId = (variants[selectedIndex]['_id'] ??
                         variants[selectedIndex]['id'])
                     ?.toString();
               }
             } else {
-              variantSlug = productDetails['variant_slug'] ?? '';
+              variantSlug = productDetails['variant_slug'] ?? productDetails['slug'] ?? '';
               variantId =
                   (productDetails['_id'] ?? productDetails['id'])?.toString();
             }

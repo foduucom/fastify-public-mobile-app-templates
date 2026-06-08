@@ -384,9 +384,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     if (style == 'standard' || style == 'overlay') {
       final screenWidth = MediaQuery.of(context).size.width;
       final paddingX = pageSurroundingPadding.horizontal;
-      final spacingVal = double.tryParse(
-              widget.contentJson?['spacing']?.toString() ?? '21') ??
-          21;
+      final spacingVal =
+          double.tryParse(widget.contentJson?['spacing']?.toString() ?? '21') ??
+              21;
       final cellWidth =
           (screenWidth - paddingX - (columns - 1) * spacingVal) / columns;
       final minHeight = style == 'standard' ? 245.0 : 255.0;
@@ -1038,17 +1038,20 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   /// Handle wishlist tap
   void _handleWishlistTap(Map<String, dynamic> product) async {
     final productId = ProductHelper.getProductId(product);
-    String variantSlug = product['variant_slug'] ?? '';
+    String variantSlug = '';
     String? variantId;
 
-    if (product['type'] == 'variable') {
-      final variants = product['variants'];
-      if (variants is List && variants.isNotEmpty) {
-        // Use first variant as default if none selected
-        final variant = variants[0];
-        variantId = (variant['_id'] ?? variant['id'])?.toString();
-        variantSlug = variant['variant_slug'] ?? '';
-      }
+    // Try to get variant slug from the variants array first (works for both simple and variable products)
+    final variants = product['variants'];
+    if (variants is List && variants.isNotEmpty) {
+      final variant = variants[0];
+      variantId = (variant['_id'] ?? variant['id'])?.toString();
+      variantSlug = variant['slug'] ?? variant['variant_slug'] ?? '';
+    }
+
+    // Fallback to product-level slug if variants didn't provide one
+    if (variantSlug.isEmpty) {
+      variantSlug = product['variant_slug'] ?? product['slug'] ?? '';
     }
 
     await WishListService.to.toggleWishlist(

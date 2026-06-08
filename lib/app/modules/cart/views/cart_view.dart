@@ -39,7 +39,7 @@ class CartView extends GetView<CartController> {
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return  const CartShimmer();
+          return const CartShimmer();
         }
 
         if (controller.cartItems.isEmpty) {
@@ -329,10 +329,13 @@ class _CartItemCard extends StatelessWidget {
     debugPrint('--------------------------------------------------');
 
     // Get variant's effective price
-    final variantPrice = HelperFunctions.parseAmount(variant['sale_price'] ?? variant['price']);
+    final variantPrice =
+        HelperFunctions.parseAmount(variant['sale_price'] ?? variant['price']);
     final variantRegularPrice = HelperFunctions.parseAmount(variant['price']);
-    final hasDiscount = HelperFunctions.parseAmount(variant['sale_price']) > 0 &&
-        variantRegularPrice > HelperFunctions.parseAmount(variant['sale_price']);
+    final hasDiscount =
+        HelperFunctions.parseAmount(variant['sale_price']) > 0 &&
+            variantRegularPrice >
+                HelperFunctions.parseAmount(variant['sale_price']);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -399,8 +402,10 @@ class _CartItemCard extends StatelessWidget {
                 const SizedBox(height: 4),
 
                 // Variant Name
-                if (variant['name'] != null &&
-                    variant['name'].toString().isNotEmpty)
+                if (variant['name'] != product['name'] &&
+                    variant['variant_name']
+                        .toString()
+                        .isNotEmpty) // Variant Name
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

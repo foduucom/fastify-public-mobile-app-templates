@@ -56,7 +56,26 @@ class WishlistController extends GetxController
   }
 
   String getVariantSlug(int index) {
-    return wishlistItems[index]['variant_slug'] ?? '';
+    final variant = getVariant(index);
+    if (variant.isNotEmpty) {
+      final slug = variant['slug'] ?? variant['variant_slug'];
+      if (slug != null && slug.toString().isNotEmpty) {
+        return slug.toString();
+      }
+    }
+    final itemSlug = wishlistItems[index]['variant_slug'] ??
+        wishlistItems[index]['slug'];
+    if (itemSlug != null && itemSlug.toString().isNotEmpty) {
+      return itemSlug.toString();
+    }
+    final product = getProduct(index);
+    if (product.isNotEmpty) {
+      final productSlug = product['slug'] ?? product['variant_slug'];
+      if (productSlug != null && productSlug.toString().isNotEmpty) {
+        return productSlug.toString();
+      }
+    }
+    return '';
   }
 
   String getProductId(int index) {
@@ -71,7 +90,8 @@ class WishlistController extends GetxController
 
   /// Returns the price to show and whether a sale is active.
   /// Priority: variant.sale_price > variant.price > product fallback
-  ({String finalPrice, String originalPrice, bool hasSale}) getPriceInfo(int index) {
+  ({String finalPrice, String originalPrice, bool hasSale}) getPriceInfo(
+      int index) {
     final variant = getVariant(index);
     final product = getProduct(index);
 
@@ -153,7 +173,8 @@ class WishlistController extends GetxController
     // 1. Variant gallery (uses same HelperFunctions path logic as the rest of the app)
     final gallery = variant['gallery'];
     if (gallery is List && gallery.isNotEmpty) {
-      final url = HelperFunctions().getImage(gallery.first, moduleName: 'WishlistController');
+      final url = HelperFunctions()
+          .getImage(gallery.first, moduleName: 'WishlistController');
       if (url != HelperFunctions.getNoImage()) return url;
     }
 

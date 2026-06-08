@@ -228,22 +228,33 @@ class AddressListView extends GetView<AddressListController> {
                                                                   : userAddress[
                                                                       'city']),
                                                             if (userAddress[
-                                                                        'state']
-                                                                    ?['name'] !=
+                                                                    'state'] !=
                                                                 null)
-                                                              userAddress[
-                                                                      'state']
-                                                                  ['name'],
+                                                              (userAddress[
+                                                                          'state']
+                                                                      is Map
+                                                                  ? userAddress[
+                                                                          'state']
+                                                                      ['name']
+                                                                  : userAddress[
+                                                                      'state']),
                                                             if (userAddress[
-                                                                        'country']
-                                                                    ?['name'] !=
+                                                                    'country'] !=
                                                                 null)
-                                                              userAddress[
-                                                                      'country']
-                                                                  ['name'],
+                                                              (userAddress[
+                                                                          'country']
+                                                                      is Map
+                                                                  ? userAddress[
+                                                                          'country']
+                                                                      ['name']
+                                                                  : userAddress[
+                                                                      'country']),
                                                           ]
                                                               .where((e) =>
-                                                                  e != null)
+                                                                  e != null &&
+                                                                  e
+                                                                      .toString()
+                                                                      .isNotEmpty)
                                                               .join(', ') +
                                                           (userAddress[
                                                                       'postal_code'] !=

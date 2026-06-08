@@ -77,14 +77,24 @@ class AddressFormController extends GetxController with BaseController {
     }
   }
 
+  /// Extracts the data array from API response, handling both
+  /// `response['data']` (direct List) and `response['data']['data']` (nested).
+  List _extractDataList(dynamic response) {
+    if (response == null) return [];
+    var data = response['data'];
+    if (data is List) return data;
+    if (data is Map && data['data'] is List) return data['data'];
+    return [];
+  }
+
   Future<void> fetchCountries() async {
     try {
       var response = await BasicProvider('countries?search=indi')
           .getRequest()
           .catchError(handleError);
-      print('address r esponse  ${response}');
+      print('address response  ${response}');
       if (response != null) {
-        countryList.assignAll(response['data']);
+        countryList.assignAll(_extractDataList(response));
       }
     } catch (e) {
       print('Error fetching countries: $e');
@@ -97,9 +107,9 @@ class AddressFormController extends GetxController with BaseController {
       var response = await BasicProvider('states/$countryId')
           .getRequest()
           .catchError(handleError);
-      print('state resonse  ${response}');
+      print('state response  ${response}');
       if (response != null) {
-        stateList.assignAll(response['data']);
+        stateList.assignAll(_extractDataList(response));
       }
     } catch (e) {
       print('Error fetching states: $e');
@@ -114,7 +124,7 @@ class AddressFormController extends GetxController with BaseController {
           .catchError(handleError);
       if (response != null) {
         print('city response ${response}');
-        cityList.assignAll(response['data']);
+        cityList.assignAll(_extractDataList(response));
       }
     } catch (e) {
       print('Error fetching cities: $e');

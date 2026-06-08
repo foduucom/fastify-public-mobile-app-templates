@@ -84,6 +84,9 @@ class AddressListController extends GetxController with BaseController {
         userAddressList.assignAll(tempList);
         print("refreshAddresses: Loaded ${userAddressList.length} addresses");
 
+        // ✅ Resolve country/state/city IDs to names for display
+        await _resolveAddressNames();
+
         if (userAddressList.isNotEmpty) {
           // ✅ Maintain current selection if possible
           bool selectionStillValid = false;
@@ -129,6 +132,112 @@ class AddressListController extends GetxController with BaseController {
       isLoading.value = false;
       addressLoading.value = false;
       print('Error fetching addresses: $e');
+    }
+  }
+
+  /// Extracts the data array from API response, handling both
+  /// `response['data']` (direct List) and `response['data']['data']` (nested).
+  List _extractDataList(dynamic response) {
+    if (response == null) return [];
+    var data = response['data'];
+    if (data is List) return data;
+    if (data is Map && data['data'] is List) return data['data'];
+    return [];
+  }
+
+  /// Resolves raw string IDs for country/state/city to Map objects with names.
+  /// e.g. converts `"city": "68f9cccc281ec9e0cd95e422"` to `"city": {"_id": "...", "name": "Indore"}`
+  Future<void> _resolveAddressNames() async {
+    try {
+      // Cache fetched data to avoid duplicate API calls
+      Map<String, List> countryStatesCache = {};
+      Map<String, List> stateCitiesCache = {};
+
+      // Fetch countries once
+      List countryList = [];
+      var countryResponse = await BasicProvider('countries?search=indi')
+          .getRequest()
+          .catchError(handleError);
+      if (countryResponse != null) {
+        countryList = _extractDataList(countryResponse);
+      }
+
+      for (var address in userAddressList) {
+        if (address is! Map) continue;
+
+        // ── Resolve Country ──
+        var countryVal = address['country'];
+        String countryId = '';
+        if (countryVal is String && countryVal.isNotEmpty) {
+          countryId = countryVal;
+          var matched = countryList.firstWhere(
+            (e) => e['_id'] == countryId,
+            orElse: () => null,
+          );
+          if (matched != null) {
+            address['country'] = {
+              '_id': countryId,
+              'name': matched['name']?.toString() ?? '',
+            };
+          }
+        } else if (countryVal is Map) {
+          countryId = countryVal['_id']?.toString() ?? '';
+        }
+
+        // ── Resolve State ──
+        var stateVal = address['state'];
+        String stateId = '';
+        if (stateVal is String && stateVal.isNotEmpty && countryId.isNotEmpty) {
+          stateId = stateVal;
+          if (!countryStatesCache.containsKey(countryId)) {
+            var resp = await BasicProvider('states/$countryId')
+                .getRequest()
+                .catchError(handleError);
+            countryStatesCache[countryId] = _extractDataList(resp);
+          }
+          var states = countryStatesCache[countryId] ?? [];
+          var matched = states.firstWhere(
+            (e) => e['_id'] == stateId,
+            orElse: () => null,
+          );
+          if (matched != null) {
+            address['state'] = {
+              '_id': stateId,
+              'name': matched['name']?.toString() ?? '',
+            };
+          }
+        } else if (stateVal is Map) {
+          stateId = stateVal['_id']?.toString() ?? '';
+        }
+
+        // ── Resolve City ──
+        var cityVal = address['city'];
+        if (cityVal is String && cityVal.isNotEmpty && stateId.isNotEmpty) {
+          String cityId = cityVal;
+          if (!stateCitiesCache.containsKey(stateId)) {
+            var resp = await BasicProvider('cities/$stateId')
+                .getRequest()
+                .catchError(handleError);
+            stateCitiesCache[stateId] = _extractDataList(resp);
+          }
+          var cities = stateCitiesCache[stateId] ?? [];
+          var matched = cities.firstWhere(
+            (e) => e['_id'] == cityId,
+            orElse: () => null,
+          );
+          if (matched != null) {
+            address['city'] = {
+              '_id': cityId,
+              'name': matched['name']?.toString() ?? '',
+            };
+          }
+        }
+      }
+
+      // Refresh the list to trigger UI update
+      userAddressList.refresh();
+    } catch (e) {
+      print('Error resolving address names: $e');
     }
   }
 

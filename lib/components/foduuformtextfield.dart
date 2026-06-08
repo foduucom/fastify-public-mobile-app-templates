@@ -17,6 +17,7 @@ class FoduuFormTextField extends StatelessWidget {
     this.maxLine = 1,
     this.inputFormatters,
     this.onTap,
+    this.isRequired = true,
   }) : super(key: key);
 
   final String fieldHintText;
@@ -32,6 +33,7 @@ class FoduuFormTextField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final Widget? suffixIcon;
   final VoidCallback? onTap;
+  final bool isRequired;
 
   @override
   Widget build(BuildContext context) {
@@ -59,15 +61,17 @@ class FoduuFormTextField extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
-            children: [
-              TextSpan(
-                text: ' *',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.error,
-                  fontSize: 16,
-                ),
-              ),
-            ],
+            children: isRequired
+                ? [
+                    TextSpan(
+                      text: ' *',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ]
+                : [],
           ),
         ),
         hintText: fieldHintText,

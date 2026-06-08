@@ -9,6 +9,7 @@ import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
+import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import '../controllers/wishlist_controller.dart';
 
@@ -250,36 +251,16 @@ class _WishListItemCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Product Name
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => _navigateToProduct(productId),
-                        child: Text(
-                          product['name'] ?? 'ff',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
+                GestureDetector(
+                  onTap: () => _navigateToProduct(productId),
+                  child: Text(
+                    product['name'] ?? '',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        WishListService.to.removeFromWishlist(
-                          productId: productId,
-                          variantSlug: variantSlug,
-                        );
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 8.0, right: 4.0),
-                        child: Icon(Icons.close,
-                            size: 20, color: colorScheme.onSurfaceVariant),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
 
                 const SizedBox(height: 4),
@@ -302,7 +283,7 @@ class _WishListItemCard extends StatelessWidget {
                     ),
                   ),
 
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
 
                 // Price Row
                 Row(
@@ -407,6 +388,108 @@ class _WishListItemCard extends StatelessWidget {
                         .toList(),
                   ),
                 ],
+                const SizedBox(height: 8),
+                Divider(
+                  thickness: 0.5,
+                  height: 1,
+                  color: colorScheme.outline.withOpacity(0.3),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    // Add to Cart
+                    Expanded(
+                      child: InkWell(
+                        onTap: () async {
+                          final variantId = variant['_id']?.toString() ?? '';
+                          if (variantId.isNotEmpty && productId.isNotEmpty) {
+                            HelperFunctions().showOverlayLoader();
+                            try {
+                              await CartService.to.manageCart(
+                                productId: productId,
+                                variantId: variantId,
+                                quantity: 1,
+                                product: product,
+                              );
+                              HelperFunctions().hideOverlayLoader();
+                              HelperFunctions().showSnackBarSuccess(
+                                  "Added to Cart successfully".tr);
+                            } catch (e) {
+                              HelperFunctions().hideOverlayLoader();
+                              HelperFunctions().showSnackBarError(
+                                  "Failed to add to cart".tr);
+                            }
+                          } else {
+                            HelperFunctions().showSnackBarError(
+                                "Product variant not found".tr);
+                          }
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.local_mall_outlined,
+                                size: 16,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Add to Cart'.tr,
+                                style: textTheme.labelMedium?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Vertical Divider
+                    Container(
+                      width: 1,
+                      height: 16,
+                      color: colorScheme.outline.withOpacity(0.3),
+                    ),
+                    // Remove
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          final variantId = variant['_id']?.toString();
+                          WishListService.to.toggleWishlist(
+                            productId: productId,
+                            variantSlug: variantSlug,
+                            variantId: variantId,
+                            productData: product,
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.delete_outline,
+                                size: 16,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Remove'.tr,
+                                style: textTheme.labelMedium?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

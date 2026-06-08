@@ -44,6 +44,7 @@ class WishListService extends GetxService with BaseController {
       'variant_slug': variantSlug,
       if (variantId != null) 'variant_id': variantId,
     };
+    print("add wishlist form === $form");
     var response = await BasicProvider("wishlist/add")
         .postRequest(form)
         .catchError(handleError);
@@ -64,6 +65,7 @@ class WishListService extends GetxService with BaseController {
       'variant_slug': variantSlug,
       if (variantId != null) 'variant_id': variantId,
     };
+    print("remove wishlist form === $form");
     var response = await BasicProvider("wishlist/remove")
         .postRequest(form)
         .catchError(handleError);
