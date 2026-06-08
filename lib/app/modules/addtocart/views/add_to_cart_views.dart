@@ -22,7 +22,7 @@ class AddToCartViews extends GetView {
         ),
         child: Column(
           children: [
-            SizedBox(height: height * 0.02),
+            SizedBox(height: height * 0.01),
             SecondaryAppHeader(
               title: "My Cart",
             ),

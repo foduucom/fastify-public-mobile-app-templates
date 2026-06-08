@@ -33,6 +33,16 @@ class ResponsiveCommonHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          /// 💬 Messages
+          ResponsiveCircleIcon(
+            icon: Icons.message_outlined,
+            height: height,
+            width: width,
+            onTap: onMessageTap,
+          ),
+
+          SizedBox(width: width * 0.01),
+
           /// 🔍 Search Bar
           Expanded(
             child: GestureDetector(
@@ -46,7 +56,8 @@ class ResponsiveCommonHeader extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(height),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                    color:
+                        Theme.of(context).colorScheme.outline.withOpacity(0.3),
                   ),
                 ),
                 child: Row(
@@ -84,29 +95,19 @@ class ResponsiveCommonHeader extends StatelessWidget {
             onTap: onCartTap,
           ),
           if (kIsWeb)
-          Obx(
-            () => Container(
-              margin: const EdgeInsets.only(right: 8),
+            Obx(
+              () => Container(
+                margin: const EdgeInsets.only(right: 8),
                 height: 10,
                 width: 10,
                 decoration: BoxDecoration(
-                color: SocketHelper().isConnectedObs.value
-                ? Colors.green
-                : Colors.red,
-                shape: BoxShape.circle,
+                  color: SocketHelper().isConnectedObs.value
+                      ? Colors.green
+                      : Colors.red,
+                  shape: BoxShape.circle,
                 ),
               ),
             ),
-
-          SizedBox(width: width * 0.01),
-
-          /// 💬 Messages
-          ResponsiveCircleIcon(
-            icon: Icons.message_outlined,
-            height: height,
-            width: width,
-            onTap: onMessageTap,
-          ),
 
           SizedBox(width: width * 0.02),
 

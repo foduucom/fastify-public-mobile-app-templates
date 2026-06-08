@@ -98,30 +98,30 @@ class _FilterChips extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           child: Row(
             children: [
-              _ToggleChip(
-                label: 'Main Categories',
-                selected: controller.showOnlyParents.value,
-                onSelected: controller.toggleParentOnly,
-              ),
-              const SizedBox(width: 8),
-              _ToggleChip(
-                label: 'Sub-categories',
-                selected: controller.showOnlyChildren.value,
-                onSelected: controller.toggleChildrenOnly,
-              ),
-              const SizedBox(width: 8),
+              // _ToggleChip(
+              //   label: 'Main Categories',
+              //   selected: controller.showOnlyParents.value,
+              //   onSelected: controller.toggleParentOnly,
+              // ),
+              // const SizedBox(width: 8),
+              // _ToggleChip(
+              //   label: 'Sub-categories',
+              //   selected: controller.showOnlyChildren.value,
+              //   onSelected: controller.toggleChildrenOnly,
+              // ),
+              // const SizedBox(width: 8),
               _TypeChip(
                 label: 'All',
                 value: 'all',
                 controller: controller,
               ),
               const SizedBox(width: 8),
-              _TypeChip(
-                label: 'Shop',
-                value: 'product',
-                controller: controller,
-              ),
-              const SizedBox(width: 8),
+              // _TypeChip(
+              //   label: 'Shop',
+              //   value: 'product',
+              //   controller: controller,
+              // ),
+              // const SizedBox(width: 8),
               _TypeChip(
                 label: 'Featured',
                 value: 'home_category',
