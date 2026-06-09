@@ -13,13 +13,18 @@ import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
+import 'package:foduu_ecommerce/models/local_notification.dart';
+import 'package:foduu_ecommerce/services/local_storage_notification_service.dart';
+import 'package:foduu_ecommerce/services/notification_sync_service.dart';
+
 // Must be a top-level function — FCM requirement
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   final notification = message.notification;
   if (notification != null) {
-    FirebaseHelpers.saveNotificationLocally(message);
+    await GetStorage.init();
+    await FirebaseHelpers.saveNotificationLocally(message);
     await AwesomeNotifications().createNotification(
       content: NotificationContent(
         id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
@@ -225,33 +230,71 @@ class FirebaseHelpers {
     navigateOnNotificationClick(message.data);
   }
 
-  static void saveNotificationLocally(RemoteMessage message) {
+  static Future<void> saveNotificationLocally(RemoteMessage message) async {
     final notification = message.notification;
     if (notification == null) return;
 
-    final newNotif = {
-      'title': notification.title,
-      'body': notification.body,
-      'data': message.data,
-      'created_at': DateTime.now().toIso8601String(),
+    final id = message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString();
+    final localNotif = LocalNotification(
+      id: id,
+      title: notification.title ?? '',
+      body: notification.body ?? '',
+      type: message.data['type']?.toString() ?? 'general',
+      timestamp: message.sentTime ?? DateTime.now(),
+      isRead: false,
+      isSynced: false,
+      metadata: Map<String, dynamic>.from(message.data),
+    );
+
+    LocalStorageNotificationService storageService;
+    if (Get.isRegistered<LocalStorageNotificationService>()) {
+      storageService = Get.find<LocalStorageNotificationService>();
+    } else {
+      storageService = Get.put(LocalStorageNotificationService());
+    }
+    await storageService.saveNotification(localNotif);
+
+    // Update legacy list for compatibility
+    final legacyNotif = {
+      'title': localNotif.title,
+      'body': localNotif.body,
+      'data': localNotif.metadata,
+      'created_at': localNotif.timestamp.toIso8601String(),
       'is_local': true,
+      'id': localNotif.id,
+      'is_read': localNotif.isRead,
+      'is_synced': localNotif.isSynced,
     };
 
-    // Add to reactive list (at the top)
-    localNotifications.insert(0, newNotif);
+    final existingIndex = localNotifications.indexWhere((n) => n['id'] == localNotif.id);
+    if (existingIndex != -1) {
+      localNotifications[existingIndex] = legacyNotif;
+    } else {
+      localNotifications.insert(0, legacyNotif);
+    }
 
-    // Limit to 50 items
     if (localNotifications.length > 50) {
       localNotifications.removeLast();
     }
 
-    // Persist to storage
     box.write(notificationKey, localNotifications.toList());
+
+    // Trigger sync
+    NotificationSyncService syncService;
+    if (Get.isRegistered<NotificationSyncService>()) {
+      syncService = Get.find<NotificationSyncService>();
+    } else {
+      syncService = Get.put(NotificationSyncService());
+    }
+    syncService.syncPendingNotifications();
   }
 
   static void clearLocalNotifications() {
     localNotifications.clear();
     box.remove(notificationKey);
+    if (Get.isRegistered<LocalStorageNotificationService>()) {
+      LocalStorageNotificationService.to.clearAll();
+    }
   }
 
   // ─── FCM Token ────────────────────────────────────────────────────────────

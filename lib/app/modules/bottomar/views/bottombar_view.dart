@@ -89,12 +89,12 @@ class BottombarView extends GetView<BottombarController> {
               unselectedLabelStyle: const TextStyle(
                 fontFamily: 'Lato',
                 fontSize: 10,
-                height: 2,
+                height: 1.4,
               ),
               selectedLabelStyle: const TextStyle(
                 fontFamily: 'Lato',
                 fontSize: 10,
-                height: 2,
+                height: 1.4,
               ),
               onTap: (value) {
                 controller.onTabChange(value);

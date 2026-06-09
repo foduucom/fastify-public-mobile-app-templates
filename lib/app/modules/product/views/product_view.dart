@@ -263,7 +263,7 @@ class ProductView extends GetView<ProductController> {
               .map<Widget>(
                 (tag) => Chip(
                   label: Text(
-                    tag.toString(),
+                    (tag is Map ? tag['name']?.toString() : tag?.toString()) ?? '',
                     style: const TextStyle(fontSize: 12),
                   ),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

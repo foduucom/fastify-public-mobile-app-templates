@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
@@ -129,22 +130,40 @@ class ProfileController extends GetxController with BaseController {
         nameController.text = response["name"]?.toString() ?? "";
         emailController.text = response["email"]?.toString() ?? "";
         phoneController.text = response["mobile"]?.toString() ?? "";
-        DateTime? dob =
-            response['dob'] != null ? DateTime.tryParse(response['dob']) : null;
+        String? dobStr = response['date_of_birth']?.toString() ??
+            response['dob']?.toString();
+        DateTime? dob;
+        if (dobStr != null && dobStr.isNotEmpty && dobStr != "null") {
+          dob = DateTime.tryParse(dobStr);
+          if (dob == null) {
+            try {
+              dob = DateFormat('dd-MM-yyyy').parse(dobStr);
+            } catch (_) {
+              try {
+                dob = DateFormat('yyyy-MM-dd').parse(dobStr);
+              } catch (_) {
+                try {
+                  dob = DateFormat('dd/MM/yyyy').parse(dobStr);
+                } catch (_) {
+                  try {
+                    dob = DateFormat('dd MMM yyyy').parse(dobStr);
+                  } catch (_) {}
+                }
+              }
+            }
+          }
+        }
         if (dob != null) {
           selectedDate = dob;
           dobController.text = DateFormat('dd-MM-yyyy').format(dob);
-        }
-        String fetchedGender =
-            response["gender"]?.toString().toLowerCase() ?? 'male';
-        if (fetchedGender == 'male' ||
-            fetchedGender == 'female' ||
-            fetchedGender == 'other') {
-          gender.value = fetchedGender;
         } else {
-          gender.value = 'male';
+          selectedDate = null;
+          dobController.text = "";
         }
-        genderController.text = fetchedGender;
+        String genderVal =
+            response["gender"]?.toString().toLowerCase() ?? 'female';
+        gender.value = genderVal;
+        genderController.text = genderVal;
       }
     } catch (e) {
       debugPrint('profile error $e');
@@ -182,32 +201,86 @@ class ProfileController extends GetxController with BaseController {
     return formatted;
   }
 
+  bool _hasFieldChanged(String key, String currentValue) {
+    final originalValue = profiledata[key]?.toString() ?? "";
+    return currentValue.trim() != originalValue.trim();
+  }
+
+  bool get _isDobChanged {
+    final originalDobStr =
+        (profiledata['date_of_birth'] ?? profiledata['dob'])?.toString();
+    if (originalDobStr == null || originalDobStr.isEmpty) {
+      return selectedDate != null;
+    }
+    final originalDob = DateTime.tryParse(originalDobStr);
+    if (originalDob == null) {
+      return selectedDate != null;
+    }
+    if (selectedDate == null) {
+      return false;
+    }
+    return originalDob.year != selectedDate!.year ||
+        originalDob.month != selectedDate!.month ||
+        originalDob.day != selectedDate!.day;
+  }
+
+  bool get hasUnsavedChanges {
+    if (profiledata.isEmpty) return false;
+    return _hasFieldChanged('name', nameController.text) ||
+        _hasFieldChanged('mobile', phoneController.text) ||
+        _hasFieldChanged('email', emailController.text) ||
+        _hasFieldChanged('gender', gender.value) ||
+        _isDobChanged ||
+        (imagePath.value.isNotEmpty && !imagePath.value.startsWith('http'));
+  }
+
   Future<void> sendFormData() async {
-    // if (dobController.text == "") {
-    //   HelperFunctions().showSnackBarError("Please select your Date Of Birth");
-    //   return;
-    // }
     if (formKey.currentState!.validate()) {
       isLoading(true);
 
-      var form = FormData({
+      // Build form fields first (no image yet)
+      final Map<String, dynamic> formMap = {
         'name': nameController.text,
         'mobile': phoneController.text,
-        'date_of_birth': selectedDate != null
-            ? DateFormat('yyyy-MM-dd').format(selectedDate!)
-            : "",
-        'gender': gender.value,
+        'gender': gender.value
+            .toLowerCase(), // Keep it lowercase to avoid server 500 enum error
         'email': emailController.text,
-        'featured_image':
-            !imagePath.value.contains("http") && imagePath.value != ""
-                ? MultipartFile(imagePath.value,
-                    filename: imagePath.value
-                        .split("/")[imagePath.value.split("/").length - 1])
-                : imagePath.value != ""
-                    ? null
-                    : "",
-      });
+      };
 
+      if (selectedDate != null) {
+        formMap['date_of_birth'] =
+            DateFormat('yyyy-MM-dd').format(selectedDate!);
+      }
+
+      // Only attach featured_image when user picked a NEW local file.
+      // If imagePath is an existing http URL or empty, skip the field entirely
+      // so the server keeps the existing image untouched.
+      final bool isNewLocalFile =
+          imagePath.value.isNotEmpty && !imagePath.value.contains("http");
+      if (isNewLocalFile) {
+        final path = imagePath.value;
+        final name = path.split("/").last;
+        final extension = name.split(".").last.toLowerCase();
+
+        // Map common extensions to their MIME type
+        String mimeType = 'image/jpeg';
+        if (extension == 'png') {
+          mimeType = 'image/png';
+        } else if (extension == 'webp') {
+          mimeType = 'image/webp';
+        } else if (extension == 'gif') {
+          mimeType = 'image/gif';
+        }
+
+        formMap['featured_image'] = MultipartFile(
+          File(path),
+          filename: name,
+          contentType: mimeType,
+        );
+      }
+
+      var form = FormData(formMap);
+      print("Profile Data : $form");
       try {
         debugPrint("form To UPDATE Profile ${form.files}");
         var response = await BasicProvider("auth/customer/profile/update")
@@ -218,6 +291,9 @@ class ProfileController extends GetxController with BaseController {
           HelperFunctions().hideOverlayLoader();
           return;
         }
+
+        // Reset local imagePath on success so UI returns to fetching the server URL
+        imagePath.value = "";
 
         await fetchDataFromServer();
         isLoading(false);

@@ -157,7 +157,7 @@ class _FoduuSliderState extends State<FoduuSlider>
                                     'name': title
                                   });
                             } else if (sliderType == 'blog') {
-                              Get.toNamed(Routes.BLOG, arguments: {
+                              Get.toNamed(Routes.BLOG_DETAILS, arguments: {
                                 'id': link,
                               });
                             } else if (link != null && link.isNotEmpty) {

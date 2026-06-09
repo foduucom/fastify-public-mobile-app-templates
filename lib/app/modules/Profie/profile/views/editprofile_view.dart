@@ -81,7 +81,7 @@ class EditprofileView extends GetView<ProfileController> {
                                 validCheck: (value) {
                                   if (value == null ||
                                       value.isEmpty ||
-                                      value.length < 6) {
+                                      value.length < 3) {
                                     return 'Please enter a name'.tr;
                                   } else if (value.trim().isEmpty) {
                                     return 'Name cannot start with a space'.tr;
@@ -128,43 +128,43 @@ class EditprofileView extends GetView<ProfileController> {
                             const SizedBox(height: 20.0),
                             // ─── Gender ───
                             Obx(() => DropdownButtonFormField<String>(
-                              value: controller.gender.value.isEmpty
-                                  ? null
-                                  : controller.gender.value,
-                              decoration: InputDecoration(
-                                floatingLabelAlignment:
-                                    FloatingLabelAlignment.start,
-                                floatingLabelBehavior:
-                                    FloatingLabelBehavior.always,
-                                label: RichText(
-                                  text: TextSpan(
-                                    text: 'Gender',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w500,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                        ),
+                                  value: controller.gender.value.isEmpty
+                                      ? null
+                                      : controller.gender.value,
+                                  decoration: InputDecoration(
+                                    floatingLabelAlignment:
+                                        FloatingLabelAlignment.start,
+                                    floatingLabelBehavior:
+                                        FloatingLabelBehavior.always,
+                                    label: RichText(
+                                      text: TextSpan(
+                                        text: 'Gender',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w500,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface,
+                                            ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                              items: const [
-                                DropdownMenuItem(
-                                    value: 'male', child: Text('Male')),
-                                DropdownMenuItem(
-                                    value: 'female', child: Text('Female')),
-                                DropdownMenuItem(
-                                    value: 'other', child: Text('Other')),
-                              ],
-                              onChanged: (value) {
-                                if (value != null) {
-                                  controller.gender.value = value;
-                                }
-                              },
-                            )),
+                                  items: const [
+                                    DropdownMenuItem(
+                                        value: 'male', child: Text('Male')),
+                                    DropdownMenuItem(
+                                        value: 'female', child: Text('Female')),
+                                    DropdownMenuItem(
+                                        value: 'other', child: Text('Other')),
+                                  ],
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      controller.gender.value = value;
+                                    }
+                                  },
+                                )),
                             const SizedBox(height: 20.0),
                             // ─── Date of Birth ───
                             FoduuFormTextField(
@@ -177,8 +177,7 @@ class EditprofileView extends GetView<ProfileController> {
                               onTap: () => controller.selectDate(context),
                               suffixIcon: IconButton(
                                 icon: const Icon(Icons.calendar_today_outlined),
-                                onPressed: () =>
-                                    controller.selectDate(context),
+                                onPressed: () => controller.selectDate(context),
                               ),
                               validCheck: (value) => null,
                             ),

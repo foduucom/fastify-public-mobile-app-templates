@@ -56,7 +56,12 @@ class _BlogSectionState extends State<BlogSection>
               itemBuilder: ((context, index) {
                 var blog = blogs[index];
                 return InkWell(
-                  onTap: () {},
+                  onTap: () {
+                    final blogId = blog['_id'] ?? blog['id'];
+                    if (blogId != null) {
+                      Get.toNamed(Routes.BLOG_DETAILS, arguments: {'id': blogId});
+                    }
+                  },
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius:

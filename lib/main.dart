@@ -16,13 +16,20 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 
+import 'package:foduu_ecommerce/services/local_storage_notification_service.dart';
+import 'package:foduu_ecommerce/services/notification_sync_service.dart';
+import 'package:foduu_ecommerce/services/payment_service.dart';
+
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   await GetStorage.init();
 
+  Get.put(LocalStorageNotificationService());
+  Get.put(NotificationSyncService());
   Get.put(CartService());
+  Get.put(PaymentService()); // Initialize PaymentService
   Get.put(WishListService());
 
   if (kIsWeb) {

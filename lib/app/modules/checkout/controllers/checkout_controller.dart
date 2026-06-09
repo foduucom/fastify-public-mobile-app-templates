@@ -11,6 +11,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:foduu_ecommerce/components/paymentGateway/Stripe.dart';
 import 'package:foduu_ecommerce/components/paymentGateway/PhonePe.dart';
 import 'package:foduu_ecommerce/components/paymentGateway/COD.dart';
+import 'package:foduu_ecommerce/services/payment_handler_controller.dart'; // Import PaymentHandlerController
 import 'package:foduu_ecommerce/components/paymentGateway/RazorPay.dart';
 import 'package:foduu_ecommerce/app/modules/address/controllers/address_list_controller.dart';
 
@@ -322,6 +323,13 @@ class CheckOutController extends GetxController with BaseController {
                   orderResponse['order_no'] ?? orderResponse['_id'] ?? "";
               final String rawOrderId = orderResponse['_id'] ?? "";
 
+              final String razorpayOrderId =
+                  orderResponse['payment_intent_id'] ??
+                      ""; // Assuming backend provides this
+              // Set order details in PaymentHandlerController before opening gateway
+              Get.find<PaymentHandlerController>()
+                  .setOrderDetails(rawOrderId, razorpayOrderId);
+
               await _processGatewayPayment(
                 methodName: selectedOnlineMethod,
                 amount: prepaymentAmount,
@@ -331,8 +339,10 @@ class CheckOutController extends GetxController with BaseController {
 
               await CODPayment().processPayment(amount: amount);
 
-              if (Get.isDialogOpen ?? false) Get.back();
-              Get.offAllNamed(Routes.ORDERSUCCESS, arguments: orderId);
+              if (selectedOnlineMethod != 'razorpay') {
+                if (Get.isDialogOpen ?? false) Get.back();
+                Get.offAllNamed(Routes.ORDERSUCCESS, arguments: orderId);
+              }
             } catch (e) {
               if (Get.isDialogOpen ?? false) Get.back();
               HelperFunctions().showSnackBarError('Prepayment failed: $e');
@@ -364,6 +374,11 @@ class CheckOutController extends GetxController with BaseController {
           orderResponse['order_no'] ?? orderResponse['_id'] ?? "";
       final String rawOrderId = orderResponse['_id'] ?? "";
 
+      // Set order details in PaymentHandlerController before opening gateway
+      final String razorpayOrderId = orderResponse['payment_intent_id'] ?? "";
+      Get.find<PaymentHandlerController>()
+          .setOrderDetails(rawOrderId, razorpayOrderId);
+
       await _processGatewayPayment(
         methodName: methodName,
         amount: amount,
@@ -371,8 +386,10 @@ class CheckOutController extends GetxController with BaseController {
         rawOrderId: rawOrderId,
       );
 
-      if (Get.isDialogOpen ?? false) Get.back();
-      Get.offAllNamed(Routes.ORDERSUCCESS, arguments: orderId);
+      if (methodName != 'razorpay') {
+        if (Get.isDialogOpen ?? false) Get.back();
+        Get.offAllNamed(Routes.ORDERSUCCESS, arguments: orderId);
+      }
     } catch (e) {
       if (Get.isDialogOpen ?? false) Get.back();
       HelperFunctions().showSnackBarError('Failed to place order: $e');
@@ -400,9 +417,12 @@ class CheckOutController extends GetxController with BaseController {
 
       case 'razorpay':
         final keyId = paymentConfig['razorpay']['key_id'];
-        await RazorPayPayment(keyId: keyId).processPayment(
-          amount: amount,
-          metadata: orderResponse,
+        final paymentHandler = Get.find<PaymentHandlerController>();
+        // setOrderDetails is already called in processOrder before _processGatewayPayment
+        paymentHandler.openRazorpayCheckout(
+          keyId,
+          (amount * 100).roundToDouble(), // Razorpay expects amount in paisa
+          'Payment for Order #${orderResponse['order_no'] ?? rawOrderId}',
         );
         break;
 

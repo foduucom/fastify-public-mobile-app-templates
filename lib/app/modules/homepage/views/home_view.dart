@@ -30,12 +30,6 @@ class Testinghome extends GetView<HomepageController> {
   Widget build(BuildContext context) {
     var scaffoldKey = GlobalKey<ScaffoldState>();
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'home_fab',
-        onPressed: () {
-          Get.toNamed(Routes.SHOPPRODUCTLISTVIEW);
-        },
-      ),
       key: scaffoldKey,
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -72,7 +66,6 @@ class Testinghome extends GetView<HomepageController> {
           SearchIcon(() {
             Get.toNamed(Routes.SEARCH);
           }),
-          Obx(() => Text(controller.selectcategory.value.toString())),
           const SizedBox(width: 14),
           Obx(
             () => controller.notificatoinCount == 1

@@ -362,7 +362,7 @@ class HelperFunctions {
         if (isLog == true) {
           print('swapnil path $moduleName => $imageUrl');
         }
-
+        print("Path image from module $moduleName => ${path}");
         return imageUrl;
       }
     }

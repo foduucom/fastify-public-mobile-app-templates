@@ -76,7 +76,7 @@ class _gridProductCartState extends State<gridProductCart>
             child: Stack(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(5),
+                  borderRadius: BorderRadius.circular(10),
                   child: CachedNetworkImage(
                     height: widget.height,
                     width: widget.width,
@@ -189,7 +189,6 @@ class _gridProductCartState extends State<gridProductCart>
               style: const TextStyle(
                   fontFamily: 'Lato',
                   fontSize: 14,
-                  color: Color.fromRGBO(34, 34, 34, 1),
                   fontWeight: FontWeight.w500)),
           const SizedBox(height: 2.6),
           widget.productType == 'variant'

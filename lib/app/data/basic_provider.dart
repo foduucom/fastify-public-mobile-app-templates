@@ -59,8 +59,10 @@ class BasicProvider {
 
         // Add headers
         Map<String, String> headers = headerType();
-        headers.remove("Content-Type"); // Boundary will be set by http package
+        headers
+            .removeWhere((key, value) => key.toLowerCase() == 'content-type');
         request.headers.addAll(headers);
+        print("MultipartRequest final headers: ${request.headers}");
 
         // Add fields
         for (var field in form.fields) {

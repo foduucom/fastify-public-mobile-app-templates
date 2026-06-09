@@ -402,7 +402,8 @@ class _CartItemCard extends StatelessWidget {
                 const SizedBox(height: 4),
 
                 // Variant Name
-                if (variant['name'] != product['name'] &&
+                if (variant['name'] != null &&
+                    variant['name'] != product['name'] &&
                     variant['variant_name']
                         .toString()
                         .isNotEmpty) // Variant Name
@@ -414,7 +415,7 @@ class _CartItemCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      variant['name'],
+                      variant['name'] ?? '',
                       style: textTheme.labelSmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
