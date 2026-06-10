@@ -45,7 +45,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (title.isNotEmpty && subtitle.isNotEmpty)
+        if (title.isNotEmpty)
           Padding(
             padding: pageSurroundingPadding,
             child: StudioSectionHeader(

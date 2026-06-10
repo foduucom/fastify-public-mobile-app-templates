@@ -7,6 +7,8 @@ import 'package:foduu_ecommerce/app/modules/shop/bindings/shop_binding.dart';
 import '../../../../components/studio_widget/studio_search_bar_rounded.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/product_helper.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import 'package:get/get.dart';
 
 import '../controllers/search_controller.dart';
@@ -263,40 +265,93 @@ class _ProductGridCard extends StatelessWidget {
 
   const _ProductGridCard({required this.product, required this.onTap});
 
-  String _getImageUrl() {
-    final featuredImg = product['featured_image'];
-    if (featuredImg is Map) {
-      final url = featuredImg['download_url']?.toString() ?? '';
-      if (url.isNotEmpty) return url;
-      final filepath = featuredImg['filepath']?.toString() ?? '';
-      if (filepath.isNotEmpty) {
-        final clean =
-            filepath.startsWith('/') ? filepath.substring(1) : filepath;
-        return 'https://mywatch.vbought.com/images/$clean';
-      }
-    }
-    final frontImg = product['front_image'];
-    if (frontImg is Map) {
-      final url = frontImg['download_url']?.toString() ?? '';
-      if (url.isNotEmpty) return url;
-    }
-    final gallery = product['gallery'];
-    if (gallery is List && gallery.isNotEmpty && gallery.first is Map) {
-      final url = gallery.first['download_url']?.toString() ?? '';
-      if (url.isNotEmpty) return url;
-    }
-    return '';
+  Widget _buildWishlistButton(BuildContext context, Map<String, dynamic> product) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final productId = ProductHelper.getProductId(product);
+
+    return GestureDetector(
+      onTap: () => _handleWishlistTap(product),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(50),
+          color: colorScheme.surface.withOpacity(0.85),
+        ),
+        padding: const EdgeInsets.all(6.0),
+        child: Obx(() {
+          final isInWishlist = WishListService.to.isInWishlist(productId);
+          return SvgPicture.asset(
+            isInWishlist ? 'assets/icon/like.svg' : 'assets/icon/unlike.svg',
+            width: 16,
+            height: 16,
+          );
+        }),
+      ),
+    );
   }
 
-  List<String> _getBadges() {
-    const keys = ['featured', 'hot', 'trending', 'recommended'];
-    return keys.where((k) => product[k] == true).toList();
+  void _handleWishlistTap(Map<String, dynamic> product) async {
+    final productId = ProductHelper.getProductId(product);
+    String variantSlug = '';
+    String? variantId;
+
+    final variants = product['variants'];
+    if (variants is List && variants.isNotEmpty) {
+      final variant = variants[0];
+      variantId = (variant['_id'] ?? variant['id'])?.toString();
+      variantSlug = variant['slug'] ?? variant['variant_slug'] ?? '';
+    }
+
+    if (variantSlug.isEmpty) {
+      variantSlug = product['variant_slug'] ?? product['slug'] ?? '';
+    }
+
+    await WishListService.to.toggleWishlist(
+      productId: productId,
+      variantSlug: variantSlug,
+      variantId: variantId,
+      productData: product,
+    );
   }
 
-  String? _getBrandName() {
-    final brand = product['brand'];
-    if (brand is Map) return brand['name']?.toString();
-    return null;
+  Widget _buildVariablePrice(BuildContext context, Map<String, dynamic> priceInfo) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Text(
+      '₹${priceInfo['lowestPrice']} - ₹${priceInfo['highestPrice']}',
+      style: textTheme.bodyMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+        color: colorScheme.primary,
+      ),
+    );
+  }
+
+  Widget _buildSimplePrice(BuildContext context, Map<String, dynamic> priceInfo) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return RichText(
+      text: TextSpan(
+        text: '₹${priceInfo['productPrice']}',
+        style: textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: colorScheme.primary,
+        ),
+        children: [
+          if (priceInfo['discountRate'] != null &&
+              priceInfo['discountRate'].toString().isNotEmpty) ...[
+            const TextSpan(text: '  '),
+            TextSpan(
+              text: '₹${priceInfo['salePrice']}',
+              style: textTheme.bodySmall?.copyWith(
+                decoration: TextDecoration.lineThrough,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   @override
@@ -304,193 +359,112 @@ class _ProductGridCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final String imageUrl = _getImageUrl();
-    final String name = product['name']?.toString() ?? 'Unknown Product';
-    final String? brandName = _getBrandName();
-    final List<String> badges = _getBadges();
-    final bool isVariable = product['type'] == 'variable';
-
-    // Use ProductHelper for correct variant-aware pricing
+    final productName = ProductHelper.getProductName(product);
+    final imageUrl = ProductHelper.getProductImage(product);
     final priceInfo = ProductHelper.calculatePriceInfo(product);
-    final String displayPrice = priceInfo['productPrice']?.toString() ?? '0';
-    final String originalPrice = priceInfo['salePrice']?.toString() ?? '';
-    final String discountRate = priceInfo['discountRate']?.toString() ?? '';
-    final bool hasSale = discountRate.isNotEmpty;
-    final String lowestPrice = priceInfo['lowestPrice']?.toString() ?? '0';
-    final String highestPrice = priceInfo['highestPrice']?.toString() ?? '0';
-    final bool hasRange =
-        isVariable && lowestPrice != highestPrice && lowestPrice != '0';
+    final productType = priceInfo['productType'];
+    final inStock = ProductHelper.isInStock(product);
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colorScheme.outline.withOpacity(0.15)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
+    return GestureDetector(
+      onTap: inStock ? onTap : null,
+      child: Opacity(
+        opacity: inStock ? 1.0 : 0.5,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Image Section ──
-            Expanded(
-              flex: 5,
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(15)),
-                    child: Container(
-                      width: double.infinity,
-                      color: colorScheme.surfaceVariant.withOpacity(0.5),
-                      child: imageUrl.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: imageUrl,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => const Center(
-                                  child: CupertinoActivityIndicator()),
-                              errorWidget: (context, url, error) => Icon(
-                                  Icons.image_not_supported_outlined,
-                                  color: colorScheme.outline),
-                            )
-                          : Icon(Icons.image_not_supported_outlined,
-                              color: colorScheme.outline),
+            // Product Image
+            Stack(
+              children: [
+                AspectRatio(
+                  aspectRatio: 0.9,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      progressIndicatorBuilder: (_, __, ___) =>
+                          HelperFunctions().loadingIndicator(),
+                      errorWidget: (_, __, ___) => Container(
+                        color: colorScheme.surfaceVariant,
+                        child: Icon(Icons.image_outlined,
+                            color: colorScheme.onSurfaceVariant),
+                      ),
                     ),
                   ),
-
-                  // Discount badge (top-left)
-                  if (hasSale)
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.red.shade600,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          discountRate.trim(),
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold),
-                        ),
+                ),
+                // Wishlist Button
+                Positioned(
+                  left: 6,
+                  top: 6,
+                  child: _buildWishlistButton(context, product),
+                ),
+                // Discount Badge
+                if (inStock &&
+                    priceInfo['discountRate'] != null &&
+                    priceInfo['discountRate'].toString().isNotEmpty)
+                  Positioned(
+                    right: 6,
+                    top: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: colorScheme.error,
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                    ),
-
-                  // Feature badges (top-right column)
-                  if (badges.isNotEmpty)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: badges.map((badge) {
-                          final colors = {
-                            'featured': Colors.amber.shade700,
-                            'hot': Colors.deepOrange,
-                            'trending': Colors.purple,
-                            'recommended': Colors.teal,
-                          };
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 4),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: colors[badge] ?? colorScheme.primary,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              _cap(badge),
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-
-            // ── Details Section ──
-            Expanded(
-              flex: 3,
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Brand name (if populated)
-                    if (brandName != null && brandName.isNotEmpty)
-                      Text(
-                        brandName,
+                      child: Text(
+                        priceInfo['discountRate'],
                         style: textTheme.labelSmall?.copyWith(
-                          color: colorScheme.primary,
+                          color: colorScheme.onError,
                           fontWeight: FontWeight.w600,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-
-                    // Product Title
-                    Text(
-                      name,
-                      style: textTheme.titleSmall
-                          ?.copyWith(fontWeight: FontWeight.w600, height: 1.2),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
-
-                    // Price Row
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Variable: show range
-                        if (hasRange)
-                          Text(
-                            "₹$lowestPrice – ₹$highestPrice",
-                            style: textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.primary,
-                            ),
-                          )
-                        else ...[
-                          if (hasSale && originalPrice.isNotEmpty)
-                            Text(
-                              "₹$originalPrice",
-                              style: textTheme.bodySmall?.copyWith(
-                                decoration: TextDecoration.lineThrough,
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          Text(
-                            "₹$displayPrice",
-                            style: textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                        ],
-                      ],
+                  ),
+                // Out of Stock Badge
+                if (!inStock)
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.6),
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(10),
+                          bottomRight: Radius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Out of Stock',
+                        textAlign: TextAlign.center,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
-                  ],
-                ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Product Name
+            Text(
+              productName,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+              style: textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
               ),
             ),
+            const SizedBox(height: 4),
+            // Price
+            if (productType == 'variable')
+              _buildVariablePrice(context, priceInfo)
+            else
+              _buildSimplePrice(context, priceInfo),
           ],
         ),
       ),

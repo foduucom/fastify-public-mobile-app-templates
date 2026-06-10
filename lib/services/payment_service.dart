@@ -21,14 +21,14 @@ class PaymentService extends GetxService with BaseController {
       HelperFunctions().showOverlayLoader();
 
       final payload = {
-        'orderId': orderId,
-        'paymentIntentId': paymentIntentId,
-        'paymentId': paymentId,
-        'razorpaySignature': razorpaySignature,
+        'order_id': orderId,
+        'payment_intent_id': paymentIntentId,
+        'razorpay_payment_id': paymentId,
+        'razorpay_signature': razorpaySignature,
       };
 
       print("confirmPayment payload: $payload");
-      final response = await BasicProvider('pos/order/confirm-payment')
+      final response = await BasicProvider('order/confirm-payment')
           .postRequest(payload)
           .catchError(handleError);
       HelperFunctions().hideOverlayLoader();

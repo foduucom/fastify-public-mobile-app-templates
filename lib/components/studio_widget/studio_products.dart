@@ -268,27 +268,31 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     // 'style': 'standard' (default), 'horizontal', or 'overlay'
     String style = widget.contentJson?['layout'] ?? 'standard';
 
+    debugPrint('DEBUG PRODUCTS SECTION: heading=$heading, layout=$style, infiniteScroll=$_infiniteScroll, contentJson=${widget.contentJson}');
+
     return Obx(() => Stack(
           children: [
             Column(
               children: [
                 // ─── Section Header ───
-                if (!_infiniteScroll)
-                  Padding(
-                    padding: pageSurroundingPadding,
-                    child: StudioSectionHeader(
-                      title: heading,
-                      subtitle: subheading,
-                      onSeeAll: () {
-                        Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-                          'productId': categoryIds,
-                          'name': heading,
-                          'productype': categoryType,
-                          'source': 'dashboard'
-                        });
-                      },
-                    ),
+                Padding(
+                  padding: pageSurroundingPadding,
+                  child: StudioSectionHeader(
+                    title: heading,
+                    subtitle: subheading,
+                    onSeeAll: _infiniteScroll ||
+                            (trendingList.length <= displayedProducts.length)
+                        ? null
+                        : () {
+                            Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+                              'filterType': categoryType,
+                              'filterValue': true,
+                              'name': heading,
+                              'source': 'dashboard'
+                            });
+                          },
                   ),
+                ),
                 const SizedBox(height: 4),
                 // ─── Product Cards ───
                 trendingList.isEmpty
@@ -337,6 +341,25 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       style: const TextStyle(
           color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
     );
+  }
+
+  int _getDisplayLimit() {
+    final style = widget.contentJson?['layout'] ?? 'standard';
+    final listViewType = widget.contentJson?['list_view_type'] ?? 'horizontal';
+    if (style == 'horizontal' || listViewType == 'vertical') {
+      return 2;
+    } else if (style == 'standard') {
+      return 3;
+    }
+    return widget.contentJson?['count'] ?? 4;
+  }
+
+  List get displayedProducts {
+    if (_infiniteScroll) {
+      return trendingList;
+    }
+    final limit = _getDisplayLimit();
+    return trendingList.take(limit).toList();
   }
 
   /// Route to the correct layout based on `view`, `list_view_type`, and card `style`
@@ -399,8 +422,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final spacing =
         double.tryParse(widget.contentJson?['spacing']?.toString() ?? '21') ??
             21;
-    final itemCount =
-        _infiniteScroll ? trendingList.length + 1 : trendingList.length;
+    final itemCount = _infiniteScroll
+        ? displayedProducts.length + 1
+        : displayedProducts.length;
 
     return Padding(
       padding: pageSurroundingPadding,
@@ -415,10 +439,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         ),
         itemCount: itemCount,
         itemBuilder: (context, index) {
-          if (index >= trendingList.length) {
+          if (index >= displayedProducts.length) {
             return _buildLoadingIndicatorVertical();
           }
-          final product = trendingList[index] as Map<String, dynamic>;
+          final product = displayedProducts[index] as Map<String, dynamic>;
           final priceInfo = ProductHelper.calculatePriceInfo(product);
           if (!priceInfo['hasValidVariants'])
             return const Text('No Valide Variants');
@@ -446,8 +470,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // VERTICAL LIST VIEW
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildVerticalListView(String style) {
-    final itemCount =
-        _infiniteScroll ? trendingList.length + 1 : trendingList.length;
+    final itemCount = _infiniteScroll
+        ? displayedProducts.length + 1
+        : displayedProducts.length;
 
     return Padding(
       padding: pageSurroundingPadding,
@@ -457,10 +482,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         itemCount: itemCount,
         separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
-          if (index >= trendingList.length) {
+          if (index >= displayedProducts.length) {
             return _buildLoadingIndicatorVertical();
           }
-          final product = trendingList[index] as Map<String, dynamic>;
+          final product = displayedProducts[index] as Map<String, dynamic>;
           final priceInfo = ProductHelper.calculatePriceInfo(product);
           if (!priceInfo['hasValidVariants']) return const SizedBox.shrink();
           // Use horizontal-style card (image left, info right) for vertical lists
@@ -474,8 +499,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // STYLE 1 — STANDARD (Vertical Card, Image on Top)
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildStandardStyleList() {
-    final itemCount =
-        _infiniteScroll ? trendingList.length + 1 : trendingList.length;
+    final itemCount = _infiniteScroll
+        ? displayedProducts.length + 1
+        : displayedProducts.length;
 
     return Padding(
       padding: const EdgeInsets.only(left: 6.0),
@@ -498,10 +524,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             scrollDirection: Axis.horizontal,
             itemCount: itemCount,
             itemBuilder: (context, index) {
-              if (index >= trendingList.length) {
+              if (index >= displayedProducts.length) {
                 return _buildLoadingIndicator();
               }
-              final product = trendingList[index];
+              final product = displayedProducts[index];
               final priceInfo = ProductHelper.calculatePriceInfo(product);
               if (!priceInfo['hasValidVariants'])
                 return const SizedBox.shrink();
@@ -631,8 +657,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // STYLE 2 — HORIZONTAL (Image Left, Info Right Card)
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildHorizontalStyleList() {
-    final itemCount =
-        _infiniteScroll ? trendingList.length + 1 : trendingList.length;
+    final itemCount = _infiniteScroll
+        ? displayedProducts.length + 1
+        : displayedProducts.length;
 
     return Padding(
       padding: pageSurroundingPadding,
@@ -642,10 +669,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         itemCount: itemCount,
         separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
-          if (index >= trendingList.length) {
+          if (index >= displayedProducts.length) {
             return _buildLoadingIndicatorVertical();
           }
-          final product = trendingList[index] as Map<String, dynamic>;
+          final product = displayedProducts[index] as Map<String, dynamic>;
           final priceInfo = ProductHelper.calculatePriceInfo(product);
           if (!priceInfo['hasValidVariants']) return const SizedBox.shrink();
           return _buildHorizontalItem(product, priceInfo);
@@ -790,8 +817,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // STYLE 3 — OVERLAY (Full Image Card with Overlay Text)
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildOverlayStyleList() {
-    final itemCount =
-        _infiniteScroll ? trendingList.length + 1 : trendingList.length;
+    final itemCount = _infiniteScroll
+        ? displayedProducts.length + 1
+        : displayedProducts.length;
 
     return Padding(
       padding: const EdgeInsets.only(left: 6.0),
@@ -814,10 +842,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             scrollDirection: Axis.horizontal,
             itemCount: itemCount,
             itemBuilder: (context, index) {
-              if (index >= trendingList.length) {
+              if (index >= displayedProducts.length) {
                 return _buildLoadingIndicator();
               }
-              final product = trendingList[index] as Map<String, dynamic>;
+              final product = displayedProducts[index] as Map<String, dynamic>;
               final priceInfo = ProductHelper.calculatePriceInfo(product);
               if (!priceInfo['hasValidVariants'])
                 return const SizedBox.shrink();

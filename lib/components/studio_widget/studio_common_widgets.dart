@@ -104,8 +104,8 @@ class StudioSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Condition: Only show if BOTH title and subtitle exist and are non-empty
-    if (title.isEmpty || subtitle.isEmpty) {
+    // Condition: Only show if title exists and is non-empty
+    if (title.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -120,13 +120,21 @@ class StudioSectionHeader extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: textTheme.titleLarge),
               Text(
-                subtitle,
-                style: textTheme.titleSmall!.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                title,
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
               ),
+              if (subtitle.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: textTheme.titleSmall!.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ],
           ),
         ),

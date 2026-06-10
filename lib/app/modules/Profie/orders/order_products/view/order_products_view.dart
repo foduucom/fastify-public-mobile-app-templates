@@ -22,17 +22,17 @@ class OrderProductsView extends StatelessWidget {
     final shipping =
         double.tryParse(order['shipping_charges']?.toString() ?? '0') ?? 0;
     final paymentMethod =
-    (order['payment_method'] ?? '').toString().toUpperCase();
+        (order['payment_method'] ?? '').toString().toUpperCase();
     final notes = (order['notes'] ?? '').toString();
     final orderDate = order['created_at'] != null
         ? HelperFunctions()
-        .toCarbonToHumanDateFormat(order['created_at'].toString())
+            .toCarbonToHumanDateFormat(order['created_at'].toString())
         : '';
 
     final address = order['address'] is Map ? order['address'] as Map : null;
 
     final List<dynamic> products =
-    (order['products'] is List) ? order['products'] as List : [];
+        (order['products'] is List) ? order['products'] as List : [];
 
     final theme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -42,16 +42,16 @@ class OrderProductsView extends StatelessWidget {
       appBar: AppBar(
         title: Text('OrderDetails'.tr),
         elevation: 0,
-        actions: [
-          TextButton(
-            onPressed: () =>
-                Get.toNamed(Routes.ORDER_DETAILS, arguments: {'id': mongoId}),
-            child: Text(
-              'View Details'.tr,
-              style: TextStyle(color: theme.primary, fontSize: 13),
-            ),
-          ),
-        ],
+        // actions: [
+        //   TextButton(
+        //     onPressed: () =>
+        //         Get.toNamed(Routes.ORDER_DETAILS, arguments: {'id': mongoId}),
+        //     child: Text(
+        //       'View Details'.tr,
+        //       style: TextStyle(color: theme.primary, fontSize: 13),
+        //     ),
+        //   ),
+        // ],
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -230,7 +230,7 @@ class OrderProductsView extends StatelessWidget {
                 color: Colors.amber.shade50.withOpacity(0.7),
                 borderRadius: BorderRadius.circular(10),
                 border:
-                Border.all(color: Colors.amber.shade200.withOpacity(0.6)),
+                    Border.all(color: Colors.amber.shade200.withOpacity(0.6)),
               ),
               child: Text(
                 '📝 $notes',
@@ -327,7 +327,8 @@ class _ProductTile extends StatelessWidget {
   String _constructImageUrl(Map imageObj) {
     final filepath = imageObj['filepath']?.toString() ?? '';
     if (filepath.isNotEmpty) {
-      final cleanPath = filepath.startsWith('/') ? filepath.substring(1) : filepath;
+      final cleanPath =
+          filepath.startsWith('/') ? filepath.substring(1) : filepath;
       return 'https://mywatch.vbought.com/images/$cleanPath';
     }
     final url = imageObj['download_url']?.toString() ?? '';
@@ -338,7 +339,8 @@ class _ProductTile extends StatelessWidget {
     if (url.isEmpty) return '';
     final uri = Uri.tryParse(url);
     if (uri == null) return url;
-    if (uri.host.endsWith('.vbought.com') && uri.host != 'mywatch.vbought.com') {
+    if (uri.host.endsWith('.vbought.com') &&
+        uri.host != 'mywatch.vbought.com') {
       return url.replaceFirst(uri.host, 'mywatch.vbought.com');
     }
     return url;
@@ -361,7 +363,8 @@ class _ProductTile extends StatelessWidget {
 
         if (gallery is List && frontImageId.isNotEmpty) {
           final match = gallery.firstWhere(
-                (g) => g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
+            (g) =>
+                g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
             orElse: () => null,
           );
           if (match != null) {
@@ -378,7 +381,6 @@ class _ProductTile extends StatelessWidget {
       if (directImage is String && directImage.startsWith('http')) {
         return _fixImageUrl(directImage);
       }
-
     } catch (e) {
       debugPrint('Image extraction error: $e');
     }
@@ -402,10 +404,12 @@ class _ProductTile extends StatelessWidget {
       final attrs = variant['attributes'];
       if (attrs is Map) {
         // Safely handle map attributes
-        variantLabel = attrs.entries.map((e) => '${e.key}: ${e.value}').join('   ·   ');
+        variantLabel =
+            attrs.entries.map((e) => '${e.key}: ${e.value}').join('   ·   ');
       } else if (attrs is List) {
         // Safely handle list attributes
-        variantLabel = attrs.map((a) => '${a['name']}: ${a['value']}').join('   ·   ');
+        variantLabel =
+            attrs.map((a) => '${a['name']}: ${a['value']}').join('   ·   ');
       }
     }
 
@@ -436,39 +440,39 @@ class _ProductTile extends StatelessWidget {
               height: 64,
               child: imageUrl != null && imageUrl.isNotEmpty
                   ? Image.network(
-                imageUrl,
-                width: 64,
-                height: 64,
-                fit: BoxFit.cover,
-                // Show shimmer while loading
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    color: theme.surfaceVariant.withOpacity(0.4),
-                    child: Center(
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          value: loadingProgress.expectedTotalBytes !=
-                              null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                              : null,
-                          color: theme.primary.withOpacity(0.5),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-                // On error: show placeholder
-                errorBuilder: (context, error, stackTrace) {
-                  debugPrint(
-                      'Image failed to load: $imageUrl\nError: $error');
-                  return _placeholder(theme);
-                },
-              )
+                      imageUrl,
+                      width: 64,
+                      height: 64,
+                      fit: BoxFit.cover,
+                      // Show shimmer while loading
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          color: theme.surfaceVariant.withOpacity(0.4),
+                          child: Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                value: loadingProgress.expectedTotalBytes !=
+                                        null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                                color: theme.primary.withOpacity(0.5),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      // On error: show placeholder
+                      errorBuilder: (context, error, stackTrace) {
+                        debugPrint(
+                            'Image failed to load: $imageUrl\nError: $error');
+                        return _placeholder(theme);
+                      },
+                    )
                   : _placeholder(theme),
             ),
           ),
@@ -526,13 +530,13 @@ class _ProductTile extends StatelessWidget {
   }
 
   Widget _placeholder(ColorScheme theme) => Container(
-    color: theme.surfaceVariant.withOpacity(0.4),
-    child: Center(
-      child: Icon(
-        Icons.shopping_bag_outlined,
-        color: theme.onSurfaceVariant.withOpacity(0.4),
-        size: 26,
-      ),
-    ),
-  );
+        color: theme.surfaceVariant.withOpacity(0.4),
+        child: Center(
+          child: Icon(
+            Icons.shopping_bag_outlined,
+            color: theme.onSurfaceVariant.withOpacity(0.4),
+            size: 26,
+          ),
+        ),
+      );
 }

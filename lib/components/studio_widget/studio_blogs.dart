@@ -7,6 +7,7 @@ import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'studio_common_widgets.dart';
+import 'blogs_section.dart';
 
 
 class BlogSection extends StatefulWidget {
@@ -28,6 +29,8 @@ class _BlogSectionState extends State<BlogSection>
 
     if (blogs.isEmpty) return const SizedBox();
 
+    var displayedBlogs = blogs.take(2).toList();
+
     return Padding(
       padding: pageSurroundingPadding,
       child: Column(
@@ -35,10 +38,12 @@ class _BlogSectionState extends State<BlogSection>
         children: [
           const SizedBox(height: 10),
           StudioSectionHeader(
-            title: widget.blogData['heading'] ?? '',
+            title: (widget.blogData['heading'] ?? '').toString().isEmpty
+                ? 'Blog'
+                : widget.blogData['heading'].toString(),
             subtitle: widget.blogData['subheading'] ?? '',
             onSeeAll: () {
-              Get.toNamed(Routes.BLOG);
+              Get.to(() => AllBlogsSection(blogData: widget.blogData));
             },
           ),
           const SizedBox(height: 5),
@@ -52,9 +57,9 @@ class _BlogSectionState extends State<BlogSection>
                 mainAxisSpacing: 10,
                 mainAxisExtent: 240, // Slightly increased to fit description
               ),
-              itemCount: blogs.length,
+              itemCount: displayedBlogs.length,
               itemBuilder: ((context, index) {
-                var blog = blogs[index];
+                var blog = displayedBlogs[index];
                 return InkWell(
                   onTap: () {
                     final blogId = blog['_id'] ?? blog['id'];

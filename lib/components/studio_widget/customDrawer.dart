@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/controllers/homepage_controller.dart';
@@ -37,7 +39,8 @@ class CustomDrawer extends GetView<HomepageController> {
                         Get.toNamed(Routes.LOGIN);
                       },
                     ),
-                  if (controller.drawernavigationItems.isEmpty && isLoggedIn) ...[
+                  if (controller.drawernavigationItems.isEmpty &&
+                      isLoggedIn) ...[
                     DrawerTile(
                       icon: const Icon(Icons.home_outlined),
                       title: 'Home',
@@ -83,7 +86,7 @@ class CustomDrawer extends GetView<HomepageController> {
                       subtitle: 'Get assistance',
                       onTap: () {
                         Get.back();
-                        Get.toNamed(Routes.HELPANDSUPPORT);
+                        Get.toNamed(Routes.CONTACTUS);
                       },
                     ),
                     DrawerTile(
@@ -96,7 +99,9 @@ class CustomDrawer extends GetView<HomepageController> {
                       },
                     ),
                   ] else ...[
-                    ...controller.drawernavigationItems.map(_buildItem).toList(),
+                    ...controller.drawernavigationItems
+                        .map(_buildItem)
+                        .toList(),
                   ],
                 ],
               ),
@@ -108,7 +113,8 @@ class CustomDrawer extends GetView<HomepageController> {
     );
   }
 
-  Widget _buildDrawerHeader(BuildContext context, bool isLoggedIn, dynamic userData) {
+  Widget _buildDrawerHeader(
+      BuildContext context, bool isLoggedIn, dynamic userData) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.only(
@@ -144,14 +150,38 @@ class CustomDrawer extends GetView<HomepageController> {
                 ),
               ],
             ),
-            child: CircleAvatar(
-              radius: 36,
-              backgroundColor: Colors.white,
-              child: Icon(
-                Icons.person,
-                size: 44,
-                color: Colors.grey.shade400,
-              ),
+            child: ClipOval(
+              child: isLoggedIn && userData?['featured_image'] != null
+                  ? CachedNetworkImage(
+                      width: 72,
+                      height: 72,
+                      fit: BoxFit.cover,
+                      imageUrl: HelperFunctions()
+                          .getImage(userData['featured_image']),
+                      placeholder: (context, url) => const SizedBox(
+                        width: 72,
+                        height: 72,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      errorWidget: (context, url, error) => CircleAvatar(
+                        radius: 36,
+                        backgroundColor: Colors.white,
+                        child: Icon(
+                          Icons.person,
+                          size: 44,
+                          color: Colors.grey.shade400,
+                        ),
+                      ),
+                    )
+                  : CircleAvatar(
+                      radius: 36,
+                      backgroundColor: Colors.white,
+                      child: Icon(
+                        Icons.person,
+                        size: 44,
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
             ),
           ),
           const SizedBox(height: 16),

@@ -32,6 +32,7 @@ class ShopController extends GetxController with BaseController {
   var isHot = false.obs;
   var isTrending = false.obs;
   var isRecommended = false.obs;
+  var isRecentlyViewed = false.obs;
 
   // Price Range
   var currentPriceRange = const RangeValues(0, 10000).obs;
@@ -71,6 +72,21 @@ class ShopController extends GetxController with BaseController {
         selectedCategories.add(args['categorySlug']);
       } else if (args['source'] == 'brand' && args['brandId'] != null) {
         selectedBrands.add(args['brandId']);
+      } else if (args['source'] == 'dashboard' && args['filterType'] != null) {
+        final filterType = args['filterType'].toString();
+        if (filterType == 'featured_products') {
+          isFeatured.value = true;
+          collectionName.value = args['name'] ?? "Featured Products";
+        } else if (filterType == 'trending_products') {
+          isTrending.value = true;
+          collectionName.value = args['name'] ?? "Trending Products";
+        } else if (filterType == 'recommended_products') {
+          isRecommended.value = true;
+          collectionName.value = args['name'] ?? "Recommended Products";
+        } else if (filterType == 'recently_viewed') {
+          isRecentlyViewed.value = true;
+          collectionName.value = args['name'] ?? "Recently Viewed";
+        }
       }
     }
   }
@@ -121,6 +137,7 @@ class ShopController extends GetxController with BaseController {
       if (isHot.value) queryParams['hot'] = 'true';
       if (isTrending.value) queryParams['trending'] = 'true';
       if (isRecommended.value) queryParams['recommended'] = 'true';
+      if (isRecentlyViewed.value) queryParams['recently_viewed'] = 'true';
 
       if (minPrice.value > 0) {
         queryParams['min_price'] = minPrice.value.toStringAsFixed(0);
@@ -274,6 +291,11 @@ class ShopController extends GetxController with BaseController {
     applyFiltersAndRefresh();
   }
 
+  void toggleRecentlyViewed() {
+    isRecentlyViewed.toggle();
+    applyFiltersAndRefresh();
+  }
+
   void toggleCategory(String slug) {
     if (selectedCategories.contains(slug)) {
       selectedCategories.remove(slug);
@@ -310,6 +332,7 @@ class ShopController extends GetxController with BaseController {
     isHot.value = false;
     isTrending.value = false;
     isRecommended.value = false;
+    isRecentlyViewed.value = false;
     selectedCategories.clear();
     selectedBrands.clear();
     minPrice.value = 0.0;
@@ -325,6 +348,7 @@ class ShopController extends GetxController with BaseController {
         isHot.value ||
         isTrending.value ||
         isRecommended.value ||
+        isRecentlyViewed.value ||
         selectedCategories.isNotEmpty ||
         selectedBrands.isNotEmpty ||
         minPrice.value > 0 ||
@@ -338,6 +362,7 @@ class ShopController extends GetxController with BaseController {
     if (isHot.value) count++;
     if (isTrending.value) count++;
     if (isRecommended.value) count++;
+    if (isRecentlyViewed.value) count++;
     count += selectedCategories.length;
     count += selectedBrands.length;
     if (minPrice.value > 0 || maxPrice.value < 10000) count++;

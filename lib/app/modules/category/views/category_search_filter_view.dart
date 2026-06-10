@@ -5,8 +5,7 @@ import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 import '../controllers/category_search_filter_controller.dart';
 
-class CategorySearchFilterView
-    extends GetView<CategorySearchFilterController> {
+class CategorySearchFilterView extends GetView<CategorySearchFilterController> {
   const CategorySearchFilterView({super.key});
 
   @override
@@ -28,7 +27,7 @@ class CategorySearchFilterView
       body: Column(
         children: [
           _SearchBar(controller: controller, colorScheme: colorScheme),
-          _FilterChips(controller: controller, colorScheme: colorScheme),
+          //_FilterChips(controller: controller, colorScheme: colorScheme),
           _ResultHeader(controller: controller, colorScheme: colorScheme),
           Expanded(
             child: _CategoryGrid(controller: controller),
@@ -45,8 +44,7 @@ class _SearchBar extends StatelessWidget {
   final CategorySearchFilterController controller;
   final ColorScheme colorScheme;
 
-  const _SearchBar(
-      {required this.controller, required this.colorScheme});
+  const _SearchBar({required this.controller, required this.colorScheme});
 
   @override
   Widget build(BuildContext context) {
@@ -69,11 +67,13 @@ class _SearchBar extends StatelessWidget {
               : const SizedBox.shrink()),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide(color: colorScheme.outline.withValues(alpha: 0.3)),
+            borderSide:
+                BorderSide(color: colorScheme.outline.withValues(alpha: 0.3)),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide(color: colorScheme.outline.withValues(alpha: 0.3)),
+            borderSide:
+                BorderSide(color: colorScheme.outline.withValues(alpha: 0.3)),
           ),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -87,70 +87,70 @@ class _SearchBar extends StatelessWidget {
 
 // ─── Filter Chips ─────────────────────────────────────────────────────────────
 
-class _FilterChips extends StatelessWidget {
-  final CategorySearchFilterController controller;
-  final ColorScheme colorScheme;
+// class _FilterChips extends StatelessWidget {
+//   final CategorySearchFilterController controller;
+//   final ColorScheme colorScheme;
 
-  const _FilterChips(
-      {required this.controller, required this.colorScheme});
+//   const _FilterChips(
+//       {required this.controller, required this.colorScheme});
 
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() => SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          child: Row(
-            children: [
-              // Parent only toggle
-              _FilterToggleChip(
-                label: 'Parents Only',
-                isSelected: controller.showOnlyParents.value,
-                onSelected: (v) => controller.toggleShowOnlyParents(v),
-                colorScheme: colorScheme,
-              ),
-              const SizedBox(width: 8),
+//   @override
+//   Widget build(BuildContext context) {
+//     return Obx(() => SingleChildScrollView(
+//           scrollDirection: Axis.horizontal,
+//           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+//           child: Row(
+//             children: [
+//               // Parent only toggle
+//               _FilterToggleChip(
+//                 label: 'Parents Only',
+//                 isSelected: controller.showOnlyParents.value,
+//                 onSelected: (v) => controller.toggleShowOnlyParents(v),
+//                 colorScheme: colorScheme,
+//               ),
+//               const SizedBox(width: 8),
 
-              // Children only toggle
-              _FilterToggleChip(
-                label: 'Children Only',
-                isSelected: controller.showOnlyChildren.value,
-                onSelected: (v) => controller.toggleShowOnlyChildren(v),
-                colorScheme: colorScheme,
-              ),
-              const SizedBox(width: 8),
+//               // Children only toggle
+//               _FilterToggleChip(
+//                 label: 'Children Only',
+//                 isSelected: controller.showOnlyChildren.value,
+//                 onSelected: (v) => controller.toggleShowOnlyChildren(v),
+//                 colorScheme: colorScheme,
+//               ),
+//               const SizedBox(width: 8),
 
-              // Type filter
-              _TypeDropdownChip(
-                controller: controller,
-                colorScheme: colorScheme,
-              ),
-              const SizedBox(width: 8),
+//               // Type filter
+//               _TypeDropdownChip(
+//                 controller: controller,
+//                 colorScheme: colorScheme,
+//               ),
+//               const SizedBox(width: 8),
 
-              // Parent category dropdown
-              if (controller.parentCategories.isNotEmpty) ...[
-                _ParentDropdownChip(
-                  controller: controller,
-                  colorScheme: colorScheme,
-                ),
-                const SizedBox(width: 8),
-              ],
+//               // Parent category dropdown
+//               if (controller.parentCategories.isNotEmpty) ...[
+//                 _ParentDropdownChip(
+//                   controller: controller,
+//                   colorScheme: colorScheme,
+//                 ),
+//                 const SizedBox(width: 8),
+//               ],
 
-              // Clear all
-              if (controller.hasActiveFilters)
-                ActionChip(
-                  label: const Text('Clear All'),
-                  avatar: const Icon(Icons.close, size: 16),
-                  onPressed: controller.clearAllFilters,
-                  backgroundColor:
-                      colorScheme.errorContainer.withValues(alpha: 0.8),
-                  labelStyle:
-                      TextStyle(color: colorScheme.onErrorContainer),
-                ),
-            ],
-          ),
-        ));
-  }
-}
+//               // Clear all
+//               if (controller.hasActiveFilters)
+//                 ActionChip(
+//                   label: const Text('Clear All'),
+//                   avatar: const Icon(Icons.close, size: 16),
+//                   onPressed: controller.clearAllFilters,
+//                   backgroundColor:
+//                       colorScheme.errorContainer.withValues(alpha: 0.8),
+//                   labelStyle:
+//                       TextStyle(color: colorScheme.onErrorContainer),
+//                 ),
+//             ],
+//           ),
+//         ));
+//   }
+// }
 
 class _FilterToggleChip extends StatelessWidget {
   final String label;
@@ -174,9 +174,8 @@ class _FilterToggleChip extends StatelessWidget {
       selectedColor: colorScheme.primaryContainer,
       checkmarkColor: colorScheme.onPrimaryContainer,
       labelStyle: TextStyle(
-        color: isSelected
-            ? colorScheme.onPrimaryContainer
-            : colorScheme.onSurface,
+        color:
+            isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
         fontSize: 13,
       ),
     );
@@ -257,11 +256,11 @@ class _ParentDropdownChip extends StatelessWidget {
             controller.onParentFilterChanged(val.isEmpty ? null : val),
         itemBuilder: (_) => [
           const PopupMenuItem(value: '', child: Text('All Parents')),
-          ...controller.parentCategories.map<PopupMenuEntry<String>>((cat) =>
-              PopupMenuItem(
-                value: cat['slug']?.toString() ?? '',
-                child: Text(cat['name']?.toString() ?? ''),
-              )),
+          ...controller.parentCategories
+              .map<PopupMenuEntry<String>>((cat) => PopupMenuItem(
+                    value: cat['slug']?.toString() ?? '',
+                    child: Text(cat['name']?.toString() ?? ''),
+                  )),
         ],
         child: Chip(
           label: Text(
@@ -297,8 +296,7 @@ class _ResultHeader extends StatelessWidget {
   final CategorySearchFilterController controller;
   final ColorScheme colorScheme;
 
-  const _ResultHeader(
-      {required this.controller, required this.colorScheme});
+  const _ResultHeader({required this.controller, required this.colorScheme});
 
   @override
   Widget build(BuildContext context) {
@@ -415,8 +413,7 @@ class _CategoryCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border:
-              Border.all(color: colorScheme.outline.withValues(alpha: 0.1)),
+          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.1)),
           boxShadow: [
             BoxShadow(
               color: colorScheme.shadow.withValues(alpha: 0.05),
@@ -431,18 +428,17 @@ class _CategoryCard extends StatelessWidget {
             // Image
             Expanded(
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(12)),
                 child: CachedNetworkImage(
-                  imageUrl: HelperFunctions()
-                      .getImage(category['featured_image']),
+                  imageUrl:
+                      HelperFunctions().getImage(category['featured_image']),
                   width: double.infinity,
                   fit: BoxFit.cover,
                   errorWidget: (_, __, ___) => Container(
                     color: colorScheme.surfaceContainerHighest,
                     child: Icon(Icons.category_outlined,
-                        size: 40,
-                        color: colorScheme.onSurfaceVariant),
+                        size: 40, color: colorScheme.onSurfaceVariant),
                   ),
                   progressIndicatorBuilder: (_, __, ___) => Container(
                     color: colorScheme.surfaceContainerHighest,
@@ -475,13 +471,11 @@ class _CategoryCard extends StatelessWidget {
                       if (children.isNotEmpty)
                         Text(
                           '${children.length} sub',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                                fontSize: 10,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                    fontSize: 10,
+                                  ),
                         ),
                     ],
                   ),
@@ -571,8 +565,7 @@ class _EmptyState extends StatelessWidget {
               Text(
                 'Try adjusting or clearing your filters',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color:
-                          Theme.of(context).colorScheme.onSurfaceVariant,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                 textAlign: TextAlign.center,
               ),
@@ -636,8 +629,7 @@ class _CategoryCardShimmer extends StatelessWidget {
                       width: double.infinity,
                       color: Colors.grey.shade300),
                   const SizedBox(height: 6),
-                  Container(
-                      height: 10, width: 60, color: Colors.grey.shade300),
+                  Container(height: 10, width: 60, color: Colors.grey.shade300),
                 ],
               ),
             ),
