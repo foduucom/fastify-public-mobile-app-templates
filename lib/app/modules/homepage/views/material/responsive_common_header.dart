@@ -33,9 +33,9 @@ class ResponsiveCommonHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// 💬 Messages
+          /// ☰ Menu / Drawer
           ResponsiveCircleIcon(
-            icon: Icons.message_outlined,
+            icon: Icons.menu,
             height: height,
             width: width,
             onTap: onMessageTap,

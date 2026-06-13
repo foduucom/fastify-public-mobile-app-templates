@@ -1,10 +1,11 @@
 import 'dart:async';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 class RazorPayPayment {
   final String keyId;
   late Razorpay _razorpay;
-  Completer<void>? _completer;
 
   RazorPayPayment({required this.keyId}) {
     _razorpay = Razorpay();
@@ -17,12 +18,10 @@ class RazorPayPayment {
     required double amount,
     Map<String, dynamic>? metadata,
   }) async {
-    _completer = Completer<void>();
-
     var options = {
       'key': keyId,
       'amount': (amount * 100).toInt(), // Amount in paise
-      'name': 'Foduu Ecommerce',
+      'name': GetStorage().read('store_name') ?? 'My Watch',
       'description': 'Order Payment',
       'prefill': {
         'contact': metadata?['user_phone'] ?? '',
@@ -40,34 +39,25 @@ class RazorPayPayment {
       _razorpay.open(options);
     } catch (e) {
       print('Error opening Razorpay: $e');
-      _completer!.completeError('Could not open Razorpay: $e');
+      throw 'Could not open Razorpay: $e';
     }
-
-    return _completer!.future;
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
     print('Razorpay Success: ${response.paymentId}');
-    if (_completer != null && !_completer!.isCompleted) {
-      _completer!.complete();
-    }
+    HelperFunctions()
+        .showSnackBarSuccess('Payment Successful: ${response.paymentId}');
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
     print('Razorpay Error: ${response.code} - ${response.message}');
-    if (_completer != null && !_completer!.isCompleted) {
-      _completer!.completeError(
-        'Payment Failed: ${response.message ?? response.code}',
-      );
-    }
+    HelperFunctions().showSnackBarError('Payment Failed: ${response.message}');
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
     print('Razorpay External Wallet: ${response.walletName}');
-    if (_completer != null && !_completer!.isCompleted) {
-      // Treat external wallet selection as a cancellation from our flow
-      _completer!.completeError('cancelled');
-    }
+    HelperFunctions()
+        .showSnackBarError('Payment Failed: ${response.walletName}');
   }
 
   void dispose() {

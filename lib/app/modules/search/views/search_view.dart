@@ -1,6 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
+import 'package:foduu_ecommerce/components/home_component/customDrawer.dart';
 import 'package:foduu_ecommerce/components/home_component/studio_search_bar_rounded.dart';
+import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:foduu_ecommerce/components/search_bar_rounded.dart';
 import 'package:shimmer/shimmer.dart';
 import '/app/modules/product/views/product_view.dart';
@@ -23,20 +28,45 @@ String _cap(dynamic value) {
 }
 
 class SearchView extends GetView<SearchsController> {
-  const SearchView({Key? key}) : super(key: key);
+  SearchView({Key? key}) : super(key: key);
 
   ColorScheme get colorScheme => Theme.of(Get.context!).colorScheme;
   TextTheme get textTheme => Theme.of(Get.context!).textTheme;
 
   @override
   Widget build(BuildContext context) {
+    final scaffoldKey = GlobalKey<ScaffoldState>();
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
 
     return GestureDetector(
       onTap: () => HelperFunctions().closeKeyboard(context),
       child: Scaffold(
+        key: scaffoldKey,
         backgroundColor: colorScheme.background,
+        drawer: Drawer(
+          child: AuthDetails.isUserLogin()
+              ? const CustomDrawer()
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Center(
+                        child: Text(
+                      'Login to View Profile',
+                      style: txtTheme().displayMedium,
+                    )),
+                    const SizedBox(height: 15),
+                    SizedBox(
+                      width: Get.width * 0.6,
+                      child: AppButton(
+                          itemText: 'Login',
+                          keypressEvent: () {
+                            Get.offAllNamed(Routes.LOGIN);
+                          }),
+                    ),
+                  ],
+                ),
+        ),
 
         // Remove the default AppBar completely
         appBar: null,
@@ -53,7 +83,7 @@ class SearchView extends GetView<SearchsController> {
                   controller.getSearchSuggestion(text: value);
                 },
                 onCartTap: () => Get.toNamed(Routes.CART),
-                onMessageTap: () => print("Message tapped"),
+                onMessageTap: () => scaffoldKey.currentState?.openDrawer(),
                 onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),
               ),
 

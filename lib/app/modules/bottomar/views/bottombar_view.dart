@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import 'package:foduu_ecommerce/app/modules/cart/views/cart_view.dart';
 import 'package:foduu_ecommerce/app/modules/category/views/category_view.dart';
@@ -11,7 +12,10 @@ import 'package:foduu_ecommerce/app/modules/notification/controller/notification
 import 'package:foduu_ecommerce/app/modules/wishlist/controllers/wishlist_controller.dart';
 import 'package:foduu_ecommerce/app/modules/wishlist/views/wishlist_view.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
+import 'package:foduu_ecommerce/components/home_component/customDrawer.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
+import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:get/get.dart';
 
 import '../../../../../constants/constants.dart';
@@ -33,9 +37,33 @@ class BottombarView extends GetView<BottombarController> {
     var height = Get.height;
 
     return Scaffold(
+      drawer: Drawer(
+        child: AuthDetails.isUserLogin()
+            ? const CustomDrawer()
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Center(
+                      child: Text(
+                    'Login to View Profile',
+                    style: txtTheme().displayMedium,
+                  )),
+                  const SizedBox(height: 15),
+                  SizedBox(
+                    width: Get.width * 0.6,
+                    child: AppButton(
+                        itemText: 'Login',
+                        keypressEvent: () {
+                          Get.offAllNamed(Routes.LOGIN);
+                        }),
+                  ),
+                ],
+              ),
+      ),
       body: SafeArea(
         bottom: false,
-        child: Column(
+        child: Builder(
+          builder: (scaffoldContext) => Column(
           children: [
             // ONE COMMON HEADER FOR ALL PAGES
             Obx(() {
@@ -46,7 +74,7 @@ class BottombarView extends GetView<BottombarController> {
                   height: height,
                   onSearchTap: () => Get.toNamed(Routes.SEARCH),
                   onCartTap: () => Get.toNamed(Routes.CART),
-                  onMessageTap: () => print("Message tapped"),
+                  onMessageTap: () => Scaffold.of(scaffoldContext).openDrawer(),
                   onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),
                 );
               }
@@ -68,6 +96,7 @@ class BottombarView extends GetView<BottombarController> {
               ),
             ),
           ],
+        ),
         ),
       ),
       bottomNavigationBar: _buildBottomNav(context),

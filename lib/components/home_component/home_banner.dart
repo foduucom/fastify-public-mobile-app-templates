@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_typing_uninitialized_variables
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/components/home_component/home_common_widgets.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/controllers/homepage_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
@@ -44,6 +45,14 @@ class _HomeBannerState extends State<HomeBanner>
 
     return Column(
       children: [
+        //  if (title.isNotEmpty)
+        //   Padding(
+        //     padding: pageSurroundingPadding,
+        //     child: StudioSectionHeader(
+        //       title: title,
+        //       subtitle: subtitle,
+        //     ),
+        //   ),
         for (var banner in banners) _buildBannerByType(banner),
       ],
     );

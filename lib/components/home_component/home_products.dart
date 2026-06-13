@@ -482,23 +482,25 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             // Content Section - Use Flexible to take remaining space but not overflow
             Flexible(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+                padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Product Name
-                    Text(
-                      productName,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                        height: 1.2,
+                    Flexible(
+                      child: Text(
+                        productName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                          height: 1.2,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     // Store Name
                     Text(
                       storeName,
@@ -510,8 +512,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    // Price - Ensure it stays at bottom
+                    const SizedBox(height: 2),
+                    // Price
                     if (productType == 'variable')
                       _buildVariablePrice(priceInfo)
                     else
