@@ -316,4 +316,48 @@ class ProductHelper {
       ),
     );
   }
+
+  /// Build rating stars and review count widget
+  static Widget buildRatingWidget(Map<String, dynamic> product,
+      TextTheme textTheme, ColorScheme colorScheme,
+      {double starSize = 12.0}) {
+    final rawRating = product['average_rating'];
+    final rawCount = product['rating_count'];
+    final double rating = double.tryParse(rawRating?.toString() ?? '0') ?? 0.0;
+    final int count = int.tryParse(rawCount?.toString() ?? '0') ?? 0;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: List.generate(5, (index) {
+              IconData icon;
+              if (index < rating.floor()) {
+                icon = Icons.star;
+              } else if (index < rating && rating - index >= 0.5) {
+                icon = Icons.star_half;
+              } else {
+                icon = Icons.star_border;
+              }
+              return Icon(
+                icon,
+                color: const Color(0xFFFFBA49),
+                size: starSize,
+              );
+            }),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '($count)',
+            style: textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+              fontSize: starSize - 2 > 8 ? starSize - 2 : 9,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

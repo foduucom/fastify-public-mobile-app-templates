@@ -8,8 +8,16 @@ import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
-class ContactView extends GetView<ContactController> {
+class ContactView extends StatefulWidget {
   const ContactView({Key? key}) : super(key: key);
+
+  @override
+  State<ContactView> createState() => _ContactViewState();
+}
+
+class _ContactViewState extends State<ContactView> {
+  final _formKey = GlobalKey<FormState>();
+  ContactController get controller => Get.find<ContactController>();
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +35,7 @@ class ContactView extends GetView<ContactController> {
               child: Padding(
                 padding: const EdgeInsets.all(25),
                 child: Form(
-                  key: controller.formKey,
+                  key: _formKey,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -137,7 +145,7 @@ class ContactView extends GetView<ContactController> {
                             // radius: 12,
                             keypressEvent: () {
                               HelperFunctions().closeKeyboard(context);
-                              controller.sendFormData();
+                              controller.sendFormData(_formKey);
                             },
                           );
                         }

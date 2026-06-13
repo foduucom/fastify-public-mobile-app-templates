@@ -97,6 +97,14 @@ Future<String> _initApp() async {
       var authPreference = response['storeSettings']['auth_preference'];
       box.write('auth_preference', authPreference);
 
+      if (response['storeSettings'] != null) {
+        var storeName = response['storeSettings']['name'] ??
+            response['storeSettings']['store_name'];
+        if (storeName != null) {
+          box.write('store_name', storeName);
+        }
+      }
+
       if (response['storeSettings']['app_theme_color'] != null) {
         DynamicThemeManager()
             .updateFromApi(response['storeSettings']['app_theme_color']);

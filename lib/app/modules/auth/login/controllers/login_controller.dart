@@ -10,7 +10,6 @@ import 'package:get_storage/get_storage.dart';
 class LoginController extends GetxController with BaseController {
   var obsecuretext = true.obs;
   var isLoading = false.obs;
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   late TextEditingController emailController, passwordController;
   var email = "";
   var password = "";
@@ -51,7 +50,7 @@ class LoginController extends GetxController with BaseController {
   }
 
   /// Main submit handler - routes based on auth type
-  Future<void> onSubmit() async {
+  Future<void> onSubmit(GlobalKey<FormState> formKey) async {
     if (!formKey.currentState!.validate()) return;
 
     isLoading(true);

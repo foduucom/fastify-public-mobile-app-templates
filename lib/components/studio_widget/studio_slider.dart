@@ -31,6 +31,8 @@ class _FoduuSliderState extends State<FoduuSlider>
   final PageController _pageController = PageController(
     initialPage: 0,
   );
+  Timer? _timer;
+  List<String> _imageUrls = [];
 
   // Calculate slider height based on full_screen flag and height value
   double _getSliderHeight() {
@@ -42,6 +44,19 @@ class _FoduuSliderState extends State<FoduuSlider>
       // Use the height from content_json, default to 200 if not provided
       final dynamic height = widget.sliderData['height'];
       return height != null ? height.toDouble() : 200.0;
+    }
+  }
+
+  void _resolveImageUrls() {
+    _imageUrls.clear();
+    final slider = widget.sliderData['slider'];
+    if (slider != null) {
+      final content = slider['content'];
+      if (content is List) {
+        for (var item in content) {
+          _imageUrls.add(HelperFunctions().getImage(item));
+        }
+      }
     }
   }
 
@@ -61,7 +76,9 @@ class _FoduuSliderState extends State<FoduuSlider>
     // sliderImage.clear();
     // initFetchSliderImage(widget.id);
 
-    Timer.periodic(const Duration(seconds: 8), (Timer timer) {
+    _resolveImageUrls();
+
+    _timer = Timer.periodic(const Duration(seconds: 8), (Timer timer) {
       if (_currentPage < widget.sliderData['slider']['content'].length - 1) {
         _currentPage++;
       } else {
@@ -75,6 +92,21 @@ class _FoduuSliderState extends State<FoduuSlider>
         );
       }
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant FoduuSlider oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.sliderData != oldWidget.sliderData) {
+      _resolveImageUrls();
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -190,9 +222,9 @@ class _FoduuSliderState extends State<FoduuSlider>
                                     borderRadius: BorderRadius.circular(12.0),
                                     child: CachedNetworkImage(
                                       height: sliderHeight,
-                                      imageUrl: HelperFunctions().getImage(
-                                          widget.sliderData['slider']['content']
-                                              [index]),
+                                      imageUrl: index < _imageUrls.length
+                                          ? _imageUrls[index]
+                                          : HelperFunctions.getNoImage(),
                                       fit: BoxFit.cover,
                                       width: Get.width,
                                       errorWidget: ((context, url, error) =>

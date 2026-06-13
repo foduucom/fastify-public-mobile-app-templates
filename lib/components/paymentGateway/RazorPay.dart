@@ -1,5 +1,6 @@
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:get_storage/get_storage.dart';
 
 class RazorPayPayment {
   final String keyId;
@@ -19,7 +20,7 @@ class RazorPayPayment {
     var options = {
       'key': keyId,
       'amount': (amount * 100).toInt(), // Amount in paise
-      'name': 'Foduu Ecommerce',
+      'name': GetStorage().read('store_name') ?? 'My Watch',
       'description': 'Order Payment',
       'prefill': {
         'contact': metadata?['user_phone'] ?? '',

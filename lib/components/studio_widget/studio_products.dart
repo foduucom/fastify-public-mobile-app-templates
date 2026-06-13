@@ -640,6 +640,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                   fontWeight: FontWeight.w600,
                 ),
               ),
+              ProductHelper.buildRatingWidget(product, textTheme, colorScheme),
               const SizedBox(height: 4),
               // Price
               if (productType == 'variable')
@@ -771,6 +772,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    ProductHelper.buildRatingWidget(product, textTheme, colorScheme),
                     const SizedBox(height: 6),
                     if (productType == 'variable')
                       _buildVariablePrice(priceInfo)
@@ -929,6 +931,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      ProductHelper.buildRatingWidget(product, textTheme, colorScheme),
                       const SizedBox(height: 4),
                       if (productType == 'variable')
                         _buildVariablePrice(priceInfo)

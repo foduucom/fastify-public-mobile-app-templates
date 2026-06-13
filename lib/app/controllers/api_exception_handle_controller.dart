@@ -11,31 +11,33 @@ mixin BaseController {
     HelperFunctions().hideOverlayLoader();
     if (error is BadRequestException) {
       var message = error.message;
+      if (message == null || message.toString().isEmpty || message.toString().contains('<html>') || message.toString() == "null") {
+        message = "We are facing some issue, please wait a minute.";
+      }
       HelperFunctions().showSnackBarError(message.toString());
     } else if (error is FetchDataException) {
       var message = error.message;
+      if (message == null || message.toString().isEmpty || message.toString().contains('<html>') || message.toString() == "null") {
+        message = "We are facing some issue, please wait a minute.";
+      }
       HelperFunctions().showSnackBarError(message.toString());
     } else if (error is UnAuthorizedException) {
       var message = error.message;
-      // if (await FirebaseHelpers().unsubscribeFromAllTopics()) {
       getbox.erase();
       isOtpLogin
           ? Get.offAllNamed(Routes.MOBILELOGIN)
           : Get.offAllNamed(Routes.LOGIN);
-      // }
-      // Get.find<BottomnavController>().logout();
       HelperFunctions()
           .showSnackBarError("$message Your session seems to be expired!");
     } else if (error is ApiNotRespondingException) {
-      // print("------------------");
-      // print("------------------");
-      // print(error.message);
-      // print("------------------");
-      // print("------------------");
-      // HelperFunctions().showSnackBarError("Oops! It took longer to respond.");
-    } else if (error is FetchDataException) {
-      var message = error.message;
-      HelperFunctions().showSnackBarError(message.toString());
+      HelperFunctions().showSnackBarError("We are facing some issue, please wait a minute.");
+    } else {
+      final errorStr = error.toString();
+      if (errorStr.contains('FormatException') || errorStr.contains('<html>') || errorStr.contains('502') || errorStr.contains('500') || errorStr.contains('Connection refused')) {
+        HelperFunctions().showSnackBarError("We are facing some issue, please wait a minute.");
+      } else {
+        HelperFunctions().showSnackBarError(errorStr);
+      }
     }
   }
 }

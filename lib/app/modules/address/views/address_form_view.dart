@@ -6,8 +6,16 @@ import 'package:foduu_ecommerce/components/foduuformtextfield.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/theme.dart';
 
-class AddressFormView extends GetView<AddressFormController> {
+class AddressFormView extends StatefulWidget {
   const AddressFormView({Key? key}) : super(key: key);
+
+  @override
+  State<AddressFormView> createState() => _AddressFormViewState();
+}
+
+class _AddressFormViewState extends State<AddressFormView> {
+  final _formKey = GlobalKey<FormState>();
+  AddressFormController get controller => Get.find<AddressFormController>();
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +44,7 @@ class AddressFormView extends GetView<AddressFormController> {
             SingleChildScrollView(
               padding: pageSurroundingPadding,
               child: Form(
-                key: controller.formKey,
+                key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -159,7 +167,7 @@ class AddressFormView extends GetView<AddressFormController> {
               left: 20,
               right: 20,
               child: ElevatedButton(
-                onPressed: controller.saveAddress,
+                onPressed: () => controller.saveAddress(_formKey),
                 style: ElevatedButton.styleFrom(
                   // backgroundColor: themeRedColor,
                   minimumSize: const Size(double.infinity, 50),

@@ -12,8 +12,16 @@ import 'package:get/get.dart';
 
 import '../controllers/register_controller.dart';
 
-class RegisterView extends GetView<RegisterController> {
+class RegisterView extends StatefulWidget {
   const RegisterView({Key? key}) : super(key: key);
+
+  @override
+  State<RegisterView> createState() => _RegisterViewState();
+}
+
+class _RegisterViewState extends State<RegisterView> {
+  final _formKey = GlobalKey<FormState>();
+  RegisterController get controller => Get.find<RegisterController>();
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +91,7 @@ class RegisterView extends GetView<RegisterController> {
 
                 /// ------------- FORM -------------
                 Form(
-                  key: controller.formKey, // ✔ Only ONE GlobalKey used
+                  key: _formKey, // ✔ Only ONE GlobalKey used
                   child: Column(
                     children: [
                       /// NAME (Always visible)
@@ -209,7 +217,7 @@ class RegisterView extends GetView<RegisterController> {
                                 : "SIGN UP",
                             keypressEvent: () {
                               HelperFunctions().closeKeyboard(context);
-                              controller.onSubmit();
+                              controller.onSubmit(_formKey);
                             },
                           );
                         }

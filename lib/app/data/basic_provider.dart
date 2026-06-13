@@ -101,7 +101,7 @@ class BasicProvider {
             .timeout(const Duration(seconds: 120));
       }
 
-      print('POST API RESPONSE ${response.body}');
+      // print('POST API RESPONSE ${response.body}');
 
       return _processResponse(response, fetchUrl());
     } on SocketException {
@@ -196,7 +196,7 @@ class BasicProvider {
 
   dynamic _processResponse(http.Response response, url) {
     print('url === $url ${response.statusCode}');
-    print('response === ${response.body}');
+    // print('response === ${response.body}');
 
     var responseBody;
     try {

@@ -4,6 +4,8 @@ import 'package:foduu_ecommerce/components/oderdetail.dart';
 import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:get/get.dart';
 import '../../constants/constants.dart';
+import 'package:foduu_ecommerce/app/modules/orderResponse/controllers/ordersucess_controller.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 
 class bottomButton extends StatefulWidget {
   bottomButton({
@@ -29,7 +31,6 @@ class bottomButton extends StatefulWidget {
 }
 
 class _bottomButtonState extends State<bottomButton> {
-  CartController cartController = Get.find<CartController>();
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -53,16 +54,53 @@ class _bottomButtonState extends State<bottomButton> {
                   width: Get.width * 0.38,
                   child: GestureDetector(
                     onTap: () {
+                      final hasSuccess = Get.isRegistered<OrderSuccessController>() && 
+                          Get.find<OrderSuccessController>().item.isNotEmpty;
+                      
+                      final double subtotal;
+                      final double savings;
+                      final double couponDiscount;
+                      final double delivery;
+                      final double total;
+
+                      if (hasSuccess) {
+                        final success = Get.find<OrderSuccessController>();
+                        subtotal = HelperFunctions.parseAmount(success.item['subtotal'] ?? success.item['total']);
+                        couponDiscount = HelperFunctions.parseAmount(success.item['discount']);
+                        delivery = HelperFunctions.parseAmount(success.item['shipping_charges'] ?? success.item['shipping']);
+                        total = HelperFunctions.parseAmount(success.item['total']);
+                        // savings = MRP bag total - sale price total
+                        // total = subtotal - savings - couponDiscount + delivery
+                        savings = subtotal - couponDiscount + delivery - total;
+                      } else {
+                        final hasCart = Get.isRegistered<CartController>() && 
+                            Get.find<CartController>().cartItems.isNotEmpty;
+                        if (hasCart) {
+                          final cart = Get.find<CartController>();
+                          subtotal = cart.subTotal.value;
+                          savings = cart.savings;
+                          couponDiscount = 0.0;
+                          delivery = HelperFunctions.parseAmount(widget.deliveryAmount);
+                          total = cart.total.value;
+                        } else {
+                          total = HelperFunctions.parseAmount(widget.priceText);
+                          delivery = HelperFunctions.parseAmount(widget.deliveryAmount);
+                          subtotal = total - delivery;
+                          savings = 0.0;
+                          couponDiscount = 0.0;
+                        }
+                      }
+
                       Get.bottomSheet(
-                        // Scaffold(
-                        //   body:
                         Container(
+                          width: double.infinity,
                           decoration: BoxDecoration(
                               color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.vertical(
+                              borderRadius: const BorderRadius.vertical(
                                   top: Radius.circular(15))),
                           padding: pageSurroundingPadding,
                           child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const SizedBox(height: 15),
@@ -74,52 +112,19 @@ class _bottomButtonState extends State<bottomButton> {
                                     fontWeight: FontWeight.w600),
                               ),
                               const SizedBox(height: 20),
-                              // orderDetial(
-                              //   couponPrefix:
-                              //       cartController.viewCouponPrefix.value,
-                              //   price: cartController.viewprice.value,
-                              //   savedPrice: cartController.viewsavedPrice.value,
-                              //   cuponValue:
-                              //       cartController.viewCouponAmount.value,
-                              //   deliveryStatus:
-                              //       widget.deliveryAmount.toString(),
-                              //   totalAmount: '${widget.totalAmount}',
-                              // ),
-                              const SizedBox(height: 10),
-                              // Container(
-                              //   height: 40,
-                              //   decoration: BoxDecoration(
-                              //       borderRadius: BorderRadius.circular(3),
-                              //       color: themegreyColor),
-                              //   child: Padding(
-                              //     padding: const EdgeInsets.symmetric(
-                              //         horizontal: 10),
-                              //     child: Row(
-                              //       children: [
-                              //         SvgPicture.asset(
-                              //             'assets/icon/dilevery.svg',
-                              //             color: themetitleColor),
-                              //         const SizedBox(width: 10),
-                              //         Text(
-                              //             'No Delivery Charges applied on this order ',
-                              //             style: txtTheme()
-                              //                 .titleLarge!
-                              //                 .copyWith(
-                              //                     color: themetitleColor)),
-                              //       ],
-                              //     ),
-                              //   ),
-                              // ),
-                              // const SizedBox(height: 15)
+                              orderDetial(
+                                isShowBagSaving: savings > 0,
+                                couponPrefix: '',
+                                price: subtotal.toStringAsFixed(2),
+                                savedPrice: savings.toStringAsFixed(2),
+                                cuponValue: couponDiscount.toStringAsFixed(2),
+                                deliveryStatus: delivery.toStringAsFixed(2),
+                                totalAmount: total.toStringAsFixed(2),
+                              ),
+                              const SizedBox(height: 15),
                             ],
                           ),
                         ),
-                        // ),
-                        // Get.dialog(
-                        //   Scaffold(
-                        //     extendBody: true,
-                        //     body:
-                        //   ),
                       );
                     },
                     child: Column(

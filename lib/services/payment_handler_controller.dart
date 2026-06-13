@@ -4,6 +4,8 @@ import 'package:razorpay_flutter/razorpay_flutter.dart'; // Assuming this packag
 import 'package:foduu_ecommerce/services/payment_service.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart'; // For navigation
+import 'package:get_storage/get_storage.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 
 class PaymentHandlerController extends GetxController {
   // These would typically be passed to this controller when initiating the payment
@@ -37,16 +39,26 @@ class PaymentHandlerController extends GetxController {
       return;
     }
 
+    final box = GetStorage();
+    final String storeName = box.read('store_name') ?? 'My Watch';
+
+    final user = AuthDetails.getUserDetails();
+    final String userMobile =
+        (user != null ? (user['mobile'] ?? user['phone'] ?? '') : '')
+            .toString();
+    final String userEmail =
+        (user != null ? (user['email'] ?? '') : '').toString();
+
     var options = {
       'key': keyId, // Use the dynamically provided keyId
       'amount': amountInPaisa, // in paisa
-      'name': 'Your App Name',
+      'name': storeName,
       'description': description,
       'order_id':
           _currentPaymentIntentId, // This is the Razorpay Order ID from your backend
       'prefill': {
-        'contact': '9876543210', // User's contact number
-        'email': 'test@example.com' // User's email
+        'contact': userMobile,
+        'email': userEmail,
       },
       'external': {
         'wallets': ['paytm']

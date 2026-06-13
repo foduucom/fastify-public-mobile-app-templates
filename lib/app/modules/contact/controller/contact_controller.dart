@@ -9,7 +9,6 @@ import 'package:get_storage/get_storage.dart';
 import '../../../controllers/api_exception_handle_controller.dart';
 
 class ContactController extends GetxController with BaseController {
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   late TextEditingController nameController,
       emailController,
       phoneController,
@@ -41,7 +40,7 @@ class ContactController extends GetxController with BaseController {
     }
   }
 
-  Future<void> sendFormData() async {
+  Future<void> sendFormData(GlobalKey<FormState> formKey) async {
     if (formKey.currentState!.validate()) {
       if (messageController.text == "") {
         return;

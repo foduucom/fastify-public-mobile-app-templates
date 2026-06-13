@@ -263,7 +263,8 @@ class ProductView extends GetView<ProductController> {
               .map<Widget>(
                 (tag) => Chip(
                   label: Text(
-                    (tag is Map ? tag['name']?.toString() : tag?.toString()) ?? '',
+                    (tag is Map ? tag['name']?.toString() : tag?.toString()) ??
+                        '',
                     style: const TextStyle(fontSize: 12),
                   ),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -434,65 +435,82 @@ class ProductView extends GetView<ProductController> {
                             );
 
                             return Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Text(
-                                  "₹${priceInfo['productPrice']}",
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                const SizedBox(width: 04),
-                                priceInfo['salePrice'] == "0" ||
-                                        priceInfo['salePrice'] == ""
-                                    ? Container()
-                                    : Text(
-                                        "₹${priceInfo['salePrice']}",
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium
-                                            ?.copyWith(
-                                              decoration:
-                                                  TextDecoration.lineThrough,
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.outline,
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      "₹${priceInfo['productPrice']}",
+                                      style: Theme.of(context).textTheme.titleLarge,
+                                    ),
+                                    const SizedBox(width: 08),
+                                    priceInfo['salePrice'] == "0" ||
+                                            priceInfo['salePrice'] == ""
+                                        ? const SizedBox.shrink()
+                                        : Text(
+                                            "₹${priceInfo['salePrice']}",
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleMedium
+                                                ?.copyWith(
+                                                  decoration:
+                                                      TextDecoration.lineThrough,
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).colorScheme.outline,
+                                                ),
+                                          ),
+                                    const SizedBox(width: 08),
+                                    if (priceInfo['discountRate'] != null &&
+                                        priceInfo['discountRate']!.isNotEmpty)
+                                      Text(
+                                        priceInfo['discountRate'] ?? '',
+                                        style: txtTheme().titleLarge!.copyWith(
+                                              color: Colors.green,
+                                              fontWeight: FontWeight.bold,
                                             ),
                                       ),
-                                Text(
-                                  priceInfo['discountRate'] ?? '',
-                                  style: txtTheme().titleLarge!.copyWith(
-                                        color: Colors.green,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                  ],
+                                ),
+                                _buildStockSku(
+                                  context,
+                                  Map<String, dynamic>.from(
+                                    controller.productDetials,
+                                  ),
+                                  controller.selectedVariantIndex.value,
                                 ),
                               ],
                             );
                           }
                         }),
                         const SizedBox(height: 8),
-                        // Stock status + SKU
-                        Obx(() {
-                          if (controller.productDetials['name'] == null)
-                            return const SizedBox.shrink();
-                          return _buildStockSku(
-                            context,
-                            Map<String, dynamic>.from(
-                              controller.productDetials,
-                            ),
-                            controller.selectedVariantIndex.value,
-                          );
-                        }),
-                        const SizedBox(height: 6),
-                        // Tax info
-                        Obx(() {
-                          if (controller.productDetials['name'] == null)
-                            return const SizedBox.shrink();
-                          return _buildTaxInfo(
-                            context,
-                            Map<String, dynamic>.from(
-                              controller.productDetials,
-                            ),
-                          );
-                        }),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Obx(() {
+                              if (controller.productDetials['name'] == null)
+                                return const SizedBox.shrink();
+                              return _buildTaxInfo(
+                                context,
+                                Map<String, dynamic>.from(
+                                  controller.productDetials,
+                                ),
+                              );
+                            }),
+                            Obx(() {
+                              if (controller.productDetials['name'] == null)
+                                return const SizedBox.shrink();
+                              return _buildPublishedDate(
+                                context,
+                                Map<String, dynamic>.from(
+                                  controller.productDetials,
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -513,11 +531,35 @@ class ProductView extends GetView<ProductController> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        'Select ${controller.labels[parentIndex]}',
-                                        style: txtTheme().titleLarge!.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'Select ${controller.labels[parentIndex]}',
+                                            style: txtTheme()
+                                                .titleLarge!
+                                                .copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                          ),
+                                          Obx(() {
+                                            final currentSelection =
+                                                controller.selectedVariant[
+                                                    controller
+                                                        .labels[parentIndex]];
+                                            return Text(
+                                              currentSelection?.toString() ??
+                                                  '',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                              ),
+                                            );
+                                          }),
+                                        ],
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.only(
@@ -610,75 +652,71 @@ class ProductView extends GetView<ProductController> {
                           );
                         }),
                         const SizedBox(height: 10),
-                        Text(
-                          "Quantity:",
-                          style: txtTheme().titleLarge!.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 10),
-                        Container(
-                          width: Get.width * 0.32,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              IconButton(
-                                onPressed: () {
-                                  controller.decrement();
-                                },
-                                icon: Container(
-                                  padding: const EdgeInsets.all(0.01),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(02),
-                                    border: Border.all(
-                                      width: 1.2,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.outline,
-                                    ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Quantity:",
+                              style: txtTheme().titleLarge!.copyWith(
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  child: const Icon(Icons.remove, size: 14),
-                                ),
-                              ),
-                              Obx(() {
-                                return Text(controller.count.toString());
-                              }),
-                              IconButton(
-                                onPressed: () {
-                                  controller.increment();
-                                },
-                                icon: Container(
-                                  padding: const EdgeInsets.all(0.01),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(02),
-                                    border: Border.all(
-                                      width: 1.2,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.outline,
-                                    ),
-                                  ),
-                                  child: const Icon(Icons.add, size: 14),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Published date
-                        Obx(() {
-                          if (controller.productDetials['name'] == null)
-                            return const SizedBox.shrink();
-                          return _buildPublishedDate(
-                            context,
-                            Map<String, dynamic>.from(
-                              controller.productDetials,
                             ),
-                          );
-                        }),
+                            Container(
+                              width: Get.width * 0.32,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  IconButton(
+                                    onPressed: () {
+                                      controller.decrement();
+                                    },
+                                    icon: Container(
+                                      padding: const EdgeInsets.all(0.01),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(02),
+                                        border: Border.all(
+                                          width: 1.2,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.outline,
+                                        ),
+                                      ),
+                                      child: const Icon(Icons.remove, size: 14),
+                                    ),
+                                  ),
+                                  Obx(() {
+                                    return Text(
+                                      controller.count.toString(),
+                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                    );
+                                  }),
+                                  IconButton(
+                                    onPressed: () {
+                                      controller.increment();
+                                    },
+                                    icon: Container(
+                                      padding: const EdgeInsets.all(0.01),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(02),
+                                        border: Border.all(
+                                          width: 1.2,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.outline,
+                                        ),
+                                      ),
+                                      child: const Icon(Icons.add, size: 14),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                         // Tags
                         Obx(() {
                           if (controller.productDetials['name'] == null)
@@ -704,6 +742,7 @@ class ProductView extends GetView<ProductController> {
                     ),
                   ),
                   const Divider(),
+                  _buildReviewsSection(context, controller),
                   const SizedBox(height: 50),
                 ],
               ),
@@ -722,13 +761,17 @@ class ProductView extends GetView<ProductController> {
               final variants = productDetails['variants'] as List;
               final selectedIndex = controller.selectedVariantIndex.value;
               if (selectedIndex < variants.length) {
-                variantSlug = variants[selectedIndex]['slug'] ?? variants[selectedIndex]['variant_slug'] ?? '';
+                variantSlug = variants[selectedIndex]['slug'] ??
+                    variants[selectedIndex]['variant_slug'] ??
+                    '';
                 variantId = (variants[selectedIndex]['_id'] ??
                         variants[selectedIndex]['id'])
                     ?.toString();
               }
             } else {
-              variantSlug = productDetails['variant_slug'] ?? productDetails['slug'] ?? '';
+              variantSlug = productDetails['variant_slug'] ??
+                  productDetails['slug'] ??
+                  '';
               variantId =
                   (productDetails['_id'] ?? productDetails['id'])?.toString();
             }
@@ -749,6 +792,394 @@ class ProductView extends GetView<ProductController> {
           },
         ),
       ),
+    );
+  }
+
+  Widget _buildReviewsSection(BuildContext context, ProductController controller) {
+    return Obx(() {
+      if (controller.isLoadingReviews.value) {
+        return const Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Center(child: CircularProgressIndicator()),
+        );
+      }
+
+      final summary = controller.reviewsData['summary'];
+      final reviewsObj = controller.reviewsData['reviews'];
+      if (summary == null || reviewsObj == null) {
+        return const SizedBox.shrink();
+      }
+
+      final docs = reviewsObj['docs'] as List? ?? [];
+      final averageRating =
+          double.tryParse(summary['average_rating']?.toString() ?? '0.0') ??
+              0.0;
+      final totalReviews =
+          int.tryParse(summary['total_reviews']?.toString() ?? '0') ?? 0;
+      final breakdown = summary['breakdown'] as Map? ?? {};
+
+      return Padding(
+        padding: pageSurroundingPadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Customer Reviews ($totalReviews)",
+                  style: txtTheme()
+                      .titleLarge!
+                      .copyWith(fontWeight: FontWeight.bold),
+                ),
+                TextButton.icon(
+                  onPressed: () => _showAddReviewModal(context, controller),
+                  icon: const Icon(Icons.rate_review, size: 18),
+                  label: const Text(
+                    "Add Review",
+                    style: TextStyle(
+                        fontFamily: 'Lato', fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (totalReviews > 0) ...[
+              // Breakdown stats
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        averageRating.toStringAsFixed(1),
+                        style: const TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Lato'),
+                      ),
+                      RatingBarIndicator(
+                        rating: averageRating,
+                        itemBuilder: (context, index) => Icon(
+                          Icons.star,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        unratedColor: Theme.of(context).colorScheme.outline,
+                        itemCount: 5,
+                        itemSize: 18.0,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "$totalReviews reviews",
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.outline,
+                            fontSize: 12),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 24),
+                  Expanded(
+                    child: Column(
+                      children: List.generate(5, (index) {
+                        final star = 5 - index;
+                        final count = int.tryParse(
+                                breakdown[star.toString()]?.toString() ??
+                                    '0') ??
+                            0;
+                        final pct =
+                            totalReviews > 0 ? count / totalReviews : 0.0;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2.0),
+                          child: Row(
+                            children: [
+                              Text("$star star",
+                                  style: const TextStyle(
+                                      fontSize: 12, fontFamily: 'Lato')),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: LinearProgressIndicator(
+                                    value: pct,
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .outline
+                                        .withOpacity(0.1),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Theme.of(context).colorScheme.primary),
+                                    minHeight: 6,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text("$count",
+                                  style: const TextStyle(
+                                      fontSize: 12, fontFamily: 'Lato')),
+                            ],
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              // Reviews List
+              ListView.separated(
+                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: docs.length,
+                separatorBuilder: (context, index) => const Divider(height: 24),
+                itemBuilder: (context, index) {
+                  final reviewItem = docs[index] as Map;
+                  final name = reviewItem['name']?.toString() ?? 'Anonymous';
+                  final comment = reviewItem['comment']?.toString() ?? '';
+                  final rating =
+                      int.tryParse(reviewItem['rating']?.toString() ?? '0') ??
+                          0;
+                  final rawDate = reviewItem['created_at']?.toString();
+                  String dateStr = '';
+                  if (rawDate != null) {
+                    try {
+                      dateStr = controller.getDate(rawDate);
+                    } catch (_) {}
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundColor: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withOpacity(0.1),
+                            child: Text(
+                              name.isNotEmpty ? name[0].toUpperCase() : 'A',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  style: const TextStyle(
+                                    fontFamily: 'Lato',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                if (dateStr.isNotEmpty)
+                                  Text(
+                                    dateStr,
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(context).colorScheme.outline,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          RatingBarIndicator(
+                            rating: rating.toDouble(),
+                            itemBuilder: (context, index) => Icon(
+                              Icons.star,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            unratedColor: Theme.of(context).colorScheme.outline,
+                            itemCount: 5,
+                            itemSize: 14.0,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        comment,
+                        style: const TextStyle(
+                            fontFamily: 'Lato', fontSize: 13, height: 1.4),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ] else ...[
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24.0),
+                  child: Text(
+                    "No reviews yet. Be the first to review this product!",
+                    style: TextStyle(
+                        fontFamily: 'Lato', fontStyle: FontStyle.italic),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    });
+  }
+
+  void _showAddReviewModal(BuildContext context, ProductController controller) {
+    int selectedRating = 5;
+    final commentController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+            left: 16,
+            right: 16,
+            top: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Write a Review",
+                    style: txtTheme()
+                        .titleLarge!
+                        .copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "Select Rating",
+                style: TextStyle(
+                    fontFamily: 'Lato',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              StatefulBuilder(
+                builder: (context, setState) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      final star = index + 1;
+                      return IconButton(
+                        icon: Icon(
+                          star <= selectedRating
+                              ? Icons.star
+                              : Icons.star_border,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 36,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            selectedRating = star;
+                          });
+                        },
+                      );
+                    }),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "Your Comment",
+                style: TextStyle(
+                    fontFamily: 'Lato',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: commentController,
+                maxLines: 4,
+                decoration: InputDecoration(
+                  hintText: "Share your experience with this product...",
+                  hintStyle: TextStyle(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .outline
+                          .withOpacity(0.6)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.outline),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary, width: 2),
+                  ),
+                ),
+                style: const TextStyle(fontFamily: 'Lato', fontSize: 14),
+              ),
+              const SizedBox(height: 20),
+              Obx(() {
+                return SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: controller.isSubmittingReview.value
+                        ? null
+                        : () async {
+                            final comment = commentController.text.trim();
+                            if (comment.isEmpty) {
+                              HelperFunctions()
+                                  .showSnackBarError("Please write a comment.");
+                              return;
+                            }
+                            await controller.postReview(
+                              comment: comment,
+                              rating: selectedRating,
+                            );
+                            Navigator.pop(context);
+                          },
+                    child: controller.isSubmittingReview.value
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                            "Submit Review",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontFamily: 'Lato',
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
     );
   }
 }

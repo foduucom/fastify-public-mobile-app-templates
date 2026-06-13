@@ -8,8 +8,6 @@ import 'package:get/get.dart';
 class AddressFormController extends GetxController with BaseController {
   AddressFormController();
 
-  final formKey = GlobalKey<FormState>();
-
   // Controllers
   late TextEditingController name;
   late TextEditingController email;
@@ -151,7 +149,7 @@ class AddressFormController extends GetxController with BaseController {
     selectedCity.value = value;
   }
 
-  Future<void> saveAddress() async {
+  Future<void> saveAddress(GlobalKey<FormState> formKey) async {
     if (!formKey.currentState!.validate()) return;
     if (selectedCountry.isEmpty ||
         selectedState.isEmpty ||

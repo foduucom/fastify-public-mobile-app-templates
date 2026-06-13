@@ -8,7 +8,6 @@ import 'package:get_storage/get_storage.dart';
 import 'package:flutter/material.dart';
 
 class RegisterController extends GetxController {
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   var box = GetStorage();
   late TextEditingController mobileController,
       emailController,
@@ -55,7 +54,7 @@ class RegisterController extends GetxController {
   }
 
   /// Main submit handler - routes to OTP or password flow
-  Future<void> onSubmit() async {
+  Future<void> onSubmit(GlobalKey<FormState> formKey) async {
     if (formKey.currentState!.validate()) {
       isLoading(true);
 

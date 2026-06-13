@@ -13,8 +13,17 @@ import 'package:foduu_ecommerce/components/open_image_picker_sheet.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
-class EditprofileView extends GetView<ProfileController> {
+class EditprofileView extends StatefulWidget {
   const EditprofileView({Key? key}) : super(key: key);
+
+  @override
+  State<EditprofileView> createState() => _EditprofileViewState();
+}
+
+class _EditprofileViewState extends State<EditprofileView> {
+  final _formKey = GlobalKey<FormState>();
+  ProfileController get controller => Get.find<ProfileController>();
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -44,7 +53,7 @@ class EditprofileView extends GetView<ProfileController> {
           },
           child: FoduuCheckInternetBody(
             child: Form(
-              key: controller.formKey,
+              key: _formKey,
               child: ListView(
                 shrinkWrap: true,
                 children: [
@@ -236,7 +245,7 @@ class EditprofileView extends GetView<ProfileController> {
                       onPressed: () async {
                         HelperFunctions().showOverlayLoader();
                         try {
-                          await controller.sendFormData();
+                          await controller.sendFormData(_formKey);
                         } catch (e) {
                           debugPrint("Error updating profile: $e");
                         } finally {

@@ -10,7 +10,6 @@ import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 
 class ProfileController extends GetxController with BaseController {
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   var box = GetStorage();
   var profiledata = {}.obs;
   DateTime? selectedDate;
@@ -234,7 +233,7 @@ class ProfileController extends GetxController with BaseController {
         (imagePath.value.isNotEmpty && !imagePath.value.startsWith('http'));
   }
 
-  Future<void> sendFormData() async {
+  Future<void> sendFormData(GlobalKey<FormState> formKey) async {
     if (formKey.currentState!.validate()) {
       isLoading(true);
 

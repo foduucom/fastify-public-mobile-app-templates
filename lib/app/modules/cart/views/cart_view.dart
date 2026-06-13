@@ -320,8 +320,23 @@ class _CartItemCard extends StatelessWidget {
     final productId = controller.getProductId(index);
     final variantId = controller.getVariantId(index);
 
-    // Use ProductHelper to get image and price info
-    final imageUrl = ProductHelper.getProductImage(product);
+    // Resolve variant-specific image if variable product, otherwise use parent product image
+    final attributes = product['attributes'];
+    final isVariableProduct = attributes is List && attributes.isNotEmpty;
+    String imageUrl;
+    if (isVariableProduct && variant['front_image'] != null) {
+      final variantImageUrl =
+          HelperFunctions().getImage(variant['front_image']);
+      if (variantImageUrl != HelperFunctions.getNoImage() &&
+          variantImageUrl.isNotEmpty) {
+        imageUrl = variantImageUrl;
+      } else {
+        imageUrl = ProductHelper.getProductImage(product);
+      }
+    } else {
+      imageUrl = ProductHelper.getProductImage(product);
+    }
+
     debugPrint("------------------------------------OOOO-----");
     debugPrint('--------------------------------------------------');
     debugPrint('🛒 CART IMAGE HIT -> Product: ${product['name']}');

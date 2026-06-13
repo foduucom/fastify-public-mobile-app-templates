@@ -9,7 +9,6 @@ import 'package:get/get_core/src/get_main.dart';
 import 'studio_common_widgets.dart';
 import 'blogs_section.dart';
 
-
 class BlogSection extends StatefulWidget {
   final dynamic blogData;
 
@@ -46,7 +45,7 @@ class _BlogSectionState extends State<BlogSection>
               Get.to(() => AllBlogsSection(blogData: widget.blogData));
             },
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 15),
           Container(
             child: GridView.builder(
               shrinkWrap: true,
@@ -64,7 +63,8 @@ class _BlogSectionState extends State<BlogSection>
                   onTap: () {
                     final blogId = blog['_id'] ?? blog['id'];
                     if (blogId != null) {
-                      Get.toNamed(Routes.BLOG_DETAILS, arguments: {'id': blogId});
+                      Get.toNamed(Routes.BLOG_DETAILS,
+                          arguments: {'id': blogId});
                     }
                   },
                   child: Container(

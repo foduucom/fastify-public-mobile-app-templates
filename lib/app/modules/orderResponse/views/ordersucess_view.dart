@@ -153,18 +153,42 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                                       fontFamily: 'lato',
                                                       fontSize: 14,
                                                     )),
-                                                Text(
-                                                    '${controller.address['city'] is Map ? controller.address['city']['name'] : ''}, ${controller.address['state'] is Map ? controller.address['state']['name'] : ''}, ${controller.address['country'] is Map ? controller.address['country']['name'] : ''}',
-                                                    style: TextStyle(
-                                                      fontFamily: 'lato',
-                                                      fontSize: 14,
-                                                    )),
-                                                Text(
-                                                    '${controller.address['pincode'] ?? ''}',
-                                                    style: TextStyle(
-                                                      fontFamily: 'lato',
-                                                      fontSize: 14,
-                                                    )),
+                                                 (() {
+                                                    final isHexId = RegExp(r'^[a-fA-F0-9]{24}$');
+                                                    String? getVal(dynamic val) {
+                                                      if (val == null) return null;
+                                                      if (val is Map) return val['name']?.toString() ?? val['title']?.toString() ?? '';
+                                                      final str = val.toString().trim();
+                                                      return isHexId.hasMatch(str) ? null : str;
+                                                    }
+                                                    final city = getVal(controller.address['city']);
+                                                    final state = getVal(controller.address['state']);
+                                                    final country = getVal(controller.address['country']);
+                                                   final pincode = controller.address['pincode'] ??
+                                                       controller.address['postal_code'];
+
+                                                   final addressParts = [city, state, country]
+                                                       .where((e) => e != null && e.toString().trim().isNotEmpty)
+                                                       .map((e) => e.toString().trim())
+                                                       .toList();
+
+                                                   if (addressParts.isEmpty && (pincode == null || pincode.toString().trim().isEmpty)) {
+                                                     return const SizedBox.shrink();
+                                                   }
+
+                                                   final formattedAddressLine = addressParts.join(', ') +
+                                                       (pincode != null && pincode.toString().trim().isNotEmpty
+                                                           ? ' - ${pincode.toString().trim()}'
+                                                           : '');
+
+                                                   return Text(
+                                                     formattedAddressLine,
+                                                     style: const TextStyle(
+                                                       fontFamily: 'lato',
+                                                       fontSize: 14,
+                                                     ),
+                                                   );
+                                                 })(),
                                                 Text(
                                                     'Mobile: ${controller.address['mobile'] ?? ''}',
                                                     style: TextStyle(
@@ -201,18 +225,31 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                     children: [
                                       SizedBox(height: 10),
                                       Obx(
-                                        () => orderDetial(
-                                          isShowBagSaving: false,
-                                          couponPrefix: '',
-                                          price: controller.item['subtotal']
-                                              .toString(),
-                                          cuponValue:
-                                              '${controller.item['currency'] ?? '₹'}${controller.item['discount'].toString()}',
-                                          deliveryStatus:
-                                              '${controller.item['currency'] ?? '₹'}${controller.item['shipping_charges'].toString()}',
-                                          totalAmount: controller.item['total']
-                                              .toString(),
-                                        ),
+                                        () {
+                                          final subtotal = HelperFunctions.parseAmount(controller.item['subtotal']);
+                                          final total = HelperFunctions.parseAmount(controller.item['total']);
+                                          final discount = HelperFunctions.parseAmount(controller.item['discount']);
+                                          final shippingCharges = HelperFunctions.parseAmount(controller.item['shipping_charges']);
+                                          // savings = MRP bag total - sale price total
+                                          // total = subtotal - savings - discount + shippingCharges
+                                          // So: savings = subtotal - discount + shippingCharges - total
+                                          final savings = subtotal - discount + shippingCharges - total;
+                                          final hasSavings = savings > 0.5; // threshold to avoid floating-point noise
+
+                                          return orderDetial(
+                                            isShowBagSaving: hasSavings,
+                                            savedPrice: hasSavings ? savings.toStringAsFixed(2) : null,
+                                            couponPrefix: '',
+                                            price: controller.item['subtotal']
+                                                .toString(),
+                                            cuponValue:
+                                                '${controller.item['currency'] ?? '₹'}${controller.item['discount'].toString()}',
+                                            deliveryStatus:
+                                                '${controller.item['currency'] ?? '₹'}${controller.item['shipping_charges'].toString()}',
+                                            totalAmount: controller.item['total']
+                                                .toString(),
+                                          );
+                                        },
                                       ),
                                       SizedBox(height: 60),
                                     ],

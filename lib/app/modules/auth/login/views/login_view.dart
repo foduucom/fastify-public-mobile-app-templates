@@ -10,8 +10,16 @@ import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:foduu_ecommerce/app/modules/auth/login/controllers/login_controller.dart';
 
-class LoginView extends GetView<LoginController> {
+class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
+
+  @override
+  State<LoginView> createState() => _LoginViewState();
+}
+
+class _LoginViewState extends State<LoginView> {
+  final _formKey = GlobalKey<FormState>();
+  LoginController get controller => Get.find<LoginController>();
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +61,7 @@ class LoginView extends GetView<LoginController> {
         child: Padding(
           padding: pageSurroundingPadding,
           child: Form(
-            key: controller.formKey,
+            key: _formKey,
             child: Center(
               child: SingleChildScrollView(
                 child: Column(
@@ -169,7 +177,7 @@ class LoginView extends GetView<LoginController> {
                           keypressEvent: () {
                             print('Loing click click click lickc ');
                             HelperFunctions().closeKeyboard(context);
-                            controller.onSubmit();
+                            controller.onSubmit(_formKey);
                           },
                         );
                       }

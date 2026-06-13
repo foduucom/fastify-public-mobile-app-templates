@@ -5,8 +5,16 @@ import '../controller/contact_us_controller.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 
-class ContactUsView extends GetView<ContactUsController> {
+class ContactUsView extends StatefulWidget {
   const ContactUsView({Key? key}) : super(key: key);
+
+  @override
+  State<ContactUsView> createState() => _ContactUsViewState();
+}
+
+class _ContactUsViewState extends State<ContactUsView> {
+  final _formKey = GlobalKey<FormState>();
+  ContactUsController get controller => Get.find<ContactUsController>();
 
   @override
   Widget build(BuildContext context) {
@@ -177,7 +185,7 @@ class ContactUsView extends GetView<ContactUsController> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Form(
-          key: controller.formKey,
+          key: _formKey,
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -199,7 +207,7 @@ class ContactUsView extends GetView<ContactUsController> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: controller.submitContactForm,
+                    onPressed: () => controller.submitContactForm(_formKey),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,

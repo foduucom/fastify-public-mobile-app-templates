@@ -459,6 +459,7 @@ class _ProductGridCard extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
+            ProductHelper.buildRatingWidget(product, textTheme, colorScheme),
             const SizedBox(height: 4),
             // Price
             if (productType == 'variable')

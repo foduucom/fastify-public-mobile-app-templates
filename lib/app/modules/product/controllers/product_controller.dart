@@ -5,11 +5,15 @@ import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 
 class ProductController extends GetxController
     with BaseController, GetTickerProviderStateMixin {
   var isLoading = false.obs;
   var productDetials = {}.obs;
+  var reviewsData = {}.obs;
+  var isLoadingReviews = false.obs;
+  var isSubmittingReview = false.obs;
   var box = GetStorage();
   var pageController = PageController();
   int _currentPage = 0;
@@ -26,7 +30,6 @@ class ProductController extends GetxController
   var selectedVariant = {}.obs;
   var productVariantOption = List<dynamic>.empty();
 
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final count = 1.obs;
   late AnimationController controller;
   late Animation<double> scaleAnimation;
@@ -50,6 +53,7 @@ class ProductController extends GetxController
     }
 
     await getProductDetials(id: productId);
+    await getProductReviews(id: productId);
 
     getVariantDetails();
     controller = AnimationController(
@@ -80,6 +84,35 @@ class ProductController extends GetxController
     isLoading.value = false;
 
     productDetials.value = response;
+  }
+
+  Future<void> getProductReviews({required String id}) async {
+    isLoadingReviews.value = true;
+    var response = await BasicProvider("review/product/$id")
+        .getRequest()
+        .catchError(handleError);
+    isLoadingReviews.value = false;
+    if (response == null) return;
+
+    printInfo(info: 'reviews response ----->>>>>>> ${response.toString()}');
+    reviewsData.value = response;
+  }
+
+  Future<void> postReview({required String comment, required int rating}) async {
+    isSubmittingReview.value = true;
+    var body = {
+      "product_id": productId,
+      "comment": comment,
+      "rating": rating,
+    };
+    var response = await BasicProvider("review/create")
+        .postRequest(body)
+        .catchError(handleError);
+    isSubmittingReview.value = false;
+    if (response == null) return;
+
+    HelperFunctions().showSnackBarSuccess("Review added successfully.");
+    await getProductReviews(id: productId);
   }
 
   void getVariantDetails() {
