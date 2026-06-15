@@ -27,8 +27,6 @@ class WishListService extends GetxService with BaseController {
         return;
       }
 
-      print("In WishlistService fetchWishList response: $response");
-      printInfo(info: response.toString());
       parseWishListResponse(response);
     } catch (e, stackTrack) {
       debugPrint('WishlistService.fetchWishList error: $e');
@@ -36,8 +34,7 @@ class WishListService extends GetxService with BaseController {
   }
 
   // ── Add  ──────────────────────────
-  // In WishListService class
-  Future<Map<String, dynamic>?> addWishlist({
+  Future<dynamic> addWishlist({
     required String productId,
     required String variantSlug,
     String? variantId,
@@ -47,68 +44,45 @@ class WishListService extends GetxService with BaseController {
       'variant_slug': variantSlug,
       if (variantId != null) 'variant_id': variantId,
     };
-    print("In WishlistService addWishlist form: $form");
-
+    print("add wishlist form === $form");
     var response = await BasicProvider("wishlist/add")
         .postRequest(form)
         .catchError(handleError);
-
-    // Handle both Map and String responses
-    if (response != null) {
-      if (response is Map<String, dynamic>) {
-        parseWishListResponse(response);
-        return response;
-      } else if (response is String) {
-        // If response is just a success message, fetch the updated wishlist
-        printInfo(info: 'Wishlist add response: $response');
-        await fetchWishList(); // Fetch updated wishlist
-        return {'message': response};
-      }
+    if (response != null && response is! String) {
+      parseWishListResponse(response);
     }
-    return null;
+    return response;
   }
 
-// Similarly update removeFromWishlist
-  Future<Map<String, dynamic>?> removeFromWishlist({
+  // ── Remove item ──────────────────────────────────────────
+  Future<dynamic> removeFromWishlist({
     required String productId,
-    //required String variantSlug,
+    required String variantSlug,
     String? variantId,
   }) async {
     var form = {
       'product_id': productId,
-      // 'variant_slug': variantSlug,
+      'variant_slug': variantSlug,
       if (variantId != null) 'variant_id': variantId,
     };
-
-    print("In WishlistService removeFromWishlist form: $form");
-
+    print("remove wishlist form === $form");
     var response = await BasicProvider("wishlist/remove")
         .postRequest(form)
         .catchError(handleError);
-
-    // Handle both Map and String responses
-    if (response != null) {
-      if (response is Map<String, dynamic>) {
-        parseWishListResponse(response);
-        return response;
-      } else if (response is String) {
-        // If response is just a success message, fetch the updated wishlist
-        printInfo(info: 'Wishlist remove response: $response');
-        await fetchWishList(); // Fetch updated wishlist
-        return {'message': response};
-      }
+    if (response != null && response is! String) {
+      parseWishListResponse(response);
     }
-    return null;
+    return response;
   }
 
   bool isInWishlist(String productId) {
     return wishListItems.any((item) {
       final product = item['product_id'];
       if (product is Map) {
-        final id = (product['_id'] ?? product['id'])?.toString();
-        return id == productId.toString();
+        return (product['_id'] ?? product['id']).toString() ==
+            productId.toString();
       }
-      return false;
+      return product?.toString() == productId.toString();
     });
   }
 
@@ -116,35 +90,67 @@ class WishListService extends GetxService with BaseController {
     required String productId,
     required String variantSlug,
     String? variantId,
+    Map<String, dynamic>? productData,
   }) async {
+    final bool currentlyInWishlist = isInWishlist(productId);
+
+    // --- Optimistic Update: Update UI instantly ---
+    if (currentlyInWishlist) {
+      wishListItems.removeWhere((item) {
+        final id = item['product_id'];
+        if (id is Map) {
+          return (id['_id'] ?? id['id']).toString() == productId.toString();
+        }
+        return id?.toString() == productId.toString();
+      });
+    } else {
+      // Add a placeholder item to reflect in UI immediately
+      wishListItems.add({
+        'product_id': productData ?? productId,
+        'variant_slug': variantSlug,
+        if (variantId != null) 'variant_id': variantId,
+      });
+    }
+
     try {
-      if (isInWishlist(productId)) {
+      if (currentlyInWishlist) {
         await removeFromWishlist(
-          productId: productId,
-          //variantSlug: variantSlug,
-          variantId: variantId,
-        );
+            productId: productId,
+            variantSlug: variantSlug,
+            variantId: variantId);
       } else {
         await addWishlist(
-          productId: productId,
-          variantSlug: variantSlug,
-          variantId: variantId,
-        );
+            productId: productId,
+            variantSlug: variantSlug,
+            variantId: variantId);
       }
-      await fetchWishList();
     } catch (e) {
-      printError(info: 'Error toggling wishlist: $e');
+      // Revert if API fails by re-fetching the true state
+      debugPrint('Wishlist toggle failed, reverting... $e');
+      await fetchWishList();
     }
   }
 
   void parseWishListResponse(dynamic data) {
+    List<dynamic>? items;
     if (data is List) {
-      wishListItems.value = data
-          .where((e) => e is Map && e['product_id'] != null)
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
-    } else {
-      wishListItems.clear();
+      items = data;
+    } else if (data is Map) {
+      // API might return { "status": "success", "data": [...] }
+      // Or { "status": "success", "data": "Product added..." }
+      final d = data['data'];
+      if (d is List) {
+        items = d;
+      } else {
+        // If data is a String (success message), don't clear the list
+        // as we've already updated it optimistically.
+        return;
+      }
+    }
+
+    if (items != null) {
+      wishListItems.value =
+          items.map((e) => Map<String, dynamic>.from(e as Map)).toList();
     }
   }
 }

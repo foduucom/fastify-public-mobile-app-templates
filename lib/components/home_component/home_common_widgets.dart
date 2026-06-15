@@ -104,7 +104,7 @@ class StudioSectionHeader extends StatelessWidget {
     final s = subtitle?.trim() ?? '';
 
     // Only show if BOTH title and subtitle are non-empty
-    if (t.isEmpty || s.isEmpty) {
+    if (t.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -123,8 +123,8 @@ class StudioSectionHeader extends StatelessWidget {
               children: [
                 Text(t, style: textTheme.titleLarge),
                 Text(s,
-                    style: textTheme.titleSmall!.copyWith(
-                        color: colorScheme.onSurfaceVariant)),
+                    style: textTheme.titleSmall!
+                        .copyWith(color: colorScheme.onSurfaceVariant)),
               ],
             ),
           ),

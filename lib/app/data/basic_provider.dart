@@ -2,14 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' as get_x;
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 import '../../constants/app_exceptions.dart';
 import '../../constants/constants.dart';
 import '../../constants/helper_functions.dart';
 import 'package:get_storage/get_storage.dart';
-// import 'cookie_client_manager.dart';
 
 class BasicProvider {
   final String custom_url;
@@ -18,38 +18,12 @@ class BasicProvider {
   var box = GetStorage();
 
   String fetchUrl() {
-    //print('fetchUrl $apiURL + $custom_url');
     return apiURL + custom_url;
   }
 
-  // Future<void> _refreshToken() async {
-  //   try {
-  //     final client = CookieClientManager.getClient();
-  //     final response = await client.post(
-  //       Uri.parse(apiURL + 'auth/customer/refresh'),
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'refresh_token':   ?? '',
-  //       },
-  //       body: jsonEncode({}),
-  //     );
-  //     if (response.statusCode == 200) {
-  //       final data = json.decode(response.body);
-  //       } else {
-  //      }
-  //   } catch (e) {
-  //     print('Error refreshing token: $e');
-  //     await TokenManager.clearTokens();
-  //   }
-  // }
-
   Future<dynamic> getRequest({final queryParams}) async {
     try {
-      // final client = CookieClientManager.getClient();
-
-      // Build URL with query parameters
       var uri = Uri.parse(fetchUrl());
-      //print("Uri Get Request $uri");
       if (queryParams != null) {
         uri = uri.replace(queryParameters: queryParams);
       }
@@ -57,232 +31,211 @@ class BasicProvider {
       final response = await http
           .get(uri, headers: headerType())
           .timeout(const Duration(seconds: 60));
-      // CRITICAL: Print the RAW response body
-      // print('RAW RESPONSE BODY: ${response.body}');
-      // print('RESPONSE STATUS: ${response.statusCode}');
 
       return _processResponse(response, fetchUrl());
     } on SocketException {
       HelperFunctions().showSnackBarError(
           "Please check if your internet connection is stable!");
+      throw "No internet connection!";
     } on TimeoutException {
       HelperFunctions().showSnackBarError(
           "Please check if your internet connection is stable!");
+      throw "Timeout : API is not responding!";
     } on UnAuthorizedException {
-      // await _refreshToken();
-      // return await getRequest(queryParams: queryParams);
+      rethrow;
     } catch (e) {
       print(e.toString());
+      rethrow;
     }
   }
 
   Future<dynamic> postRequest(form) async {
+    form ??= {};
     try {
-      if (form is FormData) {
+      http.Response response;
+      if (form is get_x.FormData) {
+        print("Detected FormData, sending MultipartRequest to: ${fetchUrl()}");
         var request = http.MultipartRequest('POST', Uri.parse(fetchUrl()));
-        request.headers.addAll(headerType(isMultipart: true));
+
+        // Add headers
+        Map<String, String> headers = headerType();
+        headers
+            .removeWhere((key, value) => key.toLowerCase() == 'content-type');
+        request.headers.addAll(headers);
+        print("MultipartRequest final headers: ${request.headers}");
 
         // Add fields
-        form.fields.forEach((field) {
+        for (var field in form.fields) {
           request.fields[field.key] = field.value;
-        });
+        }
 
         // Add files
         for (var file in form.files) {
-          request.files.add(http.MultipartFile(
-            file.key,
-            file.value.stream!,
-            file.value.length ?? 0,
-            filename: file.value.filename,
-          ));
+          get_x.MultipartFile getFile = file.value;
+          if (getFile.stream != null) {
+            request.files.add(http.MultipartFile(
+              file.key,
+              getFile.stream!,
+              getFile.length ?? 0,
+              filename: getFile.filename,
+              contentType: getFile.contentType != null
+                  ? MediaType.parse(getFile.contentType!)
+                  : null,
+            ));
+          } else {
+            print(
+                "Warning: MultipartFile stream is null for field: ${file.key}");
+          }
         }
 
-        final streamedResponse =
+        var streamedResponse =
             await request.send().timeout(const Duration(seconds: 120));
-        final response = await http.Response.fromStream(streamedResponse);
-
-        return _processResponse(response, fetchUrl());
+        response = await http.Response.fromStream(streamedResponse);
+      } else {
+        response = await http
+            .post(
+              Uri.parse(fetchUrl()),
+              headers: headerType(),
+              body: jsonEncode(form),
+            )
+            .timeout(const Duration(seconds: 120));
       }
 
-      final response = await http
-          .post(
-            Uri.parse(fetchUrl()),
-            headers: headerType(),
-            body: jsonEncode(form),
-          )
-          .timeout(const Duration(seconds: 120));
-
-      //print('POST API RESONSE ${response.body}');
+      // print('POST API RESPONSE ${response.body}');
 
       return _processResponse(response, fetchUrl());
     } on SocketException {
       HelperFunctions().showSnackBarError(
           "Please check if your internet connection is stable!");
-      throw Future.error("No internet connection!");
+      throw "No internet connection!";
     } on TimeoutException {
       HelperFunctions().showSnackBarError(
           "Please check if your internet connection is stable!");
-      throw Future.error("Timeout : API is not responding!");
+      throw "Timeout : API is not responding!";
     } on UnAuthorizedException {
-      // await _refreshToken();
-      // return await postRequest(form);
+      throw "Unauthorized!";
+    } catch (e) {
+      print("POST request failed with error: $e");
+      rethrow;
     }
   }
 
   Future<dynamic> patchRequest(form) async {
+    form ??= {};
     try {
-      // final client = CookieClientManager.getClient();
-
       final response = await http
           .patch(
             Uri.parse(fetchUrl()),
             headers: headerType(),
             body: jsonEncode(form),
           )
-          .timeout(Duration(seconds: 120));
+          .timeout(const Duration(seconds: 120));
 
       return _processResponse(response, fetchUrl());
     } on SocketException {
       HelperFunctions().showSnackBarError(
           "Please check if your internet connection is stable!");
-      throw Future.error("No internet connection!");
+      throw "No internet connection!";
     } on TimeoutException {
       HelperFunctions().showSnackBarError(
           "Please check if your internet connection is stable!");
-      throw Future.error("Timeout : API is not responding!");
+      throw "Timeout : API is not responding!";
     } on UnAuthorizedException {
-      // await _refreshToken();
-      // return await patchRequest(form);
+      rethrow;
+    } catch (e) {
+      rethrow;
     }
   }
 
   Future<dynamic> deleteRequest() async {
     try {
-      // final client = CookieClientManager.getClient();
-
       final response = await http
           .delete(
             Uri.parse(fetchUrl()),
             headers: headerType(),
-            body: '{}',
           )
-          .timeout(Duration(seconds: 60));
+          .timeout(const Duration(seconds: 60));
 
       return _processResponse(response, fetchUrl());
     } on SocketException {
       HelperFunctions().showSnackBarError(
           "Please check if your internet connection is stable!");
-      throw Future.error("No internet connection!");
+      throw "No internet connection!";
     } on TimeoutException {
       HelperFunctions().showSnackBarError(
           "Please check if your internet connection is stable!");
-      throw Future.error("Timeout : API is not responding!");
+      throw "Timeout : API is not responding!";
     } on UnAuthorizedException {
-      // await _refreshToken();
-      // return await deleteRequest();
+      rethrow;
+    } catch (e) {
+      rethrow;
     }
   }
 
-  Map<String, String> headerType({bool isMultipart = false}) {
+  Map<String, String> headerType() {
     try {
       Map<String, String> userHeader;
 
       userHeader = {
         "accept": "application/json",
         'access-key': ACCESS_KEY,
+        "Content-Type": "application/json",
       };
-
-      if (!isMultipart) {
-        userHeader["Content-Type"] = "application/json";
-      }
 
       if (AuthDetails.getToken() != null) {
         userHeader['Authorization'] = 'Bearer ${AuthDetails.getToken()}';
       }
 
-      print("userHeader: $userHeader");
-
+      print("headers: $userHeader");
       return userHeader;
     } catch (e) {
-      print('post request error $e');
+      print('header error $e');
       return {'': ''};
     }
   }
 
-  dynamic _processResponse(http.Response response, url) async {
+  dynamic _processResponse(http.Response response, url) {
     print('url === $url ${response.statusCode}');
+    // print('response === ${response.body}');
 
-    if (response.statusCode == null) {
-      HelperFunctions()
-          .showSnackBarError("No response from server\n $custom_url");
-      return;
+    var responseBody;
+    try {
+      responseBody = json.decode(response.body);
+    } catch (e) {
+      print("JSON decode error: $e");
     }
 
-    var decodedBody = json.decode(response.body);
-    print('Decoded body: $decodedBody');
-
-    var message = decodedBody['data'] ?? decodedBody['message'];
-
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      print('━━━━━━━━━━━━━━━ API ERROR ━━━━━━━━━━━━━━━');
-      print('URL: $url');
-      print('STATUS: ${response.statusCode}');
-      print('MESSAGE: $message');
-      print('BODY: ${response.body}');
-      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    }
+    var message = responseBody?['data'] ?? responseBody?['message'];
 
     switch (response.statusCode) {
       case 200:
-        var decoded = json.decode(response.body);
-        var responseJson = decoded["data"];
-        print("━━━━━━━━━━━━━━━ API SUCCESS ━━━━━━━━━━━━━━━");
-        print("URL: $url");
-        print("RESPONSE JSON: $responseJson");
-        if (responseJson == null) {
-          print("WARNING: Data is NULL but status is 200 SUCCESS");
-        }
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        return responseJson;
       case 201:
-        var responseJson = json.decode(response.body)["data"];
-        return responseJson;
+        // If data is missing but message exists, return message or success
+        return responseBody["data"] ?? responseBody;
       case 400:
-        throw BadRequestException(
-            message?.toString() ?? response.request!.url.toString(),
-            response.request!.url.toString());
+        throw BadRequestException(message ?? response.request!.url.toString());
       case 401:
-        throw UnAuthorizedException(
-            message?.toString() ?? response.request!.url.toString(),
-            response.request!.url.toString());
       case 403:
         throw UnAuthorizedException(
-            message?.toString() ?? response.request!.url.toString(),
-            response.request!.url.toString());
+            message ?? response.request!.url.toString());
       case 404:
-        throw BadRequestException(
-            message?.toString() ??
-                "Requested URL not exist! ${response.request!.url.toString()}",
+        throw BadRequestException(message ?? "Requested URL does not exist!",
             response.request!.url.toString());
       case 409:
         return {
           "access_token": null,
-          "message": json.decode(response.body)["data"],
+          "message": responseBody["data"],
           "status": response.statusCode
         };
       case 422:
-        throw BadRequestException(
-            message?.toString() ?? response.request!.url.toString(),
-            response.request!.url.toString());
+        throw BadRequestException(message ?? response.request!.url.toString());
       case 500:
-        throw FetchDataException(message?.toString(),
-            response.request!.url.toString(), response.statusCode);
+        throw FetchDataException(
+            message, response.request!.url.toString(), response.statusCode);
       default:
-        if (response.statusCode != null) {
-          throw ApiNotRespondingException(
-              'Error occured with code : ${response.statusCode ?? "Not able to fetch data"}',
-              response.request!.url.toString());
-        }
+        throw ApiNotRespondingException(
+            'Error occurred with code : ${response.statusCode}',
+            response.request!.url.toString());
     }
   }
 }

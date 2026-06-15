@@ -57,28 +57,19 @@ class HelperFunctions {
     ));
   }
 
-  // ── Overlay loader (OverlayEntry-based, nav-stack independent) ──────────
-  static OverlayEntry? _overlayEntry;
-  static bool _isLoadingShowing = false;
-
-  void showOverlayLoader({bool barrierDismissible = false}) {
-    if (_isLoadingShowing) return;
-
-    final overlay = Get.key.currentState?.overlay;
-    if (overlay == null) return;
-
-    _overlayEntry = OverlayEntry(
-      builder: (_) => Material(
-        color: Colors.black.withValues(alpha: 0.3),
-        child: Center(
-          child: Container(
-            height: 130,
-            width: 100,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.9),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Center(
+  void showOverlayLoader({barrierDismissible = false}) {
+    Get.dialog(
+      Center(
+        child: Container(
+          height: 130,
+          width: 100,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.8),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Center(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -86,10 +77,10 @@ class HelperFunctions {
                   SizedBox(
                     height: 30,
                     width: 30,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                    child: HelperFunctions().loadingIndicator(),
                   ),
-                  SizedBox(height: 10),
-                  Text(
+                  const SizedBox(height: 10),
+                  const Text(
                     "Loading...",
                     style: TextStyle(fontSize: 14, color: Colors.black),
                   ),
@@ -99,17 +90,13 @@ class HelperFunctions {
           ),
         ),
       ),
+      barrierDismissible: barrierDismissible,
     );
-
-    overlay.insert(_overlayEntry!);
-    _isLoadingShowing = true;
   }
 
   void hideOverlayLoader() {
-    if (_isLoadingShowing) {
-      _overlayEntry?.remove();
-      _overlayEntry = null;
-      _isLoadingShowing = false;
+    if (Get.isDialogOpen == true) {
+      Get.back();
     }
   }
 
@@ -256,7 +243,7 @@ class HelperFunctions {
           height: 170,
           width: 250,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 1),
+            color: Colors.white.withOpacity(1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Scaffold(
@@ -365,6 +352,17 @@ class HelperFunctions {
 
     // Case 1: featuredImage is a Map
     if (featuredImage is Map) {
+      // First try to use download_url if present (e.g. for customer avatars)
+      final downloadUrl =
+          featuredImage['download_url'] ?? featuredImage['downloadUrl'];
+      if (downloadUrl != null && downloadUrl.toString().isNotEmpty) {
+        final fixedUrl = _fixImageUrl(downloadUrl.toString());
+        if (isLog == true) {
+          print('Resolved image from download_url $moduleName => $fixedUrl');
+        }
+        return fixedUrl;
+      }
+
       final path = featuredImage['filePath'] ??
           featuredImage['filepath'] ??
           featuredImage['filename'];
@@ -374,13 +372,23 @@ class HelperFunctions {
 
         if (isLog == true) {
           print('swapnil path $moduleName => $imageUrl');
+          print("Path image from module $moduleName => ${path}");
         }
-
         return imageUrl;
       }
     }
 
     if (featuredImage is String && featuredImage.isNotEmpty) {
+      if (featuredImage.startsWith('http://') ||
+          featuredImage.startsWith('https://')) {
+        return _fixImageUrl(featuredImage);
+      }
+
+      // A bare MongoDB ObjectId (24 hex chars, no path separators) is not a
+      // valid image path — guard against the cart/manage response inconsistency.
+      final isRawId = RegExp(r'^[a-f0-9]{24}$').hasMatch(featuredImage);
+      if (isRawId) return HelperFunctions.getNoImage();
+
       final imageUrl = '${url}images/$featuredImage';
 
       if (isLog == true) {
@@ -392,5 +400,17 @@ class HelperFunctions {
 
     // Fallback
     return HelperFunctions.getNoImage();
+  }
+
+  String _fixImageUrl(String imageUrl) {
+    if (imageUrl.isEmpty) return imageUrl;
+    final uri = Uri.tryParse(imageUrl);
+    if (uri == null) return imageUrl;
+
+    // If it's a vbought.com domain, replace host with websiteDomain to match constants.dart setup
+    if (uri.host.endsWith('.vbought.com') && uri.host != websiteDomain) {
+      return imageUrl.replaceFirst(uri.host, websiteDomain);
+    }
+    return imageUrl;
   }
 }

@@ -50,7 +50,7 @@ class orderDetial extends StatelessWidget {
             ? Row(
                 children: [
                   const Expanded(
-                      child: Text('Bag savings',
+                      child: Text('You Save',
                           style: TextStyle(
                             fontFamily: 'lato',
                           ))),
@@ -59,45 +59,46 @@ class orderDetial extends StatelessWidget {
                       : Text("-\u{20B9}$savedPrice",
                           style: const TextStyle(
                             fontFamily: 'lato',
+                            color: Colors.green,
                           ))
                 ],
               )
             : Container(),
         const SizedBox(height: 06),
-        !AuthDetails.isUserLogin()
-            ? Container()
-            : Row(
-                children: [
-                  Expanded(
-                      child: Text('Coupon Discount $couponPrefix',
-                          style: const TextStyle(
-                            fontFamily: 'lato',
-                          ))),
-                  isLoading
-                      ? TextShimmer()
-                      : Text("$cuponValue",
-                          style: TextStyle(
-                            fontFamily: 'lato',
-                          ))
-                ],
-              ),
-        const SizedBox(height: 06),
-        Row(
-          children: [
-            const Expanded(
-                child: Text('Delivery',
-                    style: TextStyle(
-                      fontFamily: 'lato',
-                    ))),
-            isLoading
-                ? TextShimmer()
-                : Text('$deliveryStatus',
-                    style: const TextStyle(
-                      fontFamily: 'lato',
-                    ))
-          ],
-        ),
-        const SizedBox(height: 5.0),
+        // !AuthDetails.isUserLogin()
+        //     ? Container()
+        //     : Row(
+        //         children: [
+        //           Expanded(
+        //               child: Text('Coupon Discount $couponPrefix',
+        //                   style: const TextStyle(
+        //                     fontFamily: 'lato',
+        //                   ))),
+        //           isLoading
+        //               ? TextShimmer()
+        //               : Text("$cuponValue",
+        //                   style: TextStyle(
+        //                     fontFamily: 'lato',
+        //                   ))
+        //         ],
+        //       ),
+        // const SizedBox(height: 06),
+        // Row(
+        //   children: [
+        //     const Expanded(
+        //         child: Text('Delivery',
+        //             style: TextStyle(
+        //               fontFamily: 'lato',
+        //             ))),
+        //     isLoading
+        //         ? TextShimmer()
+        //         : Text('$deliveryStatus',
+        //             style: const TextStyle(
+        //               fontFamily: 'lato',
+        //             ))
+        //   ],
+        // ),
+        // const SizedBox(height: 5.0),
         const Divider(
           thickness: 0.7,
         ),

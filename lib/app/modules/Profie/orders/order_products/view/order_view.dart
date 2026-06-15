@@ -185,8 +185,7 @@ class OrderProductsView extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                   color: theme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -241,16 +240,15 @@ class OrderProductsView extends StatelessWidget {
                     valueColor: const Color(0xFF3BC24F),
                   ),
                 if (tax > 0)
-                  _amountRow(context, 'Tax'.tr,
-                      '$currency ${tax.toStringAsFixed(2)}'),
+                  _amountRow(
+                      context, 'Tax'.tr, '$currency ${tax.toStringAsFixed(2)}'),
                 if (shipping > 0)
                   _amountRow(context, 'Shipping'.tr,
                       '$currency ${shipping.toStringAsFixed(2)}'),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Divider(
-                      height: 1,
-                      color: theme.outline.withValues(alpha: 0.25)),
+                      height: 1, color: theme.outline.withValues(alpha: 0.25)),
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -448,8 +446,7 @@ class _ProductTile extends StatelessWidget {
         if (gallery is List && frontImageId.isNotEmpty) {
           final match = gallery.firstWhere(
             (g) =>
-                g is Map &&
-                (g['_id'] ?? g['id'])?.toString() == frontImageId,
+                g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
             orElse: () => null,
           );
           if (match != null) return _constructImageUrl(match);
@@ -494,16 +491,13 @@ class _ProductTile extends StatelessWidget {
 
     // SKU: prefer variant sku, fall back to product_id sku
     final productObj = product['product_id'];
-    final variantSku = (product['variant'] is Map
-            ? product['variant']['sku']
-            : null)
-        ?.toString()
-        .trim() ??
-        '';
-    final productSku = (productObj is Map ? productObj['sku'] : null)
-            ?.toString()
-            .trim() ??
-        '';
+    final variantSku =
+        (product['variant'] is Map ? product['variant']['sku'] : null)
+                ?.toString()
+                .trim() ??
+            '';
+    final productSku =
+        (productObj is Map ? productObj['sku'] : null)?.toString().trim() ?? '';
     final sku = variantSku.isNotEmpty ? variantSku : productSku;
 
     // Product type: simple / variable / digital
@@ -629,9 +623,11 @@ class _ProductTile extends StatelessWidget {
   Widget _typeBadge(String type, ColorScheme theme) {
     // Each type maps to a universally recognisable icon + vivid colour
     // so the user understands at a glance — no jargon needed.
-    const Color digitalColor  = Color(0xFF6366F1); // indigo  → "cloud/digital"
-    const Color variableColor = Color(0xFF0891B2); // cyan    → "customisable options"
-    const Color simpleColor   = Color(0xFF059669); // emerald → "ready / straightforward"
+    const Color digitalColor = Color(0xFF6366F1); // indigo  → "cloud/digital"
+    const Color variableColor =
+        Color(0xFF0891B2); // cyan    → "customisable options"
+    const Color simpleColor =
+        Color(0xFF059669); // emerald → "ready / straightforward"
 
     final Color color;
     final IconData icon;
@@ -640,22 +636,22 @@ class _ProductTile extends StatelessWidget {
     switch (type) {
       case 'digital':
         color = digitalColor;
-        icon  = Icons.cloud_download_outlined;
+        icon = Icons.cloud_download_outlined;
         label = 'Digital';
         break;
       case 'variable':
         color = variableColor;
-        icon  = Icons.tune_rounded;
+        icon = Icons.tune_rounded;
         label = 'Variants';
         break;
       case 'simple':
         color = simpleColor;
-        icon  = Icons.sell_outlined;
+        icon = Icons.sell_outlined;
         label = 'In Stock';
         break;
       default:
         color = theme.onSurface.withValues(alpha: 0.35);
-        icon  = Icons.inventory_2_outlined;
+        icon = Icons.inventory_2_outlined;
         label = type;
     }
 

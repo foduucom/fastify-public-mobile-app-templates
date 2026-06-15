@@ -49,12 +49,14 @@ class FoduuFormTextField extends StatelessWidget {
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
-              children: showAsterisk ? [
-                const TextSpan(
-                  text: ' *',
-                  style: TextStyle(color: Colors.red, fontSize: 16),
-                ),
-              ] : [],
+              children: showAsterisk
+                  ? [
+                      const TextSpan(
+                        text: ' *',
+                        style: TextStyle(color: Colors.red, fontSize: 16),
+                      ),
+                    ]
+                  : [],
             ),
           ),
         ),

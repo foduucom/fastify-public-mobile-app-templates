@@ -46,11 +46,15 @@ class _TopCategoryHomeState extends State<CategoryHome>
 
     return Column(
       children: [
-        StudioSectionHeader(
-          title: heading,
-          subtitle: subheading,
-          onSeeAll: () => Get.toNamed(Routes.CATEGORY_SEARCH),
-        ),
+        if (heading.isNotEmpty)
+          Padding(
+            padding: pageSurroundingPadding,
+            child: StudioSectionHeader(
+              title: heading,
+              subtitle: subheading,
+              onSeeAll: () => Get.toNamed(Routes.CATEGORY_SEARCH),
+            ),
+          ),
         Padding(
           padding: pageSurroundingPadding,
           child: viewMode == 'grid'

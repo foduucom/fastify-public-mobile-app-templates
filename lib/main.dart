@@ -17,18 +17,15 @@ import 'package:foduu_ecommerce/constants/firebase_notification.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  await FirebaseHelpers.firebaseInitialise();
-  FirebaseHelpers.getFCMToken();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   await GetStorage.init();
 
-  // Register CartService as a permanent singleton
+  Get.put(LocalStorageNotificationService());
+  Get.put(NotificationSyncService());
   Get.put(CartService());
+  Get.put(PaymentService()); // Initialize PaymentService
   Get.put(WishListService());
 
   if (kIsWeb) {
@@ -60,24 +57,77 @@ Future<void> main() async {
     Get.put(StudioSocketRouting(initialSlug: slug));
   }
 
+  // Initialize Firebase and push notifications
+  if (!kIsWeb) {
+    await Firebase.initializeApp();
+    await FirebaseHelpers.firebaseInitialise();
+    await FirebaseHelpers.getFCMToken();
+  }
+
+  // Initialize dynamic theme from storage
+  await DynamicThemeManager().init();
+
+  // Register ThemeController globally
+  Get.put(ThemeController());
+
   // Register all dynamic layout widgets
   registerDefaultWidgets();
 
-  runApp(MyApp());
+  // Initialize App and get initial route
+  String initialRoute = await _initApp();
+
+  runApp(MyApp(initialRoute: initialRoute));
+
+  // Remove splash screen after app is ready
+  FlutterNativeSplash.remove();
+}
+
+Future<String> _initApp() async {
+  final box = GetStorage();
+  try {
+    var response = await BasicProvider('public-settings').getRequest();
+
+    print('response $response');
+
+    if (response != null) {
+      var authPreference = response['storeSettings']['auth_preference'];
+      box.write('auth_preference', authPreference);
+
+      if (response['storeSettings'] != null) {
+        var storeName = response['storeSettings']['name'] ??
+            response['storeSettings']['store_name'];
+        if (storeName != null) {
+          box.write('store_name', storeName);
+        }
+      }
+
+      if (response['storeSettings']['app_theme_color'] != null) {
+        DynamicThemeManager()
+            .updateFromApi(response['storeSettings']['app_theme_color']);
+        Get.find<ThemeController>().refreshTheme();
+      }
+
+      bool isLogin = box.read('isLogin') ?? false;
+      return isLogin ? Routes.BOTTOMBAR : Routes.LOGIN;
+    }
+  } catch (e) {
+    print('Error during initApp: $e');
+  }
+  return Routes.LOGIN;
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String initialRoute;
+  const MyApp({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ThemeController>(
-      init: ThemeController(),
       builder: (themeController) {
         return GetMaterialApp(
           debugShowCheckedModeBanner: false,
           title: "My App",
-          initialRoute: AppPages.INITIAL,
+          initialRoute: initialRoute,
           getPages: AppPages.routes,
           theme: themeController.lightTheme,
           darkTheme: themeController.darkTheme,
