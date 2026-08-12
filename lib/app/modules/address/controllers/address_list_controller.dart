@@ -3,6 +3,7 @@ import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/core/services/cartServcie.dart';
+import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import 'package:get/get.dart';
 
 class AddressListController extends GetxController with BaseController {
@@ -26,7 +27,9 @@ class AddressListController extends GetxController with BaseController {
 
   RxList<Map<String, dynamic>> get cartItems => _cartService.cartItems;
   RxDouble get subTotal => _cartService.subTotal;
-  RxDouble get total => _cartService.total;
+  RxDouble get total => Get.isRegistered<CartController>()
+      ? Get.find<CartController>().totalAmount
+      : _cartService.total;
 
   // ✅ Helper to always get a unique ID for an address
   String _getAddressId(dynamic addr, int index) {

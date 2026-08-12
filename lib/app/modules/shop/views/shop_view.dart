@@ -731,7 +731,7 @@ class ShopView extends GetView<ShopController> {
               crossAxisCount: 2,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              childAspectRatio: 0.62,
+              childAspectRatio: 0.58,
             ),
             itemCount: controller.products.length,
             itemBuilder: (context, index) {
@@ -769,7 +769,7 @@ class ShopView extends GetView<ShopController> {
           crossAxisCount: 2,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio: 0.62,
+          childAspectRatio: 0.58,
         ),
         itemCount: 6,
         itemBuilder: (_, __) => Container(
@@ -787,7 +787,8 @@ class _ProductGridCard extends StatelessWidget {
 
   const _ProductGridCard({required this.product, required this.onTap});
 
-  Widget _buildWishlistButton(BuildContext context, Map<String, dynamic> product) {
+  Widget _buildWishlistButton(
+      BuildContext context, Map<String, dynamic> product) {
     final colorScheme = Theme.of(context).colorScheme;
     final productId = ProductHelper.getProductId(product);
 
@@ -835,7 +836,8 @@ class _ProductGridCard extends StatelessWidget {
     );
   }
 
-  Widget _buildVariablePrice(BuildContext context, Map<String, dynamic> priceInfo) {
+  Widget _buildVariablePrice(
+      BuildContext context, Map<String, dynamic> priceInfo) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -848,7 +850,8 @@ class _ProductGridCard extends StatelessWidget {
     );
   }
 
-  Widget _buildSimplePrice(BuildContext context, Map<String, dynamic> priceInfo) {
+  Widget _buildSimplePrice(
+      BuildContext context, Map<String, dynamic> priceInfo) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 

@@ -199,19 +199,26 @@ class BasicProvider {
     // print('response === ${response.body}');
 
     var responseBody;
-    try {
-      responseBody = json.decode(response.body);
-    } catch (e) {
-      print("JSON decode error: $e");
+    if (response.body.isNotEmpty) {
+      try {
+        responseBody = json.decode(response.body);
+      } catch (e) {
+        print("JSON decode error: $e");
+      }
     }
 
-    var message = responseBody?['data'] ?? responseBody?['message'];
+    var message;
+    if (responseBody is Map) {
+      message = responseBody['data'] ?? responseBody['message'];
+    }
 
     switch (response.statusCode) {
       case 200:
       case 201:
-        // If data is missing but message exists, return message or success
-        return responseBody["data"] ?? responseBody;
+        if (responseBody is Map) {
+          return responseBody["data"] ?? responseBody;
+        }
+        return responseBody;
       case 400:
         throw BadRequestException(message ?? response.request!.url.toString());
       case 401:
@@ -224,7 +231,7 @@ class BasicProvider {
       case 409:
         return {
           "access_token": null,
-          "message": responseBody["data"],
+          "message": responseBody is Map ? responseBody["data"] : responseBody,
           "status": response.statusCode
         };
       case 422:

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
@@ -42,13 +44,15 @@ class CustomDrawer extends GetView<HomepageController> {
                   if (controller.drawernavigationItems.isEmpty &&
                       isLoggedIn) ...[
                     DrawerTile(
-                      icon: const Icon(Icons.home_outlined),
+                      icon: Icon(Icons.home_outlined,
+                          color: Get.theme.colorScheme.onSurface),
                       title: 'Home',
                       subtitle: 'Go to home screen',
                       onTap: () => _navigateToBottomBarPage(0),
                     ),
                     DrawerTile(
-                      icon: const Icon(Icons.shopping_bag_outlined),
+                      icon: Icon(Icons.shopping_bag_outlined,
+                          color: Get.theme.colorScheme.onSurface),
                       title: 'All Products',
                       subtitle: 'Browse all items',
                       onTap: () {
@@ -57,13 +61,15 @@ class CustomDrawer extends GetView<HomepageController> {
                       },
                     ),
                     DrawerTile(
-                      icon: const Icon(Icons.category_outlined),
+                      icon: Icon(Icons.category_outlined,
+                          color: Get.theme.colorScheme.onSurface),
                       title: 'Shop By categories',
                       subtitle: 'Explore sections',
                       onTap: () => _navigateToBottomBarPage(1),
                     ),
                     DrawerTile(
-                      icon: const Icon(Icons.filter_alt_outlined),
+                      icon: Icon(Icons.filter_alt_outlined,
+                          color: Get.theme.colorScheme.onSurface),
                       title: 'Filter',
                       subtitle: 'Refine your search',
                       onTap: () {
@@ -72,7 +78,8 @@ class CustomDrawer extends GetView<HomepageController> {
                       },
                     ),
                     DrawerTile(
-                      icon: const Icon(Icons.shopping_basket_outlined),
+                      icon: Icon(Icons.shopping_basket_outlined,
+                          color: Get.theme.colorScheme.onSurface),
                       title: 'Orders',
                       subtitle: 'Track your purchases',
                       onTap: () {
@@ -81,7 +88,8 @@ class CustomDrawer extends GetView<HomepageController> {
                       },
                     ),
                     DrawerTile(
-                      icon: const Icon(Icons.help_outline),
+                      icon: Icon(Icons.help_outline,
+                          color: Get.theme.colorScheme.onSurface),
                       title: 'Help and support',
                       subtitle: 'Get assistance',
                       onTap: () {
@@ -141,11 +149,12 @@ class CustomDrawer extends GetView<HomepageController> {
           Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
+              border: Border.all(color: Get.theme.primaryColor, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Get.theme.colorScheme.surface.withOpacity(0.1),
                   blurRadius: 8,
+                  
                   offset: const Offset(0, 3),
                 ),
               ],
@@ -165,7 +174,7 @@ class CustomDrawer extends GetView<HomepageController> {
                       ),
                       errorWidget: (context, url, error) => CircleAvatar(
                         radius: 36,
-                        backgroundColor: Colors.white,
+                        backgroundColor: Get.theme.primaryColor,
                         child: Icon(
                           Icons.person,
                           size: 44,
@@ -175,7 +184,7 @@ class CustomDrawer extends GetView<HomepageController> {
                     )
                   : CircleAvatar(
                       radius: 36,
-                      backgroundColor: Colors.white,
+                      backgroundColor: Get.theme.primaryColor,
                       child: Icon(
                         Icons.person,
                         size: 44,
@@ -188,8 +197,8 @@ class CustomDrawer extends GetView<HomepageController> {
           // User Name
           Text(
             isLoggedIn ? (userData?['name'] ?? 'User') : 'Welcome Guest',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: Get.theme.colorScheme.onPrimary,
               fontSize: 18,
               fontWeight: FontWeight.bold,
               letterSpacing: 0.5,
@@ -200,7 +209,7 @@ class CustomDrawer extends GetView<HomepageController> {
           Text(
             isLoggedIn ? (userData?['email'] ?? '') : 'Login to your account',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.85),
+              color: Get.theme.colorScheme.onPrimary,
               fontSize: 14,
               fontWeight: FontWeight.w400,
             ),

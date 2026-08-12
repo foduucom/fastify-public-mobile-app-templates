@@ -211,30 +211,35 @@ class _WishListItemCard extends StatelessWidget {
             onTap: () => _navigateToProduct(productId),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: CachedNetworkImage(
-                imageUrl: imageUrl,
+              child: Container(
                 width: 100,
                 height: 110,
-                fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => Container(
+                color: colorScheme.surfaceVariant.withOpacity(0.4),
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
                   width: 100,
                   height: 110,
-                  color: colorScheme.surfaceVariant,
-                  child: Icon(Icons.image_not_supported_outlined,
-                      color: colorScheme.onSurfaceVariant),
-                ),
-                progressIndicatorBuilder: (_, __, progress) => Container(
-                  width: 100,
-                  height: 110,
-                  color: colorScheme.surfaceVariant,
-                  child: Center(
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        value: progress.progress,
-                        color: colorScheme.primary,
+                  fit: BoxFit.contain,
+                  errorWidget: (_, __, ___) => Container(
+                    width: 100,
+                    height: 110,
+                    color: colorScheme.surfaceVariant,
+                    child: Icon(Icons.image_not_supported_outlined,
+                        color: colorScheme.onSurfaceVariant),
+                  ),
+                  progressIndicatorBuilder: (_, __, progress) => Container(
+                    width: 100,
+                    height: 110,
+                    color: colorScheme.surfaceVariant,
+                    child: Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          value: progress.progress,
+                          color: colorScheme.primary,
+                        ),
                       ),
                     ),
                   ),

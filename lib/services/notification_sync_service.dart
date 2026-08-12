@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../app/data/basic_provider.dart';
 import '../models/local_notification.dart';
 import 'local_storage_notification_service.dart';
+import '../app/modules/auth/auth_details.dart';
 
 class NotificationSyncService extends GetxService {
   static NotificationSyncService get to => Get.find();
@@ -105,21 +106,28 @@ class NotificationSyncService extends GetxService {
   Future<bool> _pushNotificationToBackend(
       LocalNotification notification) async {
     try {
-      final payload = {
-        'id': notification.id,
+      final payload = <String, dynamic>{
         'title': notification.title,
-        'body': notification.body,
+        'message': notification.body,
         'type': notification.type,
-        'timestamp': notification.timestamp.toIso8601String(),
-        'is_read': notification.isRead ? 1 : 0,
+        'read': notification.isRead,
         'metadata': notification.metadata,
       };
+
+      final userData = AuthDetails.getUserDetails();
+      if (userData != null) {
+        final userId = (userData['data'] != null && userData['data'] is Map)
+            ? (userData['data']['id'] ?? userData['data']['_id'])
+            : (userData['id'] ?? userData['_id']);
+        if (userId != null) {
+          payload['user_id'] = userId.toString();
+        }
+      }
 
       debugPrint('Syncing notification ${notification.id} to backend...');
 
       // Call endpoint. It will append to apiURL.
-      final response =
-          await BasicProvider('notifications/receive').postRequest(payload);
+      final response = await BasicProvider('notification').postRequest(payload);
 
       if (response != null) {
         debugPrint(

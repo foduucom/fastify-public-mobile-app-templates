@@ -13,9 +13,9 @@ const appMode = "test";
 //     isWeb ? 'c4144f5a5223976f79ac555d0a95e35f6dd9e34a69e0f935' : 'Not Provided';
 
 // Instad Mywatch = basicecom
-var websiteDomain = "mywatch.vbought.com";
+// var websiteDomain = "mywatch.vbought.com";
 
-// var websiteDomain = "basicecom.vbought.com";
+var websiteDomain = "jewel-ecomm.vbought.com";
 
 var url = "https://${websiteDomain}/";
 // var socketUrl = "https://mywatch.vbought.com/";
@@ -23,9 +23,9 @@ var url = "https://${websiteDomain}/";
 // From The start we prefered this url
 var socketUrl = "https://studio.vbought.com/";
 
-var ACCESS_KEY = '72a5a13ab02a20737217279980c33374f41554ec60742815';
+//var ACCESS_KEY = '72a5a13ab02a20737217279980c33374f41554ec60742815';
 
-// var ACCESS_KEY = '2f361f0c1c743cace97d19bc1954ca81417929983bdd93de';
+var ACCESS_KEY = 'cd5c79b39997c9de07304c615aaf30a4cfacf4a1dc27b88b';
 // var websiteDomain = "Not Provided";
 // var url = "https://${websiteDomain}/";
 // var socketUrl = "https://studio.vbought.com/";

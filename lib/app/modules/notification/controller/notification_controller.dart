@@ -69,12 +69,12 @@ class NotificationsController extends GetxController with BaseController {
     return LocalNotification(
       id: id,
       title: map['title']?.toString() ?? '',
-      body: map['body']?.toString() ?? '',
+      body: map['body']?.toString() ?? map['message']?.toString() ?? '',
       type: map['type']?.toString() ?? metadata['type']?.toString() ?? 'general',
       timestamp: map['created_at'] != null
           ? DateTime.tryParse(map['created_at'].toString()) ?? DateTime.now()
           : (map['timestamp'] != null ? DateTime.tryParse(map['timestamp'].toString()) ?? DateTime.now() : DateTime.now()),
-      isRead: map['is_read'] == true || map['is_read'] == 1 || map['read_at'] != null,
+      isRead: map['is_read'] == true || map['is_read'] == 1 || map['read_at'] != null || map['read'] == true,
       isSynced: true, // Fetched from backend, so it is synced
       metadata: metadata,
     );

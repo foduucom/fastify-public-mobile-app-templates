@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../components/shimmer/cart_shimmer.dart';
 import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
@@ -9,6 +10,8 @@ import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dar
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/product_helper.dart';
+import 'package:foduu_ecommerce/components/oderdetail.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
@@ -126,7 +129,12 @@ class CartView extends GetView<CartController> {
                 },
               )),
 
-          const Divider(thickness: 8),
+          // ── Coupon Section ──
+          Obx(() => AuthDetails.isUserLogin()
+              ? _buildCouponSection(context, colorScheme, textTheme)
+              : const SizedBox.shrink()),
+
+          if (AuthDetails.isUserLogin()) const Divider(thickness: 8),
 
           // ── Order Summary ──
           _buildOrderSummary(context, colorScheme, textTheme),
@@ -153,59 +161,49 @@ class CartView extends GetView<CartController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Order Summary',
+            'Order Details:',
             style: textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 16),
-          Obx(() => _summaryRow(
-                'Subtotal',
-                '₹${controller.subTotal.value.toStringAsFixed(2)}',
-                textTheme,
-                colorScheme,
-              )),
-          const SizedBox(height: 8),
-          Obx(() => controller.savings > 0
-              ? _summaryRow(
-                  'You Save',
-                  '-₹${controller.savings.toStringAsFixed(2)}',
-                  textTheme,
-                  colorScheme,
-                  valueColor: Colors.green,
-                )
-              : const SizedBox.shrink()),
-          if (controller.savings > 0) const SizedBox(height: 8),
-          _summaryRow(
-            'Delivery',
-            'Calculated at Checkout',
-            textTheme,
-            colorScheme,
-            valueStyle: textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Divider(color: colorScheme.outline.withOpacity(0.3)),
-          const SizedBox(height: 12),
-          Obx(() => Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Total',
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    '₹${controller.total.value.toStringAsFixed(2)}',
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                ],
-              )),
+          Obx(() {
+            double originalBagTotal = controller.bagPriceAmount.value;
+            double itemSavings = controller.discountAmount.value;
+            double couponDiscountAmount =
+                double.tryParse(controller.couponDiscountAmount.value) ?? 0.0;
+            double taxableValue =
+                controller.subTotalAmount.value - couponDiscountAmount;
+            double totalTaxAmount = controller.tax.value;
+            double finalTotal = controller.totalAmount.value;
+
+            List<ItemTaxBreakdown> breakdown = controller.taxBreakdownList
+                .map((e) => ItemTaxBreakdown(
+                      name: e['name']?.toString() ?? 'Product',
+                      variantName: e['variant_name']?.toString(),
+                      taxPercent: double.tryParse(
+                              e['tax_percent']?.toString() ?? '0') ??
+                          0.0,
+                      taxAmount:
+                          double.tryParse(e['tax_amount']?.toString() ?? '0') ??
+                              0.0,
+                    ))
+                .toList();
+
+            return PriceBreakdownWidget(
+              originalBagTotal: originalBagTotal,
+              itemSavings: itemSavings,
+              couponCode: controller.viewCouponCode.value == 'Apply Coupon'
+                  ? ''
+                  : controller.viewCouponCode.value,
+              couponDiscountPrefix: controller.viewCouponPrefix.value,
+              couponDiscountAmount: couponDiscountAmount,
+              taxableValue: taxableValue,
+              totalTaxAmount: totalTaxAmount,
+              itemTaxBreakdown: breakdown,
+              finalTotal: finalTotal,
+            );
+          }),
         ],
       ),
     );
@@ -266,7 +264,7 @@ class CartView extends GetView<CartController> {
                     ),
                   ),
                   Obx(() => Text(
-                        '₹${controller.total.value.toStringAsFixed(2)}',
+                        '₹${controller.totalAmount.value.toStringAsFixed(2)}',
                         style: textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: colorScheme.primary,
@@ -297,6 +295,215 @@ class CartView extends GetView<CartController> {
         ),
       ),
     );
+  }
+
+  // ── Coupon Section Widgets ─────────────────────────────────
+  Widget _buildCouponSection(
+      BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Coupons:',
+            style: textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            height: 48,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: colorScheme.surfaceVariant.withOpacity(0.4),
+              border: Border.all(
+                color: colorScheme.outline.withOpacity(0.3),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  SvgPicture.asset(
+                    'assets/icon/cupon.svg',
+                    width: 20,
+                    height: 20,
+                    colorFilter: ColorFilter.mode(
+                      colorScheme.onSurfaceVariant,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildCouponTextField(context, colorScheme, textTheme)),
+                  _buildCouponActionButton(context, colorScheme),
+                ],
+              ),
+            ),
+          ),
+          _buildCouponMessage(colorScheme),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCouponTextField(
+      BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
+    return Obx(() => TextFormField(
+          key: controller.targetKey,
+          focusNode: controller.targetFocusNode,
+          controller: controller.couponController,
+          textInputAction: TextInputAction.done,
+          readOnly: controller.isCouponApply.value,
+          onChanged: (value) {
+            controller.couponController.value = TextEditingValue(
+              text: value.toUpperCase(),
+              selection: controller.couponController.selection,
+            );
+            controller.isCouponApply.value = false;
+          },
+          style: textTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface,
+          ),
+          decoration: InputDecoration(
+            hintText: controller.isCouponApply.value
+                ? controller.viewCouponCode.value
+                : 'Enter Coupons',
+            border: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            errorBorder: InputBorder.none,
+            disabledBorder: InputBorder.none,
+            hintStyle: textTheme.bodyLarge?.copyWith(
+              color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+            ),
+          ),
+        ));
+  }
+
+  Widget _buildCouponActionButton(BuildContext context, ColorScheme colorScheme) {
+    return Obx(() => controller.isCouponApply.value
+        ? IconButton(
+            onPressed: () {
+              controller.clearCoupon();
+            },
+            icon: Icon(Icons.cancel, color: colorScheme.error),
+          )
+        : TextButton(
+            onPressed: () => _applyCoupon(context, colorScheme),
+            child: Text(
+              'Apply',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.primary,
+              ),
+            ),
+          ));
+  }
+
+  void _applyCoupon(BuildContext context, ColorScheme colorScheme) {
+    if (controller.couponController.text.isNotEmpty) {
+      Get.focusScope?.unfocus();
+      controller
+          .applyCoupon(coupon: controller.couponController.text)
+          .then((value) {
+        if (value != null && value.containsKey('code')) {
+          controller.isCouponApply.value = true;
+          _showCouponSuccessDialog(context, value, colorScheme);
+        } else {
+          controller.isCouponApply.value = false;
+          String errorMessage = value != null && value.containsKey('message')
+              ? value['message']
+              : 'Invalid coupon code';
+          HelperFunctions().showSnackBarError(errorMessage);
+        }
+      });
+    }
+  }
+
+  void _showCouponSuccessDialog(
+      BuildContext context, dynamic couponResponse, ColorScheme colorScheme) {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Center(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Lottie.asset('assets/lotti/sparkles.json',
+                      height: 250, repeat: true),
+                  Center(
+                    child: Lottie.asset(
+                        'assets/lotti/couponapplyanimation.json',
+                        height: 140,
+                        repeat: true),
+                  ),
+                ],
+              ),
+            ),
+            const Text(
+              'Congratulations!',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'lato',
+              ),
+            ),
+            const SizedBox(height: 10),
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: const TextStyle(fontFamily: 'lato', color: Colors.black),
+                children: [
+                  const TextSpan(
+                      text:
+                          'You have successfully applied the coupon \n you have saved '),
+                  TextSpan(
+                    text: controller.viewCouponAmount.value.replaceAll("-", ""),
+                    style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            AppButton(
+              itemText: 'Close',
+              keypressEvent: () {
+                Get.back();
+              },
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCouponMessage(ColorScheme colorScheme) {
+    return Obx(() => AnimatedOpacity(
+          opacity: controller.couponDetails.isEmpty ? 0 : 1,
+          duration: const Duration(milliseconds: 500),
+          child: Padding(
+            padding: const EdgeInsets.only(top: 4.0),
+            child: Text(
+              controller.couponDetails.containsKey('code')
+                  ? 'Coupon applied successfully'
+                  : controller.couponDetails['message']?.toString() ??
+                      'Invalid coupon',
+              style: TextStyle(
+                fontSize: 13,
+                color: controller.couponDetails.containsKey('code')
+                    ? Colors.green
+                    : colorScheme.error,
+              ),
+            ),
+          ),
+        ));
   }
 }
 
@@ -362,30 +569,35 @@ class _CartItemCard extends StatelessWidget {
             onTap: () => _navigateToProduct(productId),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: CachedNetworkImage(
-                imageUrl: imageUrl,
+              child: Container(
                 width: 100,
                 height: 110,
-                fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => Container(
+                color: colorScheme.surfaceVariant.withOpacity(0.4),
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
                   width: 100,
                   height: 110,
-                  color: colorScheme.surfaceVariant,
-                  child: Icon(Icons.image_not_supported_outlined,
-                      color: colorScheme.onSurfaceVariant),
-                ),
-                progressIndicatorBuilder: (_, __, progress) => Container(
-                  width: 100,
-                  height: 110,
-                  color: colorScheme.surfaceVariant,
-                  child: Center(
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        value: progress.progress,
-                        color: colorScheme.primary,
+                  fit: BoxFit.contain,
+                  errorWidget: (_, __, ___) => Container(
+                    width: 100,
+                    height: 110,
+                    color: colorScheme.surfaceVariant,
+                    child: Icon(Icons.image_not_supported_outlined,
+                        color: colorScheme.onSurfaceVariant),
+                  ),
+                  progressIndicatorBuilder: (_, __, progress) => Container(
+                    width: 100,
+                    height: 110,
+                    color: colorScheme.surfaceVariant,
+                    child: Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          value: progress.progress,
+                          color: colorScheme.primary,
+                        ),
                       ),
                     ),
                   ),

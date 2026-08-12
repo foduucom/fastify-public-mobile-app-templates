@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
 import 'package:foduu_ecommerce/components/foduuformtextfield.dart';
@@ -116,12 +117,16 @@ class _RegisterViewState extends State<RegisterView> {
                         keyType: TextInputType.phone,
                         title: 'Phone',
                         controller: controller.mobileController,
-                        // validCheck: (value) {
-                        //   if (value == null || value.length != 10) {
-                        //     return 'Enter valid mobile number';
-                        //   }
-                        //   return null;
-                        // },
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(10),
+                        ],
+                        validCheck: (value) {
+                          if (value == null || value.trim().length != 10) {
+                            return 'Please enter a valid 10-digit mobile number';
+                          }
+                          return null;
+                        },
                         validationmsg: "Enter valid mobile number!",
                       ),
                       SizedBox(height: 20),
