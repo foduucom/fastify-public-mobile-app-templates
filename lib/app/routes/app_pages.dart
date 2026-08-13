@@ -38,11 +38,8 @@ import 'package:foduu_ecommerce/app/modules/bottomar/bindings/bottombar_binding.
 import 'package:foduu_ecommerce/app/modules/bottomar/views/bottombar_view.dart';
 import 'package:foduu_ecommerce/app/modules/cart/bindings/cart_binding.dart';
 import 'package:foduu_ecommerce/app/modules/cart/views/cart_view.dart';
-import 'package:foduu_ecommerce/app/modules/category/bindings/category_binding.dart';
 import 'package:foduu_ecommerce/app/modules/category/bindings/category_search_filter_binding.dart';
-import 'package:foduu_ecommerce/app/modules/category/views/category_view.dart';
 import 'package:foduu_ecommerce/app/modules/category/views/category_search_filter_view.dart';
-import 'package:foduu_ecommerce/app/modules/category/views/categorydetail_view.dart';
 import 'package:foduu_ecommerce/app/modules/contact/binding/contact_binding.dart';
 import 'package:foduu_ecommerce/app/modules/contact/views/contact_view.dart';
 import 'package:foduu_ecommerce/app/modules/helpandsupport/bindings/helpandsupport_binding.dart';
@@ -131,11 +128,6 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.CATEGORY,
-      page: () => CategoryView(),
-      binding: CategoryBinding(),
-    ),
-    GetPage(
-      name: _Paths.CATEGORY_SEARCH_FILTER,
       page: () => const CategorySearchFilterView(),
       binding: CategorySearchFilterBinding(),
     ),
@@ -183,11 +175,6 @@ class AppPages {
       name: _Paths.ORDER_PRODUCTS,
       page: () => const OrderProductsView(),
       binding: OrderProductsBinding(),
-    ),
-    GetPage(
-      name: _Paths.DETAILCATEGORY,
-      page: () => CategeorydetailView(),
-      // binding: CategoryDet(),
     ),
     GetPage(
       name: _Paths.SHOPPRODUCTLISTVIEW,

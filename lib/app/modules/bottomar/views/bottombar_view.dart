@@ -5,11 +5,11 @@ import 'package:flutter_svg/svg.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/views/home_view.dart';
 import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import 'package:foduu_ecommerce/app/modules/cart/views/cart_view.dart';
-import 'package:foduu_ecommerce/app/modules/category/views/category_view.dart';
+import 'package:foduu_ecommerce/app/modules/category/controllers/category_search_filter_controller.dart';
+import 'package:foduu_ecommerce/app/modules/category/views/category_search_filter_view.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/profile/views/profile_view.dart';
 import 'package:foduu_ecommerce/app/modules/notification/controller/notification_controller.dart';
-import 'package:foduu_ecommerce/app/modules/wishlist/controllers/wishlist_controller.dart';
-import 'package:foduu_ecommerce/app/modules/wishlist/views/wishlist_view.dart';
+import 'package:foduu_ecommerce/app/modules/shop/views/shop_view.dart';
 import 'package:get/get.dart';
 
 import '../../../../../constants/constants.dart';
@@ -21,7 +21,8 @@ class BottombarView extends GetView<BottombarController> {
 
   var cartController = Get.put(CartController());
   var notifcationController = Get.put(NotificationsController());
-  var wishListController = Get.put(WishlistController());
+  var categorySearchFilterController =
+      Get.put(CategorySearchFilterController());
 
   @override
   Widget build(BuildContext context) {
@@ -58,9 +59,9 @@ class BottombarView extends GetView<BottombarController> {
                     // HomepageView(),
                     Testinghome(),
                     // DemoHomePage(),
-                    CategoryView(),
+                    const CategorySearchFilterView(),
                     CartView(),
-                    WishlistView(),
+                    const ShopView(),
 
                     ProfileView()
                   ]),
@@ -165,20 +166,20 @@ class BottombarView extends GetView<BottombarController> {
                 ),
                 BottomNavigationBarItem(
                   icon: SvgPicture.asset(
-                    'assets/icon/bottomicon.svg',
+                    'assets/icon/appbarshop.svg',
                     colorFilter: ColorFilter.mode(
                       Theme.of(context).colorScheme.onSurfaceVariant,
                       BlendMode.srcIn,
                     ),
                   ),
                   activeIcon: SvgPicture.asset(
-                    'assets/icon/bottomlikeicon.svg',
+                    'assets/icon/appbarshop.svg',
                     colorFilter: ColorFilter.mode(
                       Theme.of(context).colorScheme.primary,
                       BlendMode.srcIn,
                     ),
                   ),
-                  label: 'WISHLIST',
+                  label: 'SHOP',
                 ),
                 BottomNavigationBarItem(
                   icon: SvgPicture.asset(

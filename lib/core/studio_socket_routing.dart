@@ -113,9 +113,6 @@ class StudioSocketRouting extends GetxController {
 
     // Non-bottom-bar routes: push as standalone screens
     switch (normalizedSlug) {
-      case 'detailcategory':
-        Get.toNamed(Routes.DETAILCATEGORY);
-        break;
       case 'search':
         Get.toNamed(Routes.SEARCH);
         break;

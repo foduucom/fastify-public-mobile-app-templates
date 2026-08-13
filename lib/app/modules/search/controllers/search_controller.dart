@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_mixin.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
-class SearchsController extends GetxController with BaseController {
+class SearchsController extends GetxController
+    with BaseController, FoduuStudioLayoutMixin {
+  static const String pageSlug = 'search';
+
   var searchProduct = [].obs;
   var recentSearchList = [].obs;
 
@@ -29,6 +33,7 @@ class SearchsController extends GetxController with BaseController {
 
     getRecentSearch();
     loadAllProducts();
+    fetchLayout(pageSlug);
     super.onInit();
   }
 

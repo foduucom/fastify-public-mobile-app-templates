@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
@@ -247,28 +246,43 @@ class ProductView extends GetView<ProductController> {
   Widget _buildTags(BuildContext context, Map<String, dynamic> details) {
     final tags = details['tags'];
     if (tags is! List || tags.isEmpty) return const SizedBox.shrink();
+    final primary = Theme.of(context).colorScheme.primary;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 8),
-        Text(
-          'Tags',
-          style: txtTheme().titleLarge!.copyWith(fontWeight: FontWeight.bold),
+        Row(
+          children: [
+            Icon(Icons.label_outline, size: 18, color: primary),
+            const SizedBox(width: 8),
+            Text(
+              'Tags',
+              style: txtTheme().titleLarge!.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 10),
         Wrap(
-          spacing: 6,
-          runSpacing: 4,
+          spacing: 10,
+          runSpacing: 10,
           children: tags
               .map<Widget>(
-                (tag) => Chip(
-                  label: Text(
-                    (tag is Map ? tag['name']?.toString() : tag?.toString()) ??
-                        '',
-                    style: const TextStyle(fontSize: 12),
+                (tag) => Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: primary.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: primary.withValues(alpha: 0.1)),
                   ),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    '#${(tag is Map ? tag['name']?.toString() : tag?.toString()) ?? ''}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: primary,
+                    ),
+                  ),
                 ),
               )
               .toList(),
@@ -652,7 +666,16 @@ class ProductView extends GetView<ProductController> {
                           );
                         }),
                         const SizedBox(height: 10),
-                        Row(
+                        Obx(() {
+                          final status = controller.productDetials['status'];
+                          bool isComingSoon = false;
+                          if (status != null && status is Map) {
+                            final name =
+                                (status['name'] ?? '').toString().toLowerCase();
+                            isComingSoon = name.contains('coming soon');
+                          }
+                          if (isComingSoon) return const SizedBox.shrink();
+                          return Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
@@ -716,7 +739,8 @@ class ProductView extends GetView<ProductController> {
                               ),
                             ),
                           ],
-                        ),
+                        );
+                        }),
                         // Tags
                         Obx(() {
                           if (controller.productDetials['name'] == null)
@@ -728,20 +752,23 @@ class ProductView extends GetView<ProductController> {
                             ),
                           );
                         }),
-                        Padding(
-                          padding: EdgeInsets.zero,
-                          child: Obx(() {
-                            return Html(
-                              data: controller.productDetials['long_content'] ??
-                                  "",
-                              style: {"body": Style(fontFamily: "Lato")},
-                            );
-                          }),
-                        ),
+                        Obx(() {
+                          final longContent =
+                              controller.productDetials['long_content'];
+                          if (longContent == null ||
+                              longContent.toString().trim().isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+                          return HtmlWidget(longContent.toString());
+                        }),
                       ],
                     ),
                   ),
-                  const Divider(),
+                  Divider(
+                    thickness: 8,
+                    color: Theme.of(context).dividerTheme.color ??
+                        Colors.grey.shade100,
+                  ),
                   _buildReviewsSection(context, controller),
                   const SizedBox(height: 50),
                 ],
@@ -846,7 +873,18 @@ class ProductView extends GetView<ProductController> {
             const SizedBox(height: 12),
             if (totalReviews > 0) ...[
               // Breakdown stats
-              Row(
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color:
+                        Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                  ),
+                ),
+                child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Column(
@@ -923,6 +961,7 @@ class ProductView extends GetView<ProductController> {
                     ),
                   ),
                 ],
+                ),
               ),
               const SizedBox(height: 20),
               // Reviews List
@@ -1013,14 +1052,56 @@ class ProductView extends GetView<ProductController> {
                 },
               ),
             ] else ...[
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24.0),
-                  child: Text(
-                    "No reviews yet. Be the first to review this product!",
-                    style: TextStyle(
-                        fontFamily: 'Lato', fontStyle: FontStyle.italic),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color:
+                        Theme.of(context).colorScheme.outline.withOpacity(0.2),
                   ),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.06),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.star_outline_rounded,
+                        size: 28,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      "No Reviews Yet",
+                      style: TextStyle(
+                          fontFamily: 'Lato',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      "Be the first to share your experience with this product!",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Lato',
+                        fontSize: 12,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .outline
+                            .withOpacity(0.8),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

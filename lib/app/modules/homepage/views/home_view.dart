@@ -94,8 +94,7 @@ class Testinghome extends GetView<HomepageController> {
           const SizedBox(width: 14),
           Obx(() => Get.find<BottombarController>().cartbadge(
               child: HeartIcon(() {
-                Get.find<BottombarController>().currentPageIndex.value = 3;
-                Get.find<BottombarController>().pageController.jumpToPage(3);
+                Get.toNamed(Routes.WISHLIST);
               }),
               badgeNumber: WishListService.to.wishListItemCount)),
           const SizedBox(width: 14),

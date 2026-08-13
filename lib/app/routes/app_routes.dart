@@ -20,8 +20,6 @@ abstract class Routes {
   static const HOME = _Paths.HOME;
 
   static const CATEGORY = _Paths.CATEGORY;
-  static const CATEGORY_SEARCH_FILTER = _Paths.CATEGORY_SEARCH_FILTER;
-  static const DETAILCATEGORY = _Paths.DETAILCATEGORY;
   static const SHOPPRODUCTLISTVIEW = _Paths.SHOPPRODUCTLISTVIEW;
   static const WISHLIST = _Paths.WISHLIST;
   static const SEARCH = _Paths.SEARCH;
@@ -79,8 +77,6 @@ abstract class _Paths {
   static const BOTTOMBAR = '/bottombar';
   static const PROFILE = '/profile';
   static const CATEGORY = '/category';
-  static const CATEGORY_SEARCH_FILTER = '/category-search-filter';
-  static const DETAILCATEGORY = '/detailcategory';
   static const SHOPPRODUCTLISTVIEW = '/productlistview';
   static const PRODUCTDETAILS = '/productdetails';
   static const NOTIFICATION = '/notification';

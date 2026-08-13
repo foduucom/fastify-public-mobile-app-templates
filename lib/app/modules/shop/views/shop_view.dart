@@ -1,16 +1,13 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:get/get.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:foduu_ecommerce/core/services/wishlistService.dart';
-import 'package:foduu_ecommerce/constants/helper_functions.dart';
-import 'package:foduu_ecommerce/constants/product_helper.dart';
 
 import 'package:foduu_ecommerce/app/modules/product/views/product_view.dart';
 import 'package:foduu_ecommerce/app/modules/shop/bindings/shop_binding.dart';
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_controller.dart';
+import 'package:foduu_ecommerce/components/studio_widget/studio_category.dart';
+import 'package:foduu_ecommerce/components/studio_widget/product_grid_card.dart';
 
 class ShopView extends GetView<ShopController> {
   const ShopView({Key? key}) : super(key: key);
@@ -80,25 +77,96 @@ class ShopView extends GetView<ShopController> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Obx(() {
-        return Column(
-          children: [
-            // ── ACTIVE FILTER CHIPS (Horizontal Scroll) ──
-            if (_hasActiveFilters()) _buildActiveFilterChips(colorScheme),
+      body: PopScope(
+        canPop: controller.filterCategoryStack.isEmpty,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) return;
+          controller.goUpFilterCategory();
+        },
+        child: Obx(() {
+          return Column(
+            children: [
+              // ── ACTIVE FILTER CHIPS (Horizontal Scroll) ──
+              if (_hasActiveFilters()) _buildActiveFilterChips(colorScheme),
 
-            // ── PRODUCT GRID ──
-            Expanded(
-              child: controller.isLoading.value
-                  ? _buildGridShimmer()
-                  : RefreshIndicator(
-                      onRefresh: () =>
-                          controller.fetchProducts(isRefresh: true),
-                      child: _buildProductGrid(colorScheme, textTheme),
+              // ── SUB CATEGORY STRIP (only when entered with category context) ──
+              _buildSubCategorySection(colorScheme),
+
+              // ── PRODUCT GRID ──
+              Expanded(
+                child: controller.isLoading.value
+                    ? _buildGridShimmer()
+                    : RefreshIndicator(
+                        onRefresh: () =>
+                            controller.fetchProducts(isRefresh: true),
+                        child: _buildProductGrid(colorScheme, textTheme),
+                      ),
+              ),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+  // ─── SUB CATEGORY STRIP + BREADCRUMB ─────────────────────────────────
+  Widget _buildSubCategorySection(ColorScheme colorScheme) {
+    if (controller.filterCurrentCategories.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      children: [
+        if (controller.filterCategoryStack.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: controller.goUpFilterCategory,
+                  child: Icon(Icons.arrow_back_ios_new,
+                      size: 14, color: colorScheme.primary),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Text(
+                      [
+                        'All',
+                        ...controller.filterCategoryStack.map((e) =>
+                            (e['cat'] as Map)['name']?.toString() ?? ''),
+                      ].join(' › '),
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
                     ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        );
-      }),
+          ),
+        CategoryHome(
+          categoryData: {
+            'categories': controller.filterCurrentCategories,
+            'view': 'list',
+            'layout': 'circular',
+            'list_view_type': 'horizontal',
+          },
+          onCategoryTap: (category) {
+            controller.selectedCategories.clear();
+            final slug = category['slug']?.toString();
+            if (slug != null && slug.isNotEmpty) {
+              controller.selectedCategories.add(slug);
+            }
+            controller.drillIntoCategory(category);
+            controller.applyFiltersAndRefresh();
+          },
+        ),
+      ],
     );
   }
 
@@ -736,7 +804,7 @@ class ShopView extends GetView<ShopController> {
             itemCount: controller.products.length,
             itemBuilder: (context, index) {
               final product = controller.products[index];
-              return _ProductGridCard(
+              return ProductGridCard(
                 product: product,
                 onTap: () {
                   final productId = product['_id']?.toString() ?? '';
@@ -775,224 +843,6 @@ class ShopView extends GetView<ShopController> {
         itemBuilder: (_, __) => Container(
             decoration: BoxDecoration(
                 color: Colors.white, borderRadius: BorderRadius.circular(16))),
-      ),
-    );
-  }
-}
-
-// ── Beautiful Product Grid Card (Reused) ────────────────────────────────────
-class _ProductGridCard extends StatelessWidget {
-  final Map<String, dynamic> product;
-  final VoidCallback onTap;
-
-  const _ProductGridCard({required this.product, required this.onTap});
-
-  Widget _buildWishlistButton(
-      BuildContext context, Map<String, dynamic> product) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final productId = ProductHelper.getProductId(product);
-
-    return GestureDetector(
-      onTap: () => _handleWishlistTap(product),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(50),
-          color: colorScheme.surface.withOpacity(0.85),
-        ),
-        padding: const EdgeInsets.all(6.0),
-        child: Obx(() {
-          final isInWishlist = WishListService.to.isInWishlist(productId);
-          return SvgPicture.asset(
-            isInWishlist ? 'assets/icon/like.svg' : 'assets/icon/unlike.svg',
-            width: 16,
-            height: 16,
-          );
-        }),
-      ),
-    );
-  }
-
-  void _handleWishlistTap(Map<String, dynamic> product) async {
-    final productId = ProductHelper.getProductId(product);
-    String variantSlug = '';
-    String? variantId;
-
-    final variants = product['variants'];
-    if (variants is List && variants.isNotEmpty) {
-      final variant = variants[0];
-      variantId = (variant['_id'] ?? variant['id'])?.toString();
-      variantSlug = variant['slug'] ?? variant['variant_slug'] ?? '';
-    }
-
-    if (variantSlug.isEmpty) {
-      variantSlug = product['variant_slug'] ?? product['slug'] ?? '';
-    }
-
-    await WishListService.to.toggleWishlist(
-      productId: productId,
-      variantSlug: variantSlug,
-      variantId: variantId,
-      productData: product,
-    );
-  }
-
-  Widget _buildVariablePrice(
-      BuildContext context, Map<String, dynamic> priceInfo) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Text(
-      '₹${priceInfo['lowestPrice']} - ₹${priceInfo['highestPrice']}',
-      style: textTheme.bodyMedium?.copyWith(
-        fontWeight: FontWeight.w600,
-        color: colorScheme.primary,
-      ),
-    );
-  }
-
-  Widget _buildSimplePrice(
-      BuildContext context, Map<String, dynamic> priceInfo) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return RichText(
-      text: TextSpan(
-        text: '₹${priceInfo['productPrice']}',
-        style: textTheme.bodyMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: colorScheme.primary,
-        ),
-        children: [
-          if (priceInfo['discountRate'] != null &&
-              priceInfo['discountRate'].toString().isNotEmpty) ...[
-            const TextSpan(text: '  '),
-            TextSpan(
-              text: '₹${priceInfo['salePrice']}',
-              style: textTheme.bodySmall?.copyWith(
-                decoration: TextDecoration.lineThrough,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    final productName = ProductHelper.getProductName(product);
-    final imageUrl = ProductHelper.getProductImage(product);
-    final priceInfo = ProductHelper.calculatePriceInfo(product);
-    final productType = priceInfo['productType'];
-    final inStock = ProductHelper.isInStock(product);
-
-    return GestureDetector(
-      onTap: inStock ? onTap : null,
-      child: Opacity(
-        opacity: inStock ? 1.0 : 0.5,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Product Image
-            Stack(
-              children: [
-                AspectRatio(
-                  aspectRatio: 0.9,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      progressIndicatorBuilder: (_, __, ___) =>
-                          HelperFunctions().loadingIndicator(),
-                      errorWidget: (_, __, ___) => Container(
-                        color: colorScheme.surfaceVariant,
-                        child: Icon(Icons.image_outlined,
-                            color: colorScheme.onSurfaceVariant),
-                      ),
-                    ),
-                  ),
-                ),
-                // Wishlist Button
-                Positioned(
-                  left: 6,
-                  top: 6,
-                  child: _buildWishlistButton(context, product),
-                ),
-                // Discount Badge
-                if (inStock &&
-                    priceInfo['discountRate'] != null &&
-                    priceInfo['discountRate'].toString().isNotEmpty)
-                  Positioned(
-                    right: 6,
-                    top: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: colorScheme.error,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        priceInfo['discountRate'],
-                        style: textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onError,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                // Out of Stock Badge
-                if (!inStock)
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.6),
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(10),
-                          bottomRight: Radius.circular(10),
-                        ),
-                      ),
-                      child: Text(
-                        'Out of Stock',
-                        textAlign: TextAlign.center,
-                        style: textTheme.labelSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // Product Name
-            Text(
-              productName,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 2,
-              style: textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            ProductHelper.buildRatingWidget(product, textTheme, colorScheme),
-            const SizedBox(height: 4),
-            // Price
-            if (productType == 'variable')
-              _buildVariablePrice(context, priceInfo)
-            else
-              _buildSimplePrice(context, priceInfo),
-          ],
-        ),
       ),
     );
   }

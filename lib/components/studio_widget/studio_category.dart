@@ -11,7 +11,8 @@ import 'studio_common_widgets.dart';
 
 class CategoryHome extends StatefulWidget {
   final dynamic categoryData;
-  CategoryHome({super.key, required this.categoryData});
+  final void Function(dynamic category)? onCategoryTap;
+  CategoryHome({super.key, required this.categoryData, this.onCategoryTap});
 
   @override
   State<CategoryHome> createState() => _TopCategoryHomeState();
@@ -52,7 +53,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
               title: title,
               subtitle: subtitle,
               onSeeAll: () {
-                Get.toNamed(Routes.CATEGORY_SEARCH_FILTER);
+                Get.toNamed(Routes.CATEGORY);
               },
             ),
           ),
@@ -117,61 +118,87 @@ class _TopCategoryHomeState extends State<CategoryHome>
 
   Widget _buildCategoryItem(dynamic category, String style,
       {bool isVerticalList = false, bool isGrid = false}) {
-    return GestureDetector(
-      onTap: () {
-        {
-          //------------
-
-          List children = category['children'] ?? [];
-
-          if (children.isNotEmpty) {
-            Get.toNamed(Routes.DETAILCATEGORY, arguments: {
-              'name': category['name'],
-              'id': category['_id'],
-              'children': children,
-              'bannerData': {
-                'name': category['name'],
-                'image': category['featured_image'],
-              }
-            });
-          } else {
-            Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-              'productId': category['_id'],
-              'categorySlug': category['slug'],
-              'name': category['name'],
-              'source': 'category'
-            });
-          }
-
-          //------------
-        }
-        ;
-      },
-      child: style == 'rectangular'
-          ? _buildRectangularItem(category, isVerticalList)
-          : _buildCircularItem(category, isGrid,
-              isVerticalList: isVerticalList),
+    return CategoryGridItem(
+      category: category,
+      style: style,
+      isVerticalList: isVerticalList,
+      isGrid: isGrid,
+      onTap: widget.onCategoryTap,
     );
   }
 
-  Widget _buildCircularItem(dynamic category, bool isGrid,
+  @override
+  bool get wantKeepAlive => true;
+}
+
+/// Reusable category card, used both by [CategoryHome] (CMS sections) and by
+/// any screen that needs the same card styling for a directly-fetched category
+/// list (e.g. the category search/filter grid).
+class CategoryGridItem extends StatelessWidget {
+  final dynamic category;
+  final String style;
+  final bool isVerticalList;
+  final bool isGrid;
+  final void Function(dynamic category)? onTap;
+
+  const CategoryGridItem({
+    super.key,
+    required this.category,
+    this.style = 'circular',
+    this.isVerticalList = false,
+    this.isGrid = false,
+    this.onTap,
+  });
+
+  void _defaultNavigate() {
+    List children = category['children'] ?? [];
+
+    if (children.isNotEmpty) {
+      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+        'source': 'category',
+        'categoryId': category['_id'],
+        'categorySlug': category['slug'],
+        'name': category['name'],
+        'children': children,
+      });
+    } else {
+      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+        'productId': category['_id'],
+        'categorySlug': category['slug'],
+        'name': category['name'],
+        'source': 'category'
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => onTap != null ? onTap!(category) : _defaultNavigate(),
+      child: style == 'rectangular'
+          ? _buildRectangularItem(context, isVerticalList)
+          : _buildCircularItem(context, isGrid, isVerticalList: isVerticalList),
+    );
+  }
+
+  Widget _buildCircularItem(BuildContext context, bool isGrid,
       {bool isVerticalList = false}) {
     return Column(
       mainAxisSize: isGrid ? MainAxisSize.max : MainAxisSize.min,
       children: [
         if (isVerticalList)
-          _buildCircularImage(category, 60, 60)
+          _buildCircularImage(context, 60, 60)
         else if (isGrid)
           Expanded(
             child: Center(
               child: AspectRatio(
                 aspectRatio: 1.0,
-                child: _buildCircularImage(category),
+                child: _buildCircularImage(context),
               ),
             ),
           )
         else
-          _buildCircularImage(category, 70, 65),
+          _buildCircularImage(context, 70, 65),
         const SizedBox(height: 6),
         SizedBox(
           width: isGrid ? null : 80,
@@ -189,7 +216,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
     );
   }
 
-  Widget _buildCircularImage(dynamic category,
+  Widget _buildCircularImage(BuildContext context,
       [double? width, double? height]) {
     return Container(
       width: width,
@@ -210,7 +237,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
     );
   }
 
-  Widget _buildRectangularItem(dynamic category, bool isVerticalList) {
+  Widget _buildRectangularItem(BuildContext context, bool isVerticalList) {
     final colorScheme = Theme.of(context).colorScheme;
 
     if (isVerticalList) {
@@ -324,9 +351,6 @@ class _TopCategoryHomeState extends State<CategoryHome>
       );
     }
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }
 
 class CategoryHomeShimmer extends StatelessWidget {

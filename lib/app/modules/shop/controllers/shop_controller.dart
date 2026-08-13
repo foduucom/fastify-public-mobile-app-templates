@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_attribute_filter_mixin.dart';
+import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_category_filter_mixin.dart';
 import 'package:get/get.dart';
 
-class ShopController extends GetxController with BaseController {
+class ShopController extends GetxController
+    with BaseController, ShopCategoryFilterMixin, ShopAttributeFilterMixin {
   // ─── STATE VARIABLES ──────────────────────────────────────────
   var products = [].obs;
   var isLoading = true.obs;
@@ -67,9 +70,27 @@ class ShopController extends GetxController with BaseController {
       final args = Get.arguments as Map;
       collectionName.value = args['name'] ?? "Shop";
 
-      if (args['source'] == 'category' && args['categorySlug'] != null) {
-        print("category slug ${args['categorySlug']}");
+      if (args['source'] == 'category' && args['children'] != null) {
+        // Drill-down entry (parent category tapped): filter products by this
+        // category AND seed the Sub Category strip from its children.
+        if (args['categorySlug'] != null) {
+          selectedCategories.add(args['categorySlug']);
+        }
+        filterCurrentCategories.assignAll(args['children'] ?? []);
+      } else if (args['source'] == 'category' &&
+          args['categorySlug'] != null &&
+          args['children'] == null) {
+        // Leaf-category entry (no children up front): plain product filter.
+        // Try to resolve children anyway for deep links that only pass a slug.
         selectedCategories.add(args['categorySlug']);
+        fetchCategoryBySlug(args['categorySlug']).then((cat) {
+          if (cat != null) {
+            final children = cat['children'];
+            if (children is List && children.isNotEmpty) {
+              filterCurrentCategories.assignAll(children);
+            }
+          }
+        });
       } else if (args['source'] == 'brand' && args['brandId'] != null) {
         selectedBrands.add(args['brandId']);
       } else if (args['source'] == 'dashboard' && args['filterType'] != null) {
@@ -94,6 +115,8 @@ class ShopController extends GetxController with BaseController {
   @override
   void onClose() {
     scrollController.dispose();
+    categorySearchController.dispose();
+    disposeAttributeFilterControllers();
     super.onClose();
   }
 
@@ -258,6 +281,7 @@ class ShopController extends GetxController with BaseController {
       } else if (response is List) {
         availableCategories.assignAll(response);
       }
+      allCategories.assignAll(availableCategories);
       debugPrint('✅ Loaded ${availableCategories.length} categories');
     } catch (e) {
       debugPrint('❌ Fetch Categories Error: $e');

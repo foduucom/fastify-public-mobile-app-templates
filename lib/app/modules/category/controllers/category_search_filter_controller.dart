@@ -2,12 +2,14 @@ import 'dart:async';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_mixin.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class CategorySearchFilterController extends GetxController
-    with BaseController {
+    with BaseController, FoduuStudioLayoutMixin {
   final searchController = TextEditingController();
+  static const String pageSlug = 'category';
 
   final categories = <dynamic>[].obs;
   final parentCategories = <dynamic>[].obs;
@@ -32,6 +34,7 @@ class CategorySearchFilterController extends GetxController
   @override
   Future<void> onInit() async {
     super.onInit();
+    await fetchLayout(pageSlug);
     await _loadParentCategories();
     await fetchCategories(reset: true);
   }
@@ -179,14 +182,12 @@ class CategorySearchFilterController extends GetxController
   void onCategoryTap(dynamic category) {
     final List children = category['children'] ?? [];
     if (children.isNotEmpty) {
-      Get.toNamed(Routes.DETAILCATEGORY, arguments: {
+      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+        'source': 'category',
+        'categoryId': category['_id'],
+        'categorySlug': category['slug'],
         'name': category['name'],
-        'id': category['_id'],
         'children': children,
-        'bannerData': {
-          'name': category['name'],
-          'image': category['featured_image'],
-        }
       });
     } else {
       Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {

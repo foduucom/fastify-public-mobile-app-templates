@@ -4,7 +4,6 @@ import '../../../../components/shimmer/cart_shimmer.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
-import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
@@ -117,10 +116,6 @@ class WishlistView extends GetView<WishlistController> {
               AppButton(
                   keypressEvent: () {
                     Get.back();
-                    Get.find<BottombarController>().currentPageIndex.value = 0;
-                    Get.find<BottombarController>()
-                        .pageController
-                        .jumpToPage(0);
                   },
                   itemText: 'GO BACK')
             ],
