@@ -19,6 +19,12 @@
       "description": "Subcategory / product listing for a specific category"
     },
     {
+      "title": "Shop",
+      "slug": "shop",
+      "route": "/shop",
+      "description": "Shop tab landing page — CMS-driven dynamic layout (product sections) shown when opened from the bottom nav bar with no filters"
+    },
+    {
       "title": "Search",
       "slug": "search",
       "route": "/search",

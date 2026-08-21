@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:get/get.dart';
 
-import 'package:foduu_ecommerce/app/modules/product/views/product_view.dart';
-import 'package:foduu_ecommerce/app/modules/shop/bindings/shop_binding.dart';
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_controller.dart';
 import 'package:foduu_ecommerce/components/studio_widget/studio_category.dart';
-import 'package:foduu_ecommerce/components/studio_widget/product_grid_card.dart';
+import 'package:foduu_ecommerce/components/studio_widget/studio_products.dart';
+import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
 
 class ShopView extends GetView<ShopController> {
   const ShopView({Key? key}) : super(key: key);
@@ -24,22 +23,31 @@ class ShopView extends GetView<ShopController> {
         backgroundColor: colorScheme.background,
         elevation: 0,
         centerTitle: true,
-        title: Obx(() => Column(
-              children: [
-                Text(
-                  controller.collectionName.value,
-                  style: textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  "${controller.totalProducts.value} items",
-                  style: textTheme.bodySmall
-                      ?.copyWith(color: colorScheme.onSurfaceVariant),
-                ),
-              ],
-            )),
+        title: Obx(() {
+          if (controller.isPlainShopEntry) {
+            return Text(
+              "Shop",
+              style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            );
+          }
+          return Column(
+            children: [
+              Text(
+                controller.collectionName.value,
+                style: textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              Text(
+                "${controller.totalProducts.value} items",
+                style: textTheme.bodySmall
+                    ?.copyWith(color: colorScheme.onSurfaceVariant),
+              ),
+            ],
+          );
+        }),
         actions: [
           Obx(() {
+            if (controller.isPlainShopEntry) return const SizedBox.shrink();
             final count = controller.activeFilterCount;
             return Stack(
               clipBehavior: Clip.none,
@@ -84,6 +92,16 @@ class ShopView extends GetView<ShopController> {
           controller.goUpFilterCategory();
         },
         child: Obx(() {
+          // ── PLAIN SHOP TAB ENTRY: CMS-driven dynamic layout ──
+          if (controller.isPlainShopEntry) {
+            return FoduuStudioLayoutView(
+              onRefresh: () => controller.fetchLayout(ShopController.pageSlug),
+              widgetList: controller.widgetList,
+              isLoading: controller.isLayoutLoading,
+            );
+          }
+
+          // ── FILTERED / DASHBOARD ENTRY ──
           return Column(
             children: [
               // ── ACTIVE FILTER CHIPS (Horizontal Scroll) ──
@@ -134,8 +152,8 @@ class ShopView extends GetView<ShopController> {
                     child: Text(
                       [
                         'All',
-                        ...controller.filterCategoryStack.map((e) =>
-                            (e['cat'] as Map)['name']?.toString() ?? ''),
+                        ...controller.filterCategoryStack.map(
+                            (e) => (e['cat'] as Map)['name']?.toString() ?? ''),
                       ].join(' › '),
                       style: TextStyle(
                         color: colorScheme.primary,
@@ -768,7 +786,7 @@ class ShopView extends GetView<ShopController> {
     );
   }
 
-  // ── MAIN PRODUCT GRID (REUSED FROM PREVIOUS) ───────────────────────────
+  // ── MAIN PRODUCT GRID (shared TrendingProductSection, externally driven) ──
   Widget _buildProductGrid(ColorScheme colorScheme, TextTheme textTheme) {
     if (controller.products.isEmpty) {
       return Center(
@@ -789,40 +807,17 @@ class ShopView extends GetView<ShopController> {
     return SingleChildScrollView(
       controller: controller.scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
-      child: Column(
-        children: [
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 0.58,
-            ),
-            itemCount: controller.products.length,
-            itemBuilder: (context, index) {
-              final product = controller.products[index];
-              return ProductGridCard(
-                product: product,
-                onTap: () {
-                  final productId = product['_id']?.toString() ?? '';
-                  if (productId.isNotEmpty) {
-                    Get.to(() => ProductView(),
-                        binding: ShopBinding(),
-                        arguments: {'productId': productId});
-                  }
-                },
-              );
-            },
-          ),
-          if (controller.isFetchingMore.value)
-            const Padding(
-                padding: EdgeInsets.all(24.0),
-                child: CupertinoActivityIndicator(radius: 14)),
-          const SizedBox(height: 40),
-        ],
+      child: TrendingProductSection(
+        externalProducts: controller.products,
+        externalHasMore: controller.hasNextPage,
+        externalIsLoadingMore: controller.isFetchingMore.value,
+        onLoadMore: () => controller.fetchProducts(isRefresh: false),
+        hideHeader: true,
+        contentJson: const {
+          'view': 'grid',
+          'layout': 'standard',
+          'columns': '2',
+        },
       ),
     );
   }

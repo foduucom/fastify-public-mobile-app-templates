@@ -34,6 +34,10 @@ class CategorySearchFilterController extends GetxController
   @override
   Future<void> onInit() async {
     super.onInit();
+    // The page already renders its own dedicated search field above the
+    // CMS layout, so skip any `search` block coming from the CMS config
+    // to avoid showing a second, redundant search bar.
+    excludeSectionTypes = const ['search'];
     await fetchLayout(pageSlug);
     await _loadParentCategories();
     await fetchCategories(reset: true);
@@ -90,6 +94,16 @@ class CategorySearchFilterController extends GetxController
     selectedParentSlug.value = '';
     fetchCategories(reset: true);
   }
+
+  String get searchPlaceholder {
+    final placeholder = contentJsonFor('search')?['placeholder'] as String?;
+    return placeholder != null && placeholder.trim().isNotEmpty
+        ? placeholder
+        : 'Search categories...';
+  }
+
+  bool get categoriesInfiniteScroll =>
+      contentJsonFor('categories')?['infinite_scroll'] == true;
 
   bool get hasActiveFilters =>
       searchText.value.isNotEmpty ||

@@ -26,24 +26,13 @@ class CategorySearchFilterView extends GetView<CategorySearchFilterController> {
         elevation: 0,
       ),
       body: Obx(() {
-        // Nothing authored for the CMS `category` layout yet and the user
-        // hasn't searched — show a blank, still-refreshable screen instead
-        // of a search box with nothing to search or an error-looking message.
-        if (!controller.hasActiveFilters &&
-            !controller.isLayoutLoading.value &&
-            controller.widgetList.isEmpty) {
-          return RefreshIndicator(
-            onRefresh: () =>
-                controller.fetchLayout(CategorySearchFilterController.pageSlug),
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-            ),
-          );
-        }
-
+        // Search/filter results take over the body; otherwise render
+        // whatever the CMS `category` layout actually sends — including
+        // nothing, if that's all it authored.
         return Column(
           children: [
-            _SearchBar(controller: controller, colorScheme: colorScheme),
+            if (controller.sectionTypes.contains('search'))
+              _SearchBar(controller: controller, colorScheme: colorScheme),
             Expanded(
               child: controller.hasActiveFilters
                   ? Column(
@@ -93,7 +82,7 @@ class _SearchBar extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
       child: SearchBarRounded(
-        searchHintText: 'Search categories...',
+        searchHintText: controller.searchPlaceholder,
         SearchsController: controller.searchController,
         onChanged: controller.onSearchChanged,
       ),
@@ -157,6 +146,7 @@ class _CategoryGridState extends State<_CategoryGrid> {
   }
 
   void _onScroll() {
+    if (!widget.controller.categoriesInfiniteScroll) return;
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       widget.controller.fetchCategories();

@@ -37,6 +37,16 @@ mixin FoduuStudioLayoutMixin on GetxController {
   final widgetList = <Widget>[].obs;
   final isLayoutLoading = true.obs;
 
+  /// Section `type`s to skip when building the layout, e.g. `['search']`
+  /// when the page already renders its own dedicated search field.
+  List<String> excludeSectionTypes = const [];
+
+  /// `type`s seen in the most recently built section list, before
+  /// [excludeSectionTypes] filtering — lets a page know whether the CMS
+  /// actually authored a given section (e.g. `search`) even if it's
+  /// excluded from [widgetList].
+  final sectionTypes = <String>{}.obs;
+
   // ─── Internal state ──────────────────────────────────────────
   List _initialComponents = [];
   List _lastSocketSections = [];
@@ -69,12 +79,33 @@ mixin FoduuStudioLayoutMixin on GetxController {
   /// Build the [widgetList] from a raw list of section maps.
   void buildLayout(List sections) {
     widgetList.clear();
+    sectionTypes.assignAll(sections
+        .whereType<Map<String, dynamic>>()
+        .map((s) => s['type'])
+        .whereType<String>());
     for (var section in sections) {
       if (section is Map<String, dynamic>) {
-        final widget = _registry.build(section);
-        if (widget != null) widgetList.add(widget);
+        if (excludeSectionTypes.contains(section['type'])) continue;
+        try {
+          final widget = _registry.build(section);
+          if (widget != null) widgetList.add(widget);
+        } catch (e) {
+          print('DynamicLayoutMixin buildLayout: failed to build section '
+              '"${section['type']}": $e');
+        }
       }
     }
+  }
+
+  /// Look up a section's content_json by its `type`, even if that section
+  /// was excluded from [widgetList] via [excludeSectionTypes].
+  Map<String, dynamic>? contentJsonFor(String type) {
+    for (final section in _initialComponents) {
+      if (section is Map && section['type'] == type) {
+        return section['content_json'] as Map<String, dynamic>?;
+      }
+    }
+    return null;
   }
 
   /// Fetch layout JSON from the API and build widgets.

@@ -67,31 +67,31 @@ class Testinghome extends GetView<HomepageController> {
             Get.toNamed(Routes.SEARCH);
           }),
           const SizedBox(width: 14),
-          Obx(
-            () => controller.notificatoinCount == 1
-                ? GestureDetector(
-                    onTap: () {
-                      Get.toNamed(Routes.NOTIFICATION);
-                    },
-                    child: SvgPicture.asset(
-                      'assets/icon/appbarnotification.svg',
-                      height: 22,
-                      width: 22,
-                      colorFilter: ColorFilter.mode(
-                        Theme.of(context).colorScheme.onSurface,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                  )
-                : Get.find<BottombarController>().cartbadge(
-                    child: NotificationIcon(() {
-                      Get.toNamed(Routes.NOTIFICATION);
-                    }),
-                    badgeNumber: Get.find<NotificationsController>()
-                        .allnotificationList
-                        .length),
-          ),
-          const SizedBox(width: 14),
+          // Obx(
+          //   () => controller.notificatoinCount == 1
+          //       ? GestureDetector(
+          //           onTap: () {
+          //             Get.toNamed(Routes.NOTIFICATION);
+          //           },
+          //           child: SvgPicture.asset(
+          //             'assets/icon/appbarnotification.svg',
+          //             height: 22,
+          //             width: 22,
+          //             colorFilter: ColorFilter.mode(
+          //               Theme.of(context).colorScheme.onSurface,
+          //               BlendMode.srcIn,
+          //             ),
+          //           ),
+          //         )
+          //       : Get.find<BottombarController>().cartbadge(
+          //           child: NotificationIcon(() {
+          //             Get.toNamed(Routes.NOTIFICATION);
+          //           }),
+          //           badgeNumber: Get.find<NotificationsController>()
+          //               .allnotificationList
+          //               .length),
+          // ),
+          // const SizedBox(width: 14),
           Obx(() => Get.find<BottombarController>().cartbadge(
               child: HeartIcon(() {
                 Get.toNamed(Routes.WISHLIST);

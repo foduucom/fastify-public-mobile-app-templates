@@ -293,7 +293,7 @@ class CustomDrawer extends GetView<HomepageController> {
   Widget _buildFeaturedCollections(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return SizedBox(
-      height: 96,
+      height: 104,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -313,7 +313,7 @@ class CustomDrawer extends GetView<HomepageController> {
             },
             child: Container(
               width: 92,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
                 color: colorScheme.surfaceContainerHighest.withOpacity(0.4),
                 borderRadius: BorderRadius.circular(12),
@@ -321,10 +321,11 @@ class CustomDrawer extends GetView<HomepageController> {
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(item['icon'] as IconData,
-                      color: colorScheme.primary, size: 24),
-                  const SizedBox(height: 6),
+                      color: colorScheme.primary, size: 22),
+                  const SizedBox(height: 4),
                   Text(
                     item['label'] as String,
                     textAlign: TextAlign.center,
@@ -333,6 +334,7 @@ class CustomDrawer extends GetView<HomepageController> {
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
+                      height: 1.1,
                     ),
                   ),
                   const SizedBox(height: 4),

@@ -150,6 +150,36 @@ class CategoryGridItem extends StatelessWidget {
     this.onTap,
   });
 
+  bool get _hasImage => category['featured_image'] != null;
+
+  Widget _categoryImage({
+    required BuildContext context,
+    required double? width,
+    required double? height,
+    required BoxFit fit,
+    required IconData icon,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    Widget placeholder() => Container(
+          width: width,
+          height: height,
+          alignment: Alignment.center,
+          color: colorScheme.surfaceVariant,
+          child: Icon(icon, color: colorScheme.onSurfaceVariant, size: 28),
+        );
+
+    if (!_hasImage) return placeholder();
+    return CachedNetworkImage(
+      imageUrl: HelperFunctions().getImage(category['featured_image']),
+      width: width,
+      height: height,
+      fit: fit,
+      errorWidget: (_, __, ___) => placeholder(),
+      progressIndicatorBuilder: (_, __, ___) =>
+          HelperFunctions().loadingIndicator(),
+    );
+  }
+
   void _defaultNavigate() {
     List children = category['children'] ?? [];
 
@@ -226,12 +256,12 @@ class CategoryGridItem extends StatelessWidget {
         color: Theme.of(context).colorScheme.surfaceVariant,
       ),
       child: ClipOval(
-        child: CachedNetworkImage(
+        child: _categoryImage(
+          context: context,
+          width: width,
+          height: height,
           fit: BoxFit.cover,
-          imageUrl: HelperFunctions().getImage(category['featured_image']),
-          errorWidget: (_, __, ___) => const Icon(Icons.category_outlined),
-          progressIndicatorBuilder: (_, __, ___) =>
-              HelperFunctions().loadingIndicator(),
+          icon: Icons.category_outlined,
         ),
       ),
     );
@@ -265,11 +295,12 @@ class CategoryGridItem extends StatelessWidget {
                 borderRadius: const BorderRadius.horizontal(
                   left: Radius.circular(10),
                 ),
-                child: CachedNetworkImage(
-                  imageUrl:
-                      HelperFunctions().getImage(category['featured_image']),
+                child: _categoryImage(
+                  context: context,
+                  width: 100,
+                  height: null,
                   fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => const Icon(Icons.category),
+                  icon: Icons.category,
                 ),
               ),
             ),
@@ -327,12 +358,12 @@ class CategoryGridItem extends StatelessWidget {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(12),
                 ),
-                child: CachedNetworkImage(
-                  imageUrl:
-                      HelperFunctions().getImage(category['featured_image']),
+                child: _categoryImage(
+                  context: context,
                   width: double.infinity,
+                  height: null,
                   fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => const Icon(Icons.category),
+                  icon: Icons.category,
                 ),
               ),
             ),

@@ -30,7 +30,7 @@ class WidgetRegistry {
   /// Returns `null` if the type is unknown.
   Widget? build(Map<String, dynamic> section) {
     final type = section['type'] as String?;
-    final visible = section['visible'] as bool;
+    final visible = section['visible'] as bool? ?? true;
     if (type == null || !_builders.containsKey(type) || !visible) return null;
     return _builders[type]!(section['content_json'] as Map<String, dynamic>?);
   }

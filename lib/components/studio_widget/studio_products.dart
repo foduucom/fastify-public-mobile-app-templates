@@ -17,9 +17,43 @@ import 'studio_common_widgets.dart';
 class TrendingProductSection extends StatefulWidget {
   final Map<String, dynamic>? contentJson;
 
+  /// When provided, the section renders this externally-owned list instead
+  /// of fetching its own data from [contentJson] — used by pages (Shop,
+  /// Search) that already run their own filtered/paginated product fetch
+  /// and just want the shared grid/card rendering.
+  final RxList<dynamic>? externalProducts;
+
+  /// Whether the external caller has more pages to load. Ignored unless
+  /// [externalProducts] is set.
+  final bool externalHasMore;
+
+  /// Whether the external caller is currently fetching another page.
+  /// Ignored unless [externalProducts] is set.
+  final bool externalIsLoadingMore;
+
+  /// Called when the scroll position nears the end, in external mode —
+  /// the caller is responsible for fetching and appending to
+  /// [externalProducts].
+  final VoidCallback? onLoadMore;
+
+  /// Hides the section heading/subheading/"see all" row — used in external
+  /// mode where the surrounding page already has its own header/filters.
+  final bool hideHeader;
+
+  /// Called instead of the default product-detail navigation when a card is
+  /// tapped — lets callers (e.g. Search) hook side effects like saving a
+  /// recent search before navigating.
+  final void Function(Map<String, dynamic> product)? onProductTap;
+
   const TrendingProductSection({
     super.key,
     this.contentJson,
+    this.externalProducts,
+    this.externalHasMore = false,
+    this.externalIsLoadingMore = false,
+    this.onLoadMore,
+    this.hideHeader = false,
+    this.onProductTap,
   });
 
   @override
@@ -28,7 +62,8 @@ class TrendingProductSection extends StatefulWidget {
 
 class _TrendingProductCardState extends State<TrendingProductSection>
     with BaseController {
-  final trendingList = <dynamic>[].obs;
+  late final RxList<dynamic> trendingList;
+  bool get _isExternal => widget.externalProducts != null;
 
   // ─── Pagination State ───
   bool _infiniteScroll = false;
@@ -41,9 +76,36 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   bool _useParentScroll = false;
   final _debugScrollInfo = "Pos: N/A".obs;
 
+  bool get _hasMoreValue => _isExternal ? widget.externalHasMore : _hasMore.value;
+  bool get _isLoadingMoreValue =>
+      _isExternal ? widget.externalIsLoadingMore : _isLoadingMore.value;
+
+  void _triggerLoadMore() {
+    if (_isExternal) {
+      if (!_hasMoreValue || _isLoadingMoreValue) return;
+      widget.onLoadMore?.call();
+    } else {
+      _fetchProductsFromApi();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    trendingList = widget.externalProducts ?? <dynamic>[].obs;
+
+    if (_isExternal) {
+      // Show the full external list (no display-limit truncation) with a
+      // load-more row, same as infinite-scroll mode — but pagination/data
+      // itself is entirely driven by the external caller. The grid is
+      // embedded in the caller's own scrollable, so listen to that.
+      _infiniteScroll = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _attachParentScrollListener();
+      });
+      return;
+    }
+
     _infiniteScroll = widget.contentJson?['infinite_scroll'] == true;
     _countPerPage = widget.contentJson?['count'] ?? 10;
 
@@ -115,7 +177,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     _debugScrollInfo.value =
         "Pos: ${pos.pixels.toInt()} / ${pos.maxScrollExtent.toInt()}";
     if (pos.pixels >= pos.maxScrollExtent - 100) {
-      _fetchProductsFromApi();
+      _triggerLoadMore();
     }
   }
 
@@ -128,7 +190,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         "Pos: ${pos.pixels.toInt()} / ${pos.maxScrollExtent.toInt()}";
 
     if (pos.pixels >= pos.maxScrollExtent - 200) {
-      _fetchProductsFromApi();
+      _triggerLoadMore();
     }
   }
 
@@ -275,25 +337,28 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             Column(
               children: [
                 // ─── Section Header ───
-                Padding(
-                  padding: pageSurroundingPadding,
-                  child: StudioSectionHeader(
-                    title: heading,
-                    subtitle: subheading,
-                    onSeeAll: _infiniteScroll ||
-                            (trendingList.length <= displayedProducts.length)
-                        ? null
-                        : () {
-                            Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-                              'filterType': categoryType,
-                              'filterValue': true,
-                              'name': heading,
-                              'source': 'dashboard'
-                            });
-                          },
+                if (!widget.hideHeader) ...[
+                  Padding(
+                    padding: pageSurroundingPadding,
+                    child: StudioSectionHeader(
+                      title: heading,
+                      subtitle: subheading,
+                      onSeeAll: _infiniteScroll ||
+                              (trendingList.length <= displayedProducts.length)
+                          ? null
+                          : () {
+                              Get.toNamed(Routes.SHOPPRODUCTLISTVIEW,
+                                  arguments: {
+                                    'filterType': categoryType,
+                                    'filterValue': true,
+                                    'name': heading,
+                                    'source': 'dashboard'
+                                  });
+                            },
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
+                  const SizedBox(height: 4),
+                ],
                 // ─── Product Cards ───
                 trendingList.isEmpty
                     ? const SizedBox(
@@ -982,7 +1047,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   /// Horizontal loading indicator (for standard & overlay horizontal lists)
   Widget _buildLoadingIndicator() {
-    if (!_hasMore.value) return const SizedBox.shrink();
+    if (!_hasMoreValue) return const SizedBox.shrink();
     return const SizedBox(
       width: 60,
       child: Center(
@@ -997,7 +1062,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   /// Vertical loading indicator (for horizontal-style vertical list)
   Widget _buildLoadingIndicatorVertical() {
-    if (!_hasMore.value) return const SizedBox.shrink();
+    if (!_hasMoreValue) return const SizedBox.shrink();
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 16.0),
       child: Center(
@@ -1016,6 +1081,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   /// Navigate to product detail page
   void _navigateToProduct(Map<String, dynamic> product) {
+    if (widget.onProductTap != null) {
+      widget.onProductTap!(product);
+      return;
+    }
     final productId = ProductHelper.getProductId(product);
     Get.to(
       () => ProductView(),

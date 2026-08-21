@@ -395,6 +395,10 @@ class ProductView extends GetView<ProductController> {
                                 ? HtmlWidget(
                                     controller.productDetials['content']
                                         .toString(),
+                                    customStylesBuilder: (element) => {
+                                      'max-width': '100%',
+                                      'overflow-wrap': 'break-word',
+                                    },
                                   )
                                 : Container();
                           }),
@@ -759,7 +763,13 @@ class ProductView extends GetView<ProductController> {
                               longContent.toString().trim().isEmpty) {
                             return const SizedBox.shrink();
                           }
-                          return HtmlWidget(longContent.toString());
+                          return HtmlWidget(
+                            longContent.toString(),
+                            customStylesBuilder: (element) => {
+                              'max-width': '100%',
+                              'overflow-wrap': 'break-word',
+                            },
+                          );
                         }),
                       ],
                     ),

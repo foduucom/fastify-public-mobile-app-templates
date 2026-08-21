@@ -5,7 +5,7 @@ import 'package:foduu_ecommerce/app/modules/product/views/product_view.dart';
 import 'package:foduu_ecommerce/app/modules/shop/bindings/shop_binding.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
 import '../../../../components/studio_widget/studio_search_bar_rounded.dart';
-import '../../../../components/studio_widget/product_grid_card.dart';
+import '../../../../components/studio_widget/studio_products.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
@@ -46,14 +46,16 @@ class SearchView extends GetView<SearchsController> {
           // ── Browse mode: CMS-authored layout, when the backend has one ──
           if (!isSearchMode && controller.widgetList.isNotEmpty) {
             return FoduuStudioLayoutView(
-              onRefresh: () => controller.fetchLayout(SearchsController.pageSlug),
+              onRefresh: () =>
+                  controller.fetchLayout(SearchsController.pageSlug),
               widgetList: controller.widgetList,
               isLoading: controller.isLayoutLoading,
             );
           }
 
           // ── Initial loading state (default product browse / search) ──
-          if (controller.isSearching.value && controller.searchProduct.isEmpty) {
+          if (controller.isSearching.value &&
+              controller.searchProduct.isEmpty) {
             return _buildGridShimmer(colorScheme);
           }
 
@@ -164,39 +166,30 @@ class SearchView extends GetView<SearchsController> {
 
                   // ── PRODUCT GRID ──
                   if (controller.searchProduct.isNotEmpty)
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics:
-                          const NeverScrollableScrollPhysics(), // Scroll handled by SingleChildScrollView
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 0.58,
-                      ),
-                      itemCount: controller.searchProduct.length,
-                      itemBuilder: (context, index) {
-                        final product = controller.searchProduct[index];
-                        return ProductGridCard(
-                          product: product,
-                          onTap: () {
-                            final productId = product['_id']?.toString() ?? '';
-                            final productName =
-                                product['name']?.toString() ?? '';
-                            if (productId.isNotEmpty) {
-                              controller.saveRecentSearch(
-                                  id: productId,
-                                  name: productName,
-                                  type: 'product');
-                              Get.to(() => ProductView(),
-                                  binding: ShopBinding(),
-                                  arguments: {'productId': productId});
-                            }
-                          },
-                        );
+                    TrendingProductSection(
+                      externalProducts: controller.searchProduct,
+                      externalHasMore: controller.hasNextPage,
+                      externalIsLoadingMore: controller.isFetchingMore.value,
+                      onLoadMore: controller.loadNextPage,
+                      hideHeader: true,
+                      onProductTap: (product) {
+                        final productId = product['_id']?.toString() ?? '';
+                        final productName =
+                            product['name']?.toString() ?? '';
+                        if (productId.isNotEmpty) {
+                          controller.saveRecentSearch(
+                              id: productId,
+                              name: productName,
+                              type: 'product');
+                          Get.to(() => ProductView(),
+                              binding: ShopBinding(),
+                              arguments: {'productId': productId});
+                        }
+                      },
+                      contentJson: const {
+                        'view': 'grid',
+                        'layout': 'standard',
+                        'columns': '2',
                       },
                     ),
 

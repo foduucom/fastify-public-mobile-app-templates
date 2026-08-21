@@ -20,32 +20,33 @@ class SearchBarRounded extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return TextFormField(
       controller: SearchsController,
       onChanged: onChanged,
       onSaved: (String? value) {},
       decoration: InputDecoration(
-        contentPadding: EdgeInsets.zero,
+        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         hintText: searchHintText,
-        // focusColor: themeSecondryColor,
         filled: true,
+        fillColor: colorScheme.surfaceContainerHighest,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(03),
-          borderSide: const BorderSide(),
+          borderRadius: BorderRadius.circular(24),
+          borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(),
-          borderRadius: BorderRadius.circular(03),
+          borderRadius: BorderRadius.circular(24),
+          borderSide: BorderSide(color: colorScheme.primary),
         ),
         enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(),
-          borderRadius: BorderRadius.circular(03),
+          borderRadius: BorderRadius.circular(24),
+          borderSide: BorderSide.none,
         ),
-        // fillColor: themegreyColor,
-        prefixIcon: const Icon(
-          Icons.search,
+        prefixIcon: Icon(
+          icon ?? Icons.search,
           size: 20,
-          // color: themeSecondrytext,
+          color: colorScheme.onSurfaceVariant,
         ),
       ),
     );

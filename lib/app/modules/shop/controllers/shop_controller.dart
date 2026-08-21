@@ -4,10 +4,20 @@ import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_attribute_filter_mixin.dart';
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_category_filter_mixin.dart';
+import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_mixin.dart';
 import 'package:get/get.dart';
 
 class ShopController extends GetxController
-    with BaseController, ShopCategoryFilterMixin, ShopAttributeFilterMixin {
+    with
+        BaseController,
+        ShopCategoryFilterMixin,
+        ShopAttributeFilterMixin,
+        FoduuStudioLayoutMixin {
+  static const String pageSlug = 'shop';
+
+  /// True when ShopView was opened plainly (bottom-tab entry, no filter
+  /// args) — renders the CMS dynamic layout instead of the filtered grid.
+  bool isPlainShopEntry = true;
   // ─── STATE VARIABLES ──────────────────────────────────────────
   var products = [].obs;
   var isLoading = true.obs;
@@ -60,14 +70,19 @@ class ShopController extends GetxController
       maxPrice.value = values.end;
     });
 
-    fetchBrands();
-    fetchCategories();
-    fetchProducts(isRefresh: true);
+    if (isPlainShopEntry) {
+      fetchLayout(pageSlug);
+    } else {
+      fetchBrands();
+      fetchCategories();
+      fetchProducts(isRefresh: true);
+    }
   }
 
   void _parseArguments() {
     if (Get.arguments != null) {
       final args = Get.arguments as Map;
+      isPlainShopEntry = false;
       collectionName.value = args['name'] ?? "Shop";
 
       if (args['source'] == 'category' && args['children'] != null) {
