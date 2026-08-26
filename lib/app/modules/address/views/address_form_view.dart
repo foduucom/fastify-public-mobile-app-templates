@@ -22,13 +22,13 @@ class _AddressFormViewState extends State<AddressFormView> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        floatingActionButton: FloatingActionButton(
-          heroTag: 'address_form_fab',
-          onPressed: () {
-            // controller.fetchCountries();
-            print(AuthDetails.getToken());
-          },
-        ),
+        // floatingActionButton: FloatingActionButton(
+        //   heroTag: 'address_form_fab',
+        //   onPressed: () {
+        //     // controller.fetchCountries();
+        //     print(AuthDetails.getToken());
+        //   },
+        // ),
         appBar: AppBar(
           title: Text(
             controller.isEditMode ? 'Edit Address' : 'Add New Address',

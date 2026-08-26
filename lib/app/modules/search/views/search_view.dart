@@ -22,19 +22,12 @@ class SearchView extends GetView<SearchsController> {
 
     return Scaffold(
       appBar: AppBar(
-        elevation: 0,
-        titleSpacing: 0,
-        toolbarHeight: 64,
-        title: Padding(
-          padding: const EdgeInsets.only(right: 16.0),
-          child: SearchBarRounded(
-            SearchsController: controller.searchTextController,
-            onChanged: (value) {
-              controller.getSearchSuggestion(text: value);
-            },
-            searchHintText: 'Search products, categories...',
-          ),
+        title: Text(
+          'Search',
+          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
+        elevation: 0,
       ),
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -43,39 +36,56 @@ class SearchView extends GetView<SearchsController> {
           final isSearchMode =
               controller.searchTextController.text.trim().isNotEmpty;
 
-          // ── Browse mode: CMS-authored layout, when the backend has one ──
-          if (!isSearchMode && controller.widgetList.isNotEmpty) {
-            return FoduuStudioLayoutView(
-              onRefresh: () =>
-                  controller.fetchLayout(SearchsController.pageSlug),
-              widgetList: controller.widgetList,
-              isLoading: controller.isLayoutLoading,
-            );
-          }
+          return Column(
+            children: [
+              if (controller.sectionTypes.contains('search'))
+                _SearchBar(controller: controller),
+              Expanded(
+                child: _buildBody(context, colorScheme, textTheme, isSearchMode),
+              ),
+            ],
+          );
+        }),
+      ),
+    );
+  }
 
-          // ── Initial loading state (default product browse / search) ──
-          if (controller.isSearching.value &&
-              controller.searchProduct.isEmpty) {
-            return _buildGridShimmer(colorScheme);
-          }
+  Widget _buildBody(BuildContext context, ColorScheme colorScheme,
+      TextTheme textTheme, bool isSearchMode) {
+    // ── Browse mode: CMS-authored layout, when the backend has one ──
+    if (!isSearchMode && controller.widgetList.isNotEmpty) {
+      return FoduuStudioLayoutView(
+        onRefresh: () => controller.fetchLayout(SearchsController.pageSlug),
+        widgetList: controller.widgetList,
+        isLoading: controller.isLayoutLoading,
+      );
+    }
 
-          return RefreshIndicator(
-            onRefresh: () async {
-              if (isSearchMode) {
-                controller.getSearchSuggestion(
-                    text: controller.searchTextController.text);
-              } else {
-                controller.loadAllProducts();
-              }
-            },
-            child: SingleChildScrollView(
-              controller: controller.scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ── RECENT SEARCHES (CHIPS) ──
-                  if (!isSearchMode && controller.recentSearchList.isNotEmpty)
+    // ── Browse mode, backend/CMS gave nothing: show nothing ──
+    if (!isSearchMode &&
+        controller.widgetList.isEmpty &&
+        !controller.isLayoutLoading.value) {
+      return const SizedBox.shrink();
+    }
+
+    // ── Initial loading state (search) ──
+    if (controller.isSearching.value && controller.searchProduct.isEmpty) {
+      return _buildGridShimmer(colorScheme);
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        controller.getSearchSuggestion(
+            text: controller.searchTextController.text);
+      },
+      child: SingleChildScrollView(
+        controller: controller.scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+              // ── RECENT SEARCHES (CHIPS) ──
+              if (controller.recentSearchList.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
                       child: Column(
@@ -216,11 +226,10 @@ class SearchView extends GetView<SearchsController> {
                 ],
               ),
             ),
-          );
-        }),
-      ),
     );
   }
+
+
 
   // ── Grid Shimmer Loading Effect ──
   Widget _buildGridShimmer(ColorScheme colorScheme) {
@@ -242,6 +251,28 @@ class SearchView extends GetView<SearchsController> {
             borderRadius: BorderRadius.circular(16),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ─── Search Bar ─────────────────────────────────────────────────────────────
+
+class _SearchBar extends StatelessWidget {
+  final SearchsController controller;
+
+  const _SearchBar({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      child: SearchBarRounded(
+        searchHintText: 'Search products, categories...',
+        SearchsController: controller.searchTextController,
+        onChanged: (value) {
+          controller.getSearchSuggestion(text: value);
+        },
       ),
     );
   }

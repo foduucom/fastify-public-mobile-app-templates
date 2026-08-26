@@ -58,13 +58,13 @@ class ProfileView extends GetView<ProfileController> {
     } else {
       return SafeArea(
         child: Scaffold(
-            floatingActionButton: FloatingActionButton(
-              heroTag: 'profile_fab',
-              onPressed: () {
-                print(AuthDetails.isUserLogin());
-                print(AuthDetails.getUserDetails());
-              },
-            ),
+            // floatingActionButton: FloatingActionButton(
+            //   heroTag: 'profile_fab',
+            //   onPressed: () {
+            //     print(AuthDetails.isUserLogin());
+            //     print(AuthDetails.getUserDetails());
+            //   },
+            // ),
             appBar: AppBar(
               title: const Text('Profile',
                   style: TextStyle(

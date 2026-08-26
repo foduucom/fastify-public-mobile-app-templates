@@ -28,12 +28,12 @@ class _RegisterViewState extends State<RegisterView> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        floatingActionButton: FloatingActionButton(
-          heroTag: 'register_fab',
-          onPressed: () {
-            print(controller.box.read('auth_preference'));
-          },
-        ),
+        // floatingActionButton: FloatingActionButton(
+        //   heroTag: 'register_fab',
+        //   onPressed: () {
+        //     print(controller.box.read('auth_preference'));
+        //   },
+        // ),
         appBar: AppBar(
           leading: Transform.translate(
             offset: Offset(15, 0),

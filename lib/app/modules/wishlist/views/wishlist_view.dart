@@ -57,12 +57,12 @@ class WishlistView extends GetView<WishlistController> {
     }
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'wishlist_fab',
-        onPressed: () {
-          controller.fetchWishlist();
-        },
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   heroTag: 'wishlist_fab',
+      //   onPressed: () {
+      //     controller.fetchWishlist();
+      //   },
+      // ),
       appBar: AppBar(
         title: Obx(() => Text(
               controller.wishlistItems.isEmpty

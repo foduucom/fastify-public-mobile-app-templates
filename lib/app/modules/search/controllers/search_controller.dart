@@ -32,7 +32,10 @@ class SearchsController extends GetxController
     scrollController.addListener(_scrollListener);
 
     getRecentSearch();
-    loadAllProducts();
+    // The page renders its own dedicated search field above the CMS
+    // layout, so skip any `search` block from the CMS config to avoid
+    // showing a second, redundant search bar.
+    excludeSectionTypes = const ['search'];
     fetchLayout(pageSlug);
     super.onInit();
   }

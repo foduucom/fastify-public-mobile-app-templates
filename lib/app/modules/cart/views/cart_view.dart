@@ -4,7 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../components/shimmer/cart_shimmer.dart';
 import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
@@ -25,12 +24,12 @@ class CartView extends GetView<CartController> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'cart_fab',
-        onPressed: () {
-          GetStorage().erase();
-        },
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   heroTag: 'cart_fab',
+      //   onPressed: () {
+      //     GetStorage().erase();
+      //   },
+      // ),
       appBar: AppBar(
         title: Obx(() => Text(
               controller.cartItems.isEmpty
@@ -130,11 +129,10 @@ class CartView extends GetView<CartController> {
               )),
 
           // ── Coupon Section ──
-          Obx(() => AuthDetails.isUserLogin()
-              ? _buildCouponSection(context, colorScheme, textTheme)
-              : const SizedBox.shrink()),
-
-          if (AuthDetails.isUserLogin()) const Divider(thickness: 8),
+          if (AuthDetails.isUserLogin()) ...[
+            _buildCouponSection(context, colorScheme, textTheme),
+            const Divider(thickness: 8),
+          ],
 
           // ── Order Summary ──
           _buildOrderSummary(context, colorScheme, textTheme),
@@ -206,30 +204,6 @@ class CartView extends GetView<CartController> {
           }),
         ],
       ),
-    );
-  }
-
-  Widget _summaryRow(
-    String label,
-    String value,
-    TextTheme textTheme,
-    ColorScheme colorScheme, {
-    Color? valueColor,
-    TextStyle? valueStyle,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: textTheme.bodyMedium),
-        Text(
-          value,
-          style: valueStyle ??
-              textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-                color: valueColor,
-              ),
-        ),
-      ],
     );
   }
 
@@ -335,7 +309,9 @@ class CartView extends GetView<CartController> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildCouponTextField(context, colorScheme, textTheme)),
+                  Expanded(
+                      child: _buildCouponTextField(
+                          context, colorScheme, textTheme)),
                   _buildCouponActionButton(context, colorScheme),
                 ],
               ),
@@ -381,7 +357,8 @@ class CartView extends GetView<CartController> {
         ));
   }
 
-  Widget _buildCouponActionButton(BuildContext context, ColorScheme colorScheme) {
+  Widget _buildCouponActionButton(
+      BuildContext context, ColorScheme colorScheme) {
     return Obx(() => controller.isCouponApply.value
         ? IconButton(
             onPressed: () {
@@ -466,7 +443,8 @@ class CartView extends GetView<CartController> {
                           'You have successfully applied the coupon \n you have saved '),
                   TextSpan(
                     text: controller.viewCouponAmount.value.replaceAll("-", ""),
-                    style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        color: Colors.green, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
