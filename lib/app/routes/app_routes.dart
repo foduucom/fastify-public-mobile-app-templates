@@ -54,6 +54,10 @@ abstract class Routes {
   static const PRIVACY_POLICY = _Paths.PRIVACY_POLICY;
   static const TERMS_CONDITIONS = _Paths.TERMS_CONDITIONS;
 
+  static const MY_REVIEWS = _Paths.MY_REVIEWS;
+  static const SUPPORT_TICKET = _Paths.SUPPORT_TICKET;
+  static const SUPPORT_TICKET_DETAILS = _Paths.SUPPORT_TICKET_DETAILS;
+
 }
 
 abstract class _Paths {
@@ -109,5 +113,8 @@ abstract class _Paths {
   static const PRIVACY_POLICY = '/privacy_policy';
   static const TERMS_CONDITIONS = '/terms_condition';
 
+  static const MY_REVIEWS = '/my-reviews';
+  static const SUPPORT_TICKET = '/support-ticket';
+  static const SUPPORT_TICKET_DETAILS = '/support-ticket-details';
 
 }

@@ -10,16 +10,18 @@ class OrderSuccessController extends GetxController with BaseController {
   var totalAmount = ''.obs;
   var address = {}.obs;
   var isLoading = false.obs;
+  var checkoutMethod = ''.obs;
 
   @override
   Future<void> onInit() async {
     super.onInit();
     if (Get.arguments != null) {
-      // If arguments is a String (order_no), use it directly. If it's a Map, look for 'id'.
+      // If arguments is a String (order_no), use it directly. If it's a Map, look for 'id'/'method'.
       if (Get.arguments is String) {
         id.value = Get.arguments;
       } else if (Get.arguments['id'] != null) {
         id.value = Get.arguments['id'];
+        checkoutMethod.value = Get.arguments['method'] ?? '';
       }
     }
     await OrderDetail();

@@ -7,6 +7,7 @@ import '../controllers/checkout_controller.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:foduu_ecommerce/components/buttons/bottombutton.dart';
+import 'package:foduu_ecommerce/components/oderdetail.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -284,69 +285,48 @@ class CheckOutView extends GetView<CheckOutController> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Order Summary',
+          'Order Details:',
           style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
-        Obx(() => _summaryRow(
-              'Subtotal',
-              '₹${cartController.subTotal.value.toStringAsFixed(2)}',
-              textTheme,
-            )),
-        const SizedBox(height: 8),
-        Obx(() => cartController.savings > 0
-            ? _summaryRow(
-                'You Save',
-                '-₹${cartController.savings.toStringAsFixed(2)}',
-                textTheme,
-                valueColor: Colors.green,
-              )
-            : const SizedBox.shrink()),
-        const SizedBox(height: 8),
-        _summaryRow('Delivery', '₹0.00', textTheme),
-        const SizedBox(height: 12),
-        Divider(color: Colors.grey.withValues(alpha: 0.3)),
-        const SizedBox(height: 12),
-        Obx(() => Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Total',
-                  style: textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  '₹${cartController.total.value.toStringAsFixed(2)}',
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red,
-                  ),
-                ),
-              ],
-            )),
-      ],
-    );
-  }
+        Obx(() {
+          double originalBagTotal = cartController.bagPriceAmount.value;
+          double itemSavings = cartController.discountAmount.value;
+          double couponDiscountAmount =
+              double.tryParse(cartController.couponDiscountAmount.value) ??
+                  0.0;
+          double taxableValue =
+              cartController.subTotalAmount.value - couponDiscountAmount;
+          double totalTaxAmount = cartController.tax.value;
+          double finalTotal = cartController.totalAmount.value;
 
-  Widget _summaryRow(
-    String label,
-    String value,
-    TextTheme textTheme, {
-    Color? valueColor,
-    TextStyle? valueStyle,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: textTheme.bodyMedium),
-        Text(
-          value,
-          style: valueStyle ??
-              textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-                color: valueColor,
-              ),
-        ),
+          List<ItemTaxBreakdown> breakdown = cartController.taxBreakdownList
+              .map((e) => ItemTaxBreakdown(
+                    name: e['name']?.toString() ?? 'Product',
+                    variantName: e['variant_name']?.toString(),
+                    taxPercent:
+                        double.tryParse(e['tax_percent']?.toString() ?? '0') ??
+                            0.0,
+                    taxAmount:
+                        double.tryParse(e['tax_amount']?.toString() ?? '0') ??
+                            0.0,
+                  ))
+              .toList();
+
+          return PriceBreakdownWidget(
+            originalBagTotal: originalBagTotal,
+            itemSavings: itemSavings,
+            couponCode: cartController.viewCouponCode.value == 'Apply Coupon'
+                ? ''
+                : cartController.viewCouponCode.value,
+            couponDiscountPrefix: cartController.viewCouponPrefix.value,
+            couponDiscountAmount: couponDiscountAmount,
+            taxableValue: taxableValue,
+            totalTaxAmount: totalTaxAmount,
+            itemTaxBreakdown: breakdown,
+            finalTotal: finalTotal,
+          );
+        }),
       ],
     );
   }

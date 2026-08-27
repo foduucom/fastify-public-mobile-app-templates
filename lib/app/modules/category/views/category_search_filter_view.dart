@@ -37,6 +37,8 @@ class CategorySearchFilterView extends GetView<CategorySearchFilterController> {
               child: controller.hasActiveFilters
                   ? Column(
                       children: [
+                        ...controller
+                            .buildWidgetsExcluding(['search', 'categories']),
                         _ResultHeader(
                             controller: controller, colorScheme: colorScheme),
                         Expanded(child: _CategoryGrid(controller: controller)),

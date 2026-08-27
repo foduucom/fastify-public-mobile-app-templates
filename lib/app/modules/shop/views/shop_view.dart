@@ -101,6 +101,10 @@ class ShopView extends GetView<ShopController> {
                 // ── FILTERED / DASHBOARD ENTRY ──
                 return Column(
                   children: [
+                    // ── CMS FREE-WILL SECTIONS (banner, rich_text, etc.) ──
+                    ...controller
+                        .buildWidgetsExcluding(['categories', 'products']),
+
                     // ── ACTIVE FILTER CHIPS (Horizontal Scroll) ──
                     if (_hasActiveFilters()) _buildActiveFilterChips(colorScheme),
 

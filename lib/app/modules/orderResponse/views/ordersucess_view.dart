@@ -13,8 +13,7 @@ import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 
 class OrdersucessView extends GetView<OrderSuccessController> {
-  OrdersucessView({Key? key}) : super(key: key);
-  var controller = Get.put(OrderSuccessController());
+  const OrdersucessView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +60,10 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                                             'paid' ||
                                                         controller.item[
                                                                 'payment_method'] ==
+                                                            'cod' ||
+                                                        controller
+                                                                .checkoutMethod
+                                                                .value ==
                                                             'cod'
                                                     ? 'assets/lotti/order-success.json'
                                                     : 'assets/lotti/emptyanimation.json',
@@ -72,6 +75,10 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                                             'paid' ||
                                                         controller.item[
                                                                 'payment_method'] ==
+                                                            'cod' ||
+                                                        controller
+                                                                .checkoutMethod
+                                                                .value ==
                                                             'cod'
                                                     ? 'Order Placed successfully!'
                                                     : 'Order Placement Failed!',
@@ -83,6 +90,10 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                                                 'paid' ||
                                                             controller.item[
                                                                     'payment_method'] ==
+                                                                'cod' ||
+                                                            controller
+                                                                    .checkoutMethod
+                                                                    .value ==
                                                                 'cod'
                                                         ? Colors.black
                                                         : Colors.black54,
@@ -94,6 +105,9 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                                           'paid' ||
                                                       controller.item[
                                                               'payment_method'] ==
+                                                          'cod' ||
+                                                      controller.checkoutMethod
+                                                              .value ==
                                                           'cod'
                                                   ? 'Payment is successfully processed and your Order is on the way.'
                                                   : 'Payment was not completed. Your order is pending payment.',
@@ -266,13 +280,15 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                     deliveryAmount:
                         controller.item['shipping']?.toString() ?? '0',
                     buttonText: controller.item['payment_status'] == 'paid' ||
-                            controller.item['payment_method'] == 'cod'
+                            controller.item['payment_method'] == 'cod' ||
+                            controller.checkoutMethod.value == 'cod'
                         ? 'Continue Shopping'
                         : 'View My Orders',
                     priceText: controller.item['total']?.toString() ?? '0',
                     keypressEvent: () {
                       if (controller.item['payment_status'] == 'paid' ||
-                          controller.item['payment_method'] == 'cod') {
+                          controller.item['payment_method'] == 'cod' ||
+                          controller.checkoutMethod.value == 'cod') {
                         Get.offAllNamed(Routes.BOTTOMBAR);
                       } else {
                         // Navigate to orders section if payment failed

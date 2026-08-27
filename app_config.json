@@ -66,6 +66,11 @@
         "name": "Rectangular",
         "slug": "rectangular",
         "description": "Large rectangular cards with image on left and text on right (Default Category Page Style)"
+      },
+      {
+        "name": "Overlay",
+        "slug": "overlay",
+        "description": "Full-image card with gradient overlay, name, and a hold-to-expand 'Shop Now' reveal (Shop by Occasion style)"
       }
     ],
     "product": [

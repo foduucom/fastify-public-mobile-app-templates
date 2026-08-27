@@ -65,6 +65,12 @@ import 'package:foduu_ecommerce/app/modules/wishlist/views/wishlist_view.dart';
 import 'package:get/get.dart';
 
 import 'package:foduu_ecommerce/app/modules/search/bindings/search_binding.dart';
+import 'package:foduu_ecommerce/app/modules/reviews/bindings/my_reviews_binding.dart';
+import 'package:foduu_ecommerce/app/modules/reviews/views/my_reviews_view.dart';
+import 'package:foduu_ecommerce/app/modules/support_ticket/bindings/support_ticket_binding.dart';
+import 'package:foduu_ecommerce/app/modules/support_ticket/views/support_ticket_view.dart';
+import 'package:foduu_ecommerce/app/modules/support_ticket_details/bindings/support_ticket_details_binding.dart';
+import 'package:foduu_ecommerce/app/modules/support_ticket_details/views/support_ticket_details_view.dart';
 part 'app_routes.dart';
 
 class AppPages {
@@ -270,6 +276,21 @@ class AppPages {
     GetPage(
       name: _Paths.TERMS_CONDITIONS,
       page: () => const TermsConditionsView(),
+    ),
+    GetPage(
+      name: _Paths.MY_REVIEWS,
+      page: () => const MyReviewsView(),
+      binding: MyReviewsBinding(),
+    ),
+    GetPage(
+      name: _Paths.SUPPORT_TICKET,
+      page: () => const SupportTicketView(),
+      binding: SupportTicketBinding(),
+    ),
+    GetPage(
+      name: _Paths.SUPPORT_TICKET_DETAILS,
+      page: () => const SupportTicketDetailsView(),
+      binding: SupportTicketDetailsBinding(),
     ),
   ];
 

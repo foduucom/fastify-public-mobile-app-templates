@@ -84,6 +84,9 @@ class SearchView extends GetView<SearchsController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+              // ── CMS FREE-WILL SECTIONS (banner, rich_text, etc.) ──
+              ...controller.buildWidgetsExcluding(['search', 'products']),
+
               // ── RECENT SEARCHES (CHIPS) ──
               if (controller.recentSearchList.isNotEmpty)
                     Padding(

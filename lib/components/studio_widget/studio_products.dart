@@ -337,7 +337,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             Column(
               children: [
                 // ─── Section Header ───
-                if (!widget.hideHeader) ...[
+                if (!widget.hideHeader && !_infiniteScroll) ...[
                   Padding(
                     padding: pageSurroundingPadding,
                     child: StudioSectionHeader(

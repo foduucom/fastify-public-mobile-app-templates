@@ -180,8 +180,14 @@ class ProfileView extends GetView<ProfileController> {
                                     case 4:
                                       Get.toNamed(Routes.NOTIFICATION);
                                       break;
+                                    // case 5:
+                                    //   Get.toNamed(Routes.CONTACTUS);
+                                    //   break;
                                     case 5:
-                                      Get.toNamed(Routes.CONTACTUS);
+                                      Get.toNamed(Routes.MY_REVIEWS);
+                                      break;
+                                    case 6:
+                                      Get.toNamed(Routes.SUPPORT_TICKET);
                                       break;
                                     default:
                                   }

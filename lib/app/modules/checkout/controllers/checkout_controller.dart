@@ -341,7 +341,8 @@ class CheckOutController extends GetxController with BaseController {
 
               if (selectedOnlineMethod != 'razorpay') {
                 if (Get.isDialogOpen ?? false) Get.back();
-                Get.offAllNamed(Routes.ORDERSUCCESS, arguments: orderId);
+                Get.offAllNamed(Routes.ORDERSUCCESS,
+                    arguments: {'id': orderId, 'method': methodName});
               }
             } catch (e) {
               if (Get.isDialogOpen ?? false) Get.back();
@@ -388,7 +389,8 @@ class CheckOutController extends GetxController with BaseController {
 
       if (methodName != 'razorpay') {
         if (Get.isDialogOpen ?? false) Get.back();
-        Get.offAllNamed(Routes.ORDERSUCCESS, arguments: orderId);
+        Get.offAllNamed(Routes.ORDERSUCCESS,
+            arguments: {'id': orderId, 'method': methodName});
       }
     } catch (e) {
       if (Get.isDialogOpen ?? false) Get.back();

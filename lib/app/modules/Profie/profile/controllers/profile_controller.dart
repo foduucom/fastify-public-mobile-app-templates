@@ -337,10 +337,20 @@ class ProfileController extends GetxController with BaseController {
       "title": "Notification",
       "subtitle": "Offers, Order tracking messages.."
     },
+    // {
+    //   "icon": "assets/icon/user-key.png",
+    //   "title": "Contact Us",
+    //   "subtitle": "Customer Support, FAQs"
+    // },
     {
-      "icon": "assets/icon/user-key.png",
-      "title": "Contact Us",
-      "subtitle": "Customer Support, FAQs"
+      "icon": "assets/icon/rateproduct.svg",
+      "title": "My Reviews",
+      "subtitle": "Reviews you have written"
+    },
+    {
+      "icon": "assets/icon/profilecall.svg",
+      "title": "Support Ticket",
+      "subtitle": "Raise & track support requests"
     },
     // {
     //   "icon": "assets/icon/profileoption1.svg",

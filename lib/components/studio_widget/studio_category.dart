@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
+import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
@@ -53,7 +54,11 @@ class _TopCategoryHomeState extends State<CategoryHome>
               title: title,
               subtitle: subtitle,
               onSeeAll: () {
-                Get.toNamed(Routes.CATEGORY);
+                // Navigate to the CATEGORY tab of the BottomBar instead of
+                // pushing a standalone CategorySearchFilterView route.
+                final bottombarController = Get.find<BottombarController>();
+                bottombarController.onTabChange(1);
+                Get.until((route) => route.settings.name == Routes.BOTTOMBAR);
               },
             ),
           ),
@@ -79,7 +84,8 @@ class _TopCategoryHomeState extends State<CategoryHome>
       );
     } else {
       return SizedBox(
-        height: style == 'circular' ? 110 : 140, // Adjust height based on style
+        height:
+            style == 'circular' ? 110 : 140, // Adjust height based on style
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(
             dragDevices: {
@@ -201,10 +207,19 @@ class CategoryGridItem extends StatelessWidget {
     }
   }
 
+  void _navigate() => onTap != null ? onTap!(category) : _defaultNavigate();
+
   @override
   Widget build(BuildContext context) {
+    if (style == 'overlay') {
+      return _OverlayCategoryCard(
+        category: category,
+        categoryImage: _categoryImage,
+        onTap: _navigate,
+      );
+    }
     return GestureDetector(
-      onTap: () => onTap != null ? onTap!(category) : _defaultNavigate(),
+      onTap: _navigate,
       child: style == 'rectangular'
           ? _buildRectangularItem(context, isVerticalList)
           : _buildCircularItem(context, isGrid, isVerticalList: isVerticalList),
@@ -381,6 +396,120 @@ class CategoryGridItem extends StatelessWidget {
         ),
       );
     }
+  }
+}
+
+typedef _CategoryImageBuilder = Widget Function({
+  required BuildContext context,
+  required double? width,
+  required double? height,
+  required BoxFit fit,
+  required IconData icon,
+});
+
+/// Full-image category card with a bottom gradient scrim. A quick tap
+/// navigates immediately; holding a long-press expands the card and reveals
+/// a "SHOP NOW" caption, mirroring the web "Shop by Occasion" hover effect.
+class _OverlayCategoryCard extends StatefulWidget {
+  final dynamic category;
+  final _CategoryImageBuilder categoryImage;
+  final VoidCallback onTap;
+
+  const _OverlayCategoryCard({
+    required this.category,
+    required this.categoryImage,
+    required this.onTap,
+  });
+
+  @override
+  State<_OverlayCategoryCard> createState() => _OverlayCategoryCardState();
+}
+
+class _OverlayCategoryCardState extends State<_OverlayCategoryCard> {
+  bool _expanded = false;
+
+  void _setExpanded(bool value) {
+    if (_expanded != value) setState(() => _expanded = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      onLongPressStart: (_) => _setExpanded(true),
+      onLongPressEnd: (_) => _setExpanded(false),
+      onLongPressCancel: () => _setExpanded(false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        width: _expanded ? 220 : 150,
+        height: 140,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            widget.categoryImage(
+              context: context,
+              width: double.infinity,
+              height: double.infinity,
+              fit: BoxFit.cover,
+              icon: Icons.category,
+            ),
+            Container(
+              alignment: Alignment.bottomLeft,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0),
+                    Colors.black.withValues(alpha: 0.6),
+                  ],
+                  stops: const [0.5, 1.0],
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.category['name'].toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  AnimatedOpacity(
+                    duration: const Duration(milliseconds: 180),
+                    opacity: _expanded ? 1 : 0,
+                    child: const Padding(
+                      padding: EdgeInsets.only(top: 4),
+                      child: Text(
+                        'SHOP NOW',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

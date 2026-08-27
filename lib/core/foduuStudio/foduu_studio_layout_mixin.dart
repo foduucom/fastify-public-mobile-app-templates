@@ -97,6 +97,30 @@ mixin FoduuStudioLayoutMixin on GetxController {
     }
   }
 
+  /// Build widgets for whatever CMS sections exist, skipping [excludeTypes].
+  ///
+  /// Unlike [widgetList], this isn't stored/reactive — it's recomputed from
+  /// the last-fetched sections on every call. Useful for pages that render
+  /// a fixed/special-cased section (e.g. a controller-driven search bar or
+  /// results grid) but still want to give the CMS free rein over any other
+  /// section type (banner, rich_text, etc.) around it.
+  List<Widget> buildWidgetsExcluding(List<String> excludeTypes) {
+    final result = <Widget>[];
+    for (var section in _initialComponents) {
+      if (section is Map<String, dynamic>) {
+        if (excludeTypes.contains(section['type'])) continue;
+        try {
+          final widget = _registry.build(section);
+          if (widget != null) result.add(widget);
+        } catch (e) {
+          print('DynamicLayoutMixin buildWidgetsExcluding: failed to build '
+              'section "${section['type']}": $e');
+        }
+      }
+    }
+    return result;
+  }
+
   /// Look up a section's content_json by its `type`, even if that section
   /// was excluded from [widgetList] via [excludeSectionTypes].
   Map<String, dynamic>? contentJsonFor(String type) {
