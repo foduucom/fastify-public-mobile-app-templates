@@ -57,6 +57,7 @@ dependencies:
   flutter_paypal_payment: ^1.0.8
   razorpay_flutter: ^1.4.1
   flutter_stripe: ^12.4.0
+  phonepe_payment_sdk: ^3.0.2
 
 dev_dependencies:
   flutter_lints: ^2.0.1
