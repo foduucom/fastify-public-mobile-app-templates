@@ -15,6 +15,14 @@ import 'package:foduu_ecommerce/services/payment_handler_controller.dart'; // Im
 import 'package:foduu_ecommerce/components/paymentGateway/RazorPay.dart';
 import 'package:foduu_ecommerce/app/modules/address/controllers/address_list_controller.dart';
 
+/// 'SANDBOX' for testing, 'PRODUCTION' for a real release build.
+const String kPhonePeEnvironment = 'SANDBOX';
+
+/// Custom URL scheme PhonePe uses to redirect back into this app.
+/// Placeholder — must be unique per deployed app and match the scheme
+/// registered in AndroidManifest.xml / Info.plist.
+const String kPhonePeAppScheme = 'foduuecommerceapp1';
+
 class CheckOutController extends GetxController with BaseController {
   // ── Observable state ──────────────────────────────────────────────────
   var deliveryOption = {}.obs;
@@ -429,10 +437,21 @@ class CheckOutController extends GetxController with BaseController {
         break;
 
       case 'phonepe':
-        final merchantId = paymentConfig['phonepe']['merchant_id'];
-        await PhonePePayment(merchantId: merchantId).processPayment(
+        final phonepeConfig = paymentConfig['phonepe'];
+        final result = await PhonePePayment(
+          clientId: phonepeConfig['client_id'],
+          clientSecret: phonepeConfig['client_secret'],
+          clientVersion: phonepeConfig['client_version']?.toString() ?? '1',
+          environment: kPhonePeEnvironment,
+          appScheme: kPhonePeAppScheme,
+        ).processPayment(
           amount: amount,
           metadata: orderResponse,
+        );
+        await confirmPayment(
+          rawOrderId,
+          (result['phonePeOrderId'] ?? result['transactionId'] ?? '')
+              .toString(),
         );
         break;
 

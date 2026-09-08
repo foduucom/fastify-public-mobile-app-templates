@@ -91,11 +91,12 @@ class _bottomButtonState extends State<bottomButton> {
                         }
                       }
 
+                      final colorScheme = Theme.of(context).colorScheme;
                       Get.bottomSheet(
                         Container(
                           width: double.infinity,
                           decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
+                              color: colorScheme.surface,
                               borderRadius: const BorderRadius.vertical(
                                   top: Radius.circular(15))),
                           padding: pageSurroundingPadding,
@@ -104,12 +105,13 @@ class _bottomButtonState extends State<bottomButton> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const SizedBox(height: 15),
-                              const Text(
+                              Text(
                                 'Order Details:',
                                 style: TextStyle(
                                     fontFamily: 'Lato',
                                     fontSize: 16,
-                                    fontWeight: FontWeight.w600),
+                                    fontWeight: FontWeight.w600,
+                                    color: colorScheme.onSurface),
                               ),
                               const SizedBox(height: 20),
                               orderDetial(

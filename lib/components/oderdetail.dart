@@ -414,17 +414,21 @@ class orderDetial extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Total Amount:',
-              style: TextStyle(fontFamily: 'Lato', fontWeight: FontWeight.w600),
+              style: TextStyle(
+                  fontFamily: 'Lato',
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface),
             ),
             isLoading
                 ? const TextShimmer()
                 : Text(
                     "\u{20B9}${double.parse(totalAmount).toStringAsFixed(2)}",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Lato',
                       fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface,
                     ),
                   ),
           ],
@@ -631,12 +635,13 @@ class _PriceBreakdownWidgetState extends State<PriceBreakdownWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'You pay',
                 style: TextStyle(
                   fontFamily: 'Lato',
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
+                  color: colorScheme.onSurface,
                 ),
               ),
               widget.isLoading
@@ -646,10 +651,11 @@ class _PriceBreakdownWidgetState extends State<PriceBreakdownWidget> {
                       child: Text(
                         "$symbol ${widget.finalTotal.toStringAsFixed(2)}",
                         key: ValueKey(widget.finalTotal),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Lato',
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                     ),

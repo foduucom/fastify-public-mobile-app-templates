@@ -332,11 +332,11 @@ class ProfileController extends GetxController with BaseController {
       "title": "Saved Address",
       "subtitle": "Home, office.. "
     },
-    {
-      "icon": "assets/icon/profilenotification.svg",
-      "title": "Notification",
-      "subtitle": "Offers, Order tracking messages.."
-    },
+    // {
+    //   "icon": "assets/icon/profilenotification.svg",
+    //   "title": "Notification",
+    //   "subtitle": "Offers, Order tracking messages.."
+    // },
     // {
     //   "icon": "assets/icon/user-key.png",
     //   "title": "Contact Us",
