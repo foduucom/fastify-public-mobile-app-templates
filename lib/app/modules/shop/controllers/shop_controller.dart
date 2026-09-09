@@ -262,9 +262,8 @@ class ShopController extends GetxController
   Future<void> fetchBrands() async {
     try {
       isBrandsLoading.value = true;
-      var response = await BasicProvider("brands")
-          .getRequest()
-          .catchError(handleError);
+      var response =
+          await BasicProvider("brands").getRequest().catchError(handleError);
 
       if (response != null && response is Map<String, dynamic>) {
         if (response.containsKey('data') && response['data'] is List) {
@@ -285,9 +284,8 @@ class ShopController extends GetxController
   Future<void> fetchCategories() async {
     try {
       isCategoriesLoading.value = true;
-      var response = await BasicProvider("category")
-          .getRequest()
-          .catchError(handleError);
+      var response =
+          await BasicProvider("category").getRequest().catchError(handleError);
 
       if (response != null && response is Map<String, dynamic>) {
         if (response.containsKey('data') && response['data'] is List) {

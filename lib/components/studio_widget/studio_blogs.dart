@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
@@ -20,14 +21,86 @@ class BlogSection extends StatefulWidget {
 
 class _BlogSectionState extends State<BlogSection>
     with AutomaticKeepAliveClientMixin {
+  List _fallbackBlogs = [];
+  bool _fallbackLoading = false;
+  bool _fallbackFetched = false;
+
+  bool get _cmsHasBlogs {
+    final blogData = widget.blogData;
+    if (blogData == null) return false;
+    final blogs = blogData['blogs'];
+    return blogs != null && blogs.isNotEmpty;
+  }
+
+  @override
+  void didUpdateWidget(covariant BlogSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.blogData != widget.blogData) {
+      _fallbackFetched = false;
+      _fallbackBlogs = [];
+    }
+  }
+
+  Future<void> _fetchFallbackBlogs() async {
+    if (_fallbackFetched || _fallbackLoading || _cmsHasBlogs) return;
+    _fallbackFetched = true;
+    setState(() => _fallbackLoading = true);
+    try {
+      var response =
+          await BasicProvider("blogs?count=2&page=1").getRequest();
+      final data = response is Map ? response['data'] ?? response : response;
+      if (mounted && data is List) {
+        setState(() => _fallbackBlogs = data);
+      }
+    } catch (e) {
+      // Silently ignore — section stays hidden, same as when CMS has no data.
+    } finally {
+      if (mounted) setState(() => _fallbackLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
-    var blogs = widget.blogData['blogs'] ?? [];
+    if (_cmsHasBlogs) {
+      var blogs = widget.blogData['blogs'];
+      return _buildSection(
+        blogs: blogs,
+        title: (widget.blogData['heading'] ?? '').toString().isEmpty
+            ? 'Blog'
+            : widget.blogData['heading'].toString(),
+        subtitle: widget.blogData['subheading'] ?? '',
+        onSeeAll: () {
+          Get.to(() => AllBlogsSection(blogData: widget.blogData));
+        },
+      );
+    }
 
-    if (blogs.isEmpty) return const SizedBox();
+    if (!_fallbackFetched) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _fetchFallbackBlogs();
+      });
+    }
 
+    if (_fallbackBlogs.isEmpty) return const SizedBox();
+
+    return _buildSection(
+      blogs: _fallbackBlogs,
+      title: 'Blog',
+      subtitle: '',
+      onSeeAll: () {
+        Get.toNamed(Routes.BLOG);
+      },
+    );
+  }
+
+  Widget _buildSection({
+    required List blogs,
+    required String title,
+    required String subtitle,
+    required VoidCallback onSeeAll,
+  }) {
     var displayedBlogs = blogs.take(2).toList();
 
     return Padding(
@@ -37,13 +110,9 @@ class _BlogSectionState extends State<BlogSection>
         children: [
           const SizedBox(height: 10),
           StudioSectionHeader(
-            title: (widget.blogData['heading'] ?? '').toString().isEmpty
-                ? 'Blog'
-                : widget.blogData['heading'].toString(),
-            subtitle: widget.blogData['subheading'] ?? '',
-            onSeeAll: () {
-              Get.to(() => AllBlogsSection(blogData: widget.blogData));
-            },
+            title: title,
+            subtitle: subtitle,
+            onSeeAll: onSeeAll,
           ),
           const SizedBox(height: 15),
           Container(

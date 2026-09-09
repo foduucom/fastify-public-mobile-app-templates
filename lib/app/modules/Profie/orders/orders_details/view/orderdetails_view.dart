@@ -1,127 +1,82 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/orders_details/controller/orderdetails_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
-import 'package:foduu_ecommerce/components/order_detail.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:timeline_tile/timeline_tile.dart';
 
 class OrderdetailView extends GetView<OrderdetailController> {
   OrderdetailView({Key? key}) : super(key: key);
-  int totalSteps = 3;
-
-  List name = [
-    'out for delivery'.tr,
-    'in transit'.tr,
-    'ready to ship'.tr,
-    'ordered'.tr
-  ];
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-          appBar: AppBar(
-              title: Obx(
-                () => Text(
-                    controller.item.isEmpty || controller.item["id"] == null
-                        ? 'order details'.tr
-                        : 'Order Details'.tr + '#${controller.item["id"]}'),
-              ),
-              elevation: 0.0),
-          body: Stack(
-            children: [
-              Positioned(
-                top: 0,
-                right: 0,
-                bottom: 0,
-                left: 0,
-                child: ListView(
+        appBar: AppBar(
+          title: Obx(
+            () => Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Order Details'.tr,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w600)),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    controller.item.isEmpty || controller.item['id'] == null
+                        ? ''
+                        : '#${controller.item["id"]}',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Theme.of(context).colorScheme.outline,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          elevation: 0.0,
+        ),
+        body: Obx(
+          () => controller.isLoading.value && controller.item.isEmpty
+              ? const Center(child: CircularProgressIndicator())
+              : ListView(
                   children: [
-                    Padding(
-                        padding: const EdgeInsets.only(left: 30, top: 20),
-                        child: ListView.builder(
-                            itemCount: 4,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              return TimelineTile(
-                                // isFirst: index == 0 ? true : false,
-                                // isLast: index == totalSteps - 1 ? true : false,
-                                indicatorStyle: IndicatorStyle(
-                                    color: const Color(0xff309530),
-                                    indicator: Container(
-                                      height: 50,
-                                      width: 50,
-                                      alignment: Alignment.center,
-                                      decoration: const BoxDecoration(
-                                          color: Color(0xff309530),
-                                          shape: BoxShape.circle),
-                                      child: const Icon(
-                                        Icons.check,
-                                        color: Colors.white,
-                                        size: 15,
-                                      ),
-                                    )),
-                                beforeLineStyle:
-                                    const LineStyle(color: Colors.grey),
-                                afterLineStyle:
-                                    const LineStyle(color: Color(0xff309530)),
-                                endChild: Container(
-                                  padding: const EdgeInsets.all(20),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        height: 28,
-                                        width: Get.width * 0.42,
-                                        decoration: BoxDecoration(
-                                            color: const Color(0xffEDEFF4),
-                                            borderRadius:
-                                                BorderRadius.circular(10)),
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          name[index],
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            // color: themeTextColor
-                                          ),
-                                        ),
-                                      ),
-                                      const Text(
-                                        "expected delivery on monday",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          // color: themeTextColor
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            })),
+                    // Order Tracking Card
+                    OrderTrackingCard(),
+                    const SizedBox(height: 10),
+                    Divider(
+                      thickness: 8,
+                      color: Theme.of(context).dividerTheme.color ??
+                          Colors.grey.shade100,
+                    ),
+
+                    // Rate & review / help row
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 20),
+                          horizontal: 20, vertical: 16),
                       child: Row(
                         children: [
-                          const Icon(
+                          Icon(
                             CupertinoIcons.star,
+                            size: 18,
+                            color: Theme.of(context).colorScheme.outline,
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                reviewModal(controller);
+                                reviewModal(context, controller);
                               },
                               child: Text(
                                 'rate and review product'.tr,
@@ -135,10 +90,10 @@ class OrderdetailView extends GetView<OrderdetailController> {
                           const SizedBox(width: 10),
                           SvgPicture.asset(
                             'assets/images/helpcircle.svg',
-                            height: 20,
-                            width: 20,
+                            height: 18,
+                            width: 18,
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 6),
                           GestureDetector(
                             onTap: () {
                               Get.toNamed(Routes.HELPANDSUPPORT);
@@ -158,80 +113,337 @@ class OrderdetailView extends GetView<OrderdetailController> {
                                     fontWeight: FontWeight.w400,
                                     fontSize: 14,
                                   ),
-                                )
+                                ),
                               ],
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
-                    Container(
-                      height: 10,
+                    Divider(
+                      color: Theme.of(context).dividerTheme.color,
+                      height: 1,
                     ),
-                    const SizedBox(height: 10),
+
+                    // Shipping Details
                     Obx(() => controller.item.isNotEmpty &&
-                            controller.item['customer'] != null &&
-                            controller.item['customer'] is Map &&
                             controller.item['address'] != null
                         ? ShippingAddress(
-                            mobileNo: controller.item['customer']['mobile']
-                                    ?.toString() ??
-                                '',
-                            address: controller.item['address'])
+                            mobileNo: (controller.item['address'] is Map &&
+                                    controller.item['address']['mobile'] !=
+                                        null)
+                                ? controller.item['address']['mobile']
+                                    .toString()
+                                : (controller.item['customer'] is Map &&
+                                        controller.item['customer']
+                                                ['mobile'] !=
+                                            null)
+                                    ? controller.item['customer']['mobile']
+                                        .toString()
+                                    : '',
+                            address: controller.item['address'],
+                          )
                         : const ShippingAddressShimmer()),
-                    const SizedBox(height: 20),
-                    Container(
-                      height: 10,
+                    Divider(
+                      color: Theme.of(context).dividerTheme.color,
+                      height: 1,
                     ),
-                    const SizedBox(height: 20),
+
+                    // Price Details
                     Obx(() => controller.item.isNotEmpty
                         ? PriceDetails(item: controller.item)
                         : const ShippingAddressShimmer()),
-                    const SizedBox(height: 10),
-                    Obx(
-                      () => Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 50),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            shape: BeveledRectangleBorder(),
-                          ),
-                          onPressed: () => controller
-                              .downloadAndSavePDF(controller.item['_id']),
-                          child: controller.downloading.value
-                              ? HelperFunctions().loadingIndicator(
-                                  color: Colors.white,
-                                )
-                              : Text(
-                                  'Download PDF'.tr,
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                        ),
-                      ),
-                    ),
+
                     const SizedBox(height: 20),
+
+                    // Download Invoice Button
+                    Obx(() {
+                      final status = controller.item['payment_status']
+                              ?.toString()
+                              .toLowerCase() ??
+                          '';
+                      if (status != 'paid') return const SizedBox.shrink();
+                      return Padding(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 20),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: ElevatedButton(
+                            style: themeButton,
+                            onPressed: () => controller
+                                .downloadAndSavePDF(controller.item['_id']),
+                            child: controller.downloading.value
+                                ? HelperFunctions()
+                                    .loadingIndicator(color: Colors.white)
+                                : Text(
+                                    'Download Invoice'.tr,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 30),
                   ],
                 ),
-              ),
-              // Positioned(
-              //   bottom: 10,
-              //   right: 10,
-              //   left: 10,
-              //   child: Center(
-              //     child: Obx(
-              //       () => controller.downloading.value
-              //           ? HelperFunctions().loadingIndicator()
-              //           : ElevatedButton(
-              //               onPressed: () => controller
-              //                   .downloadAndSavePDF(controller.item['_id']),
-              //               child: Text('Download PDF'.tr),
-              //             ),
-              //     ),
-              //   ),
-              // ),
+        ),
+      ),
+    );
+  }
+}
 
-              // DownloadInvoice(item: controller.item['invoice'] ?? '')
-            ],
-          )),
+class OrderTrackingCard extends StatelessWidget {
+  final OrderdetailController controller = Get.find<OrderdetailController>();
+
+  OrderTrackingCard({Key? key}) : super(key: key);
+
+  String _formatDate(dynamic dateTimeString) {
+    if (dateTimeString == null) return '-';
+    try {
+      final dateTime = DateTime.parse(dateTimeString.toString());
+      final now = DateTime.now();
+      final difference = now.difference(dateTime);
+
+      if (difference.inDays > 0) {
+        return '${difference.inDays}d ago';
+      } else if (difference.inHours > 0) {
+        return '${difference.inHours}h ago';
+      } else if (difference.inMinutes > 0) {
+        return '${difference.inMinutes}m ago';
+      } else {
+        return 'Just now';
+      }
+    } catch (e) {
+      if (dateTimeString.toString().contains('T')) {
+        return dateTimeString.toString().split('T')[0];
+      }
+      return dateTimeString.toString();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final item = controller.item;
+      if (item.isEmpty) return const OrderTrackingShimmer();
+
+      final total =
+          double.tryParse(item['total']?.toString() ?? '0') ?? 0.0;
+      final totalStr = '\u{20B9}${total.toStringAsFixed(total % 1 == 0 ? 0 : 2)}';
+
+      final paymentStatus =
+          item['payment_status']?.toString().toLowerCase() ?? '';
+      final isPaid = paymentStatus == 'paid';
+      final isFailed = paymentStatus == 'failed';
+      final payments = item['payments'] as List?;
+      final paidAt =
+          payments != null && payments.isNotEmpty ? payments[0]['paid_at'] : null;
+      final paymentMethod =
+          item['payment_method']?.toString().toUpperCase() ?? '';
+      final orderDate = paidAt ?? item['createdAt'];
+
+      final statusColor = isPaid
+          ? Colors.green
+          : (isFailed ? Colors.red : Colors.orange);
+
+      return Padding(
+        padding: pageSurroundingPadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    isPaid
+                        ? Icons.check_circle
+                        : (isFailed ? Icons.error_outline : Icons.access_time),
+                    color: statusColor.shade700,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isPaid
+                              ? 'Payment Confirmed'.tr
+                              : (isFailed
+                                  ? 'Payment Failed'.tr
+                                  : 'Payment Pending'.tr),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            color: statusColor.shade700,
+                          ),
+                        ),
+                        if (isPaid && paidAt != null)
+                          Text(
+                            _formatDate(paidAt),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: statusColor.shade600,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    totalStr,
+                    style: txtTheme()
+                        .titleLarge!
+                        .copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Order Timeline'.tr,
+              style:
+                  txtTheme().titleLarge!.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            _TimelineItem(
+              title: 'Order Placed'.tr,
+              date: _formatDate(orderDate),
+              description: 'Your order has been placed successfully'.tr,
+              isCompleted: true,
+              icon: Icons.shopping_bag_outlined,
+            ),
+            _TimelineItem(
+              title: 'Payment'.tr,
+              date: isPaid
+                  ? _formatDate(paidAt)
+                  : (isFailed ? 'Failed'.tr : 'Pending'.tr),
+              description: isPaid
+                  ? 'Payment received via $paymentMethod'
+                  : (isFailed
+                      ? 'Payment failed via $paymentMethod'
+                      : 'Awaiting payment confirmation'.tr),
+              isCompleted: isPaid,
+              isFailed: isFailed,
+              icon: Icons.payment_outlined,
+            ),
+            _TimelineItem(
+              title: 'Order Confirmed'.tr,
+              date: isPaid ? _formatDate(paidAt) : '-',
+              description: isPaid
+                  ? 'Your order has been confirmed and will be processed soon'
+                      .tr
+                  : (isFailed
+                      ? 'Order confirmation failed due to failed payment'.tr
+                      : 'Will be confirmed after payment'.tr),
+              isCompleted: isPaid,
+              isFailed: isFailed,
+              icon: isFailed ? Icons.cancel_outlined : Icons.check_circle_outline,
+              isLast: true,
+            ),
+          ],
+        ),
+      );
+    });
+  }
+}
+
+class _TimelineItem extends StatelessWidget {
+  const _TimelineItem({
+    required this.title,
+    required this.date,
+    required this.description,
+    required this.isCompleted,
+    this.isFailed = false,
+    required this.icon,
+    this.isLast = false,
+  });
+
+  final String title;
+  final String date;
+  final String description;
+  final bool isCompleted;
+  final bool isFailed;
+  final IconData icon;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    final outline = Theme.of(context).colorScheme.outline;
+    final containerColor = isCompleted
+        ? Colors.green.shade50
+        : (isFailed ? Colors.red.shade50 : Colors.grey.shade100);
+    final iconColor = isCompleted ? Colors.green : Colors.grey;
+    final titleColor = isCompleted
+        ? Theme.of(context).textTheme.bodyLarge?.color
+        : outline;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(shape: BoxShape.circle, color: containerColor),
+            child: Icon(icon, size: 16, color: iconColor),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: titleColor),
+                    ),
+                    Text(date, style: TextStyle(fontSize: 11, color: outline)),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(description, style: TextStyle(fontSize: 12, color: outline)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class OrderTrackingShimmer extends StatelessWidget {
+  const OrderTrackingShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade100,
+      child: Padding(
+        padding: pageSurroundingPadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(height: 60, color: Colors.white),
+            const SizedBox(height: 20),
+            Container(height: 16, width: 120, color: Colors.white),
+            const SizedBox(height: 16),
+            Container(height: 40, color: Colors.white),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -248,49 +460,61 @@ class ShippingAddress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isAddressMap = address is Map;
+    final outline = Theme.of(context).colorScheme.outline;
     return Padding(
       padding: pageSurroundingPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('shipping details'.tr,
-              style: const TextStyle(
-                  // color: themeTextColor,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 14)),
+          Row(
+            children: [
+              Icon(Icons.location_on_outlined, size: 18, color: outline),
+              const SizedBox(width: 8),
+              Text('shipping details'.tr,
+                  style: txtTheme()
+                      .titleLarge!
+                      .copyWith(fontWeight: FontWeight.bold)),
+            ],
+          ),
           const Divider(),
-          // address != null
-          //     ? Text(address.toString(),
-          //         style: const TextStyle(
-          //             fontWeight: FontWeight.w600, fontSize: 16))
-          //     : const SizedBox(),
-          // const SizedBox(height: 6),
-          Text(
-              '${address['house_no']}  ${address['address'].toString().capitalize},',
-              style: const TextStyle(
-                  // color: themeTextColor,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 14)),
-          const SizedBox(height: 6),
-          Text('${address['city']['name']},',
-              style: const TextStyle(
-                  // color: themeTextColor,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 14)),
-          const SizedBox(height: 6),
-          Text('${address['state']['name']}, ${address['pincode']}',
-              style: const TextStyle(
-                  // color: themeTextColor,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 14)),
-          const SizedBox(height: 6),
-          Text(
-            '${mobileNo}',
-            style: const TextStyle(
-                // color: themeTextColor,
-                fontWeight: FontWeight.w400,
-                fontSize: 14),
-          )
+          if (isAddressMap) ...[
+            if (address['name'] != null) ...[
+              Text(
+                address['name'].toString(),
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              ),
+              const SizedBox(height: 6),
+            ],
+            Text(
+              '${address['house_no'] != null && address['house_no'].toString().isNotEmpty ? '${address['house_no']}, ' : ''}${address['address']?.toString().capitalize ?? ''}',
+              style: TextStyle(color: outline, fontSize: 13, height: 1.4),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${address['city'] is Map ? address['city']['name'] ?? '' : address['city'] ?? ''}, ${address['state'] is Map ? address['state']['name'] ?? '' : address['state'] ?? ''}',
+              style: TextStyle(color: outline, fontSize: 13),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${address['pincode'] ?? address['postal_code'] ?? ''}',
+              style: TextStyle(color: outline, fontSize: 13),
+            ),
+            if (mobileNo.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Icon(Icons.phone_outlined, size: 14, color: outline),
+                  const SizedBox(width: 4),
+                  Text(mobileNo, style: TextStyle(color: outline, fontSize: 13)),
+                ],
+              ),
+            ],
+          ] else
+            Text(
+              address?.toString() ?? 'No address details available',
+              style: TextStyle(color: outline, fontSize: 13),
+            ),
         ],
       ),
     );
@@ -303,8 +527,8 @@ class ShippingAddressShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-        baseColor: Colors.grey,
-        highlightColor: Colors.white,
+        baseColor: Colors.grey.shade200,
+        highlightColor: Colors.grey.shade100,
         child: Padding(
           padding: pageSurroundingPadding,
           child: Column(
@@ -361,171 +585,267 @@ class PriceDetails extends StatelessWidget {
   const PriceDetails({super.key, required this.item});
   final dynamic item;
 
+  double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    return double.tryParse(value.toString()) ?? 0.0;
+  }
+
+  double _getUnitPrice(Map p) {
+    double up = _parseDouble(p['unit_price']);
+    if (up > 0) return up;
+    up = _parseDouble(p['price']);
+    if (up > 0) return up;
+    final prodId = p['product_id'];
+    if (prodId is Map) {
+      up = _parseDouble(prodId['price']);
+    }
+    return up;
+  }
+
+  double _getOriginalPrice(Map p, double resolvedUnitPrice) {
+    double op = _parseDouble(p['price']);
+    if (op > 0) return op;
+    final variant = p['variant'];
+    if (variant is Map) {
+      op = _parseDouble(variant['price']);
+    }
+    if (op > 0) return op;
+    final prodId = p['product_id'];
+    if (prodId is Map) {
+      op = _parseDouble(prodId['price']);
+    }
+    if (op > 0) return op;
+    if (resolvedUnitPrice > 0) return resolvedUnitPrice;
+    return 0.0;
+  }
+
+  Widget _buildPriceRow(BuildContext context, String label, double amount,
+      {bool isTotal = false, bool isNegative = false}) {
+    final outline = Theme.of(context).colorScheme.outline;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: isTotal
+                ? txtTheme().titleLarge!.copyWith(fontWeight: FontWeight.w600)
+                : TextStyle(fontSize: 13, color: outline),
+          ),
+          Text(
+            '${isNegative ? '-' : ''}\u{20B9}${amount.abs().toStringAsFixed(2)}',
+            style: TextStyle(
+              fontSize: isTotal ? 16 : 14,
+              fontWeight: isTotal ? FontWeight.w700 : FontWeight.w500,
+              color: isNegative ? Colors.green : null,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final products = item['products'] is List ? item['products'] as List : [];
+
+    double originalBagTotal = 0.0;
+    double actualBagTotal = 0.0;
+    for (var currentProduct in products) {
+      if (currentProduct is Map) {
+        final qty =
+            (currentProduct['qty'] ?? currentProduct['quantity'] ?? 1)
+                .toDouble();
+        final unitPrice = _getUnitPrice(currentProduct);
+        final originalPrice = _getOriginalPrice(currentProduct, unitPrice);
+        originalBagTotal += originalPrice * qty;
+        actualBagTotal += unitPrice * qty;
+      }
+    }
+
+    double itemSavings = originalBagTotal - actualBagTotal;
+    if (itemSavings < 0) itemSavings = 0.0;
+
+    final discount = _parseDouble(item['discount']);
+    final shippingCharges =
+        _parseDouble(item['shipping_charges'] ?? item['shipping']);
+    final taxAmount = _parseDouble(item['tax_amount']);
+    final total = actualBagTotal + taxAmount - discount + shippingCharges;
+
     return Padding(
       padding: pageSurroundingPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('price details'.tr,
-              style: const TextStyle(
-                  // color: themeTextColor,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 14)),
+          Row(
+            children: [
+              Icon(Icons.receipt_outlined,
+                  size: 18, color: Theme.of(context).colorScheme.outline),
+              const SizedBox(width: 8),
+              Text('price details'.tr,
+                  style: txtTheme()
+                      .titleLarge!
+                      .copyWith(fontWeight: FontWeight.bold)),
+            ],
+          ),
           const Divider(),
           const SizedBox(height: 5),
           ListView.separated(
-            separatorBuilder: (context, index) {
-              return const SizedBox(
-                height: 10,
-              );
-            },
-            itemCount: item['products'].length,
+            separatorBuilder: (context, index) => const SizedBox(height: 14),
+            itemCount: products.length,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
-              return Container(
-                color: Colors.white,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                        height: Get.width * 0.26,
-                        margin: const EdgeInsets.only(right: 15),
-                        width: Get.width * 0.26,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                            border: Border.all(width: 2),
-                            borderRadius: BorderRadius.circular(8)),
-                        child: CachedNetworkImage(
-                            errorWidget: (context, url, error) => Container(
-                                  decoration: BoxDecoration(
-                                      color: Colors.grey.shade300),
-                                  child: const Center(
-                                    child: Icon(Icons.error),
-                                  ),
-                                ),
-                            height: 100,
-                            width: 100,
-                            imageUrl: HelperFunctions()
-                                .getImage(item['products'][index]['image']),
-                            fit: BoxFit.contain)),
-                    Column(
+              final currentProduct = products[index];
+              final unitPrice = _getUnitPrice(currentProduct);
+              final originalPrice =
+                  _getOriginalPrice(currentProduct, unitPrice);
+              final hasDiscount = originalPrice > unitPrice && unitPrice > 0;
+              final quantity =
+                  (currentProduct['qty'] ?? currentProduct['quantity'] ?? 1);
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: Get.width * 0.26,
+                    width: Get.width * 0.26,
+                    margin: const EdgeInsets.only(right: 15),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                        border: Border.all(
+                            color: Theme.of(context).colorScheme.outline),
+                        borderRadius: BorderRadius.circular(8)),
+                    child: CachedNetworkImage(
+                        errorWidget: (context, url, error) => Container(
+                              decoration:
+                                  BoxDecoration(color: Colors.grey.shade300),
+                              child: const Center(child: Icon(Icons.error)),
+                            ),
+                        height: 100,
+                        width: 100,
+                        imageUrl: HelperFunctions()
+                            .getImage(currentProduct['image']),
+                        fit: BoxFit.contain),
+                  ),
+                  Expanded(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(
-                            width: Get.width * 0.6,
-                            child: Text(item['products'][index]['name'],
-                                style: const TextStyle(fontSize: 12))),
+                        Text(currentProduct['name']?.toString() ?? '',
+                            style: const TextStyle(fontSize: 12)),
                         const SizedBox(height: 6),
-                        Container(
-                            padding: const EdgeInsets.all(5),
-                            decoration: BoxDecoration(
-                                // color: themegreyColor,
-                                borderRadius: BorderRadius.circular(6)),
-                            child: Row(
-                              children: [
-                                Text(
-                                  'Quantity:'.tr,
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                                Text('${item['products'][index]['qty']}',
-                                    style: const TextStyle(fontSize: 12)),
-                              ],
-                            )),
+                        Row(
+                          children: [
+                            Text('Quantity:'.tr,
+                                style: const TextStyle(fontSize: 12)),
+                            const SizedBox(width: 4),
+                            Text('$quantity',
+                                style: const TextStyle(fontSize: 12)),
+                          ],
+                        ),
                         const SizedBox(height: 6),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("price".tr,
-                                style: const TextStyle(fontSize: 12)),
-                            const Text(" : ", style: TextStyle(fontSize: 12)),
-                            Text("₹${item['products'][index]['unit_price']}",
-                                style: const TextStyle(fontSize: 12)),
+                            if (hasDiscount) ...[
+                              Text(
+                                '\u{20B9}${originalPrice.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Theme.of(context).colorScheme.outline,
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                            ],
+                            Text(
+                              '\u{20B9}${unitPrice.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 14),
-                        // Row(
-                        //   crossAxisAlignment: CrossAxisAlignment.start,
-                        //   children: [
-                        //     Text('by'.tr, style: const TextStyle(fontSize: 12)),
-                        //     const Text(' : ', style: TextStyle(fontSize: 12)),
-                        //     Text('${item['orderdetail'][0]['vendor']['name']}',
-                        //         style: const TextStyle(fontSize: 12)),
-                        //   ],
-                        // )
                       ],
-                    )
-                  ],
-                ),
+                    ),
+                  ),
+                ],
               );
             },
           ),
           const SizedBox(height: 5),
           const Divider(),
-          // OrderDetail(
-          //     title: 'sub total'.tr,
-          //     amount: Text('\u{20B9}${item['subtotal'].toStringAsFixed(2)}',
-          //         style: txtTheme().displaySmall)),
-          // item['discount'] != 0 && item['discount'] != null
-          //     ? OrderDetail(
-          //         title: 'coupon Discount'.tr,
-          //         amount: Text(
-          //             '- \u{20B9}${item['discount'].toStringAsFixed(2)}',
-          //             style: const TextStyle(
-          //                 color: Colors.green,
-          //                 fontWeight: FontWeight.w400,
-          //                 fontSize: 14)))
-          //     : Container(),
-          // OrderDetail(
-          //     title: "Tax".tr + "",
-          //     amount: Text('\u{20B9} ${19.toStringAsFixed(2)}',
-          //         style: txtTheme().displaySmall)),
-          // OrderDetail(
-          //     title: 'Delivery'.tr,
-          //     amount: Text('\u{20B9}${item['shipping'].toStringAsFixed(2)}',
-          //         style: txtTheme().displaySmall)),
+          const SizedBox(height: 5),
+          _buildPriceRow(context, 'Bag Total'.tr, originalBagTotal),
+          if (itemSavings > 0)
+            _buildPriceRow(context, 'Product Savings'.tr, -itemSavings,
+                isNegative: true),
+          if (discount > 0)
+            _buildPriceRow(context, 'discount'.tr, -discount,
+                isNegative: true),
+          if (shippingCharges > 0)
+            _buildPriceRow(context, 'Delivery'.tr, shippingCharges),
+          if (taxAmount > 0) _buildPriceRow(context, 'Tax'.tr, taxAmount),
           const Divider(thickness: 1.5),
+          const SizedBox(height: 5),
+          _buildPriceRow(context, 'Total Amount'.tr, total, isTotal: true),
           const SizedBox(height: 10),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('discount'.tr, style: txtTheme().displayMedium),
-            Text('\u{20B9}${item['discount'].toStringAsFixed(2)}',
-                style: txtTheme().displayMedium)
-          ]),
-          const SizedBox(height: 15),
+          if (item['payment_method'] != null) ...[
+            Builder(builder: (context) {
+              final status =
+                  item['payment_status']?.toString().toLowerCase() ?? '';
+              final isPaid = status == 'paid';
+              final isFailed = status == 'failed';
+              final boxColor = isPaid
+                  ? Colors.green.shade50
+                  : (isFailed ? Colors.red.shade50 : Colors.orange.shade50);
+              final textColor = isPaid
+                  ? Colors.green.shade700
+                  : (isFailed ? Colors.red.shade700 : Colors.orange.shade700);
+              final icon = isPaid
+                  ? Icons.check_circle_outline
+                  : (isFailed ? Icons.error_outline : Icons.access_time);
+              final method =
+                  item['payment_method']?.toString().toUpperCase() ?? '';
+              final methodText = isPaid
+                  ? 'Paid via $method'
+                  : (isFailed
+                      ? 'Payment Failed via $method'
+                      : 'Payment Pending via $method');
+
+              return Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: boxColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(icon, size: 16, color: textColor),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(methodText,
+                          style: TextStyle(fontSize: 12, color: textColor)),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
         ],
       ),
     );
   }
 }
 
-// class DownloadInvoice extends StatelessWidget {
-//   const DownloadInvoice({super.key, required this.item});
-//   final dynamic item;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Positioned(
-//         bottom: 10,
-//         right: 10,
-//         left: 10,
-//         child: DownloadButton(
-//           onTap: () async {
-//           item != null
-//               ? await HelperFunctions().downloadAndSavePDF(item, 'invoice.pdf')
-//               : ShoppingHelper.defaultdialog(
-//                   'something_went_wrong'.tr, Colors.red);
-//         }));
-//   }
-// }
-
-reviewModal(OrderdetailController controller) {
+void reviewModal(BuildContext context, OrderdetailController controller) {
   TextEditingController reviewController = TextEditingController();
   int rating = 3;
-  return Get.dialog(AlertDialog(
+  Get.dialog(AlertDialog(
       content: SizedBox(
-        // width: MediaQuery.of(context).size.width * 80,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Column(
@@ -556,20 +876,12 @@ reviewModal(OrderdetailController controller) {
                 },
               ),
               const SizedBox(height: 10),
-              const Text("Review:",
-                  style: TextStyle(
-                      // color: themeSecondrytext,
-                      // fontFamily: 'Lato',
-                      fontSize: 14)),
+              const Text("Review:", style: TextStyle(fontSize: 14)),
               const SizedBox(height: 10),
               TextFormField(
                 controller: reviewController,
                 maxLength: 300,
-                scrollPhysics: AlwaysScrollableScrollPhysics(),
-                onChanged: (value) {
-                  // .text = value;
-                },
-                // cursorColor: themePrimaryColor,
+                scrollPhysics: const AlwaysScrollableScrollPhysics(),
                 decoration: const InputDecoration(
                   contentPadding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
                   focusedBorder: OutlineInputBorder(
@@ -609,13 +921,9 @@ reviewModal(OrderdetailController controller) {
                 child: ElevatedButton(
                   onPressed: () {
                     if (reviewController.text.isNotEmpty) {
-                      // print('23234554');
                       controller.postReview(
                           summary: reviewController.text, rating: rating);
                     } else {
-                      // Get.showSnackbar(const GetSnackBar(
-                      //   message: 'Enter review',
-                      // ));
                       HelperFunctions().showSnackBarError('Enter review');
                     }
                   },
@@ -625,7 +933,6 @@ reviewModal(OrderdetailController controller) {
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        // fontFamily: 'Lato'
                       )),
                 ),
               ),

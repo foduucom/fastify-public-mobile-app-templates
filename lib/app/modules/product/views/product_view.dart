@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
@@ -824,7 +825,7 @@ class ProductView extends GetView<ProductController> {
 
             await controller.addToCart().then((value) {
               Get.until((route) => !Get.isDialogOpen!);
-              return Get.toNamed(Routes.CART);
+              _showAddedToCartBottomSheet(context, controller);
             });
           },
         ),
@@ -1119,6 +1120,214 @@ class ProductView extends GetView<ProductController> {
         ),
       );
     });
+  }
+
+  void _showAddedToCartBottomSheet(
+      BuildContext context, ProductController controller) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Drag Handle
+                Center(
+                  child: Container(
+                    width: 45,
+                    height: 5,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.outline
+                          .withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+
+                // Header Row: "Added to Cart" on left, "Checkout" on right
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          size: 20,
+                          color: Colors.green.shade600,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "Added to Cart",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Get.back();
+                        Get.toNamed(Routes.CART);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            Theme.of(context).colorScheme.primary,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "Checkout",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Icon(Icons.arrow_forward_ios,
+                              size: 12, color: Colors.white),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Added product summary tile
+                Obx(() {
+                  final productDetails = controller.productDetials;
+                  if (productDetails.isEmpty) return const SizedBox.shrink();
+                  final details =
+                      Map<String, dynamic>.from(productDetails);
+                  final imgUrl = ProductHelper.getProductImage(
+                    details,
+                    variantIndex: controller.selectedVariantIndex.value,
+                  );
+                  final name = details['name']?.toString() ?? '';
+                  final priceInfo = ProductHelper.calculatePriceInfo(
+                    details,
+                    variantIndex: controller.selectedVariantIndex.value,
+                  );
+                  final displayPrice = priceInfo['productPrice'] ?? '0';
+
+                  return Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: CachedNetworkImage(
+                            imageUrl: imgUrl,
+                            width: 48,
+                            height: 48,
+                            fit: BoxFit.cover,
+                            errorWidget: (context, url, error) => Container(
+                              width: 48,
+                              height: 48,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest,
+                              child: const Icon(Icons.image, size: 24),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "₹$displayPrice",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+
+                const SizedBox(height: 16),
+
+                // Footer Button: Continue Shopping
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Get.back();
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(
+                          color: Theme.of(context).colorScheme.outline),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      "Continue Shopping",
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _showAddReviewModal(BuildContext context, ProductController controller) {
