@@ -3,6 +3,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/core/services/wishlistService.dart'
     show WishListService;
+import 'package:foduu_ecommerce/core/services/cartServcie.dart'
+    show CartService;
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
 import '/app/routes/app_pages.dart';
@@ -518,23 +520,33 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             ClipRRect(
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(8)),
-              child: SizedBox(
-                width: double.infinity,
-                child: CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  fit: BoxFit.cover,
-                  height:
-                      180, // Fixed height, but maintains aspect ratio through fit
-                  width: double.infinity,
-                  progressIndicatorBuilder: (_, __, ___) =>
-                      HelperFunctions().loadingIndicator(),
-                  errorWidget: (_, __, ___) => Container(
-                    height: 180,
-                    color: colorScheme.surfaceVariant,
-                    child: Icon(Icons.image_outlined,
-                        color: colorScheme.onSurfaceVariant),
+              child: Stack(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      height:
+                          180, // Fixed height, but maintains aspect ratio through fit
+                      width: double.infinity,
+                      progressIndicatorBuilder: (_, __, ___) =>
+                          HelperFunctions().loadingIndicator(),
+                      errorWidget: (_, __, ___) => Container(
+                        height: 180,
+                        color: colorScheme.surfaceVariant,
+                        child: Icon(Icons.image_outlined,
+                            color: colorScheme.onSurfaceVariant),
+                      ),
+                    ),
                   ),
-                ),
+                  if (ProductHelper.isInStock(product))
+                    Positioned(
+                      right: 6,
+                      bottom: 6,
+                      child: _buildCartControl(product),
+                    ),
+                ],
               ),
             ),
             // Content Section - Use Flexible to take remaining space but not overflow
@@ -740,12 +752,16 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 ),
               ),
             ),
-            // Wishlist on the right
+            // Wishlist + Add to Cart on the right
             Padding(
-              padding: const EdgeInsets.only(right: 8.0, top: 8.0),
-              child: Align(
-                alignment: Alignment.topRight,
-                child: _buildWishlistIcon(product),
+              padding: const EdgeInsets.only(right: 8.0, top: 8.0, bottom: 8.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildWishlistIcon(product),
+                  if (ProductHelper.isInStock(product))
+                    _buildCartControl(product),
+                ],
               ),
             ),
           ],
@@ -899,6 +915,13 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 top: 8,
                 child: _buildWishlistButton(product),
               ),
+              // Add to Cart control at bottom-right, above the text panel
+              if (ProductHelper.isInStock(product))
+                Positioned(
+                  right: 8,
+                  bottom: 70,
+                  child: _buildCartControl(product),
+                ),
               // Discount badge at top-right
               if (priceInfo['discountRate'] != null &&
                   priceInfo['discountRate'].toString().isNotEmpty)
@@ -1016,6 +1039,125 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         );
       }),
     );
+  }
+
+  /// Resolve the variant to add to cart for a product with no on-card
+  /// variant picker — the cheapest in-stock variant, falling back to the
+  /// cheapest variant overall if none are in stock.
+  String _resolveDefaultVariantId(Map<String, dynamic> product) {
+    final variants = product['variants'];
+    if (variants is! List || variants.isEmpty) return '';
+
+    Map? bestInStock;
+    double bestInStockPrice = double.infinity;
+    Map? bestOverall;
+    double bestOverallPrice = double.infinity;
+
+    for (final v in variants) {
+      if (v is! Map) continue;
+      final price = HelperFunctions.parseAmount(v['sale_price']) > 0
+          ? HelperFunctions.parseAmount(v['sale_price'])
+          : HelperFunctions.parseAmount(v['price']);
+
+      if (price < bestOverallPrice) {
+        bestOverallPrice = price;
+        bestOverall = v;
+      }
+
+      final stockStatus = (v['stock_status'] ?? '').toString();
+      final inStock = stockStatus.isEmpty || stockStatus == 'in_stock';
+      if (inStock && price < bestInStockPrice) {
+        bestInStockPrice = price;
+        bestInStock = v;
+      }
+    }
+
+    final chosen = bestInStock ?? bestOverall;
+    return (chosen?['_id'] ?? chosen?['id'] ?? '').toString();
+  }
+
+  /// Card-level add-to-cart control — shows a "+" when the product isn't in
+  /// the cart, and a quantity stepper once it is. Reacts to CartService's
+  /// cartItems for both guest (local) and logged-in (server) carts.
+  Widget _buildCartControl(Map<String, dynamic> product) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final productId = ProductHelper.getProductId(product);
+    final variantId = _resolveDefaultVariantId(product);
+    if (variantId.isEmpty) return const SizedBox.shrink();
+
+    return Obx(() {
+      final cartItem = CartService.to.cartItems.firstWhereOrNull((item) {
+        final p = item['product_id'];
+        final pid = (p is Map ? (p['_id'] ?? p['id']) : p)?.toString();
+        return pid == productId && item['variant_id'] == variantId;
+      });
+
+      if (cartItem == null) {
+        return GestureDetector(
+          onTap: () => _handleAddToCart(product, productId, variantId, 1),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: colorScheme.primary,
+            ),
+            padding: const EdgeInsets.all(6.0),
+            child: Icon(Icons.add, size: 16, color: colorScheme.onPrimary),
+          ),
+        );
+      }
+
+      final qty = cartItem['quantity'] ?? 1;
+      return Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: colorScheme.primary),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _cartStepperButton(Icons.remove, colorScheme,
+                () => _handleAddToCart(product, productId, variantId, -1)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text('$qty',
+                  style: Theme.of(context).textTheme.labelMedium),
+            ),
+            _cartStepperButton(Icons.add, colorScheme,
+                () => _handleAddToCart(product, productId, variantId, 1)),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _cartStepperButton(
+      IconData icon, ColorScheme colorScheme, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: Icon(icon, size: 14, color: colorScheme.primary),
+      ),
+    );
+  }
+
+  Future<void> _handleAddToCart(Map<String, dynamic> product,
+      String productId, String variantId, int delta) async {
+    HelperFunctions().showOverlayLoader();
+    try {
+      await CartService.to.manageCart(
+        productId: productId,
+        variantId: variantId,
+        quantity: delta,
+        product: product,
+      );
+      HelperFunctions().hideOverlayLoader();
+    } catch (e) {
+      HelperFunctions().hideOverlayLoader();
+      HelperFunctions().showSnackBarError("Failed to update cart".tr);
+    }
   }
 
   /// Handle wishlist tap
