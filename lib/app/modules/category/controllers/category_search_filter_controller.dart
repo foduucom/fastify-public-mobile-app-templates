@@ -194,7 +194,8 @@ class CategorySearchFilterController extends GetxController
   }
 
   void onCategoryTap(dynamic category) {
-    final List children = category['children'] ?? [];
+    final rawChildren = category['children'];
+    final List children = rawChildren is List ? rawChildren : [];
     if (children.isNotEmpty) {
       Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
         'source': 'category',

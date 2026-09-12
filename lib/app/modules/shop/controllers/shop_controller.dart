@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_attribute_filter_mixin.dart';
@@ -17,7 +16,7 @@ class ShopController extends GetxController
 
   /// True when ShopView was opened plainly (bottom-tab entry, no filter
   /// args) — renders the CMS dynamic layout instead of the filtered grid.
-  bool isPlainShopEntry = true;
+  var isPlainShopEntry = true.obs;
   // ─── STATE VARIABLES ──────────────────────────────────────────
   var products = [].obs;
   var isLoading = true.obs;
@@ -70,7 +69,7 @@ class ShopController extends GetxController
       maxPrice.value = values.end;
     });
 
-    if (isPlainShopEntry) {
+    if (isPlainShopEntry.value) {
       fetchLayout(pageSlug);
     } else {
       fetchBrands();
@@ -79,10 +78,19 @@ class ShopController extends GetxController
     }
   }
 
+  void ensureFilterDataLoaded() {
+    if (availableBrands.isEmpty && !isBrandsLoading.value) {
+      fetchBrands();
+    }
+    if (availableCategories.isEmpty && !isCategoriesLoading.value) {
+      fetchCategories();
+    }
+  }
+
   void _parseArguments() {
     if (Get.arguments != null) {
       final args = Get.arguments as Map;
-      isPlainShopEntry = false;
+      isPlainShopEntry.value = false;
       collectionName.value = args['name'] ?? "Shop";
 
       if (args['source'] == 'category' && args['children'] != null) {
@@ -91,7 +99,9 @@ class ShopController extends GetxController
         if (args['categorySlug'] != null) {
           selectedCategories.add(args['categorySlug']);
         }
-        filterCurrentCategories.assignAll(args['children'] ?? []);
+        final rawChildren = args['children'];
+        filterCurrentCategories
+            .assignAll(rawChildren is List ? rawChildren : []);
       } else if (args['source'] == 'category' &&
           args['categorySlug'] != null &&
           args['children'] == null) {
@@ -290,6 +300,8 @@ class ShopController extends GetxController
       if (response != null && response is Map<String, dynamic>) {
         if (response.containsKey('data') && response['data'] is List) {
           availableCategories.assignAll(response['data']);
+        } else if (response.containsKey('docs') && response['docs'] is List) {
+          availableCategories.assignAll(response['docs']);
         }
       } else if (response is List) {
         availableCategories.assignAll(response);

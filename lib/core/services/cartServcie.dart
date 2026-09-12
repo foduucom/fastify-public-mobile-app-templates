@@ -152,8 +152,11 @@ class CartService extends GetxService with BaseController {
   // ══════════════════════════════════════════════════════════
   //  PARSE API RESPONSE
   // ══════════════════════════════════════════════════════════
-  void parseCartResponse(Map<String, dynamic> data) {
-    final items = data['items'] as List? ?? [];
+  void parseCartResponse(dynamic data) {
+    if (data == null || data is! Map) return;
+
+    final rawItems = data['items'] ?? data['data'] ?? data['cart'];
+    final items = rawItems is List ? rawItems : [];
 
     // Build a lookup of existing image objects keyed by product ID so we can
     // restore them when cart/manage returns featured_image as a bare string ID.
@@ -169,7 +172,7 @@ class CartService extends GetxService with BaseController {
       }
     }
 
-    cartItems.value = items.map((e) {
+    cartItems.value = items.whereType<Map>().map((e) {
       final item = Map<String, dynamic>.from(e);
       final p = item['product_id'];
       if (p is Map) {

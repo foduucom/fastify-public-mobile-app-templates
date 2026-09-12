@@ -149,8 +149,10 @@ class WishListService extends GetxService with BaseController {
     }
 
     if (items != null) {
-      wishListItems.value =
-          items.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      wishListItems.value = items
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
     }
   }
 }

@@ -26,11 +26,13 @@ mixin ShopCategoryFilterMixin on GetxController {
   /// direct navigation args and by [fetchCategoryBySlug] for deep links).
   void seedCategoryContext(dynamic category) {
     filterCategoryStack.clear();
-    filterCurrentCategories.assignAll(category['children'] ?? []);
+    final rawChildren = category['children'];
+    filterCurrentCategories.assignAll(rawChildren is List ? rawChildren : []);
   }
 
   void drillIntoCategory(dynamic category) {
-    final List children = category['children'] ?? [];
+    final rawChildren = category['children'];
+    final List children = rawChildren is List ? rawChildren : [];
     filterCategoryStack.add({'cat': category});
     filterCurrentCategories.assignAll(children);
   }
@@ -40,12 +42,12 @@ mixin ShopCategoryFilterMixin on GetxController {
     filterCategoryStack.removeLast();
     if (filterCategoryStack.isEmpty) {
       // Back to the root category passed in via navigation arguments.
-      filterCurrentCategories.assignAll(
-        (Get.arguments is Map ? Get.arguments['children'] : null) ?? [],
-      );
+      final rawChildren = Get.arguments is Map ? Get.arguments['children'] : null;
+      filterCurrentCategories.assignAll(rawChildren is List ? rawChildren : []);
     } else {
       final parent = filterCategoryStack.last['cat'] as Map;
-      filterCurrentCategories.assignAll(parent['children'] ?? []);
+      final rawChildren = parent['children'];
+      filterCurrentCategories.assignAll(rawChildren is List ? rawChildren : []);
     }
   }
 

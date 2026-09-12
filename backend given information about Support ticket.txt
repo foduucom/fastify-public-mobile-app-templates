@@ -1,0 +1,2110 @@
+Customer Support Ticket API (Mobile)
+Customer → Owner support tickets, as JSON, for the mobile apps.
+This is the API mirror of the storefront flow at /account/support-ticket. A ticket
+raised here lands in the owner's inbox at /owner/support-tickets/:id, and the owner's
+reply comes back down the same thread.
+Controller: src/controllers/api/CustomerSupportTicketController.ts
+Base path: /api/customer/support-tickets
+Content types: multipart/form-data for anything with an attachment
+  (POST /, PUT|PATCH /:id, POST /:id/replies), application/json accepted
+  for those same routes when you are NOT sending a file.
+
+Not the same as /api/v1/support-tickets**.** That older controller still exists
+(create + replies only) and is left untouched for backwards compatibility. New mobile
+work should use the routes in this document — they are fully ownership-scoped, the
+/api/v1 ones are not. See Appendix B. 
+
+
+
+1. Headers
+There are two independent credentials on every request — the store's API key and the
+customer's session token. Both must be present or the request is rejected.
+HeaderValueRequiredWhyaccess-key
+
+
+
+
+
+the website's 48-character API key
+
+
+
+
+
+yes
+
+
+
+
+
+Identifies and authorises the store. Validated against the ApiKey collection for the resolved website.
+
+
+
+
+
+Authorization
+
+
+
+
+
+Bearer
+
+
+
+
+
+yes
+
+
+
+
+
+Identifies the customer. Cookies also work, but mobile should use the bearer header.
+
+
+
+
+
+Accept
+
+
+
+
+
+application/json
+
+
+
+
+
+yes
+
+
+
+
+
+The API-key check rejects the request outright if Accept is not exactly application/json.
+
+
+
+
+
+Host
+
+
+
+
+
+the store's domain, e.g. mystore.com
+
+
+
+
+
+yes
+
+
+
+
+
+The website is resolved from the Host header, and the access-key is then validated against that website.
+
+
+
+
+
+
+
+
+Plain Text
+
+
+
+
+
+
+
+
+POST /api/customer/support-tickets HTTP/1.1
+Host: mystore.com
+access-key: 0f3c9a1b7e2d4c8a6b5f0e9d3c7a1b4e8f2d6c0a9b3e7f1d
+Authorization: 
+Accept: application/json
+Content-Type: multipart/form-data
+
+
+The two credentials do different jobs
+access-key → the store. Enforced globally by apiKeyCheckContext
+  (src/middleware/global/apiKeyCheckContext.ts, priority 6) for every /api/\\* route not on
+  its exclusion list. It checks three things: Accept is exactly application/json, the key
+  is exactly 48 characters, and the key exists in the ApiKey document for the website**resolved from the Host header**. Results are cached for 60s. A key from store A sent to
+  store B's domain fails.
+Authorization: Bearer → the customer. Checked afterwards by the controller's
+  requireCustomer guard. Get the token from POST /api/auth/login (see
+  src/controllers/api/AuthController.ts) — the same customer token used for orders, cart and
+  addresses works here, no separate login.
+
+Note: the older /api/v1/support-tickets routes are explicitly excluded from the
+API-key check (they are named in the middleware's skip list). These /api/customer/...
+routes are not excluded, so unlike the old ones they do require access-key. This is
+deliberate — it is one of the reasons to prefer these routes. 
+⚠️ All 9 routes require an authenticated customer. There is no guest access. Unlike the
+storefront, there is no "raise a ticket without an account" path.
+API-key failure
+A missing, malformed, wrong-length, or wrong-store key — or a missing/incorrect Accept
+header — fails before the controller runs, with a third response shape (see
+§5):
+
+
+Plain Text
+
+
+
+
+
+
+
+
+HTTP/1.1 403 Forbidden
+
+
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "status": "error",
+  "data": "You do not have permission to perform this action."
+}
+
+
+The message is deliberately generic and identical for all of those causes, so it will not tell
+you which header was wrong. When debugging a 403, check in this order: Accept is exactly
+application/json → key is 48 chars → key belongs to the store in Host.
+
+
+
+2. Route summary
+#MethodPathPurpose1
+
+
+
+
+
+GET
+
+
+
+
+
+/api/customer/support-tickets
+
+
+
+
+
+List my tickets (paginated)
+
+
+
+
+
+2
+
+
+
+
+
+POST
+
+
+
+
+
+/api/customer/support-tickets
+
+
+
+
+
+Raise a ticket
+
+
+
+
+
+3
+
+
+
+
+
+GET
+
+
+
+
+
+/api/customer/support-tickets/meta
+
+
+
+
+
+Form dropdown values
+
+
+
+
+
+4
+
+
+
+
+
+GET
+
+
+
+
+
+/api/customer/support-tickets/:id
+
+
+
+
+
+Ticket + full reply thread
+
+
+
+
+
+5
+
+
+
+
+
+PUT/PATCH
+
+
+
+
+
+/api/customer/support-tickets/:id
+
+
+
+
+
+Edit my ticket
+
+
+
+
+
+6
+
+
+
+
+
+POST
+
+
+
+
+
+/api/customer/support-tickets/:id/close
+
+
+
+
+
+Close my ticket
+
+
+
+
+
+7
+
+
+
+
+
+GET
+
+
+
+
+
+/api/customer/support-tickets/:id/replies
+
+
+
+
+
+Thread only (paginated)
+
+
+
+
+
+8
+
+
+
+
+
+POST
+
+
+
+
+
+/api/customer/support-tickets/:id/replies
+
+
+
+
+
+Post a reply
+
+
+
+
+
+
+:id is the Mongo _id (24-char hex) returned as id — not the 6-digit ticket_id.
+
+
+
+3. Shared objects
+Every response that carries a ticket or a reply uses these exact shapes.
+ticket
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "id": "66f1a2b3c4d5e6f7a8b9c0d1",
+  "ticket_id": "482913",
+  "name": "Ravi Kumar",
+  "email": "ravi@example.com",
+  "phone": "9876543210",
+  "subject": "Order not delivered",
+  "message": "I placed order #1042 five days ago and it has not arrived.",
+  "ticket_type": "support",
+  "status": "pending",
+  "priority": "high",
+  "attachment": {
+    "id": "66f1a2b3c4d5e6f7a8b9c0ff",
+    "name": "receipt.jpg",
+    "mime_type": "image/webp",
+    "url": "https://mystore.com/uploads/users/.../receipt.webp"
+  },
+  "can_reply": true,
+  "created_at": "2026-09-11T09:14:22.118Z",
+  "updated_at": "2026-09-11T11:02:40.551Z"
+}
+
+
+FieldTypeNotesid
+
+
+
+
+
+string
+
+
+
+
+
+Mongo id. Use this in URLs.
+
+
+
+
+
+ticket_id
+
+
+
+
+
+string
+
+
+
+
+
+6-digit human reference. Show this to the user.
+
+
+
+
+
+phone
+
+
+
+
+
+string
+
+
+
+
+
+null
+
+
+
+
+
+ticket_type
+
+
+
+
+
+string
+
+
+
+
+
+support
+
+
+
+
+
+status
+
+
+
+
+
+string
+
+
+
+
+
+new
+
+
+
+
+
+priority
+
+
+
+
+
+string
+
+
+
+
+
+low
+
+
+
+
+
+attachment
+
+
+
+
+
+object
+
+
+
+
+
+null
+
+
+
+
+
+can_reply
+
+
+
+
+
+bool
+
+
+
+
+
+false once closed — grey out the reply box on this, don't re-derive it.
+
+
+
+
+
+
+reply
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "id": "66f1b9d0c4d5e6f7a8b9c111",
+  "ticket_id": "66f1a2b3c4d5e6f7a8b9c0d1",
+  "sender_type": "owner",
+  "is_customer": false,
+  "message": "Apologies for the delay — your order is out for delivery today.",
+  "attachment": null,
+  "created_at": "2026-09-11T11:02:40.402Z"
+}
+
+
+FieldTypeNotessender_type
+
+
+
+
+
+string
+
+
+
+
+
+customer
+
+
+
+
+
+is_customer
+
+
+
+
+
+bool
+
+
+
+
+
+true = right-hand bubble, false = store's reply. Use this for chat alignment.
+
+
+
+
+
+attachment
+
+
+
+
+
+object
+
+
+
+
+
+null
+
+
+
+
+
+
+pagination
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "page": 1,
+  "limit": 10,
+  "total": 23,
+  "total_pages": 3,
+  "has_next": true,
+  "has_prev": false
+}
+
+
+
+
+
+4. Endpoints
+4.1 — List tickets
+
+
+Plain Text
+
+
+
+
+
+
+
+
+GET /api/customer/support-tickets?page=1&limit=10&status=pending&search=order
+
+
+Query params (all optional)
+ParamDefaultNotespage
+
+
+
+
+
+1
+
+
+
+
+
+Min 1.
+
+
+
+
+
+limit
+
+
+
+
+
+10
+
+
+
+
+
+Clamped to max 50.
+
+
+
+
+
+status
+
+
+
+
+
+—
+
+
+
+
+
+One of the 5 statuses. Anything else is ignored.
+
+
+
+
+
+priority
+
+
+
+
+
+—
+
+
+
+
+
+low
+
+
+
+
+
+search
+
+
+
+
+
+—
+
+
+
+
+
+Case-insensitive across subject, message, ticket_id. Regex-escaped, safe to pass raw user input.
+
+
+
+
+
+
+Sorted newest first (created_at desc). Only the caller's own, non-deleted tickets.
+200
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "success": true,
+  "data": {
+    "tickets": [ { "...ticket object..." } ],
+    "pagination": {
+      "page": 1, "limit": 10, "total": 23,
+      "total_pages": 3, "has_next": true, "has_prev": false
+    }
+  }
+}
+
+
+An empty list is "tickets": [] with "total": 0 — still a 200, not a 404.
+
+
+
+4.2 — Create a ticket
+
+
+Plain Text
+
+
+
+
+
+
+
+
+POST /api/customer/support-tickets
+Content-Type: multipart/form-data
+
+
+Body
+FieldRequiredNotesmessage
+
+
+
+
+
+yes
+
+
+
+
+
+The complaint body.
+
+
+
+
+
+name
+
+
+
+
+
+no
+
+
+
+
+
+Falls back to the logged-in customer's name. Must resolve to something non-empty.
+
+
+
+
+
+email
+
+
+
+
+
+no
+
+
+
+
+
+Falls back to the customer's email.
+
+
+
+
+
+phone
+
+
+
+
+
+no
+
+
+
+
+
+Falls back to customer phone/mobile, else null.
+
+
+
+
+
+subject
+
+
+
+
+
+no
+
+
+
+
+
+Defaults to "No Subject".
+
+
+
+
+
+priority
+
+
+
+
+
+no
+
+
+
+
+
+Defaults to medium. Invalid values silently become medium.
+
+
+
+
+
+ticket_type
+
+
+
+
+
+no
+
+
+
+
+
+Defaults to support.
+
+
+
+
+
+image or attachment
+
+
+
+
+
+no
+
+
+
+
+
+One file. Images / video / PDF only. Images are converted to WebP.
+
+
+
+
+
+
+
+
+Plain Text
+
+
+
+
+
+
+
+
+message:      I placed order #1042 five days ago and it has not arrived.
+subject:      Order not delivered
+priority:     high
+ticket_type:  support
+image:        <binary>
+
+
+JSON is fine when there's no file:
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "message": "I placed order #1042 five days ago and it has not arrived.",
+  "subject": "Order not delivered",
+  "priority": "high",
+  "ticket_type": "support"
+}
+
+
+201
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "success": true,
+  "message": "Support ticket created successfully",
+  "data": { "...ticket object..." }
+}
+
+
+Side effects: owner is notified by WhatsApp, Telegram and email; the customer gets an
+acknowledgement on the same channels. Notification failure is logged and never fails the
+request — a 201 means the ticket is saved, not that the WhatsApp went out.
+Errors
+CodeBody messageCause400
+
+
+
+
+
+Message is required
+
+
+
+
+
+No message.
+
+
+
+
+
+400
+
+
+
+
+
+Full name is required
+
+
+
+
+
+No name and the account has none.
+
+
+
+
+
+400
+
+
+
+
+
+Invalid file type. Only images, videos and PDFs are allowed.
+
+
+
+
+
+Bad mimetype.
+
+
+
+
+
+400
+
+
+
+
+
+Website context not found.
+
+
+
+
+
+Wrong/missing Host.
+
+
+
+
+
+500
+
+
+
+
+
+Website configuration error: Owner ID is missing.
+
+
+
+
+
+Misconfigured store — server-side, not the app's fault.
+
+
+
+
+
+
+
+
+
+4.3 — Form metadata
+
+
+Plain Text
+
+
+
+
+
+
+
+
+GET /api/customer/support-tickets/meta
+
+
+Pull this instead of hardcoding enums in the app.
+200
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "success": true,
+  "data": {
+    "statuses": ["new", "viewed", "pending", "resolved", "closed"],
+    "priorities": ["low", "medium", "high"],
+    "ticket_types": ["support", "billing", "technical", "general"],
+    "allowed_attachment_types": ["image/*", "video/*", "application/pdf"],
+    "max_attachments": 1
+  }
+}
+
+
+
+
+
+4.4 — Ticket detail + thread
+
+
+Plain Text
+
+
+
+
+
+
+
+
+GET /api/customer/support-tickets/66f1a2b3c4d5e6f7a8b9c0d1
+
+
+One call for the whole ticket screen. Replies are oldest-first, unpaginated — use
+4.7 if a thread is long enough to need paging.
+200
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "success": true,
+  "data": {
+    "ticket": { "...ticket object..." },
+    "replies": [
+      {
+        "id": "66f1b1a0c4d5e6f7a8b9c101",
+        "ticket_id": "66f1a2b3c4d5e6f7a8b9c0d1",
+        "sender_type": "customer",
+        "is_customer": true,
+        "message": "Any update on this?",
+        "attachment": null,
+        "created_at": "2026-09-11T10:31:08.220Z"
+      },
+      {
+        "id": "66f1b9d0c4d5e6f7a8b9c111",
+        "sender_type": "owner",
+        "is_customer": false,
+        "message": "Apologies — out for delivery today.",
+        "attachment": null,
+        "created_at": "2026-09-11T11:02:40.402Z"
+      }
+    ]
+  }
+}
+
+
+404 — unknown id, malformed id, someone else's ticket, another store's ticket, or
+soft-deleted. All four collapse into the same response on purpose, so a probe can't confirm
+that a ticket exists:
+
+
+JSON
+
+
+
+
+
+
+
+
+{ "success": false, "message": "Support ticket not found" }
+
+
+Unlike the owner view, fetching as a customer does not move new → viewed. That
+transition is the owner reading it. 
+
+
+
+4.5 — Edit a ticket
+
+
+Plain Text
+
+
+
+
+
+
+
+
+PUT   /api/customer/support-tickets/:id
+PATCH /api/customer/support-tickets/:id
+
+
+Both verbs behave identically. Partial update — send only what changed. Empty/omitted fields
+keep their current value.
+Body: same fields as create, all optional. Uploading a new image/attachment replaces
+the existing one. status is not editable here (use close).
+
+
+JSON
+
+
+
+
+
+
+
+
+{ "subject": "Order not delivered — still waiting", "priority": "high" }
+
+
+200
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "success": true,
+  "message": "Support ticket updated successfully",
+  "data": { "...updated ticket object..." }
+}
+
+
+Errors
+Codemessage404
+
+
+
+
+
+Support ticket not found
+
+
+
+
+
+400
+
+
+
+
+
+This ticket is closed and can no longer be edited.
+
+
+
+
+
+400
+
+
+
+
+
+Invalid file type. Only images, videos and PDFs are allowed.
+
+
+
+
+
+
+
+
+
+4.6 — Close a ticket
+
+
+Plain Text
+
+
+
+
+
+
+
+
+POST /api/customer/support-tickets/:id/close
+
+
+No body. Sets status to closed; afterwards can_reply is false and replies/edits are
+rejected.
+200
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "success": true,
+  "message": "Support ticket closed successfully",
+  "data": { "...ticket object, status now closed, can_reply false..." }
+}
+
+
+Errors
+Codemessage404
+
+
+
+
+
+Support ticket not found
+
+
+
+
+
+400
+
+
+
+
+
+This ticket is already closed.
+
+
+
+
+
+
+There is no customer-facing re-open. Once closed, the customer raises a new ticket. 
+
+
+
+4.7 — Replies only (paginated)
+
+
+Plain Text
+
+
+
+
+
+
+
+
+GET /api/customer/support-tickets/:id/replies?page=1&limit=30
+
+
+ParamDefaultNotespage
+
+
+
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+limit
+
+
+
+
+
+30
+
+
+
+
+
+Clamped to max 100.
+
+
+
+
+
+
+Oldest-first, so page=1 is the top of the thread.
+200
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "success": true,
+  "data": {
+    "replies": [ { "...reply object..." } ],
+    "pagination": {
+      "page": 1, "limit": 30, "total": 2,
+      "total_pages": 1, "has_next": false, "has_prev": false
+    }
+  }
+}
+
+
+404 — same "not found" body as 4.4 for any ticket that isn't the caller's.
+
+
+
+4.8 — Post a reply
+
+
+Plain Text
+
+
+
+
+
+
+
+
+POST /api/customer/support-tickets/:id/replies
+Content-Type: multipart/form-data
+
+
+Body
+FieldRequiredNotesmessage
+
+
+
+
+
+yes
+
+
+
+
+
+
+
+
+
+
+
+
+attachment or image
+
+
+
+
+
+no
+
+
+
+
+
+One file, same rules as create.
+
+
+
+
+
+
+
+
+JSON
+
+
+
+
+
+
+
+
+{ "message": "Still not received. Please check." }
+
+
+201
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "success": true,
+  "message": "Reply posted successfully",
+  "data": { "...reply object, sender_type customer, is_customer true..." }
+}
+
+
+Side effects: ticket status moves to pending (the ball is back with the owner), and
+the owner is notified on WhatsApp / Telegram / email.
+Errors
+Codemessage404
+
+
+
+
+
+Support ticket not found
+
+
+
+
+
+400
+
+
+
+
+
+Message is required
+
+
+
+
+
+400
+
+
+
+
+
+This ticket is closed and cannot be replied to.
+
+
+
+
+
+400
+
+
+
+
+
+Invalid file type. Only images, videos and PDFs are allowed.
+
+
+
+
+
+
+
+
+
+5. Error format
+⚠️ There are three different error shapes, depending on which layer rejected the request.
+This is the single most common integration trap on this API — a client that only reads
+message will show blank alerts for two of the three.
+Shape 1 — API-key layer (access-key / Accept)
+Rejected first, before anything else runs.
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "status": "error",
+  "data": "You do not have permission to perform this action."
+}
+
+
+Shape 2 — auth layer (Authorization)
+
+
+JSON
+
+
+
+
+
+
+
+
+{ "error": "Unauthorized" }
+
+
+Shape 3 — the controller (everything documented in §4)
+
+
+JSON
+
+
+
+
+
+
+
+
+{ "success": false, "message": "Support ticket not found" }
+
+
+Reading them
+
+
+Plain Text
+
+
+
+
+
+
+
+
+const msg = body.message ?? body.error ?? body.data ?? "Something went wrong";
+
+
+Which code means what
+CodeShapeBodyWhen403
+
+
+
+
+
+1
+
+
+
+
+
+{"status":"error","data":"You do not have permission…"}
+
+
+
+
+
+Bad/missing access-key, wrong length, key not valid for this store, or Accept is not application/json.
+
+
+
+
+
+401
+
+
+
+
+
+2
+
+
+
+
+
+{"error":"Unauthorized"}
+
+
+
+
+
+Missing / expired / invalid customer bearer token.
+
+
+
+
+
+403
+
+
+
+
+
+2
+
+
+
+
+
+{"error":"Forbidden"}
+
+
+
+
+
+Valid token, but not a customer (e.g. an owner token).
+
+
+
+
+
+400
+
+
+
+
+
+3
+
+
+
+
+
+{"success":false,"message":…}
+
+
+
+
+
+Validation / bad state / missing website context.
+
+
+
+
+
+404
+
+
+
+
+
+3
+
+
+
+
+
+{"success":false,"message":"Support ticket not found"}
+
+
+
+
+
+Not found, or not yours.
+
+
+
+
+
+500
+
+
+
+
+
+3
+
+
+
+
+
+{"success":false,"message":…}
+
+
+
+
+
+Server error.
+
+
+
+
+
+
+Both 403s look alike but mean opposite things. Shape 1 (status/data) is the store's__key is wrong — a build/config problem, retrying won't help. Shape 2 (error) is the user__is not a customer. Distinguish them by which key the body carries, not by the status code. 
+Treat a 401 as "send the user to login". Treat a 403 with data as "the app's API key
+is misconfigured" — do not log the user out for it.
+Success codes
+CodeMeaning200
+
+
+
+
+
+OK
+
+
+
+
+
+201
+
+
+
+
+
+Created (ticket, reply)
+
+
+
+
+
+
+
+
+
+6. Typical app flow
+
+
+Plain Text
+
+
+
+
+
+
+
+
+POST /api/auth/login                     → token
+GET  /api/customer/support-tickets/meta  → dropdown values (cache it)
+Support list screen
+  GET  /api/customer/support-tickets?page=1
+"Raise a ticket"
+  POST /api/customer/support-tickets     → 201, ticket.id
+Ticket detail screen
+  GET  /api/customer/support-tickets/{id}          → ticket + thread
+  POST /api/customer/support-tickets/{id}/replies  → 201
+  (refresh thread, or append the returned reply locally)
+Resolved
+  POST /api/customer/support-tickets/{id}/close
+
+
+Notes for the client
+Set access-key and Accept: application/json once in the shared HTTP client, next to
+  wherever the bearer token is injected. They are required on every call here, and a
+  missing one surfaces as a confusing generic 403.
+There are no push/websocket events on this module. Owner replies arrive by
+  WhatsApp/Telegram/email; in-app you must poll GET /:id or pull-to-refresh.
+Only one attachment per ticket and per reply.
+Poll the list screen, not the detail screen, to badge unread — updated_at moves when the
+  owner replies.
+
+
+
+
+Appendix A — cURL
+
+
+Bash
+
+
+
+
+
+
+
+
+BASE="https://mystore.com"
+TOKEN="eyJhbGciOi..."                                              # customer bearer token
+KEY="0f3c9a1b7e2d4c8a6b5f0e9d3c7a1b4e8f2d6c0a9b3e7f1d"            # 48-char store API key
+# Every call needs all three: access-key, Authorization, Accept.
+AUTH=(-H "access-key: $KEY" -H "Authorization: Bearer $TOKEN" -H "Accept: application/json")
+# List
+curl -s "${AUTH[@]}" "$BASE/api/customer/support-tickets?page=1&limit=10"
+# Meta
+curl -s "${AUTH[@]}" "$BASE/api/customer/support-tickets/meta"
+# Create with attachment
+curl -s -X POST "${AUTH[@]}" "$BASE/api/customer/support-tickets" \
+  -F "subject=Order not delivered" \
+  -F "message=Order #1042 has not arrived." \
+  -F "priority=high" \
+  -F "image=@/path/to/receipt.jpg"
+# Create without attachment (JSON)
+curl -s -X POST "${AUTH[@]}" "$BASE/api/customer/support-tickets" \
+  -H "Content-Type: application/json" \
+  -d '{"subject":"Order not delivered","message":"Order #1042 has not arrived.","priority":"high"}'
+# Detail
+curl -s "${AUTH[@]}" "$BASE/api/customer/support-tickets/66f1a2b3c4d5e6f7a8b9c0d1"
+# Edit
+curl -s -X PATCH "${AUTH[@]}" "$BASE/api/customer/support-tickets/66f1a2b3c4d5e6f7a8b9c0d1" \
+  -H "Content-Type: application/json" \
+  -d '{"priority":"high"}'
+# Replies
+curl -s "${AUTH[@]}" "$BASE/api/customer/support-tickets/66f1a2b3c4d5e6f7a8b9c0d1/replies?page=1"
+# Reply
+curl -s -X POST "${AUTH[@]}" "$BASE/api/customer/support-tickets/66f1a2b3c4d5e6f7a8b9c0d1/replies" \
+  -F "message=Still not received."
+# Close
+curl -s -X POST "${AUTH[@]}" "$BASE/api/customer/support-tickets/66f1a2b3c4d5e6f7a8b9c0d1/close"
+
+
+If any of these return {"status":"error","data":"You do not have permission…"}, the
+access-key/Accept pair is the problem, not the token.
+
+
+
+Appendix B — differences from /api/v1
+src/controllers/api/SupportTicketController.ts (prefix /api/v1) predates this and stays in
+place. Do not build new mobile features on it:
+
+/api/v1/support-tickets/api/customer/support-ticketsRoutes
+
+
+
+
+
+3 (create, get/post replies)
+
+
+
+
+
+9 (full CRUD + close + meta)
+
+
+
+
+
+List / detail
+
+
+
+
+
+✗
+
+
+
+
+
+✓
+
+
+
+
+
+access-key (store)
+
+
+
+
+
+not required — explicitly skipped in apiKeyCheckContext
+
+
+
+
+
+required
+
+
+
+
+
+Auth
+
+
+
+
+
+optionalAuth — GET replies is public
+
+
+
+
+
+customer required on every route
+
+
+
+
+
+Ownership check
+
+
+
+
+
+if (user && ticket.customer) — skipped entirely when ticket.customer is null, so guest-created tickets are readable and repliable by anyone
+
+
+
+
+
+always _id + customer + website_id
+
+
+
+
+
+Response shape
+
+
+
+
+
+raw Mongoose docs (leaks owner_id, reseller_id; attachment is a bare ObjectId)
+
+
+
+
+
+serialized, attachment resolved to a URL
+
+
+
+
+
+Status after customer reply
+
+
+
+
+
+new
+
+
+
+
+
+pending (matches storefront + owner inbox)
+
+
+
+
+
+
+The ownership gap in the middle row is a genuine issue in the existing /api/v1 controller,
+not just a style difference. I have not changed that file — worth deciding separately whether
+to patch or retire it.
+
+

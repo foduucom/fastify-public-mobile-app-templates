@@ -1,0 +1,72 @@
+I/flutter (15072): url === https://jewel-ecomm.vbought.com/api/category 200
+I/flutter (15072): headers: {accept: application/json, access-key: cd5c79b39997c9de07304c615aaf30a4cfacf4a1dc27b88b, Content-Type: application/json, Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTdjMTdkYzQ0MjdlNjhiMjVkOTFjZmUiLCJ1c2VyVHlwZSI6ImN1c3RvbWVycyIsInNlc3Npb25JZCI6IjgwYmMwNzhjLTJlYTEtNGMyOS1hMWYxLWUwZTk0MGY1NjZjNCIsImlhdCI6MTc4OTE5NjM3NSwiZXhwIjoxNzg5MjgyNzc1fQ.PZmH6PleGsVz50tgq6APbAh-uOoBypomDV0IjxNa7BY}
+I/flutter (15072): url === https://jewel-ecomm.vbought.com/api/auth/customer/profile 200
+I/flutter (15072): type 'int' is not a subtype of type 'Iterable<dynamic>'
+I/flutter (15072): 🚨 BaseController.handleError: type 'int' is not a subtype of type 'Iterable<dynamic>'
+I/flutter (15072): 🚨 STACKTRACE:
+I/flutter (15072): #0      _Uri._makeQueryFromParametersDefault.<anonymous closure> (dart:core/uri.dart:2768:18)
+I/flutter (15072): #1      _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+I/flutter (15072): #2      _Uri._makeQueryFromParametersDefault (dart:core/uri.dart:2764:21)
+I/flutter (15072): #3      _Uri._makeQueryFromParameters (dart:core-patch/uri_encode_patch.dart:63:12)
+I/flutter (15072): #4      _Uri._makeQuery (dart:core/uri.dart:2737:12)
+I/flutter (15072): #5      _SimpleUri.replace (dart:core/uri.dart:4815:20)
+I/flutter (15072): #6      BasicProvider.getRequest (package:foduu_ecommerce/app/data/basic_provider.dart:28:19)
+I/flutter (15072): #7      SupportTicketController.getSupportTickets (package:foduu_ecommerce/app/modules/support_ticket/controllers/support_ticket_controller.dart:24:12)
+I/flutter (15072): #8      SupportTicketController.onInit (package:foduu_ecommerce/app/modules/support_ticket/controllers/support_ticket_controller.dart:17:5)
+I/flutter (15072): #9      GetLifeCycleBase._onStart (package:get/get_instance/src/lifecycle.dart:66:5)
+I/flutter (15072): #10     InternalFinalCallback.call (package:get/get_instance/src/lifecycle.dart:12:26)
+I/flutter (15072): #11     GetInstance._st
+I/foduu_ecommerce(15072): AssetManager2(0xb4000072c0236898) locale list changing from [] to [en-US]
+I/ImeTracker(15072): com.foduu.foduu_ecommerce:8e761eba: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false
+D/InsetsController(15072): show(ime(), fromIme=false)
+D/InsetsController(15072): Setting requestedVisibleTypes to -1 (was -9)
+D/InputConnectionAdaptor(15072): The input method toggled cursor monitoring on
+W/InteractionJankMonitor(15072): Initializing without READ_DEVICE_CONFIG permission. enabled=false, interval=1, missedFrameThreshold=3, frameTimeThreshold=64, package=com.foduu.foduu_ecommerce
+D/FlutterJNI(15072): Sending viewport metrics to the engine.
+D/FlutterJNI(15072): Sending viewport metrics to the engine.
+D/FlutterJNI(15072): Sending viewport metrics to the engine.
+D/FlutterJNI(15072): Sending viewport metrics to the engine.
+D/FlutterJNI(15072): Sending viewport metrics to the engine.
+D/FlutterJNI(15072): Sending viewport metrics to the engine.
+D/FlutterJNI(15072): Sending viewport metrics to the engine.
+D/FlutterJNI(15072): Sending viewport metrics to the engine.
+D/FlutterJNI(15072): Sending viewport metrics to the engine.
+D/FlutterJNI(15072): Sending viewport metrics to the engine.
+D/FlutterJNI(15072): Sending viewport metrics to the engine.
+D/FlutterJNI(15072): Sending viewport metrics to the engine.
+D/FlutterJNI(15072): Sending viewport metrics to the engine.
+I/ImeTracker(15072): com.foduu.foduu_ecommerce:8e761eba: onShown
+D/FlutterJNI(15072): Sending viewport metrics to the engine.
+D/FlutterJNI(15072): Sending viewport metrics to the engine.
+I/ImeTracker(15072): com.foduu.foduu_ecommerce:b754cccd: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false
+D/InsetsController(15072): show(ime(), fromIme=false)
+I/ImeTracker(15072): com.foduu.foduu_ecommerce:b754cccd: onCancelled at PHASE_CLIENT_APPLY_ANIMATION
+D/InputConnectionAdaptor(15072): The input method toggled cursor monitoring on
+I/ImeTracker(15072): system_server:84aa58a: onCancelled at PHASE_CLIENT_ON_CONTROLS_CHANGED
+W/WindowOnBackDispatcher(15072): sendCancelIfRunning: isInProgress=false callback=android.view.ImeBackAnimationController@c0f40c1
+D/FlutterJNI(15072): Sending viewport metrics to the engine.
+E/ImeBackDispatcher(15072): Ime callback not found. Ignoring unregisterReceivedCallback. callbackId: 231741460
+D/InsetsController(15072): hide(ime(), fromIme=false)
+W/WindowOnBackDispatcher(15072): sendCancelIfRunning: isInProgress=false callback=android.view.ImeBackAnimationController@c0f40c1
+D/InsetsController(15072): Setting requestedVisibleTypes to -9 (was -1)
+D/InputConnectionAdaptor(15072): The input method toggled cursor monitoring on
+W/WindowOnBackDispatcher(15072): sendCancelIfRunning: isInProgress=false callback=android.view.ImeBackAnimationController@c0f40c1
+I/ImeTracker(15072): system_server:a67128ff: onCancelled at PHASE_CLIENT_ON_CONTROLS_CHANGED
+I/flutter (15072): Detected FormData, sending MultipartRequest to: https://jewel-ecomm.vbought.com/api/customer/support-tickets
+I/flutter (15072): headers: {accept: application/json, access-key: cd5c79b39997c9de07304c615aaf30a4cfacf4a1dc27b88b, Content-Type: application/json, Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTdjMTdkYzQ0MjdlNjhiMjVkOTFjZmUiLCJ1c2VyVHlwZSI6ImN1c3RvbWVycyIsInNlc3Npb25JZCI6IjgwYmMwNzhjLTJlYTEtNGMyOS1hMWYxLWUwZTk0MGY1NjZjNCIsImlhdCI6MTc4OTE5NjM3NSwiZXhwIjoxNzg5MjgyNzc1fQ.PZmH6PleGsVz50tgq6APbAh-uOoBypomDV0IjxNa7BY}
+I/flutter (15072): MultipartRequest final headers: {accept: application/json, access-key: cd5c79b39997c9de07304c615aaf30a4cfacf4a1dc27b88b, Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTdjMTdkYzQ0MjdlNjhiMjVkOTFjZmUiLCJ1c2VyVHlwZSI6ImN1c3RvbWVycyIsInNlc3Npb25JZCI6IjgwYmMwNzhjLTJlYTEtNGMyOS1hMWYxLWUwZTk0MGY1NjZjNCIsImlhdCI6MTc4OTE5NjM3NSwiZXhwIjoxNzg5MjgyNzc1fQ.PZmH6PleGsVz50tgq6APbAh-uOoBypomDV0IjxNa7BY}
+I/flutter (15072): url === https://jewel-ecomm.vbought.com/api/customer/support-tickets 201
+I/flutter (15072): type 'int' is not a subtype of type 'Iterable<dynamic>'
+I/flutter (15072): 🚨 BaseController.handleError: type 'int' is not a subtype of type 'Iterable<dynamic>'
+I/flutter (15072): 🚨 STACKTRACE:
+I/flutter (15072): #0      _Uri._makeQueryFromParametersDefault.<anonymous closure> (dart:core/uri.dart:2768:18)
+I/flutter (15072): #1      _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+I/flutter (15072): #2      _Uri._makeQueryFromParametersDefault (dart:core/uri.dart:2764:21)
+I/flutter (15072): #3      _Uri._makeQueryFromParameters (dart:core-patch/uri_encode_patch.dart:63:12)
+I/flutter (15072): #4      _Uri._makeQuery (dart:core/uri.dart:2737:12)
+I/flutter (15072): #5      _SimpleUri.replace (dart:core/uri.dart:4815:20)
+I/flutter (15072): #6      BasicProvider.getRequest (package:foduu_ecommerce/app/data/basic_provider.dart:28:19)
+I/flutter (15072): #7      SupportTicketController.getSupportTickets (package:foduu_ecommerce/app/modules/support_ticket/controllers/support_ticket_controller.dart:24:12)
+I/flutter (15072): #8      SupportTicketController.createSupportTicket (package:foduu_ecommerce/app/modules/support_ticket/controllers/support_ticket_controller.dart:103:13)
+I/flutter (15072): <asynchronous suspension>
+I/flutter (15072): #9      SupportTicketView._showGenerateTicketBottomSheet.<anonymous closure>.<anonymous closure> (package:foduu_ecommerce/app/modules/support_ticket/views

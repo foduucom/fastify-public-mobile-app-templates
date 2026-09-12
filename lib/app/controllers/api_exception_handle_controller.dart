@@ -8,6 +8,12 @@ import 'package:get_storage/get_storage.dart';
 mixin BaseController {
   var getbox = GetStorage();
   Future<void> handleError(error) async {
+    print('🚨 BaseController.handleError: $error');
+    if (error is Error) {
+      print('🚨 STACKTRACE:\n${error.stackTrace}');
+    } else {
+      print('🚨 STACKTRACE:\n${StackTrace.current}');
+    }
     HelperFunctions().hideOverlayLoader();
     if (error is BadRequestException) {
       var message = error.message;

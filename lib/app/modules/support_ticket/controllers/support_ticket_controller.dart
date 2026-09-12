@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 class SupportTicketController extends GetxController with BaseController {
   var isLoading = false.obs;
   var supportTickets = [].obs;
+  var pagination = {}.obs;
 
   @override
   void onInit() {
@@ -20,17 +21,36 @@ class SupportTicketController extends GetxController with BaseController {
     try {
       isLoading.value = true;
       var response = await BasicProvider("customer/support-tickets")
-          .getRequest()
+          .getRequest(queryParams: {'page': 1, 'limit': 10})
           .catchError(handleError);
 
-      supportTickets.clear();
+      List rawTickets = [];
+      Map<String, dynamic> rawPagination = {};
+
       if (response is List) {
-        supportTickets.addAll(response);
-      } else if (response is Map && response['data'] is List) {
-        supportTickets.addAll(response['data']);
+        rawTickets = response;
+      } else if (response is Map) {
+        final ticketsData = response['tickets'] ?? response['data'] ?? response['docs'];
+        if (ticketsData is List) {
+          rawTickets = ticketsData;
+        } else if (ticketsData is Map && ticketsData['tickets'] is List) {
+          rawTickets = ticketsData['tickets'];
+          if (ticketsData['pagination'] is Map) {
+            rawPagination = Map<String, dynamic>.from(ticketsData['pagination']);
+          }
+        }
+        if (response['pagination'] is Map) {
+          rawPagination = Map<String, dynamic>.from(response['pagination']);
+        }
       }
+
+      supportTickets
+        ..clear()
+        ..addAll(rawTickets);
+      pagination.value = rawPagination;
     } catch (e) {
       debugPrint('getSupportTickets error: $e');
+      HelperFunctions().showSnackBarError('Failed to load support tickets');
     } finally {
       isLoading.value = false;
     }
@@ -52,34 +72,27 @@ class SupportTicketController extends GetxController with BaseController {
       };
 
       if (files.isNotEmpty) {
-        for (var i = 0; i < files.length; i++) {
-          final file = files[i];
-          final name = file.path.split('/').last;
-          final extension = name.split('.').last.toLowerCase();
-          String mimeType = 'image/jpeg';
-          if (extension == 'png') {
-            mimeType = 'image/png';
-          } else if (extension == 'webp') {
-            mimeType = 'image/webp';
-          } else if (extension == 'gif') {
-            mimeType = 'image/gif';
-          }
-
-          final multipartFile = MultipartFile(
-            file,
-            filename: name,
-            contentType: mimeType,
-          );
-
-          if (i == 0) {
-            formMap['image'] = multipartFile;
-          }
-          formMap['images[$i]'] = multipartFile;
+        final file = files.first;
+        final name = file.path.split('/').last;
+        final extension = name.split('.').last.toLowerCase();
+        String mimeType = 'image/jpeg';
+        if (extension == 'png') {
+          mimeType = 'image/png';
+        } else if (extension == 'webp') {
+          mimeType = 'image/webp';
+        } else if (extension == 'gif') {
+          mimeType = 'image/gif';
         }
+
+        formMap['image'] = MultipartFile(
+          file,
+          filename: name,
+          contentType: mimeType,
+        );
       }
 
       var form = FormData(formMap);
-      var response = await BasicProvider("customer/support-tickets/create")
+      var response = await BasicProvider("customer/support-tickets")
           .postRequest(form)
           .catchError(handleError);
 
@@ -96,20 +109,24 @@ class SupportTicketController extends GetxController with BaseController {
     }
   }
 
-  Future<bool> deleteSupportTicket(String id, int index) async {
+  Future<bool> closeSupportTicket(String id, int index) async {
     try {
-      await BasicProvider("customer/support-tickets/$id")
-          .deleteRequest()
+      await BasicProvider("customer/support-tickets/$id/close")
+          .postRequest({})
           .catchError(handleError);
+
       if (index >= 0 && index < supportTickets.length) {
-        supportTickets.removeAt(index);
+        final ticket = Map<String, dynamic>.from(supportTickets[index]);
+        ticket['status'] = 'closed';
+        ticket['can_reply'] = false;
+        supportTickets[index] = ticket;
       }
       HelperFunctions()
-          .showSnackBarSuccess('Support ticket deleted successfully');
+          .showSnackBarSuccess('Support ticket closed successfully');
       return true;
     } catch (e) {
-      debugPrint('deleteSupportTicket error: $e');
-      HelperFunctions().showSnackBarError('Failed to delete support ticket');
+      debugPrint('closeSupportTicket error: $e');
+      HelperFunctions().showSnackBarError('Failed to close support ticket');
       return false;
     }
   }

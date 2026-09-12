@@ -18,17 +18,23 @@ class MyReviewsController extends GetxController with BaseController {
   Future<void> fetchReviews() async {
     try {
       isLoading.value = true;
-      var response = await BasicProvider("customer-reviews")
-          .getRequest()
+      var response = await BasicProvider("customer/reviews")
+          .getRequest(queryParams: {'page': 1, 'limit': 50})
           .catchError(handleError);
 
       reviewsList.clear();
+      List rawReviews = [];
       if (response is List) {
-        reviewsList.addAll(response.map((e) => _normalizeReview(e)));
-      } else if (response is Map && response['data'] is List) {
-        reviewsList
-            .addAll((response['data'] as List).map((e) => _normalizeReview(e)));
+        rawReviews = response;
+      } else if (response is Map) {
+        final reviews = response['reviews'] ?? response['data'] ?? response['docs'];
+        if (reviews is List) {
+          rawReviews = reviews;
+        } else if (reviews is Map && reviews['reviews'] is List) {
+          rawReviews = reviews['reviews'];
+        }
       }
+      reviewsList.addAll(rawReviews.whereType<Map>().map((e) => _normalizeReview(e)));
     } catch (e) {
       debugPrint('fetchReviews error: $e');
     } finally {
@@ -37,13 +43,13 @@ class MyReviewsController extends GetxController with BaseController {
   }
 
   Map<String, dynamic> _normalizeReview(dynamic item) {
-    final product = item['product_id'];
+    final product = item['product'];
     final productName =
         product is Map ? (product['name']?.toString() ?? '') : '';
     final productSlug =
         product is Map ? (product['slug']?.toString() ?? '') : '';
-    final productImage = product is Map
-        ? HelperFunctions().getImage(product['featured_image'])
+    final productImage = product is Map && product['image'] != null
+        ? product['image'].toString()
         : HelperFunctions.getNoImage();
 
     String formattedDate = '';
@@ -97,7 +103,7 @@ class MyReviewsController extends GetxController with BaseController {
 
   Future<void> deleteReview(String id) async {
     try {
-      await BasicProvider("product-reviews/$id")
+      await BasicProvider("customer/reviews/$id")
           .deleteRequest()
           .catchError(handleError);
       reviewsList.removeWhere((element) => element['id'] == id);

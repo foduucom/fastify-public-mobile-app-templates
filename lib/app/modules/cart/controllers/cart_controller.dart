@@ -85,8 +85,8 @@ class CartController extends GetxController
     }
 
     var productObj = item['product_id'];
-    var variants =
-        (productObj['variant_ids'] ?? productObj['variants']) as List?;
+    final rawVariants = productObj['variant_ids'] ?? productObj['variants'];
+    final List? variants = rawVariants is List ? rawVariants : null;
 
     if (productObj['type'] == 'simple') {
       if (variants != null && variants.isNotEmpty) {

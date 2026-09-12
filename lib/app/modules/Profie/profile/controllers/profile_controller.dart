@@ -56,9 +56,9 @@ class ProfileController extends GetxController with BaseController {
   void getBoxData() {
     if (AuthDetails.isUserLogin()) {
       var userData = box.read('userData');
-      if (userData != null) {
+      if (userData != null && userData is Map) {
         profiledata.clear();
-        profiledata.addAll(userData);
+        profiledata.addAll(Map<String, dynamic>.from(userData));
       }
     }
   }
@@ -122,9 +122,9 @@ class ProfileController extends GetxController with BaseController {
           .getRequest()
           .catchError(handleError);
 
-      if (response != null) {
+      if (response != null && response is Map) {
         profiledata.clear();
-        profiledata.addAll(response);
+        profiledata.addAll(Map<String, dynamic>.from(response));
 
         nameController.text = response["name"]?.toString() ?? "";
         emailController.text = response["email"]?.toString() ?? "";

@@ -62,8 +62,7 @@ class _FoduuSliderState extends State<FoduuSlider>
 
   List<Widget> _buildPageIndicator() {
     List<Widget> list = [];
-    //print("Slide Data : ${widget.sliderData['slider']['content']}");
-    for (int i = 0; i < widget.sliderData['slider']['content'].length; i++) {
+    for (int i = 0; i < _imageUrls.length; i++) {
       list.add(i == _currentPage ? _indicator(true) : _indicator(false));
     }
     return list;
@@ -73,13 +72,11 @@ class _FoduuSliderState extends State<FoduuSlider>
   void initState() {
     super.initState();
     homeController = Get.find<HomepageController>();
-    // sliderImage.clear();
-    // initFetchSliderImage(widget.id);
 
     _resolveImageUrls();
 
     _timer = Timer.periodic(const Duration(seconds: 8), (Timer timer) {
-      if (_currentPage < widget.sliderData['slider']['content'].length - 1) {
+      if (_imageUrls.isNotEmpty && _currentPage < _imageUrls.length - 1) {
         _currentPage++;
       } else {
         _currentPage = 0;

@@ -22,7 +22,10 @@ class CategoryDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = Get.width;
     final height = Get.height;
-    final children = (category['children'] as List).whereType<Map>().toList();
+    final rawChildren = category['children'];
+    final children = rawChildren is List
+        ? rawChildren.whereType<Map>().toList()
+        : <Map>[];
 
     return GetBuilder<CategoryDialogController>(
       init: CategoryDialogController(categories: children),

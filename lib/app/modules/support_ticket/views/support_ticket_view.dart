@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/constants/support_ticket_status.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shimmer/shimmer.dart';
@@ -74,7 +75,9 @@ class SupportTicketView extends GetView<SupportTicketController> {
                     final id = ticket['id'] ?? ticket['_id'] ?? ticket['ticket_number'];
                     Get.toNamed(Routes.SUPPORT_TICKET_DETAILS, arguments: {'id': id});
                   },
-                  onDelete: () => _confirmDeleteTicket(context, colorScheme, ticket, index),
+                  onClose: (ticket['status'] ?? '').toString().toLowerCase() == 'closed'
+                      ? null
+                      : () => _confirmCloseTicket(context, colorScheme, ticket, index),
                 );
               },
             );
@@ -84,14 +87,14 @@ class SupportTicketView extends GetView<SupportTicketController> {
     );
   }
 
-  void _confirmDeleteTicket(
+  void _confirmCloseTicket(
       BuildContext context, ColorScheme colorScheme, dynamic ticket, int index) {
     Get.dialog(
       AlertDialog(
         backgroundColor: colorScheme.surface,
-        title: Text('Delete Ticket', style: TextStyle(color: colorScheme.onSurface)),
+        title: Text('Close Ticket', style: TextStyle(color: colorScheme.onSurface)),
         content: Text(
-          'Are you sure you want to delete this support ticket?',
+          'Are you sure you want to close this support ticket? You will not be able to reply to it once closed.',
           style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
         ),
         actions: [
@@ -103,9 +106,9 @@ class SupportTicketView extends GetView<SupportTicketController> {
             onPressed: () {
               Get.back();
               final id = (ticket['id'] ?? ticket['_id']).toString();
-              controller.deleteSupportTicket(id, index);
+              controller.closeSupportTicket(id, index);
             },
-            child: Text('Delete', style: TextStyle(color: colorScheme.error)),
+            child: Text('Close Ticket', style: TextStyle(color: colorScheme.error)),
           ),
         ],
       ),
@@ -258,16 +261,7 @@ class SupportTicketView extends GetView<SupportTicketController> {
     );
   }
 
-  static Color _priorityColor(String priority) {
-    switch (priority.toLowerCase()) {
-      case 'high':
-        return Colors.red;
-      case 'medium':
-        return Colors.orange;
-      default:
-        return Colors.green;
-    }
-  }
+  static Color _priorityColor(String priority) => SupportTicketStatus.priorityColor(priority);
 }
 
 // ─── Ticket Card ────────────────────────────────────────────────────────────
@@ -278,22 +272,22 @@ class _TicketCard extends StatelessWidget {
     required this.colorScheme,
     required this.textTheme,
     required this.onView,
-    required this.onDelete,
+    required this.onClose,
   });
 
   final dynamic ticket;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
   final VoidCallback onView;
-  final VoidCallback onDelete;
+  final VoidCallback? onClose;
 
   @override
   Widget build(BuildContext context) {
     final id = (ticket['id'] ?? ticket['_id'] ?? '').toString();
     final subject = (ticket['subject'] ?? '').toString();
     final message = (ticket['message'] ?? '').toString();
-    final status = (ticket['status'] ?? 'open').toString();
-    final priority = (ticket['priority'] ?? 'normal').toString();
+    final status = (ticket['status'] ?? 'new').toString();
+    final priority = (ticket['priority'] ?? 'medium').toString();
     final createdAt = ticket['created_at']?.toString();
     final createdDate =
         (createdAt != null && createdAt.isNotEmpty) ? HelperFunctions().toCarbonToHumanDateFormat(createdAt) : '';
@@ -353,15 +347,17 @@ class _TicketCard extends StatelessWidget {
                   child: Icon(Icons.visibility_outlined, size: 18, color: colorScheme.primary),
                 ),
               ),
-              const SizedBox(width: 4),
-              InkWell(
-                onTap: onDelete,
-                borderRadius: BorderRadius.circular(20),
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: Icon(Icons.delete_outline, size: 18, color: colorScheme.error),
+              if (onClose != null) ...[
+                const SizedBox(width: 4),
+                InkWell(
+                  onTap: onClose,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(Icons.check_circle_outline, size: 18, color: colorScheme.error),
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ],
@@ -376,25 +372,7 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color color;
-    switch (status.toLowerCase()) {
-      case 'resolved':
-      case 'solved':
-      case 'completed':
-      case 'close':
-      case 'closed':
-        color = Colors.green;
-        break;
-      case 'in_progress':
-        color = Colors.blue;
-        break;
-      case 'pending':
-      case 'open':
-        color = Colors.orange;
-        break;
-      default:
-        color = Theme.of(context).colorScheme.onSurfaceVariant;
-    }
+    final color = SupportTicketStatus.statusColor(status);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -417,20 +395,16 @@ class _PriorityBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color color;
+    final color = SupportTicketStatus.priorityColor(priority);
     IconData icon;
     switch (priority.toLowerCase()) {
-      case 'critical':
       case 'high':
-        color = Colors.red;
         icon = Icons.keyboard_double_arrow_up;
         break;
       case 'medium':
-        color = Colors.orange;
         icon = Icons.drag_handle;
         break;
       default:
-        color = Colors.green;
         icon = Icons.keyboard_arrow_down;
     }
 

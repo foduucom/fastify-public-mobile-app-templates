@@ -1,0 +1,1766 @@
+Customer Product Review API (Mobile)
+Product ratings and reviews, as JSON, for the mobile apps.
+Controller: src/controllers/api/CustomerReviewController.ts
+Base path: /api/customer/reviews
+Content type: application/json (no file uploads on this module — see §7)
+
+Not the same as /api/review/*. An older controller
+(src/controllers/api/ReviewController.ts) exposes just two routes —
+GET /api/review/product/:product_id and POST /api/review/create — and is left in
+place for backwards compatibility. New mobile work should use the routes here.
+See Appendix B.
+
+
+
+1. Headers
+Same two-credential scheme as the support ticket API: the store's API key and the
+customer's token.
+HeaderValueRequiredWhyaccess-key
+
+
+
+
+
+the website's 48-character API key
+
+
+
+
+
+yes, all routes
+
+
+
+
+
+Identifies the store.
+
+
+
+
+
+Accept
+
+
+
+
+
+application/json
+
+
+
+
+
+yes, all routes
+
+
+
+
+
+The API-key check rejects anything else.
+
+
+
+
+
+Host
+
+
+
+
+
+the store's domain
+
+
+
+
+
+yes
+
+
+
+
+
+The website is resolved from it; the access-key is validated against that website.
+
+
+
+
+
+Authorization
+
+
+
+
+
+Bearer <token>
+
+
+
+
+
+write + "my" routes
+
+
+
+
+
+Identifies the customer.
+
+
+
+
+
+
+
+
+Plain Text
+
+
+
+
+
+
+
+
+GET /api/customer/reviews/product/66f0.../summary HTTP/1.1
+Host: mystore.com
+access-key: 0f3c9a1b7e2d4c8a6b5f0e9d3c7a1b4e8f2d6c0a9b3e7f1d
+Authorization: 
+Accept: application/json
+
+
+Which routes need a customer token
+AccessRoutesPublic (token optional)
+
+
+
+
+
+GET /product/:product_id, GET /product/:product_id/summary
+
+
+
+
+
+Customer required
+
+
+
+
+
+everything else — GET /, GET /pending, GET /product/:id/mine, POST /, PUT|PATCH /:id, DELETE /:id
+
+
+
+
+
+
+On the two public routes the token is still used if present: it populates is_mine on each
+review so the app can show edit/delete on the customer's own. Without a token is_mine is
+always false.
+⚠️ access-key is required even on the public routes. "Public" means no customer login,
+not no credentials.
+
+
+
+2. Route summary
+#MethodPathAuthPurpose1
+
+
+
+
+
+GET
+
+
+
+
+
+/api/customer/reviews/product/:product_id
+
+
+
+
+
+public
+
+
+
+
+
+Reviews for a product + summary
+
+
+
+
+
+2
+
+
+
+
+
+GET
+
+
+
+
+
+/api/customer/reviews/product/:product_id/summary
+
+
+
+
+
+public
+
+
+
+
+
+Stars only (product cards)
+
+
+
+
+
+3
+
+
+
+
+
+GET
+
+
+
+
+
+/api/customer/reviews
+
+
+
+
+
+customer
+
+
+
+
+
+My reviews
+
+
+
+
+
+4
+
+
+
+
+
+GET
+
+
+
+
+
+/api/customer/reviews/pending
+
+
+
+
+
+customer
+
+
+
+
+
+Bought but not yet reviewed
+
+
+
+
+
+5
+
+
+
+
+
+GET
+
+
+
+
+
+/api/customer/reviews/product/:product_id/mine
+
+
+
+
+
+customer
+
+
+
+
+
+My review for one product
+
+
+
+
+
+6
+
+
+
+
+
+POST
+
+
+
+
+
+/api/customer/reviews
+
+
+
+
+
+customer
+
+
+
+
+
+Create or update my review
+
+
+
+
+
+7
+
+
+
+
+
+PUT/PATCH
+
+
+
+
+
+/api/customer/reviews/:id
+
+
+
+
+
+customer
+
+
+
+
+
+Edit my review
+
+
+
+
+
+8
+
+
+
+
+
+DELETE
+
+
+
+
+
+/api/customer/reviews/:id
+
+
+
+
+
+customer
+
+
+
+
+
+Delete my review
+
+
+
+
+
+
+:id is the review's Mongo _id. :product_id is the product's _id.
+
+
+
+3. Shared objects
+review
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "id": "66f2c1d4e5a6b7c8d9e0f1a2",
+  "product_id": "66f0aabbccddeeff00112233",
+  "name": "Ravi Kumar",
+  "rating": 4,
+  "comment": "Good quality, delivery was quick.",
+  "status": "approved",
+  "is_mine": true,
+  "is_verified_purchase": true,
+  "store_reply": {
+    "message": "Thanks for the feedback, Ravi!",
+    "created_at": "2026-09-10T08:15:00.000Z"
+  },
+  "created_at": "2026-09-09T14:22:31.004Z",
+  "updated_at": "2026-09-09T14:22:31.004Z"
+}
+
+
+FieldTypeNotesrating
+
+
+
+
+
+number
+
+
+
+
+
+1–5.
+
+
+
+
+
+status
+
+
+
+
+
+string
+
+
+
+
+
+pending | approved | spam | trash. Listings only ever return approved.
+
+
+
+
+
+is_mine
+
+
+
+
+
+bool
+
+
+
+
+
+true when this review belongs to the caller. false when unauthenticated.
+
+
+
+
+
+is_verified_purchase
+
+
+
+
+
+bool
+
+
+
+
+
+true when the review is linked to an order.
+
+
+
+
+
+store_reply
+
+
+
+
+
+object | null
+
+
+
+
+
+The owner's public reply, when there is one.
+
+
+
+
+
+
+summary
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "average_rating": 4.2,
+  "total_reviews": 37,
+  "breakdown": { "1": 1, "2": 2, "3": 4, "4": 12, "5": 18 }
+}
+
+
+average_rating is rounded to 1 decimal. Both are 0 when there are no reviews.
+product_rating
+Returned by every write, so the app can update the product screen without re-fetching:
+
+
+JSON
+
+
+
+
+
+
+
+
+{ "average_rating": 4.3, "rating_count": 38 }
+
+
+pagination
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "page": 1, "limit": 10, "total": 37,
+  "total_pages": 4, "has_next": true, "has_prev": false
+}
+
+
+
+
+
+4. Endpoints
+4.1 — Reviews for a product
+
+
+Plain Text
+
+
+
+
+
+
+
+
+GET /api/customer/reviews/product/66f0aabbccddeeff00112233?page=1&limit=10&sort=newest
+
+
+Auth: public.
+Query params
+ParamDefaultNotespage
+
+
+
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+limit
+
+
+
+
+
+10
+
+
+
+
+
+Max 50.
+
+
+
+
+
+sort
+
+
+
+
+
+newest
+
+
+
+
+
+newest | oldest | highest | lowest. Unknown values fall back to newest.
+
+
+
+
+
+rating
+
+
+
+
+
+—
+
+
+
+
+
+1–5, to show only that star band.
+
+
+
+
+
+verified
+
+
+
+
+
+—
+
+
+
+
+
+true to show only verified-purchase reviews.
+
+
+
+
+
+
+Only approved, non-deleted, top-level reviews are returned.
+200
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "success": true,
+  "data": {
+    "summary": {
+      "average_rating": 4.2,
+      "total_reviews": 37,
+      "breakdown": { "1": 1, "2": 2, "3": 4, "4": 12, "5": 18 }
+    },
+    "reviews": [ { "...review object..." } ],
+    "pagination": {
+      "page": 1, "limit": 10, "total": 37,
+      "total_pages": 4, "has_next": true, "has_prev": false
+    }
+  }
+}
+
+
+The summary always covers all approved reviews, never just the filtered page — so the
+star bars stay correct while the user filters to "1 star only".
+Errors
+Codemessage400
+
+
+
+
+
+Valid product_id is required.
+
+
+
+
+
+400
+
+
+
+
+
+Website context not found.
+
+
+
+
+
+
+
+
+
+4.2 — Rating summary only
+
+
+Plain Text
+
+
+
+
+
+
+
+
+GET /api/customer/reviews/product/66f0aabbccddeeff00112233/summary
+
+
+Auth: public. Use on product cards and listings where you need the stars but not the text.
+200
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "success": true,
+  "data": {
+    "average_rating": 4.2,
+    "total_reviews": 37,
+    "breakdown": { "1": 1, "2": 2, "3": 4, "4": 12, "5": 18 }
+  }
+}
+
+
+A product with no reviews returns average_rating: 0, total_reviews: 0 and an all-zero
+breakdown — a 200, not a 404. An unknown-but-valid product_id looks the same.
+Errors
+Codemessage400
+
+
+
+
+
+Valid product_id is required. — missing or not a 24-char hex id
+
+
+
+
+
+400
+
+
+
+
+
+Website context not found.
+
+
+
+
+
+
+
+
+
+4.3 — My reviews
+
+
+Plain Text
+
+
+
+
+
+
+
+
+GET /api/customer/reviews?page=1&limit=10
+
+
+Auth: customer. Everything the caller has written, newest first, each with the product it
+belongs to.
+200
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "success": true,
+  "data": {
+    "reviews": [
+      {
+        "id": "66f2c1d4e5a6b7c8d9e0f1a2",
+        "product_id": "66f0aabbccddeeff00112233",
+        "name": "Ravi Kumar",
+        "rating": 4,
+        "comment": "Good quality, delivery was quick.",
+        "status": "approved",
+        "is_mine": true,
+        "is_verified_purchase": true,
+        "store_reply": null,
+        "created_at": "2026-09-09T14:22:31.004Z",
+        "updated_at": "2026-09-09T14:22:31.004Z",
+        "product": {
+          "id": "66f0aabbccddeeff00112233",
+          "name": "Cotton Kurta",
+          "slug": "cotton-kurta",
+          "image": "https://mystore.com/uploads/.../kurta.webp"
+        }
+      }
+    ],
+    "pagination": { "page": 1, "limit": 10, "total": 3, "total_pages": 1, "has_next": false, "has_prev": false }
+  }
+}
+
+
+The nested product object appears only on this route. product.image is null when the
+product has no featured image.
+A customer with no reviews gets "reviews": [] and "total": 0 — a 200, not a 404.
+Errors
+Codemessage400
+
+
+
+
+
+Website context not found.
+
+
+
+
+
+
+
+
+
+4.4 — Products awaiting a review
+
+
+Plain Text
+
+
+
+
+
+
+
+
+GET /api/customer/reviews/pending
+
+
+Auth: customer. Products the customer has ordered but not yet reviewed — drives the "rate
+your recent purchases" prompt. Not paginated.
+200
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "success": true,
+  "data": {
+    "products": [
+      {
+        "id": "66f0aabbccddeeff00112233",
+        "name": "Cotton Kurta",
+        "slug": "cotton-kurta",
+        "image": "https://mystore.com/uploads/.../kurta.webp",
+        "average_rating": 4.2
+      }
+    ]
+  }
+}
+
+
+Empty is {"products": []} with a 200.
+Computed as every product in the customer's orders minus every product they have already
+reviewed. It does not currently filter by order status, so a product from a pending or
+cancelled order still appears. If you want "delivered only", say so and I'll add the filter.
+Errors
+Codemessage400
+
+
+
+
+
+Website context not found.
+
+
+
+
+
+
+A customer with no orders returns {"products": []} with a 200.
+
+
+
+4.5 — My review for one product
+
+
+Plain Text
+
+
+
+
+
+
+
+
+GET /api/customer/reviews/product/66f0aabbccddeeff00112233/mine
+
+
+Auth: customer. Use it to decide between "Write a review" and "Edit your review" on the
+product page, and to pre-fill the edit form.
+200 — a bare review object:
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "success": true,
+  "data": { "...review object..." }
+}
+
+
+404 — the normal, expected case when they have not reviewed it yet. Not an error state:
+
+
+JSON
+
+
+
+
+
+
+
+
+{ "success": false, "message": "You have not reviewed this product yet." }
+
+
+
+
+
+4.6 — Create or update a review
+
+
+Plain Text
+
+
+
+
+
+
+
+
+POST /api/customer/reviews
+Content-Type: application/json
+
+
+Auth: customer.
+Body
+FieldRequiredNotesproduct_id
+
+
+
+
+
+yes
+
+
+
+
+
+Must exist on this website.
+
+
+
+
+
+rating
+
+
+
+
+
+yes
+
+
+
+
+
+Integer 1–5.
+
+
+
+
+
+comment
+
+
+
+
+
+yes
+
+
+
+
+
+Non-empty after trimming.
+
+
+
+
+
+
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "product_id": "66f0aabbccddeeff00112233",
+  "rating": 4,
+  "comment": "Good quality, delivery was quick."
+}
+
+
+One review per customer per product. Posting again for the same product overwrites the
+existing review rather than creating a second one — this matches the storefront. The status
+code tells you which happened:
+201 — created. "message": "Review added successfully."
+200 — updated an existing review. "message": "Review updated successfully."
+
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "success": true,
+  "message": "Review added successfully.",
+  "data": {
+    "review": { "...review object..." },
+    "product_rating": { "average_rating": 4.3, "rating_count": 38 }
+  }
+}
+
+
+Reviews are saved as approved and appear immediately — there is no moderation queue on this
+path.
+Errors
+Codemessage400
+
+
+
+
+
+Valid product_id is required.
+
+
+
+
+
+400
+
+
+
+
+
+comment is required.
+
+
+
+
+
+400
+
+
+
+
+
+rating is required and must be between 1 and 5.
+
+
+
+
+
+404
+
+
+
+
+
+Product not found.
+
+
+
+
+
+404
+
+
+
+
+
+Customer not found.
+
+
+
+
+
+
+
+
+
+4.7 — Edit a review
+
+
+Plain Text
+
+
+
+
+
+
+
+
+PUT   /api/customer/reviews/:id
+PATCH /api/customer/reviews/:id
+
+
+Auth: customer. Both verbs behave identically. Partial — send rating, comment, or both.
+
+
+JSON
+
+
+
+
+
+
+
+
+{ "rating": 5, "comment": "Even better after a month of use." }
+
+
+200
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "success": true,
+  "message": "Review updated successfully.",
+  "data": {
+    "review": { "...review object..." },
+    "product_rating": { "average_rating": 4.4, "rating_count": 38 }
+  }
+}
+
+
+Errors
+Codemessage400
+
+
+
+
+
+Valid review id is required.
+
+
+
+
+
+400
+
+
+
+
+
+comment cannot be empty.
+
+
+
+
+
+400
+
+
+
+
+
+rating must be between 1 and 5.
+
+
+
+
+
+404
+
+
+
+
+
+Review not found. — unknown id, or not the caller's
+
+
+
+
+
+
+
+
+
+4.8 — Delete a review
+
+
+Plain Text
+
+
+
+
+
+
+
+
+DELETE /api/customer/reviews/:id
+
+
+Auth: customer. Soft-delete (deleted_at is set; the row is kept), then the product's
+average is recomputed without it.
+200
+
+
+JSON
+
+
+
+
+
+
+
+
+{
+  "success": true,
+  "message": "Review deleted successfully.",
+  "data": { "product_rating": { "average_rating": 4.1, "rating_count": 37 } }
+}
+
+
+Errors
+Codemessage400
+
+
+
+
+
+Valid review id is required.
+
+
+
+
+
+404
+
+
+
+
+
+Review not found.
+
+
+
+
+
+
+
+
+
+5. Error format
+Identical to the support ticket API — three shapes, depending on which layer rejected:
+CodeShapeBodyWhen403
+
+
+
+
+
+API-key
+
+
+
+
+
+{"status":"error","data":"You do not have permission…"}
+
+
+
+
+
+Bad/missing access-key, wrong length, wrong store, or Accept not application/json.
+
+
+
+
+
+401
+
+
+
+
+
+auth
+
+
+
+
+
+{"error":"Unauthorized"}
+
+
+
+
+
+Missing/expired customer token on a protected route.
+
+
+
+
+
+403
+
+
+
+
+
+auth
+
+
+
+
+
+{"error":"Forbidden"}
+
+
+
+
+
+Valid token, but not a customer.
+
+
+
+
+
+400/404
+
+
+
+
+
+controller
+
+
+
+
+
+{"success":false,"message":"…"}
+
+
+
+
+
+Everything in §4.
+
+
+
+
+
+
+
+
+Plain Text
+
+
+
+
+
+
+
+
+const msg = body.message ?? body.error ?? body.data ?? "Something went wrong";
+
+
+The two 403s mean opposite things — data = the app's API key is misconfigured (don't log
+the user out), error = wrong user type. Tell them apart by which key the body carries.
+
+
+
+6. Typical app flow
+
+
+Plain Text
+
+
+
+
+
+
+
+
+Product detail screen (logged out or in)
+  GET  /api/customer/reviews/product/{pid}/summary     → stars on the card
+  GET  /api/customer/reviews/product/{pid}?page=1      → review list
+
+
+Logged in, on the product page
+  GET  /api/customer/reviews/product/{pid}/mine        → 200 = "Edit yours", 404 = "Write one"
+
+
+Write / change
+  POST /api/customer/reviews                           → 201 new, 200 replaced
+  PATCH /api/customer/reviews/{id}                     → tweak
+  DELETE /api/customer/reviews/{id}
+
+
+Account → My reviews
+  GET  /api/customer/reviews
+  GET  /api/customer/reviews/pending                   → "rate your purchases" nudge
+
+
+Notes for the client
+Every write returns product_rating, so update the product screen from the response instead
+of re-fetching the summary.
+POST is an upsert. Don't build a separate "already reviewed?" guard around it — call
+/mine only when you need to pre-fill the form.
+Reviews go live immediately (approved), so the new review will be in the next list call.
+
+
+
+
+7. No photo reviews
+Unlike support tickets, reviews have no attachment support. The ProductComment model has
+no image field, so there is nothing to upload to. All review endpoints are plain JSON.
+If photo reviews are wanted, that needs a schema change first (an image ref on
+ProductComment, like SupportTicket.image) — tell me and I'll add it across the model,
+controller and this doc.
+
+
+
+Appendix A — cURL
+
+
+Bash
+
+
+
+
+
+
+
+
+BASE="https://mystore.com"
+TOKEN="eyJhbGciOi..."
+KEY="0f3c9a1b7e2d4c8a6b5f0e9d3c7a1b4e8f2d6c0a9b3e7f1d"
+PID="66f0aabbccddeeff00112233"
+
+
+PUB=(-H "access-key: $KEY" -H "Accept: application/json")
+AUTH=("${PUB[@]}" -H "Authorization: Bearer $TOKEN")
+
+
+# Public — summary + list
+curl -s "${PUB[@]}" "$BASE/api/customer/reviews/product/$PID/summary"
+curl -s "${PUB[@]}" "$BASE/api/customer/reviews/product/$PID?page=1&sort=highest"
+
+
+# Only 1-star, verified purchases
+curl -s "${PUB[@]}" "$BASE/api/customer/reviews/product/$PID?rating=1&verified=true"
+
+
+# Mine
+curl -s "${AUTH[@]}" "$BASE/api/customer/reviews"
+curl -s "${AUTH[@]}" "$BASE/api/customer/reviews/pending"
+curl -s "${AUTH[@]}" "$BASE/api/customer/reviews/product/$PID/mine"
+
+
+# Create / update
+curl -s -X POST "${AUTH[@]}" "$BASE/api/customer/reviews" \
+  -H "Content-Type: application/json" \
+  -d "{\"product_id\":\"$PID\",\"rating\":4,\"comment\":\"Good quality.\"}"
+
+
+# Edit
+curl -s -X PATCH "${AUTH[@]}" "$BASE/api/customer/reviews/66f2c1d4e5a6b7c8d9e0f1a2" \
+  -H "Content-Type: application/json" \
+  -d '{"rating":5}'
+
+
+# Delete
+curl -s -X DELETE "${AUTH[@]}" "$BASE/api/customer/reviews/66f2c1d4e5a6b7c8d9e0f1a2"
+
+
+
+
+
+Appendix B — differences from /api/review/*
+src/controllers/api/ReviewController.ts stays in place. Both write to the same
+ProductComment collection and both call the same rating-sync logic, so they can coexist —
+a review created through one is visible through the other.
+
+/api/review/*/api/customer/reviewsRoutes
+
+
+
+
+
+2 (list, create)
+
+
+
+
+
+8 (full lifecycle)
+
+
+
+
+
+My reviews / pending / mine
+
+
+
+
+
+✗
+
+
+
+
+
+✓
+
+
+
+
+
+Edit / delete
+
+
+
+
+
+✗
+
+
+
+
+
+✓
+
+
+
+
+
+Sort, star filter, verified filter
+
+
+
+
+
+✗
+
+
+
+
+
+✓
+
+
+
+
+
+Store replies in the payload
+
+
+
+
+
+✗
+
+
+
+
+
+✓
+
+
+
+
+
+Response envelope
+
+
+
+
+
+{status, data}
+
+
+
+
+
+{success, message, data}
+
+
+
+
+
+Create guard
+
+
+
+
+
+requireAuth() — any logged-in user type
+
+
+
+
+
+requireCustomer()
+
+
+
+
+
+Dedupe key
+
+
+
+
+
+customer email when present, else id
+
+
+
+
+
+always customer_id
+
+
+
+
+
+
+Two behaviour notes on the old controller, if you keep using it:
+Its create uses AuthGuards.requireAuth(), which accepts any authenticated user type,
+not just customers — an owner token can post a product review through it.
+It dedupes on email when the customer has one. Two customer accounts sharing an email
+address would overwrite each other's review; this controller keys on customer_id instead.
+

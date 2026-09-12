@@ -2,8 +2,9 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart' hide ImageSource;
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/constants/support_ticket_status.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -41,9 +42,9 @@ class SupportTicketDetailsView extends GetView<SupportTicketDetailsController> {
                 padding: const EdgeInsets.only(right: 12),
                 child: Row(
                   children: [
-                    _StatusChip(status: (ticket['status'] ?? 'open').toString()),
+                    _StatusChip(status: (ticket['status'] ?? 'new').toString()),
                     const SizedBox(width: 6),
-                    _PriorityChip(priority: (ticket['priority'] ?? 'normal').toString()),
+                    _PriorityChip(priority: (ticket['priority'] ?? 'medium').toString()),
                   ],
                 ),
               );
@@ -85,7 +86,28 @@ class SupportTicketDetailsView extends GetView<SupportTicketDetailsController> {
                 );
               }),
             ),
-            _InputArea(controller: controller, colorScheme: colorScheme),
+            Obx(() {
+              final canReply = controller.supportTicketDetails['can_reply'] != false;
+              if (!canReply) {
+                return SafeArea(
+                  top: false,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      border: Border(top: BorderSide(color: colorScheme.outline.withOpacity(0.1))),
+                    ),
+                    child: Text(
+                      'This ticket is closed and can no longer be replied to.',
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.5)),
+                    ),
+                  ),
+                );
+              }
+              return _InputArea(controller: controller, colorScheme: colorScheme);
+            }),
           ],
         ),
       ),
@@ -125,7 +147,7 @@ class _MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isCustomer = (message['user'] ?? 'customer').toString() == 'customer';
+    final isCustomer = message['is_customer'] == true;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bubbleColor = isCustomer
         ? colorScheme.primary.withOpacity(isDark ? 0.22 : 0.12)
@@ -290,21 +312,7 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color color;
-    switch (status.toLowerCase()) {
-      case 'resolved':
-      case 'solved':
-      case 'completed':
-      case 'close':
-      case 'closed':
-        color = Colors.green;
-        break;
-      case 'in_progress':
-        color = Colors.blue;
-        break;
-      default:
-        color = Colors.orange;
-    }
+    final color = SupportTicketStatus.statusColor(status);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
@@ -319,18 +327,7 @@ class _PriorityChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color color;
-    switch (priority.toLowerCase()) {
-      case 'critical':
-      case 'high':
-        color = Colors.red;
-        break;
-      case 'medium':
-        color = Colors.orange;
-        break;
-      default:
-        color = Colors.green;
-    }
+    final color = SupportTicketStatus.priorityColor(priority);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
@@ -424,8 +421,8 @@ class _InputArea extends StatelessWidget {
                           controller.selectedFiles.clear();
                           return;
                         }
-                        final picked = await ImagePicker().pickMultiImage();
-                        controller.selectedFiles.addAll(picked.map((e) => File(e.path)));
+                        final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+                        if (picked != null) controller.selectedFiles.add(File(picked.path));
                       },
                     )),
                 Obx(() {

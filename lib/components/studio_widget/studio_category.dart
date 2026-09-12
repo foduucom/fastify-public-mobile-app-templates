@@ -26,7 +26,17 @@ class _TopCategoryHomeState extends State<CategoryHome>
     super.build(context);
 
     var contentJson = widget.categoryData ?? {};
-    var categories = contentJson['categories'] ?? [];
+    var rawCategories = contentJson['categories'] ?? contentJson['category'];
+    List categories = [];
+    if (rawCategories is List) {
+      categories = rawCategories;
+    } else if (rawCategories is Map) {
+      if (rawCategories['data'] is List) {
+        categories = rawCategories['data'];
+      } else if (rawCategories['docs'] is List) {
+        categories = rawCategories['docs'];
+      }
+    }
     var title = contentJson['heading'] ?? '';
     var subtitle = contentJson['subheading'] ?? '';
     print('🔥 ${title}');
@@ -187,7 +197,8 @@ class CategoryGridItem extends StatelessWidget {
   }
 
   void _defaultNavigate() {
-    List children = category['children'] ?? [];
+    final rawChildren = category['children'];
+    List children = rawChildren is List ? rawChildren : [];
 
     if (children.isNotEmpty) {
       Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
@@ -335,7 +346,7 @@ class CategoryGridItem extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (category['children'] != null &&
+                    if (category['children'] is List &&
                         (category['children'] as List).isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(

@@ -24,8 +24,18 @@ class BasicProvider {
   Future<dynamic> getRequest({final queryParams}) async {
     try {
       var uri = Uri.parse(fetchUrl());
-      if (queryParams != null) {
-        uri = uri.replace(queryParameters: queryParams);
+      if (queryParams != null && queryParams is Map) {
+        final Map<String, dynamic> normalizedParams = {};
+        queryParams.forEach((key, value) {
+          if (value == null) return;
+          if (value is Iterable) {
+            normalizedParams[key.toString()] =
+                value.map((e) => e.toString()).toList();
+          } else {
+            normalizedParams[key.toString()] = value.toString();
+          }
+        });
+        uri = uri.replace(queryParameters: normalizedParams);
       }
 
       final response = await http
@@ -216,7 +226,10 @@ class BasicProvider {
       case 200:
       case 201:
         if (responseBody is Map) {
-          return responseBody["data"] ?? responseBody;
+          final data = responseBody["data"];
+          if (data is Map || data is List) {
+            return data;
+          }
         }
         return responseBody;
       case 400:

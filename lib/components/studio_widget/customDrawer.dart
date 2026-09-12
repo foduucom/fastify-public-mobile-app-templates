@@ -317,7 +317,8 @@ class CustomDrawer extends GetView<HomepageController> {
               decoration: BoxDecoration(
                 color: colorScheme.surfaceContainerHighest.withOpacity(0.4),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: colorScheme.outline.withOpacity(0.15)),
+                border:
+                    Border.all(color: colorScheme.outline.withOpacity(0.15)),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -405,8 +406,8 @@ class CustomDrawer extends GetView<HomepageController> {
                     await Get.find<BottombarController>().logout();
                   },
                   icon: const Icon(Icons.logout, color: Colors.red),
-                  label: const Text('Logout',
-                      style: TextStyle(color: Colors.red)),
+                  label:
+                      const Text('Logout', style: TextStyle(color: Colors.red)),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.red),
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -432,10 +433,12 @@ class CustomDrawer extends GetView<HomepageController> {
   }
 
   Widget _buildItem(dynamic item) {
-    final text = item['text'] ?? '';
-    final type = item['type'] ?? '';
-    final slug = item['slug'] ?? '';
-    final children = item['children'] ?? [];
+    if (item == null || item is! Map) return const SizedBox.shrink();
+    final text = item['text']?.toString() ?? '';
+    final type = item['type']?.toString() ?? '';
+    final slug = item['slug']?.toString() ?? '';
+    final rawChildren = item['children'];
+    final List children = rawChildren is List ? rawChildren : [];
 
     if (children.isNotEmpty) {
       return ExpansionTile(
@@ -448,12 +451,13 @@ class CustomDrawer extends GetView<HomepageController> {
           ),
         ),
         childrenPadding: const EdgeInsets.only(left: 16),
-        children: children.map<Widget>((child) {
+        children: children.whereType<Map>().map<Widget>((child) {
           return DrawerChildTile(
-            title: child['text'],
+            title: child['text']?.toString() ?? '',
             onTap: () {
               Get.back();
-              _handleNavigation(child['type'], child['slug']);
+              _handleNavigation(child['type']?.toString() ?? '',
+                  child['slug']?.toString() ?? '');
             },
           );
         }).toList(),

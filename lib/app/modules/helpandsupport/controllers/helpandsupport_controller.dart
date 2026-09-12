@@ -33,7 +33,14 @@ class HelpandsupportController extends GetxController with BaseController {
           .catchError(handleError);
       if (response == null) return;
       faqs.clear();
-      faqs.addAll(response['data']);
+      if (response is List) {
+        faqs.addAll(response);
+      } else if (response is Map) {
+        final data = response['data'] ?? response['faqs'] ?? response['docs'];
+        if (data is List) {
+          faqs.addAll(data);
+        }
+      }
       update();
     } catch (e) {
       print('faq and support error $e');

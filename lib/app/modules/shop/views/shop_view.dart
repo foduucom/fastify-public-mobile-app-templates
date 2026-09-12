@@ -23,65 +23,68 @@ class ShopView extends GetView<ShopController> {
         backgroundColor: colorScheme.background,
         elevation: 0,
         centerTitle: true,
-        title: controller.isPlainShopEntry
-            ? Text(
-                "Shop",
-                style:
-                    textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              )
-            : Obx(() {
-                return Column(
-                  children: [
-                    Text(
-                      controller.collectionName.value,
-                      style: textTheme.titleLarge
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      "${controller.totalProducts.value} items",
-                      style: textTheme.bodySmall
-                          ?.copyWith(color: colorScheme.onSurfaceVariant),
-                    ),
-                  ],
-                );
-              }),
+        title: Obx(() {
+          if (controller.isPlainShopEntry.value) {
+            return Text(
+              "Shop",
+              style:
+                  textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            );
+          }
+          return Column(
+            children: [
+              Text(
+                controller.collectionName.value,
+                style: textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              Text(
+                "${controller.totalProducts.value} items",
+                style: textTheme.bodySmall
+                    ?.copyWith(color: colorScheme.onSurfaceVariant),
+              ),
+            ],
+          );
+        }),
         actions: [
-          if (!controller.isPlainShopEntry)
-            Obx(() {
-              final count = controller.activeFilterCount;
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.tune_rounded),
-                    onPressed: () => _showFilterBottomSheet(context),
-                  ),
-                  if (count > 0)
-                    Positioned(
-                      right: 6,
-                      top: 6,
-                      child: Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary,
-                          shape: BoxShape.circle,
+          Obx(() {
+            final count = controller.activeFilterCount;
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.tune_rounded),
+                  onPressed: () {
+                    controller.ensureFilterDataLoaded();
+                    _showFilterBottomSheet(context);
+                  },
+                ),
+                if (count > 0)
+                  Positioned(
+                    right: 6,
+                    top: 6,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints:
+                          const BoxConstraints(minWidth: 16, minHeight: 16),
+                      child: Text(
+                        '$count',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
                         ),
-                        constraints:
-                            const BoxConstraints(minWidth: 16, minHeight: 16),
-                        child: Text(
-                          '$count',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
-                ],
-              );
-            }),
+                  ),
+              ],
+            );
+          }),
           const SizedBox(width: 8),
         ],
       ),
@@ -91,39 +94,40 @@ class ShopView extends GetView<ShopController> {
           if (didPop) return;
           controller.goUpFilterCategory();
         },
-        child: controller.isPlainShopEntry
-            ? FoduuStudioLayoutView(
-                onRefresh: () => controller.fetchLayout(ShopController.pageSlug),
-                widgetList: controller.widgetList,
-                isLoading: controller.isLayoutLoading,
-              )
-            : Obx(() {
-                // ── FILTERED / DASHBOARD ENTRY ──
-                return Column(
-                  children: [
-                    // ── CMS FREE-WILL SECTIONS (banner, rich_text, etc.) ──
-                    ...controller
-                        .buildWidgetsExcluding(['categories', 'products']),
+        child: Obx(() {
+          if (controller.isPlainShopEntry.value) {
+            return FoduuStudioLayoutView(
+              onRefresh: () => controller.fetchLayout(ShopController.pageSlug),
+              widgetList: controller.widgetList,
+              isLoading: controller.isLayoutLoading,
+            );
+          }
+          // ── FILTERED / DASHBOARD ENTRY ──
+          return Column(
+            children: [
+              // ── CMS FREE-WILL SECTIONS (banner, rich_text, etc.) ──
+              ...controller
+                  .buildWidgetsExcluding(['categories', 'products']),
 
-                    // ── ACTIVE FILTER CHIPS (Horizontal Scroll) ──
-                    if (_hasActiveFilters()) _buildActiveFilterChips(colorScheme),
+              // ── ACTIVE FILTER CHIPS (Horizontal Scroll) ──
+              if (_hasActiveFilters()) _buildActiveFilterChips(colorScheme),
 
-                    // ── SUB CATEGORY STRIP (only when entered with category context) ──
-                    _buildSubCategorySection(colorScheme),
+              // ── SUB CATEGORY STRIP (only when entered with category context) ──
+              _buildSubCategorySection(colorScheme),
 
-                    // ── PRODUCT GRID ──
-                    Expanded(
-                      child: controller.isLoading.value
-                          ? _buildGridShimmer()
-                          : RefreshIndicator(
-                              onRefresh: () =>
-                                  controller.fetchProducts(isRefresh: true),
-                              child: _buildProductGrid(colorScheme, textTheme),
-                            ),
-                    ),
-                  ],
-                );
-              }),
+              // ── PRODUCT GRID ──
+              Expanded(
+                child: controller.isLoading.value
+                    ? _buildGridShimmer()
+                    : RefreshIndicator(
+                        onRefresh: () =>
+                            controller.fetchProducts(isRefresh: true),
+                        child: _buildProductGrid(colorScheme, textTheme),
+                      ),
+              ),
+            ],
+          );
+        }),
       ),
     );
   }
@@ -322,13 +326,13 @@ class ShopView extends GetView<ShopController> {
     tempBrands.addAll(initialBrands);
 
     Get.bottomSheet(
-      Container(
-        height: MediaQuery.of(context).size.height * 0.85,
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
+      Material(
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        clipBehavior: Clip.antiAlias,
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.85,
+          child: Column(
           children: [
             // Handle Bar
             const SizedBox(height: 12),
@@ -505,6 +509,8 @@ class ShopView extends GetView<ShopController> {
                           controller.sortBy.value = tempSortBy.value;
                           controller.sortOrder.value = tempSortOrder.value;
 
+                          controller.isPlainShopEntry.value = false;
+
                           Get.back(); // Close sheet
                           controller
                               .applyFiltersAndRefresh(); // Refresh with new filters
@@ -524,13 +530,14 @@ class ShopView extends GetView<ShopController> {
                   ],
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
-      isScrollControlled: true,
-      enableDrag: true,
-    );
+    ),
+    isScrollControlled: true,
+    enableDrag: true,
+  );
   }
 
 // ─── SORT SECTION ────────────────────────────────────────────────

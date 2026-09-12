@@ -36,30 +36,51 @@ class SupportTicketDetailsController extends GetxController
   Future<void> fetchChatsMessages(String id) async {
     try {
       isChatLoading.value = true;
-      var response = await BasicProvider("support-tickets/$id")
+      var response = await BasicProvider("customer/support-tickets/$id")
           .getRequest()
           .catchError(handleError);
 
-      if (response == null) return;
+      if (response == null || response is! Map) return;
 
-      final ticket = response is Map ? response : (response['data'] ?? {});
-      supportTicketDetails.value = Map<String, dynamic>.from(ticket);
+      Map<String, dynamic> ticket = {};
+      List replies = [];
 
-      final List<dynamic> replies = (ticket['replies'] is List)
-          ? List<dynamic>.from(ticket['replies'])
-          : [];
+      final rawTicket = response['ticket'] ?? response['data'];
+      if (rawTicket is Map) {
+        if (rawTicket['ticket'] is Map) {
+          ticket = Map<String, dynamic>.from(rawTicket['ticket']);
+        } else {
+          ticket = Map<String, dynamic>.from(rawTicket);
+        }
+      }
 
-      final List<dynamic> newMessages = replies.reversed.toList();
-      newMessages.add({
-        'user': 'customer',
-        'message': ticket['message'],
-        'created_at': ticket['created_at'],
-        'attachments': ticket['attachments'] ?? ticket['gallery'] ?? [],
-      });
+      final rawReplies = response['replies'] ?? (response['data'] is Map ? response['data']['replies'] : null);
+      if (rawReplies is List) {
+        replies = rawReplies;
+      }
 
-      chatMessages.value = newMessages;
+      supportTicketDetails.value = ticket;
+
+      final List<dynamic> newMessages = [
+        if (ticket.isNotEmpty)
+          {
+            'is_customer': true,
+            'message': ticket['message'],
+            'created_at': ticket['created_at'],
+            'attachments': _wrapAttachment(ticket['attachment']),
+          },
+        ...replies.whereType<Map>().map((reply) {
+          final map = Map<String, dynamic>.from(reply);
+          map['attachments'] = _wrapAttachment(map['attachment']);
+          return map;
+        }),
+      ];
+
+      // Detail view renders reverse=true (newest first), so keep newest-last order reversed.
+      chatMessages.value = newMessages.reversed.toList();
     } catch (e) {
       debugPrint('fetchChatsMessages error: $e');
+      HelperFunctions().showSnackBarError('Failed to load ticket thread');
     } finally {
       isChatLoading.value = false;
     }
@@ -70,35 +91,35 @@ class SupportTicketDetailsController extends GetxController
     List<File> files = const [],
   }) async {
     if (message.trim().isEmpty && files.isEmpty) return;
+    if (supportTicketDetails['can_reply'] == false) {
+      HelperFunctions().showSnackBarError('This ticket is closed');
+      return;
+    }
     try {
       isMessageSendLoading.value = true;
 
       final Map<String, dynamic> formMap = {'message': message.trim()};
 
       if (files.isNotEmpty) {
-        for (var i = 0; i < files.length; i++) {
-          final file = files[i];
-          final name = file.path.split('/').last;
-          final extension = name.split('.').last.toLowerCase();
-          String mimeType = 'image/jpeg';
-          if (extension == 'png') {
-            mimeType = 'image/png';
-          } else if (extension == 'webp') {
-            mimeType = 'image/webp';
-          } else if (extension == 'gif') {
-            mimeType = 'image/gif';
-          }
-
-          final multipartFile =
-              MultipartFile(file, filename: name, contentType: mimeType);
-          if (i == 0) formMap['image'] = multipartFile;
-          formMap['images[$i]'] = multipartFile;
+        final file = files.first;
+        final name = file.path.split('/').last;
+        final extension = name.split('.').last.toLowerCase();
+        String mimeType = 'image/jpeg';
+        if (extension == 'png') {
+          mimeType = 'image/png';
+        } else if (extension == 'webp') {
+          mimeType = 'image/webp';
+        } else if (extension == 'gif') {
+          mimeType = 'image/gif';
         }
+
+        formMap['image'] =
+            MultipartFile(file, filename: name, contentType: mimeType);
       }
 
       var form = FormData(formMap);
       var response =
-          await BasicProvider("support-tickets/$supportTicketId/reply")
+          await BasicProvider("customer/support-tickets/$supportTicketId/replies")
               .postRequest(form)
               .catchError(handleError);
 
@@ -117,5 +138,17 @@ class SupportTicketDetailsController extends GetxController
 
   void removeSelectedFile(File file) {
     selectedFiles.remove(file);
+  }
+
+  /// Wraps the API's single nullable `attachment` object into the list shape
+  /// the chat view's `_AttachmentGrid` expects, aliasing `url` to
+  /// `download_url` so `HelperFunctions().getImage` resolves it as an
+  /// already-absolute URL instead of prefixing it as a relative path.
+  List<Map<String, dynamic>> _wrapAttachment(dynamic attachment) {
+    if (attachment == null || attachment is! Map) return [];
+    final map = Map<String, dynamic>.from(attachment);
+    return [
+      {...map, 'download_url': map['url']}
+    ];
   }
 }

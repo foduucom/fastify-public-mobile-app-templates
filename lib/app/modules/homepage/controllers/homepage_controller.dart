@@ -51,7 +51,15 @@ class HomepageController extends GetxController
           .catchError(handleError);
 
       if (response != null) {
-        var list = response['value'];
+        List list = [];
+        if (response is Map) {
+          final val = response['value'] ?? response['data'];
+          if (val is List) {
+            list = val;
+          }
+        } else if (response is List) {
+          list = response;
+        }
         drawernavigationItems.assignAll(list);
       }
 

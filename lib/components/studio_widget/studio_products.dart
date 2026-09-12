@@ -310,8 +310,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       if (productData != null) {
         if (productData is List) {
           trendingList.assignAll(productData);
-        } else if (productData is Map && productData['data'] != null) {
-          trendingList.assignAll(List.from(productData['data']));
+        } else if (productData is Map) {
+          final data = productData['data'] ?? productData['products'] ?? productData['docs'];
+          if (data is List) {
+            trendingList.assignAll(data);
+          }
         }
       }
     }
