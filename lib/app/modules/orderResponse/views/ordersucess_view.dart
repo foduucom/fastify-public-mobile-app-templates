@@ -265,7 +265,7 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                           );
                                         },
                                       ),
-                                      SizedBox(height: 60),
+                                      const SizedBox(height: 90),
                                     ],
                                   ),
                                 )

@@ -3,15 +3,21 @@ import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_attribute_filter_mixin.dart';
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_category_filter_mixin.dart';
+import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_category_tree_filter_mixin.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_mixin.dart';
 import 'package:get/get.dart';
 
+enum ShopSortOption { featured, priceLowHigh, priceHighLow, newest, trending }
+
+// Mixin order is append-only: new mixins are added at the end of this list
+// to avoid shadowing symbols declared by earlier ones.
 class ShopController extends GetxController
     with
         BaseController,
         ShopCategoryFilterMixin,
         ShopAttributeFilterMixin,
-        FoduuStudioLayoutMixin {
+        FoduuStudioLayoutMixin,
+        ShopCategoryTreeFilterMixin {
   static const String pageSlug = 'shop';
 
   /// True when ShopView was opened plainly (bottom-tab entry, no filter
@@ -55,6 +61,26 @@ class ShopController extends GetxController
   var selectedCategories = <String>{}.obs;
   var selectedBrands = <String>{}.obs;
 
+  // Sort By (header dropdown)
+  var selectedSortOption = ShopSortOption.newest.obs;
+
+  String get sortLabel {
+    switch (selectedSortOption.value) {
+      case ShopSortOption.featured:
+        return "Featured";
+      case ShopSortOption.priceLowHigh:
+        return "Price: Low to High";
+      case ShopSortOption.priceHighLow:
+        return "Price: High to Low";
+      case ShopSortOption.newest:
+        return "Newest";
+      case ShopSortOption.trending:
+        return "Trending";
+    }
+  }
+
+  int _fetchRequestToken = 0;
+
   @override
   void onInit() {
     super.onInit();
@@ -88,53 +114,78 @@ class ShopController extends GetxController
   }
 
   void _parseArguments() {
-    if (Get.arguments != null) {
-      final args = Get.arguments as Map;
-      isPlainShopEntry.value = false;
-      collectionName.value = args['name'] ?? "Shop";
+    dynamic args = Get.arguments;
+    if (args != null && args is Map) {
+      if (args['shopArguments'] != null) {
+        args = args['shopArguments'];
+      }
+      applyArguments(args);
+    }
+  }
 
-      if (args['source'] == 'category' && args['children'] != null) {
-        // Drill-down entry (parent category tapped): filter products by this
-        // category AND seed the Sub Category strip from its children.
-        if (args['categorySlug'] != null) {
-          selectedCategories.add(args['categorySlug']);
-        }
-        final rawChildren = args['children'];
-        filterCurrentCategories
-            .assignAll(rawChildren is List ? rawChildren : []);
-      } else if (args['source'] == 'category' &&
-          args['categorySlug'] != null &&
-          args['children'] == null) {
-        // Leaf-category entry (no children up front): plain product filter.
-        // Try to resolve children anyway for deep links that only pass a slug.
+  void applyArguments(dynamic arguments) {
+    if (arguments == null || arguments is! Map) return;
+
+    // Reset current filters without triggering multiple network calls
+    isFeatured.value = false;
+    isHot.value = false;
+    isTrending.value = false;
+    isRecommended.value = false;
+    isRecentlyViewed.value = false;
+    selectedCategories.clear();
+    selectedBrands.clear();
+    selectedAttributes.clear();
+    filterCurrentCategories.clear();
+    minPrice.value = 0.0;
+    maxPrice.value = 10000.0;
+    currentPriceRange.value = const RangeValues(0, 10000);
+    sortBy.value = "created_at";
+    sortOrder.value = "desc";
+    selectedSortOption.value = ShopSortOption.newest;
+
+    final args = arguments;
+    isPlainShopEntry.value = false;
+    collectionName.value = args['name'] ?? "Shop";
+
+    if (args['source'] == 'category' && args['children'] != null) {
+      if (args['categorySlug'] != null) {
         selectedCategories.add(args['categorySlug']);
-        fetchCategoryBySlug(args['categorySlug']).then((cat) {
-          if (cat != null) {
-            final children = cat['children'];
-            if (children is List && children.isNotEmpty) {
-              filterCurrentCategories.assignAll(children);
-            }
+      }
+      final rawChildren = args['children'];
+      filterCurrentCategories.assignAll(rawChildren is List ? rawChildren : []);
+    } else if (args['source'] == 'category' &&
+        args['categorySlug'] != null &&
+        args['children'] == null) {
+      selectedCategories.add(args['categorySlug']);
+      fetchCategoryBySlug(args['categorySlug']).then((cat) {
+        if (cat != null) {
+          final children = cat['children'];
+          if (children is List && children.isNotEmpty) {
+            filterCurrentCategories.assignAll(children);
           }
-        });
-      } else if (args['source'] == 'brand' && args['brandId'] != null) {
-        selectedBrands.add(args['brandId']);
-      } else if (args['source'] == 'dashboard' && args['filterType'] != null) {
-        final filterType = args['filterType'].toString();
-        if (filterType == 'featured_products') {
-          isFeatured.value = true;
-          collectionName.value = args['name'] ?? "Featured Products";
-        } else if (filterType == 'trending_products') {
-          isTrending.value = true;
-          collectionName.value = args['name'] ?? "Trending Products";
-        } else if (filterType == 'recommended_products') {
-          isRecommended.value = true;
-          collectionName.value = args['name'] ?? "Recommended Products";
-        } else if (filterType == 'recently_viewed') {
-          isRecentlyViewed.value = true;
-          collectionName.value = args['name'] ?? "Recently Viewed";
         }
+      });
+    } else if (args['source'] == 'brand' && args['brandId'] != null) {
+      selectedBrands.add(args['brandId']);
+    } else if (args['source'] == 'dashboard' && args['filterType'] != null) {
+      final filterType = args['filterType'].toString();
+      if (filterType == 'featured_products') {
+        isFeatured.value = true;
+        collectionName.value = args['name'] ?? "Featured Products";
+      } else if (filterType == 'trending_products') {
+        isTrending.value = true;
+        collectionName.value = args['name'] ?? "Trending Products";
+      } else if (filterType == 'recommended_products') {
+        isRecommended.value = true;
+        collectionName.value = args['name'] ?? "Recommended Products";
+      } else if (filterType == 'recently_viewed') {
+        isRecentlyViewed.value = true;
+        collectionName.value = args['name'] ?? "Recently Viewed";
       }
     }
+
+    ensureFilterDataLoaded();
+    fetchProducts(isRefresh: true);
   }
 
   @override
@@ -156,6 +207,7 @@ class ShopController extends GetxController
 
   // ─── THE CORE API FETCH ───────────────────────────────────────
   Future<void> fetchProducts({required bool isRefresh}) async {
+    final requestToken = isRefresh ? ++_fetchRequestToken : _fetchRequestToken;
     try {
       if (isRefresh) {
         isLoading.value = true;
@@ -201,12 +253,27 @@ class ShopController extends GetxController
         queryParams['brand'] = selectedBrands.toList();
       }
 
+      final material = selectedAttributes['material'];
+      if (material != null && material.isNotEmpty) {
+        queryParams['material'] = material.toList();
+      }
+      final style = selectedAttributes['style'];
+      if (style != null && style.isNotEmpty) {
+        queryParams['style'] = style.toList();
+      }
+
       debugPrint('📡 Fetching products with params: $queryParams');
 
       // Fetch Data
       var response = await BasicProvider("products")
           .getRequest(queryParams: queryParams)
           .catchError(handleError);
+
+      // Drop stale responses: a faster, more recent refresh may have
+      // already superseded this one.
+      if (isRefresh && requestToken != _fetchRequestToken) {
+        return;
+      }
 
       // ✅ FIXED: Parse Response correctly
       if (response != null) {
@@ -317,6 +384,10 @@ class ShopController extends GetxController
 
   // ─── FILTER CONTROLS ───────────────────────────────────────
   void applyFiltersAndRefresh() {
+    // Any filter/sort action means the user wants the filtered product grid,
+    // not the CMS layout — switch entry mode even when triggered from the
+    // plain Shop tab (which never called fetchProducts on init).
+    isPlainShopEntry.value = false;
     fetchProducts(isRefresh: true);
   }
 
@@ -376,6 +447,36 @@ class ShopController extends GetxController
     applyFiltersAndRefresh();
   }
 
+  void applySortOption(ShopSortOption option) {
+    isFeatured.value = false;
+    isHot.value = false;
+    isTrending.value = false;
+    switch (option) {
+      case ShopSortOption.featured:
+        isFeatured.value = true;
+        sortBy.value = "created_at";
+        sortOrder.value = "desc";
+        break;
+      case ShopSortOption.priceLowHigh:
+        sortBy.value = "price";
+        sortOrder.value = "asc";
+        break;
+      case ShopSortOption.priceHighLow:
+        sortBy.value = "price";
+        sortOrder.value = "desc";
+        break;
+      case ShopSortOption.newest:
+        sortBy.value = "created_at";
+        sortOrder.value = "desc";
+        break;
+      case ShopSortOption.trending:
+        isTrending.value = true;
+        break;
+    }
+    selectedSortOption.value = option;
+    applyFiltersAndRefresh();
+  }
+
   void clearAllFilters() {
     isFeatured.value = false;
     isHot.value = false;
@@ -384,11 +485,13 @@ class ShopController extends GetxController
     isRecentlyViewed.value = false;
     selectedCategories.clear();
     selectedBrands.clear();
+    selectedAttributes.clear();
     minPrice.value = 0.0;
     maxPrice.value = 10000.0;
     currentPriceRange.value = const RangeValues(0, 10000);
     sortBy.value = "created_at";
     sortOrder.value = "desc";
+    selectedSortOption.value = ShopSortOption.newest;
     applyFiltersAndRefresh();
   }
 
@@ -407,15 +510,13 @@ class ShopController extends GetxController
 
   int get activeFilterCount {
     int count = 0;
-    if (isFeatured.value) count++;
-    if (isHot.value) count++;
-    if (isTrending.value) count++;
-    if (isRecommended.value) count++;
-    if (isRecentlyViewed.value) count++;
     count += selectedCategories.length;
     count += selectedBrands.length;
+    // Counted per selected value, not per attribute key — e.g. 2 selected
+    // materials contribute +2, matching how selectedCategories/selectedBrands
+    // are counted above.
+    count += selectedAttributes.values.fold<int>(0, (sum, s) => sum + s.length);
     if (minPrice.value > 0 || maxPrice.value < 10000) count++;
-    if (sortBy.value != "created_at") count++;
     return count;
   }
 }

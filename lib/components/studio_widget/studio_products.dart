@@ -11,6 +11,8 @@ import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/product_helper.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
+import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_controller.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 import 'studio_common_widgets.dart';
@@ -351,13 +353,39 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                               (trendingList.length <= displayedProducts.length)
                           ? null
                           : () {
-                              Get.toNamed(Routes.SHOPPRODUCTLISTVIEW,
-                                  arguments: {
-                                    'filterType': categoryType,
-                                    'filterValue': true,
-                                    'name': heading,
-                                    'source': 'dashboard'
+                              final args = {
+                                'filterType': categoryType,
+                                'filterValue': true,
+                                'name': heading,
+                                'source': 'dashboard',
+                              };
+                              try {
+                                if (Get.isRegistered<BottombarController>()) {
+                                  final bottomController =
+                                      Get.find<BottombarController>();
+                                  bottomController.onTabChange(3);
+                                  if (Get.isRegistered<ShopController>()) {
+                                    Get.find<ShopController>()
+                                        .applyArguments(args);
+                                  } else {
+                                    final shopCtrl = Get.put(ShopController());
+                                    shopCtrl.applyArguments(args);
+                                  }
+                                  Get.until((route) =>
+                                      route.settings.name == Routes.BOTTOMBAR ||
+                                      route.isFirst);
+                                } else {
+                                  Get.offAllNamed(Routes.BOTTOMBAR, arguments: {
+                                    'index': 3,
+                                    'shopArguments': args,
                                   });
+                                }
+                              } catch (e) {
+                                Get.offAllNamed(Routes.BOTTOMBAR, arguments: {
+                                  'index': 3,
+                                  'shopArguments': args,
+                                });
+                              }
                             },
                     ),
                   ),

@@ -48,8 +48,8 @@ class MyReviewsController extends GetxController with BaseController {
         product is Map ? (product['name']?.toString() ?? '') : '';
     final productSlug =
         product is Map ? (product['slug']?.toString() ?? '') : '';
-    final productImage = product is Map && product['image'] != null
-        ? product['image'].toString()
+    final productImage = product is Map
+        ? HelperFunctions.resolveProductImage(product)
         : HelperFunctions.getNoImage();
 
     String formattedDate = '';

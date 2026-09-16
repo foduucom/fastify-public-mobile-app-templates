@@ -4,6 +4,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:get/get.dart';
 
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_controller.dart';
+import 'package:foduu_ecommerce/app/modules/shop/views/widgets/shop_filter_drawer.dart';
 import 'package:foduu_ecommerce/components/studio_widget/studio_category.dart';
 import 'package:foduu_ecommerce/components/studio_widget/studio_products.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
@@ -16,9 +17,12 @@ class ShopView extends GetView<ShopController> {
     Get.lazyPut(() => ShopController());
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final scaffoldKey = GlobalKey<ScaffoldState>();
 
     return Scaffold(
+      key: scaffoldKey,
       backgroundColor: colorScheme.background,
+      drawer: ShopFilterDrawer(controller: controller),
       appBar: AppBar(
         backgroundColor: colorScheme.background,
         elevation: 0,
@@ -35,8 +39,8 @@ class ShopView extends GetView<ShopController> {
             children: [
               Text(
                 controller.collectionName.value,
-                style: textTheme.titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style:
+                    textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               Text(
                 "${controller.totalProducts.value} items",
@@ -46,47 +50,67 @@ class ShopView extends GetView<ShopController> {
             ],
           );
         }),
-        actions: [
-          Obx(() {
-            final count = controller.activeFilterCount;
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.tune_rounded),
-                  onPressed: () {
-                    controller.ensureFilterDataLoaded();
-                    _showFilterBottomSheet(context);
-                  },
-                ),
-                if (count > 0)
-                  Positioned(
-                    right: 6,
-                    top: 6,
-                    child: Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      constraints:
-                          const BoxConstraints(minWidth: 16, minHeight: 16),
-                      child: Text(
-                        '$count',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(52),
+          child: Obx(() {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Row(
+                children: [
+                  Flexible(
+                    child: _FilterTrigger(
+                      count: controller.activeFilterCount,
+                      onTap: () {
+                        controller.ensureFilterDataLoaded();
+                        controller.ensureCategoryTreeLoaded();
+                        scaffoldKey.currentState?.openDrawer();
+                      },
                     ),
                   ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: PopupMenuButton<ShopSortOption>(
+                      onSelected: controller.applySortOption,
+                      itemBuilder: (_) => [
+                        CheckedPopupMenuItem(
+                          value: ShopSortOption.featured,
+                          checked: controller.selectedSortOption.value ==
+                              ShopSortOption.featured,
+                          child: const Text("Featured"),
+                        ),
+                        CheckedPopupMenuItem(
+                          value: ShopSortOption.priceLowHigh,
+                          checked: controller.selectedSortOption.value ==
+                              ShopSortOption.priceLowHigh,
+                          child: const Text("Price: Low to High"),
+                        ),
+                        CheckedPopupMenuItem(
+                          value: ShopSortOption.priceHighLow,
+                          checked: controller.selectedSortOption.value ==
+                              ShopSortOption.priceHighLow,
+                          child: const Text("Price: High to Low"),
+                        ),
+                        CheckedPopupMenuItem(
+                          value: ShopSortOption.newest,
+                          checked: controller.selectedSortOption.value ==
+                              ShopSortOption.newest,
+                          child: const Text("Newest"),
+                        ),
+                        CheckedPopupMenuItem(
+                          value: ShopSortOption.trending,
+                          checked: controller.selectedSortOption.value ==
+                              ShopSortOption.trending,
+                          child: const Text("Trending"),
+                        ),
+                      ],
+                      child: _SortTrigger(label: controller.sortLabel),
+                    ),
+                  ),
+                ],
+              ),
             );
           }),
-          const SizedBox(width: 8),
-        ],
+        ),
       ),
       body: PopScope(
         canPop: controller.filterCategoryStack.isEmpty,
@@ -106,8 +130,7 @@ class ShopView extends GetView<ShopController> {
           return Column(
             children: [
               // ── CMS FREE-WILL SECTIONS (banner, rich_text, etc.) ──
-              ...controller
-                  .buildWidgetsExcluding(['categories', 'products']),
+              ...controller.buildWidgetsExcluding(['categories', 'products']),
 
               // ── ACTIVE FILTER CHIPS (Horizontal Scroll) ──
               if (_hasActiveFilters()) _buildActiveFilterChips(colorScheme),
@@ -290,510 +313,6 @@ class ShopView extends GetView<ShopController> {
     );
   }
 
-// ─── FIXED FILTER BOTTOM SHEET ──────────────────────────────────────
-  void _showFilterBottomSheet(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    // ✅ Store initial values to compare changes
-    final initialFeatured = controller.isFeatured.value;
-    final initialHot = controller.isHot.value;
-    final initialTrending = controller.isTrending.value;
-    final initialRecommended = controller.isRecommended.value;
-    final initialPriceRange = controller.currentPriceRange.value;
-    final initialCategories = List<String>.from(controller.selectedCategories);
-    final initialBrands = List<String>.from(controller.selectedBrands);
-    final initialSortBy = controller.sortBy.value;
-    final initialSortOrder = controller.sortOrder.value;
-
-    // ✅ Create temporary controllers for the bottom sheet
-    final tempFeatured = false.obs;
-    final tempHot = false.obs;
-    final tempTrending = false.obs;
-    final tempRecommended = false.obs;
-    final tempPriceRange = Rx<RangeValues>(initialPriceRange);
-    final tempCategories = <String>{}.obs;
-    final tempBrands = <String>{}.obs;
-    final tempSortBy = initialSortBy.obs;
-    final tempSortOrder = initialSortOrder.obs;
-
-    // Initialize temp values
-    tempFeatured.value = initialFeatured;
-    tempHot.value = initialHot;
-    tempTrending.value = initialTrending;
-    tempRecommended.value = initialRecommended;
-    tempCategories.addAll(initialCategories);
-    tempBrands.addAll(initialBrands);
-
-    Get.bottomSheet(
-      Material(
-        color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        clipBehavior: Clip.antiAlias,
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.85,
-          child: Column(
-          children: [
-            // Handle Bar
-            const SizedBox(height: 12),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                  color: colorScheme.outline.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-
-            // Header with filter count
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Obx(() {
-                    // Calculate count from temp values for immediate feedback
-                    int tempCount = 0;
-                    if (tempFeatured.value) tempCount++;
-                    if (tempHot.value) tempCount++;
-                    if (tempTrending.value) tempCount++;
-                    if (tempRecommended.value) tempCount++;
-                    tempCount += tempCategories.length;
-                    tempCount += tempBrands.length;
-                    if (tempPriceRange.value.start > 0 ||
-                        tempPriceRange.value.end < 10000) tempCount++;
-                    if (tempSortBy.value != "created_at") tempCount++;
-
-                    return Row(
-                      children: [
-                        Text("Sort & Filter",
-                            style: textTheme.titleLarge
-                                ?.copyWith(fontWeight: FontWeight.bold)),
-                        if (tempCount > 0) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primary,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              '$tempCount',
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 12),
-                            ),
-                          ),
-                        ],
-                      ],
-                    );
-                  }),
-                  TextButton(
-                    onPressed: () {
-                      // ✅ RESET ALL TEMP VALUES
-                      tempFeatured.value = false;
-                      tempHot.value = false;
-                      tempTrending.value = false;
-                      tempRecommended.value = false;
-                      tempCategories.clear();
-                      tempBrands.clear();
-                      tempPriceRange.value = const RangeValues(0, 10000);
-                      tempSortBy.value = "created_at";
-                      tempSortOrder.value = "desc";
-                      debugPrint("🔄 Filters Reset in UI");
-                    },
-                    child: Text("Reset All",
-                        style: TextStyle(color: colorScheme.error)),
-                  )
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-
-            // Scrollable Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 1. SORTING SECTION
-                    _buildSortSection(
-                        colorScheme, textTheme, tempSortBy, tempSortOrder),
-                    const SizedBox(height: 24),
-
-                    // 2. PRODUCT FLAGS SECTION
-                    _buildFlagsSection(
-                      colorScheme,
-                      textTheme,
-                      tempFeatured,
-                      tempHot,
-                      tempTrending,
-                      tempRecommended,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // 3. PRICE RANGE SECTION
-                    _buildPriceSection(
-                      colorScheme,
-                      textTheme,
-                      tempPriceRange,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // 4. CATEGORIES SECTION
-                    _buildCategoriesSection(
-                      colorScheme,
-                      textTheme,
-                      tempCategories,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // 5. BRANDS SECTION
-                    _buildBrandsSection(
-                      colorScheme,
-                      textTheme,
-                      tempBrands,
-                    ),
-                    const SizedBox(height: 32),
-                  ],
-                ),
-              ),
-            ),
-
-            // Apply Button
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, -5))
-                ],
-              ),
-              child: SafeArea(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Get.back(),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: const Text("Cancel"),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 2,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // ✅ Apply all temp filters to actual controller
-                          controller.isFeatured.value = tempFeatured.value;
-                          controller.isHot.value = tempHot.value;
-                          controller.isTrending.value = tempTrending.value;
-                          controller.isRecommended.value =
-                              tempRecommended.value;
-                          controller.selectedCategories.clear();
-                          controller.selectedCategories.addAll(tempCategories);
-                          controller.selectedBrands.clear();
-                          controller.selectedBrands.addAll(tempBrands);
-                          controller.currentPriceRange.value =
-                              tempPriceRange.value;
-                          controller.minPrice.value =
-                              tempPriceRange.value.start;
-                          controller.maxPrice.value = tempPriceRange.value.end;
-                          controller.sortBy.value = tempSortBy.value;
-                          controller.sortOrder.value = tempSortOrder.value;
-
-                          controller.isPlainShopEntry.value = false;
-
-                          Get.back(); // Close sheet
-                          controller
-                              .applyFiltersAndRefresh(); // Refresh with new filters
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colorScheme.primary,
-                          foregroundColor: colorScheme.onPrimary,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: const Text("Apply Filters",
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-    isScrollControlled: true,
-    enableDrag: true,
-  );
-  }
-
-// ─── SORT SECTION ────────────────────────────────────────────────
-  Widget _buildSortSection(
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-    RxString tempSortBy,
-    RxString tempSortOrder,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Sort By",
-            style:
-                textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        Obx(() => Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _sortChipWidget("Newest", "created_at", "desc", tempSortBy,
-                    tempSortOrder, colorScheme),
-                _sortChipWidget("Price: Low-High", "price", "asc", tempSortBy,
-                    tempSortOrder, colorScheme),
-                _sortChipWidget("Price: High-Low", "price", "desc", tempSortBy,
-                    tempSortOrder, colorScheme),
-              ],
-            )),
-      ],
-    );
-  }
-
-  Widget _sortChipWidget(
-    String label,
-    String by,
-    String order,
-    RxString tempSortBy,
-    RxString tempSortOrder,
-    ColorScheme colorScheme,
-  ) {
-    bool isSelected = tempSortBy.value == by && tempSortOrder.value == order;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      selectedColor: colorScheme.primaryContainer,
-      onSelected: (_) {
-        tempSortBy.value = by;
-        tempSortOrder.value = order;
-      },
-    );
-  }
-
-// ─── FLAGS SECTION ────────────────────────────────────────────────
-  Widget _buildFlagsSection(
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-    RxBool tempFeatured,
-    RxBool tempHot,
-    RxBool tempTrending,
-    RxBool tempRecommended,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Product Type",
-            style:
-                textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Obx(() => Column(
-              children: [
-                CheckboxListTile(
-                  title: const Text("Featured Products"),
-                  value: tempFeatured.value,
-                  contentPadding: EdgeInsets.zero,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  onChanged: (val) => tempFeatured.value = val ?? false,
-                ),
-                CheckboxListTile(
-                  title: const Text("Hot Trending"),
-                  value: tempHot.value,
-                  contentPadding: EdgeInsets.zero,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  onChanged: (val) => tempHot.value = val ?? false,
-                ),
-                CheckboxListTile(
-                  title: const Text("Trending"),
-                  value: tempTrending.value,
-                  contentPadding: EdgeInsets.zero,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  onChanged: (val) => tempTrending.value = val ?? false,
-                ),
-                CheckboxListTile(
-                  title: const Text("Recommended"),
-                  value: tempRecommended.value,
-                  contentPadding: EdgeInsets.zero,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  onChanged: (val) => tempRecommended.value = val ?? false,
-                ),
-              ],
-            )),
-      ],
-    );
-  }
-
-// ─── PRICE SECTION ────────────────────────────────────────────────
-  Widget _buildPriceSection(
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-    Rx<RangeValues> tempPriceRange,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Price Range",
-            style:
-                textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        Obx(() => Column(
-              children: [
-                RangeSlider(
-                  values: tempPriceRange.value,
-                  min: 0,
-                  max: 10000,
-                  divisions: 100,
-                  activeColor: colorScheme.primary,
-                  labels: RangeLabels(
-                    "₹${tempPriceRange.value.start.round()}",
-                    "₹${tempPriceRange.value.end.round()}",
-                  ),
-                  onChanged: (RangeValues values) {
-                    tempPriceRange.value = values;
-                  },
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("₹${tempPriceRange.value.start.round()}"),
-                    Text("₹${tempPriceRange.value.end.round()}"),
-                  ],
-                )
-              ],
-            )),
-      ],
-    );
-  }
-
-// ─── CATEGORIES SECTION ───────────────────────────────────────────
-  Widget _buildCategoriesSection(
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-    RxSet<String> tempCategories,
-  ) {
-    // ✅ Replace with your actual categories from API
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Categories",
-            style:
-                textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        Obx(() {
-          if (controller.isCategoriesLoading.value &&
-              controller.availableCategories.isEmpty) {
-            return const Center(
-                child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: CupertinoActivityIndicator(),
-            ));
-          }
-
-          if (controller.availableCategories.isEmpty) {
-            return const Text("No categories available",
-                style: TextStyle(fontSize: 12, color: Colors.grey));
-          }
-
-          return Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: controller.availableCategories.map((cat) {
-              final String slug = cat['slug']?.toString() ?? '';
-              final String name = cat['name']?.toString() ?? 'Unknown';
-              bool isSelected = tempCategories.contains(slug);
-              return FilterChip(
-                label: Text(name),
-                selected: isSelected,
-                selectedColor: colorScheme.primaryContainer,
-                onSelected: (val) {
-                  if (val) {
-                    tempCategories.add(slug);
-                  } else {
-                    tempCategories.remove(slug);
-                  }
-                },
-              );
-            }).toList(),
-          );
-        }),
-      ],
-    );
-  }
-
-// ─── BRANDS SECTION ───────────────────────────────────────────────
-  Widget _buildBrandsSection(
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-    RxSet<String> tempBrands,
-  ) {
-    // ✅ Replace with your actual brands from API
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Brands",
-            style:
-                textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        Obx(() {
-          if (controller.isBrandsLoading.value &&
-              controller.availableBrands.isEmpty) {
-            return const Center(
-                child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: CupertinoActivityIndicator(),
-            ));
-          }
-
-          if (controller.availableBrands.isEmpty) {
-            return const Text("No brands available",
-                style: TextStyle(fontSize: 12, color: Colors.grey));
-          }
-
-          return Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: controller.availableBrands.map((brand) {
-              final String slug = brand['slug']?.toString() ?? '';
-              final String name = brand['name']?.toString() ?? 'Unknown';
-              bool isSelected = tempBrands.contains(slug);
-              return FilterChip(
-                label: Text(name),
-                selected: isSelected,
-                selectedColor: colorScheme.primaryContainer,
-                onSelected: (val) {
-                  if (val) {
-                    tempBrands.add(slug);
-                  } else {
-                    tempBrands.remove(slug);
-                  }
-                },
-              );
-            }).toList(),
-          );
-        }),
-      ],
-    );
-  }
-
   // ── MAIN PRODUCT GRID (shared TrendingProductSection, externally driven) ──
   Widget _buildProductGrid(ColorScheme colorScheme, TextTheme textTheme) {
     if (controller.products.isEmpty) {
@@ -846,6 +365,86 @@ class ShopView extends GetView<ShopController> {
         itemBuilder: (_, __) => Container(
             decoration: BoxDecoration(
                 color: Colors.white, borderRadius: BorderRadius.circular(16))),
+      ),
+    );
+  }
+}
+
+// ─── HEADER TRIGGER CHIPS ────────────────────────────────────────────────
+class _FilterTrigger extends StatelessWidget {
+  final int count;
+  final VoidCallback onTap;
+
+  const _FilterTrigger({required this.count, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          border: Border.all(color: colorScheme.outline.withOpacity(0.4)),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.tune_rounded, size: 18),
+            const SizedBox(width: 6),
+            const Flexible(
+              child: Text("Filter", overflow: TextOverflow.ellipsis),
+            ),
+            if (count > 0) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$count',
+                  style: const TextStyle(color: Colors.white, fontSize: 11),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SortTrigger extends StatelessWidget {
+  final String label;
+
+  const _SortTrigger({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.outline.withOpacity(0.4)),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Text(
+              "Sort: $label",
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
+          const SizedBox(width: 4),
+          const Icon(Icons.arrow_drop_down),
+        ],
       ),
     );
   }

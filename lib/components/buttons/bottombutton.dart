@@ -33,134 +33,146 @@ class bottomButton extends StatefulWidget {
 class _bottomButtonState extends State<bottomButton> {
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Positioned(
         bottom: 0,
+        left: 0,
+        right: 0,
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
             boxShadow: [
               BoxShadow(
-                  color: Color.fromARGB(96, 168, 164, 164),
+                  color: colorScheme.onSurface.withOpacity(0.12),
                   spreadRadius: 0,
-                  blurRadius: 1.5),
+                  blurRadius: 4,
+                  offset: const Offset(0, -2)),
             ],
-            // color: themeWhiteColor,
           ),
           width: Get.width,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: Get.width * 0.38,
-                  child: GestureDetector(
-                    onTap: () {
-                      final hasSuccess = Get.isRegistered<OrderSuccessController>() && 
-                          Get.find<OrderSuccessController>().item.isNotEmpty;
-                      
-                      final double subtotal;
-                      final double savings;
-                      final double couponDiscount;
-                      final double delivery;
-                      final double total;
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: Get.width * 0.38,
+                    child: GestureDetector(
+                      onTap: () {
+                        final hasSuccess = Get.isRegistered<OrderSuccessController>() && 
+                            Get.find<OrderSuccessController>().item.isNotEmpty;
+                        
+                        final double subtotal;
+                        final double savings;
+                        final double couponDiscount;
+                        final double delivery;
+                        final double total;
 
-                      if (hasSuccess) {
-                        final success = Get.find<OrderSuccessController>();
-                        subtotal = HelperFunctions.parseAmount(success.item['subtotal'] ?? success.item['total']);
-                        couponDiscount = HelperFunctions.parseAmount(success.item['discount']);
-                        delivery = HelperFunctions.parseAmount(success.item['shipping_charges'] ?? success.item['shipping']);
-                        total = HelperFunctions.parseAmount(success.item['total']);
-                        // savings = MRP bag total - sale price total
-                        // total = subtotal - savings - couponDiscount + delivery
-                        savings = subtotal - couponDiscount + delivery - total;
-                      } else {
-                        final hasCart = Get.isRegistered<CartController>() && 
-                            Get.find<CartController>().cartItems.isNotEmpty;
-                        if (hasCart) {
-                          final cart = Get.find<CartController>();
-                          subtotal = cart.subTotal.value;
-                          savings = cart.savings;
-                          couponDiscount = 0.0;
-                          delivery = HelperFunctions.parseAmount(widget.deliveryAmount);
-                          total = cart.total.value;
+                        if (hasSuccess) {
+                          final success = Get.find<OrderSuccessController>();
+                          subtotal = HelperFunctions.parseAmount(success.item['subtotal'] ?? success.item['total']);
+                          couponDiscount = HelperFunctions.parseAmount(success.item['discount']);
+                          delivery = HelperFunctions.parseAmount(success.item['shipping_charges'] ?? success.item['shipping']);
+                          total = HelperFunctions.parseAmount(success.item['total']);
+                          // savings = MRP bag total - sale price total
+                          // total = subtotal - savings - couponDiscount + delivery
+                          savings = subtotal - couponDiscount + delivery - total;
                         } else {
-                          total = HelperFunctions.parseAmount(widget.priceText);
-                          delivery = HelperFunctions.parseAmount(widget.deliveryAmount);
-                          subtotal = total - delivery;
-                          savings = 0.0;
-                          couponDiscount = 0.0;
+                          final hasCart = Get.isRegistered<CartController>() && 
+                              Get.find<CartController>().cartItems.isNotEmpty;
+                          if (hasCart) {
+                            final cart = Get.find<CartController>();
+                            subtotal = cart.subTotal.value;
+                            savings = cart.savings;
+                            couponDiscount = 0.0;
+                            delivery = HelperFunctions.parseAmount(widget.deliveryAmount);
+                            total = cart.total.value;
+                          } else {
+                            total = HelperFunctions.parseAmount(widget.priceText);
+                            delivery = HelperFunctions.parseAmount(widget.deliveryAmount);
+                            subtotal = total - delivery;
+                            savings = 0.0;
+                            couponDiscount = 0.0;
+                          }
                         }
-                      }
 
-                      final colorScheme = Theme.of(context).colorScheme;
-                      Get.bottomSheet(
-                        Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                              color: colorScheme.surface,
-                              borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(15))),
-                          padding: pageSurroundingPadding,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 15),
-                              Text(
-                                'Order Details:',
-                                style: TextStyle(
-                                    fontFamily: 'Lato',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: colorScheme.onSurface),
-                              ),
-                              const SizedBox(height: 20),
-                              orderDetial(
-                                isShowBagSaving: savings > 0,
-                                couponPrefix: '',
-                                price: subtotal.toStringAsFixed(2),
-                                savedPrice: savings.toStringAsFixed(2),
-                                cuponValue: couponDiscount.toStringAsFixed(2),
-                                deliveryStatus: delivery.toStringAsFixed(2),
-                                totalAmount: total.toStringAsFixed(2),
-                              ),
-                              const SizedBox(height: 15),
-                            ],
+                        Get.bottomSheet(
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                                color: colorScheme.surface,
+                                borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(15))),
+                            padding: pageSurroundingPadding,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 15),
+                                Text(
+                                  'Order Details:',
+                                  style: TextStyle(
+                                      fontFamily: 'Lato',
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: colorScheme.onSurface),
+                                ),
+                                const SizedBox(height: 20),
+                                orderDetial(
+                                  isShowBagSaving: savings > 0,
+                                  couponPrefix: '',
+                                  price: subtotal.toStringAsFixed(2),
+                                  savedPrice: savings.toStringAsFixed(2),
+                                  cuponValue: couponDiscount.toStringAsFixed(2),
+                                  deliveryStatus: delivery.toStringAsFixed(2),
+                                  totalAmount: total.toStringAsFixed(2),
+                                ),
+                                const SizedBox(height: 15),
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                    child: Column(
-                      children: [
-                        Text("\u{20B9}${widget.priceText}",
-                            style: txtTheme().titleLarge),
-                        const SizedBox(height: 2.0),
-                        Text(widget.otherText,
-                            style: txtTheme().titleLarge!.copyWith())
-                      ],
+                        );
+                      },
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text("\u{20B9}${widget.priceText}",
+                              style: txtTheme().titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.onSurface,
+                                  )),
+                          const SizedBox(height: 2.0),
+                          Text(widget.otherText,
+                              style: txtTheme().titleMedium?.copyWith(
+                                    color: colorScheme.primary,
+                                  ))
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                Expanded(
-                    child: SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  height: 42,
-                  child: Opacity(
-                    opacity: widget.opacity,
-                    child: ElevatedButton(
-                      onPressed: widget.keypressEvent,
-                      style: themeButton.copyWith(
-                          padding: MaterialStateProperty.all(
-                              EdgeInsets.symmetric(horizontal: 5))),
-                      child: Text(widget.buttonText.toUpperCase(),
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Lato')),
+                  Expanded(
+                      child: SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    height: 42,
+                    child: Opacity(
+                      opacity: widget.opacity,
+                      child: ElevatedButton(
+                        onPressed: widget.keypressEvent,
+                        style: themeButton.copyWith(
+                            padding: MaterialStateProperty.all(
+                                const EdgeInsets.symmetric(horizontal: 5))),
+                        child: Text(widget.buttonText.toUpperCase(),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: 'Lato')),
+                      ),
                     ),
-                  ),
-                ))
-              ],
+                  ))
+                ],
+              ),
             ),
           ),
         ));

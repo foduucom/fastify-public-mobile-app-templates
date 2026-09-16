@@ -141,14 +141,16 @@ class SupportTicketDetailsController extends GetxController
   }
 
   /// Wraps the API's single nullable `attachment` object into the list shape
-  /// the chat view's `_AttachmentGrid` expects, aliasing `url` to
-  /// `download_url` so `HelperFunctions().getImage` resolves it as an
-  /// already-absolute URL instead of prefixing it as a relative path.
+  /// the chat view's `_AttachmentGrid` expects, aliasing whichever URL-like
+  /// key is present (`download_url`/`url`/`file_url`) to `download_url` so
+  /// `HelperFunctions().getImage` resolves it as an already-absolute URL
+  /// instead of prefixing it as a relative path.
   List<Map<String, dynamic>> _wrapAttachment(dynamic attachment) {
     if (attachment == null || attachment is! Map) return [];
     final map = Map<String, dynamic>.from(attachment);
+    final resolved = map['download_url'] ?? map['url'] ?? map['file_url'];
     return [
-      {...map, 'download_url': map['url']}
+      {...map, if (resolved != null) 'download_url': resolved}
     ];
   }
 }

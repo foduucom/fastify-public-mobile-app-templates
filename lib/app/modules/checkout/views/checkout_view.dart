@@ -97,6 +97,7 @@ class CheckOutView extends GetView<CheckOutController> {
                       padding: pageSurroundingPadding,
                       child: _buildOrderSummary(context),
                     ),
+                    const SizedBox(height: 90),
                   ],
                 ),
               ),

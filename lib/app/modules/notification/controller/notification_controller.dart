@@ -14,6 +14,7 @@ class NotificationsController extends GetxController with BaseController {
   late ScrollController scrollController;
 
   final allnotificationListFromApi = <dynamic>[].obs;
+  bool _isApiAvailable = true;
 
   @override
   Future<void> onInit() async {
@@ -23,7 +24,7 @@ class NotificationsController extends GetxController with BaseController {
     // Initial merge of local notifications
     _mergeNotifications();
 
-    // Initial fetch from backend
+    // Initial fetch from backend if endpoint available
     await fetchallnotificationlist();
     await fetchMoreDataOnScroll();
 
@@ -81,12 +82,17 @@ class NotificationsController extends GetxController with BaseController {
   }
 
   Future<void> fetchallnotificationlist() async {
+    if (!_isApiAvailable) {
+      isLoading.value = false;
+      _mergeNotifications();
+      return;
+    }
+
     isLoading.value = true;
     try {
       var response = await BasicProvider(
               "frontend/notifications?count=10&page=${currentPage.value}")
-          .getRequest()
-          .catchError(handleError);
+          .getRequest();
       if (response != null && response["data"] != null) {
         if (currentPage.value == 1) {
           allnotificationListFromApi.clear();
@@ -96,7 +102,9 @@ class NotificationsController extends GetxController with BaseController {
         _mergeNotifications();
       }
     } catch (e) {
-      debugPrint("Error fetching notifications: $e");
+      debugPrint("Notifications API unavailable: $e");
+      // Stop hitting backend notifications API if endpoint is not found (404) or fails
+      _isApiAvailable = false;
     } finally {
       isLoading.value = false;
     }

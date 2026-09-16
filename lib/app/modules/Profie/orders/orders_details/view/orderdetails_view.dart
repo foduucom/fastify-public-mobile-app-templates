@@ -725,8 +725,8 @@ class PriceDetails extends StatelessWidget {
                             ),
                         height: 100,
                         width: 100,
-                        imageUrl: HelperFunctions()
-                            .getImage(currentProduct['image']),
+                        imageUrl:
+                            HelperFunctions.resolveProductImage(currentProduct),
                         fit: BoxFit.contain),
                   ),
                   Expanded(

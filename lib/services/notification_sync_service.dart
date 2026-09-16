@@ -138,6 +138,11 @@ class NotificationSyncService extends GetxService {
     } catch (e) {
       debugPrint(
           'Failed to sync notification ${notification.id} with error: $e');
+      if (e.toString().contains('404') || e.toString().contains('Route not found')) {
+        debugPrint(
+            'Backend notification route not found (404). Marking as synced locally.');
+        return true;
+      }
       return false;
     }
   }

@@ -5,6 +5,7 @@ import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/controllers/homepage_controller.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
+import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_controller.dart';
 import 'package:foduu_ecommerce/components/drawerList.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:get/get.dart';
@@ -26,16 +27,10 @@ class CustomDrawer extends GetView<HomepageController> {
       'filterType': 'featured_products',
     },
     {
-      'icon': Icons.thumb_up_outlined,
-      'label': 'Recommended',
-      'badge': 'PICK',
-      'filterType': 'recommended_products',
-    },
-    {
       'icon': Icons.history,
       'label': 'Recently Viewed',
       'badge': 'RECENT',
-      'filterType': 'recently_viewed',
+      'filterType': 'recentlpy_viewed',
     },
   ];
 
@@ -83,10 +78,10 @@ class CustomDrawer extends GetView<HomepageController> {
                           color: Get.theme.colorScheme.onSurface),
                       title: 'All Products',
                       subtitle: 'Browse all items',
-                      onTap: () {
-                        Get.back();
-                        Get.toNamed(Routes.SHOPPRODUCTLISTVIEW);
-                      },
+                      onTap: () => _navigateToBottomBarPage(3, arguments: {
+                        'source': 'all_products',
+                        'name': 'All Products',
+                      }),
                     ),
                     DrawerTile(
                       icon: Icon(Icons.category_outlined,
@@ -100,10 +95,7 @@ class CustomDrawer extends GetView<HomepageController> {
                           color: Get.theme.colorScheme.onSurface),
                       title: 'Filter',
                       subtitle: 'Refine your search',
-                      onTap: () {
-                        Get.back();
-                        Get.toNamed(Routes.CATEGORY);
-                      },
+                      onTap: () => _navigateToBottomBarPage(1),
                     ),
                     _buildSectionHeader('MY ACCOUNT'),
                     DrawerTile(
@@ -159,8 +151,7 @@ class CustomDrawer extends GetView<HomepageController> {
     return InkWell(
       onTap: isLoggedIn
           ? () {
-              Get.back();
-              Get.toNamed(Routes.PROFILE);
+              _navigateToBottomBarPage(4);
             }
           : null,
       child: Container(
@@ -304,8 +295,7 @@ class CustomDrawer extends GetView<HomepageController> {
           return InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () {
-              Get.back();
-              Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+              _navigateToBottomBarPage(3, arguments: {
                 'source': 'dashboard',
                 'filterType': item['filterType'],
                 'name': item['label'],
@@ -455,7 +445,6 @@ class CustomDrawer extends GetView<HomepageController> {
           return DrawerChildTile(
             title: child['text']?.toString() ?? '',
             onTap: () {
-              Get.back();
               _handleNavigation(child['type']?.toString() ?? '',
                   child['slug']?.toString() ?? '');
             },
@@ -468,27 +457,87 @@ class CustomDrawer extends GetView<HomepageController> {
       icon: const Icon(Icons.arrow_forward),
       title: text,
       onTap: () {
-        Get.back();
         _handleNavigation(type, slug);
       },
     );
   }
 
   void _handleNavigation(String type, String slug) {
-    if (type == 'category') {
-      Get.toNamed('/category/$slug');
+    final cleanSlug = slug.toLowerCase().replaceAll('/', '').trim();
+    final cleanType = type.toLowerCase().trim();
+
+    if (cleanSlug == 'category' ||
+        cleanSlug == 'categories' ||
+        cleanSlug == 'category_search_filter_view' ||
+        (cleanType == 'category' &&
+            (cleanSlug.isEmpty || cleanSlug == 'category'))) {
+      _navigateToBottomBarPage(1);
+    } else if (cleanSlug == 'shop' ||
+        cleanSlug == 'shopproductlistview' ||
+        cleanSlug == 'shop_view' ||
+        cleanSlug == 'all-products' ||
+        cleanSlug == 'products' ||
+        (cleanType == 'shop' && (cleanSlug.isEmpty || cleanSlug == 'shop'))) {
+      _navigateToBottomBarPage(3);
+    } else if (cleanSlug == 'profile' ||
+        cleanSlug == 'profile_view' ||
+        cleanSlug == 'account' ||
+        cleanSlug == 'user' ||
+        (cleanType == 'profile' &&
+            (cleanSlug.isEmpty || cleanSlug == 'profile'))) {
+      _navigateToBottomBarPage(4);
+    } else if (cleanSlug == 'home' || cleanType == 'home') {
+      _navigateToBottomBarPage(0);
+    } else if (cleanSlug == 'cart' || cleanType == 'cart') {
+      _navigateToBottomBarPage(2);
+    } else if (type == 'category') {
+      Get.back();
+      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+        'categorySlug': slug,
+        'source': 'drawer',
+      });
     } else if (type == 'page') {
-      Get.toNamed('/page/$slug');
+      Get.back();
+      Get.toNamed(Routes.CUSTOMPAGE, arguments: {'slug': slug, 'label': ''});
+    } else if (slug.isNotEmpty) {
+      Get.back();
+      if (slug.startsWith('/')) {
+        Get.toNamed(slug);
+      } else {
+        Get.toNamed('/$slug');
+      }
     }
   }
 
-  void _navigateToBottomBarPage(int index) {
+  void _navigateToBottomBarPage(int index, {dynamic arguments}) {
     Get.back();
+    final shopArgs = arguments ?? {
+      'source': 'all_products',
+      'name': 'All Products',
+    };
     try {
-      final bottomController = Get.find<BottombarController>();
-      bottomController.onTabChange(index);
+      if (Get.isRegistered<BottombarController>()) {
+        final bottomController = Get.find<BottombarController>();
+        bottomController.onTabChange(index);
+
+        if (index == 3) {
+          if (Get.isRegistered<ShopController>()) {
+            Get.find<ShopController>().applyArguments(shopArgs);
+          } else {
+            final shopCtrl = Get.put(ShopController());
+            shopCtrl.applyArguments(shopArgs);
+          }
+        }
+
+        Get.until((route) =>
+            route.settings.name == Routes.BOTTOMBAR || route.isFirst);
+      } else {
+        Get.offAllNamed(Routes.BOTTOMBAR,
+            arguments: {'index': index, 'shopArguments': shopArgs});
+      }
     } catch (e) {
-      Get.offAllNamed(Routes.BOTTOMBAR, arguments: {'index': index});
+      Get.offAllNamed(Routes.BOTTOMBAR,
+          arguments: {'index': index, 'shopArguments': shopArgs});
     }
   }
 }
