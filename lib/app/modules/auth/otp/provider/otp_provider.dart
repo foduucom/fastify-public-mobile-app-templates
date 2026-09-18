@@ -36,7 +36,17 @@ class OtpProvider extends GetConnect {
         },
       );
 
-      final responseBody = jsonDecode(response.body);
+      // Guard against empty or non-JSON response body
+      dynamic responseBody;
+      if (response.body.isEmpty) {
+        responseBody = {'message': 'Empty response from server'};
+      } else {
+        try {
+          responseBody = jsonDecode(response.body);
+        } catch (_) {
+          responseBody = {'message': 'Invalid response from server: ${response.body}'};
+        }
+      }
 
       // Print response headers to debug cookies
       print('Response Headers: ${response.headers}');
@@ -99,7 +109,17 @@ class OtpProvider extends GetConnect {
         },
       );
 
-      final responseBody = jsonDecode(response.body);
+      // Guard against empty or non-JSON response body
+      dynamic responseBody;
+      if (response.body.isEmpty) {
+        responseBody = {'message': 'Empty response from server'};
+      } else {
+        try {
+          responseBody = jsonDecode(response.body);
+        } catch (_) {
+          responseBody = {'message': 'Invalid response from server: ${response.body}'};
+        }
+      }
 
       if (response.statusCode == 200) {
         return {

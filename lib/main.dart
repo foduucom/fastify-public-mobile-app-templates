@@ -14,11 +14,14 @@ import '/app/routes/app_pages.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:foduu_ecommerce/constants/firebase_notification.dart';
+import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/services/local_storage_notification_service.dart';
+import 'package:foduu_ecommerce/services/notification_sync_service.dart';
+import 'package:foduu_ecommerce/services/payment_service.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  WidgetsFlutterBinding.ensureInitialized();
 
   await GetStorage.init();
 
@@ -79,7 +82,7 @@ Future<void> main() async {
   runApp(MyApp(initialRoute: initialRoute));
 
   // Remove splash screen after app is ready
-  FlutterNativeSplash.remove();
+  // Splash screen removed (flutter_native_splash not configured)
 }
 
 Future<String> _initApp() async {

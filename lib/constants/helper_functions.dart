@@ -413,4 +413,47 @@ class HelperFunctions {
     }
     return imageUrl;
   }
+
+  /// Resolves a product's display image from any of the shapes the API
+  /// returns a product in: a nested `product_id` object (order line items),
+  /// a plain product object (reviews), a `featured_image`/`gallery` pair,
+  /// or a direct `image` field. Falls back through each in turn, then to
+  /// [getNoImage].
+  static String resolveProductImage(dynamic product) {
+    try {
+      if (product is Map) {
+        final productObj = product['product_id'] is Map ? product['product_id'] : product;
+
+        final featuredImage = productObj['featured_image'];
+        if (featuredImage is Map) {
+          final resolved = HelperFunctions().getImage(featuredImage);
+          if (resolved.isNotEmpty && resolved != getNoImage()) return resolved;
+        }
+
+        final frontImageId = productObj['front_image']?.toString() ?? '';
+        final gallery = productObj['gallery'];
+        if (gallery is List && frontImageId.isNotEmpty) {
+          final match = gallery.firstWhere(
+            (g) => g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
+            orElse: () => null,
+          );
+          if (match is Map) {
+            final resolved = HelperFunctions().getImage(match);
+            if (resolved.isNotEmpty && resolved != getNoImage()) return resolved;
+          }
+        }
+
+        final directImage = product['image'] ?? productObj['image'] ?? product['featured_image'];
+        if (directImage != null) {
+          final resolved = HelperFunctions().getImage(directImage);
+          if (resolved.isNotEmpty && resolved != getNoImage()) return resolved;
+        }
+      } else if (product is String) {
+        return HelperFunctions().getImage(product);
+      }
+    } catch (e) {
+      debugPrint('resolveProductImage error: $e');
+    }
+    return getNoImage();
+  }
 }

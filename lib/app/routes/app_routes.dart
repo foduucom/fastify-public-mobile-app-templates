@@ -9,8 +9,6 @@ abstract class Routes {
   static const ONBOARDING = _Paths.ONBOARDING;
   static const REGISTER = _Paths.REGISTER;
 
-  // static const SIGNIN = _Paths.SIGNIN;
-  //static const SIGNUP = _Paths.SIGNUP;
   static const FORGETPASSWORD = _Paths.FOREGETPASSWORD;
   static const CREATENEWPASSWORD = _Paths.CREATENEWPASSWORD;
   static const ADDPROFILE = _Paths.ADDPROFILE;
@@ -22,12 +20,9 @@ abstract class Routes {
   static const CHECKOUT = _Paths.CHECKOUT;
   static const ORDER_PRODUCTS = _Paths.ORDER_PRODUCTS;
 
-  // -------------X-----------------
   static const PROFILE = _Paths.PROFILE;
   static const OTP = _Paths.OTP;
   static const EMAIL_OTP = _Paths.EMAIL_OTP;
-
-  //static const RESETPASSWORD = _Paths.RESETPASSWORD;
 
   static const MOBILELOGIN = _Paths.MOBILELOGIN;
   static const MOBILELOGINOTP = _Paths.MOBILELOGINOTP;
@@ -61,7 +56,6 @@ abstract class Routes {
   static const HELPANDSUPPORT = _Paths.HELPANDSUPPORT;
   static const TERMSANDCONDITION = _Paths.TERMSANDCONDITION;
   static const PHONEPAY = _Paths.PHONEPAY;
-  //static const PRODUCTDETAILS = _Paths.PRODUCTDETAILS;
   static const BLOG_DETAILS = _Paths.BLOG_DETAILS;
   static const CUSTOMPAGE = _Paths.CUSTOMPAGE;
   static const CONTACTUS = _Paths.CONTACTUS;
@@ -69,7 +63,9 @@ abstract class Routes {
   static const TERMS_CONDITIONS = _Paths.TERMS_CONDITIONS;
   static const CATEGORY_SEARCH = _Paths.CATEGORY_SEARCH;
 
-  //
+  static const SUPPORT_TICKET = _Paths.SUPPORT_TICKET;
+  static const SUPPORT_TICKET_DETAILS = _Paths.SUPPORT_TICKET_DETAILS;
+  static const MY_REVIEWS = _Paths.MY_REVIEWS;
 }
 
 abstract class _Paths {
@@ -77,8 +73,6 @@ abstract class _Paths {
   static const INTRO = '/intro';
   static const SPLASH = '/splash';
   static const ONBOARDING = '/onboarding';
-  //static const SIGNIN = '/signin';
-  //static const SIGNUP = '/signup';
   static const ADDRESS_LIST = '/address-list';
   static const ADDRESS_FORM = '/address-form';
   static const OTP = '/otp';
@@ -92,7 +86,6 @@ abstract class _Paths {
   static const ADDTOCART = '/addtocart';
   static const CHECKOUT = '/checkout';
   static const ORDER_PRODUCTS = '/orderproducts';
-  //static const RESETPASSWORD = '/resetpassword';
 
   static const LOGIN = '/login';
   static const REGISTER = '/register';
@@ -134,4 +127,8 @@ abstract class _Paths {
   static const PRIVACY_POLICY = '/privacy_policy';
   static const TERMS_CONDITIONS = '/terms_condition';
   static const CATEGORY_SEARCH = '/category-search';
+
+  static const SUPPORT_TICKET = '/support-ticket';
+  static const SUPPORT_TICKET_DETAILS = '/support-ticket-details';
+  static const MY_REVIEWS = '/my-reviews';
 }

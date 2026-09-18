@@ -195,6 +195,7 @@ class _WishListGridItem extends StatelessWidget {
 
     final product = controller.getProduct(index);
     final productId = controller.getProductId(index);
+    final variantSlug = controller.getVariantSlug(index);
     final variantId = controller.getVariantId(index);
 
     final productName = ProductHelper.getProductName(product);
@@ -283,6 +284,7 @@ class _WishListGridItem extends StatelessWidget {
                     onTap: () {
                       WishListService.to.removeFromWishlist(
                         productId: productId,
+                        variantSlug: variantSlug,
                         variantId: variantId,
                       );
                     },
@@ -614,6 +616,7 @@ class _WishListItemCard extends StatelessWidget {
                 onTap: () {
                   WishListService.to.removeFromWishlist(
                     productId: productId,
+                    variantSlug: variantSlug,
                     variantId: variantId,
                   );
                 },

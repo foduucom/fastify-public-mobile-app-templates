@@ -299,7 +299,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           ],
         )
       ],
-    )  }
+    ));
+  }
 
   int _getDisplayLimit() {
     final style = widget.contentJson?['layout'] ?? 'standard';

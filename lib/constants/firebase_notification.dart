@@ -10,6 +10,9 @@ import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
+import 'package:foduu_ecommerce/models/local_notification.dart';
+import 'package:foduu_ecommerce/services/local_storage_notification_service.dart';
+import 'package:foduu_ecommerce/services/notification_sync_service.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -66,7 +69,7 @@ class FirebaseHelpers {
       requestSoundPermission: true,
     );
     await _localNotifications.initialize(
-      settings: const InitializationSettings(
+      const InitializationSettings(
           android: androidSettings, iOS: iosSettings),
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         if (response.payload != null) {

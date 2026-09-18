@@ -84,6 +84,25 @@ class CustomDrawer extends GetView<HomepageController> {
                       },
                     ),
                     DrawerTile(
+                      icon: const Icon(Icons.confirmation_num_outlined),
+                      title: 'Support Tickets',
+                      subtitle: 'View & raise tickets',
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(Routes.SUPPORT_TICKET);
+                      },
+                    ),
+                    DrawerTile(
+                      icon: const Icon(Icons.rate_review_outlined),
+                      title: 'My Reviews',
+                      subtitle: 'Your product reviews',
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(Routes.MY_REVIEWS);
+                      },
+                    ),
+
+                    DrawerTile(
                       icon: const Icon(Icons.help_outline),
                       title: 'Help and support',
                       subtitle: 'Get assistance',

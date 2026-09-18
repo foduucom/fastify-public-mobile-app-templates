@@ -24,8 +24,18 @@ class BasicProvider {
   Future<dynamic> getRequest({final queryParams}) async {
     try {
       var uri = Uri.parse(fetchUrl());
-      if (queryParams != null) {
-        uri = uri.replace(queryParameters: queryParams);
+      if (queryParams != null && queryParams is Map) {
+        final Map<String, dynamic> normalizedParams = {};
+        queryParams.forEach((key, value) {
+          if (value == null) return;
+          if (value is Iterable) {
+            normalizedParams[key.toString()] =
+                value.map((e) => e.toString()).toList();
+          } else {
+            normalizedParams[key.toString()] = value.toString();
+          }
+        });
+        uri = uri.replace(queryParameters: normalizedParams);
       }
 
       final response = await http
@@ -100,8 +110,6 @@ class BasicProvider {
             )
             .timeout(const Duration(seconds: 120));
       }
-
-      // print('POST API RESPONSE ${response.body}');
 
       return _processResponse(response, fetchUrl());
     } on SocketException {
@@ -196,22 +204,31 @@ class BasicProvider {
 
   dynamic _processResponse(http.Response response, url) {
     print('url === $url ${response.statusCode}');
-    // print('response === ${response.body}');
 
     var responseBody;
-    try {
-      responseBody = json.decode(response.body);
-    } catch (e) {
-      print("JSON decode error: $e");
+    if (response.body.isNotEmpty) {
+      try {
+        responseBody = json.decode(response.body);
+      } catch (e) {
+        print("JSON decode error: $e");
+      }
     }
 
-    var message = responseBody?['data'] ?? responseBody?['message'];
+    var message;
+    if (responseBody is Map) {
+      message = responseBody['data'] ?? responseBody['message'];
+    }
 
     switch (response.statusCode) {
       case 200:
       case 201:
-        // If data is missing but message exists, return message or success
-        return responseBody["data"] ?? responseBody;
+        if (responseBody is Map) {
+          final data = responseBody["data"];
+          if (data is Map || data is List) {
+            return data;
+          }
+        }
+        return responseBody;
       case 400:
         throw BadRequestException(message ?? response.request!.url.toString());
       case 401:
@@ -224,7 +241,7 @@ class BasicProvider {
       case 409:
         return {
           "access_token": null,
-          "message": responseBody["data"],
+          "message": responseBody is Map ? responseBody["data"] : responseBody,
           "status": response.statusCode
         };
       case 422:
