@@ -24,6 +24,9 @@ abstract class Routes {
   static const DETAILCATEGORY = _Paths.DETAILCATEGORY;
   static const SHOPPRODUCTLISTVIEW = _Paths.SHOPPRODUCTLISTVIEW;
   static const WISHLIST = _Paths.WISHLIST;
+  static const MY_REVIEWS = _Paths.MY_REVIEWS;
+  static const SUPPORT_TICKET = _Paths.SUPPORT_TICKET;
+  static const SUPPORT_TICKET_DETAILS = _Paths.SUPPORT_TICKET_DETAILS;
   static const SEARCH = _Paths.SEARCH;
   static const NOTIFICATION = _Paths.NOTIFICATION;
   static const CONTACT = _Paths.CONTACT;
@@ -89,6 +92,9 @@ abstract class _Paths {
   static const NOTIFICATION = '/notification';
   static const BLOG = '/blog';
   static const WISHLIST = '/wishlist';
+  static const MY_REVIEWS = '/my-reviews';
+  static const SUPPORT_TICKET = '/support-ticket';
+  static const SUPPORT_TICKET_DETAILS = '/support-ticket-details';
   static const CART = '/cart';
   static const SEARCH = '/search';
   static const PAYMENT = '/payment';

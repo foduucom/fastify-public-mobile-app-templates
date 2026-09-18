@@ -157,6 +157,20 @@ class ProfileView extends GetView<ProfileController> {
               label: 'WishList',
               onTap: () => Get.toNamed(Routes.WISHLIST),
             ),
+            _divider(),
+            _iconSettingsTile(
+              context: context,
+              icon: Icons.rate_review_outlined,
+              label: 'My Reviews',
+              onTap: () => Get.toNamed(Routes.MY_REVIEWS),
+            ),
+            _divider(),
+            _iconSettingsTile(
+              context: context,
+              icon: Icons.confirmation_num_outlined,
+              label: 'Support Tickets',
+              onTap: () => Get.toNamed(Routes.SUPPORT_TICKET),
+            ),
 
             const SizedBox(height: 20),
 
@@ -313,6 +327,53 @@ class ProfileView extends GetView<ProfileController> {
                 Icon(
                   Icons.chevron_right,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  size: 22,
+                ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Same layout as _settingsTile but backed by a Material IconData instead of
+  // an asset image — used where there's no dedicated PNG icon (e.g. My Reviews).
+  Widget _iconSettingsTile({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Widget? trailing,
+  }) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 13),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              alignment: Alignment.center,
+              child: Icon(icon, color: colorScheme.onSurface, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                label,
+                style: textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            trailing ??
+                Icon(
+                  Icons.chevron_right,
+                  color: colorScheme.onSurfaceVariant,
                   size: 22,
                 ),
           ],

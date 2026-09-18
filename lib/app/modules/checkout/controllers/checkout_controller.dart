@@ -14,6 +14,23 @@ import '/components/paymentGateway/COD.dart';
 import '/components/paymentGateway/RazorPay.dart';
 import '/app/modules/address/controllers/address_list_controller.dart';
 
+/// 'SANDBOX' for testing, 'PRODUCTION' for a real release build.
+///
+/// SECURITY NOTE: PhonePePayment performs OAuth token fetch + SDK order
+/// creation directly from the device using a client_secret sourced from
+/// the `payment-methods` API response. This mirrors the SOURCE app's
+/// current production behavior, which its own author flagged as a
+/// stopgap until the backend exposes a server-side token-minting
+/// endpoint instead of raw client credentials. Keep this at 'SANDBOX'
+/// until that backend change lands or the risk is explicitly accepted.
+const String kPhonePeEnvironment = 'SANDBOX';
+
+/// Custom URL scheme PhonePe uses to redirect back into this app.
+/// Must be unique per deployed app and match the scheme registered in
+/// android/app/src/main/AndroidManifest.xml (and Info.plist if/when an
+/// iOS project is added).
+const String kPhonePeAppScheme = 'newfastifytemplateapp1';
+
 class CheckOutController extends GetxController with BaseController {
   // ── Observable state ──────────────────────────────────────────────────
   var deliveryOption = {}.obs;
@@ -434,10 +451,21 @@ class CheckOutController extends GetxController with BaseController {
         break;
 
       case 'phonepe':
-        final merchantId = paymentConfig['phonepe']['merchant_id'];
-        await PhonePePayment(merchantId: merchantId).processPayment(
+        final phonepeConfig = paymentConfig['phonepe'];
+        final result = await PhonePePayment(
+          clientId: phonepeConfig['client_id'],
+          clientSecret: phonepeConfig['client_secret'],
+          clientVersion: phonepeConfig['client_version']?.toString() ?? '1',
+          environment: kPhonePeEnvironment,
+          appScheme: kPhonePeAppScheme,
+        ).processPayment(
           amount: amount,
           metadata: orderResponse,
+        );
+        await confirmPayment(
+          rawOrderId,
+          (result['phonePeOrderId'] ?? result['transactionId'] ?? '')
+              .toString(),
         );
         break;
 

@@ -7,12 +7,19 @@ class SearchBarRounded extends StatelessWidget {
     required this.SearchsController,
     this.icon,
     required this.onChanged,
+    this.onFilterTap,
   }) : super(key: key);
 
   final String searchHintText;
   final TextEditingController SearchsController;
   final IconData? icon;
   final Function(String) onChanged;
+
+  /// PORT_AUDIT.md Phase 4 — the trailing "tune" icon was previously
+  /// decorative only. Optional so existing call sites (CMS `search`
+  /// section registration) keep working unchanged; screens that need a
+  /// filter entry point (e.g. Shop) can now pass a callback.
+  final VoidCallback? onFilterTap;
 
   @override
   Widget build(BuildContext context) {
@@ -63,16 +70,19 @@ class SearchBarRounded extends StatelessWidget {
                 ),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.tune,
-                color: colorScheme.onSurfaceVariant,
-                size: 18,
+            GestureDetector(
+              onTap: onFilterTap,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.tune,
+                  color: colorScheme.onSurfaceVariant,
+                  size: 18,
+                ),
               ),
             ),
           ],

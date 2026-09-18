@@ -3,6 +3,7 @@ import '/core/services/cartServcie.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
 import '/constants/constants.dart';
+import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +11,10 @@ import 'package:intl/intl.dart';
 class ProductController extends GetxController with BaseController, GetTickerProviderStateMixin {
   var isLoading = false.obs;
   var productDetials = {}.obs;
+  // Product reviews (ported from SOURCE's ProductController) — UI lives in product_view.dart.
+  var reviewsData = {}.obs;
+  var isLoadingReviews = false.obs;
+  var isSubmittingReview = false.obs;
   var box = GetStorage();
   var pageController = PageController();
   var selectedPageIndex = 0.obs;
@@ -49,6 +54,7 @@ class ProductController extends GetxController with BaseController, GetTickerPro
     }
 
     await getProductDetials(id: productId);
+    await getProductReviews(id: productId);
     getVariantDetails();
 
     controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
@@ -115,6 +121,39 @@ class ProductController extends GetxController with BaseController, GetTickerPro
     }
     productDetials.value = response;
     isLoading.value = false;
+  }
+
+  // TODO(backend-contract): SOURCE itself uses two different review endpoint
+  // shapes across the codebase — `review/product/:id` + `review/create` here vs.
+  // `public/reviews/product` in orders_details_controller.dart. Kept SOURCE's
+  // choice for this file (near-verbatim port); confirm with backend which is
+  // authoritative before shipping.
+  Future<void> getProductReviews({required String id}) async {
+    isLoadingReviews.value = true;
+    var response = await BasicProvider("review/product/$id")
+        .getRequest()
+        .catchError(handleError);
+    isLoadingReviews.value = false;
+    if (response == null) return;
+
+    reviewsData.value = response;
+  }
+
+  Future<void> postReview({required String comment, required int rating}) async {
+    isSubmittingReview.value = true;
+    var body = {
+      "product_id": productId,
+      "comment": comment,
+      "rating": rating,
+    };
+    var response = await BasicProvider("review/create")
+        .postRequest(body)
+        .catchError(handleError);
+    isSubmittingReview.value = false;
+    if (response == null) return;
+
+    HelperFunctions().showSnackBarSuccess("Review added successfully.");
+    await getProductReviews(id: productId);
   }
 
   void getVariantDetails() {

@@ -76,6 +76,12 @@ import '/app/modules/termsandcondition/bindings/termsandcondition_binding.dart';
 import '/app/modules/termsandcondition/views/termsandcondition_view.dart';
 import '/app/modules/wishlist/bindings/wishlist_binding.dart';
 import '/app/modules/wishlist/views/wishlist_view.dart';
+import '/app/modules/reviews/bindings/my_reviews_binding.dart';
+import '/app/modules/reviews/views/my_reviews_view.dart';
+import '/app/modules/support_ticket/bindings/support_ticket_binding.dart';
+import '/app/modules/support_ticket/views/support_ticket_view.dart';
+import '/app/modules/support_ticket_details/bindings/support_ticket_details_binding.dart';
+import '/app/modules/support_ticket_details/views/support_ticket_details_view.dart';
 import 'package:get/get.dart';
 
 import '/app/modules/search/bindings/search_binding.dart';
@@ -227,6 +233,21 @@ class AppPages {
       name: _Paths.WISHLIST,
       page: () => WishlistView(),
       binding: WishlistBinding(),
+    ),
+    GetPage(
+      name: _Paths.MY_REVIEWS,
+      page: () => const MyReviewsView(),
+      binding: MyReviewsBinding(),
+    ),
+    GetPage(
+      name: _Paths.SUPPORT_TICKET,
+      page: () => const SupportTicketView(),
+      binding: SupportTicketBinding(),
+    ),
+    GetPage(
+      name: _Paths.SUPPORT_TICKET_DETAILS,
+      page: () => const SupportTicketDetailsView(),
+      binding: SupportTicketDetailsBinding(),
     ),
     GetPage(
         name: _Paths.CART,

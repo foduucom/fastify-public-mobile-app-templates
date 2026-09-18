@@ -10,6 +10,7 @@ import '../../components/studio_widget/studio_category.dart';
 import '../../components/studio_widget/studio_common_widgets.dart';
 import '../../components/studio_widget/studio_price_filter.dart';
 import '../../components/studio_widget/studio_search_bar_rounded.dart';
+import '../../components/studio_widget/studio_trust_badges.dart';
 import '/constants/constants.dart';
 import 'package:get/get.dart';
 
@@ -96,5 +97,10 @@ void registerDefaultWidgets() {
 
   r.register('icon_button', (json) {
     return IconButtonComponent(contentJson: json ?? {});
+  });
+
+  // ─── Trust Badges ───────────────────────────────────────────
+  r.register('trust_badges', (json) {
+    return TrustBadgesComponent(contentJson: json ?? {});
   });
 }

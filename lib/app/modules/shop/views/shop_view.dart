@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '/app/modules/product/views/product_view.dart';
 import '/app/modules/shop/bindings/shop_binding.dart';
 import '/app/modules/shop/controllers/shop_controller.dart';
+import '/app/modules/shop/views/widgets/shop_filter_drawer.dart';
 import '/constants/constants.dart';
 
 class ShopView extends GetView<ShopController> {
@@ -17,9 +18,15 @@ class ShopView extends GetView<ShopController> {
     Get.lazyPut(() => ShopController());
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final scaffoldKey = GlobalKey<ScaffoldState>();
 
     return Scaffold(
+      key: scaffoldKey,
       backgroundColor: colorScheme.background,
+      // Category/Material/Style/Brand/Price filters live in the ported
+      // ShopFilterDrawer (PORT_AUDIT.md Phase 4); the header's tune icon
+      // opens it, and it's also reachable via edge-swipe.
+      endDrawer: ShopFilterDrawer(controller: controller),
       appBar: AppBar(
         backgroundColor: colorScheme.background,
         elevation: 0,
@@ -39,8 +46,40 @@ class ShopView extends GetView<ShopController> {
               ],
             )),
         actions: [
+          Obx(() => Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.tune_rounded), // Filter Icon
+                    onPressed: () => scaffoldKey.currentState?.openEndDrawer(),
+                  ),
+                  if (controller.activeFilterCount > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: colorScheme.error,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints:
+                            const BoxConstraints(minWidth: 16, minHeight: 16),
+                        child: Text(
+                          "${controller.activeFilterCount}",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: colorScheme.onError,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              )),
           IconButton(
-            icon: const Icon(Icons.tune_rounded), // Filter Icon
+            icon: const Icon(Icons.sort_rounded), // Sort options
             onPressed: () => _showFilterBottomSheet(context),
           ),
           const SizedBox(width: 8),
@@ -70,12 +109,7 @@ class ShopView extends GetView<ShopController> {
 
   // ─── ACTIVE FILTER HELPERS ────────────────────────────────────────────
   bool _hasActiveFilters() {
-    return controller.isFeatured.value ||
-        controller.isHot.value ||
-        controller.selectedCategories.isNotEmpty ||
-        controller.selectedBrands.isNotEmpty ||
-        controller.minPrice.value > 0 ||
-        controller.maxPrice.value < 10000;
+    return controller.hasActiveFilters;
   }
 
   Widget _buildActiveFilterChips(ColorScheme colorScheme) {
@@ -107,6 +141,24 @@ class ShopView extends GetView<ShopController> {
               controller.fetchProducts(isRefresh: true);
             }, colorScheme),
 
+          if (controller.isTrending.value)
+            _activeChip("Trending", () {
+              controller.isTrending.value = false;
+              controller.fetchProducts(isRefresh: true);
+            }, colorScheme),
+
+          if (controller.isRecommended.value)
+            _activeChip("Recommended", () {
+              controller.isRecommended.value = false;
+              controller.fetchProducts(isRefresh: true);
+            }, colorScheme),
+
+          if (controller.isRecentlyViewed.value)
+            _activeChip("Recently Viewed", () {
+              controller.isRecentlyViewed.value = false;
+              controller.fetchProducts(isRefresh: true);
+            }, colorScheme),
+
           ...controller.selectedCategories
               .map((cat) => _activeChip(cat.capitalizeFirst!, () {
                     controller.toggleCategory(cat);
@@ -118,6 +170,13 @@ class ShopView extends GetView<ShopController> {
                     controller.toggleBrand(brand);
                     controller.fetchProducts(isRefresh: true);
                   }, colorScheme)),
+
+          ...controller.selectedAttributes.entries.expand((entry) => entry
+              .value
+              .map((value) => _activeChip(value.capitalizeFirst!, () {
+                    controller.toggleAttribute(entry.key, value);
+                    controller.fetchProducts(isRefresh: true);
+                  }, colorScheme))),
         ],
       ),
     );
@@ -263,23 +322,40 @@ class ShopView extends GetView<ShopController> {
                         )),
                     const SizedBox(height: 24),
 
-                    // 4. CATEGORIES (Mocked for UI, wire these to your actual category list)
+                    // 4. CATEGORIES — live data from ShopController.fetchCategories()
+                    // (previously hardcoded placeholder chips; real
+                    // Category/Material/Style drill-down now lives in the
+                    // ported ShopFilterDrawer, this stays as a quick-pick).
                     Text("Categories",
                         style: textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 10),
-                    Obx(() => Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _categoryChip(
-                                "electronics", "Electronics", colorScheme),
-                            _categoryChip("clothing", "Clothing", colorScheme),
-                            _categoryChip(
-                                "home-decor", "Home Decor", colorScheme),
-                            _categoryChip("toys", "Toys", colorScheme),
-                          ],
-                        )),
+                    Obx(() {
+                      if (controller.isCategoriesLoading.value &&
+                          controller.availableCategories.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: Center(child: CupertinoActivityIndicator()),
+                        );
+                      }
+                      if (controller.availableCategories.isEmpty) {
+                        return Text(
+                          "No categories available",
+                          style: textTheme.bodySmall
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
+                        );
+                      }
+                      return Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: controller.availableCategories.map((cat) {
+                          final slug = cat['slug']?.toString() ?? '';
+                          final name = cat['name']?.toString() ?? slug;
+                          if (slug.isEmpty) return const SizedBox.shrink();
+                          return _categoryChip(slug, name, colorScheme);
+                        }).toList(),
+                      );
+                    }),
                   ],
                 ),
               ),
