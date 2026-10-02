@@ -1,0 +1,672 @@
+771772dfe8 cached: 0/0M, 0/0% in use; allocs: 5, 0% recycled; transfers: 4, 50% unfetched
+D/CCodecConfig(21220): c2 config diff is   c2::u32 raw.color.matrix = 3
+D/CCodecConfig(21220):   c2::u32 raw.color.primaries = 1
+D/CCodecConfig(21220):   c2::u32 raw.color.range = 1
+D/CCodecConfig(21220):   c2::u32 raw.color.transfer = 2
+D/CCodecConfig(21220):   c2::u32 raw.crop.height = 1080
+D/CCodecConfig(21220):   c2::u32 raw.crop.left = 0
+D/CCodecConfig(21220):   c2::u32 raw.crop.top = 0
+D/CCodecConfig(21220):   c2::u32 raw.crop.width = 720
+D/CCodecBuffers(21220): [c2.android.av1-dav1d.decoder#244:2D-BB-Output] popFromStashAndRegister: at 0us, output format changed to AMessage(what = 0x00000000) = {
+D/CCodecBuffers(21220):   int32_t android._color-format = 2135033992
+D/CCodecBuffers(21220):   int32_t android._video-scaling = 1
+D/CCodecBuffers(21220):   int32_t android._dataspace = 142737408
+D/CCodecBuffers(21220):   int32_t color-standard = 86
+D/CCodecBuffers(21220):   int32_t color-range = 1
+D/CCodecBuffers(21220):   int32_t color-transfer = 2
+D/CCodecBuffers(21220):   int32_t sar-height = 1
+D/CCodecBuffers(21220):   int32_t rotation-degrees = 0
+D/CCodecBuffers(21220):   Buffer hdr-static-info = {
+D/CCodecBuffers(21220):     00000000:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+D/CCodecBuffers(21220):     00000010:  00 00 00 00 00 00 00 00  00                       .........
+D/CCodecBuffers(21220):   }
+D/CCodecBuffers(21220):   int32_t sar-width = 1
+D/CCodecBuffers(21220):   Rect crop(0, 0, 719, 1079)
+D/CCodecBuffers(21220):   int32_t width = 720
+D/CCodecBuffers(21220):   Buffer hdr10-plus-info = {
+D/CCodecBuffers(21220):   }
+D/CCodecBuffers(21220):   int32_t height = 1080
+D/CCodecBuffers(21220):   int32_t max-height = 1080
+D/CCodecBuffers(21220):   int32_t max-width = 720
+D/CCodecBuffers(21220):   string mime = "video/raw"
+D/CCodecBuffers(21220):   int32_t color-format = 2135033992
+D/CCodecBuffers(21220): }
+D/CCodecBuffers(21220): [c2.android.av1-dav1d.decoder#244:2D-BB-Output] updating image-data
+D/CCodecBuffers(21220): [c2.android.av1-dav1d.decoder#244:2D-BB-Output] updating stride = 720, width: 720, height: 1080
+D/CCodecBuffers(21220): [c2.android.av1-dav1d.decoder#244:2D-BB-Output] updating vstride = 1356
+W/HWUI    (21220): Image decoding logging dropped!
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#244] MediaCodec discarded an unknown buffer
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#244] MediaCodec discarded an unknown buffer
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#244] MediaCodec discarded an unknown buffer
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#244] MediaCodec discarded an unknown buffer
+I/hw-BpHwBinder(21220): onLastStrongRef automatically unlinking death recipients
+I/flutter (21220): widgetList.length: 3
+I/flutter (21220): widgetList.length: 3
+D/CCodec  (21220): allocate(c2.android.av1-dav1d.decoder)
+I/CCodec  (21220): setting up 'default' as default (vendor) store
+I/CCodec  (21220): Created component [c2.android.av1-dav1d.decoder] for [c2.android.av1-dav1d.decoder]
+D/CCodecConfig(21220): read media type: video/av01
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: algo.buffers.max-count.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: output.subscribed-indices.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: input.buffers.allocator-ids.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: output.buffers.allocator-ids.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: algo.buffers.allocator-ids.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: output.buffers.pool-ids.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: algo.buffers.pool-ids.values
+D/ReflectedParamUpdater(21220): ignored struct field coded.color-format.locations
+D/CCodecConfig(21220): ignoring local param raw.size (0xd2001800) as it is already supported
+D/CCodecConfig(21220): ignoring local param default.color (0x5200180b) as it is already supported
+D/CCodecConfig(21220): ignoring local param raw.hdr-static-info (0xd200180a) as it is already supported
+I/CCodecConfig(21220): query failed after returning 16 values (BAD_INDEX)
+D/CCodecConfig(21220): c2 config diff is Dict {
+D/CCodecConfig(21220):   c2::u32 algo.low-latency.value = 0
+D/CCodecConfig(21220):   c2::u32 coded.pl.level = 36865
+D/CCodecConfig(21220):   c2::u32 coded.pl.profile = 36864
+D/CCodecConfig(21220):   c2::u32 coded.vui.color.matrix = 0
+D/CCodecConfig(21220):   c2::u32 coded.vui.color.primaries = 0
+D/CCodecConfig(21220):   c2::u32 coded.vui.color.range = 2
+D/CCodecConfig(21220):   c2::u32 coded.vui.color.transfer = 0
+D/CCodecConfig(21220):   c2::u32 default.color.matrix = 0
+D/CCodecConfig(21220):   c2::u32 default.color.primaries = 0
+D/CCodecConfig(21220):   c2::u32 default.color.range = 0
+D/CCodecConfig(21220):   c2::u32 default.color.transfer = 0
+D/CCodecConfig(21220):   c2::u32 input.buffers.max-size.value = 2097152
+D/CCodecConfig(21220):   c2::u32 input.delay.value = 0
+D/CCodecConfig(21220):   Buffer input.hdr10-plus-info.value = {
+D/CCodecConfig(21220):   }
+D/CCodecConfig(21220):   string input.media-type.value = "video/av01"
+D/CCodecConfig(21220):   c2::u32 output.delay.value = 4
+D/CCodecConfig(21220):   Buffer output.hdr10-plus-info.value = {
+D/CCodecConfig(21220):   }
+D/CCodecConfig(21220):   string output.media-type.value = "video/raw"
+D/CCodecConfig(21220):   c2::u32 raw.color.matrix = 0
+D/CCodecConfig(21220):   c2::u32 raw.color.primaries = 0
+D/CCodecConfig(21220):   c2::u32 raw.color.range = 2
+D/CCodecConfig(21220):   c2::u32 raw.color.transfer = 0
+D/CCodecConfig(21220):   c2::float raw.hdr-static-info.mastering.blue.x = 0
+D/CCodecConfig(21220):   c2::float raw.hdr-static-info.mastering.blue.y = 0
+D/CCodecConfig(21220):   c2::float raw.hdr-static-info.mastering.green.x = 0
+D/CCodecConfig(21220):   c2::floa
+W/ColorUtils(21220): expected specified color aspects (2:0:0:0)
+E/MediaCodec(21220): Media Quality Service not found.
+D/CCodec  (21220): [c2.android.av1-dav1d.decoder] buffers are bound to CCodec for this session
+D/CCodecConfig(21220): no c2 equivalents for color-format
+D/CCodecConfig(21220): no c2 equivalents for flags
+D/CCodecConfig(21220): c2 config diff is   c2::u32 algo.low-latency.value = 1
+D/CCodecConfig(21220):   c2::u32 raw.size.height = 1080
+D/CCodecConfig(21220):   c2::u32 raw.size.width = 720
+W/ColorUtils(21220): expected specified color aspects (2:0:0:0)
+W/Codec2Client(21220): query -- param skipped: index = 1107298332.
+D/CCodec  (21220): client requested max input size 155144, which is smaller than what component recommended (2097152); overriding with component recommendation.
+W/CCodec  (21220): This behavior is subject to change. It is recommended that app developers double check whether the requested max input size is in reasonable range.
+D/CCodec  (21220): encoding statistics level = 0
+D/CCodec  (21220): setup formats input: AMessage(what = 0x00000000) = {
+D/CCodec  (21220):   int32_t height = 1080
+D/CCodec  (21220):   int32_t level = 2
+D/CCodec  (21220):   int32_t max-input-size = 2097152
+D/CCodec  (21220):   string mime = "video/av01"
+D/CCodec  (21220):   int32_t profile = 1
+D/CCodec  (21220):   int32_t width = 720
+D/CCodec  (21220):   Rect crop(0, 0, 719, 1079)
+D/CCodec  (21220): }
+D/CCodec  (21220): setup formats output: AMessage(what = 0x00000000) = {
+D/CCodec  (21220):   int32_t android._color-format = 2135033992
+D/CCodec  (21220):   int32_t android._video-scaling = 1
+D/CCodec  (21220):   int32_t android._dataspace = 268435456
+D/CCodec  (21220):   int32_t color-standard = 0
+D/CCodec  (21220):   int32_t color-range = 2
+D/CCodec  (21220):   int32_t color-transfer = 0
+D/CCodec  (21220):   int32_t sar-height = 1
+D/CCodec  (21220):   int32_t rotation-degrees = 0
+D/CCodec  (21220):   Buffer hdr-static-info = {
+D/CCodec  (21220):     00000000:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+D/CCodec  (21220):     00000010:  00 00 00 00 00 00 00 00  00                       .........
+D/CCodec  (21220):   }
+D/CCodec  (21220):   int32_t sar-width = 1
+D/CCodec  (21220):   Rect crop(0, 0, 719, 1079)
+D/CCodec  (21220):   int32_t width = 720
+D/CCodec  (21220):   Buffer hdr10-plus-info = {
+D/CCodec  (21220):   }
+D/CCodec  (21220):   int32_t height = 1080
+D/CCodec  (21220):   int32_t max-height = 240
+D/CCodec  (21220):   int32_t max-width = 320
+D/CCodec  (21220):   string mime = "video/raw"
+D/CCodec  (21220):   int32_t color-format = 2135033992
+D/CCodec  (21220): }
+I/CCodecConfig(21220): query failed after returning 16 values (BAD_INDEX)
+D/CCodecConfig(21220): c2 config diff is   c2::u32 output.delay.value = 1
+D/CCodecConfig(21220):   c2::u32 raw.max-size.height = 1080
+D/CCodecConfig(21220):   c2::u32 raw.max-size.width = 720
+W/ColorUtils(21220): expected specified color aspects (2:0:0:0)
+E/foduu_ecommerce(21220): Failed to query component interface for required system resources: 6
+W/Codec2Client(21220): query -- param skipped: index = 1342179345.
+W/Codec2Client(21220): query -- param skipped: index = 2415921170.
+W/Codec2Client(21220): query -- param skipped: index = 1610614798.
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#447] Created input block pool with allocatorID 16 => poolID 48 - OK (0)
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#447] Configured output block pool ids 1 => OK
+D/CCodecConfig(21220): c2 config diff is   c2::u32 raw.color.matrix = 3
+D/CCodecConfig(21220):   c2::u32 raw.color.primaries = 1
+D/CCodecConfig(21220):   c2::u32 raw.color.range = 1
+D/CCodecConfig(21220):   c2::u32 raw.color.transfer = 2
+D/CCodecConfig(21220):   c2::u32 raw.crop.height = 1080
+D/CCodecConfig(21220):   c2::u32 raw.crop.left = 0
+D/CCodecConfig(21220):   c2::u32 raw.crop.top = 0
+D/CCodecConfig(21220):   c2::u32 raw.crop.width = 720
+D/CCodecBuffers(21220): [c2.android.av1-dav1d.decoder#447:2D-BB-Output] popFromStashAndRegister: at 0us, output format changed to AMessage(what = 0x00000000) = {
+D/CCodecBuffers(21220):   int32_t android._color-format = 2135033992
+D/CCodecBuffers(21220):   int32_t android._video-scaling = 1
+D/CCodecBuffers(21220):   int32_t android._dataspace = 142737408
+D/CCodecBuffers(21220):   int32_t color-standard = 86
+D/CCodecBuffers(21220):   int32_t color-range = 1
+D/CCodecBuffers(21220):   int32_t color-transfer = 2
+D/CCodecBuffers(21220):   int32_t sar-height = 1
+D/CCodecBuffers(21220):   int32_t rotation-degrees = 0
+D/CCodecBuffers(21220):   Buffer hdr-static-info = {
+D/CCodecBuffers(21220):     00000000:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+D/CCodecBuffers(21220):     00000010:  00 00 00 00 00 00 00 00  00                       .........
+D/CCodecBuffers(21220):   }
+D/CCodecBuffers(21220):   int32_t sar-width = 1
+D/CCodecBuffers(21220):   Rect crop(0, 0, 719, 1079)
+D/CCodecBuffers(21220):   int32_t width = 720
+D/CCodecBuffers(21220):   Buffer hdr10-plus-info = {
+D/CCodecBuffers(21220):   }
+D/CCodecBuffers(21220):   int32_t height = 1080
+D/CCodecBuffers(21220):   int32_t max-height = 1080
+D/CCodecBuffers(21220):   int32_t max-width = 720
+D/CCodecBuffers(21220):   string mime = "video/raw"
+D/CCodecBuffers(21220):   int32_t color-format = 2135033992
+D/CCodecBuffers(21220): }
+D/CCodecBuffers(21220): [c2.android.av1-dav1d.decoder#447:2D-BB-Output] updating image-data
+D/CCodecBuffers(21220): [c2.android.av1-dav1d.decoder#447:2D-BB-Output] updating stride = 720, width: 720, height: 1080
+D/CCodecBuffers(21220): [c2.android.av1-dav1d.decoder#447:2D-BB-Output] updating vstride = 1356
+W/HWUI    (21220): Image decoding logging dropped!
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#447] MediaCodec discarded an unknown buffer
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#447] MediaCodec discarded an unknown buffer
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#447] MediaCodec discarded an unknown buffer
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#447] MediaCodec discarded an unknown buffer
+I/hw-BpHwBinder(21220): onLastStrongRef automatically unlinking death recipients
+I/flutter (21220): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a6df254d019b6f9cdb27239, name: Ice Grey Net Bead & Sequin    Embroidered Lehenga Set, slug: ice-grey-net-bead-sequin-embroidered-lehenga-set, type: simple, content: <p><br /></p>, long_content: <p><br /></p>, featured_image: {_id: 6a6df239d019b6f9cdb26f25, filename: SEGC022649_1-fc866bf4.webp, originalname: SEGC022649_1.jpg, filepath: 2026/08/01/SEGC022649_1-fc866bf4.webp, mimetype: image/webp, size: 167542, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: true, original_size: 253767, compression_status: compressed, compression_ratio: 0.6602198079340498}, tags: [], created_at: 2026-08-01T13:18:49.068Z, updated_at: 2026-08-01T13:18:4
+I/flutter (21220): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a6df254d019b6f9cdb27239, name: Ice Grey Net Bead & Sequin    Embroidered Lehenga Set, slug: ice-grey-net-bead-sequin-embroidered-lehenga-set, type: simple, content: <p><br /></p>, long_content: <p><br /></p>, featured_image: {_id: 6a6df239d019b6f9cdb26f25, filename: SEGC022649_1-fc866bf4.webp, originalname: SEGC022649_1.jpg, filepath: 2026/08/01/SEGC022649_1-fc866bf4.webp, mimetype: image/webp, size: 167542, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: true, original_size: 253767, compression_status: compressed, compression_ratio: 0.6602198079340498}, tags: [], created_at: 2026-08-01T13:18:49.068Z, updated_at: 2026-08-01T13:18:4
+I/flutter (21220): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a6df254d019b6f9cdb27239, name: Ice Grey Net Bead & Sequin    Embroidered Lehenga Set, slug: ice-grey-net-bead-sequin-embroidered-lehenga-set, type: simple, content: <p><br /></p>, long_content: <p><br /></p>, featured_image: {_id: 6a6df239d019b6f9cdb26f25, filename: SEGC022649_1-fc866bf4.webp, originalname: SEGC022649_1.jpg, filepath: 2026/08/01/SEGC022649_1-fc866bf4.webp, mimetype: image/webp, size: 167542, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: true, original_size: 253767, compression_status: compressed, compression_ratio: 0.6602198079340498}, tags: [], created_at: 2026-08-01T13:18:49.068Z, updated_at: 2026-08-01T13:18:4
+I/flutter (21220): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a6df254d019b6f9cdb27239, name: Ice Grey Net Bead & Sequin    Embroidered Lehenga Set, slug: ice-grey-net-bead-sequin-embroidered-lehenga-set, type: simple, content: <p><br /></p>, long_content: <p><br /></p>, featured_image: {_id: 6a6df239d019b6f9cdb26f25, filename: SEGC022649_1-fc866bf4.webp, originalname: SEGC022649_1.jpg, filepath: 2026/08/01/SEGC022649_1-fc866bf4.webp, mimetype: image/webp, size: 167542, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: true, original_size: 253767, compression_status: compressed, compression_ratio: 0.6602198079340498}, tags: [], created_at: 2026-08-01T13:18:49.068Z, updated_at: 2026-08-01T13:18:4
+I/flutter (21220): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a6df254d019b6f9cdb27239, name: Ice Grey Net Bead & Sequin    Embroidered Lehenga Set, slug: ice-grey-net-bead-sequin-embroidered-lehenga-set, type: simple, content: <p><br /></p>, long_content: <p><br /></p>, featured_image: {_id: 6a6df239d019b6f9cdb26f25, filename: SEGC022649_1-fc866bf4.webp, originalname: SEGC022649_1.jpg, filepath: 2026/08/01/SEGC022649_1-fc866bf4.webp, mimetype: image/webp, size: 167542, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: true, original_size: 253767, compression_status: compressed, compression_ratio: 0.6602198079340498}, tags: [], created_at: 2026-08-01T13:18:49.068Z, updated_at: 2026-08-01T13:18:4
+D/BufferPoolAccessor2.0(21220): bufferpool2 0xb4000077177138b8 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 2/4 (fetch/transfer)
+D/BufferPoolAccessor2.0(21220): evictor expired: 3, evicted: 1
+D/BufferPoolAccessor2.0(21220): bufferpool2 0xb40000771773e538 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 2/4 (fetch/transfer)
+D/BufferPoolAccessor2.0(21220): evictor expired: 1, evicted: 1
+Another exception was thrown: A RenderFlex overflowed by 14 pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 14 pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 14 pixels on the bottom.
+
+
+
+Performing hot restart...                                               
+Restarted application in 10,391ms.
+I/FLTFireMsgService(21220): FlutterFirebaseMessagingBackgroundService started!
+I/flutter (21220): Connectivity restored. Triggering notification sync...
+I/flutter (21220): 🎨 Using default LIGHT theme colors
+I/flutter (21220): 🎨 Using default DARK theme colors
+I/flutter (21220): ---------------Subscribing to topic: promotions-------------------
+W/FLTFireMsgService(21220): Attempted to start a duplicate background isolate. Returning...
+I/flutter (21220): ---------------Subscribing to topic: news-------------------
+W/foduu_ecommerce(21220): Reducing the number of considered missed Gc histogram windows from 375 to 100
+I/flutter (21220): ---------------Subscribing to topic: general-------------------
+I/flutter (21220): ---------------Subscribing to topic: newrelease-------------------
+I/flutter (21220): ---------------Subscribing to topic: deals-------------------
+I/flutter (21220): ====================================
+I/flutter (21220): FCM TOKEN: d3_8JjerTC-MRDn3bTbd-m:APA91bHGMezH5LpkSH8c19HjbkrKvUrDHIW3iAZZUhO7YD6zwazooS29HatyfUXi3fYGCA5rs6Sas2XwHKIzbEYRGOamerCLVEn8xIXQd7i8upLJQCsl5fc
+I/flutter (21220): ====================================
+I/flutter (21220): 📦 Initializing DynamicThemeManager
+I/flutter (21220): 💾 Light theme found in storage, loading...
+I/flutter (21220): 🌐 Parsing LIGHT theme colors
+I/flutter (21220): 🎨 Parsed color: #FF8B5CF6
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FFFFFFFF
+I/flutter (21220): 🎨 Parsed color: #FFB00020
+I/flutter (21220): 🎨 Parsed color: #FFFFFFFF
+I/flutter (21220): 🎨 Parsed color: #FFFFFFFF
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FFFFFFFF
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FFFFFFFF
+I/flutter (21220): 🎨 Parsed color: #FFDDDDDD
+I/flutter (21220): 🎨 Parsed color: #FFF5F5F5
+I/flutter (21220): 🎨 Parsed color: #FF666666
+I/flutter (21220): 💾 Dark theme found in storage, loading...
+I/flutter (21220): 🌐 Parsing DARK theme colors
+I/flutter (21220): 🎨 Parsed color: #FF8B5CF6
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FFCF6679
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FFFFFFFF
+I/flutter (21220): 🎨 Parsed color: #FFFFFFFF
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FFFFFFFF
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FF444444
+I/flutter (21220): 🎨 Parsed color: #FF2C2C2C
+I/flutter (21220): 🎨 Parsed color: #FFAAAAAA
+I/flutter (21220): headers: {accept: application/json, access-key: 370093f746beea3adee9176bbf78ea57ee70a29db34edf1c, Content-Type: application/json}
+I/flutter (21220): url === https://traditional-ecom.vbought.com/api/public-settings 200
+I/flutter (21220): response {coreSettings: {undefined: {order_created: {email: true, whatsapp: true, telegram: true, sms: false}, order_cancelled: {email: true, whatsapp: true, telegram: true, sms: false}, refund: {email: true, whatsapp: true, telegram: true, sms: false}, form_submission: {email: true, whatsapp: true, telegram: true, sms: false}, support_ticket: {email: true, whatsapp: true, telegram: true, sms: false}, support_ticket_reply: {email: true, whatsapp: true, telegram: true, sms: false}, customer_registration: {email: true, whatsapp: true, telegram: true, sms: false}, daily_stats: {email: true, whatsapp: true, telegram: true, sms: false}, bulk_product_update: {email: true, whatsapp: true, telegram: true, sms: false}, general: {email: true, whatsapp: true, telegram: true, sms: false}}, footersections: [{title: About Us, slug: about-us, content: <div class="aq-footer-contact-wrap">
+I/flutter (21220): <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi eum quisquam voluptatum
+I/flutter (21220):                               molestias a perfe
+I/flutter (21220): 🌐 Updating themes from API
+I/flutter (21220): 🌐 Parsing LIGHT theme colors
+I/flutter (21220): 🎨 Parsed color: #FF8b5cf6
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FFffffff
+I/flutter (21220): 🎨 Parsed color: #FFffffff
+I/flutter (21220): 🎨 Parsed color: #FFffffff
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FFffffff
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): ✅ Light theme updated & saved successfully
+I/flutter (21220): 🌐 Parsing DARK theme colors
+I/flutter (21220): 🎨 Parsed color: #FF8b5cf6
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FFffffff
+I/flutter (21220): 🎨 Parsed color: #FFffffff
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FFffffff
+I/flutter (21220): ✅ Dark theme updated & saved successfully
+I/flutter (21220): 🔄 Refreshing app theme...
+I/flutter (21220): 🎨 Building light theme for mode: ThemeMode.system
+I/flutter (21220): 🎨 Building dark theme for mode: ThemeMode.system
+I/flutter (21220): Login Auth Mode - OTP: true, Password: false, Mobile OTP: false
+I/foduu_ecommerce(21220): AssetManager2(0xb4000077e7647e98) locale list changing from [] to [en-US]
+I/foduu_ecommerce(21220): AssetManager2(0xb4000077e76c6158) locale list changing from [] to [en-US]
+I/flutter (21220): headers: {accept: application/json, access-key: 370093f746beea3adee9176bbf78ea57ee70a29db34edf1c, Content-Type: application/json}
+I/flutter (21220): headers: {accept: application/json, access-key: 370093f746beea3adee9176bbf78ea57ee70a29db34edf1c, Content-Type: application/json}
+I/flutter (21220): headers: {accept: application/json, access-key: 370093f746beea3adee9176bbf78ea57ee70a29db34edf1c, Content-Type: application/json}
+I/flutter (21220): headers: {accept: application/json, access-key: 370093f746beea3adee9176bbf78ea57ee70a29db34edf1c, Content-Type: application/json}
+I/flutter (21220): url === https://traditional-ecom.vbought.com/api/mobile-app/cart 200
+I/flutter (21220): Hi Fetch Layout Response {status: success}
+I/flutter (21220): url === https://traditional-ecom.vbought.com/api/mobile-app/wishlist 200
+I/flutter (21220): Hi Fetch Layout Response {status: success}
+I/flutter (21220): url === https://traditional-ecom.vbought.com/api/navigation/sidebar 200
+I/flutter (21220): url === https://traditional-ecom.vbought.com/api/mobile-app/home 200
+I/flutter (21220): Hi Fetch Layout Response {theme_color: {light: {primary: #8b5cf6, onPrimary: #ffffff, secondary: #000000, onSecondary: #ffffff, background: #ffffff, onBackground: #000000, surface: #ffffff, onSurface: #000000}, dark: {primary: #8b5cf6, onPrimary: #000000, secondary: #000000, onSecondary: #ffffff, background: #000000, onBackground: #ffffff, surface: #000000, onSurface: #ffffff}}, sections: [{id: banner, type: banner, content_json: {banners: [{id: banner_1790927479015, type: single, layout: full_width, items: [{link_type: category, link: {value: lehngas, label: Lehngas}, category_type: product, featured_image: {metadata: {processed: false, original_size: 155414, compression_status: compression failed due to output larger than original, compression_ratio: 1}, _id: 6a6df242d019b6f9cdb26f82, filename: SEGC022649_2-47752036.avif, originalname: SEGC022649_2.avif, filepath: 2026/08/01/SEGC022649_2-47752036.avif, mimetype: image/avif, size: 155414, file_type: image, website_id: 6a6c2ef6f50e11d7362b5c34, owner_id: 69b
+I/flutter (21220): 🎨 DynamicLayout: Theme found in API response
+I/flutter (21220): 🌐 Updating themes from API
+I/flutter (21220): 🌐 Parsing LIGHT theme colors
+I/flutter (21220): 🎨 Parsed color: #FF8b5cf6
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FFffffff
+I/flutter (21220): 🎨 Parsed color: #FFffffff
+I/flutter (21220): 🎨 Parsed color: #FFffffff
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FFffffff
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): ✅ Light theme updated & saved successfully
+I/flutter (21220): 🌐 Parsing DARK theme colors
+I/flutter (21220): 🎨 Parsed color: #FF8b5cf6
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FFffffff
+I/flutter (21220): 🎨 Parsed color: #FFffffff
+I/flutter (21220): 🎨 Parsed color: #FF000000
+I/flutter (21220): 🎨 Parsed color: #FFffffff
+I/flutter (21220): ✅ Dark theme updated & saved successfully
+I/flutter (21220): 🔄 Refreshing app theme...
+I/flutter (21220): 🎨 Building light theme for mode: ThemeMode.system
+I/flutter (21220): 🎨 Building dark theme for mode: ThemeMode.system
+I/flutter (21220): widgetList.length: 3
+I/flutter (21220): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a6df254d019b6f9cdb27239, name: Ice Grey Net Bead & Sequin    Embroidered Lehenga Set, slug: ice-grey-net-bead-sequin-embroidered-lehenga-set, type: simple, content: <p><br /></p>, long_content: <p><br /></p>, featured_image: {_id: 6a6df239d019b6f9cdb26f25, filename: SEGC022649_1-fc866bf4.webp, originalname: SEGC022649_1.jpg, filepath: 2026/08/01/SEGC022649_1-fc866bf4.webp, mimetype: image/webp, size: 167542, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: true, original_size: 253767, compression_status: compressed, compression_ratio: 0.6602198079340498}, tags: [], created_at: 2026-08-01T13:18:49.068Z, updated_at: 2026-08-01T13:18:4
+
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY
+╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 6.0 pixels on the bottom.
+
+The relevant error-causing widget was:
+  Column
+  Column:file:///Users/flutterdev/Desktop/fastify-public-mobile-ap
+  p-templates_2/lib/components/home_component/home_products.dart:5
+  04:20
+
+The overflowing RenderFlex has an orientation of Axis.vertical.
+The edge of the RenderFlex that is overflowing has been marked in
+the rendering with a yellow and
+black striped pattern. This is usually caused by the contents
+being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to
+force the children of the
+RenderFlex to fit within the available space instead of being
+sized to their natural size.
+This is considered an error condition because it indicates that
+there is content that cannot be
+seen. If the content is legitimately bigger than the available
+space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a
+scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#b7dbe
+relayoutBoundary=up1 OVERFLOWING:
+  creator: Column ← Expanded ← Column ← Listener ←
+  _GestureSemantics ← RawGestureDetector ←
+    GestureDetector ← SizedBox ← RepaintBoundary ←
+    IndexedSemantics ← _SelectionKeepAlive ←
+    NotificationListener<KeepAliveNotification> ← ⋯
+  parentData: offset=Offset(0.0, 238.4); flex=1; fit=FlexFit.tight
+  (can use size)
+  constraints: BoxConstraints(0.0<=w<=172.8, h=52.0)
+  size: Size(172.8, 52.0)
+  direction: vertical
+  mainAxisAlignment: start
+  mainAxisSize: min
+  crossAxisAlignment: start
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+══════════════════════════════════════════════════════════════════
+══════════════════════════════════
+
+Another exception was thrown: A RenderFlex overflowed by 6.0
+pixels on the bottom.
+I/flutter (21220): widgetList.length: 3
+I/flutter (21220): widgetList.length: 3
+D/CCodec  (21220): allocate(c2.android.av1-dav1d.decoder)
+I/CCodec  (21220): setting up 'default' as default (vendor) store
+I/CCodec  (21220): Created component [c2.android.av1-dav1d.decoder] for [c2.android.av1-dav1d.decoder]
+D/CCodecConfig(21220): read media type: video/av01
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: algo.buffers.max-count.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: output.subscribed-indices.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: input.buffers.allocator-ids.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: output.buffers.allocator-ids.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: algo.buffers.allocator-ids.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: output.buffers.pool-ids.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: algo.buffers.pool-ids.values
+D/ReflectedParamUpdater(21220): ignored struct field coded.color-format.locations
+D/CCodecConfig(21220): ignoring local param raw.size (0xd2001800) as it is already supported
+D/CCodecConfig(21220): ignoring local param default.color (0x5200180b) as it is already supported
+D/CCodecConfig(21220): ignoring local param raw.hdr-static-info (0xd200180a) as it is already supported
+I/CCodecConfig(21220): query failed after returning 16 values (BAD_INDEX)
+D/CCodecConfig(21220): c2 config diff is Dict {
+D/CCodecConfig(21220):   c2::u32 algo.low-latency.value = 0
+D/CCodecConfig(21220):   c2::u32 coded.pl.level = 36865
+D/CCodecConfig(21220):   c2::u32 coded.pl.profile = 36864
+D/CCodecConfig(21220):   c2::u32 coded.vui.color.matrix = 0
+D/CCodecConfig(21220):   c2::u32 coded.vui.color.primaries = 0
+D/CCodecConfig(21220):   c2::u32 coded.vui.color.range = 2
+D/CCodecConfig(21220):   c2::u32 coded.vui.color.transfer = 0
+D/CCodecConfig(21220):   c2::u32 default.color.matrix = 0
+D/CCodecConfig(21220):   c2::u32 default.color.primaries = 0
+D/CCodecConfig(21220):   c2::u32 default.color.range = 0
+D/CCodecConfig(21220):   c2::u32 default.color.transfer = 0
+D/CCodecConfig(21220):   c2::u32 input.buffers.max-size.value = 2097152
+D/CCodecConfig(21220):   c2::u32 input.delay.value = 0
+D/CCodecConfig(21220):   Buffer input.hdr10-plus-info.value = {
+D/CCodecConfig(21220):   }
+D/CCodecConfig(21220):   string input.media-type.value = "video/av01"
+D/CCodecConfig(21220):   c2::u32 output.delay.value = 4
+D/CCodecConfig(21220):   Buffer output.hdr10-plus-info.value = {
+D/CCodecConfig(21220):   }
+D/CCodecConfig(21220):   string output.media-type.value = "video/raw"
+D/CCodecConfig(21220):   c2::u32 raw.color.matrix = 0
+D/CCodecConfig(21220):   c2::u32 raw.color.primaries = 0
+D/CCodecConfig(21220):   c2::u32 raw.color.range = 2
+D/CCodecConfig(21220):   c2::u32 raw.color.transfer = 0
+D/CCodecConfig(21220):   c2::float raw.hdr-static-info.mastering.blue.x = 0
+D/CCodecConfig(21220):   c2::float raw.hdr-static-info.mastering.blue.y = 0
+D/CCodecConfig(21220):   c2::float raw.hdr-static-info.mastering.green.x = 0
+D/CCodecConfig(21220):   c2::floa
+W/ColorUtils(21220): expected specified color aspects (2:0:0:0)
+E/MediaCodec(21220): Media Quality Service not found.
+D/CCodec  (21220): [c2.android.av1-dav1d.decoder] buffers are bound to CCodec for this session
+D/CCodecConfig(21220): no c2 equivalents for color-format
+D/CCodecConfig(21220): no c2 equivalents for flags
+D/CCodecConfig(21220): c2 config diff is   c2::u32 algo.low-latency.value = 1
+D/CCodecConfig(21220):   c2::u32 raw.size.height = 1080
+D/CCodecConfig(21220):   c2::u32 raw.size.width = 720
+W/ColorUtils(21220): expected specified color aspects (2:0:0:0)
+W/Codec2Client(21220): query -- param skipped: index = 1107298332.
+D/CCodec  (21220): client requested max input size 155144, which is smaller than what component recommended (2097152); overriding with component recommendation.
+W/CCodec  (21220): This behavior is subject to change. It is recommended that app developers double check whether the requested max input size is in reasonable range.
+D/CCodec  (21220): encoding statistics level = 0
+D/CCodec  (21220): setup formats input: AMessage(what = 0x00000000) = {
+D/CCodec  (21220):   int32_t height = 1080
+D/CCodec  (21220):   int32_t level = 2
+D/CCodec  (21220):   int32_t max-input-size = 2097152
+D/CCodec  (21220):   string mime = "video/av01"
+D/CCodec  (21220):   int32_t profile = 1
+D/CCodec  (21220):   int32_t width = 720
+D/CCodec  (21220):   Rect crop(0, 0, 719, 1079)
+D/CCodec  (21220): }
+D/CCodec  (21220): setup formats output: AMessage(what = 0x00000000) = {
+D/CCodec  (21220):   int32_t android._color-format = 2135033992
+D/CCodec  (21220):   int32_t android._video-scaling = 1
+D/CCodec  (21220):   int32_t android._dataspace = 268435456
+D/CCodec  (21220):   int32_t color-standard = 0
+D/CCodec  (21220):   int32_t color-range = 2
+D/CCodec  (21220):   int32_t color-transfer = 0
+D/CCodec  (21220):   int32_t sar-height = 1
+D/CCodec  (21220):   int32_t rotation-degrees = 0
+D/CCodec  (21220):   Buffer hdr-static-info = {
+D/CCodec  (21220):     00000000:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+D/CCodec  (21220):     00000010:  00 00 00 00 00 00 00 00  00                       .........
+D/CCodec  (21220):   }
+D/CCodec  (21220):   int32_t sar-width = 1
+D/CCodec  (21220):   Rect crop(0, 0, 719, 1079)
+D/CCodec  (21220):   int32_t width = 720
+D/CCodec  (21220):   Buffer hdr10-plus-info = {
+D/CCodec  (21220):   }
+D/CCodec  (21220):   int32_t height = 1080
+D/CCodec  (21220):   int32_t max-height = 240
+D/CCodec  (21220):   int32_t max-width = 320
+D/CCodec  (21220):   string mime = "video/raw"
+D/CCodec  (21220):   int32_t color-format = 2135033992
+D/CCodec  (21220): }
+I/CCodecConfig(21220): query failed after returning 16 values (BAD_INDEX)
+D/CCodecConfig(21220): c2 config diff is   c2::u32 output.delay.value = 1
+D/CCodecConfig(21220):   c2::u32 raw.max-size.height = 1080
+D/CCodecConfig(21220):   c2::u32 raw.max-size.width = 720
+W/ColorUtils(21220): expected specified color aspects (2:0:0:0)
+E/foduu_ecommerce(21220): Failed to query component interface for required system resources: 6
+W/Codec2Client(21220): query -- param skipped: index = 1342179345.
+W/Codec2Client(21220): query -- param skipped: index = 2415921170.
+W/Codec2Client(21220): query -- param skipped: index = 1610614798.
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#348] Created input block pool with allocatorID 16 => poolID 49 - OK (0)
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#348] Configured output block pool ids 1 => OK
+D/BufferPoolAccessor2.0(21220): bufferpool2 0xb4000077177138b8 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 2/4 (fetch/transfer)
+D/BufferPoolAccessor2.0(21220): Destruction - bufferpool2 0xb4000077177138b8 cached: 0/0M, 0/0% in use; allocs: 5, 0% recycled; transfers: 4, 50% unfetched
+D/BufferPoolAccessor2.0(21220): bufferpool2 0xb40000771773e538 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 2/4 (fetch/transfer)
+D/BufferPoolAccessor2.0(21220): Destruction - bufferpool2 0xb40000771773e538 cached: 0/0M, 0/0% in use; allocs: 5, 0% recycled; transfers: 4, 50% unfetched
+D/CCodecConfig(21220): c2 config diff is   c2::u32 raw.color.matrix = 3
+D/CCodecConfig(21220):   c2::u32 raw.color.primaries = 1
+D/CCodecConfig(21220):   c2::u32 raw.color.range = 1
+D/CCodecConfig(21220):   c2::u32 raw.color.transfer = 2
+D/CCodecConfig(21220):   c2::u32 raw.crop.height = 1080
+D/CCodecConfig(21220):   c2::u32 raw.crop.left = 0
+D/CCodecConfig(21220):   c2::u32 raw.crop.top = 0
+D/CCodecConfig(21220):   c2::u32 raw.crop.width = 720
+D/CCodecBuffers(21220): [c2.android.av1-dav1d.decoder#348:2D-BB-Output] popFromStashAndRegister: at 0us, output format changed to AMessage(what = 0x00000000) = {
+D/CCodecBuffers(21220):   int32_t android._color-format = 2135033992
+D/CCodecBuffers(21220):   int32_t android._video-scaling = 1
+D/CCodecBuffers(21220):   int32_t android._dataspace = 142737408
+D/CCodecBuffers(21220):   int32_t color-standard = 86
+D/CCodecBuffers(21220):   int32_t color-range = 1
+D/CCodecBuffers(21220):   int32_t color-transfer = 2
+D/CCodecBuffers(21220):   int32_t sar-height = 1
+D/CCodecBuffers(21220):   int32_t rotation-degrees = 0
+D/CCodecBuffers(21220):   Buffer hdr-static-info = {
+D/CCodecBuffers(21220):     00000000:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+D/CCodecBuffers(21220):     00000010:  00 00 00 00 00 00 00 00  00                       .........
+D/CCodecBuffers(21220):   }
+D/CCodecBuffers(21220):   int32_t sar-width = 1
+D/CCodecBuffers(21220):   Rect crop(0, 0, 719, 1079)
+D/CCodecBuffers(21220):   int32_t width = 720
+D/CCodecBuffers(21220):   Buffer hdr10-plus-info = {
+D/CCodecBuffers(21220):   }
+D/CCodecBuffers(21220):   int32_t height = 1080
+D/CCodecBuffers(21220):   int32_t max-height = 1080
+D/CCodecBuffers(21220):   int32_t max-width = 720
+D/CCodecBuffers(21220):   string mime = "video/raw"
+D/CCodecBuffers(21220):   int32_t color-format = 2135033992
+D/CCodecBuffers(21220): }
+D/CCodecBuffers(21220): [c2.android.av1-dav1d.decoder#348:2D-BB-Output] updating image-data
+D/CCodecBuffers(21220): [c2.android.av1-dav1d.decoder#348:2D-BB-Output] updating stride = 720, width: 720, height: 1080
+D/CCodecBuffers(21220): [c2.android.av1-dav1d.decoder#348:2D-BB-Output] updating vstride = 1356
+W/HWUI    (21220): Image decoding logging dropped!
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#348] MediaCodec discarded an unknown buffer
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#348] MediaCodec discarded an unknown buffer
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#348] MediaCodec discarded an unknown buffer
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#348] MediaCodec discarded an unknown buffer
+I/hw-BpHwBinder(21220): onLastStrongRef automatically unlinking death recipients
+D/CCodec  (21220): allocate(c2.android.av1-dav1d.decoder)
+I/foduu_ecommerce(21220): NativeAlloc concurrent mark compact GC freed 1063KB AllocSpace bytes, 27(1120KB) LOS objects, 49% free, 4806KB/9612KB, paused 63us,921us total 103.263ms
+I/CCodec  (21220): setting up 'default' as default (vendor) store
+I/CCodec  (21220): Created component [c2.android.av1-dav1d.decoder] for [c2.android.av1-dav1d.decoder]
+D/CCodecConfig(21220): read media type: video/av01
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: algo.buffers.max-count.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: output.subscribed-indices.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: input.buffers.allocator-ids.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: output.buffers.allocator-ids.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: algo.buffers.allocator-ids.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: output.buffers.pool-ids.values
+D/ReflectedParamUpdater(21220): extent() != 1 for single value type: algo.buffers.pool-ids.values
+D/ReflectedParamUpdater(21220): ignored struct field coded.color-format.locations
+D/CCodecConfig(21220): ignoring local param raw.size (0xd2001800) as it is already supported
+D/CCodecConfig(21220): ignoring local param default.color (0x5200180b) as it is already supported
+D/CCodecConfig(21220): ignoring local param raw.hdr-static-info (0xd200180a) as it is already supported
+I/CCodecConfig(21220): query failed after returning 16 values (BAD_INDEX)
+D/CCodecConfig(21220): c2 config diff is Dict {
+D/CCodecConfig(21220):   c2::u32 algo.low-latency.value = 0
+D/CCodecConfig(21220):   c2::u32 coded.pl.level = 36865
+D/CCodecConfig(21220):   c2::u32 coded.pl.profile = 36864
+D/CCodecConfig(21220):   c2::u32 coded.vui.color.matrix = 0
+D/CCodecConfig(21220):   c2::u32 coded.vui.color.primaries = 0
+D/CCodecConfig(21220):   c2::u32 coded.vui.color.range = 2
+D/CCodecConfig(21220):   c2::u32 coded.vui.color.transfer = 0
+D/CCodecConfig(21220):   c2::u32 default.color.matrix = 0
+D/CCodecConfig(21220):   c2::u32 default.color.primaries = 0
+D/CCodecConfig(21220):   c2::u32 default.color.range = 0
+D/CCodecConfig(21220):   c2::u32 default.color.transfer = 0
+D/CCodecConfig(21220):   c2::u32 input.buffers.max-size.value = 2097152
+D/CCodecConfig(21220):   c2::u32 input.delay.value = 0
+D/CCodecConfig(21220):   Buffer input.hdr10-plus-info.value = {
+D/CCodecConfig(21220):   }
+D/CCodecConfig(21220):   string input.media-type.value = "video/av01"
+D/CCodecConfig(21220):   c2::u32 output.delay.value = 4
+D/CCodecConfig(21220):   Buffer output.hdr10-plus-info.value = {
+D/CCodecConfig(21220):   }
+D/CCodecConfig(21220):   string output.media-type.value = "video/raw"
+D/CCodecConfig(21220):   c2::u32 raw.color.matrix = 0
+D/CCodecConfig(21220):   c2::u32 raw.color.primaries = 0
+D/CCodecConfig(21220):   c2::u32 raw.color.range = 2
+D/CCodecConfig(21220):   c2::u32 raw.color.transfer = 0
+D/CCodecConfig(21220):   c2::float raw.hdr-static-info.mastering.blue.x = 0
+D/CCodecConfig(21220):   c2::float raw.hdr-static-info.mastering.blue.y = 0
+D/CCodecConfig(21220):   c2::float raw.hdr-static-info.mastering.green.x = 0
+D/CCodecConfig(21220):   c2::floa
+W/ColorUtils(21220): expected specified color aspects (2:0:0:0)
+E/MediaCodec(21220): Media Quality Service not found.
+D/CCodec  (21220): [c2.android.av1-dav1d.decoder] buffers are bound to CCodec for this session
+D/CCodecConfig(21220): no c2 equivalents for color-format
+D/CCodecConfig(21220): no c2 equivalents for flags
+D/CCodecConfig(21220): c2 config diff is   c2::u32 algo.low-latency.value = 1
+D/CCodecConfig(21220):   c2::u32 raw.size.height = 1080
+D/CCodecConfig(21220):   c2::u32 raw.size.width = 720
+W/ColorUtils(21220): expected specified color aspects (2:0:0:0)
+W/Codec2Client(21220): query -- param skipped: index = 1107298332.
+D/CCodec  (21220): client requested max input size 155144, which is smaller than what component recommended (2097152); overriding with component recommendation.
+W/CCodec  (21220): This behavior is subject to change. It is recommended that app developers double check whether the requested max input size is in reasonable range.
+D/CCodec  (21220): encoding statistics level = 0
+D/CCodec  (21220): setup formats input: AMessage(what = 0x00000000) = {
+D/CCodec  (21220):   int32_t height = 1080
+D/CCodec  (21220):   int32_t level = 2
+D/CCodec  (21220):   int32_t max-input-size = 2097152
+D/CCodec  (21220):   string mime = "video/av01"
+D/CCodec  (21220):   int32_t profile = 1
+D/CCodec  (21220):   int32_t width = 720
+D/CCodec  (21220):   Rect crop(0, 0, 719, 1079)
+D/CCodec  (21220): }
+D/CCodec  (21220): setup formats output: AMessage(what = 0x00000000) = {
+D/CCodec  (21220):   int32_t android._color-format = 2135033992
+D/CCodec  (21220):   int32_t android._video-scaling = 1
+D/CCodec  (21220):   int32_t android._dataspace = 268435456
+D/CCodec  (21220):   int32_t color-standard = 0
+D/CCodec  (21220):   int32_t color-range = 2
+D/CCodec  (21220):   int32_t color-transfer = 0
+D/CCodec  (21220):   int32_t sar-height = 1
+D/CCodec  (21220):   int32_t rotation-degrees = 0
+D/CCodec  (21220):   Buffer hdr-static-info = {
+D/CCodec  (21220):     00000000:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+D/CCodec  (21220):     00000010:  00 00 00 00 00 00 00 00  00                       .........
+D/CCodec  (21220):   }
+D/CCodec  (21220):   int32_t sar-width = 1
+D/CCodec  (21220):   Rect crop(0, 0, 719, 1079)
+D/CCodec  (21220):   int32_t width = 720
+D/CCodec  (21220):   Buffer hdr10-plus-info = {
+D/CCodec  (21220):   }
+D/CCodec  (21220):   int32_t height = 1080
+D/CCodec  (21220):   int32_t max-height = 240
+D/CCodec  (21220):   int32_t max-width = 320
+D/CCodec  (21220):   string mime = "video/raw"
+D/CCodec  (21220):   int32_t color-format = 2135033992
+D/CCodec  (21220): }
+I/CCodecConfig(21220): query failed after returning 16 values (BAD_INDEX)
+D/CCodecConfig(21220): c2 config diff is   c2::u32 output.delay.value = 1
+D/CCodecConfig(21220):   c2::u32 raw.max-size.height = 1080
+D/CCodecConfig(21220):   c2::u32 raw.max-size.width = 720
+W/ColorUtils(21220): expected specified color aspects (2:0:0:0)
+E/foduu_ecommerce(21220): Failed to query component interface for required system resources: 6
+W/Codec2Client(21220): query -- param skipped: index = 1342179345.
+W/Codec2Client(21220): query -- param skipped: index = 2415921170.
+W/Codec2Client(21220): query -- param skipped: index = 1610614798.
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#812] Created input block pool with allocatorID 16 => poolID 50 - OK (0)
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#812] Configured output block pool ids 1 => OK
+D/CCodecConfig(21220): c2 config diff is   c2::u32 raw.color.matrix = 3
+D/CCodecConfig(21220):   c2::u32 raw.color.primaries = 1
+D/CCodecConfig(21220):   c2::u32 raw.color.range = 1
+D/CCodecConfig(21220):   c2::u32 raw.color.transfer = 2
+D/CCodecConfig(21220):   c2::u32 raw.crop.height = 1080
+D/CCodecConfig(21220):   c2::u32 raw.crop.left = 0
+D/CCodecConfig(21220):   c2::u32 raw.crop.top = 0
+D/CCodecConfig(21220):   c2::u32 raw.crop.width = 720
+D/CCodecBuffers(21220): [c2.android.av1-dav1d.decoder#812:2D-BB-Output] popFromStashAndRegister: at 0us, output format changed to AMessage(what = 0x00000000) = {
+D/CCodecBuffers(21220):   int32_t android._color-format = 2135033992
+D/CCodecBuffers(21220):   int32_t android._video-scaling = 1
+D/CCodecBuffers(21220):   int32_t android._dataspace = 142737408
+D/CCodecBuffers(21220):   int32_t color-standard = 86
+D/CCodecBuffers(21220):   int32_t color-range = 1
+D/CCodecBuffers(21220):   int32_t color-transfer = 2
+D/CCodecBuffers(21220):   int32_t sar-height = 1
+D/CCodecBuffers(21220):   int32_t rotation-degrees = 0
+D/CCodecBuffers(21220):   Buffer hdr-static-info = {
+D/CCodecBuffers(21220):     00000000:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+D/CCodecBuffers(21220):     00000010:  00 00 00 00 00 00 00 00  00                       .........
+D/CCodecBuffers(21220):   }
+D/CCodecBuffers(21220):   int32_t sar-width = 1
+D/CCodecBuffers(21220):   Rect crop(0, 0, 719, 1079)
+D/CCodecBuffers(21220):   int32_t width = 720
+D/CCodecBuffers(21220):   Buffer hdr10-plus-info = {
+D/CCodecBuffers(21220):   }
+D/CCodecBuffers(21220):   int32_t height = 1080
+D/CCodecBuffers(21220):   int32_t max-height = 1080
+D/CCodecBuffers(21220):   int32_t max-width = 720
+D/CCodecBuffers(21220):   string mime = "video/raw"
+D/CCodecBuffers(21220):   int32_t color-format = 2135033992
+D/CCodecBuffers(21220): }
+D/CCodecBuffers(21220): [c2.android.av1-dav1d.decoder#812:2D-BB-Output] updating image-data
+D/CCodecBuffers(21220): [c2.android.av1-dav1d.decoder#812:2D-BB-Output] updating stride = 720, width: 720, height: 1080
+D/CCodecBuffers(21220): [c2.android.av1-dav1d.decoder#812:2D-BB-Output] updating vstride = 1356
+W/HWUI    (21220): Image decoding logging dropped!
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#812] MediaCodec discarded an unknown buffer
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#812] MediaCodec discarded an unknown buffer
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#812] MediaCodec discarded an unknown buffer
+D/CCodecBufferChannel(21220): [c2.android.av1-dav1d.decoder#812] MediaCodec discarded an unknown buffer
+I/hw-BpHwBinder(21220): onLastStrongRef automatically unlinking death recipients
+I/flutter (21220): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a6df254d019b6f9cdb27239, name: Ice Grey Net Bead & Sequin    Embroidered Lehenga Set, slug: ice-grey-net-bead-sequin-embroidered-lehenga-set, type: simple, content: <p><br /></p>, long_content: <p><br /></p>, featured_image: {_id: 6a6df239d019b6f9cdb26f25, filename: SEGC022649_1-fc866bf4.webp, originalname: SEGC022649_1.jpg, filepath: 2026/08/01/SEGC022649_1-fc866bf4.webp, mimetype: image/webp, size: 167542, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: true, original_size: 253767, compression_status: compressed, compression_ratio: 0.6602198079340498}, tags: [], created_at: 2026-08-01T13:18:49.068Z, updated_at: 2026-08-01T13:18:4
+I/flutter (21220): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a6df254d019b6f9cdb27239, name: Ice Grey Net Bead & Sequin    Embroidered Lehenga Set, slug: ice-grey-net-bead-sequin-embroidered-lehenga-set, type: simple, content: <p><br /></p>, long_content: <p><br /></p>, featured_image: {_id: 6a6df239d019b6f9cdb26f25, filename: SEGC022649_1-fc866bf4.webp, originalname: SEGC022649_1.jpg, filepath: 2026/08/01/SEGC022649_1-fc866bf4.webp, mimetype: image/webp, size: 167542, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: true, original_size: 253767, compression_status: compressed, compression_ratio: 0.6602198079340498}, tags: [], created_at: 2026-08-01T13:18:49.068Z, updated_at: 2026-08-01T13:18:4
+D/BufferPoolAccessor2.0(21220): bufferpool2 0xb4000077176ed638 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 2/4 (fetch/transfer)
+D/BufferPoolAccessor2.0(21220): evictor expired: 1, evicted: 1
+D/BufferPoolAccessor2.0(21220): bufferpool2 0xb400007717686c58 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 2/4 (fetch/transfer)
+D/BufferPoolAccessor2.0(21220): evictor expired: 3, evicted: 1
+771772dfe8

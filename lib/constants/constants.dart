@@ -17,14 +17,14 @@ const appMode = "test";
 // var socketUrl = "https://studio.vbought.com/";
 
 // ZOOHI websiteDomain
-var websiteDomain = "zouhi.vbought.com";
+var websiteDomain = "traditional-ecom.vbought.com";
 var url = "https://${websiteDomain}/";
 var socketUrl = "https://studio.vbought.com/";
 
 // var ACCESS_KEY = '72a5a13ab02a20737217279980c33374f41554ec60742815';
 
 // ZOOHI ACCESS Key
-var ACCESS_KEY = '51830a0444c7859cd3df935095fe17dc2c4f0e45bf722d90';
+var ACCESS_KEY = '370093f746beea3adee9176bbf78ea57ee70a29db34edf1c';
 
 var assetURL = "${url}images/";
 var apiURL = "${url}api/";

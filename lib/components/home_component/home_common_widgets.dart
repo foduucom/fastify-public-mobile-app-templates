@@ -90,12 +90,14 @@ class StudioSectionHeader extends StatelessWidget {
   final String? title;
   final String? subtitle;
   final VoidCallback? onSeeAll;
+  final EdgeInsetsGeometry padding;
 
   const StudioSectionHeader({
     Key? key,
     this.title,
     this.subtitle,
     this.onSeeAll,
+    this.padding = EdgeInsets.zero,
   }) : super(key: key);
 
   @override
@@ -103,7 +105,7 @@ class StudioSectionHeader extends StatelessWidget {
     final t = title?.trim() ?? '';
     final s = subtitle?.trim() ?? '';
 
-    // Only show if BOTH title and subtitle are non-empty
+    // Only show if title is non-empty
     if (t.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -112,7 +114,7 @@ class StudioSectionHeader extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Padding(
-      padding: const EdgeInsets.all(12.0),
+      padding: padding,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -122,9 +124,15 @@ class StudioSectionHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(t, style: textTheme.titleLarge),
-                Text(s,
-                    style: textTheme.titleSmall!
-                        .copyWith(color: colorScheme.onSurfaceVariant)),
+                if (s.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    s,
+                    style: textTheme.titleSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

@@ -71,9 +71,35 @@ mixin FoduuStudioLayoutMixin on GetxController {
   /// Build the [widgetList] from a raw list of section maps.
   void buildLayout(List sections) {
     widgetList.clear();
+
+    // The products section builds its category tabs from the categories
+    // section of the same page, so hand the category list over to it.
+    List? tabCategories;
+    for (var section in sections) {
+      if (section is Map && section['type'] == 'categories') {
+        final cats = (section['content_json'] as Map?)?['categories'];
+        if (cats is List && cats.isNotEmpty) tabCategories = cats;
+        break;
+      }
+    }
+
+    var tabsInjected = false;
     for (var section in sections) {
       if (section is Map<String, dynamic>) {
-        final widget = _registry.build(section);
+        var toBuild = section;
+        if (tabCategories != null &&
+            !tabsInjected &&
+            section['type'] == 'products') {
+          tabsInjected = true;
+          toBuild = {
+            ...section,
+            'content_json': {
+              ...Map<String, dynamic>.from(section['content_json'] as Map? ?? {}),
+              'tab_categories': tabCategories,
+            },
+          };
+        }
+        final widget = _registry.build(toBuild);
         if (widget != null) widgetList.add(widget);
       }
     }

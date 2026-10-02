@@ -45,39 +45,50 @@ class _TopCategoryHomeState extends State<CategoryHome>
         (contentJson['subheading'] ?? contentJson['subtitle'] ?? '').toString();
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (heading.isNotEmpty)
+        if (heading.isNotEmpty) ...[
           Padding(
-            padding: pageSurroundingPadding,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: StudioSectionHeader(
               title: heading,
               subtitle: subheading,
               onSeeAll: () => Get.toNamed(Routes.CATEGORY_SEARCH),
             ),
           ),
-        Padding(
-          padding: pageSurroundingPadding,
-          child: viewMode == 'grid'
-              ? _buildGridView(categories, style, columns)
-              : _buildListView(categories, style, orientation),
-        ),
+          const SizedBox(height: 10),
+        ],
+        viewMode == 'grid'
+            ? Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: _buildGridView(categories, style, columns),
+              )
+            : _buildListView(categories, style, orientation),
+        const SizedBox(height: 22),
       ],
     );
   }
 
   Widget _buildListView(List categories, String style, String orientation) {
     if (orientation == 'vertical') {
-      return ListView.separated(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: categories.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (context, index) =>
-            _buildCategoryItem(categories[index], style, isVerticalList: true),
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: categories.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (context, index) =>
+              _buildCategoryItem(categories[index], style, isVerticalList: true),
+        ),
       );
     } else {
+      final isOverlay = style == 'overlay';
+      final listHeight = isOverlay
+          ? _overlayCardHeight
+          : (style == 'circular' ? 120.0 : 140.0);
       return SizedBox(
-        height: style == 'circular' ? 140 : 140, // Reduced height slightly
+        height: listHeight,
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(
             dragDevices: {
@@ -87,9 +98,10 @@ class _TopCategoryHomeState extends State<CategoryHome>
             },
           ),
           child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             scrollDirection: Axis.horizontal,
             itemCount: categories.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 13),
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, index) =>
                 _buildCategoryItem(categories[index], style),
           ),
@@ -104,9 +116,13 @@ class _TopCategoryHomeState extends State<CategoryHome>
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: columns,
-        mainAxisSpacing: 6, //12 FROM
-        crossAxisSpacing: 6, //12 FROM
-        childAspectRatio: style == 'circular' ? 0.8 : 1.1,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        childAspectRatio: style == 'circular'
+            ? 0.8
+            : style == 'overlay'
+                ? _overlayGridAspectRatio
+                : 1.1,
       ),
       itemCount: categories.length,
       itemBuilder: (context, index) =>
@@ -146,30 +162,133 @@ class _TopCategoryHomeState extends State<CategoryHome>
       },
       child: style == 'rectangular'
           ? _buildRectangularItem(category, isVerticalList)
-          : _buildCircularItem(category, isGrid),
+          : style == 'overlay'
+              ? _buildOverlayItem(category, isGrid: isGrid)
+              : _buildCircularItem(category, isGrid),
     );
   }
 
+  // Editorial overlay card matching modern e-commerce standards:
+  // Compact 200px height, ~145px width (~2.4 cards visible horizontally).
+  static const double _overlayGridAspectRatio = 0.82;
+  double get _overlayCardWidth => (Get.width * 0.38).clamp(135.0, 155.0);
+  double get _overlayCardHeight => 200.0;
+
+  Widget _buildOverlayItem(dynamic category, {bool isGrid = false}) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    Widget card = ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          CachedNetworkImage(
+            fit: BoxFit.cover,
+            imageUrl: HelperFunctions().getImage(category['featured_image']),
+            errorWidget: (_, __, ___) => Container(
+              color: colorScheme.surfaceVariant,
+              child: Center(
+                child: Icon(
+                  Icons.category_outlined,
+                  color: colorScheme.onSurfaceVariant,
+                  size: 28,
+                ),
+              ),
+            ),
+            progressIndicatorBuilder: (_, __, ___) =>
+                HelperFunctions().loadingIndicator(),
+          ),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.transparent, Color(0xCC000000)],
+                stops: [0.35, 1.0],
+              ),
+            ),
+          ),
+          Positioned(
+            left: 12,
+            right: 46,
+            bottom: 12,
+            child: Text(
+              category['name'].toString(),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
+                height: 1.2,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 10,
+            bottom: 10,
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: colorScheme.primary,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.arrow_forward,
+                size: 16,
+                color: colorScheme.onPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    return isGrid ? card : SizedBox(width: _overlayCardWidth, child: card);
+  }
+
   Widget _buildCircularItem(dynamic category, bool isGrid) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Container(
       constraints: BoxConstraints(maxWidth: isGrid ? double.infinity : 80),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(50),
-            child: Container(
-              width: 70,
-              height: 70,
-              color: Theme.of(context).colorScheme.surfaceVariant,
+          Container(
+            width: 70,
+            height: 70,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: colorScheme.surfaceVariant,
+              border: Border.all(
+                color: colorScheme.outline.withOpacity(0.15),
+                width: 1,
+              ),
+            ),
+            child: ClipOval(
               child: CachedNetworkImage(
                 fit: BoxFit.cover,
                 imageUrl: HelperFunctions().getImage(
                   category['featured_image'],
                 ),
-                errorWidget: (_, __, ___) =>
-                    const Icon(Icons.category_outlined),
+                errorWidget: (_, __, ___) => Center(
+                  child: Icon(
+                    Icons.category_outlined,
+                    color: colorScheme.onSurfaceVariant,
+                    size: 28,
+                  ),
+                ),
                 progressIndicatorBuilder: (_, __, ___) =>
                     HelperFunctions().loadingIndicator(),
               ),
@@ -179,9 +298,12 @@ class _TopCategoryHomeState extends State<CategoryHome>
           Flexible(
             child: Text(
               category['name'].toString(),
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface,
+                fontWeight: FontWeight.w500,
+              ),
               textAlign: TextAlign.center,
-              maxLines: 4,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -194,8 +316,6 @@ class _TopCategoryHomeState extends State<CategoryHome>
     BuildContext context,
     Map<String, dynamic> category,
   ) {
-    final children = category['children'] as List;
-
     // Show the dialog using the updated CategoryDialog class
     Get.dialog(
       CategoryDialog(category: category),
@@ -205,7 +325,8 @@ class _TopCategoryHomeState extends State<CategoryHome>
 
   Widget _buildRectangularItem(dynamic category, bool isVerticalList) {
     final colorScheme = Theme.of(context).colorScheme;
-    print("Category: ${category.toString()}");
+    final textTheme = Theme.of(context).textTheme;
+
     if (isVerticalList) {
       // New UI style for the main Category Page
       return Center(
@@ -226,20 +347,24 @@ class _TopCategoryHomeState extends State<CategoryHome>
                     },
                   ),
             borderRadius: BorderRadius.circular(Get.height * 0.015),
-            splashColor: Theme.of(context).primaryColor.withOpacity(0.3),
-            highlightColor: Theme.of(context).primaryColor.withOpacity(0.1),
+            splashColor: colorScheme.primary.withOpacity(0.25),
+            highlightColor: colorScheme.primary.withOpacity(0.1),
             child: Container(
               width: Get.width * 0.92,
               height: Get.height * 0.12,
               decoration: BoxDecoration(
+                color: colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(Get.height * 0.015),
+                border: Border.all(
+                  color: colorScheme.outline.withOpacity(0.15),
+                ),
                 image: DecorationImage(
                   image: CachedNetworkImageProvider(
                     HelperFunctions().getImage(category['featured_image']),
                   ),
                   fit: BoxFit.cover,
                   colorFilter: ColorFilter.mode(
-                    Colors.black.withOpacity(0.3),
+                    Colors.black.withOpacity(0.35),
                     BlendMode.darken,
                   ),
                 ),
@@ -273,7 +398,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
+          border: Border.all(color: colorScheme.outline.withOpacity(0.15)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -289,7 +414,18 @@ class _TopCategoryHomeState extends State<CategoryHome>
                   ),
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => const Icon(Icons.category),
+                  progressIndicatorBuilder: (_, __, ___) =>
+                      HelperFunctions().loadingIndicator(),
+                  errorWidget: (_, __, ___) => Container(
+                    color: colorScheme.surfaceVariant,
+                    child: Center(
+                      child: Icon(
+                        Icons.category_outlined,
+                        color: colorScheme.onSurfaceVariant,
+                        size: 28,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -297,7 +433,8 @@ class _TopCategoryHomeState extends State<CategoryHome>
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 category['name'].toString(),
-                style: const TextStyle(
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
@@ -320,9 +457,10 @@ class CategoryHomeShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Shimmer.fromColors(
-      baseColor: Theme.of(context).colorScheme.surfaceVariant,
-      highlightColor: Theme.of(context).colorScheme.surface,
+      baseColor: colorScheme.surfaceVariant,
+      highlightColor: colorScheme.surface,
       child: SizedBox(
         height: 110, // Reduced to match the new height
         child: ListView.separated(
@@ -334,9 +472,9 @@ class CategoryHomeShimmer extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(50),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
                   ),
                   width: 70,
                   height: 70,
@@ -344,7 +482,7 @@ class CategoryHomeShimmer extends StatelessWidget {
                 const SizedBox(height: 6),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(50),
                   ),
                   width: 40,
@@ -364,6 +502,7 @@ class CategoryPageShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
       child: Column(
@@ -376,13 +515,13 @@ class CategoryPageShimmer extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Shimmer.fromColors(
-                  baseColor: Theme.of(context).colorScheme.surfaceVariant,
-                  highlightColor: Theme.of(context).colorScheme.surface,
+                  baseColor: colorScheme.surfaceVariant,
+                  highlightColor: colorScheme.surface,
                   child: Container(
                     width: 140,
                     height: 14,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),

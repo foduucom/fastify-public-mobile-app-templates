@@ -103,12 +103,16 @@ class FirebaseHelpers {
     );
   }
 
+  @pragma('vm:entry-point')
+  static Future<void> onActionReceivedMethod(
+      ReceivedAction receivedAction) async {
+    final payload = receivedAction.payload ?? {};
+    navigateOnNotificationClick(payload);
+  }
+
   static void _setAwesomeNotificationListeners() {
     AwesomeNotifications().setListeners(
-      onActionReceivedMethod: (receivedAction) async {
-        final payload = receivedAction.payload ?? {};
-        navigateOnNotificationClick(payload);
-      },
+      onActionReceivedMethod: onActionReceivedMethod,
     );
   }
 

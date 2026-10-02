@@ -207,10 +207,10 @@ class _HomeBannerState extends State<HomeBanner>
   // Single Banner
   Widget _buildSingleBanner(List items, Map<String, dynamic> config) {
     final height = config['height']?.toDouble() ?? 150.0;
-    final borderRadius = config['border_radius']?.toDouble() ?? 10.0;
+    final borderRadius = config['border_radius']?.toDouble() ?? 12.0;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 6.0, bottom: 12.0),
       child: GestureDetector(
         onTap: () => handleBannerTap(items[0]),
         child: ClipRRect(
@@ -345,11 +345,11 @@ class _CarouselBannerState extends State<CarouselBanner> {
   @override
   Widget build(BuildContext context) {
     final height = widget.config['height']?.toDouble() ?? 200.0;
-    final borderRadius = widget.config['border_radius']?.toDouble() ?? 10.0;
+    final borderRadius = widget.config['border_radius']?.toDouble() ?? 12.0;
     final showIndicators = widget.config['show_indicators'] ?? true;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 6.0, bottom: 12.0),
       child: Column(
         children: [
           // Text('data' , style:  Theme.of(context).textTheme.tit,)

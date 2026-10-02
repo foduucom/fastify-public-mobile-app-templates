@@ -221,8 +221,7 @@ class AppThemeColors {
   }
 
   static Color? _hexToColor(String? hexString) {
-    if (hexString == null || hexString.isEmpty) {
-      debugPrint('⚠️ Hex color missing');
+    if (hexString == null || hexString.trim().isEmpty) {
       return null;
     }
 
