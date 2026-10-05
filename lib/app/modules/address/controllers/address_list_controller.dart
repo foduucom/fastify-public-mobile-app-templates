@@ -19,6 +19,20 @@ class AddressListController extends GetxController with BaseController {
   RxDouble get subTotal => _cartService.subTotal;
   RxDouble get total => _cartService.total;
 
+  // Cache for city names mapped by cityId
+  var cityNamesCache = <String, String>{}.obs;
+  final Set<String> _prefetchedStates = {};
+
+  void cacheCity(String id, String name) {
+    if (id.isNotEmpty && name.isNotEmpty) {
+      cityNamesCache[id] = name;
+    }
+  }
+
+  String? getCityName(String id) {
+    return cityNamesCache[id];
+  }
+
   @override
   void onInit() {
     refreshAddresses();
@@ -45,11 +59,6 @@ class AddressListController extends GetxController with BaseController {
         userAddressList.clear();
         userAddressList.addAll(response);
 
-        // In AddressListController, in refreshAddresses method, after setting userAddressList:
-        print('User address list: $userAddressList');
-        print(
-            'First address type: ${userAddressList.isNotEmpty ? userAddressList[0].runtimeType : 'empty'}');
-
         // Find default address
         selectAddress.value = 0;
         for (var i = 0; i < userAddressList.length; i++) {
@@ -58,11 +67,47 @@ class AddressListController extends GetxController with BaseController {
             break;
           }
         }
+
+        // Prefetch any missing city names for unpopulated city ObjectIds
+        _prefetchMissingCityNames();
       }
     } catch (e) {
       isLoading.value = false;
       addressLoading.value = false;
       print('Error fetching addresses: $e');
+    }
+  }
+
+  void _prefetchMissingCityNames() {
+    for (var addr in userAddressList) {
+      if (addr is Map) {
+        final city = addr['city'];
+        final state = addr['state'];
+        if (city is String && RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(city)) {
+          if (!cityNamesCache.containsKey(city) &&
+              state is Map &&
+              state['_id'] != null) {
+            _fetchAndCacheCities(state['_id'].toString());
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> _fetchAndCacheCities(String stateId) async {
+    if (_prefetchedStates.contains(stateId)) return;
+    _prefetchedStates.add(stateId);
+    try {
+      var response = await BasicProvider('cities/$stateId').getRequest();
+      if (response != null && response['data'] is List) {
+        for (var c in response['data']) {
+          if (c is Map && c['_id'] != null && c['name'] != null) {
+            cityNamesCache[c['_id'].toString()] = c['name'].toString();
+          }
+        }
+      }
+    } catch (e) {
+      print('Error prefetching cities for state $stateId: $e');
     }
   }
 

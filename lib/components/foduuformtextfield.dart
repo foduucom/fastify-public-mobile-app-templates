@@ -11,7 +11,7 @@ class FoduuFormTextField extends StatelessWidget {
     this.validCheck,
     this.suffixIcon,
     this.readOnly = false,
-    this.fillcolor = Colors.white,
+    this.fillcolor,
     this.keyType = TextInputType.text,
     this.obsecure = false,
     this.maxLine = 1,
@@ -23,7 +23,7 @@ class FoduuFormTextField extends StatelessWidget {
   final String title;
   final bool readOnly;
   final String validationmsg;
-  final Color fillcolor;
+  final Color? fillcolor;
   final TextEditingController controller;
   final String? Function(String?)? validCheck;
   final bool obsecure;
@@ -35,6 +35,13 @@ class FoduuFormTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final Color effectiveFillColor = fillcolor ?? colorScheme.surfaceVariant;
+    final Color effectiveTextColor = colorScheme.onSurface;
+    final Color effectiveHintColor = colorScheme.onSurfaceVariant;
+    final Color effectiveBorderColor = colorScheme.outline;
+    final Color effectiveLabelColor = colorScheme.onSurface;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -45,15 +52,15 @@ class FoduuFormTextField extends StatelessWidget {
             text: TextSpan(
               text: title,
               style: TextStyle(
-                color: Colors.grey.shade700,
+                color: effectiveLabelColor,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
               children: showAsterisk
                   ? [
-                      const TextSpan(
+                      TextSpan(
                         text: ' *',
-                        style: TextStyle(color: Colors.red, fontSize: 16),
+                        style: TextStyle(color: colorScheme.error, fontSize: 16),
                       ),
                     ]
                   : [],
@@ -63,8 +70,8 @@ class FoduuFormTextField extends StatelessWidget {
         // TextField with proper background color
         Container(
           decoration: BoxDecoration(
-            color: fillcolor,
-            borderRadius: BorderRadius.circular(8),
+            color: effectiveFillColor,
+            borderRadius: BorderRadius.circular(10),
           ),
           child: TextFormField(
             maxLines: maxLine == 0 ? null : maxLine,
@@ -73,38 +80,38 @@ class FoduuFormTextField extends StatelessWidget {
             readOnly: readOnly,
             keyboardType: keyType,
             obscureText: obsecure,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.black87,
+            style: TextStyle(
+              fontSize: 15,
+              color: effectiveTextColor,
             ),
             decoration: InputDecoration(
               hintText: fieldHintText,
               hintStyle: TextStyle(
-                fontSize: 16,
-                color: Colors.grey.shade400,
+                fontSize: 15,
+                color: effectiveHintColor,
               ),
               suffixIcon: suffixIcon,
               filled: true,
-              fillColor: fillcolor,
+              fillColor: effectiveFillColor,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 14,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.blue.shade700, width: 1.5),
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: effectiveBorderColor, width: 1),
               ),
               errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Colors.red, width: 1),
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: colorScheme.error, width: 1),
               ),
               focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Colors.red, width: 1.5),
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: colorScheme.error, width: 1.5),
               ),
             ),
             validator: validCheck,

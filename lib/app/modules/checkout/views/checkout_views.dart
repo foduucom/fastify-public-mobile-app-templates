@@ -24,21 +24,17 @@ class CheckoutViews extends GetView<CheckOutController> {
     var height = Get.height;
 
     return Scaffold(
+      appBar: const SecondaryAppHeader(
+        title: "Checkout",
+        showRight: false,
+      ),
       body: Padding(
         padding: EdgeInsets.symmetric(
           horizontal: width * 0.04,
-          vertical: height * 0.02,
+          vertical: height * 0.015,
         ),
         child: Column(
           children: [
-            SizedBox(height: height * 0.0005),
-            // HEADER PAGE
-            SecondaryAppHeader(
-              title: "Checkout",
-              showRight: false,
-            ),
-            SizedBox(height: height * 0.012),
-
             // ADDRESS BAR (Integrated from first design)
             _buildAddressBar(width, height, context),
 

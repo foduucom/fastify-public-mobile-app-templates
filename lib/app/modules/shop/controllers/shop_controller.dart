@@ -385,6 +385,21 @@ class ShopController extends GetxController
     }
   }
 
+  // ─── VIEW MODE CONTROLS ───────────────────────────────────────
+  void setViewMode(bool isList) {
+    if (isListView.value == isList && !isPlainShopEntry.value) return;
+
+    isListView.value = isList;
+
+    if (isPlainShopEntry.value) {
+      isPlainShopEntry.value = false;
+      ensureFilterDataLoaded();
+      fetchProducts(isRefresh: true);
+    } else if (products.isEmpty && !isLoading.value) {
+      fetchProducts(isRefresh: true);
+    }
+  }
+
   // ─── FILTER CONTROLS ───────────────────────────────────────
   void applyFiltersAndRefresh() {
     // Any filter/sort action means the user wants the filtered product grid,

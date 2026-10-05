@@ -38,6 +38,40 @@ class ProductView extends GetView<ProductController> {
 
     return SafeArea(
       child: Scaffold(
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: Obx(() {
+            final isInWishlist =
+                WishListService.to.isInWishlist(controller.productId);
+            return SecondaryAppHeader(
+              title: "Product Detail",
+              rightIcon: isInWishlist
+                  ? Icons.favorite
+                  : Icons.favorite_outline,
+              onRightIconTap: () async {
+                String? variantId;
+                if (controller.productDetials['type'] == 'variable') {
+                  final variants =
+                      controller.productDetials['variants'];
+                  if (variants != null &&
+                      variants is List &&
+                      controller.selectedVariantIndex.value <
+                          variants.length) {
+                    variantId = variants[
+                        controller.selectedVariantIndex.value]['_id'];
+                  }
+                }
+
+                await WishListService.to.toggleWishlist(
+                  productId: controller.productId,
+                  variantSlug:
+                      controller.productDetials['variant_slug'] ?? '',
+                  variantId: variantId,
+                );
+              },
+            );
+          }),
+        ),
         body: Stack(
           children: [
             Positioned(
@@ -48,39 +82,6 @@ class ProductView extends GetView<ProductController> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    //SizedBox(height: height * 0.005),
-                    Obx(() {
-                      final isInWishlist =
-                          WishListService.to.isInWishlist(controller.productId);
-                      return SecondaryAppHeader(
-                        title: "Product Detail",
-                        rightIcon: isInWishlist
-                            ? Icons.favorite
-                            : Icons.favorite_outline,
-                        onRightIconTap: () async {
-                          String? variantId;
-                          if (controller.productDetials['type'] == 'variable') {
-                            final variants =
-                                controller.productDetials['variants'];
-                            if (variants != null &&
-                                variants is List &&
-                                controller.selectedVariantIndex.value <
-                                    variants.length) {
-                              variantId = variants[
-                                  controller.selectedVariantIndex.value]['_id'];
-                            }
-                          }
-
-                          await WishListService.to.toggleWishlist(
-                            productId: controller.productId,
-                            variantSlug:
-                                controller.productDetials['variant_slug'] ?? '',
-                            variantId: variantId,
-                          );
-                        },
-                      );
-                    }),
-                    SizedBox(height: height * 0.005),
                     // In your product details screen where you call ProductGallery
                     Obx(
                       () {
@@ -489,17 +490,17 @@ class ProductView extends GetView<ProductController> {
                                     spacing: 6,
                                     children: badges.map((b) {
                                       final bg = b == 'Hot'
-                                          ? Colors.orange.shade100
+                                          ? Colors.orange.withOpacity(0.18)
                                           : b == 'Trending'
-                                              ? Colors.blue.shade100
-                                              : Colors.purple.shade100;
+                                              ? Colors.blue.withOpacity(0.18)
+                                              : Colors.purple.withOpacity(0.18);
                                       final fg = b == 'Hot'
-                                          ? Colors.orange.shade800
+                                          ? Colors.orange
                                           : b == 'Trending'
-                                              ? Colors.blue.shade800
-                                              : Colors.purple.shade800;
+                                              ? Colors.blue
+                                              : Colors.purple;
                                       return Container(
-                                        padding: EdgeInsets.symmetric(
+                                        padding: const EdgeInsets.symmetric(
                                             horizontal: 8, vertical: 2),
                                         decoration: BoxDecoration(
                                           color: bg,
@@ -536,18 +537,18 @@ class ProductView extends GetView<ProductController> {
                                   child: Row(
                                     children: [
                                       Container(
-                                        padding: EdgeInsets.symmetric(
+                                        padding: const EdgeInsets.symmetric(
                                             horizontal: 8, vertical: 3),
                                         decoration: BoxDecoration(
                                           color: inStock
-                                              ? Colors.green.shade50
-                                              : Colors.red.shade50,
+                                              ? Colors.green.withOpacity(0.15)
+                                              : Colors.red.withOpacity(0.15),
                                           borderRadius:
                                               BorderRadius.circular(4),
                                           border: Border.all(
                                               color: inStock
-                                                  ? Colors.green
-                                                  : Colors.red),
+                                                  ? Colors.green.withOpacity(0.5)
+                                                  : Colors.red.withOpacity(0.5)),
                                         ),
                                         child: Text(
                                           inStock ? 'In Stock' : 'Out of Stock',
@@ -555,8 +556,8 @@ class ProductView extends GetView<ProductController> {
                                             fontSize: 11,
                                             fontWeight: FontWeight.w600,
                                             color: inStock
-                                                ? Colors.green.shade700
-                                                : Colors.red.shade700,
+                                                ? Colors.green
+                                                : Colors.redAccent,
                                           ),
                                         ),
                                       ),
@@ -586,14 +587,14 @@ class ProductView extends GetView<ProductController> {
                                         Text('SKU: $sku',
                                             style: TextStyle(
                                                 fontSize: 11,
-                                                color: Colors.grey.shade600)),
+                                                color: colorScheme.onSurfaceVariant)),
                                       if (sku.isNotEmpty && barcode.isNotEmpty)
-                                        SizedBox(width: 16),
+                                        const SizedBox(width: 16),
                                       if (barcode.isNotEmpty)
                                         Text('Barcode: $barcode',
                                             style: TextStyle(
                                                 fontSize: 11,
-                                                color: Colors.grey.shade600)),
+                                                color: colorScheme.onSurfaceVariant)),
                                     ],
                                   ),
                                 );
@@ -837,9 +838,8 @@ class ProductView extends GetView<ProductController> {
                                   ),
                                   ElevatedButton(
                                       style: ElevatedButton.styleFrom(
-                                        side: const BorderSide(
-                                            color: Color.fromARGB(
-                                                255, 216, 216, 216)),
+                                        side: BorderSide(
+                                            color: colorScheme.outlineVariant),
                                         shape: RoundedRectangleBorder(
                                             borderRadius:
                                                 BorderRadius.circular(8)),
@@ -956,11 +956,13 @@ class ProductView extends GetView<ProductController> {
                                         return Chip(
                                           label: Text(
                                             name,
-                                            style: TextStyle(fontSize: 12),
+                                            style: TextStyle(
+                                                fontSize: 12,
+                                                color: colorScheme.onSurfaceVariant),
                                           ),
-                                          backgroundColor: Colors.grey.shade100,
+                                          backgroundColor: colorScheme.surfaceVariant,
                                           side: BorderSide(
-                                              color: Colors.grey.shade300),
+                                              color: colorScheme.outlineVariant),
                                           padding: EdgeInsets.zero,
                                           materialTapTargetSize:
                                               MaterialTapTargetSize.shrinkWrap,
@@ -1077,12 +1079,12 @@ class ProductView extends GetView<ProductController> {
                     HelperFunctions().showOverlayLoader();
                     try {
                       await controller.addToCart();
+                      HelperFunctions().hideOverlayLoader();
                       _showAddedToCartBottomSheet(Get.context!, controller);
                     } catch (e) {
+                      HelperFunctions().hideOverlayLoader();
                       HelperFunctions().showSnackBarError(
                           'Failed to add to cart. Please try again.');
-                    } finally {
-                      HelperFunctions().hideOverlayLoader();
                     }
                   },
                 )),
@@ -1508,10 +1510,23 @@ class _OrderButtonState extends State<OrderButton>
                             () {
                               final wishlistService =
                                   Get.find<WishListService>();
-                              return wishlistService
-                                      .isInWishlist(widget.controller.productId)
-                                  ? SvgPicture.asset('assets/icon/like.svg')
-                                  : SvgPicture.asset('assets/icon/unlike.svg');
+                              final isInWishlist = wishlistService
+                                  .isInWishlist(widget.controller.productId);
+                              return isInWishlist
+                                  ? SvgPicture.asset(
+                                      'assets/icon/like.svg',
+                                      width: 18,
+                                    )
+                                  : SvgPicture.asset(
+                                      'assets/icon/unlike.svg',
+                                      width: 18,
+                                      colorFilter: ColorFilter.mode(
+                                        Theme.of(Get.context!)
+                                            .colorScheme
+                                            .onSurface,
+                                        BlendMode.srcIn,
+                                      ),
+                                    );
                             },
                           ),
                         ),
@@ -1547,7 +1562,11 @@ class _OrderButtonState extends State<OrderButton>
                   children: [
                     SvgPicture.asset(
                       'assets/icon/addtobag.svg',
-                      width: 16,
+                      width: 18,
+                      colorFilter: ColorFilter.mode(
+                        Theme.of(Get.context!).colorScheme.primary,
+                        BlendMode.srcIn,
+                      ),
                     ),
                     const SizedBox(width: 10),
                     Text(widget.btntext,
@@ -1766,7 +1785,13 @@ class dileveryOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        SvgPicture.asset(icon),
+        SvgPicture.asset(
+          icon,
+          colorFilter: ColorFilter.mode(
+            Theme.of(context).colorScheme.primary,
+            BlendMode.srcIn,
+          ),
+        ),
         const SizedBox(width: 10),
         Text(services,
             style: TextStyle(

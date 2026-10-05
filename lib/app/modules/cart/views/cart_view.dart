@@ -6,45 +6,36 @@ import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
-import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
-import 'package:foduu_ecommerce/components/buttons/primary_action_button.dart';
 import 'package:foduu_ecommerce/components/commonWidgets/secondary_app_header.dart';
 import 'package:foduu_ecommerce/components/shimmer/cart_shimmer.dart';
-import 'package:foduu_ecommerce/constants/constants.dart';
-import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/product_helper.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
-import 'package:lottie/lottie.dart';
 
 class CartView extends GetView<CartController> {
-  CartView({Key? key}) : super(key: key);
-  
+  const CartView({Key? key}) : super(key: key);
+
   ColorScheme get colorScheme => Theme.of(Get.context!).colorScheme;
   TextTheme get textTheme => Theme.of(Get.context!).textTheme;
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final height = MediaQuery.of(context).size.height;
-
     return SafeArea(
       child: Scaffold(
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            GetStorage().erase();
-          },
+        appBar: SecondaryAppHeader(
+          title: "My Cart",
+          showRight: false,
+          extraActions: [
+            IconButton(
+              onPressed: () => CartService.to.fetchCart(),
+              icon: const Icon(Icons.refresh),
+            ),
+          ],
         ),
         body: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: width * 0.05,
-            vertical: height * 0.01,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Column(
             children: [
-              SecondaryAppHeader(title: "My Cart"),
-              SizedBox(height: height * 0.001),
               Expanded(
                 child: Obx(() {
                   if (controller.isLoading.value) {
@@ -54,20 +45,15 @@ class CartView extends GetView<CartController> {
                   if (controller.cartItems.isEmpty &&
                       CartService.to.loadError.value) {
                     return FriendlyErrorState(
-                        onRetry: () => CartService.to.fetchCart());
-                  }
-
-                  if (controller.cartItems.isEmpty) {
-                    return _buildEmptyCart(
-                      width,
-                      height,
+                      onRetry: () => CartService.to.fetchCart(),
                     );
                   }
 
-                   return _buildCartContent(
-                    width,
-                    height,
-                  );
+                  if (controller.cartItems.isEmpty) {
+                    return _buildEmptyCart(context);
+                  }
+
+                  return _buildCartContent(context);
                 }),
               ),
             ],
@@ -76,102 +62,492 @@ class CartView extends GetView<CartController> {
         bottomNavigationBar: Obx(
           () => controller.cartItems.isEmpty
               ? const SizedBox.shrink()
-              : _bottombar(width: width, height: height),
+              : _buildStickyCheckoutBar(context),
         ),
       ),
     );
   }
 
-  Widget _buildEmptyCart(
-    double width,
-    double height,
-  ) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Lottie.asset('assets/lotti/emptyanimation.json', height: height * 0.3),
-        const SizedBox(height: 20),
-        Text(
-          'Whoops !! Cart is Empty',
-          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 20),
-        SizedBox(
-          width: 320,
-          child: Text(
-            'Looks like you haven\'t added anything to your cart yet. You will find a lot of interesting products on our "Shop" page',
-            textAlign: TextAlign.center,
-            style: textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
+  // ══════════════════════════════════════════════════════════
+  //  EMPTY CART STATE
+  // ══════════════════════════════════════════════════════════
+  Widget _buildEmptyCart(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
+
+    return Center(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/emptyimagecart.png',
+                height: height * 0.22,
+                fit: BoxFit.contain,
+                errorBuilder: (ctx, err, stack) => Icon(
+                  Icons.remove_shopping_cart_outlined,
+                  size: height * 0.15,
+                  color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Your Cart is Empty',
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Looks like you haven\'t added anything to your cart yet.\nExplore our latest collections and find something you love!',
+                textAlign: TextAlign.center,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 28),
+              SizedBox(
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    if (Get.isRegistered<BottombarController>()) {
+                      final bottomBar = Get.find<BottombarController>();
+                      bottomBar.currentPageIndex.value = 0;
+                      if (bottomBar.pageController.hasClients) {
+                        bottomBar.pageController.jumpToPage(0);
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.shopping_bag_outlined, size: 20),
+                  label: const Text(
+                    'START SHOPPING',
+                    style: TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(horizontal: 28),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 20),
-        AppButton(
-          itemText: 'START SHOPPING',
-          keypressEvent: () {
-            if (Get.isRegistered<BottombarController>()) {
-              Get.find<BottombarController>().currentPageIndex.value = 0;
-              Get.find<BottombarController>().pageController.jumpToPage(0);
-            }
-            Get.back();
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCartContent(
-    double width,
-    double height,
-  ) {
-    return RefreshIndicator(
-      onRefresh: controller.onRefresh,
-      child: ListView.separated(
-        controller: controller.scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: controller.cartItems.length,
-        separatorBuilder: (_, __) => SizedBox(height: height * 0.025),
-        itemBuilder: (context, index) {
-          return _cartItemRow(index);
-        },
       ),
     );
   }
 
-  Widget _bottombar({required width, required height}) {
+  // ══════════════════════════════════════════════════════════
+  //  SCROLLABLE CART CONTENT (ITEMS + COUPON + BILL SUMMARY)
+  // ══════════════════════════════════════════════════════════
+  Widget _buildCartContent(BuildContext context) {
+    return RefreshIndicator(
+      onRefresh: controller.onRefresh,
+      child: ListView(
+        controller: controller.scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(top: 4, bottom: 24),
+        children: [
+          // Items Count Subheading
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "${controller.cartItems.length} ${controller.cartItems.length == 1 ? 'Item in Cart' : 'Items in Cart'}",
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                "Prices inclusive of all taxes",
+                style: textTheme.labelSmall?.copyWith(
+                  color: Colors.green.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Cart Items List
+          ...List.generate(
+            controller.cartItems.length,
+            (index) => Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: _cartItemRow(index, context),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          // Coupon Section Card
+          _buildCouponCard(context),
+
+          const SizedBox(height: 16),
+
+          // Bill Summary Card
+          _buildBillSummaryCard(context),
+        ],
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  CART ITEM CARD (CLEAN, RESPONSIVE, ZERO OVERFLOW)
+  // ══════════════════════════════════════════════════════════
+  Widget _cartItemRow(int index, BuildContext context) {
+    return Obx(() {
+      final product = controller.getProduct(index);
+      final variant = controller.getVariant(index);
+      final quantity = controller.getQuantity(index);
+      final productId = controller.getProductId(index);
+      final variantId = controller.getVariantId(index);
+
+      final imageUrl = ProductHelper.getProductImage(product);
+      final productName = product['name'] ?? 'Product Name';
+      final variantName = (variant['name'] ?? '').toString().trim();
+      final showVariantSubtitle = variantName.isNotEmpty &&
+          variantName.toLowerCase() != productName.toString().toLowerCase();
+
+      final variantPrice = HelperFunctions.parseAmount(
+        variant['sale_price'] ?? variant['price'],
+      );
+      final variantRegularPrice = HelperFunctions.parseAmount(variant['price']);
+      final hasDiscount =
+          HelperFunctions.parseAmount(variant['sale_price']) > 0 &&
+              variantRegularPrice >
+                  HelperFunctions.parseAmount(variant['sale_price']);
+
+      final discountPercent = hasDiscount && variantRegularPrice > 0
+          ? ((100 - (variantPrice * 100 / variantRegularPrice)).round())
+          : 0;
+
+      return Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product Thumbnail
+            GestureDetector(
+              onTap: () {
+                if (product['_id'] != null) {
+                  Get.toNamed(
+                    Routes.PRODUCTDETAILS,
+                    arguments: {'productId': product['_id']},
+                  );
+                }
+              },
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  width: 82,
+                  height: 82,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    width: 82,
+                    height: 82,
+                    color: colorScheme.surfaceVariant.withOpacity(0.5),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    width: 82,
+                    height: 82,
+                    color: colorScheme.surfaceVariant.withOpacity(0.5),
+                    child: Icon(
+                      Icons.image_not_supported_outlined,
+                      color: colorScheme.onSurfaceVariant,
+                      size: 28,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            // Product Details (Title, Variant, Price, Stepper)
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top Row: Product Title & Delete Button
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          productName,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            height: 1.25,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      GestureDetector(
+                        onTap: () => _showDeleteConfirmation(
+                            index, productId, variantId),
+                        child: Padding(
+                          padding:
+                              const EdgeInsets.only(left: 4.0, bottom: 4.0),
+                          child: Icon(
+                            Icons.delete_outline_rounded,
+                            size: 20,
+                            color: colorScheme.error.withOpacity(0.85),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Variant Chip (only if distinct)
+                  if (showVariantSubtitle) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      variantName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 8),
+
+                  // Bottom Row: Price Breakdown & Quantity Stepper
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Pricing Block with Wrap to guarantee ZERO overflow
+                      Flexible(
+                        child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 6,
+                          runSpacing: 2,
+                          children: [
+                            Text(
+                              "₹${variantPrice.toStringAsFixed(2)}",
+                              style: TextStyle(
+                                fontFamily: 'Plus Jakarta Sans',
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                            if (hasDiscount) ...[
+                              Text(
+                                "₹${variantRegularPrice.toStringAsFixed(2)}",
+                                style: TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  decoration: TextDecoration.lineThrough,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 5, vertical: 1.5),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  "$discountPercent% off",
+                                  style: const TextStyle(
+                                    fontFamily: 'Plus Jakarta Sans',
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 8),
+
+                      // Quantity Stepper [- qty +]
+                      Container(
+                        height: 32,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: colorScheme.outline.withOpacity(0.35),
+                          ),
+                          color: colorScheme.surfaceVariant.withOpacity(0.3),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Minus Button
+                            InkWell(
+                              onTap: () {
+                                if (quantity > 1) {
+                                  controller.decrementItem(
+                                      productId, variantId, quantity);
+                                } else {
+                                  _showDeleteConfirmation(
+                                      index, productId, variantId);
+                                }
+                              },
+                              borderRadius: const BorderRadius.horizontal(
+                                  left: Radius.circular(20)),
+                              child: Container(
+                                width: 28,
+                                height: 32,
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  quantity > 1
+                                      ? Icons.remove
+                                      : Icons.delete_outline,
+                                  size: 14,
+                                  color: quantity > 1
+                                      ? colorScheme.onSurface
+                                      : colorScheme.error,
+                                ),
+                              ),
+                            ),
+
+                            // Quantity Display
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Text(
+                                "$quantity",
+                                style: const TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+
+                            // Plus Button
+                            InkWell(
+                              onTap: () => controller.incrementItem(
+                                  productId, variantId),
+                              borderRadius: const BorderRadius.horizontal(
+                                  right: Radius.circular(20)),
+                              child: Container(
+                                width: 28,
+                                height: 32,
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  Icons.add,
+                                  size: 14,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  COUPON PROMO CARD
+  // ══════════════════════════════════════════════════════════
+  Widget _buildCouponCard(BuildContext context) {
     return Container(
-      width: width,
-      height: height * 0.42,
-      padding: EdgeInsets.all(width * 0.05),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Coupon Section
+          Row(
+            children: [
+              Icon(Icons.local_offer_outlined,
+                  size: 18, color: colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                "Apply Promo Code",
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           Container(
-            width: width * 0.90,
-            constraints: BoxConstraints(minHeight: height * 0.055),
-            padding: EdgeInsets.symmetric(horizontal: width * 0.025),
+            height: 44,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(height * 0.01),
-              border: Border.all(color: colorScheme.outline),
+              color: colorScheme.surfaceVariant.withOpacity(0.25),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: colorScheme.outline.withOpacity(0.25)),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                const SizedBox(width: 12),
                 Expanded(
                   child: TextFormField(
                     controller: controller.couponController,
+                    textCapitalization: TextCapitalization.characters,
                     decoration: const InputDecoration(
                       hintText: "Enter Promo Code",
+                      hintStyle: TextStyle(fontSize: 13),
                       border: InputBorder.none,
                       isDense: true,
-                      contentPadding: EdgeInsets.symmetric(vertical: 10),
+                      contentPadding: EdgeInsets.zero,
                     ),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontFamily: 'Plus Jakarta Sans',
-                      fontSize: height * 0.018,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -180,34 +556,31 @@ class CartView extends GetView<CartController> {
                     onPressed: controller.isClicked.value
                         ? null
                         : () {
-                            if (controller.couponController.text.isNotEmpty) {
+                            if (controller.couponController.text
+                                .trim()
+                                .isNotEmpty) {
                               controller.isClicked.value = true;
                               controller
                                   .applyCoupon(
-                                    coupon: controller.couponController.text,
-                                  )
+                                      coupon: controller.couponController.text
+                                          .trim())
                                   .then((_) {
-                                    controller.isClicked.value = false;
-                                  })
-                                  .catchError((e) {
-                                    controller.isClicked.value = false;
-                                  });
+                                controller.isClicked.value = false;
+                              }).catchError((e) {
+                                controller.isClicked.value = false;
+                              });
                             }
                           },
                     style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(horizontal: width * 0.02),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      foregroundColor: colorScheme.primary,
                     ),
                     child: Text(
                       controller.isClicked.value ? "Applying..." : "Apply",
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
-                        fontSize: height * 0.018,
-                        fontWeight: FontWeight.w600,
-                        color: controller.isClicked.value
-                            ? colorScheme.onSurfaceVariant
-                            : colorScheme.primary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -215,369 +588,124 @@ class CartView extends GetView<CartController> {
               ],
             ),
           ),
-
-          // Coupon Message
           Obx(
             () => controller.couponeMessage.value.isNotEmpty
                 ? Padding(
-                    padding: EdgeInsets.only(top: height * 0.01),
-                    child: Text(
-                      controller.couponeMessage.value,
-                      style: TextStyle(
-                        color:
-                            controller.couponeMessage.value.contains('success')
-                            ? Colors.green
-                            : Colors.red,
-                        fontSize: height * 0.014,
-                      ),
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Row(
+                      children: [
+                        Icon(
+                          controller.couponeMessage.value.contains('success')
+                              ? Icons.check_circle_outline
+                              : Icons.error_outline,
+                          size: 14,
+                          color: controller.couponeMessage.value
+                                  .contains('success')
+                              ? Colors.green
+                              : colorScheme.error,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            controller.couponeMessage.value,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: controller.couponeMessage.value
+                                      .contains('success')
+                                  ? Colors.green
+                                  : colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   )
                 : const SizedBox.shrink(),
           ),
+        ],
+      ),
+    );
+  }
 
-          SizedBox(height: height * 0.015),
+  // ══════════════════════════════════════════════════════════
+  //  BILL SUMMARY BREAKDOWN CARD
+  // ══════════════════════════════════════════════════════════
+  Widget _buildBillSummaryCard(BuildContext context) {
+    return Obx(() {
+      final subTotal = controller.subTotal.value;
+      final total = controller.total.value;
+      final discount = subTotal > total ? (subTotal - total) : 0.0;
 
-          // Price Details
-          SizedBox(
-            width: width * 0.90,
-            height: height * 0.18,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      return Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                _priceRow("Subtotal", "₹${controller.subTotal.value}"),
-                _priceRow("Delivery Fee", "Free"),
-                _priceRow(
-                  "Discount",
-                  "- ₹${(controller.subTotal.value - controller.total.value).toStringAsFixed(2)}",
-                  color: Colors.green,
-                ),
-                const Divider(),
-                _priceRow(
-                  "Total",
-                  "₹${controller.total.value.toStringAsFixed(2)}",
-                  isBold: true,
-                  fontSize: height * 0.022,
+                Icon(Icons.receipt_long_outlined,
+                    size: 18, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  "Price Details",
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurface,
+                  ),
                 ),
               ],
             ),
-          ),
-
-          SizedBox(height: height * 0.015),
-
-          // Checkout Button
-          PrimaryActionButton(
-            text: "Proceed to Checkout",
-            onPressed: () {
-              if (AuthDetails.isUserLogin()) {
-                Get.toNamed(Routes.ADDRESS_LIST);
-              } else {
-                Get.snackbar(
-                  "Login Required",
-                  "To place the Order First User has to login",
-                  backgroundColor: colorScheme.error,
-                  colorText: colorScheme.onError,
-                  margin: const EdgeInsets.all(15),
-                );
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _priceRow(
-    String title,
-    String value, {
-    bool isBold = false,
-    Color? color,
-    double? fontSize,
-  }) {
-    final height = Get.height;
-    final width = Get.width;
-
-    return SizedBox(
-      width: width * 0.90,
-      height: height * 0.035,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: fontSize ?? height * 0.018,
-              fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-              color: color ?? colorScheme.onSurfaceVariant,
+            const SizedBox(height: 14),
+            _summaryLine("Subtotal", "₹${subTotal.toStringAsFixed(2)}"),
+            const SizedBox(height: 10),
+            _summaryLine(
+              "Delivery Fee",
+              "FREE",
+              valueColor: Colors.green,
+              valueBold: true,
             ),
-          ),
-          Text(
-            value,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: fontSize ?? height * 0.018,
-              fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _cartItemRow(int index) {
-    final width = Get.width;
-    final height = Get.height;
-
-    return Obx(() {
-      final product = controller.getProduct(index);
-      final variant = controller.getVariant(index);
-      final quantity = controller.getQuantity(index);
-      final productId = controller.getProductId(index);
-      final variantId = controller.getVariantId(index);
-
-      // Use ProductHelper to get image and price info
-      final imageUrl = ProductHelper.getProductImage(product);
-      debugPrint("------------------------------------OOOO-----");
-      debugPrint('--------------------------------------------------');
-      debugPrint('🛒 CART IMAGE HIT -> Product: ${product['name']}');
-      debugPrint('🔗 URL: $imageUrl');
-      debugPrint('--------------------------------------------------');
-
-      // Get variant's effective price
-      final variantPrice = HelperFunctions.parseAmount(
-        variant['sale_price'] ?? variant['price'],
-      );
-      final variantRegularPrice = HelperFunctions.parseAmount(variant['price']);
-      final hasDiscount =
-          HelperFunctions.parseAmount(variant['sale_price']) > 0 &&
-          variantRegularPrice >
-              HelperFunctions.parseAmount(variant['sale_price']);
-
-      return Container(
-        width: width * 0.92,
-        height: height * 0.13,
-        padding: EdgeInsets.all(width * 0.026),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(height * 0.015),
-          border: Border.all(color: colorScheme.outline),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Product Image - Fixed width
-            SizedBox(
-              width: height * 0.09,
-              height: height * 0.09,
-              child: GestureDetector(
-                onTap: () {
-                  Get.toNamed(
-                    Routes.PRODUCTDETAILS,
-                    arguments: {'productId': product['_id']},
-                  );
-                },
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(height * 0.012),
-                  child: CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    width: height * 0.09,
-                    height: height * 0.09,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: colorScheme.surfaceVariant,
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: colorScheme.surfaceVariant,
-                      child: Icon(
-                        Icons.image_not_supported_outlined,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ),
+            if (discount > 0) ...[
+              const SizedBox(height: 10),
+              _summaryLine(
+                "Discount",
+                "- ₹${discount.toStringAsFixed(2)}",
+                valueColor: Colors.green,
+                valueBold: true,
               ),
+            ],
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12.0),
+              child: Divider(height: 1),
             ),
-
-            SizedBox(width: width * 0.025),
-
-            // Product Details - Takes remaining space
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    product['name'] ?? 'Product Name',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontFamily: 'Plus Jakarta Sans',
-                      fontSize: height * 0.016,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  if (variant['name'] != null &&
-                      variant['name'].toString().isNotEmpty)
-                    Text(
-                      variant['name'],
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: height * 0.014,
-                        fontWeight: FontWeight.w500,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  SizedBox(height: height * 0.005),
-                  // Price Row - Keep Row but let it shrink properly
-                  Row(
-                    children: [
-                      Text(
-                        "₹${variantPrice.toStringAsFixed(2)}",
-                        style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontSize: height * 0.016,
-                          fontWeight: FontWeight.w700,
-                          color: Get.theme.primaryColor,
-                        ),
-                      ),
-                      if (hasDiscount) ...[
-                        const SizedBox(width: 6),
-                        Text(
-                          "₹${variantRegularPrice.toStringAsFixed(2)}",
-                          style: TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            fontSize: height * 0.014,
-                            fontWeight: FontWeight.w500,
-                            decoration: TextDecoration.lineThrough,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            "${(100 - (variantPrice * 100 / variantRegularPrice)).round()}% off",
-                            style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontSize: height * 0.0125,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.green.shade700,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // Right side controls - Fixed width group
             Row(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Quantity Controls
-                Container(
-                  width: height * 0.12,
-                  height: height * 0.04,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(height * 0.02),
-                    border: Border.all(color: colorScheme.outline),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      // Decrement
-                      GestureDetector(
-                        onTap: () {
-                          if (quantity > 1) {
-                            controller.decrementItem(
-                              productId,
-                              variantId,
-                              quantity,
-                            );
-                          }
-                        },
-                        child: Container(
-                          width: height * 0.03,
-                          height: height * 0.03,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: quantity > 1
-                                ? colorScheme.primary.withOpacity(0.1)
-                                : Colors.transparent,
-                          ),
-                          child: Icon(
-                            Icons.remove,
-                            size: height * 0.016,
-                            color: quantity > 1
-                                ? colorScheme.primary
-                                : colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-
-                      // Quantity Text
-                      Text(
-                        "$quantity",
-                        style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontSize: height * 0.015,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-
-                      // Increment
-                      GestureDetector(
-                        onTap: () {
-                          controller.incrementItem(productId, variantId);
-                        },
-                        child: Container(
-                          width: height * 0.03,
-                          height: height * 0.03,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: colorScheme.primary.withOpacity(0.1),
-                          ),
-                          child: Icon(
-                            Icons.add,
-                            size: height * 0.016,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                      ),
-                    ],
+                Text(
+                  "Total Amount",
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurface,
                   ),
                 ),
-                SizedBox(width: width * 0.01),
-                // Delete Button - Fixed width
-                SizedBox(
-                  width: height * 0.032,
-                  height: height * 0.032,
-                  child: IconButton(
-                    onPressed: () {
-                      _showDeleteConfirmation(
-                        index,
-                        product['_id'],
-                        variant['_id'],
-                      );
-                    },
-                    icon: Icon(
-                      Icons.delete_outline,
-                      size: height * 0.022,
-                      color: colorScheme.error,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
+                Text(
+                  "₹${total.toStringAsFixed(2)}",
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: colorScheme.primary,
                   ),
                 ),
               ],
@@ -588,22 +716,177 @@ class CartView extends GetView<CartController> {
     });
   }
 
+  Widget _summaryLine(
+    String label,
+    String value, {
+    Color? valueColor,
+    bool valueBold = false,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'Plus Jakarta Sans',
+            fontSize: 13,
+            color: colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontFamily: 'Plus Jakarta Sans',
+            fontSize: 13,
+            fontWeight: valueBold ? FontWeight.w700 : FontWeight.w600,
+            color: valueColor ?? colorScheme.onSurface,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  STICKY BOTTOM CHECKOUT BAR
+  // ══════════════════════════════════════════════════════════
+  Widget _buildStickyCheckoutBar(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          top: BorderSide(
+            color: colorScheme.outline.withOpacity(0.18),
+            width: 1,
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            offset: const Offset(0, -3),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: SafeArea(
+        top: false,
+        child: Obx(() {
+          final total = controller.total.value;
+
+          return Row(
+            children: [
+              // Total Summary Column
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Total",
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "₹${total.toStringAsFixed(2)}",
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Primary Checkout Button
+              SizedBox(
+                height: 46,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (AuthDetails.isUserLogin()) {
+                      Get.toNamed(Routes.ADDRESS_LIST);
+                    } else {
+                      Get.snackbar(
+                        "Login Required",
+                        "Please sign in to proceed with your order",
+                        backgroundColor: colorScheme.error,
+                        colorText: colorScheme.onError,
+                        margin: const EdgeInsets.all(16),
+                        snackPosition: SnackPosition.BOTTOM,
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "Proceed to Checkout",
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(width: 6),
+                      Icon(Icons.arrow_forward_rounded, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  DELETE CONFIRMATION DIALOG
+  // ══════════════════════════════════════════════════════════
   void _showDeleteConfirmation(int index, String productId, String variantId) {
     Get.dialog(
       AlertDialog(
-        title: const Text('Remove Product'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Remove from Cart',
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+        ),
         content: const Text(
-          'Are you sure you want to remove this product from cart?',
+          'Are you sure you want to remove this item from your cart?',
+          style: TextStyle(fontSize: 14),
         ),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: colorScheme.onSurfaceVariant),
+            ),
+          ),
           TextButton(
             onPressed: () {
               Get.back();
               controller.removeItem(productId, variantId);
             },
             style: TextButton.styleFrom(foregroundColor: colorScheme.error),
-            child: const Text('Remove'),
+            child: const Text('Remove',
+                style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
       ),

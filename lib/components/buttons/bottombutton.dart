@@ -3,7 +3,6 @@ import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dar
 import 'package:foduu_ecommerce/app/modules/payment/controllers/ordersucess_controller.dart';
 import 'package:foduu_ecommerce/components/oderdetail.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
-import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:get/get.dart';
 import '../../constants/constants.dart';
 
@@ -33,17 +32,24 @@ class bottomButton extends StatefulWidget {
 class _bottomButtonState extends State<bottomButton> {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Positioned(
         bottom: 0,
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
+            color: theme.scaffoldBackgroundColor,
             boxShadow: [
               BoxShadow(
-                  color: Color.fromARGB(96, 168, 164, 164),
+                  color: isDark
+                      ? Colors.black.withOpacity(0.4)
+                      : const Color.fromARGB(96, 168, 164, 164),
                   spreadRadius: 0,
-                  blurRadius: 1.5),
+                  blurRadius: 3,
+                  offset: const Offset(0, -1)),
             ],
-            // color: themeWhiteColor,
           ),
           width: Get.width,
           child: Padding(
@@ -138,12 +144,22 @@ class _bottomButtonState extends State<bottomButton> {
                       );
                     },
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text("\u{20B9}${widget.priceText}",
-                            style: txtTheme().titleLarge),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.onSurface,
+                            )),
                         const SizedBox(height: 2.0),
                         Text(widget.otherText,
-                            style: txtTheme().titleLarge!.copyWith())
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ))
                       ],
                     ),
                   ),
@@ -151,19 +167,24 @@ class _bottomButtonState extends State<bottomButton> {
                 Expanded(
                     child: SizedBox(
                   width: MediaQuery.of(context).size.width,
-                  height: 42,
+                  height: 44,
                   child: Opacity(
                     opacity: widget.opacity,
                     child: ElevatedButton(
                       onPressed: widget.keypressEvent,
-                      style: themeButton.copyWith(
-                          padding: MaterialStateProperty.all(
-                              EdgeInsets.symmetric(horizontal: 5))),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                      ),
                       child: Text(widget.buttonText.toUpperCase(),
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                          style: TextStyle(
+                              color: colorScheme.onPrimary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
                               fontFamily: 'Lato')),
                     ),
                   ),

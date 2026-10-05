@@ -1,15 +1,28 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+
 import '/constants/constants.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
+import '/core/foduuStudio/foduu_studio_layout_mixin.dart';
+import '/models/blog_model.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 import '../models/filter_model.dart';
 import '../services/product_service.dart';
 
-class SearchsController extends GetxController with BaseController {
+class SearchsController extends GetxController
+    with BaseController, FoduuStudioLayoutMixin {
+  static const String pageSlug = 'search';
+
+  /// Max categories / blogs previewed in the unified results.
+  static const int _previewLimit = 10;
+
   var searchProduct = [].obs;
+  final queryText = ''.obs;
+  var searchCategories = [].obs;
+  var searchBlogs = <BlogModel>[].obs;
   var recentSearchList = [].obs;
 
   var isSearching = false.obs; // True for initial load
@@ -31,6 +44,39 @@ class SearchsController extends GetxController with BaseController {
   int currentPage = 1;
   bool hasNextPage = false;
 
+  Timer? _debounce;
+  int _searchToken = 0;
+  List<BlogModel>? _blogCache;
+
+  // ── CMS-allotted entities ──
+  // The backend CMS decides what the search bar covers: an entity is searched
+  // only when its section (`products`, `categories`, `blog`) is part of the
+  // `search` page layout. Without any layout we fall back to products only.
+  bool get _hasLayout => sectionTypes.isNotEmpty;
+  bool get searchesProducts => !_hasLayout || sectionTypes.contains('products');
+  bool get searchesCategories => sectionTypes.contains('categories');
+  bool get searchesBlogs => sectionTypes.contains('blog');
+
+  /// Entity result groups in the order the CMS lays them out.
+  List<String> get resultOrder {
+    if (!_hasLayout) return const ['products'];
+    return sectionTypes
+        .where((t) => t == 'products' || t == 'categories' || t == 'blog')
+        .toList();
+  }
+
+  /// CMS-authored hint for the search bar, with a fallback.
+  String get searchPlaceholder {
+    final placeholder = contentJsonFor('search')?['placeholder'];
+    if (placeholder is String && placeholder.trim().isNotEmpty) {
+      return placeholder;
+    }
+    final parts = <String>['products'];
+    if (searchesCategories) parts.add('categories');
+    if (searchesBlogs) parts.add('blogs');
+    return 'Search ${parts.join(', ')}...';
+  }
+
   @override
   void onInit() {
     searchTextController = TextEditingController();
@@ -42,11 +88,17 @@ class SearchsController extends GetxController with BaseController {
     getRecentSearch();
     loadAllProducts();
     fetchBrands();
+
+    // The page renders its own search field above the CMS layout, so skip
+    // any `search` block from the CMS to avoid a second search bar.
+    excludeSectionTypes = const ['search'];
+    fetchLayout(pageSlug);
     super.onInit();
   }
 
   @override
   void onClose() {
+    _debounce?.cancel();
     searchTextController.dispose();
     scrollController.dispose();
     super.onClose();
@@ -106,10 +158,40 @@ class SearchsController extends GetxController with BaseController {
     }
   }
 
+  // ── Typing entry point: debounced ──
+  void onSearchChanged(String text) {
+    queryText.value = text;
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      getSearchSuggestion(text: text);
+    });
+  }
+
   // ── Search Load (Page 1) ──
   void getSearchSuggestion({required String text}) async {
+    _debounce?.cancel();
+    queryText.value = text;
+    final token = ++_searchToken;
+
     if (text.trim().isEmpty) {
+      searchCategories.clear();
+      searchBlogs.clear();
       loadAllProducts();
+      return;
+    }
+
+    // Categories and blogs run alongside products, only if the CMS allots them.
+    final others = Future.wait([
+      if (searchesCategories) _searchCategories(text, token),
+      if (searchesBlogs) _searchBlogs(text, token),
+    ]);
+    if (!searchesCategories) searchCategories.clear();
+    if (!searchesBlogs) searchBlogs.clear();
+    if (!searchesProducts) {
+      isSearching.value = true;
+      searchProduct.clear();
+      await others;
+      if (token == _searchToken) isSearching.value = false;
       return;
     }
 
@@ -128,13 +210,69 @@ class SearchsController extends GetxController with BaseController {
             filter: activeFilter.value,
           ))
           .catchError(handleError);
-      debugPrint('response search $response');
+      if (token != _searchToken) return; // a newer search superseded this one
       _parseAndSetProducts(response, isRefresh: true);
     } catch (e) {
       debugPrint('❌ search error: $e');
     } finally {
-      isSearching.value = false;
+      await others;
+      if (token == _searchToken) isSearching.value = false;
     }
+  }
+
+  // ── Categories ──
+  Future<void> _searchCategories(String text, int token) async {
+    try {
+      final response = await BasicProvider('category').getRequest(
+          queryParams: {'search': text.trim(), 'page': '1'}).catchError(handleError);
+      if (token != _searchToken) return;
+      final List data = response is List
+          ? response
+          : (response is Map && response['data'] is List
+              ? response['data']
+              : []);
+      searchCategories.assignAll(data.take(_previewLimit).toList());
+    } catch (e) {
+      debugPrint('❌ search categories error: $e');
+    }
+  }
+
+  // ── Blogs ──
+  // The blogs endpoint has no server-side search, so fetch one page once and
+  // match title / excerpt / author on the device (same rule as BlogController).
+  Future<void> _searchBlogs(String text, int token) async {
+    try {
+      _blogCache ??= await _loadBlogs();
+      if (token != _searchToken) return;
+      final q = text.trim().toLowerCase();
+      searchBlogs.assignAll(_blogCache!
+          .where((b) =>
+              b.title.toLowerCase().contains(q) ||
+              b.cleanExcerpt.toLowerCase().contains(q) ||
+              b.authorName.toLowerCase().contains(q))
+          .take(_previewLimit)
+          .toList());
+    } catch (e) {
+      debugPrint('❌ search blogs error: $e');
+    }
+  }
+
+  Future<List<BlogModel>> _loadBlogs() async {
+    final response = await BasicProvider('blogs?count=50&page=1')
+        .getRequest()
+        .catchError(handleError);
+    Object? raw;
+    if (response is Map) {
+      final inner = response['data'];
+      raw = inner is Map ? inner['data'] : inner;
+    } else if (response is List) {
+      raw = response;
+    }
+    if (raw is! List) return const [];
+    return raw
+        .whereType<Map>()
+        .map((e) => BlogModel.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
   }
 
   // ── Brand Fetching ──
@@ -166,17 +304,18 @@ class SearchsController extends GetxController with BaseController {
   void fetchProductsByBrand(String slug) async {
     try {
       selectedBrandSlug.value = slug;
-      searchTextController.clear(); // Clear search text when filtering by brand
+      searchTextController.clear();
+      queryText.value = ''; // Clear search text when filtering by brand
 
       currentPage = 1;
       hasNextPage = false;
       isSearching.value = true;
       searchProduct.clear();
 
-      var response = await BasicProvider('products').getRequest(queryParams: {
+      var response = await BasicProvider('products')
+          .getRequest(queryParams: {
+        ...ProductService.buildQueryParams(page: 1, filter: activeFilter.value),
         'brand': slug,
-        'page': '1',
-        // Add other filters if needed
       }).catchError(handleError);
 
       _parseAndSetProducts(response, isRefresh: true);
@@ -196,12 +335,14 @@ class SearchsController extends GetxController with BaseController {
       var response = await BasicProvider('products')
           .getRequest(
               queryParams: ProductService.buildQueryParams(
-            page: currentPage,
-            search: searchTextController.text.trim().isEmpty
-                ? null
-                : searchTextController.text.trim(),
-            filter: activeFilter.value,
-          ))
+                page: currentPage,
+                search: searchTextController.text.trim().isEmpty
+                    ? null
+                    : searchTextController.text.trim(),
+                filter: activeFilter.value,
+              )..addAll(selectedBrandSlug.value.isEmpty
+                  ? const {}
+                  : {'brand': selectedBrandSlug.value}))
           .catchError(handleError);
 
       _parseAndSetProducts(response, isRefresh: false);

@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:foduu_ecommerce/app/modules/homepage/views/material/responsive_circle_icon.dart';
 import 'package:get/get.dart';
 
-class SecondaryAppHeader extends StatelessWidget {
+class SecondaryAppHeader extends StatelessWidget
+    implements PreferredSizeWidget {
   final String title;
   final VoidCallback? onBack;
   final VoidCallback? onRightIconTap;
   final bool showBack;
   final bool showRight;
   final IconData rightIcon;
+  final List<Widget>? extraActions;
+  final Widget? titleWidget;
+  final bool centerTitle;
+  final Color? backgroundColor;
+  final double elevation;
 
   const SecondaryAppHeader({
     Key? key,
@@ -18,62 +23,67 @@ class SecondaryAppHeader extends StatelessWidget {
     this.showRight = true,
     this.showBack = true,
     this.rightIcon = Icons.more,
+    this.extraActions,
+    this.titleWidget,
+    this.centerTitle = true,
+    this.backgroundColor,
+    this.elevation = 0,
   }) : super(key: key);
 
   @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
   Widget build(BuildContext context) {
-    final size = Get.size;
-    final height = size.height;
-    final width = size.width;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-    return Column(
-      children: [
-        SizedBox(height: height * 0.02),
-        Container(
-          width: width * 0.92,
-          height: height * 0.055,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              /// BACK BUTTON
-              showBack
-                  ? ResponsiveCircleIcon(
-                      width: width,
-                      height: height,
-                      icon: Icons.arrow_back_ios_new,
-                      onTap: onBack ?? () => Get.back(),
-                      diameter: height * 0.022,
-                    )
-                  : SizedBox(width: height * 0.055),
+    final titleStyle = theme.appBarTheme.titleTextStyle?.copyWith(
+          fontFamily: 'Plus Jakarta Sans',
+          fontWeight: FontWeight.w600,
+          fontSize: 18,
+        ) ??
+        TextStyle(
+          fontFamily: 'Plus Jakarta Sans',
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: colorScheme.onSurface,
+        );
 
-              /// TITLE
-              SizedBox(
-                width: width * 0.64,
-                child: Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: height * 0.02,
-                    fontWeight: FontWeight.w700,
-                    height: 1.75,
-                  ),
-                ),
-              ),
-
-              /// RIGHT ICON / ACTION
-              showRight
-                  ? ResponsiveCircleIcon(
-                      width: width,
-                      height: height,
-                      icon: rightIcon,
-                      onTap: onRightIconTap,
-                      diameter: height * 0.022)
-                  : SizedBox(width: height * 0.055),
-            ],
-          ),
+    final List<Widget> actionsList = [];
+    if (extraActions != null) {
+      actionsList.addAll(extraActions!);
+    }
+    if (showRight) {
+      actionsList.add(
+        IconButton(
+          icon: Icon(rightIcon),
+          onPressed: onRightIconTap,
         ),
-      ],
+      );
+    }
+
+    return AppBar(
+      title: titleWidget ??
+          Text(
+            title,
+            style: titleStyle,
+          ),
+      centerTitle: centerTitle,
+      leading: showBack
+          ? IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+              onPressed: onBack ?? () => Get.back(),
+            )
+          : null,
+      automaticallyImplyLeading: false,
+      actions: actionsList.isNotEmpty ? actionsList : null,
+      elevation: elevation,
+      backgroundColor: backgroundColor ??
+          theme.appBarTheme.backgroundColor ??
+          colorScheme.surface,
+      scrolledUnderElevation: 0,
     );
   }
 }

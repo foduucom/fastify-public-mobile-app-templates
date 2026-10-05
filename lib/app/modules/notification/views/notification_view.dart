@@ -69,20 +69,17 @@ class NotificationsView extends GetView<NotificationsController> {
     var width = Get.width;
     var height = Get.height;
     return Scaffold(
+      appBar: const SecondaryAppHeader(
+        title: "Notifications",
+        showRight: false,
+      ),
       body: Padding(
         padding: EdgeInsets.symmetric(
           horizontal: width * 0.04,
-          vertical: height * 0.02,
+          vertical: height * 0.01,
         ),
         child: Column(
           children: [
-            SizedBox(height: height * 0.02),
-            //HEADER PAGE
-            SecondaryAppHeader(
-              title: "Checkout",
-              showRight: false,
-            ),
-            SizedBox(height: height * 0.02),
             Container(
               width: width * 0.92, // ≈ 345
               height: height * 0.75, // ≈ 580

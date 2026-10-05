@@ -327,10 +327,10 @@ class ShopView extends GetView<ShopController> {
           hideHeader: true,
           contentJson: const {
             'view': 'grid',
-            'layout': 'standard',
+            'layout': 'parent_web',
             'columns': '2',
             'spacing': '12',
-            'aspect_ratio': '0.62',
+            'aspect_ratio': '0.58',
           },
         ),
       );
@@ -415,7 +415,7 @@ class _ShopHeaderToolbar extends StatelessWidget {
                 children: [
                   // List icon
                   InkWell(
-                    onTap: () => controller.isListView.value = true,
+                    onTap: () => controller.setViewMode(true),
                     borderRadius: const BorderRadius.horizontal(
                         left: Radius.circular(8)),
                     child: Container(
@@ -434,7 +434,7 @@ class _ShopHeaderToolbar extends StatelessWidget {
                   ),
                   // Grid icon
                   InkWell(
-                    onTap: () => controller.isListView.value = false,
+                    onTap: () => controller.setViewMode(false),
                     borderRadius: const BorderRadius.horizontal(
                         right: Radius.circular(8)),
                     child: Container(

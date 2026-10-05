@@ -15,18 +15,17 @@ class AddToCartViews extends GetView {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      appBar: const SecondaryAppHeader(
+        title: "My Cart",
+        showRight: false,
+      ),
       body: Padding(
         padding: EdgeInsets.symmetric(
           horizontal: width * 0.05,
-          vertical: height * 0.02,
+          vertical: height * 0.01,
         ),
         child: Column(
           children: [
-            SizedBox(height: height * 0.01),
-            SecondaryAppHeader(
-              title: "My Cart",
-            ),
-            SizedBox(height: height * 0.001),
             Container(
               width: width * 0.92, // ≈ 345
               height: height * 0.35, // ≈ 280

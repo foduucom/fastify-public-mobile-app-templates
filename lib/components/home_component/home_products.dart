@@ -19,6 +19,7 @@ import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/components/product_quick_view_modal.dart';
 import 'package:foduu_ecommerce/components/parent_web_product_card.dart';
 import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
+import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 
 class TrendingProductSection extends StatefulWidget {
   final Map<String, dynamic>? contentJson;
@@ -100,7 +101,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     if (showTabs != true || _infiniteScroll || cats is! List) return;
     _tabs = [
       for (final c in cats)
-        if (c is Map && (c['_id'] != null || c['id'] != null) && c['name'] != null)
+        if (c is Map &&
+            (c['_id'] != null || c['id'] != null) &&
+            c['name'] != null)
           Map<String, dynamic>.from(c)
     ];
   }
@@ -203,7 +206,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     // Self-scrolling: horizontal direction + (standard or overlay) style
     final selfScrolling = (view == 'list') &&
         (listViewType != 'vertical') &&
-        (style == 'standard' || style == 'overlay' || style == 'horizontal');
+        (style == 'standard' ||
+            style == 'overlay' ||
+            style == 'horizontal' ||
+            style == 'parent_web');
 
     _useParentScroll = !selfScrolling;
   }
@@ -363,53 +369,53 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         'DEBUG PRODUCTS SECTION: heading=$heading, layout=$style, infiniteScroll=$_infiniteScroll, contentJson=${widget.contentJson}');
 
     return Obx(() => Stack(
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ─── Section Header ───
-            if (!widget.hideHeader &&
-                (heading.isNotEmpty || subheading.isNotEmpty)) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: StudioSectionHeader(
-                  title: heading.isNotEmpty ? heading : subheading,
-                  subtitle: heading.isNotEmpty && subheading.isNotEmpty
-                      ? subheading
-                      : null,
-                  onSeeAll: () {
-                    openShop({
-                      'filterType': categoryType,
-                      'filterValue': true,
-                      'name': heading.isNotEmpty ? heading : 'Products',
-                      'source': 'dashboard'
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(height: 12),
-            ],
-            if (_tabsEnabled) _buildTabBar(),
-            if (_tabsEnabled) const SizedBox(height: 12),
-            // ─── Product Cards ───
-            (_isInitialLoading.value && trendingList.isEmpty)
-                ? const SizedBox(
-                    height: 260,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0),
-                      child: TrendingProductsShimmer(),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ─── Section Header ───
+                if (!widget.hideHeader &&
+                    (heading.isNotEmpty || subheading.isNotEmpty)) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: StudioSectionHeader(
+                      title: heading.isNotEmpty ? heading : subheading,
+                      subtitle: heading.isNotEmpty && subheading.isNotEmpty
+                          ? subheading
+                          : null,
+                      onSeeAll: () {
+                        openShop({
+                          'filterType': categoryType,
+                          'filterValue': true,
+                          'name': heading.isNotEmpty ? heading : 'Products',
+                          'source': 'dashboard'
+                        });
+                      },
                     ),
-                  )
-                : trendingList.isEmpty
-                    ? const SizedBox.shrink()
-                    : (_tabsEnabled
-                        ? _buildTabbedList()
-                        : _buildProductLayout(style)),
-            const SizedBox(height: 26),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                if (_tabsEnabled) _buildTabBar(),
+                if (_tabsEnabled) const SizedBox(height: 12),
+                // ─── Product Cards ───
+                (_isInitialLoading.value && trendingList.isEmpty)
+                    ? const SizedBox(
+                        height: 260,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                          child: TrendingProductsShimmer(),
+                        ),
+                      )
+                    : trendingList.isEmpty
+                        ? const SizedBox.shrink()
+                        : (_tabsEnabled
+                            ? _buildTabbedList()
+                            : _buildProductLayout(style)),
+                const SizedBox(height: 26),
+              ],
+            )
           ],
-        )
-      ],
-    ));
+        ));
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -495,8 +501,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     );
   }
 
-  Widget _buildSiteProductCard(
-      Map<String, dynamic> product, Map<String, dynamic> priceInfo, double imageHeight) {
+  Widget _buildSiteProductCard(Map<String, dynamic> product,
+      Map<String, dynamic> priceInfo, double imageHeight) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final hasDiscount = priceInfo['discountRate'] != null &&
@@ -562,17 +568,39 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                         _actionCircleBtn(
                           icon: Icons.shopping_bag_outlined,
                           tooltip: 'Add to Cart',
-                          onTap: () {
-                            if (ProductHelper.isInStock(product) && variantId.isNotEmpty) {
-                              _handleAddToCart(product, productId, variantId, 1);
+                          onTap: () async {
+                            if (ProductHelper.isInStock(product) &&
+                                variantId.isNotEmpty) {
+                              await _handleAddToCart(
+                                  product, productId, variantId, 1);
                               Get.snackbar(
                                 'Added to Cart',
                                 '${ProductHelper.getProductName(product)} added to your cart',
                                 snackPosition: SnackPosition.BOTTOM,
                                 backgroundColor: colorScheme.primary,
                                 colorText: colorScheme.onPrimary,
-                                duration: const Duration(seconds: 2),
+                                duration: const Duration(seconds: 3),
                                 margin: const EdgeInsets.all(16),
+                                mainButton: TextButton(
+                                  onPressed: () {
+                                    if (Get.isRegistered<
+                                        BottombarController>()) {
+                                      Get.find<BottombarController>()
+                                          .currentPageIndex
+                                          .value = 4;
+                                      Get.find<BottombarController>()
+                                          .pageController
+                                          .jumpToPage(4);
+                                    }
+                                  },
+                                  child: Text(
+                                    'VIEW CART',
+                                    style: TextStyle(
+                                      color: colorScheme.onPrimary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
                               );
                             } else {
                               Get.snackbar(
@@ -589,14 +617,18 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                         _actionCircleBtn(
                           icon: Icons.remove_red_eye_outlined,
                           tooltip: 'Quick View',
-                          onTap: () => ProductQuickViewModal.show(context, product),
+                          onTap: () =>
+                              ProductQuickViewModal.show(context, product),
                         ),
                         const SizedBox(height: 5),
                         // 3. Wishlist
                         Obx(() {
-                          final isFav = WishListService.to.isInWishlist(productId);
+                          final isFav =
+                              WishListService.to.isInWishlist(productId);
                           return _actionCircleBtn(
-                            icon: isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                            icon: isFav
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
                             iconColor: isFav ? colorScheme.error : null,
                             tooltip: 'Wishlist',
                             onTap: () => _handleWishlistTap(product),
@@ -669,7 +701,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      ProductHelper.formatPrice(priceInfo['productPrice']?.toString() ?? '0'),
+                      ProductHelper.formatPrice(
+                          priceInfo['productPrice']?.toString() ?? '0'),
                       style: textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.primary,
@@ -679,7 +712,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                     if (hasDiscount && priceInfo['salePrice'] != null) ...[
                       const SizedBox(width: 5),
                       Text(
-                        ProductHelper.formatPrice(priceInfo['salePrice'].toString()),
+                        ProductHelper.formatPrice(
+                            priceInfo['salePrice'].toString()),
                         style: textTheme.bodySmall?.copyWith(
                           fontSize: 11,
                           decoration: TextDecoration.lineThrough,
@@ -790,7 +824,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       List fetched = [];
       if (response is Map<String, dynamic> && response.containsKey('docs')) {
         fetched = response['docs'] is List ? response['docs'] : [];
-      } else if (response is Map<String, dynamic> && response.containsKey('data')) {
+      } else if (response is Map<String, dynamic> &&
+          response.containsKey('data')) {
         fetched = response['data'] is List ? response['data'] : [];
       } else if (response is List) {
         fetched = response;
@@ -839,13 +874,15 @@ class _TrendingProductCardState extends State<TrendingProductSection>
               itemBuilder: (context, index) {
                 final child = children[index] as Map<String, dynamic>;
                 final name = child['name']?.toString() ?? '';
-                final image = HelperFunctions().getImage(child['featured_image']);
+                final image =
+                    HelperFunctions().getImage(child['featured_image']);
                 final slug = child['slug']?.toString() ?? '';
                 final id = (child['_id'] ?? child['id'] ?? '').toString();
 
                 return GestureDetector(
                   onTap: () {
-                    openShop({
+                    openShop(
+                      {
                         'productId': id,
                         'categorySlug': slug,
                         'name': name,
@@ -1011,7 +1048,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             label: const Text('Explore All Products'),
             style: OutlinedButton.styleFrom(
               foregroundColor: colorScheme.primary,
-              side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.6)),
+              side:
+                  BorderSide(color: colorScheme.primary.withValues(alpha: 0.6)),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -1029,15 +1067,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   int _getDisplayLimit() {
     if (_tabsEnabled) return 1 << 30;
-    final style = widget.contentJson?['layout'] ?? 'standard';
-    final listViewType = widget.contentJson?['list_view_type'] ?? 'horizontal';
-    if (listViewType == 'vertical' ||
-        (style == 'horizontal' && listViewType != 'horizontal')) {
-      return 2;
-    } else if (style == 'standard') {
-      return 3;
-    }
-    return widget.contentJson?['count'] ?? 4;
+    final count = int.tryParse(widget.contentJson?['count']?.toString() ?? '');
+    if (count != null && count > 0) return count;
+    return 10;
   }
 
   List get displayedProducts {
@@ -1064,6 +1096,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
     // default: horizontal scrolling list (original behavior)
     switch (style) {
+      case 'parent_web':
+        return _buildParentWebHorizontalList();
       case 'horizontal':
         return _buildHorizontalStyleList();
       case 'overlay':
@@ -1088,7 +1122,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             21;
     // final itemCount =
     //     _infiniteScroll ? trendingList.length + 1 : trendingList.length;
-    
+
     final itemCount = _infiniteScroll
         ? displayedProducts.length + 1
         : displayedProducts.length;
@@ -1141,20 +1175,22 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // VERTICAL LIST VIEW
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildVerticalListView(String style) {
-    // final itemCount =
-    //     _infiniteScroll ? trendingList.length + 1 : trendingList.length;
-
     final itemCount = _infiniteScroll
         ? displayedProducts.length + 1
         : displayedProducts.length;
 
+    final isParentWeb = style == 'parent_web';
+    final listPadding = isParentWeb
+        ? const EdgeInsets.symmetric(vertical: 4)
+        : pageSurroundingPadding;
+
     return Padding(
-      padding: pageSurroundingPadding,
+      padding: listPadding,
       child: ListView.separated(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: itemCount,
-        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        separatorBuilder: (_, __) => SizedBox(height: isParentWeb ? 0 : 10),
         itemBuilder: (context, index) {
           if (index >= displayedProducts.length) {
             return _buildLoadingIndicatorVertical();
@@ -1162,9 +1198,68 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           final product = displayedProducts[index] as Map<String, dynamic>;
           final priceInfo = ProductHelper.calculatePriceInfo(product);
           if (!priceInfo['hasValidVariants']) return const SizedBox.shrink();
+
+          if (style == 'parent_web') {
+            return ParentWebProductCard(product: product, isList: true);
+          }
+
+          if (style == 'overlay') {
+            return _buildOverlayItem(product, priceInfo);
+          }
+
           // Use horizontal-style card (image left, info right) for vertical lists
           return _buildHorizontalItem(product, priceInfo);
         },
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // STYLE 0 — PARENT WEB (Clean portrait cards with 4 action buttons)
+  // ═══════════════════════════════════════════════════════════════════════════
+  Widget _buildParentWebHorizontalList() {
+    final itemCount = _infiniteScroll
+        ? displayedProducts.length + 1
+        : displayedProducts.length;
+
+    final cardWidth = (MediaQuery.of(context).size.width * 0.40)
+        .clamp(145.0, 175.0)
+        .toDouble();
+    const totalCardHeight = 270.0;
+
+    return SizedBox(
+      height: totalCardHeight,
+      child: ScrollConfiguration(
+        behavior: ScrollConfiguration.of(context).copyWith(
+          dragDevices: {
+            PointerDeviceKind.touch,
+            PointerDeviceKind.mouse,
+            PointerDeviceKind.trackpad,
+          },
+        ),
+        child: ListView.separated(
+          controller: _scrollController,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          separatorBuilder: (context, index) => const SizedBox(width: 12),
+          shrinkWrap: false,
+          physics: const AlwaysScrollableScrollPhysics(),
+          scrollDirection: Axis.horizontal,
+          itemCount: itemCount,
+          itemBuilder: (context, index) {
+            if (index >= displayedProducts.length) {
+              return _buildLoadingIndicator();
+            }
+            final product = displayedProducts[index] as Map<String, dynamic>;
+            final priceInfo = ProductHelper.calculatePriceInfo(product);
+            if (!priceInfo['hasValidVariants']) {
+              return const SizedBox.shrink();
+            }
+            return SizedBox(
+              width: cardWidth,
+              child: ParentWebProductCard(product: product, isList: false),
+            );
+          },
+        ),
       ),
     );
   }
@@ -1778,8 +1873,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 () => _handleAddToCart(product, productId, variantId, -1)),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text('$qty',
-                  style: Theme.of(context).textTheme.labelMedium),
+              child:
+                  Text('$qty', style: Theme.of(context).textTheme.labelMedium),
             ),
             _cartStepperButton(Icons.add, colorScheme,
                 () => _handleAddToCart(product, productId, variantId, 1)),
@@ -1800,9 +1895,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     );
   }
 
-  Future<void> _handleAddToCart(Map<String, dynamic> product,
-      String productId, String variantId, int delta) async {
-    HelperFunctions().showOverlayLoader();
+  Future<void> _handleAddToCart(Map<String, dynamic> product, String productId,
+      String variantId, int delta) async {
     try {
       await CartService.to.manageCart(
         productId: productId,
@@ -1810,9 +1904,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         quantity: delta,
         product: product,
       );
-      HelperFunctions().hideOverlayLoader();
     } catch (e) {
-      HelperFunctions().hideOverlayLoader();
       HelperFunctions().showSnackBarError("Failed to update cart".tr);
     }
   }

@@ -142,6 +142,19 @@ mixin FoduuStudioLayoutMixin on GetxController {
     return result;
   }
 
+  /// `content_json` of the first section of [type] in the last-fetched
+  /// layout, or null when the page has no such section.
+  Map<String, dynamic>? contentJsonFor(String type) {
+    for (final section in _initialComponents) {
+      if (section is Map && section['type'] == type) {
+        final cj = section['content_json'];
+        if (cj is Map) return Map<String, dynamic>.from(cj);
+        return null;
+      }
+    }
+    return null;
+  }
+
   /// Fetch layout JSON from the API and build widgets.
   ///
   /// - [slug] — the page slug, e.g. `'home'`, `'category'`, etc.

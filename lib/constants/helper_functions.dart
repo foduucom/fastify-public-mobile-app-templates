@@ -96,7 +96,16 @@ class HelperFunctions {
 
   void hideOverlayLoader() {
     if (Get.isDialogOpen == true) {
-      Get.back();
+      try {
+        final ctx = Get.overlayContext ?? Get.context;
+        if (ctx != null && Navigator.of(ctx, rootNavigator: true).canPop()) {
+          Navigator.of(ctx, rootNavigator: true).pop();
+        } else {
+          Get.back();
+        }
+      } catch (_) {
+        Get.back();
+      }
     }
   }
 

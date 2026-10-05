@@ -64,41 +64,42 @@ class BottombarView extends GetView<BottombarController> {
         bottom: false,
         child: Builder(
           builder: (scaffoldContext) => Column(
-          children: [
-            // ONE COMMON HEADER FOR HOME PAGE
-            Obx(() {
-              // Header for Home (0); other pages provide their own dedicated AppBars
-              final index = controller.currentPageIndex.value;
-              if (index == 0) {
-                return ResponsiveCommonHeader(
-                  width: width,
-                  height: height,
-                  onSearchTap: () => Get.toNamed(Routes.SEARCH),
-                  onCartTap: () => controller.onTabChange(4),
-                  onMessageTap: () => Scaffold.of(scaffoldContext).openDrawer(),
-                  onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),
-                );
-              }
-              // Hide common header for Account (1), Shop (2), Wishlist (3), Cart (4)
-              return const SizedBox.shrink();
-            }),
+            children: [
+              // ONE COMMON HEADER FOR HOME PAGE
+              Obx(() {
+                // Header for Home (0); other pages provide their own dedicated AppBars
+                final index = controller.currentPageIndex.value;
+                if (index == 0) {
+                  return ResponsiveCommonHeader(
+                    width: width,
+                    height: height,
+                    onSearchTap: () => Get.toNamed(Routes.SEARCH),
+                    onCartTap: () => controller.onTabChange(4),
+                    onMessageTap: () =>
+                        Scaffold.of(scaffoldContext).openDrawer(),
+                    //onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),
+                  );
+                }
+                // Hide common header for Account (1), Shop (2), Wishlist (3), Cart (4)
+                return const SizedBox.shrink();
+              }),
 
-            // PageView takes remaining space
-            Expanded(
-              child: PageView(
-                controller: controller.pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  HomePageView(),
-                  ProfileView(),
-                  const ShopView(),
-                  WishlistView(),
-                  CartView(),
-                ],
+              // PageView takes remaining space
+              Expanded(
+                child: PageView(
+                  controller: controller.pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    HomePageView(),
+                    ProfileView(),
+                    const ShopView(),
+                    WishlistView(),
+                    CartView(),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: _buildBottomNav(context),

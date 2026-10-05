@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
@@ -10,6 +9,7 @@ import 'package:foduu_ecommerce/constants/helper_functions.dart';
 // import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:get/get.dart';
 import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
+import 'package:foduu_ecommerce/components/commonWidgets/user_avatar.dart';
 // import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 // import 'package:font_awesome_flutter/name_icon_mapping.dart';
 
@@ -170,56 +170,34 @@ class CustomDrawer extends GetView<HomepageController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Profile Image with borders and shadows
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: ClipOval(
-              child: isLoggedIn && userData?['featured_image'] != null
-                  ? CachedNetworkImage(
-                      width: 72,
-                      height: 72,
-                      fit: BoxFit.cover,
-                      imageUrl: HelperFunctions()
-                          .getImage(userData['featured_image']),
-                      placeholder: (context, url) => const SizedBox(
-                        width: 72,
-                        height: 72,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      errorWidget: (context, url, error) => CircleAvatar(
-                        radius: 36,
-                        backgroundColor: Colors.white,
-                        child: Icon(
-                          Icons.person,
-                          size: 44,
-                          color: Colors.grey.shade400,
-                        ),
-                      ),
-                    )
-                  : CircleAvatar(
-                      radius: 36,
-                      backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.person,
-                        size: 44,
-                        color: Colors.grey.shade400,
-                      ),
-                    ),
-            ),
+          UserAvatar(
+            imageUrl: (isLoggedIn &&
+                    userData != null &&
+                    userData['featured_image'] != null)
+                ? HelperFunctions().getImage(userData['featured_image'])
+                : null,
+            name: isLoggedIn && userData != null ? userData['name']?.toString() : null,
+            radius: 36,
+            borderWidth: 2,
+            borderColor: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+            onTap: () {
+              Get.back();
+              _navigateToBottomBarPage(1); // Navigate to Profile tab
+            },
           ),
           const SizedBox(height: 16),
           // User Name
           Text(
-            isLoggedIn ? (userData?['name'] ?? 'User') : 'Welcome Guest',
+            isLoggedIn && userData != null
+                ? (userData['name']?.toString() ?? 'User')
+                : 'Welcome Guest',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 18,
@@ -230,7 +208,9 @@ class CustomDrawer extends GetView<HomepageController> {
           const SizedBox(height: 4),
           // User Email
           Text(
-            isLoggedIn ? (userData?['email'] ?? '') : 'Login to your account',
+            isLoggedIn && userData != null
+                ? (userData['email']?.toString() ?? '')
+                : 'Login to your account',
             style: TextStyle(
               color: Colors.white.withOpacity(0.85),
               fontSize: 14,

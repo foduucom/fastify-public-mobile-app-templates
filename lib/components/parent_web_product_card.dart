@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
-import 'package:foduu_ecommerce/components/product_quick_view_modal.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/product_helper.dart';
@@ -100,6 +99,16 @@ class ParentWebProductCard extends StatelessWidget {
     );
   }
 
+  Future<void> _updateCartQuantity(BuildContext context, int delta) async {
+    final variantId = _resolveDefaultVariantId();
+    await CartService.to.manageCart(
+      productId: _productId,
+      variantId: variantId,
+      quantity: delta,
+      product: product,
+    );
+  }
+
   Future<void> _handleToggleWishlist() async {
     final slug = product['slug']?.toString() ?? '';
     final variantId = _resolveDefaultVariantId();
@@ -108,18 +117,6 @@ class ParentWebProductCard extends StatelessWidget {
       variantSlug: slug,
       variantId: variantId.isNotEmpty ? variantId : null,
       productData: product,
-    );
-  }
-
-  void _handleCompare(BuildContext context) {
-    Get.snackbar(
-      'Compare',
-      '${ProductHelper.getProductName(product)} added to comparison',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Theme.of(context).colorScheme.secondary,
-      colorText: Theme.of(context).colorScheme.onSecondary,
-      duration: const Duration(seconds: 2),
-      margin: const EdgeInsets.all(16),
     );
   }
 
@@ -132,7 +129,7 @@ class ParentWebProductCard extends StatelessWidget {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // 1. GRID CARD (2-Column portrait layout mirroring parent website)
+  // 1. GRID CARD (Portrait 2-column fashion card)
   // ─────────────────────────────────────────────────────────────
   Widget _buildGridCard(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -143,20 +140,19 @@ class ParentWebProductCard extends StatelessWidget {
     final productName = ProductHelper.getProductName(product);
     final priceStr = priceInfo['productPrice']?.toString() ?? '0';
     final regularPriceStr = priceInfo['salePrice']?.toString() ?? '';
-    final hasDiscount = priceInfo['discountRate'] != null &&
-        priceInfo['discountRate'].toString().trim().isNotEmpty;
+    final discountRateStr = priceInfo['discountRate']?.toString() ?? '';
+    final hasDiscount = discountRateStr.trim().isNotEmpty;
 
     return GestureDetector(
       onTap: _navigateToDetail,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.max,
         children: [
-          // Image with Floating Action Stack
-          AspectRatio(
-            aspectRatio: 0.85,
+          // Image with Floating Wishlist and Bag
+          Expanded(
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -179,27 +175,91 @@ class ParentWebProductCard extends StatelessWidget {
                       top: 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                            horizontal: 7, vertical: 3),
                         decoration: BoxDecoration(
                           color: colorScheme.error,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 4,
+                            ),
+                          ],
                         ),
                         child: Text(
-                          'Sale',
+                          discountRateStr.isNotEmpty ? discountRateStr : 'SALE',
                           style: textTheme.labelSmall?.copyWith(
                             color: colorScheme.onError,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                             fontSize: 10,
                           ),
                         ),
                       ),
                     ),
 
-                  // Floating 4-Action Stack (top-right)
+                  // Floating Wishlist Heart (top-right)
                   Positioned(
                     right: 8,
                     top: 8,
-                    child: _buildActionStack(context),
+                    child: Obx(() {
+                      final isFav = WishListService.to.isInWishlist(_productId);
+                      return GestureDetector(
+                        onTap: _handleToggleWishlist,
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: context.surfaceColor.withValues(alpha: 0.9),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.12),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            isFav
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            size: 17,
+                            color: isFav
+                                ? colorScheme.error
+                                : context.onSurfaceColor,
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+
+                  // Floating Quick Add to Bag (bottom-right)
+                  Positioned(
+                    right: 8,
+                    bottom: 8,
+                    child: GestureDetector(
+                      onTap: () => _handleAddToCart(context),
+                      child: Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: colorScheme.primary,
+                          boxShadow: [
+                            BoxShadow(
+                              color: colorScheme.primary.withValues(alpha: 0.35),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.shopping_bag_outlined,
+                          size: 17,
+                          color: colorScheme.onPrimary,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -219,7 +279,7 @@ class ParentWebProductCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 3),
 
           // Product Title (centered)
           Padding(
@@ -231,13 +291,13 @@ class ParentWebProductCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: textTheme.bodyMedium?.copyWith(
                 fontSize: 12.5,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
                 color: context.onSurfaceColor,
-                height: 1.2,
+                height: 1.25,
               ),
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 3),
 
           // Product Price (centered)
           Center(
@@ -250,7 +310,7 @@ class ParentWebProductCard extends StatelessWidget {
                   Text(
                     ProductHelper.formatPrice(priceStr),
                     style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                       color: colorScheme.primary,
                     ),
                     maxLines: 1,
@@ -277,7 +337,7 @@ class ParentWebProductCard extends StatelessWidget {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // 2. LIST CARD (1-Column horizontal row mirroring #aq-listLayout)
+  // 2. LIST CARD (Luxury Mobile Fashion Row Card)
   // ─────────────────────────────────────────────────────────────
   Widget _buildListCard(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -288,30 +348,41 @@ class ParentWebProductCard extends StatelessWidget {
     final productName = ProductHelper.getProductName(product);
     final priceStr = priceInfo['productPrice']?.toString() ?? '0';
     final regularPriceStr = priceInfo['salePrice']?.toString() ?? '';
-    final hasDiscount = priceInfo['discountRate'] != null &&
-        priceInfo['discountRate'].toString().trim().isNotEmpty;
+    final discountRateStr = priceInfo['discountRate']?.toString() ?? '';
+    final hasDiscount = discountRateStr.trim().isNotEmpty;
+    final inStock = ProductHelper.isInStock(product);
 
     return GestureDetector(
       onTap: _navigateToDetail,
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: context.surfaceColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: context.outlineColor.withOpacity(0.3)),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: context.outlineColor.withValues(alpha: 0.15),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Thumbnail with Sale badge
+            // Portrait Fashion Thumbnail (~3:4 aspect ratio)
             ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
               child: Stack(
                 children: [
                   SizedBox(
-                    width: 100,
-                    height: 110,
+                    width: 112,
+                    height: 145,
                     child: CachedNetworkImage(
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,
@@ -320,27 +391,33 @@ class ParentWebProductCard extends StatelessWidget {
                       errorWidget: (_, __, ___) => Container(
                         color: context.surfaceVariantColor,
                         child: Icon(Icons.image_outlined,
-                            color: context.onSurfaceVariantColor),
+                            color: context.onSurfaceVariantColor, size: 28),
                       ),
                     ),
                   ),
                   if (hasDiscount)
                     Positioned(
-                      left: 4,
-                      top: 4,
+                      left: 6,
+                      top: 6,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 5, vertical: 1),
+                            horizontal: 6, vertical: 2.5),
                         decoration: BoxDecoration(
                           color: colorScheme.error,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.25),
+                              blurRadius: 3,
+                            ),
+                          ],
                         ),
                         child: Text(
-                          'Sale',
+                          discountRateStr.isNotEmpty ? discountRateStr : 'SALE',
                           style: textTheme.labelSmall?.copyWith(
                             color: colorScheme.onError,
                             fontSize: 9,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
@@ -350,61 +427,152 @@ class ParentWebProductCard extends StatelessWidget {
             ),
             const SizedBox(width: 14),
 
-            // Info (Title, Rating, Price)
+            // Product Details & Actions
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Title + Wishlist Heart Row
                   Row(
-                    children: List.generate(
-                      5,
-                      (index) => const Icon(
-                        Icons.star_rounded,
-                        size: 14,
-                        color: DefaultThemeColors.alertWarninglight,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          productName,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            height: 1.25,
+                            color: context.onSurfaceColor,
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 4),
+                      // Dedicated Touch-Friendly Wishlist Button
+                      Obx(() {
+                        final isFav =
+                            WishListService.to.isInWishlist(_productId);
+                        return GestureDetector(
+                          onTap: _handleToggleWishlist,
+                          behavior: HitTestBehavior.opaque,
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isFav
+                                  ? colorScheme.error.withValues(alpha: 0.1)
+                                  : context.surfaceVariantColor
+                                      .withValues(alpha: 0.4),
+                            ),
+                            alignment: Alignment.center,
+                            child: Icon(
+                              isFav
+                                  ? Icons.favorite_rounded
+                                  : Icons.favorite_border_rounded,
+                              size: 18,
+                              color: isFav
+                                  ? colorScheme.error
+                                  : context.onSurfaceVariantColor,
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    productName,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: context.onSurfaceColor,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
+
+                  // Rating Stars + Score
                   Row(
+                    children: [
+                      ...List.generate(
+                        5,
+                        (index) => const Icon(
+                          Icons.star_rounded,
+                          size: 13,
+                          color: DefaultThemeColors.alertWarninglight,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '5.0',
+                        style: textTheme.bodySmall?.copyWith(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: context.onSurfaceVariantColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Pricing Block
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 6,
+                    runSpacing: 2,
                     children: [
                       Text(
                         ProductHelper.formatPrice(priceStr),
                         style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
                           color: colorScheme.primary,
                         ),
                       ),
-                      if (hasDiscount && regularPriceStr.isNotEmpty) ...[
-                        const SizedBox(width: 8),
+                      if (hasDiscount && regularPriceStr.isNotEmpty)
                         Text(
                           ProductHelper.formatPrice(regularPriceStr),
                           style: textTheme.bodySmall?.copyWith(
+                            fontSize: 12,
                             decoration: TextDecoration.lineThrough,
                             color: context.onSurfaceVariantColor,
                           ),
                         ),
-                      ],
+                      if (hasDiscount && discountRateStr.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 1.5),
+                          decoration: BoxDecoration(
+                            color: colorScheme.error.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            discountRateStr,
+                            style: textTheme.labelSmall?.copyWith(
+                              color: colorScheme.error,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Bottom Action Row: Stock status & Cart button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        inStock ? 'In Stock' : 'Out of Stock',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: inStock
+                              ? const Color(0xFF16A34A)
+                              : colorScheme.error,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                        ),
+                      ),
+                      _buildCartActionButton(context, inStock),
                     ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-
-            // Action Stack in list mode
-            _buildActionStack(context, isCompact: true),
           ],
         ),
       ),
@@ -412,111 +580,104 @@ class ParentWebProductCard extends StatelessWidget {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // 3. 4-ACTION FLOATING BUTTON STACK
+  // 3. CART ACTION BUTTON / STEPPER
   // ─────────────────────────────────────────────────────────────
-  Widget _buildActionStack(BuildContext context, {bool isCompact = false}) {
-    final double buttonSize = isCompact ? 30.0 : 34.0;
-    final double iconSize = isCompact ? 15.0 : 17.0;
+  Widget _buildCartActionButton(BuildContext context, bool inStock) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final variantId = _resolveDefaultVariantId();
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // 1. Add to Cart Button
-        _actionButton(
-          context: context,
-          size: buttonSize,
-          onTap: () => _handleAddToCart(context),
-          tooltip: 'Add to Cart',
-          child: Icon(
-            Icons.shopping_bag_outlined,
-            size: iconSize,
-            color: context.onSurfaceColor,
+    if (!inStock) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          'Unavailable',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 6),
+      );
+    }
 
-        // 2. Quick View Button
-        _actionButton(
-          context: context,
-          size: buttonSize,
-          onTap: () => ProductQuickViewModal.show(context, product),
-          tooltip: 'Quick View',
-          child: Icon(
-            Icons.remove_red_eye_outlined,
-            size: iconSize,
-            color: context.onSurfaceColor,
-          ),
-        ),
-        const SizedBox(height: 6),
+    return Obx(() {
+      final cartItem = CartService.to.cartItems.firstWhereOrNull((item) {
+        final p = item['product_id'];
+        final pid = (p is Map ? (p['_id'] ?? p['id']) : p)?.toString();
+        return pid == _productId &&
+            (variantId.isEmpty || item['variant_id'] == variantId);
+      });
 
-        // 3. Wishlist Button (Reactive)
-        Obx(() {
-          final isFav = WishListService.to.isInWishlist(_productId);
-          return _actionButton(
-            context: context,
-            size: buttonSize,
-            onTap: _handleToggleWishlist,
-            tooltip: 'Wishlist',
-            child: Icon(
-              isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-              size: iconSize,
-              color: isFav
-                  ? Theme.of(context).colorScheme.error
-                  : context.onSurfaceColor,
-            ),
-          );
-        }),
-        const SizedBox(height: 6),
-
-        // 4. Compare Button
-        _actionButton(
-          context: context,
-          size: buttonSize,
-          onTap: () => _handleCompare(context),
-          tooltip: 'Compare',
-          child: Icon(
-            Icons.swap_horiz_rounded,
-            size: iconSize,
-            color: context.onSurfaceColor,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _actionButton({
-    required BuildContext context,
-    required double size,
-    required VoidCallback onTap,
-    required Widget child,
-    required String tooltip,
-  }) {
-    return Tooltip(
-      message: tooltip,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: size,
-          height: size,
+      if (cartItem != null) {
+        final qty = cartItem['quantity'] ?? 1;
+        return Container(
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
             color: context.surfaceColor,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: colorScheme.primary, width: 1.2),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                onTap: () => _updateCartQuantity(context, -1),
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  child:
+                      Icon(Icons.remove, size: 14, color: colorScheme.primary),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  '$qty',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: context.onSurfaceColor,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => _updateCartQuantity(context, 1),
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  child: Icon(Icons.add, size: 14, color: colorScheme.primary),
+                ),
               ),
             ],
-            border: Border.all(
-              color: context.outlineColor.withOpacity(0.2),
-              width: 0.5,
-            ),
           ),
-          alignment: Alignment.center,
-          child: child,
+        );
+      }
+
+      return ElevatedButton.icon(
+        onPressed: () => _handleAddToCart(context),
+        icon: const Icon(Icons.shopping_bag_outlined, size: 13),
+        label: const Text(
+          'Add',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
         ),
-      ),
-    );
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+      );
+    });
   }
 }

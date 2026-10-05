@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
 import '/constants/helper_functions.dart';
+import '/helpers/dialog_helper.dart';
 import 'package:get/get.dart';
 import 'address_list_controller.dart';
 
@@ -33,6 +34,7 @@ class AddressFormController extends GetxController with BaseController {
 
   var isEditMode = false;
   var editAddressId = '';
+  var editCityId = '';
 
   @override
   void onInit() {
@@ -121,10 +123,16 @@ class AddressFormController extends GetxController with BaseController {
             selectedState.value = {};
           }
 
-          if (addr['city'] != null && addr['city'] is Map) {
-            selectedCity.value = Map.from(addr['city']);
+          if (addr['city'] != null) {
+            if (addr['city'] is Map) {
+              selectedCity.value = Map.from(addr['city']);
+              editCityId = selectedCity['_id'] ?? '';
+            } else if (addr['city'] is String) {
+              editCityId = addr['city'];
+            }
           } else {
             selectedCity.value = {};
+            editCityId = '';
           }
 
           if (selectedCountry.isNotEmpty) _fetchStates(selectedCountry['_id']);
@@ -177,9 +185,16 @@ class AddressFormController extends GetxController with BaseController {
       var response = await BasicProvider('cities/$stateId')
           .getRequest()
           .catchError(handleError);
-      if (response != null) {
+      if (response != null && response['data'] != null) {
         print('city response ${response}');
         cityList.assignAll(response['data']);
+        if (selectedCity.isEmpty && editCityId.isNotEmpty) {
+          final matched =
+              cityList.firstWhereOrNull((c) => c['_id'] == editCityId);
+          if (matched != null) {
+            selectedCity.value = Map.from(matched);
+          }
+        }
       }
     } catch (e) {
       print('Error fetching cities: $e');
@@ -275,16 +290,56 @@ class AddressFormController extends GetxController with BaseController {
         }
       }
 
+      // Hide loader before dialog or route navigation
+      HelperFunctions().hideOverlayLoader();
+      isLoading.value = false;
+
       if (isSuccess) {
         if (Get.isRegistered<AddressListController>()) {
-          Get.find<AddressListController>().refreshAddresses();
+          final listCtrl = Get.find<AddressListController>();
+          if (selectedCity['_id'] != null && selectedCity['name'] != null) {
+            listCtrl.cacheCity(
+              selectedCity['_id'].toString(),
+              selectedCity['name'].toString(),
+            );
+          }
+          listCtrl.refreshAddresses();
         }
-        Get.back(result: true);
+
+        bool hasRedirected = false;
+        void redirectBack() {
+          if (hasRedirected) return;
+          hasRedirected = true;
+          if (Get.isDialogOpen == true) {
+            Get.back(); // Dismiss dialog
+          }
+          Get.back(result: true); // Redirect back to AddressListView
+        }
+
+        // Show successful dialog
+        DialogHelper.showSuccessDialog(
+          title: isEditMode
+              ? "Address Updated Successfully"
+              : "Address Saved Successfully",
+          description: isEditMode
+              ? "Your address details have been successfully updated."
+              : "Your delivery address has been saved and added to your address list.",
+          imagePath: "assets/images/Illustration.png",
+          buttonText: "Continue",
+          onPressed: redirectBack,
+        );
+
+        // Automatic redirect to AddressListView after delay
+        Future.delayed(const Duration(milliseconds: 1800), () {
+          redirectBack();
+        });
       }
     } catch (e) {
+      HelperFunctions().hideOverlayLoader();
+      isLoading.value = false;
       print('Error saving address: $e');
+      HelperFunctions().showSnackBarError("Failed to save address: $e");
     } finally {
-      // Close loader
       HelperFunctions().hideOverlayLoader();
       isLoading.value = false;
     }

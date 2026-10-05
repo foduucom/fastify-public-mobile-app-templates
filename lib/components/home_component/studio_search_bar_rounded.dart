@@ -13,18 +13,20 @@ class SearchViewHeader extends StatelessWidget {
     required this.height,
     required this.searchTextController,
     required this.onSearchChanged,
+    this.hintText = "Search products, categories...",
     this.onCartTap,
-    this.onMessageTap,
-    this.onNotificationTap,
+    //this.onMessageTap,
+    //this.onNotificationTap,
   }) : super(key: key);
 
   final double width;
   final double height;
   final TextEditingController searchTextController;
   final Function(String) onSearchChanged;
+  final String hintText;
   final VoidCallback? onCartTap;
-  final VoidCallback? onMessageTap;
-  final VoidCallback? onNotificationTap;
+  //final VoidCallback? onMessageTap;
+  //final VoidCallback? onNotificationTap;
 
   @override
   Widget build(BuildContext context) {
@@ -49,9 +51,10 @@ class SearchViewHeader extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(height),
                 border: Border.all(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey[800]!
-                      : Colors.grey[300]!,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outline
+                      .withValues(alpha: 0.4),
                 ),
               ),
               child: Row(
@@ -70,8 +73,8 @@ class SearchViewHeader extends StatelessWidget {
                     child: TextFormField(
                       controller: searchTextController,
                       onChanged: onSearchChanged,
-                      decoration: const InputDecoration(
-                        hintText: "Search products, categories...",
+                      decoration: InputDecoration(
+                        hintText: hintText,
                         filled: true,
                         fillColor: Colors.transparent,
                         border: InputBorder.none,
@@ -109,22 +112,22 @@ class SearchViewHeader extends StatelessWidget {
           SizedBox(width: width * 0.01),
 
           /// ☰ Menu / Drawer
-          ResponsiveCircleIcon(
-            icon: Icons.menu,
-            height: height,
-            width: width,
-            onTap: onMessageTap,
-          ),
+          // ResponsiveCircleIcon(
+          //   icon: Icons.menu,
+          //   height: height,
+          //   width: width,
+          //   onTap: onMessageTap,
+          // ),
 
-          SizedBox(width: width * 0.02),
+          // SizedBox(width: width * 0.02),
 
           /// 🔔 Notifications
-          ResponsiveCircleIcon(
-            icon: Icons.notifications_none,
-            height: height,
-            width: width,
-            onTap: onNotificationTap,
-          ),
+          // ResponsiveCircleIcon(
+          //   icon: Icons.notifications_none,
+          //   height: height,
+          //   width: width,
+          //   onTap: onNotificationTap,
+          // ),
         ],
       ),
     );
