@@ -7,6 +7,7 @@ import '/constants/constants.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 
 class CategoryHome extends StatefulWidget {
   final dynamic categoryData;
@@ -113,7 +114,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
               }
             });
           } else {
-            Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+            openShop({
               'productId': category['_id'],
               'categorySlug': category['slug'],
               'name': category['name'],

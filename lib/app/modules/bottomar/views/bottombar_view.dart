@@ -3,7 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import 'package:foduu_ecommerce/app/modules/cart/views/cart_view.dart';
-import 'package:foduu_ecommerce/app/modules/category/views/category_view.dart';
+import 'package:foduu_ecommerce/app/modules/shop/views/shop_view.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/views/home_page_view.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/views/material/responsive_bottom_nav.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/views/material/responsive_common_header.dart';
@@ -65,20 +65,21 @@ class BottombarView extends GetView<BottombarController> {
         child: Builder(
           builder: (scaffoldContext) => Column(
           children: [
-            // ONE COMMON HEADER FOR ALL PAGES
+            // ONE COMMON HEADER FOR HOME PAGE
             Obx(() {
-              // Show header for first 3 tabs only (Home, Category, Wishlist)
-              if (controller.currentPageIndex.value <= 2) {
+              // Header for Home (0); other pages provide their own dedicated AppBars
+              final index = controller.currentPageIndex.value;
+              if (index == 0) {
                 return ResponsiveCommonHeader(
                   width: width,
                   height: height,
                   onSearchTap: () => Get.toNamed(Routes.SEARCH),
-                  onCartTap: () => Get.toNamed(Routes.CART),
+                  onCartTap: () => controller.onTabChange(4),
                   onMessageTap: () => Scaffold.of(scaffoldContext).openDrawer(),
                   onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),
                 );
               }
-              // Hide header for Profile page (index 3)
+              // Hide common header for Account (1), Shop (2), Wishlist (3), Cart (4)
               return const SizedBox.shrink();
             }),
 
@@ -89,9 +90,10 @@ class BottombarView extends GetView<BottombarController> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   HomePageView(),
-                  CategoryView(),
-                  WishlistView(),
                   ProfileView(),
+                  const ShopView(),
+                  WishlistView(),
+                  CartView(),
                 ],
               ),
             ),
@@ -120,9 +122,14 @@ class BottombarView extends GetView<BottombarController> {
             label: 'Home',
           ),
           const BottomNavItem(
-            activeIcon: Icons.grid_view_rounded,
-            inactiveIcon: Icons.grid_view_outlined,
-            label: 'Category',
+            activeIcon: Icons.person_rounded,
+            inactiveIcon: Icons.person_outline_rounded,
+            label: 'Account',
+          ),
+          const BottomNavItem(
+            activeIcon: Icons.storefront_rounded,
+            inactiveIcon: Icons.storefront_outlined,
+            label: 'Shop',
           ),
           BottomNavItem(
             activeIcon: Icons.favorite_rounded,
@@ -130,10 +137,11 @@ class BottombarView extends GetView<BottombarController> {
             label: 'Wishlist',
             badgeCount: wishListController.wishlistItems.length,
           ),
-          const BottomNavItem(
-            activeIcon: Icons.person_rounded,
-            inactiveIcon: Icons.person_outline_rounded,
-            label: 'Profile',
+          BottomNavItem(
+            activeIcon: Icons.shopping_bag_rounded,
+            inactiveIcon: Icons.shopping_bag_outlined,
+            label: 'Cart',
+            badgeCount: cartController.cartItems.length,
           ),
         ],
       );

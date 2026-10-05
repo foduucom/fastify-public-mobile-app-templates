@@ -11,10 +11,14 @@ import '/constants/theme.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 import 'home_common_widgets.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 
 class CategoryHome extends StatefulWidget {
   final dynamic categoryData;
-  CategoryHome({super.key, required this.categoryData});
+
+  /// Overrides the default tap behavior (dialog / shop navigation) when set.
+  final void Function(dynamic category)? onCategoryTap;
+  CategoryHome({super.key, required this.categoryData, this.onCategoryTap});
 
   @override
   State<CategoryHome> createState() => _TopCategoryHomeState();
@@ -56,7 +60,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
               onSeeAll: () => Get.toNamed(Routes.CATEGORY_SEARCH),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
         ],
         viewMode == 'grid'
             ? Padding(
@@ -64,7 +68,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
                 child: _buildGridView(categories, style, columns),
               )
             : _buildListView(categories, style, orientation),
-        const SizedBox(height: 22),
+        const SizedBox(height: 26),
       ],
     );
   }
@@ -138,6 +142,10 @@ class _TopCategoryHomeState extends State<CategoryHome>
   }) {
     return GestureDetector(
       onTap: () {
+        if (widget.onCategoryTap != null) {
+          widget.onCategoryTap!(category);
+          return;
+        }
         {
           //------------
           List children = category['children'] ?? [];
@@ -147,9 +155,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
             _showCategoryDialog(Get.context!, category);
           } else {
             // If no children, navigate directly to product list
-            Get.toNamed(
-              Routes.SHOPPRODUCTLISTVIEW,
-              arguments: {
+            openShop({
                 'productId': category['_id'],
                 'categorySlug': category['slug'],
                 'name': category['name'],
@@ -169,10 +175,10 @@ class _TopCategoryHomeState extends State<CategoryHome>
   }
 
   // Editorial overlay card matching modern e-commerce standards:
-  // Compact 200px height, ~145px width (~2.4 cards visible horizontally).
+  // Compact ~168px height, ~130px width to distinctively differentiate from product cards.
   static const double _overlayGridAspectRatio = 0.82;
-  double get _overlayCardWidth => (Get.width * 0.38).clamp(135.0, 155.0);
-  double get _overlayCardHeight => 200.0;
+  double get _overlayCardWidth => (Get.width * 0.33).clamp(124.0, 140.0);
+  double get _overlayCardHeight => 168.0;
 
   Widget _buildOverlayItem(dynamic category, {bool isGrid = false}) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -209,28 +215,28 @@ class _TopCategoryHomeState extends State<CategoryHome>
             ),
           ),
           Positioned(
-            left: 12,
-            right: 46,
-            bottom: 12,
+            left: 10,
+            right: 42,
+            bottom: 10,
             child: Text(
               category['name'].toString(),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
-                letterSpacing: 0.2,
+                letterSpacing: 0.1,
                 height: 1.2,
               ),
             ),
           ),
           Positioned(
-            right: 10,
-            bottom: 10,
+            right: 8,
+            bottom: 8,
             child: Container(
-              width: 32,
-              height: 32,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
                 color: colorScheme.primary,
                 shape: BoxShape.circle,
@@ -243,8 +249,8 @@ class _TopCategoryHomeState extends State<CategoryHome>
                 ],
               ),
               child: Icon(
-                Icons.arrow_forward,
-                size: 16,
+                Icons.arrow_forward_rounded,
+                size: 14,
                 color: colorScheme.onPrimary,
               ),
             ),
@@ -334,12 +340,12 @@ class _TopCategoryHomeState extends State<CategoryHome>
           borderRadius: BorderRadius.circular(Get.height * 0.015),
           color: Colors.transparent,
           child: InkWell(
-            onTap: () => category['children'] != null &&
+            onTap: () => widget.onCategoryTap != null
+                ? widget.onCategoryTap!(category)
+                : category['children'] != null &&
                     (category['children'] as List).isNotEmpty
                 ? _showCategoryDialog(context, category)
-                : Get.toNamed(
-                    Routes.SHOPPRODUCTLISTVIEW,
-                    arguments: {
+                : openShop({
                       'productId': category['_id'],
                       'categorySlug': category['slug'],
                       'name': category['name'],

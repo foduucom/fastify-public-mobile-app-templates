@@ -7,6 +7,7 @@ import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
 import '/app/modules/category/views/category_dialog.dart';
 import '/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 
 class CategorySearchController extends GetxController with BaseController {
   // ─── Lists ───────────────────────────────────────────────────────────────
@@ -238,9 +239,7 @@ class CategorySearchController extends GetxController with BaseController {
         barrierDismissible: true,
       );
     } else {
-      Get.toNamed(
-        Routes.SHOPPRODUCTLISTVIEW,
-        arguments: {
+      openShop({
           'productId': category['_id'],
           'categorySlug': category['slug'],
           'name': category['name'],

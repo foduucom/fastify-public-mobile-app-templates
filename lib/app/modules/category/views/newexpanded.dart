@@ -6,6 +6,7 @@ import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 import '../../../../../constants/constants.dart';
 import '../controllers/categorydetial_controller.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 
 class CategeorydetailView2 extends GetView<CategeorydetaiController> {
   CategeorydetailView2({super.key});
@@ -185,9 +186,7 @@ class CategeorydetailView2 extends GetView<CategeorydetaiController> {
                                       itemBuilder: (context, subindex) {
                                         return GestureDetector(
                                           onTap: () {
-                                            Get.toNamed(
-                                                Routes.SHOPPRODUCTLISTVIEW,
-                                                arguments: {
+                                            openShop({
                                                   'productId': controller
                                                           .subcategory[index]
                                                       ['_id'],

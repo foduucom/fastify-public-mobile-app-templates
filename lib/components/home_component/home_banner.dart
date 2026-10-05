@@ -8,6 +8,7 @@ import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 import 'dart:async';
 
 class HomeBanner extends StatefulWidget {
@@ -210,7 +211,7 @@ class _HomeBannerState extends State<HomeBanner>
     final borderRadius = config['border_radius']?.toDouble() ?? 12.0;
 
     return Padding(
-      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 6.0, bottom: 12.0),
+      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 6.0, bottom: 16.0),
       child: GestureDetector(
         onTap: () => handleBannerTap(items[0]),
         child: ClipRRect(
@@ -254,7 +255,7 @@ class _HomeBannerState extends State<HomeBanner>
       Get.toNamed(Routes.PRODUCTDETAILS,
           arguments: {'productId': link['value']});
     } else if (linkType == 'category') {
-      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+      openShop({
         'source': 'category',
         'categorySlug': link['value'],
         'productId': link['value'],

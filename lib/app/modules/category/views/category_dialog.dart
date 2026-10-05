@@ -7,6 +7,7 @@ import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 
 class CategoryDialog extends StatelessWidget {
   final Map<String, dynamic> category;
@@ -305,9 +306,7 @@ class CategoryDialog extends StatelessWidget {
                                     "DEBUG: Navigating from Sub-subcategory: ${dialogController.subcategory[subindex]['name']}");
                                 print(
                                     "DEBUG: Arguments: {productId: ${dialogController.subcategory[subindex]['_id']}, categorySlug: ${dialogController.subcategory[subindex]['slug']}}");
-                                Get.toNamed(
-                                  Routes.SHOPPRODUCTLISTVIEW,
-                                  arguments: {
+                                openShop({
                                     'productId': dialogController
                                         .subcategory[subindex]['_id'],
                                     'categorySlug': dialogController
@@ -478,7 +477,7 @@ class CategoryDialogController extends GetxController {
       Get.back();
       print(
           "DEBUG: Direct navigation from fetch (no children). Category: $parentName, Slug: $categorySlug");
-      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+      openShop({
         'productId': parentId,
         'categorySlug': categorySlug,
         'name': parentName,

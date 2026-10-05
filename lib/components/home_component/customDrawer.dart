@@ -9,6 +9,7 @@ import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 // import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:get/get.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 // import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 // import 'package:font_awesome_flutter/name_icon_mapping.dart';
 
@@ -56,14 +57,14 @@ class CustomDrawer extends GetView<HomepageController> {
                       subtitle: 'Browse all items',
                       onTap: () {
                         Get.back();
-                        Get.toNamed(Routes.SHOPPRODUCTLISTVIEW);
+                        openShop();
                       },
                     ),
                     DrawerTile(
                       icon: const Icon(Icons.category_outlined),
                       title: 'Shop By categories',
                       subtitle: 'Explore sections',
-                      onTap: () => _navigateToBottomBarPage(1),
+                      onTap: () => _navigateToBottomBarPage(shopTabIndex),
                     ),
                     DrawerTile(
                       icon: const Icon(Icons.filter_alt_outlined),

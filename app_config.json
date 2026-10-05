@@ -88,6 +88,11 @@
         "name": "Overlay",
         "slug": "overlay",
         "description": "Full-image card with gradient overlay showing product name and price at bottom — horizontal scrollable list"
+      },
+      {
+        "name": "Parent Website",
+        "slug": "parent_web",
+        "description": "Clean portrait card with 4 floating action buttons (Cart, Quick View, Wishlist, Compare), 5-star rating, and centered title/price mirroring the web parent"
       }
     ]
   },

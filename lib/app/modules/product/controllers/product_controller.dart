@@ -218,8 +218,11 @@ class ProductController extends GetxController
       var response =
           await BasicProvider("public/product/categorywise").postRequest(
         {"categories": category},
-      ).catchError(handleError);
-      if (response == null) return;
+      ).catchError((e) {
+        print("⚠️ Similar products endpoint not available: $e");
+        return null;
+      });
+      if (response == null || response['data'] == null) return;
       similarProduct.clear();
       similarProduct.addAll(response['data']);
     } catch (e) {
@@ -268,8 +271,11 @@ class ProductController extends GetxController
   void getProductReview(String productId) async {
     var response = await BasicProvider("public/reviews/product-wise/$productId")
         .getRequest()
-        .catchError(handleError);
-    if (response == null) return;
+        .catchError((e) {
+      print("⚠️ Product reviews endpoint not available: $e");
+      return null;
+    });
+    if (response == null || response['data'] == null) return;
     // productReview.addAll(response['data']);
     productReview.clear();
     productReview.addAll(response['data']);

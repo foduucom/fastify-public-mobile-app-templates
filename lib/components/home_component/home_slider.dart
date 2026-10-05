@@ -12,6 +12,7 @@ import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 import 'package:shimmer/shimmer.dart';
 
 class FoduuSlider extends StatefulWidget {
@@ -182,8 +183,7 @@ class _FoduuSliderState extends State<FoduuSlider>
                           behavior: HitTestBehavior.opaque,
                           onTap: () async {
                             if (sliderType == 'categories') {
-                              Get.toNamed(Routes.SHOPPRODUCTLISTVIEW,
-                                  arguments: {
+                              openShop({
                                     'source': 'category',
                                     'productId': link,
                                     'name': title

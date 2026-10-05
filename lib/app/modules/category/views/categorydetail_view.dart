@@ -11,6 +11,7 @@ import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import 'package:get/get.dart';
 import '../../../../../constants/constants.dart';
 import '../controllers/categorydetial_controller.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 
 class CategeorydetailView extends GetView<CategeorydetaiController> {
   CategeorydetailView({super.key});
@@ -208,9 +209,7 @@ class CategeorydetailView extends GetView<CategeorydetaiController> {
                                           if (controller.subcategory[subindex]
                                                   ['name'] !=
                                               'no further category') {
-                                            Get.toNamed(
-                                                Routes.SHOPPRODUCTLISTVIEW,
-                                                arguments: {
+                                            openShop({
                                                   'productId': controller
                                                           .subcategory[subindex]
                                                       ['_id'],

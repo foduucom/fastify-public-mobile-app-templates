@@ -4,6 +4,7 @@ import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/helpers/socket_helper.dart';
 import 'package:get/get.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 
 class StudioSocketRouting extends GetxController {
   final String? initialSlug;
@@ -12,13 +13,15 @@ class StudioSocketRouting extends GetxController {
   final SocketHelper _socketHelper = SocketHelper();
 
   // Map of bottom bar slugs to their tab indices
-  // Index 0=Home, 1=Category, 2=Cart, 3=Wishlist, 4=Profile
+  // Index 0=Home, 1=Account/Profile, 2=Shop/Category, 3=Wishlist, 4=Cart
   static const Map<String, int> _bottomBarTabs = {
     'home': 0,
-    'category': 1,
-    'cart': 2,
+    'account': 1,
+    'profile': 1,
+    'shop': 2,
+    'category': 2,
     'wishlist': 3,
-    'profile': 4,
+    'cart': 4,
   };
 
   @override
@@ -120,7 +123,7 @@ class StudioSocketRouting extends GetxController {
         Get.toNamed(Routes.SEARCH);
         break;
       case 'product-listing':
-        Get.toNamed(Routes.SHOPPRODUCTLISTVIEW);
+        openShop();
         break;
       default:
       // Get.toNamed(Routes.CUSTOMPAGE,

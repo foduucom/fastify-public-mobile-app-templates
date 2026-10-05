@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:get/get.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 
 class PriceFilter extends StatefulWidget {
@@ -116,7 +117,7 @@ class _PriceFilterState extends State<PriceFilter> {
   }
 
   void _navigateToProductList(dynamic price) {
-    Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+    openShop({
       'source': 'price_filter',
       'maxPrice': price,
       'name': "Under ₹$price"

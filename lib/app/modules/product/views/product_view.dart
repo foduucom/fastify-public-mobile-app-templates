@@ -314,11 +314,19 @@ class ProductView extends GetView<ProductController> {
                                                     controller.productDetials));
 
                                         if (productType == 'variable') {
+                                          final low = double.tryParse(
+                                                  priceInfo['lowestPrice']
+                                                          ?.toString() ??
+                                                      '0') ??
+                                              0;
+                                          final high = double.tryParse(
+                                                  priceInfo['highestPrice']
+                                                          ?.toString() ??
+                                                      '0') ??
+                                              0;
                                           return VariablePriceText(
-                                            lowestPrice:
-                                                priceInfo['lowestPrice'],
-                                            highestPrice:
-                                                priceInfo['highestPrice'],
+                                            lowestPrice: low,
+                                            highestPrice: high,
                                             style: txtTheme()
                                                 .displayMedium!
                                                 .copyWith(
@@ -328,10 +336,18 @@ class ProductView extends GetView<ProductController> {
                                                 ),
                                           );
                                         } else {
+                                          final prodPrice = double.tryParse(
+                                                  priceInfo['productPrice']
+                                                          ?.toString() ??
+                                                      '0') ??
+                                              0;
+                                          final origPrice = double.tryParse(
+                                              priceInfo['discountPrice']
+                                                      ?.toString() ??
+                                                  '');
                                           return SimplePriceText(
-                                            price: priceInfo['productPrice'],
-                                            originalPrice:
-                                                priceInfo['discountPrice'],
+                                            price: prodPrice,
+                                            originalPrice: origPrice,
                                             discountLabel:
                                                 priceInfo['discountRate'],
                                             priceStyle: txtTheme()

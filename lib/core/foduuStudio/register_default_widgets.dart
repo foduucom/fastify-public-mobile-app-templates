@@ -5,6 +5,7 @@ import '/app/routes/app_pages.dart';
 import '/components/home_component/home_products.dart';
 import '/components/home_component/home_rich_text_component.dart';
 import '/components/home_component/home_slider.dart';
+import '/components/home_component/home_trust_badges.dart';
 import '/components/home_component/home_banner.dart';
 import '/components/home_component/home_blogs.dart';
 import '/components/home_component/home_category.dart';
@@ -100,4 +101,9 @@ void registerDefaultWidgets() {
   // r.register('icon_button', (json) {
   //   return IconButtonComponent(contentJson: json ?? {});
   // });
+
+  // ─── Trust Badges / Testimonials ────────────────────────────
+  r.register('trust_badges', (json) {
+    return TrustBadgesComponent(contentJson: json ?? {});
+  });
 }

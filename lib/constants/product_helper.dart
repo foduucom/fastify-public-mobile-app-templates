@@ -1,9 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 
 /// Helper class for product-related calculations and utilities
 class ProductHelper {
+  /// Format a price value with currency symbol
+  static String formatPrice(dynamic val) {
+    if (val == null) return '';
+    final s = val.toString().trim();
+    if (s.isEmpty) return '';
+    final cleaned = s.replaceAll(RegExp(r'[^0-9.]'), '');
+    final numVal = num.tryParse(cleaned);
+    if (numVal != null) {
+      final formatted = numVal == numVal.roundToDouble()
+          ? numVal.toInt().toString()
+          : numVal.toStringAsFixed(2);
+      if (s.startsWith('\$')) return '\$$formatted';
+      if (s.startsWith('₹')) return '₹$formatted';
+      return '₹$formatted';
+    }
+    return s;
+  }
+
   /// Calculate price information for a product
   /// Returns a map with productPrice, discountPrice, discountRate, lowestPrice, highestPrice
   static Map<String, dynamic> calculatePriceInfo(Map<String, dynamic> product,

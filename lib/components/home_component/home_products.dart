@@ -15,13 +15,40 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 import 'home_common_widgets.dart';
+import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
+import 'package:foduu_ecommerce/components/product_quick_view_modal.dart';
+import 'package:foduu_ecommerce/components/parent_web_product_card.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 
 class TrendingProductSection extends StatefulWidget {
   final Map<String, dynamic>? contentJson;
 
+  /// When provided, the section renders this externally-owned list instead of
+  /// fetching its own data — used by pages (Shop) that run their own filtered,
+  /// paginated product fetch and just want the shared grid/card rendering.
+  final RxList<dynamic>? externalProducts;
+
+  /// Whether the external caller has more pages to load (external mode only).
+  final bool externalHasMore;
+
+  /// Whether the external caller is fetching another page (external mode only).
+  final bool externalIsLoadingMore;
+
+  /// Called when scrolling nears the end in external mode; the caller fetches
+  /// and appends to [externalProducts].
+  final VoidCallback? onLoadMore;
+
+  /// Hides the heading/subheading/"see all" row (external mode).
+  final bool hideHeader;
+
   const TrendingProductSection({
     super.key,
     this.contentJson,
+    this.externalProducts,
+    this.externalHasMore = false,
+    this.externalIsLoadingMore = false,
+    this.onLoadMore,
+    this.hideHeader = false,
   });
 
   @override
@@ -30,12 +57,14 @@ class TrendingProductSection extends StatefulWidget {
 
 class _TrendingProductCardState extends State<TrendingProductSection>
     with BaseController {
-  final trendingList = <dynamic>[].obs;
+  late final RxList<dynamic> trendingList;
+  bool get _isExternal => widget.externalProducts != null;
 
   // ─── Pagination State ───
   bool _infiniteScroll = false;
   final _currentPage = 2.obs;
   final _isLoadingMore = false.obs;
+  final _isInitialLoading = false.obs;
   final _hasMore = true.obs;
   int _countPerPage = 10;
   ScrollController? _scrollController;
@@ -47,6 +76,20 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   final _selectedTab = 0.obs;
   bool get _tabsEnabled => _tabs.isNotEmpty;
   final _childCategoriesCache = <String, List<dynamic>>{}.obs;
+
+  bool get _hasMoreValue =>
+      _isExternal ? widget.externalHasMore : _hasMore.value;
+  bool get _isLoadingMoreValue =>
+      _isExternal ? widget.externalIsLoadingMore : _isLoadingMore.value;
+
+  void _triggerLoadMore() {
+    if (_isExternal) {
+      if (!_hasMoreValue || _isLoadingMoreValue) return;
+      widget.onLoadMore?.call();
+    } else {
+      _fetchProductsFromApi();
+    }
+  }
 
   void _initTabs() {
     final json = widget.contentJson;
@@ -90,6 +133,18 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   @override
   void initState() {
     super.initState();
+    trendingList = widget.externalProducts ?? <dynamic>[].obs;
+
+    if (_isExternal) {
+      // Full external list with a load-more row; pagination is driven by the
+      // caller, so listen to the enclosing scrollable.
+      _infiniteScroll = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _attachParentScrollListener();
+      });
+      return;
+    }
+
     _infiniteScroll = widget.contentJson?['infinite_scroll'] == true;
     _countPerPage = widget.contentJson?['count'] ?? 10;
     _initTabs();
@@ -108,6 +163,12 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         trendingList.value = productData;
         _hasMore.value = false;
       }
+    } else {
+      _currentPage.value = 1;
+    }
+
+    if (trendingList.isEmpty && !_isExternal) {
+      _isInitialLoading.value = true;
     }
 
     if (_infiniteScroll) {
@@ -126,6 +187,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       }
     } else {
       _loadProducts();
+      if (trendingList.isEmpty && !_isExternal) {
+        _currentPage.value = 1;
+        _fetchProductsFromApi();
+      }
     }
   }
 
@@ -169,7 +234,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     if (_scrollController == null || !_scrollController!.hasClients) return;
     final pos = _scrollController!.position;
     if (pos.pixels >= pos.maxScrollExtent - 100) {
-      _fetchProductsFromApi();
+      _triggerLoadMore();
     }
   }
 
@@ -179,7 +244,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       return;
     final pos = _parentScrollPosition!;
     if (pos.pixels >= pos.maxScrollExtent - 200) {
-      _fetchProductsFromApi();
+      _triggerLoadMore();
     }
   }
 
@@ -260,6 +325,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       print("🔥 Error fetching products: $e");
       _isLoadingMore.value = false;
       _hasMore.value = false;
+    } finally {
+      _isInitialLoading.value = false;
     }
   }
 
@@ -301,7 +368,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ─── Section Header ───
-            if (heading.isNotEmpty || subheading.isNotEmpty) ...[
+            if (!widget.hideHeader &&
+                (heading.isNotEmpty || subheading.isNotEmpty)) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: StudioSectionHeader(
@@ -310,7 +378,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                       ? subheading
                       : null,
                   onSeeAll: () {
-                    Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+                    openShop({
                       'filterType': categoryType,
                       'filterValue': true,
                       'name': heading.isNotEmpty ? heading : 'Products',
@@ -319,23 +387,25 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                   },
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
             ],
             if (_tabsEnabled) _buildTabBar(),
             if (_tabsEnabled) const SizedBox(height: 12),
             // ─── Product Cards ───
-            trendingList.isEmpty
+            (_isInitialLoading.value && trendingList.isEmpty)
                 ? const SizedBox(
-                    height: 250,
+                    height: 260,
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16.0),
                       child: TrendingProductsShimmer(),
                     ),
                   )
-                : (_tabsEnabled
-                    ? _buildTabbedList()
-                    : _buildProductLayout(style)),
-            const SizedBox(height: 22),
+                : trendingList.isEmpty
+                    ? const SizedBox.shrink()
+                    : (_tabsEnabled
+                        ? _buildTabbedList()
+                        : _buildProductLayout(style)),
+            const SizedBox(height: 26),
           ],
         )
       ],
@@ -432,11 +502,13 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final hasDiscount = priceInfo['discountRate'] != null &&
         priceInfo['discountRate'].toString().trim().isNotEmpty;
     final isVariable = priceInfo['productType'] == 'variable';
+    final productId = ProductHelper.getProductId(product);
+    final variantId = _resolveDefaultVariantId(product);
 
     return GestureDetector(
       onTap: () => _navigateToProduct(product),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
           ClipRRect(
@@ -453,9 +525,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                     progressIndicatorBuilder: (_, __, ___) =>
                         HelperFunctions().loadingIndicator(),
                     errorWidget: (_, __, ___) => Container(
-                      color: colorScheme.surfaceContainerHighest,
+                      color: context.surfaceVariantColor,
                       child: Icon(Icons.image_outlined,
-                          color: colorScheme.onSurfaceVariant),
+                          color: context.onSurfaceVariantColor),
                     ),
                   ),
                   if (hasDiscount)
@@ -467,7 +539,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: colorScheme.error,
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           'Sale',
@@ -479,65 +551,178 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                         ),
                       ),
                     ),
+                  // Floating 4-action vertical button stack (top right)
                   Positioned(
                     right: 8,
                     top: 8,
-                    child: _buildWishlistButton(product),
-                  ),
-                  if (ProductHelper.isInStock(product))
-                    Positioned(
-                      right: 8,
-                      bottom: 8,
-                      child: _buildCartControl(product),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 1. Add to cart
+                        _actionCircleBtn(
+                          icon: Icons.shopping_bag_outlined,
+                          tooltip: 'Add to Cart',
+                          onTap: () {
+                            if (ProductHelper.isInStock(product) && variantId.isNotEmpty) {
+                              _handleAddToCart(product, productId, variantId, 1);
+                              Get.snackbar(
+                                'Added to Cart',
+                                '${ProductHelper.getProductName(product)} added to your cart',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: colorScheme.primary,
+                                colorText: colorScheme.onPrimary,
+                                duration: const Duration(seconds: 2),
+                                margin: const EdgeInsets.all(16),
+                              );
+                            } else {
+                              Get.snackbar(
+                                'Out of Stock',
+                                'This product is out of stock',
+                                snackPosition: SnackPosition.BOTTOM,
+                                margin: const EdgeInsets.all(16),
+                              );
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        // 2. Quick view
+                        _actionCircleBtn(
+                          icon: Icons.remove_red_eye_outlined,
+                          tooltip: 'Quick View',
+                          onTap: () => ProductQuickViewModal.show(context, product),
+                        ),
+                        const SizedBox(height: 5),
+                        // 3. Wishlist
+                        Obx(() {
+                          final isFav = WishListService.to.isInWishlist(productId);
+                          return _actionCircleBtn(
+                            icon: isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                            iconColor: isFav ? colorScheme.error : null,
+                            tooltip: 'Wishlist',
+                            onTap: () => _handleWishlistTap(product),
+                          );
+                        }),
+                        const SizedBox(height: 5),
+                        // 4. Compare
+                        _actionCircleBtn(
+                          icon: Icons.swap_horiz_rounded,
+                          tooltip: 'Compare',
+                          onTap: () {
+                            Get.snackbar(
+                              'Compare',
+                              '${ProductHelper.getProductName(product)} added to comparison',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: colorScheme.secondary,
+                              colorText: colorScheme.onSecondary,
+                              duration: const Duration(seconds: 2),
+                              margin: const EdgeInsets.all(16),
+                            );
+                          },
+                        ),
+                      ],
                     ),
+                  ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 6),
+          // 5-star rating centered
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              5,
+              (index) => const Icon(
+                Icons.star_rounded,
+                size: 13,
+                color: DefaultThemeColors.alertWarninglight,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          // Title centered
           SizedBox(
             height: 32,
             child: Text(
               ProductHelper.getProductName(product),
               maxLines: 2,
+              textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
               style: textTheme.bodyMedium?.copyWith(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w500,
                 height: 1.25,
+                color: context.onSurfaceColor,
               ),
             ),
           ),
           const SizedBox(height: 3),
+          // Price centered
           if (isVariable)
-            _buildVariablePrice(priceInfo)
+            Center(child: _buildVariablePrice(priceInfo))
           else
-            Text.rich(
-              TextSpan(
-                children: [
-                  if (hasDiscount)
-                    TextSpan(
-                      text: '₹${_formatPrice(priceInfo['salePrice'])}  ',
-                      style: textTheme.bodySmall?.copyWith(
-                        fontSize: 11,
-                        decoration: TextDecoration.lineThrough,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  TextSpan(
-                    text: '₹${_formatPrice(priceInfo['productPrice'])}',
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                      color: colorScheme.onSurface,
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              children: [
+                Text(
+                  ProductHelper.formatPrice(priceInfo['productPrice']?.toString() ?? '0'),
+                  style: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                if (hasDiscount && priceInfo['salePrice'] != null)
+                  Text(
+                    ProductHelper.formatPrice(priceInfo['salePrice'].toString()),
+                    style: textTheme.bodySmall?.copyWith(
+                      fontSize: 11,
+                      decoration: TextDecoration.lineThrough,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                ],
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              ],
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _actionCircleBtn({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onTap,
+    Color? iconColor,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Theme.of(context).colorScheme.surface,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+              width: 0.5,
+            ),
+          ),
+          child: Icon(
+            icon,
+            size: 15,
+            color: iconColor ?? Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
       ),
     );
   }
@@ -652,9 +837,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
                 return GestureDetector(
                   onTap: () {
-                    Get.toNamed(
-                      Routes.SHOPPRODUCTLISTVIEW,
-                      arguments: {
+                    openShop({
                         'productId': id,
                         'categorySlug': slug,
                         'name': name,
@@ -811,7 +994,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           const SizedBox(height: 14),
           OutlinedButton.icon(
             onPressed: () {
-              Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+              openShop({
                 'name': 'All Products',
                 'source': 'dashboard',
               });
@@ -931,6 +1114,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   /// Build a single grid item — uses the card style from `layout`
   Widget _buildGridItem(Map<String, dynamic> product,
       Map<String, dynamic> priceInfo, String style) {
+    if (style == 'parent_web') {
+      return ParentWebProductCard(product: product, isList: false);
+    }
+
     if (style == 'overlay') {
       return _buildOverlayItem(product, priceInfo);
     }
@@ -978,52 +1165,50 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // STYLE 1 — STANDARD (Vertical Card, Image on Top)
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildStandardStyleList() {
-    // final itemCount =
-    //     _infiniteScroll ? trendingList.length + 1 : trendingList.length;
-
     final itemCount = _infiniteScroll
         ? displayedProducts.length + 1
         : displayedProducts.length;
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 6.0),
-      child: SizedBox(
-        height: 250, // Increased height to accommodate content
-        child: ScrollConfiguration(
-          behavior: ScrollConfiguration.of(context).copyWith(
-            dragDevices: {
-              PointerDeviceKind.touch,
-              PointerDeviceKind.mouse,
-              PointerDeviceKind.trackpad,
-            },
-          ),
-          child: ListView.separated(
-            controller: _scrollController,
-            separatorBuilder: (context, index) => const SizedBox(width: 10),
-            shrinkWrap: false,
-            cacheExtent: 9999,
-            physics: const AlwaysScrollableScrollPhysics(),
-            scrollDirection: Axis.horizontal,
-            itemCount: itemCount,
-            itemBuilder: (context, index) {
-              //if (index >= trendingList.length) {
-              if (index >= displayedProducts.length) {
-                return _buildLoadingIndicator();
-              }
-              final product = displayedProducts[index] as Map<String, dynamic>;
-              final priceInfo = ProductHelper.calculatePriceInfo(product);
-              if (!priceInfo['hasValidVariants'])
-                return const SizedBox.shrink();
-              return ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: 270, // Max height for each card
-                  minWidth: 150,
-                  maxWidth: 220,
-                ),
-                child: _buildStandardItem(product, priceInfo),
-              );
-            },
-          ),
+    final cardWidth = (MediaQuery.of(context).size.width * 0.38)
+        .clamp(140.0, 160.0)
+        .toDouble();
+    const imageAspectRatio = 0.75;
+    final imageHeight = cardWidth / imageAspectRatio;
+    const textSectionHeight = 60.0;
+    final totalCardHeight = imageHeight + textSectionHeight;
+
+    return SizedBox(
+      height: totalCardHeight,
+      child: ScrollConfiguration(
+        behavior: ScrollConfiguration.of(context).copyWith(
+          dragDevices: {
+            PointerDeviceKind.touch,
+            PointerDeviceKind.mouse,
+            PointerDeviceKind.trackpad,
+          },
+        ),
+        child: ListView.separated(
+          controller: _scrollController,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          separatorBuilder: (context, index) => const SizedBox(width: 12),
+          shrinkWrap: false,
+          physics: const AlwaysScrollableScrollPhysics(),
+          scrollDirection: Axis.horizontal,
+          itemCount: itemCount,
+          itemBuilder: (context, index) {
+            if (index >= displayedProducts.length) {
+              return _buildLoadingIndicator();
+            }
+            final product = displayedProducts[index] as Map<String, dynamic>;
+            final priceInfo = ProductHelper.calculatePriceInfo(product);
+            if (!priceInfo['hasValidVariants']) {
+              return const SizedBox.shrink();
+            }
+            return SizedBox(
+              width: cardWidth,
+              child: _buildSiteProductCard(product, priceInfo, imageHeight),
+            );
+          },
         ),
       ),
     );
@@ -1031,107 +1216,15 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   Widget _buildStandardItem(
       Map<String, dynamic> product, Map<String, dynamic> priceInfo) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final productName = ProductHelper.getProductName(product);
-    final imageUrl = ProductHelper.getProductImage(product);
-    final productType = priceInfo['productType'];
-    final storeName = product['brand']?['name'] ?? 'Store Name';
+    final cardWidth = (MediaQuery.of(context).size.width * 0.38)
+        .clamp(140.0, 160.0)
+        .toDouble();
+    const imageAspectRatio = 0.75;
+    final imageHeight = cardWidth / imageAspectRatio;
 
-    // Calculate responsive width based on screen size
-    final screenWidth = MediaQuery.of(context).size.width;
-    final itemWidth = screenWidth > 600
-        ? screenWidth * 0.25 // Tablet: 25% of screen width
-        : screenWidth * 0.30; // Mobile: 30% of screen width
-    final clampedWidth = itemWidth.clamp(150.0, 220.0);
-
-    return GestureDetector(
-      onTap: () => _navigateToProduct(product),
-      child: SizedBox(
-        width: clampedWidth,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Alternative image widget that fills width while maintaining aspect ratio
-            ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(8)),
-              child: Stack(
-                children: [
-                  SizedBox(
-                    width: double.infinity,
-                    child: CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      height:
-                          180, // Fixed height, but maintains aspect ratio through fit
-                      width: double.infinity,
-                      progressIndicatorBuilder: (_, __, ___) =>
-                          HelperFunctions().loadingIndicator(),
-                      errorWidget: (_, __, ___) => Container(
-                        height: 180,
-                        color: colorScheme.surfaceVariant,
-                        child: Icon(Icons.image_outlined,
-                            color: colorScheme.onSurfaceVariant),
-                      ),
-                    ),
-                  ),
-                  if (ProductHelper.isInStock(product))
-                    Positioned(
-                      right: 6,
-                      bottom: 6,
-                      child: _buildCartControl(product),
-                    ),
-                ],
-              ),
-            ),
-            // Content Section - Use Flexible to take remaining space but not overflow
-            Flexible(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Product Name
-                    Flexible(
-                      child: Text(
-                        productName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                          height: 1.2,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    // Store Name
-                    Text(
-                      storeName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 10,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    // Price
-                    if (productType == 'variable')
-                      _buildVariablePrice(priceInfo)
-                    else
-                      _buildSimplePrice(priceInfo),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return SizedBox(
+      width: cardWidth,
+      child: _buildSiteProductCard(product, priceInfo, imageHeight),
     );
   }
 
@@ -1514,7 +1607,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   /// Horizontal loading indicator (for standard & overlay horizontal lists)
   Widget _buildLoadingIndicator() {
-    if (!_hasMore.value) return const SizedBox.shrink();
+    if (!_hasMoreValue) return const SizedBox.shrink();
     return const SizedBox(
       width: 60,
       child: Center(
@@ -1529,7 +1622,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   /// Vertical loading indicator (for horizontal-style vertical list)
   Widget _buildLoadingIndicatorVertical() {
-    if (!_hasMore.value) return const SizedBox.shrink();
+    if (!_hasMoreValue) return const SizedBox.shrink();
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 16.0),
       child: Center(
@@ -1855,7 +1948,7 @@ class TrendingProductsShimmer extends StatelessWidget {
                     borderRadius:
                         const BorderRadius.vertical(top: Radius.circular(10)),
                   ),
-                  height: 180,
+                  height: 160,
                   width: 160,
                 ),
                 Padding(

@@ -39,6 +39,13 @@ mixin FoduuStudioLayoutMixin on GetxController {
   final hasError = false.obs;
   final errorMessage = "".obs;
 
+  /// Section `type`s to skip when building the layout, e.g. `['search']`.
+  List<String> excludeSectionTypes = const [];
+
+  /// `type`s seen in the most recently built section list, before
+  /// [excludeSectionTypes] filtering.
+  final sectionTypes = <String>{}.obs;
+
   // ─── Internal state ──────────────────────────────────────────
   List _initialComponents = [];
   List _lastSocketSections = [];
@@ -71,6 +78,10 @@ mixin FoduuStudioLayoutMixin on GetxController {
   /// Build the [widgetList] from a raw list of section maps.
   void buildLayout(List sections) {
     widgetList.clear();
+    sectionTypes.assignAll(sections
+        .whereType<Map<String, dynamic>>()
+        .map((s) => s['type'])
+        .whereType<String>());
 
     // The products section builds its category tabs from the categories
     // section of the same page, so hand the category list over to it.
@@ -86,6 +97,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
     var tabsInjected = false;
     for (var section in sections) {
       if (section is Map<String, dynamic>) {
+        if (excludeSectionTypes.contains(section['type'])) continue;
         var toBuild = section;
         if (tabCategories != null &&
             !tabsInjected &&
@@ -103,6 +115,20 @@ mixin FoduuStudioLayoutMixin on GetxController {
         if (widget != null) widgetList.add(widget);
       }
     }
+  }
+
+  /// Build widgets for the last-fetched sections, skipping [excludeTypes].
+  /// Not reactive — recomputed on every call.
+  List<Widget> buildWidgetsExcluding(List<String> excludeTypes) {
+    final result = <Widget>[];
+    for (var section in _initialComponents) {
+      if (section is Map<String, dynamic>) {
+        if (excludeTypes.contains(section['type'])) continue;
+        final widget = _registry.build(section);
+        if (widget != null) result.add(widget);
+      }
+    }
+    return result;
   }
 
   /// Fetch layout JSON from the API and build widgets.

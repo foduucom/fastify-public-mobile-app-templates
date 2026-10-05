@@ -1,14 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
+import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foduu_ecommerce/app/modules/wishlist/views/home_wishlist_empty_view.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/buttons/primary_action_button.dart';
-import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
+import 'package:foduu_ecommerce/components/home_component/home_products.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/product_helper.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
+import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:foduu_ecommerce/core/services/wishlistService.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 import 'package:get/get.dart';
 import '../controllers/wishlist_controller.dart';
 
@@ -22,56 +24,125 @@ class WishlistView extends GetView<WishlistController> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          controller.fetchWishlist();
-        },
-      ),
       appBar: AppBar(
         title: Obx(() {
           final colors = Theme.of(context).colorScheme;
-          final wishlistService = Get.find<WishListService>();
-          String titleText = controller.wishlistItems.isEmpty
-              ? 'Wishlist ${wishlistService.wishListItemCount}'
-              : 'Wishlist (${controller.wishlistItems.length})';
-
-          return Text(
-            titleText,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: colors.onSurface, // Using theme color
-            ),
+          final count = controller.wishlistItems.length;
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Wishlist',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: colors.onSurface,
+                ),
+              ),
+              if (count > 0) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: colors.primary.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '$count',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: colors.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ],
           );
         }),
         centerTitle: false,
-        backgroundColor:
-            Theme.of(context).colorScheme.surface, // Theme-aware background
+        elevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         iconTheme: IconThemeData(
-          color:
-              Theme.of(context).colorScheme.onSurface, // Theme-aware icon color
+          color: Theme.of(context).colorScheme.onSurface,
         ),
         actions: [
-          // List View Icon
-          Obx(() => IconButton(
-                icon: Icon(Icons.list),
-                onPressed: () {
-                  controller.setViewMode('list');
-                },
-                color: controller.viewMode.value == 'list'
-                    ? colorScheme.primary
-                    : colorScheme.onSurfaceVariant,
-              )),
+          // List / Grid View Toggles (Only show when there are items)
+          Obx(() {
+            if (controller.wishlistItems.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.view_list_rounded),
+                  tooltip: 'List View',
+                  onPressed: () => controller.setViewMode('list'),
+                  color: controller.viewMode.value == 'list'
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.grid_view_rounded),
+                  tooltip: 'Grid View',
+                  onPressed: () => controller.setViewMode('grid'),
+                  color: controller.viewMode.value == 'grid'
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+                ),
+              ],
+            );
+          }),
 
-          // Grid View Icon
-          Obx(() => IconButton(
-                icon: Icon(Icons.grid_on), // or Icons.grid_view
-                onPressed: () {
-                  controller.setViewMode('grid');
-                },
-                color: controller.viewMode.value == 'grid'
-                    ? colorScheme.primary
-                    : colorScheme.onSurfaceVariant,
-              )),
+          // Search Action
+          IconButton(
+            icon: const Icon(Icons.search_rounded),
+            tooltip: 'Search',
+            onPressed: () => Get.toNamed(Routes.SEARCH),
+          ),
+
+          // Cart Action with Badge
+          Obx(() {
+            final cartCount = Get.isRegistered<CartService>()
+                ? CartService.to.cartItemCount
+                : 0;
+            return IconButton(
+              icon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.shopping_bag_outlined),
+                  if (cartCount > 0)
+                    Positioned(
+                      right: -4,
+                      top: -4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: colorScheme.error,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          '$cartCount',
+                          style: TextStyle(
+                            color: colorScheme.onError,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              tooltip: 'Cart',
+              onPressed: () => Get.toNamed(Routes.CART),
+            );
+          }),
+          const SizedBox(width: 4),
         ],
       ),
       body: Obx(() {
@@ -90,17 +161,63 @@ class WishlistView extends GetView<WishlistController> {
 
   Widget _buildEmptyWishlist(
       BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
-    return HomeWishlistEmptyView(
-      colorScheme: colorScheme,
-      textTheme: textTheme,
-      onShoppingPressed: () {
-        Get.back();
-        // Your navigation logic here
-      },
-      title: "Your wishlist is empty",
-      description:
-          "Start adding your favorite items to create your personalized shopping list.",
-      icon: Icons.inventory_2_outlined,
+    return RefreshIndicator(
+      onRefresh: controller.onRefresh,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 40),
+        children: [
+          // ── Hero Empty State Banner ──
+          HomeWishlistEmptyView(
+            colorScheme: colorScheme,
+            textTheme: textTheme,
+            onShoppingPressed: () {
+              if (Get.isRegistered<BottombarController>()) {
+                Get.find<BottombarController>().onTabChange(shopTabIndex);
+              } else {
+                Get.offAllNamed(Routes.BOTTOMBAR);
+              }
+            },
+            title: "Your Wishlist is Empty",
+            description:
+                "Explore our collections and tap the heart icon on items you love to save them here for later.",
+          ),
+
+          const SizedBox(height: 12),
+
+          // ── Dynamic Studio Layout (if configured) ──
+          Obx(() => controller.widgetList.isNotEmpty
+              ? Column(
+                  children: [
+                    const Divider(thickness: 6, height: 32),
+                    FoduuStudioLayoutView.embedded(
+                      widgetList: controller.widgetList,
+                      isLoading: controller.isLayoutLoading,
+                      hasError: controller.hasError,
+                      errorMessage: controller.errorMessage,
+                    ),
+                  ],
+                )
+              : const SizedBox.shrink()),
+
+          // ── Trending Products Discovery Feed ──
+          const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Divider(thickness: 6, height: 32),
+              TrendingProductSection(
+                contentJson: {
+                  'heading': 'Trending Now',
+                  'subheading': 'Explore popular picks and save what you love',
+                  'layout': 'horizontal',
+                  'infinite_scroll': true,
+                },
+                hideHeader: false,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
