@@ -1,3 +1,5 @@
+import 'package:foduu_ecommerce/core/services/wishlistService.dart';
+import 'package:foduu_ecommerce/components/resilience/friendly_error_state.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../../../components/shimmer/cart_shimmer.dart';
@@ -75,6 +77,12 @@ class WishlistView extends GetView<WishlistController> {
       body: Obx(() {
         if (controller.isLoading.value) {
           return const CartShimmer();
+        }
+
+        if (controller.wishlistItems.isEmpty &&
+            WishListService.to.loadError.value) {
+          return FriendlyErrorState(
+              onRetry: () => WishListService.to.fetchWishList());
         }
 
         if (controller.wishlistItems.isEmpty) {

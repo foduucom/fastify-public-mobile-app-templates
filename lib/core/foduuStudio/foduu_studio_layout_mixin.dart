@@ -7,6 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/constants/app_exceptions.dart';
+import 'package:foduu_ecommerce/constants/resilience_strings.dart';
+import 'package:foduu_ecommerce/services/api_health_service.dart';
 import 'package:foduu_ecommerce/helpers/socket_helper.dart';
 import 'package:get/get.dart';
 
@@ -36,6 +39,12 @@ mixin FoduuStudioLayoutMixin on GetxController {
   // ─── Observable state ────────────────────────────────────────
   final widgetList = <Widget>[].obs;
   final isLayoutLoading = true.obs;
+  final hasError = false.obs;
+  final errorMessage = "".obs;
+
+  /// True while the sections on screen came from the local cache because the
+  /// backend could not be reached.
+  final isStale = false.obs;
 
   /// Section `type`s to skip when building the layout, e.g. `['search']`
   /// when the page already renders its own dedicated search field.
@@ -53,6 +62,10 @@ mixin FoduuStudioLayoutMixin on GetxController {
 
   final SocketHelper _layoutSocketHelper = SocketHelper();
   final WidgetRegistry _registry = WidgetRegistry();
+
+  String? _lastFetchSlug;
+  dynamic _lastFetchBody;
+  Worker? _recoveryWorker;
 
   String? _currentDomain;
   String? _currentSlug;
@@ -136,9 +149,20 @@ mixin FoduuStudioLayoutMixin on GetxController {
   ///
   /// - [slug] — the page slug, e.g. `'home'`, `'category'`, etc.
   /// - [requestBody] — if provided, uses POST `mobile-app/by-json` instead of GET.
-  Future<dynamic> fetchLayout(String slug, {dynamic requestBody}) async {
+  ///
+  /// With [silent] the current content stays on screen (no loading state);
+  /// used to refresh quietly once the backend recovers.
+  Future<dynamic> fetchLayout(String slug,
+      {dynamic requestBody, bool silent = false}) async {
+    _lastFetchSlug = slug;
+    _lastFetchBody = requestBody;
+    _watchBackendRecovery();
     try {
-      isLayoutLoading.value = true;
+      if (!silent) {
+        isLayoutLoading.value = true;
+        hasError.value = false;
+        errorMessage.value = "";
+      }
       dynamic response;
 
       // Ensure socket is connected and listener is enabled on web
@@ -153,13 +177,18 @@ mixin FoduuStudioLayoutMixin on GetxController {
         response = await BasicProvider("mobile-app/by-json")
             .postRequest(requestBody)
             .catchError((e, stackTrace) => _handleApiError(e, stackTrace));
+        isStale.value = false;
       } else {
-        response = await BasicProvider("mobile-app/$slug")
+        final provider = BasicProvider("mobile-app/$slug");
+        response = await provider
             .getRequest()
             .catchError((e, stackTrace) => _handleApiError(e, stackTrace));
+        isStale.value = provider.servedFromCache;
       }
 
       if (response != null) {
+        hasError.value = false;
+        errorMessage.value = "";
         var list = response['sections'];
         if (list != null && list is List) {
           _initialComponents = list;
@@ -170,10 +199,36 @@ mixin FoduuStudioLayoutMixin on GetxController {
       return response;
     } catch (e) {
       print('DynamicLayoutMixin fetchLayout error: $e');
+      hasError.value = true;
+      errorMessage.value = _friendlyMessage(e);
     } finally {
       isLayoutLoading.value = false;
     }
   }
+
+  /// Once the backend is reachable again, quietly reload a layout that is
+  /// either stale (cache) or failed, without flashing a loading state.
+  void _watchBackendRecovery() {
+    if (_recoveryWorker != null) return;
+    final health = ApiHealthService.maybe;
+    if (health == null) return;
+    _recoveryWorker = ever(health.recoveryTick, (_) {
+      final slug = _lastFetchSlug;
+      if (slug != null && (isStale.value || hasError.value)) {
+        fetchLayout(slug, requestBody: _lastFetchBody, silent: true);
+      }
+    });
+  }
+
+  @override
+  void onClose() {
+    _recoveryWorker?.dispose();
+    super.onClose();
+  }
+
+  String _friendlyMessage(dynamic e) => e is ServiceUnavailableException
+      ? ResilienceStrings.unavailableMessage
+      : 'Something went wrong. Please try again.';
 
   /// Enable real-time socket-driven layout updates.
   ///
@@ -378,6 +433,9 @@ mixin FoduuStudioLayoutMixin on GetxController {
   // ─── Error handling (delegates to BaseController if available) ─
   dynamic _handleApiError(dynamic error, StackTrace stackTrace) {
     print('DynamicLayoutMixin API error: $error');
-    print('DynamicLayoutMixin API stackTrace: $stackTrace');
+    // Surface the failure to the view instead of leaving a blank screen.
+    hasError.value = true;
+    errorMessage.value = _friendlyMessage(error);
+    return null;
   }
 }

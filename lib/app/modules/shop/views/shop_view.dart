@@ -124,6 +124,7 @@ class ShopView extends GetView<ShopController> {
               onRefresh: () => controller.fetchLayout(ShopController.pageSlug),
               widgetList: controller.widgetList,
               isLoading: controller.isLayoutLoading,
+              hasError: controller.hasError,
             );
           }
           // ── FILTERED / DASHBOARD ENTRY ──

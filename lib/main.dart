@@ -19,12 +19,17 @@ import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/services/local_storage_notification_service.dart';
 import 'package:foduu_ecommerce/services/notification_sync_service.dart';
 import 'package:foduu_ecommerce/services/payment_service.dart';
+import 'package:foduu_ecommerce/components/resilience/reconnecting_banner.dart';
+import 'package:foduu_ecommerce/services/api_cache.dart';
+import 'package:foduu_ecommerce/services/api_health_service.dart';
 
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   await GetStorage.init();
+  await ApiCache.init();
+  Get.put(ApiHealthService(), permanent: true);
 
   Get.put(LocalStorageNotificationService());
   Get.put(NotificationSyncService());
@@ -88,36 +93,39 @@ Future<void> main() async {
 
 Future<String> _initApp() async {
   final box = GetStorage();
+  final bool isLogin = box.read('isLogin') ?? false;
+
+  final refresh = _refreshPublicSettings(box);
+  // First ever launch has no saved settings, so give them a short window to
+  // arrive. Returning users start immediately from saved settings and the
+  // refresh finishes in the background; a 5xx never logs anyone out.
+  if (box.read('auth_preference') == null) {
+    await refresh.timeout(const Duration(seconds: 10), onTimeout: () {});
+  }
+  return isLogin ? Routes.BOTTOMBAR : Routes.LOGIN;
+}
+
+Future<void> _refreshPublicSettings(GetStorage box) async {
   try {
-    var response = await BasicProvider('public-settings').getRequest();
+    final response = await BasicProvider('public-settings').getRequest();
+    print('public-settings loaded');
 
-    print('response $response');
+    final settings = response is Map ? response['storeSettings'] : null;
+    if (settings is! Map) return;
 
-    if (response != null) {
-      var authPreference = response['storeSettings']['auth_preference'];
-      box.write('auth_preference', authPreference);
+    final authPreference = settings['auth_preference'];
+    if (authPreference != null) box.write('auth_preference', authPreference);
 
-      if (response['storeSettings'] != null) {
-        var storeName = response['storeSettings']['name'] ??
-            response['storeSettings']['store_name'];
-        if (storeName != null) {
-          box.write('store_name', storeName);
-        }
-      }
+    final storeName = settings['name'] ?? settings['store_name'];
+    if (storeName != null) box.write('store_name', storeName);
 
-      if (response['storeSettings']['app_theme_color'] != null) {
-        DynamicThemeManager()
-            .updateFromApi(response['storeSettings']['app_theme_color']);
-        Get.find<ThemeController>().refreshTheme();
-      }
-
-      bool isLogin = box.read('isLogin') ?? false;
-      return isLogin ? Routes.BOTTOMBAR : Routes.LOGIN;
+    if (settings['app_theme_color'] != null) {
+      DynamicThemeManager().updateFromApi(settings['app_theme_color']);
+      Get.find<ThemeController>().refreshTheme();
     }
   } catch (e) {
     print('Error during initApp: $e');
   }
-  return Routes.LOGIN;
 }
 
 class MyApp extends StatelessWidget {
@@ -136,6 +144,8 @@ class MyApp extends StatelessWidget {
           theme: themeController.lightTheme,
           darkTheme: themeController.darkTheme,
           themeMode: themeController.themeMode,
+          builder: (context, child) =>
+              ResilienceShell(child: child ?? const SizedBox.shrink()),
         );
       },
     );

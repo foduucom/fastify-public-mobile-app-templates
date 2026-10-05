@@ -1,3 +1,4 @@
+import 'package:foduu_ecommerce/services/api_health_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -126,13 +127,19 @@ class Testinghome extends GetView<HomepageController> {
       ),
       // 👇 Wrap the body in an Obx to toggle between Shimmer and the real layout
       body: Obx(() {
-        if (controller.isLoading.value) {
+        // After a few seconds of an unreachable backend the layout view
+        // swaps the skeleton for a friendly retry state.
+        final backendDown = ApiHealthService.maybe?.status.value ==
+                ApiHealth.down &&
+            controller.widgetList.isEmpty;
+        if (controller.isLoading.value && !backendDown) {
           return const HomeShimmer();
         }
 
         return FoduuStudioLayoutView(
           widgetList: controller.widgetList,
           isLoading: controller.isLoading,
+          hasError: controller.hasError,
           onRefresh: () async {
             await controller.getDashboardDesign(controller.pageSlug);
           },
