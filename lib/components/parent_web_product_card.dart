@@ -205,7 +205,7 @@ class ParentWebProductCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
 
           // Rating Stars (5 gold stars centered)
           Row(
@@ -214,12 +214,12 @@ class ParentWebProductCard extends StatelessWidget {
               5,
               (index) => const Icon(
                 Icons.star_rounded,
-                size: 14,
+                size: 13,
                 color: DefaultThemeColors.alertWarninglight,
               ),
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
 
           // Product Title (centered)
           Padding(
@@ -230,36 +230,46 @@ class ParentWebProductCard extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: textTheme.bodyMedium?.copyWith(
+                fontSize: 12.5,
                 fontWeight: FontWeight.w500,
                 color: context.onSurfaceColor,
-                height: 1.25,
+                height: 1.2,
               ),
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
 
           // Product Price (centered)
-          Wrap(
-            alignment: WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 6,
-            children: [
-              Text(
-                ProductHelper.formatPrice(priceStr),
-                style: textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.primary,
-                ),
-              ),
-              if (hasDiscount && regularPriceStr.isNotEmpty)
-                Text(
-                  ProductHelper.formatPrice(regularPriceStr),
-                  style: textTheme.bodySmall?.copyWith(
-                    decoration: TextDecoration.lineThrough,
-                    color: context.onSurfaceVariantColor,
+          Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    ProductHelper.formatPrice(priceStr),
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary,
+                    ),
+                    maxLines: 1,
                   ),
-                ),
-            ],
+                  if (hasDiscount && regularPriceStr.isNotEmpty) ...[
+                    const SizedBox(width: 5),
+                    Text(
+                      ProductHelper.formatPrice(regularPriceStr),
+                      style: textTheme.bodySmall?.copyWith(
+                        fontSize: 11,
+                        decoration: TextDecoration.lineThrough,
+                        color: context.onSurfaceVariantColor,
+                      ),
+                      maxLines: 1,
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
         ],
       ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '/components/resilience/friendly_error_state.dart';
+import '/services/api_health_service.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
@@ -76,43 +78,32 @@ class FoduuStudioLayoutView extends StatelessWidget {
     return Obx(() {
       print("widgetList.length: ${widgetList.length}");
 
+      final health = ApiHealthService.maybe;
+
+      // Nothing to show and the backend has been unreachable for a while:
+      // swap the skeleton for a calm "taking longer" state with auto-retry.
+      if (widgetList.isEmpty &&
+          health != null &&
+          health.status.value == ApiHealth.down) {
+        return FriendlyErrorState(
+          onRetry: () async {
+            await health.retryNow();
+            await onRefresh?.call();
+          },
+        );
+      }
+
       if (isLoading.value) {
         return loadingWidget ??
             Center(child: HelperFunctions().loadingIndicator());
       }
 
-      if (hasError.value) {
-        return Center(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, size: 60, color: Colors.red),
-                const SizedBox(height: 16),
-                const Text(
-                  "Oops! Something went wrong",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  errorMessage.value,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: onRefresh,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text("Try Again"),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
-                  ),
-                ),
-              ],
-            ),
-          ),
+      if (hasError.value && widgetList.isEmpty) {
+        return FriendlyErrorState(
+          onRetry: () async {
+            await health?.retryNow();
+            await onRefresh?.call();
+          },
         );
       }
 

@@ -40,7 +40,7 @@ class _BlogSectionState extends State<BlogSection>
                 : widget.blogData['heading'].toString(),
             subtitle: widget.blogData['subheading'] ?? '',
             onSeeAll: () {
-              Get.to(() => BlogSection(blogData: widget.blogData));
+              Get.toNamed(Routes.BLOG);
             },
           ),
           const SizedBox(height: 15),

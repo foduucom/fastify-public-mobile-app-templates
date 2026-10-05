@@ -1,3 +1,5 @@
+import 'package:foduu_ecommerce/components/resilience/friendly_error_state.dart';
+import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
@@ -47,6 +49,12 @@ class CartView extends GetView<CartController> {
                 child: Obx(() {
                   if (controller.isLoading.value) {
                     return const CartShimmer();
+                  }
+
+                  if (controller.cartItems.isEmpty &&
+                      CartService.to.loadError.value) {
+                    return FriendlyErrorState(
+                        onRetry: () => CartService.to.fetchCart());
                   }
 
                   if (controller.cartItems.isEmpty) {

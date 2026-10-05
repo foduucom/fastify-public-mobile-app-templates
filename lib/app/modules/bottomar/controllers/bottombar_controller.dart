@@ -1,3 +1,4 @@
+import 'package:foduu_ecommerce/services/api_cache.dart';
 import 'package:badges/badges.dart' as badges;
 // import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -152,6 +153,7 @@ class BottombarController extends GetxController with BaseController {
     //     await BasicProvider("logout").postRequest(form).catchError(handleError);
     // if (response == null) return;
     box.erase();
+    ApiCache.clear();
     isLogin(false);
     isOtpLogin
         ? Get.offAllNamed(Routes.MOBILELOGIN)

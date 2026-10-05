@@ -1,3 +1,5 @@
+import 'package:foduu_ecommerce/components/resilience/friendly_error_state.dart';
+import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
@@ -150,6 +152,12 @@ class WishlistView extends GetView<WishlistController> {
           return Center(child: HelperFunctions().loadingIndicator());
         }
 
+        if (controller.wishlistItems.isEmpty &&
+            WishListService.to.loadError.value) {
+          return FriendlyErrorState(
+              onRetry: () => WishListService.to.fetchWishList());
+        }
+
         if (controller.wishlistItems.isEmpty) {
           return _buildEmptyWishlist(context, colorScheme, textTheme);
         }
@@ -189,7 +197,11 @@ class WishlistView extends GetView<WishlistController> {
           Obx(() => controller.widgetList.isNotEmpty
               ? Column(
                   children: [
-                    const Divider(thickness: 6, height: 32),
+                    Divider(
+                      thickness: 1,
+                      height: 32,
+                      color: colorScheme.outline.withOpacity(0.12),
+                    ),
                     FoduuStudioLayoutView.embedded(
                       widgetList: controller.widgetList,
                       isLoading: controller.isLayoutLoading,
@@ -204,7 +216,7 @@ class WishlistView extends GetView<WishlistController> {
           const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Divider(thickness: 6, height: 32),
+              SizedBox(height: 24),
               TrendingProductSection(
                 contentJson: {
                   'heading': 'Trending Now',
@@ -238,7 +250,7 @@ class WishlistView extends GetView<WishlistController> {
                   itemCount: controller.wishlistItems.length,
                   separatorBuilder: (_, __) => Divider(
                     thickness: 1,
-                    color: colorScheme.outline.withOpacity(0.3),
+                    color: colorScheme.outline.withOpacity(0.15),
                   ),
                   itemBuilder: (context, index) {
                     if (index >= controller.wishlistItems.length) {
@@ -252,7 +264,11 @@ class WishlistView extends GetView<WishlistController> {
                 )
               : _buildGridView(context, colorScheme, textTheme)),
 
-          const Divider(thickness: 8),
+          Divider(
+            thickness: 1,
+            height: 32,
+            color: colorScheme.outline.withOpacity(0.12),
+          ),
 
           // ── Dynamic Layout Widgets ──
           Obx(() => controller.widgetList.isNotEmpty

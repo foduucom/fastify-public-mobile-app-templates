@@ -38,7 +38,7 @@ class SplashScreenController extends GetxController with BaseController {
       if (response != null) {
         progressValue.value = 0.8;
 
-        var authPreference = response['storeSettings']['auth_preference'];
+        var authPreference = response['storeSettings']?['auth_preference'];
 
         // Save auth preference for use throughout the app
         box.write('auth_preference', authPreference);
@@ -74,9 +74,12 @@ class SplashScreenController extends GetxController with BaseController {
       }
     } catch (e) {
       print('Error fetching settings: $e');
-      // Default to login screen on error
-      //Get.offAllNamed(Routes.LOGIN);
-      Get.offAllNamed(Routes.ONBOARDING);
+      // A server hiccup must never sign a returning user out.
+      if (box.read('isLogin') ?? false) {
+        Get.offAllNamed(Routes.BOTTOMBAR);
+      } else {
+        Get.offAllNamed(Routes.ONBOARDING);
+      }
     } finally {
       isLoading.value = false;
     }

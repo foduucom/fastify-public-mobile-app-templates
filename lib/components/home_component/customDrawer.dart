@@ -102,6 +102,15 @@ class CustomDrawer extends GetView<HomepageController> {
                         Get.toNamed(Routes.MY_REVIEWS);
                       },
                     ),
+                    DrawerTile(
+                      icon: const Icon(Icons.article_outlined),
+                      title: 'Blogs',
+                      subtitle: 'Articles & insights',
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(Routes.BLOG);
+                      },
+                    ),
 
                     DrawerTile(
                       icon: const Icon(Icons.help_outline),

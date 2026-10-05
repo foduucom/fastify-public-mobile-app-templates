@@ -1,3 +1,4 @@
+import 'package:foduu_ecommerce/services/api_health_service.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/controllers/homepage_controller.dart';
 import 'package:foduu_ecommerce/components/shimmer/home_shimmer.dart';
@@ -11,7 +12,12 @@ class HomePageView extends GetView<HomepageController> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Obx(() {
-        if (controller.isLoading.value) {
+        // After a few seconds of an unreachable backend the layout view
+        // swaps the skeleton for a friendly retry state.
+        final backendDown = ApiHealthService.maybe?.status.value ==
+                ApiHealth.down &&
+            controller.widgetList.isEmpty;
+        if (controller.isLoading.value && !backendDown) {
           return const HomeShimmer();
         }
 

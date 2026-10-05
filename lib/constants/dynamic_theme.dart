@@ -415,13 +415,25 @@ class DynamicThemeManager {
         error: colors.error,
         onError: colors.onError,
         outline: colors.outline,
+        outlineVariant: isDark
+            ? colors.outline.withOpacity(0.20)
+            : colors.outline.withOpacity(0.25),
         surfaceVariant: colors.surfaceVariant,
         onSurfaceVariant: colors.onSurfaceVariant,
       ),
       textTheme: _buildTextTheme(colors),
       primaryColor: colors.primary,
       cardColor: colors.surface,
-      dividerColor: colors.outline,
+      dividerColor: isDark
+          ? colors.outline.withOpacity(0.15)
+          : colors.outline.withOpacity(0.20),
+      dividerTheme: DividerThemeData(
+        color: isDark
+            ? colors.outline.withOpacity(0.15)
+            : colors.outline.withOpacity(0.20),
+        thickness: 1.0,
+        space: 1.0,
+      ),
       canvasColor: colors.background,
       iconTheme: IconThemeData(color: colors.onSurface),
       elevatedButtonTheme: ElevatedButtonThemeData(

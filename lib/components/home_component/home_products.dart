@@ -471,7 +471,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         .toDouble();
     const imageAspectRatio = 0.75;
     final imageHeight = cardWidth / imageAspectRatio;
-    const textSectionHeight = 60.0;
+    const textSectionHeight = 88.0;
     final totalCardHeight = imageHeight + textSectionHeight;
 
     return SizedBox(
@@ -661,28 +661,36 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           if (isVariable)
             Center(child: _buildVariablePrice(priceInfo))
           else
-            Wrap(
-              alignment: WrapAlignment.center,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 6,
-              children: [
-                Text(
-                  ProductHelper.formatPrice(priceInfo['productPrice']?.toString() ?? '0'),
-                  style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                if (hasDiscount && priceInfo['salePrice'] != null)
-                  Text(
-                    ProductHelper.formatPrice(priceInfo['salePrice'].toString()),
-                    style: textTheme.bodySmall?.copyWith(
-                      fontSize: 11,
-                      decoration: TextDecoration.lineThrough,
-                      color: colorScheme.onSurfaceVariant,
+            Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      ProductHelper.formatPrice(priceInfo['productPrice']?.toString() ?? '0'),
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                      maxLines: 1,
                     ),
-                  ),
-              ],
+                    if (hasDiscount && priceInfo['salePrice'] != null) ...[
+                      const SizedBox(width: 5),
+                      Text(
+                        ProductHelper.formatPrice(priceInfo['salePrice'].toString()),
+                        style: textTheme.bodySmall?.copyWith(
+                          fontSize: 11,
+                          decoration: TextDecoration.lineThrough,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
         ],
       ),
@@ -1174,7 +1182,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         .toDouble();
     const imageAspectRatio = 0.75;
     final imageHeight = cardWidth / imageAspectRatio;
-    const textSectionHeight = 60.0;
+    const textSectionHeight = 88.0;
     final totalCardHeight = imageHeight + textSectionHeight;
 
     return SizedBox(

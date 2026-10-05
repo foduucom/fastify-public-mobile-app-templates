@@ -21,8 +21,8 @@ class NotificationSyncService extends GetxService {
 
   void _initConnectivityListener() {
     _connectivitySubscription =
-        _connectivity.onConnectivityChanged.listen((result) {
-      if (result != ConnectivityResult.none) {
+        _connectivity.onConnectivityChanged.listen((results) {
+      if (results.any((r) => r != ConnectivityResult.none)) {
         debugPrint('Connectivity restored. Triggering notification sync...');
         syncPendingNotifications();
       }
@@ -45,7 +45,7 @@ class NotificationSyncService extends GetxService {
       for (var notification in unsynced) {
         // Check network before each item
         final network = await _connectivity.checkConnectivity();
-        if (network == ConnectivityResult.none) {
+        if (network.every((r) => r == ConnectivityResult.none)) {
           debugPrint('Sync aborted: No internet connection.');
           break;
         }

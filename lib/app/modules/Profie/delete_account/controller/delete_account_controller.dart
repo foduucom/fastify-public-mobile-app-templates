@@ -1,3 +1,4 @@
+import 'package:foduu_ecommerce/services/api_cache.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
@@ -33,6 +34,7 @@ class DeleteAccountController extends GetxController with BaseController {
     if (await FirebaseHelpers.unsubscribeFromAllTopics()) {
       isLoading.value = false;
       box.erase();
+      ApiCache.clear();
       Get.until((route) => !Get.isDialogOpen!);
       HelperFunctions()
           .showSnackBarSuccess("Your account has been permanently deleted!");

@@ -4,6 +4,9 @@ import 'package:foduu_ecommerce/app/modules/support_ticket_details/bindings/supp
 import 'package:foduu_ecommerce/app/modules/support_ticket_details/views/support_ticket_details_view.dart';
 import 'package:foduu_ecommerce/app/modules/reviews/bindings/my_reviews_binding.dart';
 import 'package:foduu_ecommerce/app/modules/reviews/views/my_reviews_view.dart';
+import 'package:foduu_ecommerce/app/modules/blog/binding.dart/blog_binding.dart';
+import 'package:foduu_ecommerce/app/modules/blog/views/blog_view.dart';
+import 'package:foduu_ecommerce/app/modules/blog/views/blog_details_view.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/contact/view/contact_us_view.dart';
 import 'package:foduu_ecommerce/app/modules/category_search/bindings/category_search_binding.dart';
 import 'package:foduu_ecommerce/app/modules/category_search/views/category_search_view.dart';
@@ -354,6 +357,16 @@ class AppPages {
       name: _Paths.MY_REVIEWS,
       page: () => const MyReviewsView(),
       binding: MyReviewsBinding(),
+    ),
+    GetPage(
+      name: _Paths.BLOG,
+      page: () => BlogView(),
+      binding: BlogBinding(),
+    ),
+    GetPage(
+      name: _Paths.BLOG_DETAILS,
+      page: () => BlogDetailsView(),
+      binding: BlogBinding(),
     ),
   ];
 

@@ -19,6 +19,10 @@ class CartService extends GetxService with BaseController {
   var subTotal = 0.0.obs;
   var total = 0.0.obs;
 
+  /// True when the last fetch failed (e.g. backend unreachable). Items are
+  /// kept as-is so a failure never looks like an empty cart.
+  final loadError = false.obs;
+
   /// Number of distinct line-items in the cart
   int get cartItemCount => cartItems.length;
 
@@ -38,12 +42,12 @@ class CartService extends GetxService with BaseController {
           .getRequest(queryParams: {'populate': '*'}).catchError(handleError);
 
       if (response == null) {
-        cartItems.clear();
-        subTotal.value = 0;
-        total.value = 0;
+        // Keep what we have: a failed fetch must not look like an empty cart.
+        loadError.value = true;
         return;
       }
 
+      loadError.value = false;
       parseCartResponse(response);
     } catch (e) {
       debugPrint('CartService.fetchCart error: $e');
