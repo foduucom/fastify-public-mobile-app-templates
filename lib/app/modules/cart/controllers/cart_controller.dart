@@ -10,6 +10,31 @@ import 'package:get/get.dart';
 
 class CartController extends GetxController
     with BaseController, FoduuStudioLayoutMixin {
+  /// Find a cart item and its index by product name or id
+  Map<String, dynamic>? findCartItem({String? productName, String? productId}) {
+    for (int i = 0; i < cartItems.length; i++) {
+      final item = cartItems[i];
+      final p = item["product_id"] ?? item["product"];
+      final pId = (p is Map ? (p["_id"] ?? p["id"]) : item["product_id"])?.toString();
+      final pName = (p is Map ? p["name"] : item["name"])?.toString();
+
+      if (productId != null && productId.isNotEmpty && pId == productId) {
+        return {"item": item, "index": i};
+      }
+      if (productName != null && productName.isNotEmpty && pName != null) {
+        if (pName.trim().toLowerCase() == productName.trim().toLowerCase()) {
+          return {"item": item, "index": i};
+        }
+        if (productName.toLowerCase().contains(pName.toLowerCase()) ||
+            pName.toLowerCase().contains(productName.toLowerCase())) {
+          return {"item": item, "index": i};
+        }
+      }
+    }
+    return null;
+  }
+
+
   final _cartService = CartService.to;
   var couponDetails = {}.obs;
   var couponeMessage = ''.obs;

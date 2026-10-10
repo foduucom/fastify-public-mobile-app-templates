@@ -6,6 +6,7 @@ import '/constants/constants.dart';
 import '/core/services/cartServcie.dart';
 import '/constants/dynamic_theme.dart';
 import 'core/foduuStudio/register_default_widgets.dart';
+import 'package:foduu_ecommerce/app/data/services/session_service.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -86,13 +87,19 @@ Future<void> main() async {
 
   runApp(MyApp(initialRoute: initialRoute));
 
+  // If the session was found dead at launch, tell the user once Login is up.
+  if (SessionService.pendingNotice != null) {
+    Future.delayed(
+        const Duration(milliseconds: 900), SessionService.showPendingNotice);
+  }
+
   // Remove splash screen after app is ready
   // Splash screen removed (flutter_native_splash not configured)
 }
 
 Future<String> _initApp() async {
   final box = GetStorage();
-  final bool isLogin = box.read('isLogin') ?? false;
+  bool isLogin = box.read('isLogin') == true || box.read('isLogin') == 'true';
 
   final refresh = _refreshPublicSettings(box);
   // First ever launch has no saved settings, so give them a short window to
@@ -101,7 +108,12 @@ Future<String> _initApp() async {
   if (box.read('auth_preference') == null) {
     await refresh.timeout(const Duration(seconds: 10), onTimeout: () {});
   }
-  return isLogin ? Routes.BOTTOMBAR : Routes.LOGIN;
+  // Confirm the stored session once before the first screen is chosen, so a
+  // dead token goes straight to Login (one transition) instead of opening
+  // the app and being kicked out mid-load.
+  if (isLogin) isLogin = await SessionService.validateAtLaunch();
+  if (!isLogin) return isOtpLogin ? Routes.MOBILELOGIN : Routes.LOGIN;
+  return Routes.BOTTOMBAR;
 }
 
 Future<void> _refreshPublicSettings(GetStorage box) async {

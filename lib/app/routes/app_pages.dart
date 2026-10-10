@@ -122,6 +122,8 @@ class AppPages {
       name: _Paths.LOGIN,
       page: () => LoginView(),
       binding: LoginBinding(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 300),
     ),
 
     // GetPage(
@@ -291,6 +293,8 @@ class AppPages {
       name: _Paths.BOTTOMBAR,
       page: () => BottombarView(),
       binding: BottombarBinding(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 300),
     ),
     // GetPage(
     //   name: _Paths.CATEGORY,

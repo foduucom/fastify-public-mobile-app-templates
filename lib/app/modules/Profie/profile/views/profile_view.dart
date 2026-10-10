@@ -21,11 +21,20 @@ class ProfileView extends GetView<ProfileController> {
 
   @override
   Widget build(BuildContext context) {
+    // Rebuilds the moment the session is torn down, so cached account data
+    // and the account menu never outlive a dead session.
+    return Obx(() {
+      AuthDetails.loggedIn.value;
+      return _buildBody(context);
+    });
+  }
+
+  Widget _buildBody(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    if (!AuthDetails.isUserLogin()) {
+    if (!AuthDetails.loggedIn.value) {
       return Scaffold(
         appBar: AppBar(
           title: const Text(

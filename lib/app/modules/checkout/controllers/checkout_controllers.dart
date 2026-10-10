@@ -1,3 +1,7 @@
+import 'package:foduu_ecommerce/components/dialogs/out_of_stock_sheet.dart';
+import 'package:foduu_ecommerce/core/services/wishlistService.dart';
+import 'package:foduu_ecommerce/core/services/cartServcie.dart';
+import 'package:foduu_ecommerce/constants/app_exceptions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -372,6 +376,10 @@ class CheckOutController extends GetxController with BaseController {
       var response = await BasicProvider("order/create")
           .postRequest(form)
           .catchError((error) {
+        if (_isOutOfStockError(error)) {
+          _handleOutOfStockError(error);
+          return null;
+        }
         if (error is FetchDataException || error is BadRequestException) {
           HelperFunctions().showSnackBarError(
               "we’re currently experiencing issues with the payment method you selected. could you please use an alternative payment method to complete the transaction?");
@@ -646,4 +654,111 @@ class CheckOutController extends GetxController with BaseController {
       },
     );
   }
+
+  bool _isOutOfStockError(dynamic err) {
+    final msg = (err is AppException ? (err.message ?? '') : err.toString()).toLowerCase();
+    return msg.contains('out of stock') ||
+        msg.contains('sold out') ||
+        msg.contains('insufficient stock');
+  }
+
+  Future<void> _handleOutOfStockError(dynamic err) async {
+    if (Get.isDialogOpen ?? false) Get.back();
+
+    final rawMessage = err is AppException ? (err.message ?? '') : err.toString();
+    String detectedName = '';
+
+    final match = RegExp(r'"([^"]+)"').firstMatch(rawMessage);
+    if (match != null) {
+      detectedName = match.group(1)?.trim() ?? '';
+    }
+
+    final cartCtrl = Get.isRegistered<CartController>() ? Get.find<CartController>() : null;
+    final found = cartCtrl?.findCartItem(productName: detectedName);
+    final cartItem = found?['item'] as Map<String, dynamic>?;
+
+    final productObj = cartItem?['product_id'] is Map
+        ? cartItem!['product_id'] as Map
+        : (cartItem?['product'] is Map ? cartItem!['product'] as Map : null);
+    final productId = (productObj?['_id'] ?? productObj?['id'] ?? cartItem?['product_id'])?.toString() ?? '';
+    final variantObj = cartItem?['variant_id'] is Map
+        ? cartItem!['variant_id'] as Map
+        : (cartItem?['variant'] is Map ? cartItem!['variant'] as Map : null);
+    final variantSlug = (variantObj?['slug'] ?? variantObj?['name'] ?? cartItem?['variant_slug'] ?? cartItem?['variant_name'] ?? '')?.toString() ?? '';
+    final variantId = (variantObj?['_id'] ?? variantObj?['id'] ?? cartItem?['variant_id'])?.toString();
+    final displayName = productObj?['name']?.toString() ?? (detectedName.isNotEmpty ? detectedName : 'This product');
+
+    await showOutOfStockBottomSheet(
+      productName: displayName,
+      cartItem: cartItem,
+      onRemoveAndContinue: () async {
+        await _resolveOutOfStockAction(
+          productId: productId,
+          variantSlug: variantSlug,
+          variantId: variantId,
+          displayName: displayName,
+          saveToWishlist: false,
+        );
+      },
+      onSaveToWishlist: () async {
+        await _resolveOutOfStockAction(
+          productId: productId,
+          variantSlug: variantSlug,
+          variantId: variantId,
+          displayName: displayName,
+          saveToWishlist: true,
+        );
+      },
+      onReturnToCart: () {
+        Get.until((route) => route.settings.name == Routes.CART || route.isFirst);
+      },
+    );
+  }
+
+  Future<void> _resolveOutOfStockAction({
+    required String productId,
+    required String variantSlug,
+    String? variantId,
+    required String displayName,
+    required bool saveToWishlist,
+  }) async {
+    HelperFunctions().showOverlayLoader();
+    try {
+      if (saveToWishlist && productId.isNotEmpty) {
+        await WishlistService.to.addWishlist(
+          productId: productId,
+          variantSlug: variantSlug,
+          variantId: variantId,
+        );
+      }
+
+      if (productId.isNotEmpty) {
+        await CartService.to.removeFromCart(
+          productId: productId,
+          variantSlug: variantSlug,
+        );
+      } else {
+        await CartService.to.fetchCart();
+      }
+    } catch (e) {
+      debugPrint('Error resolving out of stock: $e');
+    } finally {
+      if (Get.isDialogOpen ?? false) Get.back();
+    }
+
+    if (CartService.to.cartItems.isEmpty) {
+      HelperFunctions().showSnackBarError(
+        'Your cart is now empty. Please add items to proceed.',
+      );
+      Get.offAllNamed(Routes.HOME);
+    } else {
+      final actionText = saveToWishlist
+          ? 'saved to your Wishlist and removed from order.'
+          : 'removed from your order.';
+      HelperFunctions().showSnackBarSuccess(
+        '"$displayName" was $actionText Total updated.',
+      );
+    }
+  }
+
 }

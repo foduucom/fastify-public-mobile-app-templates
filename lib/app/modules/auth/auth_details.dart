@@ -1,5 +1,6 @@
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
+import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 class AuthDetails with BaseController {
@@ -38,6 +39,17 @@ class AuthDetails with BaseController {
       print('Authentication details error $e');
       return false;
     }
+  }
+
+  /// Reactive mirror of the persisted `isLogin` flag so UI (Profile, etc.)
+  /// flips to the signed-out state the moment a session is torn down.
+  static final RxBool loggedIn = _createLoggedIn();
+
+  static RxBool _createLoggedIn() {
+    bool isTrue(dynamic v) => v == true || v == 'true';
+    final rx = RxBool(isTrue(box.read('isLogin')));
+    box.listenKey('isLogin', (value) => rx.value = isTrue(value));
+    return rx;
   }
 
   static bool isUserLogin() {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../widgets/region_picker_sheet.dart';
 import '/components/commonWidgets/secondary_app_header.dart';
 import '/components/foduuformtextfield.dart';
 import '/constants/constants.dart';
@@ -29,14 +30,21 @@ class AddressFormView extends GetView<AddressFormController> {
                 const SizedBox(height: 8),
 
                 // Country Dropdown
-                _buildDropdownSection(
-                  context,
-                  title: "Country",
-                  items: controller.countryList,
-                  selectedValue: controller.selectedCountry,
-                  onChanged: controller.onCountryChanged,
-                  hint: "Select Country",
-                ),
+                Obx(() => _buildRegionField(
+                      context,
+                      title: "Country",
+                      selected: controller.selectedCountry,
+                      hint: "Select Country",
+                      onTap: () async {
+                        final r = await showRegionPicker(context,
+                            title: 'Select Country',
+                            searchHint: 'Search country',
+                            loader: controller.loadCountries,
+                            selectedId:
+                                controller.selectedCountry['_id']?.toString());
+                        if (r != null) controller.onCountryChanged(r);
+                      },
+                    )),
                 const SizedBox(height: 16),
 
                 // Full Name
@@ -132,31 +140,35 @@ class AddressFormView extends GetView<AddressFormController> {
                 const SizedBox(height: 16),
 
                 // State Dropdown
-                Obx(() => _buildDropdownSection(
+                Obx(() => _buildRegionField(
                       context,
                       title: "State",
-                      items: controller.stateList,
-                      selectedValue: controller.selectedState,
-                      onChanged: controller.onStateChanged,
+                      selected: controller.selectedState,
                       hint: controller.selectedCountry.isEmpty
                           ? "Select Country first"
                           : "Select State",
                       enabled: controller.selectedCountry.isNotEmpty,
+                      onTap: () async {
+                        final r = await showRegionPicker(context,
+                            title: 'Select State',
+                            searchHint: 'Search state',
+                            loader: controller.loadStates,
+                            selectedId:
+                                controller.selectedState['_id']?.toString());
+                        if (r != null) controller.onStateChanged(r);
+                      },
                     )),
                 const SizedBox(height: 16),
 
                 // City Dropdown
-                Obx(() => _buildDropdownSection(
-                      context,
-                      title: "City",
-                      items: controller.cityList,
-                      selectedValue: controller.selectedCity,
-                      onChanged: controller.onCityChanged,
-                      hint: controller.selectedState.isEmpty
-                          ? "Select State first"
-                          : "Select City",
-                      enabled: controller.selectedState.isNotEmpty,
-                    )),
+                FoduuFormTextField(
+                  title: "City",
+                  fieldHintText: "Enter your Town/City",
+                  controller: controller.city,
+                  validationmsg: "City is required",
+                  validCheck: (v) =>
+                      (v == null || v.trim().isEmpty) ? "Enter Town/City" : null,
+                ),
                 const SizedBox(height: 24),
 
                 // Address Type Selection
@@ -284,16 +296,17 @@ class AddressFormView extends GetView<AddressFormController> {
     );
   }
 
-  Widget _buildDropdownSection(
+  Widget _buildRegionField(
     BuildContext context, {
     required String title,
-    required RxList items,
-    required RxMap selectedValue,
-    required Function(dynamic) onChanged,
+    required Map selected,
     required String hint,
+    required VoidCallback onTap,
     bool enabled = true,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
+    final name = (selected['name'] ?? '').toString();
+    final hasValue = name.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,59 +330,43 @@ class AddressFormView extends GetView<AddressFormController> {
             ),
           ),
         ),
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: enabled
-                ? colorScheme.surfaceVariant
-                : colorScheme.surfaceVariant.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: colorScheme.outline,
-              width: 1,
+        InkWell(
+          onTap: enabled ? onTap : null,
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            width: double.infinity,
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: enabled
+                  ? colorScheme.surfaceContainerHighest
+                  : colorScheme.surfaceContainerHighest.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: colorScheme.outline, width: 1),
             ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-          child: Obx(() {
-            final selectedItem = selectedValue.isEmpty
-                ? null
-                : items.firstWhereOrNull(
-                    (e) => e['_id'] == selectedValue['_id']);
-
-            return DropdownButtonHideUnderline(
-              child: DropdownButton<dynamic>(
-                isExpanded: true,
-                dropdownColor: colorScheme.surface,
-                icon: Icon(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    hasValue ? name : hint,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: hasValue
+                          ? colorScheme.onSurface
+                          : colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                Icon(
                   Icons.keyboard_arrow_down_rounded,
                   color: enabled
                       ? colorScheme.onSurfaceVariant
                       : colorScheme.outline,
                 ),
-                hint: Text(
-                  hint,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                value: selectedItem,
-                items: items.map((e) {
-                  return DropdownMenuItem<dynamic>(
-                    value: e,
-                    child: Text(
-                      e['name'] ?? '',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                  );
-                }).toList(),
-                onChanged: enabled ? onChanged : null,
-              ),
-            );
-          }),
+              ],
+            ),
+          ),
         ),
       ],
     );
