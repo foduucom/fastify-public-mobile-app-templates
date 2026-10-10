@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:get/get.dart';
+import '../widgets/region_picker_sheet.dart';
 import '../controllers/address_form_controller.dart';
 import 'package:foduu_ecommerce/components/foduuformtextfield.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
@@ -48,14 +49,21 @@ class _AddressFormViewState extends State<AddressFormView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildDropdownSection(
+                    Obx(() => _buildRegionField(
                       context,
                       title: "Country",
-                      items: controller.countryList,
-                      selectedValue: controller.selectedCountry,
-                      onChanged: controller.onCountryChanged,
+                      selected: controller.selectedCountry,
                       hint: "Select Country",
-                    ),
+                      onTap: () async {
+                        final r = await showRegionPicker(context,
+                            title: 'Select Country',
+                            searchHint: 'Search country',
+                            loader: controller.loadCountries,
+                            selectedId:
+                                controller.selectedCountry['_id']?.toString());
+                        if (r != null) controller.onCountryChanged(r);
+                      },
+                    )),
                     const SizedBox(height: 15),
                     FoduuFormTextField(
                       title: "Full Name",
@@ -115,24 +123,32 @@ class _AddressFormViewState extends State<AddressFormView> {
                       validCheck: (v) => null, // Landmark is optional
                     ),
                     const SizedBox(height: 15),
-                    _buildDropdownSection(
+                    Obx(() => _buildRegionField(
                       context,
                       title: "State",
-                      items: controller.stateList,
-                      selectedValue: controller.selectedState,
-                      onChanged: controller.onStateChanged,
-                      hint: "Select State",
+                      selected: controller.selectedState,
+                      hint: controller.selectedCountry.isEmpty
+                          ? "Select Country first"
+                          : "Select State",
                       enabled: controller.selectedCountry.isNotEmpty,
-                    ),
+                      onTap: () async {
+                        final r = await showRegionPicker(context,
+                            title: 'Select State',
+                            searchHint: 'Search state',
+                            loader: controller.loadStates,
+                            selectedId:
+                                controller.selectedState['_id']?.toString());
+                        if (r != null) controller.onStateChanged(r);
+                      },
+                    )),
                     const SizedBox(height: 15),
-                    _buildDropdownSection(
-                      context,
+                    FoduuFormTextField(
                       title: "City",
-                      items: controller.cityList,
-                      selectedValue: controller.selectedCity,
-                      onChanged: controller.onCityChanged,
-                      hint: "Select City",
-                      enabled: controller.selectedState.isNotEmpty,
+                      fieldHintText: "Enter your Town/City",
+                      controller: controller.city,
+                      validationmsg: "City is required",
+                      validCheck: (v) =>
+                          (v == null || v.trim().isEmpty) ? "Enter Town/City" : null,
                     ),
                     const SizedBox(height: 25),
                     Text(
@@ -189,50 +205,77 @@ class _AddressFormViewState extends State<AddressFormView> {
     );
   }
 
-  Widget _buildDropdownSection(
+  Widget _buildRegionField(
     BuildContext context, {
     required String title,
-    required RxList items,
-    required RxMap selectedValue,
-    required Function(dynamic) onChanged,
+    required Map selected,
     required String hint,
+    required VoidCallback onTap,
     bool enabled = true,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final name = (selected['name'] ?? '').toString();
+    final hasValue = name.isNotEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title,
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
-        const SizedBox(height: 5),
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade400),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Obx(() => DropdownButtonHideUnderline(
-                child: DropdownButton<dynamic>(
-                  isExpanded: true,
-                  hint: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(hint),
-                  ),
-                  value: selectedValue.isEmpty
-                      ? null
-                      : items.firstWhereOrNull(
-                          (e) => e['_id'] == selectedValue['_id']),
-                  items: items.map((e) {
-                    return DropdownMenuItem<dynamic>(
-                      value: e,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(e['name'] ?? ''),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: enabled ? onChanged : null,
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: RichText(
+            text: TextSpan(
+              text: title,
+              style: TextStyle(
+                color: colorScheme.onSurface,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              children: [
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: colorScheme.error, fontSize: 16),
                 ),
-              )),
+              ],
+            ),
+          ),
+        ),
+        InkWell(
+          onTap: enabled ? onTap : null,
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            width: double.infinity,
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: enabled
+                  ? colorScheme.surfaceContainerHighest
+                  : colorScheme.surfaceContainerHighest.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: colorScheme.outline, width: 1),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    hasValue ? name : hint,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: hasValue
+                          ? colorScheme.onSurface
+                          : colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: enabled
+                      ? colorScheme.onSurfaceVariant
+                      : colorScheme.outline,
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );

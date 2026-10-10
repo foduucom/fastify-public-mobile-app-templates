@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/app/data/models/region_model.dart';
+import 'package:foduu_ecommerce/app/data/services/region_service.dart';
 import 'package:get/get.dart';
 import 'package:foduu_ecommerce/app/modules/address/controllers/address_list_controller.dart';
 
@@ -94,47 +96,34 @@ class OrderSuccessController extends GetxController with BaseController {
     try {
       // ── Resolve Country ──
       String countryId = '';
+      String countrySlug = '';
       if (isHexId.hasMatch(countryVal)) {
         countryId = countryVal;
-        var countryResponse = await BasicProvider('countries?search=indi')
-            .getRequest()
-            .catchError(handleError);
-        if (countryResponse != null) {
-          List countries = _extractDataList(countryResponse);
-          var matched = countries.firstWhere(
-            (e) => e['_id'] == countryId,
-            orElse: () => null,
-          );
-          if (matched != null) {
-            address['country'] = {
-              '_id': countryId,
-              'name': matched['name']?.toString() ?? '',
-            };
-          }
+        final countries = await RegionService.fetchAll(
+            (p) => RegionService.fetchCountries(page: p));
+        final matched = countries.firstWhereOrNull((e) => e.id == countryId);
+        if (matched != null) {
+          countrySlug = matched.slug;
+          address['country'] = {
+            '_id': countryId,
+            'name': matched.name,
+            'slug': matched.slug,
+          };
         }
       } else if (address['country'] is Map) {
         countryId = address['country']['_id']?.toString() ?? '';
+        countrySlug = address['country']['slug']?.toString() ?? '';
       }
 
       // ── Resolve State ──
       String stateId = '';
-      if (isHexId.hasMatch(stateVal) && countryId.isNotEmpty) {
+      if (isHexId.hasMatch(stateVal) && countrySlug.isNotEmpty) {
         stateId = stateVal;
-        var resp = await BasicProvider('states/$countryId')
-            .getRequest()
-            .catchError(handleError);
-        if (resp != null) {
-          List states = _extractDataList(resp);
-          var matched = states.firstWhere(
-            (e) => e['_id'] == stateId,
-            orElse: () => null,
-          );
-          if (matched != null) {
-            address['state'] = {
-              '_id': stateId,
-              'name': matched['name']?.toString() ?? '',
-            };
-          }
+        final states = await RegionService.fetchAll((p) =>
+            RegionService.fetchStates(countrySlug: countrySlug, page: p));
+        final matched = states.firstWhereOrNull((e) => e.id == stateId);
+        if (matched != null) {
+          address['state'] = {'_id': stateId, 'name': matched.name};
         }
       } else if (address['state'] is Map) {
         stateId = address['state']['_id']?.toString() ?? '';

@@ -400,26 +400,28 @@ class FirebaseHelpers {
     await _subscribeToUserTopics();
   }
 
-  static Future<void> afterLogoutUnsubscribe() async {
+  /// Best-effort topic cleanup. Each call is time-limited so an unreachable
+  /// Firebase can never hang a caller; pass [userId] when local storage has
+  /// already been cleared.
+  static Future<void> afterLogoutUnsubscribe({String? userId}) async {
     if (kIsWeb) return;
-    final userDetails = box.read('userData');
-    if (userDetails == null) return;
-    final userId = userDetails['_id']?.toString();
-    if (userId != null) {
-      debugPrint(
-          "---------------Unsubscribing from user topics for: $userId-------------------");
+    if (userId == null) {
+      final userDetails = box.read('userData');
+      if (userDetails is Map) userId = userDetails['_id']?.toString();
+    }
+    if (userId == null) return;
+    debugPrint(
+        "---------------Unsubscribing from user topics for: $userId-------------------");
+    for (final topic in [
+      'foduu_ecommerce_user_$userId',
+      'foduu_ecommerce_orders_$userId',
+    ]) {
       try {
         await FirebaseMessaging.instance
-            .unsubscribeFromTopic('foduu_ecommerce_user_$userId');
+            .unsubscribeFromTopic(topic)
+            .timeout(const Duration(seconds: 5));
       } catch (e) {
-        debugPrint("Error unsubscribing from foduu_ecommerce_user_$userId: $e");
-      }
-      try {
-        await FirebaseMessaging.instance
-            .unsubscribeFromTopic('foduu_ecommerce_orders_$userId');
-      } catch (e) {
-        debugPrint(
-            "Error unsubscribing from foduu_ecommerce_orders_$userId: $e");
+        debugPrint("Error unsubscribing from $topic: $e");
       }
     }
   }

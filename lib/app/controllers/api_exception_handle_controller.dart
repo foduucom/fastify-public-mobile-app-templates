@@ -2,6 +2,7 @@ import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/app_exceptions.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/app/data/services/session_service.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:foduu_ecommerce/services/api_cache.dart';
@@ -29,14 +30,9 @@ mixin BaseController {
       }
       HelperFunctions().showSnackBarError(message.toString());
     } else if (error is UnAuthorizedException) {
-      var message = error.message;
-      getbox.erase();
-      ApiCache.clear();
-      isOtpLogin
-          ? Get.offAllNamed(Routes.MOBILELOGIN)
-          : Get.offAllNamed(Routes.LOGIN);
-      HelperFunctions()
-          .showSnackBarError("$message Your session seems to be expired!");
+      // One idempotent teardown + single navigation, however many requests
+      // fail with 401 at the same time.
+      await SessionService.expire(message: error.message);
     } else if (error is ServiceUnavailableException) {
       // The reconnecting banner / friendly state already informs the user.
     } else if (error is ApiNotRespondingException) {

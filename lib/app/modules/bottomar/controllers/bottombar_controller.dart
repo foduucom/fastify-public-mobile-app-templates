@@ -9,6 +9,7 @@ import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/firebase_notification.dart';
+import 'package:foduu_ecommerce/app/data/services/session_service.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -98,20 +99,16 @@ class BottombarController extends GetxController with BaseController {
   void onClose() {}
 
   Future<void> logout() async {
-    // var form = FormData({});
-    // var response = await BasicProvider("auth/logout")
-    //     .postRequest(form)
-    //     .catchError(handleError);
-    // print("logout response $response");
-    // if (response == null) return;
+    final userData = box.read('userData');
+    final userId = userData is Map ? userData['_id']?.toString() : null;
+    final otpLogin = isOtpLogin;
 
-    // Cleanup Firebase topics before clearing storage
-    await FirebaseHelpers.afterLogoutUnsubscribe();
-
-    box.erase();
-    ApiCache.clear();
+    // Local sign-out first; Firebase cleanup is fire-and-forget so an
+    // unreachable Firebase can never block the user from logging out.
+    await SessionService.clearLocalSession();
+    SessionService.unsubscribeFromPushInBackground(userId);
     isLogin(false);
-    isOtpLogin
+    otpLogin
         ? Get.offAllNamed(Routes.MOBILELOGIN)
         : Get.offAllNamed(Routes.LOGIN);
   }

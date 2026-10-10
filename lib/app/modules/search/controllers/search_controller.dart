@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
@@ -9,7 +11,13 @@ class SearchsController extends GetxController
     with BaseController, FoduuStudioLayoutMixin {
   static const String pageSlug = 'search';
 
+  /// Max categories / blogs previewed in the unified results.
+  static const int _previewLimit = 10;
+
   var searchProduct = [].obs;
+  final queryText = ''.obs;
+  var searchCategories = [].obs;
+  var searchBlogs = [].obs;
   var recentSearchList = [].obs;
 
   var isSearching = false.obs; // True for initial load
@@ -22,6 +30,39 @@ class SearchsController extends GetxController
   // Pagination Trackers
   int currentPage = 1;
   bool hasNextPage = false;
+
+  Timer? _debounce;
+  int _searchToken = 0;
+  List? _blogCache;
+
+  // ── CMS-allotted entities ──
+  // The backend CMS decides what the search bar covers: an entity is searched
+  // only when its section (`products`, `categories`, `blog`) is part of the
+  // `search` page layout. Without any layout we fall back to products only.
+  bool get _hasLayout => sectionTypes.isNotEmpty;
+  bool get searchesProducts => !_hasLayout || sectionTypes.contains('products');
+  bool get searchesCategories => sectionTypes.contains('categories');
+  bool get searchesBlogs => sectionTypes.contains('blog');
+
+  /// Entity result groups in the order the CMS lays them out.
+  List<String> get resultOrder {
+    if (!_hasLayout) return const ['products'];
+    return sectionTypes
+        .where((t) => t == 'products' || t == 'categories' || t == 'blog')
+        .toList();
+  }
+
+  /// CMS-authored hint for the search bar, with a fallback.
+  String get searchPlaceholder {
+    final placeholder = contentJsonFor('search')?['placeholder'];
+    if (placeholder is String && placeholder.trim().isNotEmpty) {
+      return placeholder;
+    }
+    final parts = <String>['products'];
+    if (searchesCategories) parts.add('categories');
+    if (searchesBlogs) parts.add('blogs');
+    return 'Search ${parts.join(', ')}...';
+  }
 
   @override
   void onInit() {
@@ -42,6 +83,7 @@ class SearchsController extends GetxController
 
   @override
   void onClose() {
+    _debounce?.cancel();
     searchTextController.dispose();
     scrollController.dispose();
     super.onClose();
@@ -96,10 +138,40 @@ class SearchsController extends GetxController
     }
   }
 
+  // ── Typing entry point: debounced ──
+  void onSearchChanged(String text) {
+    queryText.value = text;
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      getSearchSuggestion(text: text);
+    });
+  }
+
   // ── Search Load (Page 1) ──
   void getSearchSuggestion({required String text}) async {
+    _debounce?.cancel();
+    queryText.value = text;
+    final token = ++_searchToken;
+
     if (text.trim().isEmpty) {
+      searchCategories.clear();
+      searchBlogs.clear();
       loadAllProducts();
+      return;
+    }
+
+    // Categories and blogs run alongside products, only if the CMS allots them.
+    final others = Future.wait([
+      if (searchesCategories) _searchCategories(text, token),
+      if (searchesBlogs) _searchBlogs(text, token),
+    ]);
+    if (!searchesCategories) searchCategories.clear();
+    if (!searchesBlogs) searchBlogs.clear();
+    if (!searchesProducts) {
+      isSearching.value = true;
+      searchProduct.clear();
+      await others;
+      if (token == _searchToken) isSearching.value = false;
       return;
     }
 
@@ -113,12 +185,65 @@ class SearchsController extends GetxController
           .getRequest(queryParams: {'search': text, 'page': currentPage.toString()})
           .catchError(handleError);
 
+      if (token != _searchToken) return; // a newer search superseded this one
       _parseAndSetProducts(response, isRefresh: true);
     } catch (e) {
       debugPrint('❌ search error: $e');
     } finally {
-      isSearching.value = false;
+      await others;
+      if (token == _searchToken) isSearching.value = false;
     }
+  }
+
+  // ── Categories ──
+  Future<void> _searchCategories(String text, int token) async {
+    try {
+      final response = await BasicProvider('category').getRequest(
+          queryParams: {'search': text.trim(), 'page': '1'}).catchError(handleError);
+      if (token != _searchToken) return;
+      final List data = response is List
+          ? response
+          : (response is Map && response['data'] is List
+              ? response['data']
+              : []);
+      searchCategories.assignAll(data.take(_previewLimit).toList());
+    } catch (e) {
+      debugPrint('❌ search categories error: $e');
+    }
+  }
+
+  // ── Blogs ──
+  // The blogs endpoint has no server-side search, so fetch one page once and
+  // match name / excerpt on the device.
+  Future<void> _searchBlogs(String text, int token) async {
+    try {
+      _blogCache ??= await _loadBlogs();
+      if (token != _searchToken) return;
+      final q = text.trim().toLowerCase();
+      bool hit(dynamic v) => v?.toString().toLowerCase().contains(q) ?? false;
+      searchBlogs.assignAll(_blogCache!
+          .where((b) =>
+              b is Map &&
+              (hit(b['name']) || hit(b['title']) || hit(b['excerpt'])))
+          .take(_previewLimit)
+          .toList());
+    } catch (e) {
+      debugPrint('❌ search blogs error: $e');
+    }
+  }
+
+  Future<List> _loadBlogs() async {
+    final response = await BasicProvider('blogs?count=50&page=1')
+        .getRequest()
+        .catchError(handleError);
+    Object? raw;
+    if (response is Map) {
+      final inner = response['data'];
+      raw = inner is Map ? inner['data'] : inner;
+    } else if (response is List) {
+      raw = response;
+    }
+    return raw is List ? raw : const [];
   }
 
   // ── Pagination Load (Page 2+) ──

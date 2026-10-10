@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/app/data/models/region_model.dart';
+import 'package:foduu_ecommerce/app/data/services/region_service.dart';
 import 'package:foduu_ecommerce/app/modules/address/controllers/address_list_controller.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
@@ -15,15 +17,59 @@ class AddressFormController extends GetxController with BaseController {
   late TextEditingController postal_code;
   late TextEditingController street;
   late TextEditingController landmark;
+  late TextEditingController city;
 
-  // Selection Data
-  var countryList = [].obs;
-  var stateList = [].obs;
-  var cityList = [].obs;
-
+  /// Country / state the user picked, as `{_id, name, slug}` (state has no slug).
   var selectedCountry = {}.obs;
   var selectedState = {}.obs;
-  var selectedCity = {}.obs;
+
+  Map _regionMap(Region r) => {'_id': r.id, 'name': r.name, 'slug': r.slug};
+
+  void onCountryChanged(Region value) {
+    if (selectedCountry['_id'] != value.id) selectedState.value = {};
+    selectedCountry.value = _regionMap(value);
+  }
+
+  void onStateChanged(Region value) {
+    selectedState.value = _regionMap(value);
+  }
+
+  Future<RegionPage> loadCountries(int page, String search) =>
+      RegionService.fetchCountries(page: page, search: search);
+
+  Future<RegionPage> loadStates(int page, String search) async {
+    await _ensureCountrySlug();
+    return RegionService.fetchStates(
+        countrySlug: (selectedCountry['slug'] ?? '').toString(),
+        page: page,
+        search: search);
+  }
+
+  /// The states API is keyed by country slug; saved addresses only carry
+  /// `{_id, name}`, so look the slug up when it is missing.
+  Future<void> _ensureCountrySlug() async {
+    if ((selectedCountry['slug'] ?? '').toString().isNotEmpty) return;
+    final name = (selectedCountry['name'] ?? '').toString();
+    if (name.isEmpty) return;
+    final page = await RegionService.fetchCountries(search: name);
+    final id = selectedCountry['_id']?.toString();
+    final match = page.items.firstWhereOrNull((r) => r.id == id) ??
+        page.items.firstWhereOrNull(
+            (r) => r.name.toLowerCase() == name.toLowerCase());
+    if (match != null) selectedCountry['slug'] = match.slug;
+  }
+
+  /// Defaults a new address to India, like the website.
+  Future<void> _defaultCountry() async {
+    if (isEditMode || selectedCountry.isNotEmpty) return;
+    try {
+      final page = await RegionService.fetchCountries(search: 'india');
+      final india = page.items.firstWhereOrNull((r) => r.slug == 'india');
+      if (india != null && selectedCountry.isEmpty) onCountryChanged(india);
+    } catch (e) {
+      print('Error defaulting country: $e');
+    }
+  }
 
   var addressType = "Home".obs;
   var isDefault = false.obs;
@@ -40,9 +86,10 @@ class AddressFormController extends GetxController with BaseController {
     postal_code = TextEditingController();
     street = TextEditingController();
     landmark = TextEditingController();
+    city = TextEditingController();
 
     _initFromArgs();
-    fetchCountries();
+    _defaultCountry();
     super.onInit();
   }
 
@@ -64,98 +111,22 @@ class AddressFormController extends GetxController with BaseController {
             addr['is_default'] == true ||
             addr['is_default'] == '1');
 
-        // Initial values for dropdowns (will be populated fully when lists load)
-        selectedCountry.value = (addr['country'] is Map) ? addr['country'] : {};
-        selectedState.value = (addr['state'] is Map) ? addr['state'] : {};
-        selectedCity.value = (addr['city'] is Map) ? addr['city'] : {};
-
-        if (selectedCountry.isNotEmpty) _fetchStates(selectedCountry['_id']);
-        if (selectedState.isNotEmpty) _fetchCities(selectedState['_id']);
+        selectedCountry.value = (addr['country'] is Map)
+            ? Map.from(addr['country'])
+            : {};
+        selectedState.value =
+            (addr['state'] is Map) ? Map.from(addr['state']) : {};
+        city.text = addr['city'] is Map
+            ? (addr['city']['name'] ?? '').toString()
+            : (addr['city'] ?? '').toString();
       }
     }
-  }
-
-  /// Extracts the data array from API response, handling both
-  /// `response['data']` (direct List) and `response['data']['data']` (nested).
-  List _extractDataList(dynamic response) {
-    if (response == null) return [];
-    var data = response['data'];
-    if (data is List) return data;
-    if (data is Map && data['data'] is List) return data['data'];
-    return [];
-  }
-
-  Future<void> fetchCountries() async {
-    try {
-      var response = await BasicProvider('countries?search=indi')
-          .getRequest()
-          .catchError(handleError);
-      print('address response  ${response}');
-      if (response != null) {
-        countryList.assignAll(_extractDataList(response));
-      }
-    } catch (e) {
-      print('Error fetching countries: $e');
-    }
-  }
-
-  Future<void> _fetchStates(String countryId) async {
-    try {
-      stateList.clear();
-      var response = await BasicProvider('states/$countryId')
-          .getRequest()
-          .catchError(handleError);
-      print('state response  ${response}');
-      if (response != null) {
-        stateList.assignAll(_extractDataList(response));
-      }
-    } catch (e) {
-      print('Error fetching states: $e');
-    }
-  }
-
-  Future<void> _fetchCities(String stateId) async {
-    try {
-      cityList.clear();
-      var response = await BasicProvider('cities/$stateId')
-          .getRequest()
-          .catchError(handleError);
-      if (response != null) {
-        print('city response ${response}');
-        cityList.assignAll(_extractDataList(response));
-      }
-    } catch (e) {
-      print('Error fetching cities: $e');
-    }
-  }
-
-  void onCountryChanged(dynamic value) {
-    selectedCountry.value = value;
-    selectedState.value = {};
-    selectedCity.value = {};
-    stateList.clear();
-    cityList.clear();
-    _fetchStates(value['_id']);
-  }
-
-  void onStateChanged(dynamic value) {
-    selectedState.value = value;
-    selectedCity.value = {};
-    cityList.clear();
-    _fetchCities(value['_id']);
-  }
-
-  void onCityChanged(dynamic value) {
-    selectedCity.value = value;
   }
 
   Future<void> saveAddress(GlobalKey<FormState> formKey) async {
     if (!formKey.currentState!.validate()) return;
-    if (selectedCountry.isEmpty ||
-        selectedState.isEmpty ||
-        selectedCity.isEmpty) {
-      HelperFunctions()
-          .showSnackBarError("Please select country, state, and city");
+    if (selectedCountry.isEmpty || selectedState.isEmpty) {
+      HelperFunctions().showSnackBarError("Please select country and state");
       return;
     }
 
@@ -171,7 +142,7 @@ class AddressFormController extends GetxController with BaseController {
         'landmark': landmark.text,
         'country': selectedCountry['_id'],
         'state': selectedState['_id'],
-        'city': selectedCity['_id'],
+        'city': city.text.trim(),
         'postal_code': postal_code.text,
         'address_type': addressType.value,
         'is_default': isDefault.value ? 1 : 0
@@ -218,6 +189,7 @@ class AddressFormController extends GetxController with BaseController {
     postal_code.dispose();
     street.dispose();
     landmark.dispose();
+    city.dispose();
     super.onClose();
   }
 }

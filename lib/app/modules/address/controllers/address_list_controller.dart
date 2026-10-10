@@ -1,5 +1,7 @@
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/app/data/models/region_model.dart';
+import 'package:foduu_ecommerce/app/data/services/region_service.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/core/services/cartServcie.dart';
@@ -153,17 +155,12 @@ class AddressListController extends GetxController with BaseController {
   Future<void> _resolveAddressNames() async {
     try {
       // Cache fetched data to avoid duplicate API calls
-      Map<String, List> countryStatesCache = {};
+      Map<String, List<Region>> countryStatesCache = {};
       Map<String, List> stateCitiesCache = {};
 
-      // Fetch countries once
-      List countryList = [];
-      var countryResponse = await BasicProvider('countries?search=indi')
-          .getRequest()
-          .catchError(handleError);
-      if (countryResponse != null) {
-        countryList = _extractDataList(countryResponse);
-      }
+      // Countries are only needed when an address carries a bare country id,
+      // so they are fetched (all pages) lazily and once.
+      List<Region>? countryList;
 
       for (var address in userAddressList) {
         if (address is! Map) continue;
@@ -171,43 +168,36 @@ class AddressListController extends GetxController with BaseController {
         // ── Resolve Country ──
         var countryVal = address['country'];
         String countryId = '';
+        String countrySlug = '';
         if (countryVal is String && countryVal.isNotEmpty) {
           countryId = countryVal;
-          var matched = countryList.firstWhere(
-            (e) => e['_id'] == countryId,
-            orElse: () => null,
-          );
+          countryList ??= await RegionService.fetchAll(
+              (p) => RegionService.fetchCountries(page: p));
+          final matched = countryList.firstWhereOrNull((e) => e.id == countryId);
           if (matched != null) {
+            countrySlug = matched.slug;
             address['country'] = {
               '_id': countryId,
-              'name': matched['name']?.toString() ?? '',
+              'name': matched.name,
+              'slug': matched.slug,
             };
           }
         } else if (countryVal is Map) {
           countryId = countryVal['_id']?.toString() ?? '';
+          countrySlug = countryVal['slug']?.toString() ?? '';
         }
 
         // ── Resolve State ──
         var stateVal = address['state'];
         String stateId = '';
-        if (stateVal is String && stateVal.isNotEmpty && countryId.isNotEmpty) {
+        if (stateVal is String && stateVal.isNotEmpty && countrySlug.isNotEmpty) {
           stateId = stateVal;
-          if (!countryStatesCache.containsKey(countryId)) {
-            var resp = await BasicProvider('states/$countryId')
-                .getRequest()
-                .catchError(handleError);
-            countryStatesCache[countryId] = _extractDataList(resp);
-          }
-          var states = countryStatesCache[countryId] ?? [];
-          var matched = states.firstWhere(
-            (e) => e['_id'] == stateId,
-            orElse: () => null,
-          );
+          final states = countryStatesCache[countrySlug] ??=
+              await RegionService.fetchAll((p) => RegionService.fetchStates(
+                  countrySlug: countrySlug, page: p));
+          final matched = states.firstWhereOrNull((e) => e.id == stateId);
           if (matched != null) {
-            address['state'] = {
-              '_id': stateId,
-              'name': matched['name']?.toString() ?? '',
-            };
+            address['state'] = {'_id': stateId, 'name': matched.name};
           }
         } else if (stateVal is Map) {
           stateId = stateVal['_id']?.toString() ?? '';
