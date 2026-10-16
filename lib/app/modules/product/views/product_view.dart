@@ -45,6 +45,13 @@ class ProductView extends GetView<ProductController> {
                 WishListService.to.isInWishlist(controller.productId);
             return SecondaryAppHeader(
               title: "Product Detail",
+              extraActions: [
+                IconButton(
+                  icon: const Icon(Icons.share_outlined),
+                  tooltip: 'Share',
+                  onPressed: () => controller.shareContent(context),
+                ),
+              ],
               rightIcon: isInWishlist
                   ? Icons.favorite
                   : Icons.favorite_outline,

@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import '/components/app_image_placeholder.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/modules/category/views/category_dialog.dart';
 import '/app/routes/app_pages.dart';
@@ -188,22 +189,16 @@ class _TopCategoryHomeState extends State<CategoryHome>
       child: Stack(
         fit: StackFit.expand,
         children: [
-          CachedNetworkImage(
-            fit: BoxFit.cover,
-            imageUrl: HelperFunctions().getImage(category['featured_image']),
-            errorWidget: (_, __, ___) => Container(
-              color: colorScheme.surfaceVariant,
-              child: Center(
-                child: Icon(
-                  Icons.category_outlined,
-                  color: colorScheme.onSurfaceVariant,
-                  size: 28,
-                ),
-              ),
-            ),
-            progressIndicatorBuilder: (_, __, ___) =>
-                HelperFunctions().loadingIndicator(),
-          ),
+          (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
+                  HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
+              ? CachedNetworkImage(
+                  fit: BoxFit.cover,
+                  imageUrl: HelperFunctions().getImage(category['featured_image']),
+                  errorWidget: (_, __, ___) => const AppImagePlaceholder(radius: 10),
+                  progressIndicatorBuilder: (_, __, ___) =>
+                      HelperFunctions().loadingIndicator(),
+                )
+              : const AppImagePlaceholder(radius: 10),
           const DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -283,21 +278,19 @@ class _TopCategoryHomeState extends State<CategoryHome>
               ),
             ),
             child: ClipOval(
-              child: CachedNetworkImage(
-                fit: BoxFit.cover,
-                imageUrl: HelperFunctions().getImage(
-                  category['featured_image'],
-                ),
-                errorWidget: (_, __, ___) => Center(
-                  child: Icon(
-                    Icons.category_outlined,
-                    color: colorScheme.onSurfaceVariant,
-                    size: 28,
-                  ),
-                ),
-                progressIndicatorBuilder: (_, __, ___) =>
-                    HelperFunctions().loadingIndicator(),
-              ),
+              child: (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
+                      HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
+                  ? CachedNetworkImage(
+                      fit: BoxFit.cover,
+                      imageUrl: HelperFunctions().getImage(
+                        category['featured_image'],
+                      ),
+                      errorWidget: (_, __, ___) =>
+                          const AppImagePlaceholder.circular(),
+                      progressIndicatorBuilder: (_, __, ___) =>
+                          HelperFunctions().loadingIndicator(),
+                    )
+                  : const AppImagePlaceholder.circular(),
             ),
           ),
           const SizedBox(height: 6),

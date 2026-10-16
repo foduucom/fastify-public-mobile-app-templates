@@ -1,3 +1,4 @@
+import 'package:foduu_ecommerce/components/cart_auth_bottom_sheet.dart';
 import 'package:foduu_ecommerce/components/resilience/friendly_error_state.dart';
 import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -25,6 +26,7 @@ class CartView extends GetView<CartController> {
         appBar: SecondaryAppHeader(
           title: "My Cart",
           showRight: false,
+          showBack: Navigator.canPop(context),
           extraActions: [
             IconButton(
               onPressed: () => CartService.to.fetchCart(),
@@ -141,6 +143,10 @@ class CartView extends GetView<CartController> {
                   ),
                 ),
               ),
+              if (!AuthDetails.isUserLogin()) ...[
+                const SizedBox(height: 24),
+                _buildGuestSyncBanner(context),
+              ],
             ],
           ),
         ),
@@ -159,6 +165,12 @@ class CartView extends GetView<CartController> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(top: 4, bottom: 24),
         children: [
+          // Guest Sync Banner (shown in Skip Mode)
+          if (!AuthDetails.isUserLogin()) ...[
+            _buildGuestSyncBanner(context),
+            const SizedBox(height: 12),
+          ],
+
           // Items Count Subheading
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -192,10 +204,11 @@ class CartView extends GetView<CartController> {
 
           const SizedBox(height: 8),
 
-          // Coupon Section Card
-          _buildCouponCard(context),
-
-          const SizedBox(height: 16),
+          // Coupon Section Card (only available in Non-Skip / Authenticated mode)
+          if (AuthDetails.isUserLogin()) ...[
+            _buildCouponCard(context),
+            const SizedBox(height: 16),
+          ],
 
           // Bill Summary Card
           _buildBillSummaryCard(context),
@@ -813,13 +826,10 @@ class CartView extends GetView<CartController> {
                     if (AuthDetails.isUserLogin()) {
                       Get.toNamed(Routes.ADDRESS_LIST);
                     } else {
-                      Get.snackbar(
-                        "Login Required",
-                        "Please sign in to proceed with your order",
-                        backgroundColor: colorScheme.error,
-                        colorText: colorScheme.onError,
-                        margin: const EdgeInsets.all(16),
-                        snackPosition: SnackPosition.BOTTOM,
+                      showCartAuthBottomSheet(
+                        title: "Sign in to Place Order",
+                        message:
+                            "Please sign in to choose your delivery address and complete checkout.",
                       );
                     }
                   },
@@ -852,6 +862,59 @@ class CartView extends GetView<CartController> {
             ],
           );
         }),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  GUEST MODE SYNC BANNER
+  // ══════════════════════════════════════════════════════════
+  Widget _buildGuestSyncBanner(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceVariant.withOpacity(0.35),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(0.12),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.sync_rounded,
+            size: 20,
+            color: colorScheme.primary,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              "Shopping as guest. Sign in to sync your cart across devices.",
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          TextButton(
+            onPressed: () => Get.toNamed(Routes.LOGIN),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              minimumSize: const Size(50, 32),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              foregroundColor: colorScheme.primary,
+            ),
+            child: const Text(
+              "Sign In",
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

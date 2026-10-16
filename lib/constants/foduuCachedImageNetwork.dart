@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 
 class FoduuCachedNetworkImage extends StatelessWidget {
@@ -36,9 +37,12 @@ class FoduuCachedNetworkImage extends StatelessWidget {
           colorFilter: colorFilter,
         ),
       );
-    } else if (image == null || image == "" || !image!.contains("http")) {
-      final assetWidget = Image.asset(
-        "assets/images/noImage.png",
+    } else if (image == null ||
+        image == "" ||
+        !image!.contains("http") ||
+        image == HelperFunctions.getNoImage()) {
+      final placeholderWidget = AppImagePlaceholder(
+        radius: radius,
         height: height,
         width: width,
         fit: fit,
@@ -46,8 +50,8 @@ class FoduuCachedNetworkImage extends StatelessWidget {
       return GestureDetector(
         onTap: onTap,
         child: colorFilter != null
-            ? ColorFiltered(colorFilter: colorFilter!, child: assetWidget)
-            : assetWidget,
+            ? ColorFiltered(colorFilter: colorFilter!, child: placeholderWidget)
+            : placeholderWidget,
       );
     } else {
       Widget netImage = CachedNetworkImage(
@@ -60,22 +64,18 @@ class FoduuCachedNetworkImage extends StatelessWidget {
             height: height,
             width: width,
             decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: Theme.of(context).colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(radius)),
             child: Center(
                 child: SizedBox(
                     height: height,
                     width: width,
                     child: HelperFunctions().loadingIndicator()))),
-        errorWidget: (context, url, error) => Container(
+        errorWidget: (context, url, error) => AppImagePlaceholder(
+          radius: radius,
           height: height,
           width: width,
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(radius),
-              color: Colors.grey.shade300),
-          child: const Center(
-            child: Icon(Icons.error),
-          ),
+          fit: fit,
         ),
       );
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
@@ -79,20 +80,29 @@ class _BlogSectionState extends State<BlogSection>
                         ClipRRect(
                           borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(10)),
-                          child: CachedNetworkImage(
-                            imageUrl: HelperFunctions()
-                                .getImage(blog['featured_image']),
-                            height: 160,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorWidget: (context, url, error) =>
-                                const SizedBox(
-                              child: Icon(Icons.error),
-                            ),
-                            progressIndicatorBuilder:
-                                (context, url, progress) =>
-                                    HelperFunctions().loadingIndicator(),
-                          ),
+                          child: (HelperFunctions().getImage(blog['featured_image']).isNotEmpty &&
+                                  HelperFunctions().getImage(blog['featured_image']) != HelperFunctions.getNoImage())
+                              ? CachedNetworkImage(
+                                  imageUrl: HelperFunctions()
+                                      .getImage(blog['featured_image']),
+                                  height: 160,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorWidget: (context, url, error) =>
+                                      const AppImagePlaceholder(
+                                    radius: 0,
+                                    height: 160,
+                                    width: double.infinity,
+                                  ),
+                                  progressIndicatorBuilder:
+                                      (context, url, progress) =>
+                                          HelperFunctions().loadingIndicator(),
+                                )
+                              : const AppImagePlaceholder(
+                                  radius: 0,
+                                  height: 160,
+                                  width: double.infinity,
+                                ),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(

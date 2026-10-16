@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/core/services/wishlistService.dart'
@@ -525,17 +526,18 @@ class _TrendingProductCardState extends State<TrendingProductSection>
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  CachedNetworkImage(
-                    imageUrl: ProductHelper.getProductImage(product),
-                    fit: BoxFit.cover,
-                    progressIndicatorBuilder: (_, __, ___) =>
-                        HelperFunctions().loadingIndicator(),
-                    errorWidget: (_, __, ___) => Container(
-                      color: context.surfaceVariantColor,
-                      child: Icon(Icons.image_outlined,
-                          color: context.onSurfaceVariantColor),
-                    ),
-                  ),
+                  (ProductHelper.getProductImage(product).isNotEmpty &&
+                          ProductHelper.getProductImage(product) !=
+                              HelperFunctions.getNoImage())
+                      ? CachedNetworkImage(
+                          imageUrl: ProductHelper.getProductImage(product),
+                          fit: BoxFit.cover,
+                          progressIndicatorBuilder: (_, __, ___) =>
+                              HelperFunctions().loadingIndicator(),
+                          errorWidget: (_, __, ___) =>
+                              const AppImagePlaceholder(radius: 10),
+                        )
+                      : const AppImagePlaceholder(radius: 10),
                   if (hasDiscount)
                     Positioned(
                       left: 8,
@@ -634,23 +636,23 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                             onTap: () => _handleWishlistTap(product),
                           );
                         }),
-                        const SizedBox(height: 5),
+                        //const SizedBox(height: 5),
                         // 4. Compare
-                        _actionCircleBtn(
-                          icon: Icons.swap_horiz_rounded,
-                          tooltip: 'Compare',
-                          onTap: () {
-                            Get.snackbar(
-                              'Compare',
-                              '${ProductHelper.getProductName(product)} added to comparison',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: colorScheme.secondary,
-                              colorText: colorScheme.onSecondary,
-                              duration: const Duration(seconds: 2),
-                              margin: const EdgeInsets.all(16),
-                            );
-                          },
-                        ),
+                        // _actionCircleBtn(
+                        //   icon: Icons.swap_horiz_rounded,
+                        //   tooltip: 'Compare',
+                        //   onTap: () {
+                        //     Get.snackbar(
+                        //       'Compare',
+                        //       '${ProductHelper.getProductName(product)} added to comparison',
+                        //       snackPosition: SnackPosition.BOTTOM,
+                        //       backgroundColor: colorScheme.secondary,
+                        //       colorText: colorScheme.onSecondary,
+                        //       duration: const Duration(seconds: 2),
+                        //       margin: const EdgeInsets.all(16),
+                        //     );
+                        //   },
+                        // ),
                       ],
                     ),
                   ),
@@ -907,27 +909,17 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
-                          image.isNotEmpty
+                          (image.isNotEmpty &&
+                                  image != HelperFunctions.getNoImage())
                               ? CachedNetworkImage(
                                   imageUrl: image,
                                   fit: BoxFit.cover,
-                                  errorWidget: (_, __, ___) => Container(
-                                    color: colorScheme.surfaceContainerHighest,
-                                    child: Icon(
-                                      Icons.category_outlined,
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
+                                  errorWidget: (_, __, ___) =>
+                                      const AppImagePlaceholder(radius: 10),
                                   progressIndicatorBuilder: (_, __, ___) =>
                                       HelperFunctions().loadingIndicator(),
                                 )
-                              : Container(
-                                  color: colorScheme.surfaceContainerHighest,
-                                  child: Icon(
-                                    Icons.category_outlined,
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
+                              : const AppImagePlaceholder(radius: 10),
                           const DecoratedBox(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
@@ -1406,21 +1398,20 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                   borderRadius: const BorderRadius.horizontal(
                     left: Radius.circular(12),
                   ),
-                  child: CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.cover,
-                    progressIndicatorBuilder: (_, __, ___) =>
-                        HelperFunctions().loadingIndicator(),
-                    errorWidget: (_, __, ___) => Container(
-                      width: 120,
-                      height: 120,
-                      color: colorScheme.surfaceVariant,
-                      child: Icon(Icons.image_outlined,
-                          color: colorScheme.onSurfaceVariant),
-                    ),
-                  ),
+                  child: (imageUrl.isNotEmpty &&
+                          imageUrl != HelperFunctions.getNoImage())
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.cover,
+                          progressIndicatorBuilder: (_, __, ___) =>
+                              HelperFunctions().loadingIndicator(),
+                          errorWidget: (_, __, ___) =>
+                              const AppImagePlaceholder(radius: 0),
+                        )
+                      : const AppImagePlaceholder(
+                          radius: 0, width: 120, height: 120),
                 ),
                 // Discount Badge
                 if (priceInfo['discountRate'] != null &&
@@ -1598,17 +1589,16 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             fit: StackFit.expand,
             children: [
               // Full background image
-              CachedNetworkImage(
-                imageUrl: imageUrl,
-                fit: BoxFit.cover,
-                progressIndicatorBuilder: (_, __, ___) =>
-                    HelperFunctions().loadingIndicator(),
-                errorWidget: (_, __, ___) => Container(
-                  color: colorScheme.surfaceVariant,
-                  child: Icon(Icons.image_outlined,
-                      color: colorScheme.onSurfaceVariant, size: 40),
-                ),
-              ),
+              (imageUrl.isNotEmpty && imageUrl != HelperFunctions.getNoImage())
+                  ? CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      progressIndicatorBuilder: (_, __, ___) =>
+                          HelperFunctions().loadingIndicator(),
+                      errorWidget: (_, __, ___) =>
+                          const AppImagePlaceholder(radius: 14),
+                    )
+                  : const AppImagePlaceholder(radius: 14),
               // Gradient overlay at bottom
               Positioned(
                 left: 0,

@@ -3,7 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:foduu_ecommerce/app/modules/address/controllers/address_list_controller.dart';
 import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
-import '../controllers/checkout_controller.dart';
+import '../controllers/checkout_controllers.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:foduu_ecommerce/components/buttons/bottombutton.dart';

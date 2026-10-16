@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:foduu_ecommerce/app/modules/blog/controller/blog_detail_controller.dart';
@@ -252,11 +253,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
               ),
             ),
           ),
-          errorWidget: (_, __, ___) => Container(
-            color: colorScheme.surfaceVariant,
-            child: Icon(Icons.broken_image_outlined,
-                size: 48, color: colorScheme.onSurfaceVariant),
-          ),
+          errorWidget: (_, __, ___) => const AppImagePlaceholder(radius: 14),
         ),
       ),
     );

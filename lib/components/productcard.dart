@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -67,21 +68,19 @@ class _ProductCardState extends State<ProductCard>
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(5),
-                child: CachedNetworkImage(
-                  imageUrl: widget.assetImage,
-                  height: 150,
-                  width: 150,
-                  errorWidget: (context, url, error) => Container(
-                    decoration: BoxDecoration(color: Colors.grey.shade300),
-                    child: const Center(
-                      child: Icon(Icons.error),
-                    ),
-                  ),
-                  progressIndicatorBuilder: (context, url, progress) {
-                    return HelperFunctions().loadingIndicator();
-                  },
-                  fit: BoxFit.cover,
-                ),
+                child: (widget.assetImage.isNotEmpty && widget.assetImage != HelperFunctions.getNoImage())
+                    ? CachedNetworkImage(
+                        imageUrl: widget.assetImage,
+                        height: 150,
+                        width: 150,
+                        errorWidget: (context, url, error) =>
+                            const AppImagePlaceholder(radius: 5),
+                        progressIndicatorBuilder: (context, url, progress) {
+                          return HelperFunctions().loadingIndicator();
+                        },
+                        fit: BoxFit.cover,
+                      )
+                    : const AppImagePlaceholder(radius: 5, width: 150, height: 150),
               ),
               Positioned(
                 left: 3,

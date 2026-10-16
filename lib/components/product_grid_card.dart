@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
 import '/constants/product_helper.dart';
 import '/constants/helper_functions.dart';
@@ -45,17 +46,16 @@ class ProductGridCard extends StatelessWidget {
                       const BorderRadius.vertical(top: Radius.circular(12)),
                   child: AspectRatio(
                     aspectRatio: 185 / 205,
-                    child: CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      progressIndicatorBuilder: (_, __, ___) =>
-                          HelperFunctions().loadingIndicator(),
-                      errorWidget: (_, __, ___) => Container(
-                        color: colorScheme.surfaceContainerHighest,
-                        child: Icon(Icons.image_outlined,
-                            color: colorScheme.onSurfaceVariant),
-                      ),
-                    ),
+                    child: (imageUrl.isNotEmpty && imageUrl != HelperFunctions.getNoImage())
+                        ? CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.cover,
+                            progressIndicatorBuilder: (_, __, ___) =>
+                                HelperFunctions().loadingIndicator(),
+                            errorWidget: (_, __, ___) =>
+                                const AppImagePlaceholder(radius: 0),
+                          )
+                        : const AppImagePlaceholder(radius: 0),
                   ),
                 ),
 

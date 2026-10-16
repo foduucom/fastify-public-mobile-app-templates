@@ -12,6 +12,7 @@ import 'package:foduu_ecommerce/constants/app_exceptions.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 
 //enum OtpContext { login, register }
 enum OtpContext {
@@ -249,6 +250,13 @@ class OtpController extends GetxController with BaseController {
       box.write('userEmail', userEmail);
       box.write('userName', userName);
       box.write('userId', userId);
+
+      // Sync any guest cart items added during Skip Mode to server
+      try {
+        await CartService.to.syncLocalCartToServer();
+      } catch (e) {
+        print('Cart sync error on login: $e');
+      }
 
       // Navigate
       isLoading(false);

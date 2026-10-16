@@ -1,3 +1,6 @@
+import "package:foduu_ecommerce/constants/constants.dart";
+import "package:foduu_ecommerce/components/support_call_sheet.dart";
+import "package:foduu_ecommerce/components/commonWidgets/secondary_app_header.dart";
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/profile/controllers/profile_controller.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/profile/views/editprofile_view.dart';
@@ -35,61 +38,7 @@ class ProfileView extends GetView<ProfileController> {
     final isDark = theme.brightness == Brightness.dark;
 
     if (!AuthDetails.loggedIn.value) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'Account',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          centerTitle: true,
-        ),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: colorScheme.primary.withOpacity(0.1),
-                  ),
-                  child: Icon(
-                    Icons.person_outline,
-                    size: 48,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Welcome to Your Account',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Log in to view your orders, wishlist, saved addresses, and profile details.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: colorScheme.onSurfaceVariant),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: AppButton(
-                    itemText: 'Log In / Sign Up',
-                    keypressEvent: () {
-                      Get.offAllNamed(Routes.LOGIN);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+      return _buildGuestBody(context);
     }
 
     return Scaffold(
@@ -848,6 +797,327 @@ class ProfileView extends GetView<ProfileController> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildGuestBody(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return SafeArea(
+      child: Scaffold(
+        appBar: const PreferredSize(
+          preferredSize: Size.fromHeight(kToolbarHeight),
+          child: SecondaryAppHeader(
+            title: 'Account',
+            showBack: false,
+            showRight: false,
+          ),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Welcome Guest Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(18),
+                  border:
+                      Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: colorScheme.primary.withOpacity(0.1),
+                            border: Border.all(
+                              color: colorScheme.primary.withOpacity(0.25),
+                              width: 2,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.person_outline_rounded,
+                            size: 32,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Welcome, Guest',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                'Sign in to track orders, save items & get personalized deals.',
+                                style: TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontSize: 12,
+                                  color: colorScheme.onSurfaceVariant,
+                                  height: 1.35,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    // Dual Action Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 44,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                isOtpLogin
+                                    ? Get.toNamed(Routes.MOBILELOGIN)
+                                    : Get.toNamed(Routes.LOGIN);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: colorScheme.primary,
+                                foregroundColor: colorScheme.onPrimary,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                'Sign In',
+                                style: TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SizedBox(
+                            height: 44,
+                            child: OutlinedButton(
+                              onPressed: () {
+                                isOtpLogin
+                                    ? Get.toNamed(Routes.MOBILEREGISTER)
+                                    : Get.toNamed(Routes.REGISTER);
+                              },
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(
+                                  color: colorScheme.primary,
+                                  width: 1.5,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text(
+                                'Create Account',
+                                style: TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 22),
+
+              Text(
+                'Quick Services',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(18),
+                  border:
+                      Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: [
+                    _buildGuestTile(
+                      context,
+                      icon: Icons.support_agent_rounded,
+                      title: '24/7 Customer Support',
+                      subtitle: 'Call ',
+                      onTap: () => handleSupportCall(context),
+                      colorScheme: colorScheme,
+                    ),
+                    Divider(
+                        height: 1,
+                        color: colorScheme.outline.withOpacity(0.15),
+                        indent: 62),
+                    _buildGuestTile(
+                      context,
+                      icon: Icons.help_outline_rounded,
+                      title: 'Help & FAQs',
+                      subtitle: 'Frequently asked questions and guides',
+                      onTap: () => Get.toNamed(Routes.HELPANDSUPPORT),
+                      colorScheme: colorScheme,
+                    ),
+                    Divider(
+                        height: 1,
+                        color: colorScheme.outline.withOpacity(0.15),
+                        indent: 62),
+                    _buildGuestTile(
+                      context,
+                      icon: Icons.article_outlined,
+                      title: 'From Our Blog',
+                      subtitle: 'Read trends, news & stories',
+                      onTap: () => Get.toNamed(Routes.BLOG),
+                      colorScheme: colorScheme,
+                    ),
+                    Divider(
+                        height: 1,
+                        color: colorScheme.outline.withOpacity(0.15),
+                        indent: 62),
+                    // _buildGuestTile(
+                    //   context,
+                    //   icon: Icons.info_outline_rounded,
+                    //   title: 'About Us',
+                    //   subtitle: 'Learn more about ',
+                    //   onTap: () => Get.toNamed(Routes.ABOUTUS),
+                    //   colorScheme: colorScheme,
+                    // ),
+                    // Divider(height: 1, color: colorScheme.outline.withOpacity(0.15), indent: 62),
+                    _buildGuestTile(
+                      context,
+                      icon: Icons.mail_outline_rounded,
+                      title: 'Contact Us',
+                      subtitle: 'Send us a message or inquiry',
+                      onTap: () => Get.toNamed(Routes.CONTACTUS),
+                      colorScheme: colorScheme,
+                    ),
+                    Divider(
+                        height: 1,
+                        color: colorScheme.outline.withOpacity(0.15),
+                        indent: 62),
+                    _buildGuestTile(
+                      context,
+                      icon: Icons.privacy_tip_outlined,
+                      title: 'Privacy Policy',
+                      subtitle: 'How we collect and protect your data',
+                      onTap: () => Get.toNamed(Routes.PRIVACY_POLICY),
+                      colorScheme: colorScheme,
+                    ),
+                    Divider(
+                        height: 1,
+                        color: colorScheme.outline.withOpacity(0.15),
+                        indent: 62),
+                    _buildGuestTile(
+                      context,
+                      icon: Icons.gavel_rounded,
+                      title: 'Terms & Conditions',
+                      subtitle: 'Rules governing use of our service',
+                      onTap: () => Get.toNamed(Routes.TERMSANDCONDITION),
+                      colorScheme: colorScheme,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              Center(
+                child: Text(
+                  ' • Version 1.0.0',
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 12,
+                    color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGuestTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    required ColorScheme colorScheme,
+  }) {
+    return ListTile(
+      onTap: onTap,
+      leading: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: colorScheme.primary.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, size: 20, color: colorScheme.primary),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontFamily: 'Plus Jakarta Sans',
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: colorScheme.onSurface,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+          fontFamily: 'Plus Jakarta Sans',
+          fontSize: 11.5,
+          color: colorScheme.onSurfaceVariant,
+        ),
+      ),
+      trailing: Icon(
+        Icons.chevron_right_rounded,
+        size: 18,
+        color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
     );
   }
 }

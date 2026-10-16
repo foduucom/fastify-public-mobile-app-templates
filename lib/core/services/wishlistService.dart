@@ -5,6 +5,8 @@ import '/constants/helper_functions.dart';
 import '/constants/resilience_strings.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 
+typedef WishlistService = WishListService;
+
 class WishListService extends GetxService with BaseController {
   /// Convenience accessor: CartService.to
   static WishListService get to => Get.find<WishListService>();

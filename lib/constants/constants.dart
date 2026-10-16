@@ -29,6 +29,10 @@ var ACCESS_KEY = '370093f746beea3adee9176bbf78ea57ee70a29db34edf1c';
 var assetURL = "${url}images/";
 var apiURL = "${url}api/";
 
+const String appName = "Store";
+String supportEmail = "support@vbought.com";
+String supportContact = "1-800-570-7777";
+
 bool isOtpLogin = false;
 
 const Latofont = TextStyle(fontFamily: 'lato');

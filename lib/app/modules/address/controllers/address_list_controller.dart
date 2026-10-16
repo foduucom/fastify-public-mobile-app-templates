@@ -13,6 +13,14 @@ class AddressListController extends GetxController with BaseController {
   var shippingDetails = {}.obs;
   var firstloading = 0.obs;
 
+  dynamic get selectedAddress {
+    if (userAddressList.isEmpty) return null;
+    if (selectAddress.value >= 0 && selectAddress.value < userAddressList.length) {
+      return userAddressList[selectAddress.value];
+    }
+    return null;
+  }
+
   final _cartService = CartService.to;
 
   RxList<Map<String, dynamic>> get cartItems => _cartService.cartItems;

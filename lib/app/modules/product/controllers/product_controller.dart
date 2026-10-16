@@ -1,3 +1,6 @@
+import "package:share_plus/share_plus.dart";
+import "package:foduu_ecommerce/constants/constants.dart";
+import "package:foduu_ecommerce/constants/helper_functions.dart";
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
@@ -488,4 +491,32 @@ class ProductController extends GetxController
       "size": "XL",
     },
   ];
+
+  static String productShareUrl(String slug) =>
+      '${url}product/${Uri.encodeComponent(slug.trim())}';
+
+  void shareContent(BuildContext context) {
+    final slug = (productDetials['slug'] ?? '').toString().trim();
+    if (slug.isEmpty) {
+      HelperFunctions().showSnackBarError('Product link is not available yet');
+      return;
+    }
+
+    final name = (productDetials['name'] ?? '').toString().trim();
+    final urlToShare = productShareUrl(slug);
+    final text = name.isEmpty
+        ? 'Check this out on $appName\n$urlToShare'
+        : 'Check out $name on $appName\n$urlToShare';
+
+    final renderBox = context.findRenderObject() as RenderBox?;
+    final origin = renderBox != null
+        ? renderBox.localToGlobal(Offset.zero) & renderBox.size
+        : null;
+
+    Share.share(
+      text,
+      subject: name.isEmpty ? appName : name,
+      sharePositionOrigin: origin,
+    );
+  }
 }
