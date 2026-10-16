@@ -16,7 +16,7 @@ class ResilienceShell extends StatelessWidget {
 
     return Column(
       children: [
-        Obx(() => _Banner(health: health)),
+        _Banner(health: health),
         Expanded(
           child: Obx(() {
             // The banner already consumed the status-bar inset.
@@ -48,58 +48,60 @@ class _Banner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = _bannerText(health);
-    final recovered = health.showRecovered.value;
-    final scheme = Theme.of(context).colorScheme;
-    final bg = recovered ? Colors.green.shade600 : scheme.inverseSurface;
-    final fg = recovered ? Colors.white : scheme.onInverseSurface;
-    final reduceMotion = MediaQuery.of(context).disableAnimations;
+    return Obx(() {
+      final text = _bannerText(health);
+      final recovered = health.showRecovered.value;
+      final scheme = Theme.of(context).colorScheme;
+      final bg = recovered ? Colors.green.shade600 : scheme.inverseSurface;
+      final fg = recovered ? Colors.white : scheme.onInverseSurface;
+      final reduceMotion = MediaQuery.of(context).disableAnimations;
 
-    return AnimatedSize(
-      duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 250),
-      curve: Curves.easeOut,
-      alignment: Alignment.topCenter,
-      child: text == null
-          ? const SizedBox(width: double.infinity)
-          : Semantics(
-              liveRegion: true,
-              label: text,
-              child: Material(
-                color: bg,
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (recovered)
-                          Icon(Icons.check_circle_outline, size: 16, color: fg)
-                        else
-                          SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: fg),
+      return AnimatedSize(
+        duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+        alignment: Alignment.topCenter,
+        child: text == null
+            ? const SizedBox(width: double.infinity)
+            : Semantics(
+                liveRegion: true,
+                label: text,
+                child: Material(
+                  color: bg,
+                  child: SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (recovered)
+                            Icon(Icons.check_circle_outline, size: 16, color: fg)
+                          else
+                            SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: fg),
+                            ),
+                          const SizedBox(width: 10),
+                          Flexible(
+                            child: Text(
+                              text,
+                              style: TextStyle(
+                                  color: fg,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  decoration: TextDecoration.none),
+                            ),
                           ),
-                        const SizedBox(width: 10),
-                        Flexible(
-                          child: Text(
-                            text,
-                            style: TextStyle(
-                                color: fg,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                decoration: TextDecoration.none),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-    );
+      );
+    });
   }
 }

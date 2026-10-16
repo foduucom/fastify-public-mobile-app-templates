@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:foduu_ecommerce/app/modules/blog/controller/blog_detail_controller.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
@@ -32,24 +33,30 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
                         children: [
                           ClipRRect(
                             child: Obx(
-                              () => CachedNetworkImage(
-                                  height: 200,
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                  errorWidget: (context, url, error) =>
-                                      Container(
-                                        decoration: BoxDecoration(
-                                            color: Colors.grey.shade300),
-                                        child: const Center(
-                                          child: Icon(Icons.error),
+                              () {
+                                final imgUrl = HelperFunctions().getImage(
+                                    controller.blogDetails['featured_image']);
+                                return (imgUrl.isNotEmpty &&
+                                        imgUrl !=
+                                            HelperFunctions.getNoImage())
+                                    ? CachedNetworkImage(
+                                        height: 200,
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        errorWidget: (context, url, error) =>
+                                            const AppImagePlaceholder(
+                                          radius: 0,
+                                          height: 200,
+                                          width: double.infinity,
                                         ),
-                                      ),
-                                  // imageUrl: controller
-                                  //         .blogDetails['featured_image'] ??
-                                  //     ''),
-                                  imageUrl: HelperFunctions().getImage(
-                                      controller
-                                          .blogDetails['featured_image'])),
+                                        imageUrl: imgUrl,
+                                      )
+                                    : const AppImagePlaceholder(
+                                        radius: 0,
+                                        height: 200,
+                                        width: double.infinity,
+                                      );
+                              },
                             ),
                           ),
                           const SizedBox(

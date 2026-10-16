@@ -13,8 +13,6 @@ mixin BaseController {
     print('🚨 BaseController.handleError: $error');
     if (error is Error) {
       print('🚨 STACKTRACE:\n${error.stackTrace}');
-    } else {
-      print('🚨 STACKTRACE:\n${StackTrace.current}');
     }
     HelperFunctions().hideOverlayLoader();
     if (error is BadRequestException) {
@@ -29,10 +27,10 @@ mixin BaseController {
         message = "We are facing some issue, please wait a minute.";
       }
       HelperFunctions().showSnackBarError(message.toString());
-    } else if (error is UnAuthorizedException) {
+    } else if (error is UnAuthorizedException || error.toString() == "Unauthorized!" || error.toString() == "Unauthorized") {
       // One idempotent teardown + single navigation, however many requests
       // fail with 401 at the same time.
-      await SessionService.expire(message: error.message);
+      await SessionService.expire(message: error is UnAuthorizedException ? error.message : "Unauthorized");
     } else if (error is ServiceUnavailableException) {
       // The reconnecting banner / friendly state already informs the user.
     } else if (error is ApiNotRespondingException) {

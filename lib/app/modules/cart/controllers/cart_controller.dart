@@ -60,7 +60,10 @@ class CartController extends GetxController
   var couponDetails = <String, dynamic>{}.obs;
   var couponDiscountAmount = '0.00'.obs;
   var isCouponApply = false.obs;
-  late TextEditingController couponController;
+  TextEditingController? _couponController;
+  TextEditingController get couponController =>
+      _couponController ??= TextEditingController();
+  set couponController(TextEditingController value) => _couponController = value;
 
   // UI bindings
   var viewCouponPrefix = ''.obs;
@@ -72,12 +75,15 @@ class CartController extends GetxController
   var viewTotalAmount = ''.obs;
 
   final GlobalKey targetKey = GlobalKey();
-  FocusNode targetFocusNode = FocusNode();
+  FocusNode? _targetFocusNode;
+  FocusNode get targetFocusNode => _targetFocusNode ??= FocusNode();
+  set targetFocusNode(FocusNode value) => _targetFocusNode = value;
 
   @override
   void onInit() {
     super.onInit();
-    couponController = TextEditingController();
+    _couponController ??= TextEditingController();
+    _targetFocusNode ??= FocusNode();
     fetchLayout('cart');
     fetchCart().then((_) => calculateCartTotals());
 
@@ -87,8 +93,10 @@ class CartController extends GetxController
 
   @override
   void onClose() {
-    couponController.dispose();
-    targetFocusNode.dispose();
+    _couponController?.dispose();
+    _couponController = null;
+    _targetFocusNode?.dispose();
+    _targetFocusNode = null;
     if (kIsWeb) {
       disableSocketUpdates(websiteDomain, 'cart');
     }

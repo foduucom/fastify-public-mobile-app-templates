@@ -4,11 +4,18 @@ import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_mixin.dart';
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:get/get.dart';
 
 class CategorySearchFilterController extends GetxController
     with BaseController, FoduuStudioLayoutMixin {
-  final searchController = TextEditingController();
+  TextEditingController? _searchController;
+  TextEditingController get searchController {
+    if (_searchController == null) {
+      _searchController = TextEditingController(text: searchText.value);
+    }
+    return _searchController!;
+  }
   static const String pageSlug = 'category';
 
   final categories = <dynamic>[].obs;
@@ -46,7 +53,8 @@ class CategorySearchFilterController extends GetxController
   @override
   void onClose() {
     _debounce?.cancel();
-    searchController.dispose();
+    _searchController?.dispose();
+    _searchController = null;
     super.onClose();
   }
 
@@ -196,21 +204,25 @@ class CategorySearchFilterController extends GetxController
   void onCategoryTap(dynamic category) {
     final rawChildren = category['children'];
     final List children = rawChildren is List ? rawChildren : [];
-    if (children.isNotEmpty) {
-      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-        'source': 'category',
-        'categoryId': category['_id'],
-        'categorySlug': category['slug'],
-        'name': category['name'],
-        'children': children,
-      });
+    final Map<String, dynamic> args = children.isNotEmpty
+        ? {
+            'source': 'category',
+            'categoryId': category['_id'],
+            'categorySlug': category['slug'],
+            'name': category['name'],
+            'children': children,
+          }
+        : {
+            'productId': category['_id'],
+            'categorySlug': category['slug'],
+            'name': category['name'],
+            'source': 'category',
+          };
+
+    if (Get.isRegistered<BottombarController>()) {
+      Get.find<BottombarController>().openShopWithCategory(args);
     } else {
-      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-        'productId': category['_id'],
-        'categorySlug': category['slug'],
-        'name': category['name'],
-        'source': 'category',
-      });
+      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: args);
     }
   }
 }

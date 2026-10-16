@@ -310,25 +310,12 @@ class ProductView extends GetView<ProductController> {
               );
             }
           }),
-          actions: const [
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.spaceAround,
-            //   children: [
-            //     IconButton(
-            //         onPressed: () {},
-            //         icon: SvgPicture.asset('assets/icon/appbarshare.svg')),
-            //     Obx(
-            //       () => Get.find<BottombarController>().cartbadge(
-            //           child: CartIcon(() {
-            //             Get.toNamed(Routes.CART);
-            //           }),
-            //           badgeNumber: 0),
-            //     ),
-            //     const SizedBox(
-            //       width: 14,
-            //     )
-            //   ],
-            // )
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.share_outlined),
+              tooltip: 'Share',
+              onPressed: () => controller.shareContent(context),
+            ),
           ],
           titleSpacing: 0.0,
           elevation: 0,

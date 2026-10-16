@@ -30,7 +30,9 @@ class SupportTicketDetailsView extends GetView<SupportTicketDetailsController> {
             final ticketNo = (ticket['ticket_id'] ?? ticket['id'] ?? ticket['_id'] ?? ticket['ticket_number'] ?? '').toString();
             final subject = (ticket['subject'] ?? '').toString();
             return Text(
-              ticketNo.isEmpty ? 'Support Ticket' : '#\$ticketNo\${subject.isNotEmpty ? ' · \$subject' : ''}',
+              ticketNo.isEmpty
+                  ? 'Support Ticket'
+                  : '#$ticketNo${subject.isNotEmpty ? ' · $subject' : ''}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: textTheme.titleMedium,

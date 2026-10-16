@@ -233,22 +233,60 @@ class CartService extends GetxService with BaseController {
     double tot = 0;
 
     for (var item in cartItems) {
-      final qty = (item['quantity'] ?? 1) as int;
-      final variant = item['variant'];
-      if (variant is Map) {
-        final salePrice = variant['sale_price'];
-        final price = variant['price'];
-        final regularPrice = HelperFunctions.parseAmount(price);
+      final qty = int.tryParse(item['quantity']?.toString() ?? '1') ?? 1;
 
-        // total uses sale_price if available, otherwise regular price
-        final parsedSalePrice = HelperFunctions.parseAmount(salePrice);
-        final effectivePrice = (salePrice != null && parsedSalePrice > 0)
-            ? parsedSalePrice
-            : regularPrice;
-
-        sub += regularPrice * qty;
-        tot += effectivePrice * qty;
+      // 1. Resolve variant
+      Map<String, dynamic>? variant;
+      if (item['variant'] is Map && (item['variant'] as Map).isNotEmpty) {
+        variant = Map<String, dynamic>.from(item['variant']);
+      } else if (item['variant_id'] is Map &&
+          (item['variant_id'] as Map).isNotEmpty) {
+        variant = Map<String, dynamic>.from(item['variant_id']);
       }
+
+      // If variant was not resolved directly, look in product_id
+      final product = item['product_id'] ?? item['product'];
+      if (variant == null && product is Map) {
+        final variants = product['variants'] as List? ?? [];
+        final targetVid = item['variant_id']?.toString() ?? '';
+        for (var v in variants) {
+          if (v is Map && v['_id']?.toString() == targetVid) {
+            variant = Map<String, dynamic>.from(v);
+            break;
+          }
+        }
+        if (variant == null && variants.isNotEmpty && variants.first is Map) {
+          variant = Map<String, dynamic>.from(variants.first);
+        }
+      }
+
+      // 2. Resolve prices safely
+      double regularPrice = 0.0;
+      double salePrice = 0.0;
+
+      if (variant != null) {
+        regularPrice = HelperFunctions.parseAmount(variant['price']);
+        salePrice = HelperFunctions.parseAmount(variant['sale_price']);
+      }
+
+      // Fallback to product level price if variant price is 0
+      if (regularPrice <= 0 && product is Map) {
+        regularPrice = HelperFunctions.parseAmount(product['price']);
+        if (salePrice <= 0) {
+          salePrice = HelperFunctions.parseAmount(product['sale_price']);
+        }
+      }
+
+      // If regular price is 0 but sale price is > 0, set regularPrice to salePrice
+      if (regularPrice <= 0 && salePrice > 0) {
+        regularPrice = salePrice;
+      }
+
+      final effectivePrice =
+          (salePrice > 0 && salePrice <= regularPrice) ? salePrice : regularPrice;
+
+      sub += regularPrice * qty;
+      tot += effectivePrice * qty;
     }
 
     subTotal.value = sub;
@@ -271,7 +309,9 @@ class CartService extends GetxService with BaseController {
     if (existingIndex != -1) {
       // Update existing item quantity
       final current = Map<String, dynamic>.from(cartItems[existingIndex]);
-      final newQty = ((current['quantity'] ?? 1) as int) + quantity;
+      final currentQty =
+          int.tryParse(current['quantity']?.toString() ?? '1') ?? 1;
+      final newQty = currentQty + quantity;
 
       if (newQty <= 0) {
         // Remove item if quantity drops to 0 or below

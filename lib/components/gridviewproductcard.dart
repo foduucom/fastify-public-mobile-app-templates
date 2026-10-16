@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/theme.dart';
 import '../constants/constants.dart';
 
@@ -77,30 +79,36 @@ class _gridProductCartState extends State<gridProductCart>
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: CachedNetworkImage(
-                    height: widget.height,
-                    width: widget.width,
-                    fit: BoxFit.cover,
-                    imageUrl: widget.assetimage,
-                    errorWidget: (context, url, error) => Container(
-                      decoration: BoxDecoration(color: Colors.grey.shade300),
-                      child: const Center(
-                        child: Icon(Icons.error),
-                      ),
-                    ),
-                    progressIndicatorBuilder: (context, url, progress) =>
-                        Container(
-                      decoration: BoxDecoration(color: Colors.grey.shade300),
-                      height: 165,
-                      child: const Center(
-                        child: SizedBox(
-                          height: 40,
-                          width: 40,
-                          // child: HelperFunctions().loadingIndicator(),
+                  child: (widget.assetimage.isNotEmpty &&
+                          widget.assetimage != HelperFunctions.getNoImage())
+                      ? CachedNetworkImage(
+                          height: widget.height,
+                          width: widget.width,
+                          fit: BoxFit.cover,
+                          imageUrl: widget.assetimage,
+                          errorWidget: (context, url, error) =>
+                              AppImagePlaceholder(
+                            radius: 10,
+                            height: widget.height,
+                            width: widget.width,
+                          ),
+                          progressIndicatorBuilder: (context, url, progress) =>
+                              Container(
+                            decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceVariant),
+                            height: widget.height,
+                            child: Center(
+                              child: HelperFunctions().loadingIndicator(),
+                            ),
+                          ),
+                        )
+                      : AppImagePlaceholder(
+                          radius: 10,
+                          height: widget.height,
+                          width: widget.width,
                         ),
-                      ),
-                    ),
-                  ),
                 ),
                 // Positioned(
                 //     right: 3,

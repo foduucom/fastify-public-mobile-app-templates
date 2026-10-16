@@ -6,6 +6,7 @@ class CategorySearchFilterBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<CategorySearchFilterController>(
       () => CategorySearchFilterController(),
+      fenix: true,
     );
   }
 }

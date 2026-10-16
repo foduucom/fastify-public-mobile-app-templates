@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:get/get.dart';
 
+import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_controller.dart';
 import 'package:foduu_ecommerce/app/modules/shop/views/widgets/shop_filter_drawer.dart';
 import 'package:foduu_ecommerce/components/studio_widget/studio_category.dart';
@@ -27,6 +28,32 @@ class ShopView extends GetView<ShopController> {
         backgroundColor: colorScheme.background,
         elevation: 0,
         centerTitle: true,
+        leading: Obx(() {
+          if (controller.isPlainShopEntry.value) {
+            return const SizedBox.shrink();
+          }
+          return IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_new,
+              color: colorScheme.onSurface,
+              size: 20,
+            ),
+            tooltip: 'Back',
+            onPressed: () {
+              if (controller.filterCategoryStack.isNotEmpty) {
+                controller.goUpFilterCategory();
+              } else if (Navigator.canPop(context)) {
+                Get.back();
+              } else if (Get.isRegistered<BottombarController>() &&
+                  Get.find<BottombarController>().popTabHistory()) {
+                // Popped back to previous tab
+              } else {
+                controller.isPlainShopEntry.value = true;
+                controller.fetchLayout(ShopController.pageSlug);
+              }
+            },
+          );
+        }),
         title: Obx(() {
           if (controller.isPlainShopEntry.value) {
             return Text(
@@ -113,10 +140,27 @@ class ShopView extends GetView<ShopController> {
         ),
       ),
       body: PopScope(
-        canPop: controller.filterCategoryStack.isEmpty,
+        canPop: controller.filterCategoryStack.isEmpty &&
+            controller.isPlainShopEntry.value,
         onPopInvokedWithResult: (didPop, _) {
           if (didPop) return;
-          controller.goUpFilterCategory();
+          if (controller.filterCategoryStack.isNotEmpty) {
+            controller.goUpFilterCategory();
+            return;
+          }
+          if (Navigator.canPop(context)) {
+            Get.back();
+            return;
+          }
+          if (Get.isRegistered<BottombarController>() &&
+              Get.find<BottombarController>().popTabHistory()) {
+            return;
+          }
+          if (!controller.isPlainShopEntry.value) {
+            controller.isPlainShopEntry.value = true;
+            controller.fetchLayout(ShopController.pageSlug);
+            return;
+          }
         },
         child: Obx(() {
           if (controller.isPlainShopEntry.value) {

@@ -6,7 +6,9 @@ import 'package:get/get.dart';
 /// accumulating every new field.
 mixin ShopAttributeFilterMixin on GetxController {
   final contextBrands = <dynamic>[].obs;
-  final brandSearchController = TextEditingController();
+  TextEditingController? _brandSearchController;
+  TextEditingController get brandSearchController =>
+      _brandSearchController ??= TextEditingController();
   final brandSearchQuery = ''.obs;
   final isBrandsDropdownExpanded = false.obs;
 
@@ -18,8 +20,12 @@ mixin ShopAttributeFilterMixin on GetxController {
 
   final absoluteMinPrice = 0.0.obs;
   final absoluteMaxPrice = 10000.0.obs;
-  final minPriceTextController = TextEditingController();
-  final maxPriceTextController = TextEditingController();
+  TextEditingController? _minPriceTextController;
+  TextEditingController get minPriceTextController =>
+      _minPriceTextController ??= TextEditingController();
+  TextEditingController? _maxPriceTextController;
+  TextEditingController get maxPriceTextController =>
+      _maxPriceTextController ??= TextEditingController();
 
   void toggleAttribute(String attributeName, String value) {
     final current = selectedAttributes[attributeName] ?? <String>{};
@@ -33,8 +39,11 @@ mixin ShopAttributeFilterMixin on GetxController {
   }
 
   void disposeAttributeFilterControllers() {
-    brandSearchController.dispose();
-    minPriceTextController.dispose();
-    maxPriceTextController.dispose();
+    _brandSearchController?.dispose();
+    _brandSearchController = null;
+    _minPriceTextController?.dispose();
+    _minPriceTextController = null;
+    _maxPriceTextController?.dispose();
+    _maxPriceTextController = null;
   }
 }

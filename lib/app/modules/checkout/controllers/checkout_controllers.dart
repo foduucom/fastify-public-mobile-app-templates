@@ -596,8 +596,14 @@ class CheckOutController extends GetxController with BaseController {
           break;
 
         case 'phonepe':
-          final merchantId = paymentConfig['phonepe']['merchant_id'];
-          await PhonePePayment(merchantId: merchantId).processPayment(
+          final phonepeConfig = paymentConfig['phonepe'] ?? {};
+          await PhonePePayment(
+            clientId: (phonepeConfig['client_id'] ?? '').toString(),
+            clientSecret: (phonepeConfig['client_secret'] ?? '').toString(),
+            clientVersion: (phonepeConfig['client_version'] ?? '1').toString(),
+            environment: 'SANDBOX',
+            appScheme: 'foduuecommerceapp1',
+          ).processPayment(
             amount: amount,
             metadata: orderResponse,
           );
@@ -633,13 +639,12 @@ class CheckOutController extends GetxController with BaseController {
 
   // Add this method to CheckOutController
   void showPaymentSuccessDialog(String orderId) {
-    DialogHelper.showSuccessDialog(
+    Get.defaultDialog(
       title: "Payment Successfully Processed",
-      description:
+      middleText:
           "Thank you for your purchase! Your payment has been successfully processed. Sit back, relax, and enjoy your new items.",
-      imagePath: "assets/images/success.png",
-      buttonText: "Continue",
-      onPressed: () {
+      textConfirm: "Continue",
+      onConfirm: () {
         Get.back();
         // Navigate to order success page
         Get.offAllNamed(Routes.ORDERSUCCESS, arguments: orderId);
@@ -717,7 +722,7 @@ class CheckOutController extends GetxController with BaseController {
     HelperFunctions().showOverlayLoader();
     try {
       if (saveToWishlist && productId.isNotEmpty) {
-        await WishlistService.to.addWishlist(
+        await WishListService.to.addWishlist(
           productId: productId,
           variantSlug: variantSlug,
           variantId: variantId,

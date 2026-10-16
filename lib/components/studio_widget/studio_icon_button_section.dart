@@ -100,12 +100,17 @@ class IconButtonComponent extends StatelessWidget {
       }
     } else if (linkType == 'category') {
       if (target.isNotEmpty) {
-        Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+        final args = {
           'productId': target,
           'categorySlug': '', // Slug not provided in input JSON usually
           'name': link['label'] ?? 'Category',
           'source': 'category'
-        });
+        };
+        if (Get.isRegistered<BottombarController>()) {
+          Get.find<BottombarController>().openShopWithCategory(args);
+        } else {
+          Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: args);
+        }
       }
     } else if (linkType == 'product') {
       Get.toNamed(Routes.PRODUCTDETAILS, arguments: {'productId': target});

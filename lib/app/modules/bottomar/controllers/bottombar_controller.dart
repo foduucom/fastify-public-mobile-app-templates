@@ -13,6 +13,8 @@ import 'package:foduu_ecommerce/app/data/services/session_service.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
+import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_controller.dart';
+
 class BottombarController extends GetxController with BaseController {
   // late GlobalKey<ScaffoldState> key;
   var pageController = PageController();
@@ -21,6 +23,7 @@ class BottombarController extends GetxController with BaseController {
   var currentPageIndex = 0.obs;
   final isLogin = false.obs;
   final authDetails = {}.obs;
+  final List<int> tabHistory = [0];
 
   @override
   void onInit() async {
@@ -32,7 +35,18 @@ class BottombarController extends GetxController with BaseController {
       final idx = Get.arguments['index'];
       if (idx is int) {
         currentPageIndex.value = idx;
+        tabHistory.clear();
+        tabHistory.add(idx);
         pageController = PageController(initialPage: idx);
+      }
+      if (idx == 3 && Get.arguments['shopArguments'] != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final ShopController shopController =
+              Get.isRegistered<ShopController>()
+                  ? Get.find<ShopController>()
+                  : Get.put(ShopController());
+          shopController.applyArguments(Get.arguments['shopArguments']);
+        });
       }
     }
 
@@ -61,10 +75,34 @@ class BottombarController extends GetxController with BaseController {
     }
   }
 
-  void onTabChange(value) {
+  void onTabChange(int value, {bool recordHistory = true}) {
+    if (recordHistory && (tabHistory.isEmpty || tabHistory.last != value)) {
+      tabHistory.add(value);
+    }
     currentPageIndex.value = value;
-    pageController.jumpToPage(value);
+    if (pageController.hasClients) {
+      pageController.jumpToPage(value);
+    }
     update();
+  }
+
+  bool popTabHistory() {
+    if (tabHistory.length > 1) {
+      tabHistory.removeLast();
+      final prevTab = tabHistory.last;
+      onTabChange(prevTab, recordHistory: false);
+      return true;
+    }
+    return false;
+  }
+
+  void openShopWithCategory(Map<String, dynamic> args) {
+    onTabChange(3);
+    final ShopController shopController = Get.isRegistered<ShopController>()
+        ? Get.find<ShopController>()
+        : Get.put(ShopController());
+    shopController.applyArguments(args);
+    Get.until((route) => route.settings.name == Routes.BOTTOMBAR || route.isFirst);
   }
 
   @override

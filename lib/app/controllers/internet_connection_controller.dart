@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 
 class InternetconnectionController extends GetxController {
   var connectionStatus = true.obs;
-  late StreamSubscription<List<ConnectivityResult>> _listener;
+  late StreamSubscription<ConnectivityResult> _listener;
   var shouldNotificationVisible = false.obs;
   var isCheckingConnection = false.obs;
   var isOnNoInternetScreen = false.obs;
@@ -19,9 +19,7 @@ class InternetconnectionController extends GetxController {
 
     _listener = Connectivity()
         .onConnectivityChanged
-        .listen((List<ConnectivityResult> resultList) {
-      final result =
-          resultList.isNotEmpty ? resultList.first : ConnectivityResult.none;
+        .listen((ConnectivityResult result) {
       _updateConnectionStatus(result);
     });
     // Auto-show dialog when internet is lost
@@ -70,10 +68,8 @@ class InternetconnectionController extends GetxController {
     isCheckingConnection.value = true;
 
     try {
-      List<ConnectivityResult> resultList =
+      ConnectivityResult result =
           await Connectivity().checkConnectivity();
-      final result =
-          resultList.isNotEmpty ? resultList.first : ConnectivityResult.none;
 
       _updateConnectionStatus(result);
 

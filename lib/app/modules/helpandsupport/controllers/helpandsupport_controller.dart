@@ -3,34 +3,31 @@ import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:get/get.dart';
 
 class HelpandsupportController extends GetxController with BaseController {
+  var isLoading = false.obs;
   var faqs = [].obs;
-  var subfaqs = [].obs;
+  RxInt expandedIndex = RxInt(-1);
+
   @override
-  Future<void> onInit() async {
+  void onInit() {
     super.onInit();
     getFaqs();
   }
 
-  RxInt expandedindex = RxInt(-1);
-
   void toggleExpansion(int index) {
-    if (expandedindex.value == index) {
-      expandedindex.value = -1;
+    if (expandedIndex.value == index) {
+      expandedIndex.value = -1;
     } else {
-      expandedindex.value = index;
+      expandedIndex.value = index;
     }
-    update();
   }
 
-  getSubFaq(var subfaq) {
-    subfaqs.value = subfaq;
-  }
-
-  getFaqs() async {
+  Future<void> getFaqs() async {
     try {
+      isLoading.value = true;
       var response = await BasicProvider("frontend/faq")
           .getRequest()
           .catchError(handleError);
+      isLoading.value = false;
       if (response == null) return;
       faqs.clear();
       if (response is List) {
@@ -41,8 +38,8 @@ class HelpandsupportController extends GetxController with BaseController {
           faqs.addAll(data);
         }
       }
-      update();
     } catch (e) {
+      isLoading.value = false;
       print('faq and support error $e');
     }
   }

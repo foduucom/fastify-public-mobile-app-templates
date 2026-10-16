@@ -191,7 +191,7 @@ class ShopController extends GetxController
   @override
   void onClose() {
     scrollController.dispose();
-    categorySearchController.dispose();
+    disposeCategoryFilterControllers();
     disposeAttributeFilterControllers();
     super.onClose();
   }

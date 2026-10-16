@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
@@ -173,20 +174,30 @@ class CategoryGridItem extends StatelessWidget {
     required double? width,
     required double? height,
     required BoxFit fit,
-    required IconData icon,
+    IconData? icon,
+    bool isCircular = false,
   }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    Widget placeholder() => Container(
-          width: width,
-          height: height,
-          alignment: Alignment.center,
-          color: colorScheme.surfaceVariant,
-          child: Icon(icon, color: colorScheme.onSurfaceVariant, size: 28),
-        );
+    Widget placeholder() => isCircular
+        ? AppImagePlaceholder.circular(
+            width: width,
+            height: height,
+            fit: fit,
+          )
+        : AppImagePlaceholder(
+            width: width,
+            height: height,
+            fit: fit,
+            radius: 0,
+          );
 
-    if (!_hasImage) return placeholder();
+    final resolvedUrl = HelperFunctions().getImage(category['featured_image']);
+    if (!_hasImage ||
+        resolvedUrl.isEmpty ||
+        resolvedUrl == HelperFunctions.getNoImage()) {
+      return placeholder();
+    }
     return CachedNetworkImage(
-      imageUrl: HelperFunctions().getImage(category['featured_image']),
+      imageUrl: resolvedUrl,
       width: width,
       height: height,
       fit: fit,
@@ -200,21 +211,25 @@ class CategoryGridItem extends StatelessWidget {
     final rawChildren = category['children'];
     List children = rawChildren is List ? rawChildren : [];
 
-    if (children.isNotEmpty) {
-      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-        'source': 'category',
-        'categoryId': category['_id'],
-        'categorySlug': category['slug'],
-        'name': category['name'],
-        'children': children,
-      });
+    final Map<String, dynamic> args = children.isNotEmpty
+        ? {
+            'source': 'category',
+            'categoryId': category['_id'],
+            'categorySlug': category['slug'],
+            'name': category['name'],
+            'children': children,
+          }
+        : {
+            'productId': category['_id'],
+            'categorySlug': category['slug'],
+            'name': category['name'],
+            'source': 'category',
+          };
+
+    if (Get.isRegistered<BottombarController>()) {
+      Get.find<BottombarController>().openShopWithCategory(args);
     } else {
-      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-        'productId': category['_id'],
-        'categorySlug': category['slug'],
-        'name': category['name'],
-        'source': 'category'
-      });
+      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: args);
     }
   }
 
@@ -288,6 +303,7 @@ class CategoryGridItem extends StatelessWidget {
           height: height,
           fit: BoxFit.cover,
           icon: Icons.category_outlined,
+          isCircular: true,
         ),
       ),
     );
@@ -415,7 +431,8 @@ typedef _CategoryImageBuilder = Widget Function({
   required double? width,
   required double? height,
   required BoxFit fit,
-  required IconData icon,
+  IconData? icon,
+  bool isCircular,
 });
 
 /// Full-image category card with a bottom gradient scrim. A quick tap

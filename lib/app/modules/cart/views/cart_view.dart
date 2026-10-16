@@ -1,3 +1,4 @@
+import 'package:foduu_ecommerce/components/cart_auth_bottom_sheet.dart';
 import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:foduu_ecommerce/components/resilience/friendly_error_state.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -101,7 +102,11 @@ class CartView extends GetView<CartController> {
                         .jumpToPage(0);
                   }
                   Get.back();
-                })
+                }),
+            if (!AuthDetails.isUserLogin()) ...[
+              const SizedBox(height: 24),
+              _buildGuestSyncBanner(context, colorScheme, textTheme),
+            ],
           ],
         ),
       ),
@@ -118,6 +123,14 @@ class CartView extends GetView<CartController> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 120),
         children: [
+          // ── Guest Sync Banner (shown in Skip Mode) ──
+          if (!AuthDetails.isUserLogin()) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: _buildGuestSyncBanner(context, colorScheme, textTheme),
+            ),
+          ],
+
           // ── Cart Items ──
           Obx(() => ListView.separated(
                 shrinkWrap: true,
@@ -260,7 +273,15 @@ class CartView extends GetView<CartController> {
                 height: 48,
                 child: ElevatedButton(
                   onPressed: () {
-                    Get.toNamed(Routes.ADDRESS_LIST);
+                    if (AuthDetails.isUserLogin()) {
+                      Get.toNamed(Routes.ADDRESS_LIST);
+                    } else {
+                      showCartAuthBottomSheet(
+                        title: "Sign in to Place Order",
+                        message:
+                            "Please sign in to select delivery address and complete checkout.",
+                      );
+                    }
                   },
                   child: const Text(
                     'Place Order',
@@ -489,6 +510,56 @@ class CartView extends GetView<CartController> {
             ),
           ),
         ));
+  }
+  Widget _buildGuestSyncBanner(
+      BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceVariant.withOpacity(0.35),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(0.12),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.sync_rounded,
+            size: 20,
+            color: colorScheme.primary,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              "Shopping as guest. Sign in to sync your cart across devices.",
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          TextButton(
+            onPressed: () => Get.toNamed(Routes.LOGIN),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              minimumSize: const Size(50, 32),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              foregroundColor: colorScheme.primary,
+            ),
+            child: const Text(
+              "Sign In",
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

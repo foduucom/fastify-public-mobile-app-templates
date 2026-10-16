@@ -9,11 +9,18 @@ mixin ShopCategoryFilterMixin on GetxController {
   final allCategories = <dynamic>[].obs;
   final filterCurrentCategories = <dynamic>[].obs;
   final filterCategoryStack = <Map<String, dynamic>>[].obs;
-  final categorySearchController = TextEditingController();
+  TextEditingController? _categorySearchController;
+  TextEditingController get categorySearchController =>
+      _categorySearchController ??= TextEditingController();
   final categorySearchQuery = ''.obs;
   final categoryCountCache = <String, int>{}.obs;
   final isCountLoading = <String, bool>{}.obs;
   final isCategoriesDropdownExpanded = false.obs;
+
+  void disposeCategoryFilterControllers() {
+    _categorySearchController?.dispose();
+    _categorySearchController = null;
+  }
 
   bool get isSelectedCategoryParent {
     if (filterCategoryStack.isEmpty) return false;

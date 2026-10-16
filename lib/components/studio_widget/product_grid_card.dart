@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:get/get.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/product_helper.dart';
@@ -130,17 +131,17 @@ class ProductGridCard extends StatelessWidget {
                   aspectRatio: 0.9,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      progressIndicatorBuilder: (_, __, ___) =>
-                          HelperFunctions().loadingIndicator(),
-                      errorWidget: (_, __, ___) => Container(
-                        color: colorScheme.surfaceContainerHighest,
-                        child: Icon(Icons.image_outlined,
-                            color: colorScheme.onSurfaceVariant),
-                      ),
-                    ),
+                    child: (imageUrl.isNotEmpty &&
+                            imageUrl != HelperFunctions.getNoImage())
+                        ? CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.cover,
+                            progressIndicatorBuilder: (_, __, ___) =>
+                                HelperFunctions().loadingIndicator(),
+                            errorWidget: (_, __, ___) =>
+                                const AppImagePlaceholder(radius: 10),
+                          )
+                        : const AppImagePlaceholder(radius: 10),
                   ),
                 ),
                 // Wishlist Button

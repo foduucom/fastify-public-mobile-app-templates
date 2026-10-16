@@ -8,6 +8,7 @@ import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_contr
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_controller.dart';
 import 'package:foduu_ecommerce/components/drawerList.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:get/get.dart';
 
 class CustomDrawer extends GetView<HomepageController> {
@@ -52,17 +53,7 @@ class CustomDrawer extends GetView<HomepageController> {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  if (!isLoggedIn)
-                    DrawerTile(
-                      icon: const Icon(Icons.login, color: Colors.blue),
-                      title: 'Login',
-                      onTap: () {
-                        Get.back();
-                        Get.toNamed(Routes.LOGIN);
-                      },
-                    ),
-                  if (controller.drawernavigationItems.isEmpty &&
-                      isLoggedIn) ...[
+                  if (controller.drawernavigationItems.isEmpty) ...[
                     DrawerTile(
                       icon: Icon(Icons.home_outlined,
                           color: Get.theme.colorScheme.onSurface),
@@ -97,33 +88,66 @@ class CustomDrawer extends GetView<HomepageController> {
                       subtitle: 'Refine your search',
                       onTap: () => _navigateToBottomBarPage(1),
                     ),
-                    _buildSectionHeader('MY ACCOUNT'),
-                    DrawerTile(
-                      icon: Icon(Icons.shopping_basket_outlined,
-                          color: Get.theme.colorScheme.onSurface),
-                      title: 'Orders',
-                      subtitle: 'Track your purchases',
-                      onTap: () {
-                        Get.back();
-                        Get.toNamed(Routes.ORDERS);
-                      },
-                    ),
-                    DrawerTile(
-                      icon: Icon(Icons.favorite_border,
-                          color: Get.theme.colorScheme.onSurface),
-                      title: 'My Wishlist',
-                      subtitle: 'Items you saved',
-                      onTap: () {
-                        Get.back();
-                        Get.toNamed(Routes.WISHLIST);
-                      },
-                    ),
+                    if (isLoggedIn) ...[
+                      _buildSectionHeader('MY ACCOUNT'),
+                      DrawerTile(
+                        icon: Icon(Icons.shopping_basket_outlined,
+                            color: Get.theme.colorScheme.onSurface),
+                        title: 'Orders',
+                        subtitle: 'Track your purchases',
+                        onTap: () {
+                          Get.back();
+                          Get.toNamed(Routes.ORDERS);
+                        },
+                      ),
+                      DrawerTile(
+                        icon: Icon(Icons.favorite_border,
+                            color: Get.theme.colorScheme.onSurface),
+                        title: 'My Wishlist',
+                        subtitle: 'Items you saved',
+                        onTap: () {
+                          Get.back();
+                          Get.toNamed(Routes.WISHLIST);
+                        },
+                      ),
+                    ],
                     _buildSectionHeader('SUPPORT & HELP'),
                     DrawerTile(
-                      icon: Icon(Icons.help_outline,
+                      icon: Icon(Icons.headset_mic_outlined,
                           color: Get.theme.colorScheme.onSurface),
-                      title: 'Help and support',
-                      subtitle: 'Get assistance',
+                      title: 'Help & Customer Care',
+                      subtitle: 'FAQs, contact & support',
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(Routes.HELPANDSUPPORT);
+                      },
+                    ),
+                    if (isLoggedIn)
+                      DrawerTile(
+                        icon: Icon(Icons.confirmation_number_outlined,
+                            color: Get.theme.colorScheme.onSurface),
+                        title: 'Support Tickets',
+                        subtitle: 'Track or raise tickets',
+                        onTap: () {
+                          Get.back();
+                          Get.toNamed(Routes.SUPPORT_TICKET);
+                        },
+                      ),
+                    DrawerTile(
+                      icon: Icon(Icons.info_outline,
+                          color: Get.theme.colorScheme.onSurface),
+                      title: 'About Us',
+                      subtitle: 'Learn about our store',
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(Routes.ABOUTUS);
+                      },
+                    ),
+                    DrawerTile(
+                      icon: Icon(Icons.mail_outline,
+                          color: Get.theme.colorScheme.onSurface),
+                      title: 'Contact Us',
+                      subtitle: 'Get in touch with us',
                       onTap: () {
                         Get.back();
                         Get.toNamed(Routes.CONTACTUS);
@@ -134,10 +158,56 @@ class CustomDrawer extends GetView<HomepageController> {
                     ...controller.drawernavigationItems
                         .map(_buildItem)
                         .toList(),
+                    if (isLoggedIn) ...[
+                      _buildSectionHeader('MY ACCOUNT'),
+                      DrawerTile(
+                        icon: Icon(Icons.shopping_basket_outlined,
+                            color: Get.theme.colorScheme.onSurface),
+                        title: 'Orders',
+                        subtitle: 'Track your purchases',
+                        onTap: () {
+                          Get.back();
+                          Get.toNamed(Routes.ORDERS);
+                        },
+                      ),
+                      DrawerTile(
+                        icon: Icon(Icons.favorite_border,
+                            color: Get.theme.colorScheme.onSurface),
+                        title: 'My Wishlist',
+                        subtitle: 'Items you saved',
+                        onTap: () {
+                          Get.back();
+                          Get.toNamed(Routes.WISHLIST);
+                        },
+                      ),
+                    ],
+                    _buildSectionHeader('SUPPORT & HELP'),
+                    DrawerTile(
+                      icon: Icon(Icons.headset_mic_outlined,
+                          color: Get.theme.colorScheme.onSurface),
+                      title: 'Help & Customer Care',
+                      subtitle: 'FAQs, contact & support',
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(Routes.HELPANDSUPPORT);
+                      },
+                    ),
+                    DrawerTile(
+                      icon: Icon(Icons.info_outline,
+                          color: Get.theme.colorScheme.onSurface),
+                      title: 'About Us',
+                      subtitle: 'Learn about our store',
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(Routes.ABOUTUS);
+                      },
+                    ),
+                    const SizedBox(height: 8),
                   ],
                 ],
               ),
             ),
+            _buildSupportInfoPill(),
             _buildThemeSwitcher(),
             _buildAuthButton(isLoggedIn),
           ],
@@ -149,18 +219,23 @@ class CustomDrawer extends GetView<HomepageController> {
   Widget _buildDrawerHeader(
       BuildContext context, bool isLoggedIn, dynamic userData) {
     return InkWell(
-      onTap: isLoggedIn
-          ? () {
-              _navigateToBottomBarPage(4);
-            }
-          : null,
+      onTap: () {
+        Get.back();
+        if (isLoggedIn) {
+          _navigateToBottomBarPage(4);
+        } else {
+          isOtpLogin
+              ? Get.toNamed(Routes.MOBILELOGIN)
+              : Get.toNamed(Routes.LOGIN);
+        }
+      },
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top + 24,
-          bottom: 24,
-          left: 20,
-          right: 20,
+          top: MediaQuery.of(context).padding.top + 20,
+          bottom: 20,
+          left: 18,
+          right: 18,
         ),
         decoration: BoxDecoration(
           color: Get.theme.primaryColor,
@@ -179,10 +254,10 @@ class CustomDrawer extends GetView<HomepageController> {
             Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Get.theme.primaryColor, width: 2),
+                border: Border.all(color: Colors.white.withOpacity(0.4), width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: Get.theme.colorScheme.surface.withOpacity(0.1),
+                    color: Colors.black.withOpacity(0.08),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -191,33 +266,33 @@ class CustomDrawer extends GetView<HomepageController> {
               child: ClipOval(
                 child: isLoggedIn && userData?['featured_image'] != null
                     ? CachedNetworkImage(
-                        width: 64,
-                        height: 64,
+                        width: 56,
+                        height: 56,
                         fit: BoxFit.cover,
                         imageUrl: HelperFunctions()
                             .getImage(userData['featured_image']),
                         placeholder: (context, url) => const SizedBox(
-                          width: 64,
-                          height: 64,
+                          width: 56,
+                          height: 56,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         ),
-                        errorWidget: (context, url, error) => CircleAvatar(
-                          radius: 32,
-                          backgroundColor: Get.theme.primaryColor,
+                        errorWidget: (context, url, error) => const CircleAvatar(
+                          radius: 28,
+                          backgroundColor: Colors.white24,
                           child: Icon(
                             Icons.person,
-                            size: 40,
-                            color: Colors.grey.shade400,
+                            size: 32,
+                            color: Colors.white,
                           ),
                         ),
                       )
-                    : CircleAvatar(
-                        radius: 32,
-                        backgroundColor: Get.theme.primaryColor,
+                    : const CircleAvatar(
+                        radius: 28,
+                        backgroundColor: Colors.white24,
                         child: Icon(
                           Icons.person,
-                          size: 40,
-                          color: Colors.grey.shade400,
+                          size: 32,
+                          color: Colors.white,
                         ),
                       ),
               ),
@@ -234,21 +309,21 @@ class CustomDrawer extends GetView<HomepageController> {
                         : 'Welcome Guest',
                     style: TextStyle(
                       color: Get.theme.colorScheme.onPrimary,
-                      fontSize: 17,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
+                      letterSpacing: 0.3,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
                     isLoggedIn
                         ? (userData?['email'] ?? '')
-                        : 'Login to your account',
+                        : 'Sign in to access your account',
                     style: TextStyle(
-                      color: Get.theme.colorScheme.onPrimary.withOpacity(0.9),
-                      fontSize: 13,
+                      color: Get.theme.colorScheme.onPrimary.withOpacity(0.88),
+                      fontSize: 12,
                       fontWeight: FontWeight.w400,
                     ),
                     maxLines: 1,
@@ -257,9 +332,8 @@ class CustomDrawer extends GetView<HomepageController> {
                 ],
               ),
             ),
-            if (isLoggedIn)
-              Icon(Icons.chevron_right,
-                  color: Get.theme.colorScheme.onPrimary.withOpacity(0.8)),
+            Icon(Icons.chevron_right,
+                color: Get.theme.colorScheme.onPrimary.withOpacity(0.8)),
           ],
         ),
       ),
@@ -382,6 +456,40 @@ class CustomDrawer extends GetView<HomepageController> {
     );
   }
 
+  Widget _buildSupportInfoPill() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Get.theme.primaryColor.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Get.theme.primaryColor.withOpacity(0.15)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.headset_mic_outlined,
+            size: 16,
+            color: Get.theme.primaryColor,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              supportEmail,
+              style: TextStyle(
+                fontFamily: 'lato',
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Get.theme.colorScheme.onSurface,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAuthButton(bool isLoggedIn) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -400,22 +508,32 @@ class CustomDrawer extends GetView<HomepageController> {
                       const Text('Logout', style: TextStyle(color: Colors.red)),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.red),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
                 )
-              : ElevatedButton(
+              : ElevatedButton.icon(
                   onPressed: () {
                     Get.back();
-                    Get.toNamed(Routes.LOGIN);
+                    isOtpLogin
+                        ? Get.toNamed(Routes.MOBILELOGIN)
+                        : Get.toNamed(Routes.LOGIN);
                   },
+                  icon: const Icon(Icons.login_rounded, size: 18),
+                  label: const Text(
+                    'Sign In / Register',
+                    style: TextStyle(
+                      fontFamily: 'lato',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13.5,
+                    ),
+                  ),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('Sign In / Register'),
                 ),
         ),
       ),

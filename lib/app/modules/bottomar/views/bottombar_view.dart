@@ -9,6 +9,7 @@ import 'package:foduu_ecommerce/app/modules/category/controllers/category_search
 import 'package:foduu_ecommerce/app/modules/category/views/category_search_filter_view.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/profile/views/profile_view.dart';
 import 'package:foduu_ecommerce/app/modules/notification/controller/notification_controller.dart';
+import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_controller.dart';
 import 'package:foduu_ecommerce/app/modules/shop/views/shop_view.dart';
 import 'package:get/get.dart';
 
@@ -19,10 +20,19 @@ import '../controllers/bottombar_controller.dart';
 class BottombarView extends GetView<BottombarController> {
   BottombarView({super.key});
 
-  var cartController = Get.put(CartController());
-  var notifcationController = Get.put(NotificationsController());
-  var categorySearchFilterController =
-      Get.put(CategorySearchFilterController());
+  final cartController = Get.isRegistered<CartController>()
+      ? Get.find<CartController>()
+      : Get.put(CartController());
+  final notifcationController = Get.isRegistered<NotificationsController>()
+      ? Get.find<NotificationsController>()
+      : Get.put(NotificationsController());
+  final categorySearchFilterController =
+      Get.isRegistered<CategorySearchFilterController>()
+          ? Get.find<CategorySearchFilterController>()
+          : Get.put(CategorySearchFilterController());
+  final shopController = Get.isRegistered<ShopController>()
+      ? Get.find<ShopController>()
+      : Get.put(ShopController());
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +40,7 @@ class BottombarView extends GetView<BottombarController> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
+        if (controller.popTabHistory()) return;
         final shouldExit = await Get.dialog<bool>(
           AlertDialog(
             title: const Text('Exit App'),
@@ -166,14 +177,14 @@ class BottombarView extends GetView<BottombarController> {
                 ),
                 BottomNavigationBarItem(
                   icon: SvgPicture.asset(
-                    'assets/icon/appbarshop.svg',
+                    'assets/icon/shop_store.svg',
                     colorFilter: ColorFilter.mode(
                       Theme.of(context).colorScheme.onSurfaceVariant,
                       BlendMode.srcIn,
                     ),
                   ),
                   activeIcon: SvgPicture.asset(
-                    'assets/icon/appbarshop.svg',
+                    'assets/icon/shop_store_active.svg',
                     colorFilter: ColorFilter.mode(
                       Theme.of(context).colorScheme.primary,
                       BlendMode.srcIn,

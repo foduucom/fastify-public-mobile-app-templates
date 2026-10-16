@@ -239,16 +239,17 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
 
       final selectedCount = tempSet.length;
 
-      return Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
+      return Material(
+        color: colorScheme.surface,
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
+          side: BorderSide(
             color: selectedCount > 0
                 ? colorScheme.primary.withOpacity(0.3)
                 : colorScheme.outlineVariant.withOpacity(0.5),
           ),
         ),
+        clipBehavior: Clip.antiAlias,
         child: Theme(
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
@@ -391,16 +392,17 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
       final brands = controller.availableBrands;
       final selectedCount = _tempBrands.length;
 
-      return Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
+      return Material(
+        color: colorScheme.surface,
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
+          side: BorderSide(
             color: selectedCount > 0
                 ? colorScheme.primary.withOpacity(0.3)
                 : colorScheme.outlineVariant.withOpacity(0.5),
           ),
         ),
+        clipBehavior: Clip.antiAlias,
         child: Theme(
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
@@ -524,16 +526,17 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
     final isPriceFiltered =
         _tempPriceRange.start > 0 || _tempPriceRange.end < 10000;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
+    return Material(
+      color: colorScheme.surface,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
+        side: BorderSide(
           color: isPriceFiltered
               ? colorScheme.primary.withOpacity(0.3)
               : colorScheme.outlineVariant.withOpacity(0.5),
         ),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(

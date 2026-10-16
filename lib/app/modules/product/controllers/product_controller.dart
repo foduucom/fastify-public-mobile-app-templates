@@ -1,4 +1,7 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
@@ -210,6 +213,34 @@ class ProductController extends GetxController
     if (count.value != 1) {
       count.value--;
     }
+  }
+
+  static String productShareUrl(String slug) =>
+      '${url}product/${Uri.encodeComponent(slug.trim())}';
+
+  void shareContent(BuildContext context) {
+    final slug = (productDetials['slug'] ?? '').toString().trim();
+    if (slug.isEmpty) {
+      HelperFunctions().showSnackBarError('Product link is not available yet');
+      return;
+    }
+
+    final name = (productDetials['name'] ?? '').toString().trim();
+    final urlToShare = productShareUrl(slug);
+    final text = name.isEmpty
+        ? 'Check this out on $appName\n$urlToShare'
+        : 'Check out $name on $appName\n$urlToShare';
+
+    final renderBox = context.findRenderObject() as RenderBox?;
+    final origin = renderBox != null
+        ? renderBox.localToGlobal(Offset.zero) & renderBox.size
+        : null;
+
+    Share.share(
+      text,
+      subject: name.isEmpty ? appName : name,
+      sharePositionOrigin: origin,
+    );
   }
 
   @override

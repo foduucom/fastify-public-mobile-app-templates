@@ -561,7 +561,7 @@ class CheckOutController extends GetxController with BaseController {
     HelperFunctions().showOverlayLoader();
     try {
       if (saveToWishlist && productId.isNotEmpty) {
-        await WishlistService.to.addWishlist(
+        await WishListService.to.addWishlist(
           productId: productId,
           variantSlug: variantSlug,
           variantId: variantId,

@@ -5,6 +5,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:foduu_ecommerce/app/modules/blog/controller/blog_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 
@@ -81,31 +82,35 @@ class BlogView extends GetView<BlogController> {
                                                     topRight:
                                                         Radius.circular(10)),
                                             child: Obx(
-                                              () => CachedNetworkImage(
-                                                  height: 170,
-                                                  fit: BoxFit.cover,
-                                                  width: double.infinity,
-                                                  errorWidget: (context, url,
-                                                          error) =>
-                                                      Container(
-                                                        decoration:
-                                                            BoxDecoration(
-                                                                color: Colors
-                                                                    .grey
-                                                                    .shade300),
-                                                        child: const Center(
-                                                          child:
-                                                              Icon(Icons.error),
+                                              () {
+                                                final imgUrl = HelperFunctions()
+                                                    .getImage(controller
+                                                            .allnews[index]
+                                                        ['featured_image']);
+                                                return (imgUrl.isNotEmpty &&
+                                                        imgUrl !=
+                                                            HelperFunctions
+                                                                .getNoImage())
+                                                    ? CachedNetworkImage(
+                                                        height: 170,
+                                                        fit: BoxFit.cover,
+                                                        width: double.infinity,
+                                                        errorWidget: (context,
+                                                                url, error) =>
+                                                            const AppImagePlaceholder(
+                                                          radius: 0,
+                                                          height: 170,
+                                                          width:
+                                                              double.infinity,
                                                         ),
-                                                      ),
-                                                  // imageUrl: controller
-                                                  //             .allnews[index]
-                                                  //         ['featured_image'] ??
-                                                  //     ''),
-                                                  imageUrl: HelperFunctions()
-                                                      .getImage(controller
-                                                              .allnews[index]
-                                                          ['featured_image'])),
+                                                        imageUrl: imgUrl,
+                                                      )
+                                                    : const AppImagePlaceholder(
+                                                        radius: 0,
+                                                        height: 170,
+                                                        width: double.infinity,
+                                                      );
+                                              },
                                             ),
                                           ),
                                           Padding(

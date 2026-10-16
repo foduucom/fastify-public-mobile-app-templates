@@ -1,12 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/extension_navigation.dart';
 
 class CategoryDialog extends StatelessWidget {
   final Map<String, dynamic> category;
@@ -306,21 +305,25 @@ class CategoryDialog extends StatelessWidget {
                                 Get.back(); // Close dialog
                                 print(
                                     "DEBUG: Navigating from Sub-subcategory: ${dialogController.subcategory[subindex]['name']}");
-                                print(
-                                    "DEBUG: Arguments: {productId: ${dialogController.subcategory[subindex]['_id']}, categorySlug: ${dialogController.subcategory[subindex]['slug']}}");
-                                Get.toNamed(
-                                  Routes.SHOPPRODUCTLISTVIEW,
-                                  arguments: {
-                                    'productId': dialogController
-                                        .subcategory[subindex]['_id'],
-                                    'categorySlug': dialogController
-                                            .subcategory[subindex]['slug'] ??
-                                        '',
-                                    'name': dialogController
-                                        .subcategory[subindex]['name'],
-                                    'source': 'category'
-                                  },
-                                );
+                                final args = {
+                                  'productId': dialogController
+                                      .subcategory[subindex]['_id'],
+                                  'categorySlug': dialogController
+                                          .subcategory[subindex]['slug'] ??
+                                      '',
+                                  'name': dialogController
+                                      .subcategory[subindex]['name'],
+                                  'source': 'category'
+                                };
+                                if (Get.isRegistered<BottombarController>()) {
+                                  Get.find<BottombarController>()
+                                      .openShopWithCategory(args);
+                                } else {
+                                  Get.toNamed(
+                                    Routes.SHOPPRODUCTLISTVIEW,
+                                    arguments: args,
+                                  );
+                                }
                               }
                             },
                             child: Row(
@@ -481,12 +484,17 @@ class CategoryDialogController extends GetxController {
       Get.back();
       print(
           "DEBUG: Direct navigation from fetch (no children). Category: $parentName, Slug: $categorySlug");
-      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+      final args = {
         'productId': parentId,
         'categorySlug': categorySlug,
         'name': parentName,
         'source': 'category'
-      });
+      };
+      if (Get.isRegistered<BottombarController>()) {
+        Get.find<BottombarController>().openShopWithCategory(args);
+      } else {
+        Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: args);
+      }
     } else {
       subcategory.assignAll(fetchedChildren);
     }

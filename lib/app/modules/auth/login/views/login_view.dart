@@ -74,10 +74,6 @@ class _LoginViewState extends State<LoginView> {
                     // ),
                     // Text('sffdf+' + websiteDomain,
                     //     style: TextStyle(color: Colors.white)),
-                    Text(
-                      AuthDetails.isUserLogin().toString(),
-                      style: TextStyle(color: Colors.red),
-                    ),
                     RichText(
                       text: TextSpan(
                         text: 'Hey, \n',

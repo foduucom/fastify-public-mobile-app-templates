@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
@@ -404,40 +405,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 const SizedBox(height: 10),
               ],
             ),
-            // ─── DEBUG OVERLAY ───
-            if (_infiniteScroll)
-              Positioned(
-                top: 0,
-                right: 10,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _debugText("Items: ${trendingList.length}"),
-                      _debugText("Page: ${_currentPage.value}"),
-                      _debugText("Loading: ${_isLoadingMore.value}"),
-                      _debugText("Has More: ${_hasMore.value}"),
-                      _debugText("Parent Scroll: $_useParentScroll"),
-                      _debugText(_debugScrollInfo.value),
-                    ],
-                  ),
-                ),
-              ),
           ],
         ));
-  }
-
-  Widget _debugText(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-          color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-    );
   }
 
   int _getDisplayLimit() {
@@ -661,17 +630,17 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                   Positioned.fill(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.cover,
-                        progressIndicatorBuilder: (_, __, ___) =>
-                            HelperFunctions().loadingIndicator(),
-                        errorWidget: (_, __, ___) => Container(
-                          color: colorScheme.surfaceContainerHighest,
-                          child: Icon(Icons.image_outlined,
-                              color: colorScheme.onSurfaceVariant),
-                        ),
-                      ),
+                      child: (imageUrl.isNotEmpty &&
+                              imageUrl != HelperFunctions.getNoImage())
+                          ? CachedNetworkImage(
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              progressIndicatorBuilder: (_, __, ___) =>
+                                  HelperFunctions().loadingIndicator(),
+                              errorWidget: (_, __, ___) =>
+                                  const AppImagePlaceholder(radius: 10),
+                            )
+                          : const AppImagePlaceholder(radius: 10),
                     ),
                   ),
                   // Wishlist Button
@@ -817,21 +786,20 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                   borderRadius: const BorderRadius.horizontal(
                     left: Radius.circular(12),
                   ),
-                  child: CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.cover,
-                    progressIndicatorBuilder: (_, __, ___) =>
-                        HelperFunctions().loadingIndicator(),
-                    errorWidget: (_, __, ___) => Container(
-                      width: 120,
-                      height: 120,
-                      color: colorScheme.surfaceVariant,
-                      child: Icon(Icons.image_outlined,
-                          color: colorScheme.onSurfaceVariant),
-                    ),
-                  ),
+                  child: (imageUrl.isNotEmpty &&
+                          imageUrl != HelperFunctions.getNoImage())
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.cover,
+                          progressIndicatorBuilder: (_, __, ___) =>
+                              HelperFunctions().loadingIndicator(),
+                          errorWidget: (_, __, ___) =>
+                              const AppImagePlaceholder(radius: 0),
+                        )
+                      : const AppImagePlaceholder(
+                          radius: 0, width: 120, height: 120),
                 ),
                 // Discount Badge
                 if (priceInfo['discountRate'] != null &&
@@ -996,17 +964,17 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             fit: StackFit.expand,
             children: [
               // Full background image
-              CachedNetworkImage(
-                imageUrl: imageUrl,
-                fit: BoxFit.cover,
-                progressIndicatorBuilder: (_, __, ___) =>
-                    HelperFunctions().loadingIndicator(),
-                errorWidget: (_, __, ___) => Container(
-                  color: colorScheme.surfaceVariant,
-                  child: Icon(Icons.image_outlined,
-                      color: colorScheme.onSurfaceVariant, size: 40),
-                ),
-              ),
+              (imageUrl.isNotEmpty &&
+                      imageUrl != HelperFunctions.getNoImage())
+                  ? CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      progressIndicatorBuilder: (_, __, ___) =>
+                          HelperFunctions().loadingIndicator(),
+                      errorWidget: (_, __, ___) =>
+                          const AppImagePlaceholder(radius: 14),
+                    )
+                  : const AppImagePlaceholder(radius: 14),
               // Gradient overlay at bottom
               Positioned(
                 left: 0,
