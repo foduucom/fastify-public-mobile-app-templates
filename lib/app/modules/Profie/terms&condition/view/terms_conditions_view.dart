@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/components/app_web_view_screen.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:get/get.dart';
 import '../controller/terms_conditions_controller.dart';
 
@@ -8,9 +9,9 @@ class TermsConditionsView extends GetView<TermsConditionsController> {
 
   @override
   Widget build(BuildContext context) {
-    return const AppWebViewScreen(
+    return AppWebViewScreen(
       title: "Terms & Conditions",
-      url: "https://traditional-ecom.vbought.com/terms-conditions",
+      url: "${url}terms-conditions",
     );
   }
 }

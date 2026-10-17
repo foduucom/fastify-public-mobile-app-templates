@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -300,15 +301,24 @@ class EditProfileImageWidget extends StatelessWidget {
             return CircleAvatar(
               radius: 50,
               backgroundColor: Theme.of(context).colorScheme.surface,
-              child: controller.profiledata['featured_image'] == null
-                  ? Icon(
-                      Icons.person,
-                      size: 35,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    )
-                  : CachedNetworkImage(
+              child: (controller.profiledata['featured_image'] != null &&
+                      HelperFunctions()
+                          .getImage(controller.profiledata['featured_image'])
+                          .isNotEmpty &&
+                      HelperFunctions()
+                              .getImage(controller.profiledata['featured_image']) !=
+                          HelperFunctions.getNoImage())
+                  ? CachedNetworkImage(
                       imageUrl: HelperFunctions()
-                          .getImage(controller.profiledata['featured_image'])),
+                          .getImage(controller.profiledata['featured_image']),
+                      errorWidget: (context, url, error) =>
+                          const AppImagePlaceholder.circular(
+                        size: 100,
+                      ),
+                    )
+                  : const AppImagePlaceholder.circular(
+                      size: 100,
+                    ),
             );
           }
         })),

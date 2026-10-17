@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -217,61 +218,44 @@ class _FoduuSliderState extends State<FoduuSlider>
                                   padding: pageSurroundingPadding,
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(12.0),
-                                    child: CachedNetworkImage(
-                                      height: sliderHeight,
-                                      imageUrl: index < _imageUrls.length
-                                          ? _imageUrls[index]
-                                          : HelperFunctions.getNoImage(),
-                                      fit: BoxFit.cover,
-                                      width: Get.width,
-                                      errorWidget: ((context, url, error) =>
-                                          Container(
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width -
-                                                20,
+                                    child: (index < _imageUrls.length &&
+                                            _imageUrls[index].isNotEmpty &&
+                                            _imageUrls[index] != HelperFunctions.getNoImage())
+                                        ? CachedNetworkImage(
                                             height: sliderHeight,
-                                            decoration: BoxDecoration(
-                                                gradient: LinearGradient(
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                              colors: [
-                                                Colors.grey.shade400,
-                                                Colors.grey.shade600,
-                                              ],
-                                            )),
-                                            child: Center(
-                                              child: Icon(Icons.error,
-                                                  color: Colors.white),
-                                            ),
-                                          )),
-                                      progressIndicatorBuilder:
-                                          ((context, url, progress) =>
-                                              Container(
-                                                width: MediaQuery.of(context)
-                                                    .size
-                                                    .width,
-                                                height: sliderHeight,
-                                                decoration: BoxDecoration(
-                                                  gradient: LinearGradient(
-                                                    begin: Alignment.topLeft,
-                                                    end: Alignment.bottomRight,
-                                                    colors: [
-                                                      Colors.grey.shade300,
-                                                      Colors.grey.shade500,
-                                                    ],
-                                                  ),
-                                                ),
-                                                child: Center(
-                                                  child: SizedBox(
-                                                    height: 40,
-                                                    width: 40,
-                                                    child: HelperFunctions()
-                                                        .loadingIndicator(),
-                                                  ),
-                                                ),
-                                              )),
-                                    ),
+                                            imageUrl: _imageUrls[index],
+                                            fit: BoxFit.cover,
+                                            width: Get.width,
+                                            errorWidget: ((context, url, error) =>
+                                                AppImagePlaceholder(
+                                                  radius: 12,
+                                                  height: sliderHeight,
+                                                  width: double.infinity,
+                                                  fit: BoxFit.cover,
+                                                )),
+                                            progressIndicatorBuilder:
+                                                ((context, url, progress) =>
+                                                    Container(
+                                                      width: MediaQuery.of(context)
+                                                          .size
+                                                          .width,
+                                                      height: sliderHeight,
+                                                      decoration: BoxDecoration(
+                                                          color: Theme.of(context)
+                                                              .colorScheme
+                                                              .surfaceContainerHighest),
+                                                      child: Center(
+                                                        child: HelperFunctions()
+                                                            .loadingIndicator(),
+                                                      ),
+                                                    )),
+                                          )
+                                        : AppImagePlaceholder(
+                                            radius: 12,
+                                            height: sliderHeight,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                          ),
                                   ),
                                 ),
 

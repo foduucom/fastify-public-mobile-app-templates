@@ -1,4 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
@@ -27,11 +29,18 @@ class customerReview extends StatelessWidget {
       children: [
         Row(
           children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundImage: CachedNetworkImageProvider(profileimage),
-              // foregroundImage: AssetImage('assets/images/shopkart.png'),
-              // child: Image.asset('assets/images/shopkart.png'),
+            ClipOval(
+              child: SizedBox(
+                width: 60,
+                height: 60,
+                child: (profileimage.isNotEmpty && profileimage != HelperFunctions.getNoImage())
+                    ? CachedNetworkImage(
+                        imageUrl: profileimage,
+                        fit: BoxFit.cover,
+                        errorWidget: (_, __, ___) => const AppImagePlaceholder.circular(size: 60),
+                      )
+                    : const AppImagePlaceholder.circular(size: 60),
+              ),
             ),
             // ClipOval(
             //   child: Image.asset(profileimage, width: 50),

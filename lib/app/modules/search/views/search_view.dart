@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
@@ -297,14 +298,19 @@ class SearchView extends GetView<SearchsController> {
                             color: cs.outline.withValues(alpha: 0.15)),
                       ),
                       child: ClipOval(
-                        child: CachedNetworkImage(
-                          fit: BoxFit.cover,
-                          imageUrl: HelperFunctions()
-                              .getImage(category['featured_image']),
-                          errorWidget: (_, __, ___) => Icon(
-                              Icons.category_outlined,
-                              color: cs.onSurfaceVariant),
-                        ),
+                        child: (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
+                                HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
+                            ? CachedNetworkImage(
+                                fit: BoxFit.cover,
+                                imageUrl: HelperFunctions()
+                                    .getImage(category['featured_image']),
+                                errorWidget: (_, __, ___) => const AppImagePlaceholder.circular(
+                                  size: 66,
+                                ),
+                              )
+                            : const AppImagePlaceholder.circular(
+                                size: 66,
+                              ),
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -336,11 +342,11 @@ class SearchView extends GetView<SearchsController> {
             .replaceAll(RegExp(r'<[^>]*>|&[^;]+;'), ' ')
             .replaceAll(RegExp(r'\s+'), ' ')
             .trim();
-        final placeholder = Container(
+        final placeholder = const AppImagePlaceholder(
           width: 72,
           height: 72,
-          color: cs.surfaceContainerHighest,
-          child: Icon(Icons.article_outlined, color: cs.onSurfaceVariant),
+          radius: 10,
+          fit: BoxFit.cover,
         );
         return InkWell(
           onTap: () {

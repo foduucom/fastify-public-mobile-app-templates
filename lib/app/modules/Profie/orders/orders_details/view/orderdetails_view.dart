@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -717,17 +718,26 @@ class PriceDetails extends StatelessWidget {
                         border: Border.all(
                             color: Theme.of(context).colorScheme.outline),
                         borderRadius: BorderRadius.circular(8)),
-                    child: CachedNetworkImage(
-                        errorWidget: (context, url, error) => Container(
-                              decoration:
-                                  BoxDecoration(color: Colors.grey.shade300),
-                              child: const Center(child: Icon(Icons.error)),
+                    child: (HelperFunctions.resolveProductImage(currentProduct).isNotEmpty &&
+                            HelperFunctions.resolveProductImage(currentProduct) != HelperFunctions.getNoImage())
+                        ? CachedNetworkImage(
+                            errorWidget: (context, url, error) => const AppImagePlaceholder(
+                              radius: 6,
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.contain,
                             ),
-                        height: 100,
-                        width: 100,
-                        imageUrl:
-                            HelperFunctions.resolveProductImage(currentProduct),
-                        fit: BoxFit.contain),
+                            height: 100,
+                            width: 100,
+                            imageUrl:
+                                HelperFunctions.resolveProductImage(currentProduct),
+                            fit: BoxFit.contain)
+                        : const AppImagePlaceholder(
+                            radius: 6,
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.contain,
+                          ),
                   ),
                   Expanded(
                     child: Column(

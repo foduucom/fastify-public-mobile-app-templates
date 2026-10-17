@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
@@ -405,17 +406,32 @@ class CategoryDialog extends StatelessWidget {
 
   // Category image widget
   Widget _buildCategoryImage(BuildContext context, double height) {
-    return Container(
-      width: double.infinity,
-      height: height * 0.12,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(height * 0.015),
-        image: DecorationImage(
-          image: CachedNetworkImageProvider(
-            HelperFunctions().getImage(category['featured_image']),
-          ),
-          fit: BoxFit.cover,
-        ),
+    final imgUrl = HelperFunctions().getImage(category['featured_image']);
+    final radius = height * 0.015;
+    final imgHeight = height * 0.12;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: SizedBox(
+        width: double.infinity,
+        height: imgHeight,
+        child: (imgUrl.isNotEmpty && imgUrl != HelperFunctions.getNoImage())
+            ? CachedNetworkImage(
+                imageUrl: imgUrl,
+                fit: BoxFit.cover,
+                errorWidget: (context, url, error) => AppImagePlaceholder(
+                  radius: radius,
+                  height: imgHeight,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              )
+            : AppImagePlaceholder(
+                radius: radius,
+                height: imgHeight,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
       ),
     );
   }

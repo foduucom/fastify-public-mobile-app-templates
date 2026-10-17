@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/modules/product/controllers/product_controller.dart';
 import 'package:foduu_ecommerce/components/ImagePreviewMultipleView.dart';

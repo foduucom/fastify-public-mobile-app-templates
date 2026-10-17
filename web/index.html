@@ -29,8 +29,44 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>foduu_ecommerce</title>
-  <link rel="manifest" href="manifest.json">
+  <style id="inappwebview-theme-style">
+    body.app-dark-mode iframe {
+      filter: invert(0.92) hue-rotate(180deg) brightness(0.95) contrast(0.95) !important;
+      background-color: #121212 !important;
+      transition: filter 0.25s ease-in-out;
+    }
+    body.app-light-mode iframe {
+      filter: none !important;
+      background-color: #ffffff !important;
+      transition: filter 0.25s ease-in-out;
+    }
+  </style>
+  <script>
+    window.setAppWebViewTheme = function(isDark) {
+      try {
+        if (isDark) {
+          document.body.classList.add('app-dark-mode');
+          document.body.classList.remove('app-light-mode');
+        } else {
+          document.body.classList.add('app-light-mode');
+          document.body.classList.remove('app-dark-mode');
+        }
+        var iframes = document.querySelectorAll('iframe');
+        iframes.forEach(function(iframe) {
+          if (isDark) {
+            iframe.style.filter = 'invert(0.92) hue-rotate(180deg) brightness(0.95) contrast(0.95)';
+            iframe.style.backgroundColor = '#121212';
+          } else {
+            iframe.style.filter = 'none';
+            iframe.style.backgroundColor = '#ffffff';
+          }
+        });
+      } catch (e) {
+        console.warn('Error setting webview theme:', e);
+      }
+    };
+  </script>
+  <script type="application/javascript" src="assets/packages/flutter_inappwebview_web/assets/web/web_support.js" defer></script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

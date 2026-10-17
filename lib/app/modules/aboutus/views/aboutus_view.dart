@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/components/app_web_view_screen.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:get/get.dart';
 import '../controllers/aboutus_controller.dart';
 
@@ -8,9 +9,9 @@ class AboutusView extends GetView<AboutusController> {
 
   @override
   Widget build(BuildContext context) {
-    return const AppWebViewScreen(
+    return AppWebViewScreen(
       title: "About Us",
-      url: "https://traditional-ecom.vbought.com/about",
+      url: "${url}about",
     );
   }
 }

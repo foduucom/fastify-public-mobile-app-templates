@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
@@ -120,7 +121,13 @@ class ProfileView extends GetView<ProfileController> {
                               ),
                             ),
                             child: ClipOval(
-                              child: hasImage
+                              child: (hasImage &&
+                                      HelperFunctions()
+                                          .getImage(controller.profiledata['featured_image'])
+                                          .isNotEmpty &&
+                                      HelperFunctions()
+                                              .getImage(controller.profiledata['featured_image']) !=
+                                          HelperFunctions.getNoImage())
                                   ? CachedNetworkImage(
                                       width: 58,
                                       height: 58,
@@ -129,16 +136,13 @@ class ProfileView extends GetView<ProfileController> {
                                         controller
                                             .profiledata['featured_image'],
                                       ),
-                                      errorWidget: (context, url, error) => Icon(
-                                        Icons.person_rounded,
-                                        size: 30,
-                                        color: primaryColor,
+                                      errorWidget: (context, url, error) =>
+                                          const AppImagePlaceholder.circular(
+                                        size: 58,
                                       ),
                                     )
-                                  : Icon(
-                                      Icons.person_rounded,
-                                      size: 30,
-                                      color: primaryColor,
+                                  : const AppImagePlaceholder.circular(
+                                      size: 58,
                                     ),
                             ),
                           );

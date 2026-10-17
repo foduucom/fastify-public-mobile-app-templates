@@ -2,6 +2,7 @@ import 'package:foduu_ecommerce/components/cart_auth_bottom_sheet.dart';
 import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:foduu_ecommerce/components/resilience/friendly_error_state.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../components/shimmer/cart_shimmer.dart';
@@ -629,35 +630,42 @@ class _CartItemCard extends StatelessWidget {
                 width: 100,
                 height: 110,
                 color: colorScheme.surfaceVariant.withOpacity(0.4),
-                child: CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  width: 100,
-                  height: 110,
-                  fit: BoxFit.contain,
-                  errorWidget: (_, __, ___) => Container(
-                    width: 100,
-                    height: 110,
-                    color: colorScheme.surfaceVariant,
-                    child: Icon(Icons.image_not_supported_outlined,
-                        color: colorScheme.onSurfaceVariant),
-                  ),
-                  progressIndicatorBuilder: (_, __, progress) => Container(
-                    width: 100,
-                    height: 110,
-                    color: colorScheme.surfaceVariant,
-                    child: Center(
-                      child: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          value: progress.progress,
-                          color: colorScheme.primary,
+                child: (imageUrl.isNotEmpty &&
+                        imageUrl != HelperFunctions.getNoImage())
+                    ? CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        width: 100,
+                        height: 110,
+                        fit: BoxFit.contain,
+                        errorWidget: (_, __, ___) => const AppImagePlaceholder(
+                          width: 100,
+                          height: 110,
+                          radius: 8,
+                          fit: BoxFit.contain,
                         ),
+                        progressIndicatorBuilder: (_, __, progress) => Container(
+                          width: 100,
+                          height: 110,
+                          color: colorScheme.surfaceVariant,
+                          child: Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                value: progress.progress,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    : const AppImagePlaceholder(
+                        width: 100,
+                        height: 110,
+                        radius: 8,
+                        fit: BoxFit.contain,
                       ),
-                    ),
-                  ),
-                ),
               ),
             ),
           ),

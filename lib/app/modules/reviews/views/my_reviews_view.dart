@@ -1,4 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
+import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -137,24 +139,31 @@ class _ReviewCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: CachedNetworkImage(
-              imageUrl: review['product_image'] ?? '',
-              width: 64,
-              height: 64,
-              fit: BoxFit.cover,
-              placeholder: (_, __) => Container(
-                width: 64,
-                height: 64,
-                color: colorScheme.onSurface.withOpacity(0.06),
-              ),
-              errorWidget: (_, __, ___) => Container(
-                width: 64,
-                height: 64,
-                color: colorScheme.onSurface.withOpacity(0.06),
-                child: Icon(Icons.image_not_supported_outlined,
-                    color: colorScheme.onSurface.withOpacity(0.3)),
-              ),
-            ),
+            child: ((review['product_image'] ?? '').toString().isNotEmpty &&
+                    (review['product_image'] ?? '').toString() != HelperFunctions.getNoImage())
+                ? CachedNetworkImage(
+                    imageUrl: review['product_image'] ?? '',
+                    width: 64,
+                    height: 64,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => Container(
+                      width: 64,
+                      height: 64,
+                      color: colorScheme.onSurface.withOpacity(0.06),
+                    ),
+                    errorWidget: (_, __, ___) => const AppImagePlaceholder(
+                      width: 64,
+                      height: 64,
+                      radius: 10,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : const AppImagePlaceholder(
+                    width: 64,
+                    height: 64,
+                    radius: 10,
+                    fit: BoxFit.cover,
+                  ),
           ),
           const SizedBox(width: 12),
           Expanded(

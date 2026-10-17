@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
@@ -264,7 +265,14 @@ class CustomDrawer extends GetView<HomepageController> {
                 ],
               ),
               child: ClipOval(
-                child: isLoggedIn && userData?['featured_image'] != null
+                child: (isLoggedIn &&
+                        userData?['featured_image'] != null &&
+                        HelperFunctions()
+                            .getImage(userData['featured_image'])
+                            .isNotEmpty &&
+                        HelperFunctions()
+                                .getImage(userData['featured_image']) !=
+                            HelperFunctions.getNoImage())
                     ? CachedNetworkImage(
                         width: 56,
                         height: 56,
@@ -276,24 +284,13 @@ class CustomDrawer extends GetView<HomepageController> {
                           height: 56,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         ),
-                        errorWidget: (context, url, error) => const CircleAvatar(
-                          radius: 28,
-                          backgroundColor: Colors.white24,
-                          child: Icon(
-                            Icons.person,
-                            size: 32,
-                            color: Colors.white,
-                          ),
+                        errorWidget: (context, url, error) =>
+                            const AppImagePlaceholder.circular(
+                          size: 56,
                         ),
                       )
-                    : const CircleAvatar(
-                        radius: 28,
-                        backgroundColor: Colors.white24,
-                        child: Icon(
-                          Icons.person,
-                          size: 32,
-                          color: Colors.white,
-                        ),
+                    : const AppImagePlaceholder.circular(
+                        size: 56,
                       ),
               ),
             ),
