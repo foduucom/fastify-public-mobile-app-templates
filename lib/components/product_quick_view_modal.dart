@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
@@ -111,17 +112,27 @@ class _ProductQuickViewModalState extends State<ProductQuickViewModal> {
                 child: SizedBox(
                   height: 220,
                   width: double.infinity,
-                  child: CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    fit: BoxFit.contain,
-                    progressIndicatorBuilder: (_, __, ___) =>
-                        HelperFunctions().loadingIndicator(),
-                    errorWidget: (_, __, ___) => Container(
-                      color: context.surfaceVariantColor,
-                      child: Icon(Icons.image_outlined,
-                          size: 48, color: context.onSurfaceVariantColor),
-                    ),
-                  ),
+                  child: (imageUrl.isNotEmpty &&
+                          imageUrl != HelperFunctions.getNoImage())
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.contain,
+                          progressIndicatorBuilder: (_, __, ___) =>
+                              HelperFunctions().loadingIndicator(),
+                          errorWidget: (_, __, ___) =>
+                              const AppImagePlaceholder(
+                            radius: 16,
+                            height: 220,
+                            width: double.infinity,
+                            fit: BoxFit.contain,
+                          ),
+                        )
+                      : const AppImagePlaceholder(
+                          radius: 16,
+                          height: 220,
+                          width: double.infinity,
+                          fit: BoxFit.contain,
+                        ),
                 ),
               ),
             ),

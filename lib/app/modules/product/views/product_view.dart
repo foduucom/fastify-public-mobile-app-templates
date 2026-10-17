@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
@@ -1226,18 +1227,27 @@ class ProductView extends GetView<ProductController> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: CachedNetworkImage(
-                            imageUrl: imgUrl,
-                            width: 48,
-                            height: 48,
-                            fit: BoxFit.cover,
-                            errorWidget: (context, url, error) => Container(
-                              width: 48,
-                              height: 48,
-                              color: colorScheme.surfaceContainerHighest,
-                              child: const Icon(Icons.image, size: 24),
-                            ),
-                          ),
+                          child: (imgUrl.isNotEmpty &&
+                                  imgUrl != HelperFunctions.getNoImage())
+                              ? CachedNetworkImage(
+                                  imageUrl: imgUrl,
+                                  width: 48,
+                                  height: 48,
+                                  fit: BoxFit.cover,
+                                  errorWidget: (context, url, error) =>
+                                      const AppImagePlaceholder(
+                                    width: 48,
+                                    height: 48,
+                                    radius: 8,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : const AppImagePlaceholder(
+                                  width: 48,
+                                  height: 48,
+                                  radius: 8,
+                                  fit: BoxFit.cover,
+                                ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import '/app/modules/bottomar/controllers/bottombar_controller.dart';
@@ -302,15 +303,11 @@ class OrderCard extends StatelessWidget {
   }
 
   Widget _imageFallback(ColorScheme theme) {
-    return Container(
+    return const AppImagePlaceholder(
+      radius: 8,
       width: 68,
       height: 68,
-      color: theme.surfaceContainerHighest.withValues(alpha: 0.5),
-      child: Icon(
-        Icons.shopping_bag_outlined,
-        color: theme.onSurface.withValues(alpha: 0.3),
-        size: 26,
-      ),
+      fit: BoxFit.contain,
     );
   }
 }

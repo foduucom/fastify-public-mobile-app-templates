@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
@@ -143,7 +144,8 @@ Future<void> showOutOfStockBottomSheet({
                     child: SizedBox(
                       width: 58,
                       height: 58,
-                      child: imageUrl.isNotEmpty
+                      child: (imageUrl.isNotEmpty &&
+                              imageUrl != HelperFunctions.getNoImage())
                           ? CachedNetworkImage(
                               imageUrl: imageUrl,
                               fit: BoxFit.cover,
@@ -153,14 +155,19 @@ Future<void> showOutOfStockBottomSheet({
                                   child: CircularProgressIndicator(strokeWidth: 2),
                                 ),
                               ),
-                              errorWidget: (_, __, ___) => Container(
-                                color: Colors.grey.withOpacity(0.15),
-                                child: const Icon(Icons.image_not_supported_outlined, color: Colors.grey),
+                              errorWidget: (_, __, ___) =>
+                                  const AppImagePlaceholder(
+                                radius: 8,
+                                width: 58,
+                                height: 58,
+                                fit: BoxFit.cover,
                               ),
                             )
-                          : Container(
-                              color: Colors.grey.withOpacity(0.15),
-                              child: const Icon(Icons.inventory_2_outlined, color: Colors.grey),
+                          : const AppImagePlaceholder(
+                              radius: 8,
+                              width: 58,
+                              height: 58,
+                              fit: BoxFit.cover,
                             ),
                     ),
                   ),

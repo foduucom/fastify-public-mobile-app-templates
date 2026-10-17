@@ -2,6 +2,7 @@ import 'package:foduu_ecommerce/components/resilience/friendly_error_state.dart'
 import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foduu_ecommerce/app/modules/wishlist/views/home_wishlist_empty_view.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
@@ -361,19 +362,23 @@ class _WishListGridItem extends StatelessWidget {
                       const BorderRadius.vertical(top: Radius.circular(12)),
                   child: AspectRatio(
                     aspectRatio: 185 / 205, // Match home standard style
-                    child: CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      progressIndicatorBuilder: (_, __, ___) =>
-                          HelperFunctions().loadingIndicator(),
-                      errorWidget: (_, __, ___) => Container(
-                        color: colorScheme.surfaceVariant,
-                        child: Icon(
-                          Icons.image_outlined,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
+                    child: (imageUrl.isNotEmpty &&
+                            imageUrl != HelperFunctions.getNoImage())
+                        ? CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.cover,
+                            progressIndicatorBuilder: (_, __, ___) =>
+                                HelperFunctions().loadingIndicator(),
+                            errorWidget: (_, __, ___) =>
+                                const AppImagePlaceholder(
+                              radius: 0,
+                              fit: BoxFit.contain,
+                            ),
+                          )
+                        : const AppImagePlaceholder(
+                            radius: 0,
+                            fit: BoxFit.contain,
+                          ),
                   ),
                 ),
                 // Discount Badge
@@ -591,23 +596,29 @@ class _WishListItemCard extends StatelessWidget {
                       borderRadius: const BorderRadius.horizontal(
                         left: Radius.circular(12),
                       ),
-                      child: CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        width: 120,
-                        height: 120,
-                        fit: BoxFit.cover,
-                        progressIndicatorBuilder: (_, __, ___) =>
-                            HelperFunctions().loadingIndicator(),
-                        errorWidget: (_, __, ___) => Container(
-                          width: 120,
-                          height: 120,
-                          color: colorScheme.surfaceVariant,
-                          child: Icon(
-                            Icons.image_outlined,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
+                      child: (imageUrl.isNotEmpty &&
+                              imageUrl != HelperFunctions.getNoImage())
+                          ? CachedNetworkImage(
+                              imageUrl: imageUrl,
+                              width: 120,
+                              height: 120,
+                              fit: BoxFit.cover,
+                              progressIndicatorBuilder: (_, __, ___) =>
+                                  HelperFunctions().loadingIndicator(),
+                              errorWidget: (_, __, ___) =>
+                                  const AppImagePlaceholder(
+                                width: 120,
+                                height: 120,
+                                radius: 0,
+                                fit: BoxFit.contain,
+                              ),
+                            )
+                          : const AppImagePlaceholder(
+                              width: 120,
+                              height: 120,
+                              radius: 0,
+                              fit: BoxFit.contain,
+                            ),
                     ),
                     // Discount Badge
                     if (priceInfo['discountRate'] != null &&

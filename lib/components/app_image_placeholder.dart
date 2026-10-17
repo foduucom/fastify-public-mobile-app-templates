@@ -14,19 +14,24 @@ class AppImagePlaceholder extends StatelessWidget {
     this.fit = BoxFit.contain,
     this.width,
     this.height,
+    this.colorFilter,
   });
 
   /// Specialized constructor for circular avatars (e.g. round category chips)
   const AppImagePlaceholder.circular({
     super.key,
+    double? size,
     this.padding,
     this.opacity = 0.38,
     this.backgroundColor,
     this.fit = BoxFit.contain,
-    this.width,
-    this.height,
+    double? width,
+    double? height,
+    this.colorFilter,
   })  : radius = 0,
-        shape = BoxShape.circle;
+        shape = BoxShape.circle,
+        width = size ?? width,
+        height = size ?? height;
 
   final double radius;
   final BoxShape shape;
@@ -36,6 +41,7 @@ class AppImagePlaceholder extends StatelessWidget {
   final BoxFit fit;
   final double? width;
   final double? height;
+  final ColorFilter? colorFilter;
 
   @override
   Widget build(BuildContext context) {

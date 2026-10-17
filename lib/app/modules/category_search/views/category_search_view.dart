@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '/components/app_image_placeholder.dart';
 
 import '/components/home_component/home_category.dart';
 import '/constants/helper_functions.dart';
@@ -332,19 +333,25 @@ class _CategoryCard extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    CachedNetworkImage(
-                      imageUrl: HelperFunctions()
-                          .getImage(category['featured_image']),
-                      fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => Container(
-                        color: colorScheme.surfaceVariant,
-                        child: Icon(Icons.category_outlined,
-                            size: 40, color: colorScheme.onSurfaceVariant),
-                      ),
-                      progressIndicatorBuilder: (_, __, ___) => Container(
-                        color: colorScheme.surfaceVariant,
-                      ),
-                    ),
+                    (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
+                            HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
+                        ? CachedNetworkImage(
+                            imageUrl: HelperFunctions()
+                                .getImage(category['featured_image']),
+                            fit: BoxFit.cover,
+                            errorWidget: (_, __, ___) =>
+                                const AppImagePlaceholder(
+                              radius: 0,
+                              fit: BoxFit.contain,
+                            ),
+                            progressIndicatorBuilder: (_, __, ___) => Container(
+                              color: colorScheme.surfaceVariant,
+                            ),
+                          )
+                        : const AppImagePlaceholder(
+                            radius: 0,
+                            fit: BoxFit.contain,
+                          ),
                     if (hasChildren)
                       Positioned(
                         top: 6,

@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_typing_uninitialized_variables
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:foduu_ecommerce/components/home_component/home_common_widgets.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/controllers/homepage_controller.dart';
@@ -227,9 +228,17 @@ class _HomeBannerState extends State<HomeBanner>
   }
 
   Widget _buildCachedImage(Map<String, dynamic> item) {
+    final imgUrl = getImage(item);
+    if (imgUrl.isEmpty || imgUrl == HelperFunctions.getNoImage()) {
+      return const AppImagePlaceholder(
+        radius: 0,
+        width: double.infinity,
+        fit: BoxFit.cover,
+      );
+    }
     return CachedNetworkImage(
       fit: BoxFit.cover,
-      imageUrl: getImage(item),
+      imageUrl: imgUrl,
       progressIndicatorBuilder: (context, url, progress) {
         return Container(
           decoration: BoxDecoration(color: Colors.grey.shade100),
@@ -237,9 +246,10 @@ class _HomeBannerState extends State<HomeBanner>
         );
       },
       errorWidget: (context, url, error) {
-        return Container(
-          color: Colors.grey.shade200,
-          child: const Icon(Icons.error, size: 40),
+        return const AppImagePlaceholder(
+          radius: 0,
+          width: double.infinity,
+          fit: BoxFit.cover,
         );
       },
     );
@@ -371,23 +381,33 @@ class _CarouselBannerState extends State<CarouselBanner> {
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(borderRadius),
-                      child: CachedNetworkImage(
-                        fit: BoxFit.cover,
-                        imageUrl: widget.getImage(widget.items[index]),
-                        progressIndicatorBuilder: (context, url, progress) {
-                          return Container(
-                            decoration:
-                                BoxDecoration(color: Colors.grey.shade100),
-                            child: HelperFunctions().loadingIndicator(),
-                          );
-                        },
-                        errorWidget: (context, url, error) {
-                          return Container(
-                            color: Colors.grey.shade200,
-                            child: const Icon(Icons.error, size: 40),
-                          );
-                        },
-                      ),
+                      child: (widget.getImage(widget.items[index]).isNotEmpty &&
+                              widget.getImage(widget.items[index]) !=
+                                  HelperFunctions.getNoImage())
+                          ? CachedNetworkImage(
+                              fit: BoxFit.cover,
+                              imageUrl: widget.getImage(widget.items[index]),
+                              progressIndicatorBuilder:
+                                  (context, url, progress) {
+                                return Container(
+                                  decoration:
+                                      BoxDecoration(color: Colors.grey.shade100),
+                                  child: HelperFunctions().loadingIndicator(),
+                                );
+                              },
+                              errorWidget: (context, url, error) {
+                                return AppImagePlaceholder(
+                                  radius: borderRadius,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                );
+                              },
+                            )
+                          : AppImagePlaceholder(
+                              radius: borderRadius,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
                 );

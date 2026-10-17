@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '/components/app_image_placeholder.dart';
+import '/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
@@ -117,18 +119,27 @@ class _ReviewCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: CachedNetworkImage(
-                    imageUrl: productImage,
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, __, ___) => Container(
-                      width: 50,
-                      height: 50,
-                      color: colorScheme.onSurface.withOpacity(0.05),
-                      child: Icon(Icons.image_not_supported, size: 24, color: colorScheme.onSurface.withOpacity(0.3)),
-                    ),
-                  ),
+                  child: (productImage.isNotEmpty &&
+                          productImage != HelperFunctions.getNoImage())
+                      ? CachedNetworkImage(
+                          imageUrl: productImage,
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          errorWidget: (_, __, ___) =>
+                              const AppImagePlaceholder(
+                            width: 50,
+                            height: 50,
+                            radius: 8,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : const AppImagePlaceholder(
+                          width: 50,
+                          height: 50,
+                          radius: 8,
+                          fit: BoxFit.cover,
+                        ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(

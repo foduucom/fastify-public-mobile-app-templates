@@ -3,6 +3,7 @@ import 'package:foduu_ecommerce/components/resilience/friendly_error_state.dart'
 import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
@@ -271,33 +272,38 @@ class CartView extends GetView<CartController> {
               },
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  width: 82,
-                  height: 82,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    width: 82,
-                    height: 82,
-                    color: colorScheme.surfaceVariant.withOpacity(0.5),
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: colorScheme.primary,
+                child: (imageUrl.isNotEmpty &&
+                        imageUrl != HelperFunctions.getNoImage())
+                    ? CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        width: 82,
+                        height: 82,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          width: 82,
+                          height: 82,
+                          color: colorScheme.surfaceVariant.withOpacity(0.5),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) =>
+                            const AppImagePlaceholder(
+                          width: 82,
+                          height: 82,
+                          radius: 10,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : const AppImagePlaceholder(
+                        width: 82,
+                        height: 82,
+                        radius: 10,
+                        fit: BoxFit.cover,
                       ),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    width: 82,
-                    height: 82,
-                    color: colorScheme.surfaceVariant.withOpacity(0.5),
-                    child: Icon(
-                      Icons.image_not_supported_outlined,
-                      color: colorScheme.onSurfaceVariant,
-                      size: 28,
-                    ),
-                  ),
-                ),
               ),
             ),
 

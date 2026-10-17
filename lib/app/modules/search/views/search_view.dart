@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/category/views/category_dialog.dart';
 import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
@@ -440,14 +441,20 @@ class SearchView extends GetView<SearchsController> {
                             color: colorScheme.outline.withValues(alpha: 0.15)),
                       ),
                       child: ClipOval(
-                        child: CachedNetworkImage(
-                          fit: BoxFit.cover,
-                          imageUrl: HelperFunctions()
-                              .getImage(category['featured_image']),
-                          errorWidget: (_, __, ___) => Icon(
-                              Icons.category_outlined,
-                              color: colorScheme.onSurfaceVariant),
-                        ),
+                        child: (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
+                                HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
+                            ? CachedNetworkImage(
+                                fit: BoxFit.cover,
+                                imageUrl: HelperFunctions()
+                                    .getImage(category['featured_image']),
+                                errorWidget: (_, __, ___) =>
+                                    const AppImagePlaceholder.circular(
+                                  size: 66,
+                                ),
+                              )
+                            : const AppImagePlaceholder.circular(
+                                size: 66,
+                              ),
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -477,11 +484,11 @@ class SearchView extends GetView<SearchsController> {
   }
 
   Widget _blogTile(BlogModel blog) {
-    final placeholder = Container(
+    const placeholder = AppImagePlaceholder(
       width: 72,
       height: 72,
-      color: colorScheme.surfaceContainerHighest,
-      child: Icon(Icons.article_outlined, color: colorScheme.onSurfaceVariant),
+      radius: 10,
+      fit: BoxFit.cover,
     );
     return InkWell(
       onTap: () {

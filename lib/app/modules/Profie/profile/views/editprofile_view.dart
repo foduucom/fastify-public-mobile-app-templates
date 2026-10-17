@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter/services.dart';
 import '/app/modules/Profie/profile/controllers/profile_controller.dart';
 import '/components/check_internet_widget.dart';
@@ -241,16 +242,8 @@ class EditprofileView extends GetView<ProfileController> {
                     );
                   }
 
-                  return Container(
-                    width: avatarSize,
-                    height: avatarSize,
-                    alignment: Alignment.center,
-                    color: colorScheme.surfaceVariant,
-                    child: Icon(
-                      Icons.person_rounded,
-                      size: avatarSize * 0.55,
-                      color: colorScheme.onSurfaceVariant.withOpacity(0.7),
-                    ),
+                  return AppImagePlaceholder.circular(
+                    size: avatarSize,
                   );
                 }
 

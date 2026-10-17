@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '/components/app_image_placeholder.dart';
 import '/app/routes/app_pages.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
@@ -681,14 +682,10 @@ class _ProductTile extends StatelessWidget {
     );
   }
 
-  Widget _placeholder(ColorScheme theme) => Container(
-        color: theme.surfaceContainerHighest.withValues(alpha: 0.5),
-        child: Center(
-          child: Icon(
-            Icons.shopping_bag_outlined,
-            color: theme.onSurface.withValues(alpha: 0.3),
-            size: 24,
-          ),
-        ),
+  Widget _placeholder(ColorScheme theme) => const AppImagePlaceholder(
+        radius: 6,
+        width: 62,
+        height: 62,
+        fit: BoxFit.contain,
       );
 }

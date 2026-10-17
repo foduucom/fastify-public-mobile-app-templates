@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import '/components/app_image_placeholder.dart';
 import '/app/routes/app_pages.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/constants/constants.dart';
@@ -142,13 +143,20 @@ class _TopCategoryHomeState extends State<CategoryHome>
             width: 70,
             height: 65,
             color: Theme.of(context).colorScheme.surfaceVariant,
-            child: CachedNetworkImage(
-              fit: BoxFit.cover,
-              imageUrl: HelperFunctions().getImage(category['featured_image']),
-              errorWidget: (_, __, ___) => const Icon(Icons.category_outlined),
-              progressIndicatorBuilder: (_, __, ___) =>
-                  HelperFunctions().loadingIndicator(),
-            ),
+            child: (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
+                    HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
+                ? CachedNetworkImage(
+                    fit: BoxFit.cover,
+                    imageUrl: HelperFunctions().getImage(category['featured_image']),
+                    errorWidget: (_, __, ___) => const AppImagePlaceholder.circular(
+                      size: 65,
+                    ),
+                    progressIndicatorBuilder: (_, __, ___) =>
+                        HelperFunctions().loadingIndicator(),
+                  )
+                : const AppImagePlaceholder.circular(
+                    size: 65,
+                  ),
           ),
         ),
         const SizedBox(height: 4),
@@ -194,12 +202,25 @@ class _TopCategoryHomeState extends State<CategoryHome>
                 borderRadius: const BorderRadius.horizontal(
                   left: Radius.circular(10),
                 ),
-                child: CachedNetworkImage(
-                  imageUrl:
-                      HelperFunctions().getImage(category['featured_image']),
-                  fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => const Icon(Icons.category),
-                ),
+                child: (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
+                        HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
+                    ? CachedNetworkImage(
+                        imageUrl:
+                            HelperFunctions().getImage(category['featured_image']),
+                        fit: BoxFit.cover,
+                        errorWidget: (_, __, ___) => const AppImagePlaceholder(
+                          radius: 0,
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : const AppImagePlaceholder(
+                        radius: 0,
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
               ),
             ),
             Expanded(
@@ -256,13 +277,24 @@ class _TopCategoryHomeState extends State<CategoryHome>
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(12),
                 ),
-                child: CachedNetworkImage(
-                  imageUrl:
-                      HelperFunctions().getImage(category['featured_image']),
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => const Icon(Icons.category),
-                ),
+                child: (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
+                        HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
+                    ? CachedNetworkImage(
+                        imageUrl:
+                            HelperFunctions().getImage(category['featured_image']),
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorWidget: (_, __, ___) => const AppImagePlaceholder(
+                          radius: 0,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : const AppImagePlaceholder(
+                        radius: 0,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
               ),
             ),
             Padding(

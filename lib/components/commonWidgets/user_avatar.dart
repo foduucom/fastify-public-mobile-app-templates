@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 
 class UserAvatar extends StatelessWidget {
   final String? imageUrl;
@@ -147,16 +148,8 @@ class UserAvatar extends StatelessWidget {
       }
     }
 
-    return Container(
-      width: diameter,
-      height: diameter,
-      alignment: Alignment.center,
-      color: colorScheme.surfaceVariant,
-      child: Icon(
-        Icons.person_rounded,
-        size: radius * 1.15,
-        color: colorScheme.onSurfaceVariant.withOpacity(0.7),
-      ),
+    return AppImagePlaceholder.circular(
+      size: diameter,
     );
   }
 }
