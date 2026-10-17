@@ -1,0 +1,1025 @@
+[        ] :app:preBuild (Thread[Execution worker Thread 9,5,main]) started.
+[        ] > Task :app:preBuild
+[        ] Skipping task ':app:preBuild' as it has no actions.
+[        ] Resolve mutations for :app:preDebugBuild (Thread[Execution worker Thread 9,5,main]) started.
+[        ] :app:preDebugBuild (Thread[Execution worker Thread 9,5,main]) started.
+[        ] > Task :app:preDebugBuild
+[        ] Skipping task ':app:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :app:mergeDebugNativeDebugMetadata (Thread[Execution worker Thread
+9,5,main]) started.
+[        ] :app:mergeDebugNativeDebugMetadata (Thread[Execution worker Thread 9,5,main]) started.
+[        ] > Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+[        ] Skipping task ':app:mergeDebugNativeDebugMetadata' as it has no source files and no previous
+output files.
+[        ] Resolve mutations for :app:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker
+Thread 9,5,main]) started.
+[        ] :app:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker Thread 9,5,main])
+started.
+[        ] > Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+[        ] Skipping task ':app:checkKotlinGradlePluginConfigurationErrors' as task onlyIf
+'errorDiagnostics are present' is false.
+[        ] Resolve mutations for :audio_session:preBuild (Thread[Execution worker Thread 9,5,main])
+started.
+[        ] :audio_session:preBuild (Thread[Execution worker Thread 9,5,main]) started.
+[  +95 ms] > Task :audio_session:preBuild UP-TO-DATE
+[        ] Skipping task ':audio_session:preBuild' as it has no actions.
+[        ] Resolve mutations for :audio_session:preDebugBuild (Thread[Execution worker Thread 9,5,main])
+started.
+[        ] :audio_session:preDebugBuild (Thread[Execution worker Thread 9,5,main]) started.
+[        ] > Task :audio_session:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':audio_session:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :audio_session:writeDebugAarMetadata (Thread[Execution worker Thread
+9,5,main]) started.
+[        ] :audio_session:writeDebugAarMetadata (Thread[Execution worker Thread 9,5,main]) started.
+[        ] Resolve mutations for :awesome_notifications:preBuild (Thread[included builds,5,main]) started.
+[        ] :awesome_notifications:preBuild (Thread[included builds,5,main]) started.
+[        ] > Task :awesome_notifications:preBuild UP-TO-DATE
+[        ] Skipping task ':awesome_notifications:preBuild' as it has no actions.
+[        ] Resolve mutations for :awesome_notifications:preDebugBuild (Thread[included builds,5,main])
+started.
+[        ] :awesome_notifications:preDebugBuild (Thread[included builds,5,main]) started.
+[        ] > Task :awesome_notifications:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':awesome_notifications:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :awesome_notifications:writeDebugAarMetadata (Thread[included
+builds,5,main]) started.
+[        ] :awesome_notifications:writeDebugAarMetadata (Thread[included builds,5,main]) started.
+[        ] Resolve mutations for :connectivity_plus:preBuild (Thread[Execution worker,5,main]) started.
+[        ] :connectivity_plus:preBuild (Thread[Execution worker,5,main]) started.
+[        ] > Task :connectivity_plus:preBuild UP-TO-DATE
+[        ] Skipping task ':connectivity_plus:preBuild' as it has no actions.
+[        ] Resolve mutations for :connectivity_plus:preDebugBuild (Thread[Execution worker,5,main])
+started.
+[        ] :connectivity_plus:preDebugBuild (Thread[Execution worker,5,main]) started.
+[        ] > Task :connectivity_plus:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':connectivity_plus:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :connectivity_plus:writeDebugAarMetadata (Thread[Execution
+worker,5,main]) started.
+[        ] :connectivity_plus:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+[        ] > Task :awesome_notifications:writeDebugAarMetadata
+[        ] Caching disabled for task ':awesome_notifications:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':awesome_notifications:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':awesome_notifications:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] > Task :audio_session:writeDebugAarMetadata
+[        ] Caching disabled for task ':audio_session:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':audio_session:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':audio_session:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] work action resolve aar-metadata.properties (project :awesome_notifications) (Thread[included
+builds,5,main]) started.
+[        ] work action resolve aar-metadata.properties (project :audio_session) (Thread[included
+builds,5,main]) started.
+[        ] Resolve mutations for :device_info_plus:preBuild (Thread[included builds,5,main]) started.
+[        ] :device_info_plus:preBuild (Thread[included builds,5,main]) started.
+[        ] > Task :device_info_plus:preBuild UP-TO-DATE
+[        ] Skipping task ':device_info_plus:preBuild' as it has no actions.
+[        ] Resolve mutations for :device_info_plus:preDebugBuild (Thread[included builds,5,main]) started.
+[        ] :device_info_plus:preDebugBuild (Thread[included builds,5,main]) started.
+[        ] > Task :device_info_plus:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':device_info_plus:preDebugBuild' as it has no actions.
+[        ] > Task :connectivity_plus:writeDebugAarMetadata
+[        ] Caching disabled for task ':connectivity_plus:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':connectivity_plus:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':connectivity_plus:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] work action resolve aar-metadata.properties (project :connectivity_plus) (Thread[included
+builds,5,main]) started.
+[        ] Resolve mutations for :device_info_plus:writeDebugAarMetadata (Thread[included builds,5,main])
+started.
+[        ] :device_info_plus:writeDebugAarMetadata (Thread[included builds,5,main]) started.
+[        ] Resolve mutations for :flutter_downloader:preBuild (Thread[Execution worker Thread 2,5,main])
+started.
+[        ] :flutter_downloader:preBuild (Thread[Execution worker Thread 2,5,main]) started.
+[        ] > Task :device_info_plus:writeDebugAarMetadata
+[        ] Caching disabled for task ':device_info_plus:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':device_info_plus:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':device_info_plus:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] > Task :flutter_downloader:preBuild UP-TO-DATE
+[        ] Skipping task ':flutter_downloader:preBuild' as it has no actions.
+[        ] work action resolve aar-metadata.properties (project :device_info_plus) (Thread[Execution
+worker Thread 2,5,main]) started.
+[        ] Resolve mutations for :flutter_downloader:preDebugBuild (Thread[Execution worker Thread
+2,5,main]) started.
+[        ] :flutter_downloader:preDebugBuild (Thread[Execution worker Thread 2,5,main]) started.
+[        ] > Task :flutter_downloader:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':flutter_downloader:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :flutter_downloader:writeDebugAarMetadata (Thread[Execution worker Thread
+2,5,main]) started.
+[        ] :flutter_downloader:writeDebugAarMetadata (Thread[Execution worker Thread 2,5,main]) started.
+[        ] Resolve mutations for :flutter_image_compress_common:preBuild (Thread[Execution worker Thread
+8,5,main]) started.
+[        ] :flutter_image_compress_common:preBuild (Thread[Execution worker Thread 8,5,main]) started.
+[        ] > Task :flutter_image_compress_common:preBuild UP-TO-DATE
+[        ] Skipping task ':flutter_image_compress_common:preBuild' as it has no actions.
+[        ] Resolve mutations for :flutter_image_compress_common:preDebugBuild (Thread[Execution worker
+Thread 8,5,main]) started.
+[        ] :flutter_image_compress_common:preDebugBuild (Thread[Execution worker Thread 8,5,main])
+started.
+[        ] > Task :flutter_image_compress_common:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':flutter_image_compress_common:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :flutter_image_compress_common:writeDebugAarMetadata (Thread[Execution
+worker Thread 8,5,main]) started.
+[        ] :flutter_image_compress_common:writeDebugAarMetadata (Thread[Execution worker Thread 8,5,main])
+started.
+[        ] > Task :flutter_downloader:writeDebugAarMetadata
+[        ] Caching disabled for task ':flutter_downloader:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':flutter_downloader:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':flutter_downloader:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] work action resolve aar-metadata.properties (project :flutter_downloader) (Thread[Execution
+worker Thread 2,5,main]) started.
+[        ] Resolve mutations for :flutter_inappwebview_android:preBuild (Thread[Execution worker Thread
+2,5,main]) started.
+[        ] :flutter_inappwebview_android:preBuild (Thread[Execution worker Thread 2,5,main]) started.
+[        ] > Task :flutter_inappwebview_android:preBuild UP-TO-DATE
+[        ] Skipping task ':flutter_inappwebview_android:preBuild' as it has no actions.
+[        ] > Task :flutter_image_compress_common:writeDebugAarMetadata
+[        ] Caching disabled for task ':flutter_image_compress_common:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':flutter_image_compress_common:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':flutter_image_compress_common:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] Resolve mutations for :flutter_inappwebview_android:preDebugBuild (Thread[Execution worker
+Thread 2,5,main]) started.
+[        ] work action resolve aar-metadata.properties (project :flutter_image_compress_common)
+(Thread[Execution worker Thread 2,5,main]) started.
+[        ] :flutter_inappwebview_android:preDebugBuild (Thread[Execution worker Thread 2,5,main]) started.
+[        ] > Task :flutter_inappwebview_android:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':flutter_inappwebview_android:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :flutter_inappwebview_android:writeDebugAarMetadata (Thread[Execution
+worker Thread 2,5,main]) started.
+[        ] :flutter_inappwebview_android:writeDebugAarMetadata (Thread[Execution worker Thread 2,5,main])
+started.
+[        ] Resolve mutations for :flutter_native_splash:preBuild (Thread[Execution worker Thread
+5,5,main]) started.
+[        ] :flutter_native_splash:preBuild (Thread[Execution worker Thread 5,5,main]) started.
+[        ] > Task :flutter_native_splash:preBuild UP-TO-DATE
+[        ] Skipping task ':flutter_native_splash:preBuild' as it has no actions.
+[        ] Resolve mutations for :flutter_native_splash:preDebugBuild (Thread[Execution worker Thread
+5,5,main]) started.
+[        ] :flutter_native_splash:preDebugBuild (Thread[Execution worker Thread 5,5,main]) started.
+[        ] > Task :flutter_native_splash:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':flutter_native_splash:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :flutter_native_splash:writeDebugAarMetadata (Thread[Execution worker
+Thread 5,5,main]) started.
+[        ] :flutter_native_splash:writeDebugAarMetadata (Thread[Execution worker Thread 5,5,main])
+started.
+[        ] > Task :flutter_inappwebview_android:writeDebugAarMetadata
+[        ] Caching disabled for task ':flutter_inappwebview_android:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':flutter_inappwebview_android:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':flutter_inappwebview_android:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] work action resolve aar-metadata.properties (project :flutter_inappwebview_android)
+(Thread[Execution worker Thread 2,5,main]) started.
+[        ] Resolve mutations for :flutter_plugin_android_lifecycle:preBuild (Thread[Execution worker
+Thread 2,5,main]) started.
+[        ] :flutter_plugin_android_lifecycle:preBuild (Thread[Execution worker Thread 2,5,main]) started.
+[        ] > Task :flutter_native_splash:writeDebugAarMetadata
+[        ] Caching disabled for task ':flutter_native_splash:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':flutter_native_splash:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':flutter_native_splash:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] > Task :flutter_plugin_android_lifecycle:preBuild UP-TO-DATE
+[        ] Skipping task ':flutter_plugin_android_lifecycle:preBuild' as it has no actions.
+[        ] work action resolve aar-metadata.properties (project :flutter_native_splash) (Thread[Execution
+worker Thread 2,5,main]) started.
+[        ] Resolve mutations for :flutter_plugin_android_lifecycle:preDebugBuild (Thread[Execution worker
+Thread 2,5,main]) started.
+[        ] :flutter_plugin_android_lifecycle:preDebugBuild (Thread[Execution worker Thread 2,5,main])
+started.
+[        ] > Task :flutter_plugin_android_lifecycle:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':flutter_plugin_android_lifecycle:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :flutter_plugin_android_lifecycle:writeDebugAarMetadata (Thread[Execution
+worker Thread 2,5,main]) started.
+[        ] :flutter_plugin_android_lifecycle:writeDebugAarMetadata (Thread[Execution worker Thread
+2,5,main]) started.
+[        ] Resolve mutations for :fluttertoast:preBuild (Thread[Execution worker Thread 9,5,main])
+started.
+[        ] :fluttertoast:preBuild (Thread[Execution worker Thread 9,5,main]) started.
+[        ] > Task :flutter_plugin_android_lifecycle:writeDebugAarMetadata
+[        ] Caching disabled for task ':flutter_plugin_android_lifecycle:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':flutter_plugin_android_lifecycle:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':flutter_plugin_android_lifecycle:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] > Task :fluttertoast:preBuild UP-TO-DATE
+[        ] Skipping task ':fluttertoast:preBuild' as it has no actions.
+[        ] work action resolve aar-metadata.properties (project :flutter_plugin_android_lifecycle)
+(Thread[Execution worker Thread 9,5,main]) started.
+[        ] Resolve mutations for :fluttertoast:preDebugBuild (Thread[Execution worker Thread 9,5,main])
+started.
+[        ] :fluttertoast:preDebugBuild (Thread[Execution worker Thread 9,5,main]) started.
+[        ] > Task :fluttertoast:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':fluttertoast:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :fluttertoast:writeDebugAarMetadata (Thread[Execution worker Thread
+9,5,main]) started.
+[        ] :fluttertoast:writeDebugAarMetadata (Thread[Execution worker Thread 9,5,main]) started.
+[        ] Resolve mutations for :image_picker_android:preBuild (Thread[Execution worker,5,main]) started.
+[        ] :image_picker_android:preBuild (Thread[Execution worker,5,main]) started.
+[        ] > Task :image_picker_android:preBuild UP-TO-DATE
+[        ] Skipping task ':image_picker_android:preBuild' as it has no actions.
+[        ] Resolve mutations for :image_picker_android:preDebugBuild (Thread[Execution worker,5,main])
+started.
+[        ] :image_picker_android:preDebugBuild (Thread[Execution worker,5,main]) started.
+[        ] > Task :image_picker_android:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':image_picker_android:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :image_picker_android:writeDebugAarMetadata (Thread[Execution
+worker,5,main]) started.
+[        ] > Task :fluttertoast:writeDebugAarMetadata
+[        ] Caching disabled for task ':fluttertoast:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':fluttertoast:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':fluttertoast:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] work action resolve aar-metadata.properties (project :fluttertoast) (Thread[Execution
+worker,5,main]) started.
+[        ] :image_picker_android:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+[        ] Resolve mutations for :just_audio:preBuild (Thread[Execution worker Thread 6,5,main]) started.
+[        ] :just_audio:preBuild (Thread[Execution worker Thread 6,5,main]) started.
+[  +12 ms] > Task :image_picker_android:writeDebugAarMetadata
+[        ] Caching disabled for task ':image_picker_android:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':image_picker_android:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':image_picker_android:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] > Task :just_audio:preBuild UP-TO-DATE
+[        ] Skipping task ':just_audio:preBuild' as it has no actions.
+[        ] work action resolve aar-metadata.properties (project :image_picker_android) (Thread[Execution
+worker Thread 6,5,main]) started.
+[        ] Resolve mutations for :just_audio:preDebugBuild (Thread[Execution worker Thread 6,5,main])
+started.
+[   +2 ms] :just_audio:preDebugBuild (Thread[Execution worker Thread 6,5,main]) started.
+[        ] > Task :just_audio:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':just_audio:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :just_audio:writeDebugAarMetadata (Thread[Execution worker Thread
+6,5,main]) started.
+[        ] :just_audio:writeDebugAarMetadata (Thread[Execution worker Thread 6,5,main]) started.
+[        ] Resolve mutations for :package_info_plus:preBuild (Thread[Execution worker Thread 3,5,main])
+started.
+[        ] :package_info_plus:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+[        ] > Task :package_info_plus:preBuild UP-TO-DATE
+[        ] Skipping task ':package_info_plus:preBuild' as it has no actions.
+[        ] Resolve mutations for :package_info_plus:preDebugBuild (Thread[Execution worker Thread
+3,5,main]) started.
+[        ] > Task :just_audio:writeDebugAarMetadata
+[        ] Caching disabled for task ':just_audio:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':just_audio:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':just_audio:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] work action resolve aar-metadata.properties (project :just_audio) (Thread[Execution worker
+Thread 2,5,main]) started.
+[        ] :package_info_plus:preDebugBuild (Thread[Execution worker Thread 2,5,main]) started.
+[        ] > Task :package_info_plus:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':package_info_plus:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :package_info_plus:writeDebugAarMetadata (Thread[Execution worker Thread
+2,5,main]) started.
+[   +1 ms] :package_info_plus:writeDebugAarMetadata (Thread[Execution worker Thread 2,5,main]) started.
+[        ] Resolve mutations for :path_provider_android:preBuild (Thread[Execution worker Thread
+3,5,main]) started.
+[        ] :path_provider_android:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+[        ] > Task :path_provider_android:preBuild UP-TO-DATE
+[        ] Skipping task ':path_provider_android:preBuild' as it has no actions.
+[        ] Resolve mutations for :path_provider_android:preDebugBuild (Thread[Execution worker Thread
+3,5,main]) started.
+[        ] > Task :package_info_plus:writeDebugAarMetadata
+[        ] Caching disabled for task ':package_info_plus:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':package_info_plus:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':package_info_plus:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] :path_provider_android:preDebugBuild (Thread[Execution worker Thread 3,5,main]) started.
+[        ] > Task :path_provider_android:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':path_provider_android:preDebugBuild' as it has no actions.
+[        ] work action resolve aar-metadata.properties (project :package_info_plus) (Thread[Execution
+worker Thread 3,5,main]) started.
+[   +1 ms] Resolve mutations for :path_provider_android:writeDebugAarMetadata (Thread[Execution worker
+Thread 3,5,main]) started.
+[        ] :path_provider_android:writeDebugAarMetadata (Thread[Execution worker Thread 3,5,main])
+started.
+[        ] Resolve mutations for :permission_handler_android:preBuild (Thread[Execution worker Thread
+5,5,main]) started.
+[        ] :permission_handler_android:preBuild (Thread[Execution worker Thread 5,5,main]) started.
+[   +1 ms] > Task :permission_handler_android:preBuild UP-TO-DATE
+[        ] Skipping task ':permission_handler_android:preBuild' as it has no actions.
+[   +1 ms] Resolve mutations for :permission_handler_android:preDebugBuild (Thread[Execution worker Thread
+5,5,main]) started.
+[        ] :permission_handler_android:preDebugBuild (Thread[Execution worker Thread 5,5,main]) started.
+[        ] > Task :permission_handler_android:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':permission_handler_android:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :permission_handler_android:writeDebugAarMetadata (Thread[Execution
+worker Thread 5,5,main]) started.
+[        ] :permission_handler_android:writeDebugAarMetadata (Thread[Execution worker Thread 5,5,main])
+started.
+[        ] > Task :path_provider_android:writeDebugAarMetadata
+[        ] Caching disabled for task ':path_provider_android:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':path_provider_android:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':path_provider_android:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] work action resolve aar-metadata.properties (project :path_provider_android) (Thread[Execution
+worker Thread 3,5,main]) started.
+[        ] Resolve mutations for :phonepe_payment_sdk:preBuild (Thread[Execution worker Thread 3,5,main])
+started.
+[        ] :phonepe_payment_sdk:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+[        ] > Task :phonepe_payment_sdk:preBuild UP-TO-DATE
+[        ] Skipping task ':phonepe_payment_sdk:preBuild' as it has no actions.
+[        ] Resolve mutations for :phonepe_payment_sdk:preDebugBuild (Thread[Execution worker Thread
+3,5,main]) started.
+[        ] :phonepe_payment_sdk:preDebugBuild (Thread[Execution worker Thread 3,5,main]) started.
+[        ] > Task :phonepe_payment_sdk:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':phonepe_payment_sdk:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :phonepe_payment_sdk:writeDebugAarMetadata (Thread[Execution worker
+Thread 3,5,main]) started.
+[        ] :phonepe_payment_sdk:writeDebugAarMetadata (Thread[Execution worker Thread 3,5,main]) started.
+[        ] > Task :permission_handler_android:writeDebugAarMetadata
+[        ] Caching disabled for task ':permission_handler_android:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':permission_handler_android:writeDebugAarMetadata' is not up-to-date because:
+[   +2 ms]   Class path of task ':permission_handler_android:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] work action resolve aar-metadata.properties (project :permission_handler_android)
+(Thread[Execution worker Thread 5,5,main]) started.
+[        ] Resolve mutations for :razorpay_flutter:preBuild (Thread[Execution worker Thread 5,5,main])
+started.
+[        ] :razorpay_flutter:preBuild (Thread[Execution worker Thread 5,5,main]) started.
+[        ] > Task :razorpay_flutter:preBuild UP-TO-DATE
+[        ] Skipping task ':razorpay_flutter:preBuild' as it has no actions.
+[        ] Resolve mutations for :razorpay_flutter:preDebugBuild (Thread[Execution worker Thread
+5,5,main]) started.
+[        ] :razorpay_flutter:preDebugBuild (Thread[Execution worker Thread 5,5,main]) started.
+[        ] > Task :razorpay_flutter:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':razorpay_flutter:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :razorpay_flutter:writeDebugAarMetadata (Thread[Execution worker Thread
+5,5,main]) started.
+[        ] :razorpay_flutter:writeDebugAarMetadata (Thread[Execution worker Thread 5,5,main]) started.
+[        ] > Task :phonepe_payment_sdk:writeDebugAarMetadata
+[        ] Caching disabled for task ':phonepe_payment_sdk:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':phonepe_payment_sdk:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':phonepe_payment_sdk:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] work action resolve aar-metadata.properties (project :phonepe_payment_sdk) (Thread[Execution
+worker Thread 3,5,main]) started.
+[        ] Resolve mutations for :sms_autofill:preBuild (Thread[Execution worker Thread 3,5,main])
+started.
+[        ] :sms_autofill:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+[        ] > Task :sms_autofill:preBuild UP-TO-DATE
+[        ] Skipping task ':sms_autofill:preBuild' as it has no actions.
+[        ] Resolve mutations for :sms_autofill:preDebugBuild (Thread[Execution worker Thread 3,5,main])
+started.
+[        ] > Task :razorpay_flutter:writeDebugAarMetadata
+[        ] Caching disabled for task ':razorpay_flutter:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':razorpay_flutter:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':razorpay_flutter:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] :sms_autofill:preDebugBuild (Thread[Execution worker Thread 3,5,main]) started.
+[        ] > Task :sms_autofill:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':sms_autofill:preDebugBuild' as it has no actions.
+[        ] work action resolve aar-metadata.properties (project :razorpay_flutter) (Thread[Execution
+worker Thread 3,5,main]) started.
+[        ] Resolve mutations for :sms_autofill:writeDebugAarMetadata (Thread[Execution worker Thread
+3,5,main]) started.
+[        ] :sms_autofill:writeDebugAarMetadata (Thread[Execution worker Thread 3,5,main]) started.
+[        ] Resolve mutations for :sqflite_android:preBuild (Thread[Execution worker,5,main]) started.
+[        ] :sqflite_android:preBuild (Thread[Execution worker,5,main]) started.
+[        ] > Task :sqflite_android:preBuild UP-TO-DATE
+[        ] Skipping task ':sqflite_android:preBuild' as it has no actions.
+[        ] Resolve mutations for :sqflite_android:preDebugBuild (Thread[Execution worker,5,main]) started.
+[        ] :sqflite_android:preDebugBuild (Thread[Execution worker,5,main]) started.
+[        ] > Task :sqflite_android:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':sqflite_android:preDebugBuild' as it has no actions.
+[        ] > Task :sms_autofill:writeDebugAarMetadata
+[        ] Caching disabled for task ':sms_autofill:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[   +3 ms]   Caching has been disabled for the task
+[        ] Task ':sms_autofill:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':sms_autofill:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] Resolve mutations for :sqflite_android:writeDebugAarMetadata (Thread[Execution worker,5,main])
+started.
+[        ] work action resolve aar-metadata.properties (project :sms_autofill) (Thread[Execution
+worker,5,main]) started.
+[        ] :sqflite_android:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+[        ] Resolve mutations for :stripe_android:preBuild (Thread[included builds,5,main]) started.
+[        ] :stripe_android:preBuild (Thread[included builds,5,main]) started.
+[        ] > Task :stripe_android:preBuild UP-TO-DATE
+[        ] Skipping task ':stripe_android:preBuild' as it has no actions.
+[        ] Resolve mutations for :stripe_android:preDebugBuild (Thread[included builds,5,main]) started.
+[        ] :stripe_android:preDebugBuild (Thread[included builds,5,main]) started.
+[        ] > Task :stripe_android:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':stripe_android:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :stripe_android:writeDebugAarMetadata (Thread[included builds,5,main])
+started.
+[        ] :stripe_android:writeDebugAarMetadata (Thread[included builds,5,main]) started.
+[        ] > Task :sqflite_android:writeDebugAarMetadata
+[        ] Caching disabled for task ':sqflite_android:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':sqflite_android:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':sqflite_android:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] work action resolve aar-metadata.properties (project :sqflite_android) (Thread[Execution
+worker,5,main]) started.
+[        ] Resolve mutations for :url_launcher_android:preBuild (Thread[Execution worker,5,main]) started.
+[        ] :url_launcher_android:preBuild (Thread[Execution worker,5,main]) started.
+[        ] > Task :url_launcher_android:preBuild UP-TO-DATE
+[        ] Skipping task ':url_launcher_android:preBuild' as it has no actions.
+[        ] Resolve mutations for :url_launcher_android:preDebugBuild (Thread[Execution worker,5,main])
+started.
+[        ] :url_launcher_android:preDebugBuild (Thread[Execution worker,5,main]) started.
+[        ] > Task :url_launcher_android:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':url_launcher_android:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :url_launcher_android:writeDebugAarMetadata (Thread[Execution
+worker,5,main]) started.
+[   +1 ms] > Task :stripe_android:writeDebugAarMetadata
+[        ] Caching disabled for task ':stripe_android:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':stripe_android:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':stripe_android:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] :url_launcher_android:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+[        ] work action resolve aar-metadata.properties (project :stripe_android) (Thread[included
+builds,5,main]) started.
+[        ] Resolve mutations for :video_player_android:preBuild (Thread[included builds,5,main]) started.
+[        ] :video_player_android:preBuild (Thread[included builds,5,main]) started.
+[        ] > Task :video_player_android:preBuild UP-TO-DATE
+[        ] Skipping task ':video_player_android:preBuild' as it has no actions.
+[        ] Resolve mutations for :video_player_android:preDebugBuild (Thread[included builds,5,main])
+started.
+[        ] :video_player_android:preDebugBuild (Thread[included builds,5,main]) started.
+[        ] > Task :video_player_android:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':video_player_android:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :video_player_android:writeDebugAarMetadata (Thread[included
+builds,5,main]) started.
+[        ] :video_player_android:writeDebugAarMetadata (Thread[included builds,5,main]) started.
+[  +29 ms] > Task :url_launcher_android:writeDebugAarMetadata
+[        ] Caching disabled for task ':url_launcher_android:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':url_launcher_android:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':url_launcher_android:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] work action resolve aar-metadata.properties (project :url_launcher_android) (Thread[Execution
+worker,5,main]) started.
+[        ] Resolve mutations for :wakelock_plus:preBuild (Thread[Execution worker Thread 3,5,main])
+started.
+[        ] :wakelock_plus:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+[        ] > Task :video_player_android:writeDebugAarMetadata
+[        ] Caching disabled for task ':video_player_android:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':video_player_android:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':video_player_android:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] > Task :wakelock_plus:preBuild UP-TO-DATE
+[        ] Skipping task ':wakelock_plus:preBuild' as it has no actions.
+[        ] work action resolve aar-metadata.properties (project :video_player_android) (Thread[Execution
+worker Thread 3,5,main]) started.
+[        ] Resolve mutations for :wakelock_plus:preDebugBuild (Thread[Execution worker Thread 3,5,main])
+started.
+[        ] :wakelock_plus:preDebugBuild (Thread[Execution worker Thread 3,5,main]) started.
+[        ] > Task :wakelock_plus:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':wakelock_plus:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :wakelock_plus:writeDebugAarMetadata (Thread[Execution worker Thread
+3,5,main]) started.
+[        ] :wakelock_plus:writeDebugAarMetadata (Thread[Execution worker Thread 3,5,main]) started.
+[        ] Resolve mutations for :webview_flutter_android:preBuild (Thread[Execution worker Thread
+7,5,main]) started.
+[        ] :webview_flutter_android:preBuild (Thread[Execution worker Thread 7,5,main]) started.
+[        ] > Task :webview_flutter_android:preBuild UP-TO-DATE
+[        ] Skipping task ':webview_flutter_android:preBuild' as it has no actions.
+[        ] Resolve mutations for :webview_flutter_android:preDebugBuild (Thread[Execution worker Thread
+7,5,main]) started.
+[        ] :webview_flutter_android:preDebugBuild (Thread[Execution worker Thread 7,5,main]) started.
+[        ] > Task :webview_flutter_android:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':webview_flutter_android:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :webview_flutter_android:writeDebugAarMetadata (Thread[Execution worker
+Thread 7,5,main]) started.
+[        ] :webview_flutter_android:writeDebugAarMetadata (Thread[Execution worker Thread 7,5,main])
+started.
+[        ] > Task :wakelock_plus:writeDebugAarMetadata
+[        ] Caching disabled for task ':wakelock_plus:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':wakelock_plus:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':wakelock_plus:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] work action resolve aar-metadata.properties (project :wakelock_plus) (Thread[Execution worker
+Thread 3,5,main]) started.
+[        ] Resolve mutations for :app:cleanMergeDebugAssets (Thread[Execution worker Thread 3,5,main])
+started.
+[        ] :app:cleanMergeDebugAssets (Thread[Execution worker Thread 3,5,main]) started.
+[        ] > Task :webview_flutter_android:writeDebugAarMetadata
+[        ] Caching disabled for task ':webview_flutter_android:writeDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':webview_flutter_android:writeDebugAarMetadata' is not up-to-date because:
+[        ]   Class path of task ':webview_flutter_android:writeDebugAarMetadata' has changed from
+e4d1ae95a57cbf66a90291b3c1fe8f89 to 3fcb8e645385f78b847de116b143e1a6.
+[        ] > Task :app:cleanMergeDebugAssets UP-TO-DATE
+[        ] Caching disabled for task ':app:cleanMergeDebugAssets' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:cleanMergeDebugAssets' is not up-to-date because:
+[        ]   Task has not declared any outputs despite executing actions.
+[        ] Resolve mutations for :app:compileFlutterBuildDebug (Thread[Execution worker Thread 3,5,main])
+started.
+[        ] work action resolve aar-metadata.properties (project :webview_flutter_android)
+(Thread[Execution worker Thread 3,5,main]) started.
+[        ] Resolve mutations for :app:checkDebugAarMetadata (Thread[Execution worker Thread 3,5,main])
+started.
+[        ] :app:checkDebugAarMetadata (Thread[Execution worker Thread 3,5,main]) started.
+[+1996 ms] > Task :app:checkDebugAarMetadata
+[        ] Resource missing. [HTTP HEAD:
+https://storage.googleapis.com/download.flutter.io/phonepe/intentsdk/android/release/IntentSDK/5.2.0/Inten
+tSDK-5.2.0.pom]
+[        ] Resource missing. [HTTP HEAD:
+https://jitpack.io/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom]
+[        ] Resource missing. [HTTP HEAD:
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom]
+[        ] Resource missing. [HTTP HEAD:
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+]
+[        ] Resource missing. [HTTP HEAD:
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom]
+[        ] Resource missing. [HTTP HEAD:
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+]
+[ +199 ms] Resource missing. [HTTP HEAD:
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom]
+[ +400 ms] Resource missing. [HTTP HEAD:
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+]
+[ +199 ms] Resource missing. [HTTP HEAD:
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom]
+[ +299 ms] Resource missing. [HTTP HEAD:
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+]
+[ +106 ms] Resource missing. [HTTP HEAD:
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom]
+[ +496 ms] Resource missing. [HTTP HEAD:
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+]
+[  +98 ms] Resource missing. [HTTP HEAD:
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom]
+[ +198 ms] Resource missing. [HTTP HEAD:
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+]
+[ +599 ms] Resource missing. [HTTP HEAD:
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom]
+[ +499 ms] Resource missing. [HTTP HEAD:
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+]
+[ +201 ms] Resource missing. [HTTP HEAD:
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom]
+[ +199 ms] Resource missing. [HTTP HEAD:
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+]
+[ +201 ms] Resource missing. [HTTP HEAD:
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom]
+[ +199 ms] Resource missing. [HTTP HEAD:
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+]
+[ +197 ms] Resource missing. [HTTP HEAD:
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom]
+[ +200 ms] Resource missing. [HTTP HEAD:
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+]
+[ +201 ms] Resource missing. [HTTP HEAD:
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom]
+[  +97 ms] Resource missing. [HTTP HEAD:
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+]
+[ +202 ms] Resource missing. [HTTP HEAD:
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom]
+[ +200 ms] Resource missing. [HTTP HEAD:
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+]
+[  +97 ms] Resource missing. [HTTP HEAD:
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+]
+[ +601 ms] Resource missing. [HTTP HEAD:
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom]
+[ +200 ms] Resource missing. [HTTP HEAD:
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom]
+[ +196 ms] Resource missing. [HTTP HEAD:
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+]
+[ +201 ms] Resource missing. [HTTP HEAD:
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom]
+[ +202 ms] Resource missing. [HTTP HEAD:
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+]
+[ +198 ms] Resource missing. [HTTP HEAD:
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom]
+[ +201 ms] Resource missing. [HTTP HEAD:
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+]
+[ +197 ms] Resource missing. [HTTP HEAD:
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom]
+[ +204 ms] Resource missing. [HTTP HEAD:
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+]
+[+2205 ms] > Task :app:checkDebugAarMetadata FAILED
+[ +291 ms] Build 6aa366b0-29d3-4a95-8652-20984f4f6112 is closed
+[ +198 ms] Build 54b49935-4487-4f7e-a0bd-ee01a687d434 is closed
+[        ] [Incubating] Problems report is available at:
+file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/build/reports/problems/problems-repor
+t.html
+[ +102 ms] FAILURE: Build failed with an exception.
+[   +2 ms] * What went wrong:
+[        ] Execution failed for task ':app:checkDebugAarMetadata'.
+[        ] > Could not resolve all files for configuration ':app:debugRuntimeClasspath'.
+[        ]    > Could not find phonepe.intentsdk.android.release:IntentSDK:5.2.0.
+[        ]      Searched in the following locations:
+[        ]        -
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom
+[        ]        -
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+[        ]        -
+https://storage.googleapis.com/download.flutter.io/phonepe/intentsdk/android/release/IntentSDK/5.2.0/Inten
+tSDK-5.2.0.pom
+[        ]        -
+https://jitpack.io/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+[        ]      Required by:
+[        ]          project :app > project :phonepe_payment_sdk
+[        ] * Try:
+[        ] > Run with --debug option to get more log output.
+[        ] > Run with --scan to get full insights.
+[        ] > Get more help at https://help.gradle.org.
+[        ] * Exception is:
+[        ] org.gradle.api.tasks.TaskExecutionException: Execution failed for task
+':app:checkDebugAarMetadata'.
+[        ]      at
+org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java
+:38)
+[        ]      at
+org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java
+:77)
+[        ]      at
+org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
+[        ]      at
+org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBui
+ldOperationRunner.java:210)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBui
+ldOperationRunner.java:205)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:67)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:60)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:167)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:60)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:54)
+[        ]      at
+org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52)
+[        ]      at org.gradle.execution.plan.LocalTaskNodeExecutor.execute(LocalTaskNodeExecutor.java:42)
+[        ]      at
+org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExec
+utionGraph.java:331)
+[        ]      at
+org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExec
+utionGraph.java:318)
+[        ]      at
+org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.lambda$execute
+$0(DefaultTaskExecutionGraph.java:314)
+[        ]      at
+org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:85)
+[        ]      at
+org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(Defaul
+tTaskExecutionGraph.java:314)
+[        ]      at
+org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(Defaul
+tTaskExecutionGraph.java:303)
+[        ]      at
+org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:459)
+[        ]      at
+org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:376)
+[        ]      at
+org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+[        ]      at
+org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:48)
+[        ]      at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+[        ]      at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+[        ]      at java.base/java.lang.Thread.run(Thread.java:840)
+[        ] Caused by: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException: Could not
+resolve all files for configuration ':app:debugRuntimeClasspath'.
+[        ]      at
+org.gradle.api.internal.artifacts.ResolveExceptionMapper.mapFailure(ResolveExceptionMapper.java:73)
+[        ]      at
+org.gradle.api.internal.artifacts.ResolveExceptionMapper.mapFailures(ResolveExceptionMapper.java:65)
+[        ]      at
+org.gradle.api.internal.artifacts.configurations.DefaultConfiguration$DefaultResolutionHost.consolidateFai
+lures(DefaultConfiguration.java:1931)
+[        ]      at
+org.gradle.api.internal.artifacts.configurations.ResolutionHost.rethrowFailuresAndReportProblems(Resolutio
+nHost.java:75)
+[        ]      at
+org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection.maybeThrowResolutionFailur
+es(ResolutionBackedFileCollection.java:86)
+[        ]      at
+org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection.visitContents(ResolutionBa
+ckedFileCollection.java:76)
+[        ]      at
+org.gradle.api.internal.file.AbstractFileCollection.visitStructure(AbstractFileCollection.java:361)
+[        ]      at
+org.gradle.api.internal.file.CompositeFileCollection.lambda$visitContents$0(CompositeFileCollection.java:1
+12)
+[        ]      at org.gradle.api.internal.file.collections.UnpackingVisitor.add(UnpackingVisitor.java:66)
+[        ]      at org.gradle.api.internal.file.collections.UnpackingVisitor.add(UnpackingVisitor.java:91)
+[        ]      at
+org.gradle.api.internal.file.DefaultFileCollectionFactory$ResolvingFileCollection.visitChildren(DefaultFil
+eCollectionFactory.java:306)
+[        ]      at
+org.gradle.api.internal.file.CompositeFileCollection.visitContents(CompositeFileCollection.java:112)
+[        ]      at
+org.gradle.api.internal.file.AbstractFileCollection.visitStructure(AbstractFileCollection.java:361)
+[        ]      at
+org.gradle.api.internal.file.CompositeFileCollection.lambda$visitContents$0(CompositeFileCollection.java:1
+12)
+[        ]      at
+org.gradle.api.internal.tasks.PropertyFileCollection.visitChildren(PropertyFileCollection.java:48)
+[        ]      at
+org.gradle.api.internal.file.CompositeFileCollection.visitContents(CompositeFileCollection.java:112)
+[        ]      at
+org.gradle.api.internal.file.AbstractFileCollection.visitStructure(AbstractFileCollection.java:361)
+[        ]      at
+org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter.snapshot(DefaultFileCollectionSnapsh
+otter.java:47)
+[        ]      at
+org.gradle.internal.execution.impl.DefaultInputFingerprinter$InputCollectingVisitor.visitInputFileProperty
+(DefaultInputFingerprinter.java:133)
+[        ]      at
+org.gradle.api.internal.tasks.execution.TaskExecution.visitRegularInputs(TaskExecution.java:324)
+[        ]      at
+org.gradle.internal.execution.impl.DefaultInputFingerprinter.fingerprintInputProperties(DefaultInputFinger
+printer.java:63)
+[        ]      at
+org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.captureExecutionStateWithOutpu
+ts(AbstractCaptureStateBeforeExecutionStep.java:109)
+[        ]      at
+org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.lambda$captureExecutionState$0
+(AbstractCaptureStateBeforeExecutionStep.java:74)
+[        ]      at org.gradle.internal.execution.steps.BuildOperationStep$1.call(BuildOperationStep.java:37)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBui
+ldOperationRunner.java:210)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBui
+ldOperationRunner.java:205)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:67)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:60)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:167)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:60)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:54)
+[        ]      at
+org.gradle.internal.execution.steps.BuildOperationStep.operation(BuildOperationStep.java:34)
+[        ]      at
+org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.captureExecutionState(Abstract
+CaptureStateBeforeExecutionStep.java:69)
+[        ]      at
+org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBe
+foreExecutionStep.java:62)
+[        ]      at
+org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBe
+foreExecutionStep.java:43)
+[        ]      at
+org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.executeWithNonEmptySources(AbstractSkipEmpty
+WorkStep.java:125)
+[        ]      at
+org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:56)
+[        ]      at
+org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:36)
+[        ]      at
+org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep.execute(MarkSnapshottingInput
+sStartedStep.java:38)
+[        ]      at
+org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.
+java:36)
+[  +14 ms]      at
+org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.
+java:23)
+[        ]      at
+org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:75)
+[        ]      at
+org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:41)
+[        ]      at
+org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.lambda$execute$0(AssignMutableWorkspaceStep
+.java:35)
+[        ]      at
+org.gradle.api.internal.tasks.execution.TaskExecution$4.withWorkspace(TaskExecution.java:289)
+[        ]      at
+org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:31)
+[        ]      at
+org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:22)
+[        ]      at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:40)
+[        ]      at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:23)
+[        ]      at
+org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.lambda$execute$2(ExecuteWorkBuildO
+perationFiringStep.java:67)
+[        ]      at java.base/java.util.Optional.orElseGet(Optional.java:364)
+[        ]      at
+org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationF
+iringStep.java:67)
+[        ]      at
+org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationF
+iringStep.java:39)
+[        ]      at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:46)
+[        ]      at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:34)
+[        ]      at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:48)
+[        ]      at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:35)
+[        ]      at
+org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:64)
+[        ]      at
+org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecut
+er.java:127)
+[        ]      at
+org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java
+:116)
+[        ]      at
+org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrack
+ingTaskExecuter.java:41)
+[        ]      at
+org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter.execute(FinalizePropertiesTaskExecu
+ter.java:46)
+[        ]      at
+org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter.execute(ResolveTaskExecutionModeE
+xecuter.java:51)
+[        ]      at
+org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecute
+r.java:57)
+[        ]      at
+org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:74)
+[        ]      at
+org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java
+:36)
+[        ]      at
+org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java
+:77)
+[        ]      at
+org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
+[        ]      at
+org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBui
+ldOperationRunner.java:210)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBui
+ldOperationRunner.java:205)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:67)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:60)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:167)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:60)
+[        ]      at
+org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:54)
+[        ]      at
+org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52)
+[        ]      at org.gradle.execution.plan.LocalTaskNodeExecutor.execute(LocalTaskNodeExecutor.java:42)
+[   +2 ms]      at
+org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExec
+utionGraph.java:331)
+[        ]      at
+org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExec
+utionGraph.java:318)
+[        ]      at
+org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.lambda$execute
+$0(DefaultTaskExecutionGraph.java:314)
+[        ]      at
+org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:85)
+[        ]      at
+org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(Defaul
+tTaskExecutionGraph.java:314)
+[        ]      at
+org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(Defaul
+tTaskExecutionGraph.java:303)
+[   +4 ms]      at
+org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:459)
+[        ]      at
+org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:376)
+[        ]      at
+org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+[        ]      at
+org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:48)
+[        ]      at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+[        ]      at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+[        ]      at java.base/java.lang.Thread.run(Thread.java:840)
+[        ] Caused by: org.gradle.internal.resolve.ModuleVersionNotFoundException: Could not find
+phonepe.intentsdk.android.release:IntentSDK:5.2.0.
+[   +2 ms] Searched in the following locations:
+[        ]   -
+https://dl.google.com/dl/android/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.
+pom
+[        ]   -
+https://repo.maven.apache.org/maven2/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+[        ]   -
+https://storage.googleapis.com/download.flutter.io/phonepe/intentsdk/android/release/IntentSDK/5.2.0/Inten
+tSDK-5.2.0.pom
+[        ]   - https://jitpack.io/phonepe/intentsdk/android/release/IntentSDK/5.2.0/IntentSDK-5.2.0.pom
+[        ] Required by:
+[        ]     project :app > project :phonepe_payment_sdk
+[        ] BUILD FAILED in 24s
+[        ] Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+[   +4 ms] You can use '--warning-mode all' to show the individual deprecation warnings and determine if
+they come from your own scripts or plugins.
+[        ] For more on this, please refer to
+https://docs.gradle.org/8.14/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle
+documentation.
+[        ] 32 actionable tasks: 31 executed, 1 up-to-date
+[ +246 ms] Watched directory hierarchies:
+[/Users/flutterdev/Developer/flutter/packages/flutter_tools/gradle]
+[ +613 ms] Running Gradle task 'assembleDebug'... (completed in 25.5s)
+[   +7 ms] Error: Gradle task assembleDebug failed with exit code 1
+[   +1 ms] "flutter run" took 30,497ms.
+[   +4 ms] 
+           #0      throwToolExit (package:flutter_tools/src/base/common.dart:34:3)
+           #1      RunCommand.runCommand (package:flutter_tools/src/commands/run.dart:967:9)
+           <asynchronous suspension>
+           #2      FlutterCommand.run.<anonymous closure>
+           (package:flutter_tools/src/runner/flutter_command.dart:1663:27)
+           <asynchronous suspension>
+           #3      AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+           <asynchronous suspension>
+           #4      CommandRunner.runCommand (package:args/command_runner.dart:212:13)
+           <asynchronous suspension>
+           #5      FlutterCommandRunner.runCommand.<anonymous closure>
+           (package:flutter_tools/src/runner/flutter_command_runner.dart:496:9)
+           <asynchronous suspension>
+           #6      AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+           <asynchronous suspension>
+           #7      FlutterCommandRunner.runCommand
+           (package:flutter_tools/src/runner/flutter_command_runner.dart:431:5)
+           <asynchronous suspension>
+           #8      FlutterCommandRunner.run.<anonymous closure>
+           (package:flutter_tools/src/runner/flutter_command_runner.dart:307:33)
+           <asynchronous suspension>
+           #9      run.<anonymous closure>.<anonymous closure> (package:flutter_tools/runner.dart:104:11)
+           <asynchronous suspension>
+           #10     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+           <asynchronous suspension>
+           #11     main (package:flutter_tools/executable.dart:103:3)
+           <asynchronous suspension>
+           
+           
+[        ] Running 3 shutdown hooks
+[   +1 ms] Shutdown hooks complete
+[   +1 ms] exiting with code 1
+flutterdev@Flutters-Mac-mini-8 fastify-public-mobile-app-templates % 

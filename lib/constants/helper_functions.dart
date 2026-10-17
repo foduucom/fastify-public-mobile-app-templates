@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '/constants/constants.dart';
-import '/constants/dynamic_theme.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -32,24 +31,19 @@ class HelperFunctions {
   }
 
   void showSnackBarError(String message) {
-    final isDark = Get.isPlatformDarkMode;
-    final colors = DynamicThemeManager()
-        .getColors(isDark ? Brightness.dark : Brightness.light);
     Get.snackbar("Error!", message,
-        backgroundColor: colors.error,
-        colorText: colors.onError,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
         isDismissible: true,
         dismissDirection: DismissDirection.horizontal,
+        // animationDuration: Duration(microseconds: 2000),
         duration: const Duration(seconds: 3));
   }
 
   void showSnackBarSuccess(String message) {
-    final isDark = Get.isPlatformDarkMode;
-    final colors = DynamicThemeManager()
-        .getColors(isDark ? Brightness.dark : Brightness.light);
     Get.snackbar("Success!", message,
-        backgroundColor: colors.primary,
-        colorText: colors.onPrimary,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
         isDismissible: true,
         dismissDirection: DismissDirection.horizontal,
         duration: const Duration(seconds: 5));
@@ -64,49 +58,54 @@ class HelperFunctions {
   }
 
   void showOverlayLoader({barrierDismissible = false}) {
-    bool isKeyboardOpen() {
-      return WidgetsBinding.instance.focusManager.primaryFocus?.hasFocus ??
-          false;
-    }
-
-    if (isKeyboardOpen()) {
-      final isDark = Get.isPlatformDarkMode;
-      final colors = DynamicThemeManager()
-          .getColors(isDark ? Brightness.dark : Brightness.light);
-      Get.dialog(
-        Center(
-          child: Container(
-            height: 130,
-            width: 100,
-            decoration: BoxDecoration(
-              color: colors.surface.withValues(alpha: 0.9),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 30,
-                      width: 30,
-                      child: HelperFunctions().loadingIndicator(),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      "Loading...",
-                      style: TextStyle(fontSize: 14, color: colors.onSurface),
-                    ),
-                  ],
-                ),
+    Get.dialog(
+      Center(
+        child: Container(
+          height: 130,
+          width: 100,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.8),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Center(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    height: 30,
+                    width: 30,
+                    child: HelperFunctions().loadingIndicator(),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Loading...",
+                    style: TextStyle(fontSize: 14, color: Colors.black),
+                  ),
+                ],
               ),
             ),
           ),
         ),
-        barrierDismissible: barrierDismissible,
-      );
+      ),
+      barrierDismissible: barrierDismissible,
+    );
+  }
+
+  void hideOverlayLoader() {
+    if (Get.isDialogOpen == true) {
+      try {
+        final ctx = Get.overlayContext ?? Get.context;
+        if (ctx != null && Navigator.of(ctx, rootNavigator: true).canPop()) {
+          Navigator.of(ctx, rootNavigator: true).pop();
+        } else {
+          Get.back();
+        }
+      } catch (_) {
+        Get.back();
+      }
     }
   }
 
@@ -247,16 +246,13 @@ class HelperFunctions {
       {barrierDismissible = false,
       icon = Icons.check_circle,
       text = "Success"}) {
-    final isDark = Get.isPlatformDarkMode;
-    final colors = DynamicThemeManager()
-        .getColors(isDark ? Brightness.dark : Brightness.light);
     Get.dialog(
       Center(
         child: Container(
           height: 170,
           width: 250,
           decoration: BoxDecoration(
-            color: colors.surface,
+            color: Colors.white.withOpacity(1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Scaffold(
@@ -272,7 +268,7 @@ class HelperFunctions {
                   SizedBox(height: 10),
                   Text(
                     text,
-                    style: TextStyle(fontSize: 16, color: colors.onSurface),
+                    style: TextStyle(fontSize: 16, color: Colors.black),
                   ),
                   SizedBox(
                     height: 10,
@@ -365,25 +361,43 @@ class HelperFunctions {
 
     // Case 1: featuredImage is a Map
     if (featuredImage is Map) {
+      // First try to use download_url if present (e.g. for customer avatars)
+      final downloadUrl =
+          featuredImage['download_url'] ?? featuredImage['downloadUrl'];
+      if (downloadUrl != null && downloadUrl.toString().isNotEmpty) {
+        final fixedUrl = _fixImageUrl(downloadUrl.toString());
+        if (isLog == true) {
+          print('Resolved image from download_url $moduleName => $fixedUrl');
+        }
+        return fixedUrl;
+      }
+
       final path = featuredImage['filePath'] ??
           featuredImage['filepath'] ??
           featuredImage['filename'];
 
       if (path != null && path.toString().isNotEmpty) {
-        final cleanPath = path.toString().startsWith('/')
-            ? path.toString().substring(1)
-            : path.toString();
-        final imageUrl = '$imageBase$cleanPath';
+        final imageUrl = '${url}images/$path';
 
         if (isLog == true) {
           print('swapnil path $moduleName => $imageUrl');
+          print("Path image from module $moduleName => ${path}");
         }
-
         return imageUrl;
       }
     }
 
     if (featuredImage is String && featuredImage.isNotEmpty) {
+      if (featuredImage.startsWith('http://') ||
+          featuredImage.startsWith('https://')) {
+        return _fixImageUrl(featuredImage);
+      }
+
+      // A bare MongoDB ObjectId (24 hex chars, no path separators) is not a
+      // valid image path — guard against the cart/manage response inconsistency.
+      final isRawId = RegExp(r'^[a-f0-9]{24}$').hasMatch(featuredImage);
+      if (isRawId) return HelperFunctions.getNoImage();
+
       final imageUrl = '${url}images/$featuredImage';
 
       if (isLog == true) {
@@ -395,5 +409,60 @@ class HelperFunctions {
 
     // Fallback
     return HelperFunctions.getNoImage();
+  }
+
+  String _fixImageUrl(String imageUrl) {
+    if (imageUrl.isEmpty) return imageUrl;
+    final uri = Uri.tryParse(imageUrl);
+    if (uri == null) return imageUrl;
+
+    // If it's a vbought.com domain, replace host with websiteDomain to match constants.dart setup
+    if (uri.host.endsWith('.vbought.com') && uri.host != websiteDomain) {
+      return imageUrl.replaceFirst(uri.host, websiteDomain);
+    }
+    return imageUrl;
+  }
+
+  /// Resolves a product's display image from any of the shapes the API
+  /// returns a product in: a nested `product_id` object (order line items),
+  /// a plain product object (reviews), a `featured_image`/`gallery` pair,
+  /// or a direct `image` field. Falls back through each in turn, then to
+  /// [getNoImage].
+  static String resolveProductImage(dynamic product) {
+    try {
+      if (product is Map) {
+        final productObj = product['product_id'] is Map ? product['product_id'] : product;
+
+        final featuredImage = productObj['featured_image'];
+        if (featuredImage is Map) {
+          final resolved = HelperFunctions().getImage(featuredImage);
+          if (resolved.isNotEmpty && resolved != getNoImage()) return resolved;
+        }
+
+        final frontImageId = productObj['front_image']?.toString() ?? '';
+        final gallery = productObj['gallery'];
+        if (gallery is List && frontImageId.isNotEmpty) {
+          final match = gallery.firstWhere(
+            (g) => g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
+            orElse: () => null,
+          );
+          if (match is Map) {
+            final resolved = HelperFunctions().getImage(match);
+            if (resolved.isNotEmpty && resolved != getNoImage()) return resolved;
+          }
+        }
+
+        final directImage = product['image'] ?? productObj['image'] ?? product['featured_image'];
+        if (directImage != null) {
+          final resolved = HelperFunctions().getImage(directImage);
+          if (resolved.isNotEmpty && resolved != getNoImage()) return resolved;
+        }
+      } else if (product is String) {
+        return HelperFunctions().getImage(product);
+      }
+    } catch (e) {
+      debugPrint('resolveProductImage error: $e');
+    }
+    return getNoImage();
   }
 }

@@ -4,6 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../constants/constants.dart';
+import '../constants/helper_functions.dart';
+import 'app_image_placeholder.dart';
 
 class customerReview extends StatelessWidget {
   customerReview({
@@ -27,15 +29,21 @@ class customerReview extends StatelessWidget {
       children: [
         Row(
           children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundImage: CachedNetworkImageProvider(profileimage),
-              // foregroundImage: AssetImage('assets/images/shopkart.png'),
-              // child: Image.asset('assets/images/shopkart.png'),
+            ClipOval(
+              child: SizedBox(
+                width: 60,
+                height: 60,
+                child: (profileimage.isNotEmpty &&
+                        profileimage != HelperFunctions.getNoImage())
+                    ? CachedNetworkImage(
+                        imageUrl: profileimage,
+                        fit: BoxFit.cover,
+                        errorWidget: (_, __, ___) =>
+                            const AppImagePlaceholder.circular(size: 60),
+                      )
+                    : const AppImagePlaceholder.circular(size: 60),
+              ),
             ),
-            // ClipOval(
-            //   child: Image.asset(profileimage, width: 50),
-            // ),
             SizedBox(
               width: 10,
             ),

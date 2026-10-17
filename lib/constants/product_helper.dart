@@ -1,10 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-
-import '/constants/helper_functions.dart';
+import 'package:new_fastify_template/constants/helper_functions.dart';
 
 /// Helper class for product-related calculations and utilities
 class ProductHelper {
+  /// Format a price value with currency symbol
+  static String formatPrice(dynamic val) {
+    if (val == null) return '';
+    final s = val.toString().trim();
+    if (s.isEmpty) return '';
+    final cleaned = s.replaceAll(RegExp(r'[^0-9.]'), '');
+    final numVal = num.tryParse(cleaned);
+    if (numVal != null) {
+      final formatted = numVal == numVal.roundToDouble()
+          ? numVal.toInt().toString()
+          : numVal.toStringAsFixed(2);
+      if (s.startsWith('\$')) return '\$$formatted';
+      if (s.startsWith('₹')) return '₹$formatted';
+      return '₹$formatted';
+    }
+    return s;
+  }
+
   /// Calculate price information for a product
   /// Returns a map with productPrice, discountPrice, discountRate, lowestPrice, highestPrice
   static Map<String, dynamic> calculatePriceInfo(Map<String, dynamic> product,
@@ -33,8 +49,6 @@ class ProductHelper {
     final salePrice =
         HelperFunctions.parseAmount(variant['sale_price'] ?? variant['price']);
     final regularPrice = HelperFunctions.parseAmount(variant['price']);
-    print("RAGULAR PRICE: $regularPrice");
-    print("SALE PRICE: $salePrice");
 
     String productPrice = salePrice.toString();
     String discountPrice = regularPrice.toString();
@@ -222,23 +236,27 @@ class ProductHelper {
 
   /// Check if product is in stock
   static bool isInStock(Map<String, dynamic> product, {int? variantIndex}) {
-    final productType = product['type'] ?? 'simple';
+    bool qtyInStock(dynamic qty) {
+      if (qty == null) return true;
+      return HelperFunctions.parseAmount(qty) > 0;
+    }
 
-    if (productType == 'variable') {
-      final variants = product['variants'] ?? [];
-      if (variantIndex != null && variantIndex < variants.length) {
-        return HelperFunctions.parseAmount(variants[variantIndex]['quantity']) >
-            0;
+    final productType = product['type'] ?? 'simple';
+    final variants = product['variants'];
+    final hasVariants = variants is List && variants.isNotEmpty;
+
+    if (productType == 'variable' || hasVariants) {
+      final List variantList = hasVariants ? variants : [];
+      if (variantIndex != null && variantIndex < variantList.length) {
+        return qtyInStock(variantList[variantIndex]['quantity']);
       }
-      for (var variant in variants) {
-        final quantity = HelperFunctions.parseAmount(variant['quantity']);
-        if (quantity > 0) return true;
+      for (var variant in variantList) {
+        if (qtyInStock(variant['quantity'])) return true;
       }
       return false;
-    } else {
-      final quantity = HelperFunctions.parseAmount(product['quantity']);
-      return quantity > 0;
     }
+
+    return qtyInStock(product['quantity']);
   }
 
   /// Get product name
@@ -310,6 +328,50 @@ class ProductHelper {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  /// Build rating stars and review count widget
+  static Widget buildRatingWidget(Map<String, dynamic> product,
+      TextTheme textTheme, ColorScheme colorScheme,
+      {double starSize = 12.0}) {
+    final rawRating = product['average_rating'];
+    final rawCount = product['rating_count'];
+    final double rating = double.tryParse(rawRating?.toString() ?? '0') ?? 0.0;
+    final int count = int.tryParse(rawCount?.toString() ?? '0') ?? 0;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: List.generate(5, (index) {
+              IconData icon;
+              if (index < rating.floor()) {
+                icon = Icons.star;
+              } else if (index < rating && rating - index >= 0.5) {
+                icon = Icons.star_half;
+              } else {
+                icon = Icons.star_border;
+              }
+              return Icon(
+                icon,
+                color: const Color(0xFFFFBA49),
+                size: starSize,
+              );
+            }),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '($count)',
+            style: textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+              fontSize: starSize - 2 > 8 ? starSize - 2 : 9,
+            ),
+          ),
         ],
       ),
     );

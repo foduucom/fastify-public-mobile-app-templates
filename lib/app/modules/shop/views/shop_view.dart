@@ -1,4 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
+import '/constants/helper_functions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
@@ -597,21 +599,17 @@ class _ProductGridCard extends StatelessWidget {
                   ClipRRect(
                     borderRadius:
                         const BorderRadius.vertical(top: Radius.circular(15)),
-                    child: Container(
-                      color: colorScheme.surfaceVariant.withOpacity(0.5),
-                      child: imageUrl.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: imageUrl,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => const Center(
-                                  child: CupertinoActivityIndicator()),
-                              errorWidget: (context, url, error) => Icon(
-                                  Icons.image_not_supported_outlined,
-                                  color: colorScheme.outline),
-                            )
-                          : Icon(Icons.image_not_supported_outlined,
-                              color: colorScheme.outline),
-                    ),
+                    child: (imageUrl.isNotEmpty &&
+                            imageUrl != HelperFunctions.getNoImage())
+                        ? CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => const Center(
+                                child: CupertinoActivityIndicator()),
+                            errorWidget: (context, url, error) =>
+                                const AppImagePlaceholder(radius: 15),
+                          )
+                        : const AppImagePlaceholder(radius: 15),
                   ),
 
                   // Out-of-stock overlay

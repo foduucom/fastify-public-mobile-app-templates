@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import '/constants/constants.dart';
@@ -27,13 +28,12 @@ class _BlogSectionState extends State<BlogSection>
             children: [
               ClipRRect(
                 child: CachedNetworkImage(
-                    errorWidget: (context, url, error) => Container(
-                          decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surfaceContainerHighest),
-                          child: const Center(
-                            child: Icon(Icons.error),
-                          ),
-                        ),
+                    errorWidget: (context, url, error) =>
+                        const AppImagePlaceholder(
+                      radius: 0,
+                      height: 160,
+                      width: double.infinity,
+                    ),
                     imageUrl: widget.blogData['featured_image'] == null
                         ? HelperFunctions.getNoImage()
                         : url + widget.blogData['featured_image']['filepath']),

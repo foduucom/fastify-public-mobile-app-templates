@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../../components/app_bar.dart';
+import '../../../../../components/app_image_placeholder.dart';
 import '/app/modules/Profie/profile/controllers/profile_controller.dart';
 import '/components/check_internet_widget.dart';
 import '/components/open_image_picker_sheet.dart';
@@ -486,15 +487,13 @@ class _ProfileHeaderWidget extends StatelessWidget {
                         radius: 40,
                         backgroundColor: colorScheme.surfaceContainerHighest,
                         child: controller.profiledata['featured_image'] == null
-                            ? Icon(Icons.person,
-                                size: 35, color: colorScheme.onSurface)
+                            ? const AppImagePlaceholder.circular(size: 80)
                             : CachedNetworkImage(
                                 imageUrl: HelperFunctions().getImage(
                                     controller.profiledata['featured_image']),
-                                errorWidget: (context, url, error) => Icon(
-                                  Icons.person,
-                                  size: 35,
-                                  color: colorScheme.onSurface,
+                                errorWidget: (context, url, error) =>
+                                    const AppImagePlaceholder.circular(
+                                  size: 80,
                                 ),
                               ),
                       );

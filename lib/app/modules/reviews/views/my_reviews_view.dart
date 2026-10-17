@@ -1,4 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
+import '/constants/helper_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -141,24 +143,30 @@ class _ReviewCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: CachedNetworkImage(
-              imageUrl: review['product_image'] ?? '',
-              width: 64,
-              height: 64,
-              fit: BoxFit.cover,
-              placeholder: (_, __) => Container(
-                width: 64,
-                height: 64,
-                color: colorScheme.onSurface.withOpacity(0.06),
-              ),
-              errorWidget: (_, __, ___) => Container(
-                width: 64,
-                height: 64,
-                color: colorScheme.onSurface.withOpacity(0.06),
-                child: Icon(Icons.image_not_supported_outlined,
-                    color: colorScheme.onSurface.withOpacity(0.3)),
-              ),
-            ),
+            child: ((review['product_image'] as String? ?? '').isNotEmpty &&
+                    (review['product_image'] as String? ?? '') !=
+                        HelperFunctions.getNoImage())
+                ? CachedNetworkImage(
+                    imageUrl: review['product_image'] ?? '',
+                    width: 64,
+                    height: 64,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => Container(
+                      width: 64,
+                      height: 64,
+                      color: colorScheme.onSurface.withOpacity(0.06),
+                    ),
+                    errorWidget: (_, __, ___) => const AppImagePlaceholder(
+                      radius: 10,
+                      width: 64,
+                      height: 64,
+                    ),
+                  )
+                : const AppImagePlaceholder(
+                    radius: 10,
+                    width: 64,
+                    height: 64,
+                  ),
           ),
           const SizedBox(width: 12),
           Expanded(

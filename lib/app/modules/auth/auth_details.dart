@@ -1,8 +1,17 @@
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
+import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 class AuthDetails with BaseController {
+  static final AuthDetails _instance = AuthDetails._internal();
+
+  factory AuthDetails() {
+    return _instance;
+  }
+
+  AuthDetails._internal();
+
   static final box = GetStorage();
 
   static bool checkAuthentication() {
@@ -32,6 +41,17 @@ class AuthDetails with BaseController {
     }
   }
 
+  /// Reactive mirror of the persisted `isLogin` flag so UI (Profile, etc.)
+  /// flips to the signed-out state the moment a session is torn down.
+  static final RxBool loggedIn = _createLoggedIn();
+
+  static RxBool _createLoggedIn() {
+    bool isTrue(dynamic v) => v == true || v == 'true';
+    final rx = RxBool(isTrue(box.read('isLogin')));
+    box.listenKey('isLogin', (value) => rx.value = isTrue(value));
+    return rx;
+  }
+
   static bool isUserLogin() {
     var isLogin = box.read('isLogin');
     if (isLogin == true || isLogin == 'true') {
@@ -43,6 +63,7 @@ class AuthDetails with BaseController {
 
   static String? getToken() {
     var token = box.read('token');
+    //print("Get Token: $token");
     if (token != null) {
       return token;
     } else {
@@ -74,12 +95,16 @@ class AuthDetails with BaseController {
       box.write('userData', response);
       box.write('isLogin', true);
 
-      if (response['token'] != null) {
-        if (response['token'] is Map) {
-          box.write('token', response['token']['value']);
-          box.write('tokenExpiry', response['token']['expiry']);
+      final data = response['data'];
+
+      print("Save Login Response (data.token): ${data?['token']}");
+
+      if (data != null && data['token'] != null) {
+        if (data['token'] is Map) {
+          box.write('token', data['token']['value']);
+          box.write('tokenExpiry', data['token']['expiry']);
         } else {
-          box.write('token', response['token']);
+          box.write('token', data['token']);
         }
       }
     }
@@ -96,13 +121,12 @@ class AuthDetails with BaseController {
     if (!isUserLogin()) return null;
     final userData = getUserDetails();
     if (userData == null) return null;
-    // 'name' is sent at registration; fallback to email
     final name = userData['name']?.toString().trim();
     if (name != null && name.isNotEmpty) return name;
     return userData['email']?.toString();
   }
 
-  dynamic updateUserDetailsFromServer() async {
+  Future<dynamic> updateUserDetailsFromServer() async {
     if (isUserLogin()) {
       var response = await BasicProvider("auth/customer/profile")
           .getRequest()

@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -85,17 +86,13 @@ class BlogView extends GetView<BlogController> {
                                                   height: 170,
                                                   fit: BoxFit.cover,
                                                   width: double.infinity,
-                                                  errorWidget: (context, url,
-                                                          error) =>
-                                                      Container(
-                                                        decoration:
-                                                            BoxDecoration(
-                                                                color: Theme.of(context).colorScheme.surfaceContainerHighest),
-                                                        child: const Center(
-                                                          child:
-                                                              Icon(Icons.error),
-                                                        ),
-                                                      ),
+                                                  errorWidget:
+                                                      (context, url, error) =>
+                                                          const AppImagePlaceholder(
+                                                    radius: 10,
+                                                    height: 170,
+                                                    width: double.infinity,
+                                                  ),
                                                   // imageUrl: controller
                                                   //             .allnews[index]
                                                   //         ['featured_image'] ??

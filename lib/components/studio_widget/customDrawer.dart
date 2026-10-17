@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
 import '/app/routes/app_pages.dart';
 import '/app/modules/auth/auth_details.dart';
 import '/app/modules/homepage/controllers/homepage_controller.dart';
@@ -189,7 +190,13 @@ class CustomDrawer extends GetView<HomepageController> {
                 ],
               ),
               child: ClipOval(
-                child: isLoggedIn && userData?['featured_image'] != null
+                child: isLoggedIn &&
+                        userData?['featured_image'] != null &&
+                        HelperFunctions()
+                            .getImage(userData['featured_image'])
+                            .isNotEmpty &&
+                        HelperFunctions().getImage(userData['featured_image']) !=
+                            HelperFunctions.getNoImage()
                     ? CachedNetworkImage(
                         width: 64,
                         height: 64,
@@ -201,27 +208,15 @@ class CustomDrawer extends GetView<HomepageController> {
                           height: 64,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         ),
-                        errorWidget: (context, url, error) => CircleAvatar(
-                          radius: 32,
-                          backgroundColor: Get.theme.primaryColor,
-                          child: Icon(
-                            Icons.person,
-                            size: 40,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurfaceVariant,
-                          ),
+                        errorWidget: (context, url, error) =>
+                            const AppImagePlaceholder.circular(
+                          width: 64,
+                          height: 64,
                         ),
                       )
-                    : CircleAvatar(
-                        radius: 32,
-                        backgroundColor: Get.theme.primaryColor,
-                        child: Icon(
-                          Icons.person,
-                          size: 40,
-                          color:
-                              Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                    : const AppImagePlaceholder.circular(
+                        width: 64,
+                        height: 64,
                       ),
               ),
             ),

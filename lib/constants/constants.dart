@@ -32,6 +32,10 @@ var imageBase =
     "${url}images/"; // Change "images/" to "uploads/images/" if server requires a different path
 var apiURL = "${url}api/";
 
+const String appName = "Fastify";
+String supportEmail = "support@vbought.com";
+String supportContact = "+122 345 6789 / 1-800-570-7777";
+
 bool isOtpLogin = false;
 
 const Latofont = TextStyle(fontFamily: 'lato');

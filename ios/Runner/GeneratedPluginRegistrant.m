@@ -30,6 +30,12 @@
 @import device_info_plus;
 #endif
 
+#if __has_include(<file_picker/FilePickerPlugin.h>)
+#import <file_picker/FilePickerPlugin.h>
+#else
+@import file_picker;
+#endif
+
 #if __has_include(<flutter_downloader/FlutterDownloaderPlugin.h>)
 #import <flutter_downloader/FlutterDownloaderPlugin.h>
 #else
@@ -72,6 +78,12 @@
 @import just_audio;
 #endif
 
+#if __has_include(<open_filex/OpenFilePlugin.h>)
+#import <open_filex/OpenFilePlugin.h>
+#else
+@import open_filex;
+#endif
+
 #if __has_include(<package_info_plus/FPPPackageInfoPlusPlugin.h>)
 #import <package_info_plus/FPPPackageInfoPlusPlugin.h>
 #else
@@ -94,6 +106,12 @@
 #import <razorpay_flutter/RazorpayFlutterPlugin.h>
 #else
 @import razorpay_flutter;
+#endif
+
+#if __has_include(<share_plus/FPPSharePlusPlugin.h>)
+#import <share_plus/FPPSharePlusPlugin.h>
+#else
+@import share_plus;
 #endif
 
 #if __has_include(<sms_autofill/SmsAutoFillPlugin.h>)
@@ -145,6 +163,7 @@
   [AwesomeNotificationsPlugin registerWithRegistrar:[registry registrarForPlugin:@"AwesomeNotificationsPlugin"]];
   [ConnectivityPlusPlugin registerWithRegistrar:[registry registrarForPlugin:@"ConnectivityPlusPlugin"]];
   [FPPDeviceInfoPlusPlugin registerWithRegistrar:[registry registrarForPlugin:@"FPPDeviceInfoPlusPlugin"]];
+  [FilePickerPlugin registerWithRegistrar:[registry registrarForPlugin:@"FilePickerPlugin"]];
   [FlutterDownloaderPlugin registerWithRegistrar:[registry registrarForPlugin:@"FlutterDownloaderPlugin"]];
   [ImageCompressPlugin registerWithRegistrar:[registry registrarForPlugin:@"ImageCompressPlugin"]];
   [InAppWebViewFlutterPlugin registerWithRegistrar:[registry registrarForPlugin:@"InAppWebViewFlutterPlugin"]];
@@ -152,10 +171,12 @@
   [FluttertoastPlugin registerWithRegistrar:[registry registrarForPlugin:@"FluttertoastPlugin"]];
   [FLTImagePickerPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTImagePickerPlugin"]];
   [JustAudioPlugin registerWithRegistrar:[registry registrarForPlugin:@"JustAudioPlugin"]];
+  [OpenFilePlugin registerWithRegistrar:[registry registrarForPlugin:@"OpenFilePlugin"]];
   [FPPPackageInfoPlusPlugin registerWithRegistrar:[registry registrarForPlugin:@"FPPPackageInfoPlusPlugin"]];
   [PermissionHandlerPlugin registerWithRegistrar:[registry registrarForPlugin:@"PermissionHandlerPlugin"]];
   [PhonePePaymentSdk registerWithRegistrar:[registry registrarForPlugin:@"PhonePePaymentSdk"]];
   [RazorpayFlutterPlugin registerWithRegistrar:[registry registrarForPlugin:@"RazorpayFlutterPlugin"]];
+  [FPPSharePlusPlugin registerWithRegistrar:[registry registrarForPlugin:@"FPPSharePlusPlugin"]];
   [SmsAutoFillPlugin registerWithRegistrar:[registry registrarForPlugin:@"SmsAutoFillPlugin"]];
   [SqflitePlugin registerWithRegistrar:[registry registrarForPlugin:@"SqflitePlugin"]];
   [StripeIosPlugin registerWithRegistrar:[registry registrarForPlugin:@"StripeIosPlugin"]];

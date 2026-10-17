@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
 import '../../../../components/app_bar2.dart';
 import '../../../../components/shimmer/cart_shimmer.dart';
@@ -313,41 +314,45 @@ class _WishListItemCard extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      width: 100,
-                      height: 110,
-                      fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => Container(
-                        width: 100,
-                        height: 110,
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(Icons.image_not_supported_outlined,
-                            color: colorScheme.onSurfaceVariant),
-                      ),
-                      progressIndicatorBuilder: (_, __, progress) => Container(
-                        width: 100,
-                        height: 110,
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              value: progress.progress,
-                              color: colorScheme.primary,
+                    child: (imageUrl.isNotEmpty &&
+                            imageUrl != HelperFunctions.getNoImage())
+                        ? CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            width: 100,
+                            height: 110,
+                            fit: BoxFit.cover,
+                            errorWidget: (_, __, ___) =>
+                                const AppImagePlaceholder(
+                              radius: 12,
+                              width: 100,
+                              height: 110,
                             ),
+                            progressIndicatorBuilder: (_, __, progress) =>
+                                Container(
+                              width: 100,
+                              height: 110,
+                              decoration: BoxDecoration(
+                                color: colorScheme.surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Center(
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    value: progress.progress,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        : const AppImagePlaceholder(
+                            radius: 12,
+                            width: 100,
+                            height: 110,
                           ),
-                        ),
-                      ),
-                    ),
                   ),
 
                   // ── Discount badge ─────────────────────────────

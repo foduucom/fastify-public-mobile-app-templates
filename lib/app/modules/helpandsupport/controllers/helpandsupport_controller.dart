@@ -1,41 +1,45 @@
-import '/app/controllers/api_exception_handle_controller.dart';
-import '/app/data/basic_provider.dart';
+import 'package:new_fastify_template/app/controllers/api_exception_handle_controller.dart';
+import 'package:new_fastify_template/app/data/basic_provider.dart';
 import 'package:get/get.dart';
 
 class HelpandsupportController extends GetxController with BaseController {
+  var isLoading = false.obs;
   var faqs = [].obs;
-  var subfaqs = [].obs;
+  RxInt expandedIndex = RxInt(-1);
+
   @override
-  Future<void> onInit() async {
+  void onInit() {
     super.onInit();
     getFaqs();
   }
 
-  RxInt expandedindex = RxInt(-1);
-
   void toggleExpansion(int index) {
-    if (expandedindex.value == index) {
-      expandedindex.value = -1;
+    if (expandedIndex.value == index) {
+      expandedIndex.value = -1;
     } else {
-      expandedindex.value = index;
+      expandedIndex.value = index;
     }
-    update();
   }
 
-  getSubFaq(var subfaq) {
-    subfaqs.value = subfaq;
-  }
-
-  getFaqs() async {
+  Future<void> getFaqs() async {
     try {
+      isLoading.value = true;
       var response = await BasicProvider("frontend/faq")
           .getRequest()
           .catchError(handleError);
+      isLoading.value = false;
       if (response == null) return;
       faqs.clear();
-      faqs.addAll(response['data']);
-      update();
+      if (response is List) {
+        faqs.addAll(response);
+      } else if (response is Map) {
+        final data = response['data'] ?? response['faqs'] ?? response['docs'];
+        if (data is List) {
+          faqs.addAll(data);
+        }
+      }
     } catch (e) {
+      isLoading.value = false;
       print('faq and support error $e');
     }
   }

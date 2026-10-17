@@ -11,6 +11,9 @@ import '/core/services/cartServcie.dart';
 import '/constants/dynamic_theme.dart';
 import '/app/data/basic_provider.dart';
 import 'core/foduuStudio/register_default_widgets.dart';
+import 'package:new_fastify_template/components/resilience/reconnecting_banner.dart';
+import 'package:new_fastify_template/services/api_cache.dart';
+import 'package:new_fastify_template/services/api_health_service.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -22,6 +25,8 @@ Future<void> main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   await GetStorage.init();
+  await ApiCache.init();
+  Get.put(ApiHealthService(), permanent: true);
 
   Get.put(CartService());
   Get.put(WishListService());
@@ -140,12 +145,14 @@ class MyApp extends StatelessWidget {
       builder: (themeController) {
         return GetMaterialApp(
           debugShowCheckedModeBanner: false,
-          title: "My App",
+          title: appName,
           initialRoute: initialRoute,
           getPages: AppPages.routes,
           theme: themeController.lightTheme,
           darkTheme: themeController.darkTheme,
           themeMode: themeController.themeMode,
+          builder: (context, child) =>
+              ResilienceShell(child: child ?? const SizedBox.shrink()),
         );
       },
     );

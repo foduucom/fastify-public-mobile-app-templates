@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '/core/services/wishlistService.dart';
@@ -13,6 +14,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 import 'studio_common_widgets.dart';
+import 'package:new_fastify_template/components/parent_web_product_card.dart';
 
 class TrendingProductSection extends StatefulWidget {
   final Map<String, dynamic>? contentJson;
@@ -435,6 +437,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
     // default: horizontal scrolling list (original behavior)
     switch (style) {
+      case 'parent_web':
+        return _buildParentWebHorizontalList();
       case 'horizontal':
         return _buildHorizontalStyleList();
       case 'overlay':
@@ -486,6 +490,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   /// Build a single grid item — uses the card style from `layout`
   Widget _buildGridItem(Map<String, dynamic> product,
       Map<String, dynamic> priceInfo, String style) {
+    if (style == 'parent_web') {
+      return ParentWebProductCard(product: product, isList: false);
+    }
+
     if (style == 'overlay') {
       return _buildOverlayItem(product, priceInfo);
     }
@@ -518,6 +526,45 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           // Use horizontal-style card (image left, info right) for vertical lists
           return _buildHorizontalItem(product, priceInfo);
         },
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // STYLE 0 — PARENT WEB (Portrait 2-col fashion card mirroring parent website)
+  // ═══════════════════════════════════════════════════════════════════════════
+  Widget _buildParentWebHorizontalList() {
+    final cardWidth = (MediaQuery.of(context).size.width * 0.40)
+        .clamp(145.0, 175.0)
+        .toDouble();
+    const totalCardHeight = 270.0;
+
+    return SizedBox(
+      height: totalCardHeight,
+      child: _withScrollConfig(
+        ListView.separated(
+          controller: _scrollController,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          separatorBuilder: (context, index) => const SizedBox(width: 12),
+          shrinkWrap: false,
+          physics: const AlwaysScrollableScrollPhysics(),
+          scrollDirection: Axis.horizontal,
+          itemCount: _itemCount,
+          itemBuilder: (context, index) {
+            if (index >= trendingList.length) {
+              return _buildLoadingIndicator();
+            }
+            final product = trendingList[index] as Map<String, dynamic>;
+            final priceInfo = ProductHelper.calculatePriceInfo(product);
+            if (!priceInfo['hasValidVariants']) {
+              return const SizedBox.shrink();
+            }
+            return SizedBox(
+              width: cardWidth,
+              child: ParentWebProductCard(product: product, isList: false),
+            );
+          },
+        ),
       ),
     );
   }
@@ -587,25 +634,17 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                     child: SizedBox(
                       width: double.infinity,
                       height: double.infinity,
-                      child: imageUrl.isNotEmpty
+                      child: (imageUrl.isNotEmpty &&
+                              imageUrl != HelperFunctions.getNoImage())
                           ? CachedNetworkImage(
                               imageUrl: imageUrl,
                               fit: BoxFit.cover,
                               progressIndicatorBuilder: (_, __, ___) =>
                                   HelperFunctions().loadingIndicator(),
-                              errorWidget: (ctx, __, ___) => Container(
-                                color: Theme.of(ctx)
-                                    .colorScheme
-                                    .surfaceContainerHighest,
-                                child: Icon(Icons.image_not_supported_outlined,
-                                    color: Theme.of(ctx).colorScheme.outline),
-                              ),
+                              errorWidget: (_, __, ___) =>
+                                  const AppImagePlaceholder(radius: 15),
                             )
-                          : Container(
-                              color: colorScheme.surfaceContainerHighest,
-                              child: Icon(Icons.image_not_supported_outlined,
-                                  color: colorScheme.outline),
-                            ),
+                          : const AppImagePlaceholder(radius: 15),
                     ),
                   ),
                   // Discount Badge
@@ -773,21 +812,27 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                   borderRadius: const BorderRadius.horizontal(
                     left: Radius.circular(12),
                   ),
-                  child: CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.cover,
-                    progressIndicatorBuilder: (_, __, ___) =>
-                        HelperFunctions().loadingIndicator(),
-                    errorWidget: (_, __, ___) => Container(
-                      width: 120,
-                      height: 120,
-                      color: colorScheme.surfaceContainerHighest,
-                      child: Icon(Icons.image_outlined,
-                          color: colorScheme.onSurfaceVariant),
-                    ),
-                  ),
+                  child: (imageUrl.isNotEmpty &&
+                          imageUrl != HelperFunctions.getNoImage())
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.cover,
+                          progressIndicatorBuilder: (_, __, ___) =>
+                              HelperFunctions().loadingIndicator(),
+                          errorWidget: (_, __, ___) =>
+                              const AppImagePlaceholder(
+                            radius: 12,
+                            width: 120,
+                            height: 120,
+                          ),
+                        )
+                      : const AppImagePlaceholder(
+                          radius: 12,
+                          width: 120,
+                          height: 120,
+                        ),
                 ),
                 // Discount Badge
                 if (priceInfo['discountRate'] != null &&
@@ -945,17 +990,16 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             fit: StackFit.expand,
             children: [
               // Full background image
-              CachedNetworkImage(
-                imageUrl: imageUrl,
-                fit: BoxFit.cover,
-                progressIndicatorBuilder: (_, __, ___) =>
-                    HelperFunctions().loadingIndicator(),
-                errorWidget: (_, __, ___) => Container(
-                  color: colorScheme.surfaceContainerHighest,
-                  child: Icon(Icons.image_outlined,
-                      color: colorScheme.onSurfaceVariant, size: 40),
-                ),
-              ),
+              (imageUrl.isNotEmpty && imageUrl != HelperFunctions.getNoImage())
+                  ? CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      progressIndicatorBuilder: (_, __, ___) =>
+                          HelperFunctions().loadingIndicator(),
+                      errorWidget: (_, __, ___) =>
+                          const AppImagePlaceholder(radius: 14),
+                    )
+                  : const AppImagePlaceholder(radius: 14),
               // Gradient overlay at bottom
               Positioned(
                 left: 0,

@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:new_fastify_template/app/modules/search/views/filter_view.dart';
@@ -547,23 +548,17 @@ class _ProductCard extends StatelessWidget {
                     child: SizedBox(
                       width: double.infinity,
                       height: double.infinity,
-                      child: imageUrl.isNotEmpty
+                      child: (imageUrl.isNotEmpty &&
+                              imageUrl != HelperFunctions.getNoImage())
                           ? CachedNetworkImage(
                               imageUrl: imageUrl,
                               fit: BoxFit.cover,
                               placeholder: (_, __) => Container(
                                   color: colorScheme.surfaceContainerHighest),
-                              errorWidget: (_, __, ___) => Container(
-                                color: colorScheme.surfaceContainerHighest,
-                                child: Icon(Icons.image_not_supported_outlined,
-                                    color: colorScheme.onSurfaceVariant),
-                              ),
+                              errorWidget: (_, __, ___) =>
+                                  const AppImagePlaceholder(radius: 15),
                             )
-                          : Container(
-                              color: colorScheme.surfaceContainerHighest,
-                              child: Icon(Icons.image_not_supported_outlined,
-                                  color: colorScheme.onSurfaceVariant),
-                            ),
+                          : const AppImagePlaceholder(radius: 15),
                     ),
                   ),
                   if (hasDiscount)
@@ -696,18 +691,25 @@ class _StoreTile extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: CachedNetworkImage(
-              imageUrl: store['image'] as String? ?? '',
-              width: 64,
-              height: 64,
-              fit: BoxFit.cover,
-              errorWidget: (_, __, ___) => Container(
-                width: 64,
-                height: 64,
-                color: colorScheme.surfaceContainerHighest,
-                child: Icon(Icons.store, color: colorScheme.onSurfaceVariant),
-              ),
-            ),
+            child: ((store['image'] as String? ?? '').isNotEmpty &&
+                    (store['image'] as String? ?? '') !=
+                        HelperFunctions.getNoImage())
+                ? CachedNetworkImage(
+                    imageUrl: store['image'] as String? ?? '',
+                    width: 64,
+                    height: 64,
+                    fit: BoxFit.cover,
+                    errorWidget: (_, __, ___) => const AppImagePlaceholder(
+                      radius: 10,
+                      width: 64,
+                      height: 64,
+                    ),
+                  )
+                : const AppImagePlaceholder(
+                    radius: 10,
+                    width: 64,
+                    height: 64,
+                  ),
           ),
           const SizedBox(width: 14),
           Expanded(

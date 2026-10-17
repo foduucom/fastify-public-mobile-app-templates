@@ -1,16 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import '/app/controllers/api_exception_handle_controller.dart';
-import '/app/data/basic_provider.dart';
-import '/constants/helper_functions.dart';
+import 'package:new_fastify_template/app/controllers/api_exception_handle_controller.dart';
+import 'package:new_fastify_template/app/data/basic_provider.dart';
+import 'package:new_fastify_template/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
-// Ported near-verbatim from SOURCE's SupportTicketController (data-fetch,
-// create and close logic unchanged); restyling lives entirely in
-// support_ticket_view.dart.
-// TODO(backend-contract): confirm the `customer/support-tickets` list/create/
-// close endpoints and response shapes against the live API.
 class SupportTicketController extends GetxController with BaseController {
   var isLoading = false.obs;
   var supportTickets = [].obs;
@@ -35,15 +30,13 @@ class SupportTicketController extends GetxController with BaseController {
       if (response is List) {
         rawTickets = response;
       } else if (response is Map) {
-        final ticketsData =
-            response['tickets'] ?? response['data'] ?? response['docs'];
+        final ticketsData = response['tickets'] ?? response['data'] ?? response['docs'];
         if (ticketsData is List) {
           rawTickets = ticketsData;
         } else if (ticketsData is Map && ticketsData['tickets'] is List) {
           rawTickets = ticketsData['tickets'];
           if (ticketsData['pagination'] is Map) {
-            rawPagination =
-                Map<String, dynamic>.from(ticketsData['pagination']);
+            rawPagination = Map<String, dynamic>.from(ticketsData['pagination']);
           }
         }
         if (response['pagination'] is Map) {

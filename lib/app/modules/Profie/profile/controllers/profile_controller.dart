@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
@@ -10,6 +11,7 @@ import 'package:intl/intl.dart';
 
 class ProfileController extends GetxController with BaseController {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> changePasswordFormKey = GlobalKey<FormState>();
   var box = GetStorage();
   var profiledata = {}.obs;
   DateTime? selectedDate;
@@ -19,7 +21,6 @@ class ProfileController extends GetxController with BaseController {
       passwordController,
       emailController,
       phoneController,
-      dobController,
       oldPasswordController,
       newPasswordController,
       comfirmPasswordController;
@@ -30,10 +31,11 @@ class ProfileController extends GetxController with BaseController {
   var newPasswordObsecureValue = true.obs;
   var oldPasswordObsecureValue = true.obs;
   var comfirmPasswordObsecureValue = true.obs;
-  //var selectedGender = 'Male'.obs;
+  var selectedGender = 'Male'.obs;
   final addressController = TextEditingController();
   var selectNotification = 0.obs;
-  //var selectedDob = Rx<DateTime?>(null);
+  var addresses = <dynamic>[].obs;
+
   @override
   Future<void> onInit() async {
     super.onInit();
@@ -43,7 +45,6 @@ class ProfileController extends GetxController with BaseController {
     nameController = TextEditingController();
     emailController = TextEditingController();
     phoneController = TextEditingController();
-    dobController = TextEditingController();
     lastNameController = TextEditingController();
     genderController = TextEditingController();
     passwordController = TextEditingController();
@@ -60,6 +61,16 @@ class ProfileController extends GetxController with BaseController {
       if (userData != null) {
         profiledata.clear();
         profiledata.addAll(userData);
+
+        // Seed imagePath from cached featured_image so EditProfileView
+        // shows the current image immediately before the API call returns
+        final featuredImage = userData['featured_image'];
+        if (featuredImage != null) {
+          final imgUrl = HelperFunctions().getImage(featuredImage);
+          if (imgUrl.isNotEmpty) {
+            imagePath.value = imgUrl;
+          }
+        }
       }
     }
   }
@@ -95,22 +106,6 @@ class ProfileController extends GetxController with BaseController {
     }
   }
 
-  Future<void> selectDate(BuildContext context) async {
-    DateTime currentDate = DateTime.now();
-    DateTime? selectDate = await showDatePicker(
-      context: context,
-      initialDate: currentDate,
-      firstDate: currentDate.subtract(const Duration(days: 365)),
-      lastDate: currentDate.add(const Duration(days: 365)),
-    );
-
-    if (selectDate != null) {
-      selectedDate = selectDate;
-      dobController.text = DateFormat('dd-MM-yyyy').format(selectDate);
-      // print('selected date ${selectedDate}');
-    }
-  }
-
   void getImageFromGalleryOrCamera(imageSource) {
     HelperFunctions().getImageFromGalleryOrCamera(imageSource).then((value) {
       imagePath.value = value;
@@ -120,6 +115,7 @@ class ProfileController extends GetxController with BaseController {
   Future<void> fetchDataFromServer() async {
     try {
       isLoading(true);
+      // Switched from "public/customer/profile" to "auth/customer/profile" as requested
       var response = await BasicProvider("auth/customer/profile")
           .getRequest()
           .catchError(handleError);
@@ -128,30 +124,39 @@ class ProfileController extends GetxController with BaseController {
         profiledata.clear();
         profiledata.addAll(response);
 
+        // Basic Profile Data
         nameController.text = response["name"]?.toString() ?? "";
         emailController.text = response["email"]?.toString() ?? "";
         phoneController.text = response["mobile"]?.toString() ?? "";
 
-        // // ✅ DOB — populate both controller + observable
-        // final DateTime? dob =
-        //     response['dob'] != null ? DateTime.tryParse(response['dob']) : null;
-        // if (dob != null) {
-        //   selectedDob.value = dob;
-        //   dobController.text = DateFormat('dd-MM-yyyy').format(dob);
-        // } else {
-        //   selectedDob.value = null;
-        //   dobController.text = '';
-        // }
+        // Gender syncing
+        final String rawGender =
+            response["gender"]?.toString().toLowerCase() ?? 'male';
+        genderController.text = rawGender;
+        selectedGender.value = rawGender == 'female' ? 'Female' : 'Male';
+        gender.value = rawGender;
 
-        // // ✅ Gender — sync both controller + observable pill selector
-        // final String rawGender =
-        //     response["gender"]?.toString().toLowerCase() ?? 'male';
-        // genderController.text = rawGender;
-        // selectedGender.value = rawGender == 'female' ? 'Female' : 'Male';
-        // gender.value = rawGender;
+        // Addresses parsing
+        if (response['addresses'] != null && response['addresses'] is List) {
+          addresses.assignAll(response['addresses']);
+        } else {
+          addresses.clear();
+        }
+
+        // Profile Image — use HelperFunctions().getImage() same as ProfileView
+        if (response['featured_image'] != null) {
+          final imgUrl = HelperFunctions().getImage(response['featured_image']);
+          if (imgUrl.isNotEmpty) {
+            imagePath.value = imgUrl;
+          }
+        }
+
+        debugPrint("Profile data successfully fetched and parsed: $response");
+      } else {
+        debugPrint("Profile data response was null.");
       }
     } catch (e) {
-      debugPrint('profile error $e');
+      debugPrint('Error fetching profile: $e');
     } finally {
       isLoading(false);
     }
@@ -163,7 +168,6 @@ class ProfileController extends GetxController with BaseController {
     nameController.dispose();
     emailController.dispose();
     phoneController.dispose();
-    dobController.dispose();
     lastNameController.dispose();
     genderController.dispose();
     passwordController.dispose();
@@ -179,35 +183,21 @@ class ProfileController extends GetxController with BaseController {
     {"name": "Payment"},
   ];
 
-  String dobFormatToStoreInDB(String dob) {
-    DateTime dt = DateFormat('dd MMM yyyy').parse(dob);
-    final DateFormat formatter = DateFormat('yyyy-MM-dd');
-    final String formatted = formatter.format(dt);
-    return formatted;
-  }
-
   Future<void> sendFormData() async {
-    // if (dobController.text == "") {
-    //   HelperFunctions().showSnackBarError("Please select your Date Of Birth");
-    //   return;
-    // }
     if (formKey.currentState!.validate()) {
       isLoading(true);
 
       var form = FormData({
         'name': nameController.text,
         'mobile': phoneController.text,
-        // 'dob': selectedDob.value,
-        // 'gender': gender.value,
         'email': emailController.text,
+        'gender': selectedGender.value.toLowerCase(),
         'featured_image':
             !imagePath.value.contains("http") && imagePath.value != ""
                 ? MultipartFile(imagePath.value,
                     filename: imagePath.value
                         .split("/")[imagePath.value.split("/").length - 1])
-                : imagePath.value != ""
-                    ? null
-                    : "",
+                : null,
       });
 
       try {
@@ -217,12 +207,16 @@ class ProfileController extends GetxController with BaseController {
         Get.until((route) => !Get.isDialogOpen!);
 
         if (response == null) return;
-        fetchDataFromServer();
+        // Evict old cached image so the updated one loads fresh
+        if (imagePath.value.contains("http")) {
+          await CachedNetworkImage.evictFromCache(imagePath.value);
+        }
+        await fetchDataFromServer();
         isLoading(false);
 
         Get.until((route) => !Get.isDialogOpen!);
         var updatedprofile = AuthDetails().updateUserDetailsFromServer();
-        Get.find<BottombarController>().authDetails.value = updatedprofile;
+        //Get.find<BottombarController>().authDetails.value = updatedprofile;
         // HelperFunctions().showSnackBarSuccess(response["status"]);
         Get.until((route) => !Get.isDialogOpen!);
         // Get.back();
@@ -231,6 +225,7 @@ class ProfileController extends GetxController with BaseController {
         HelperFunctions().showSnackBarSuccess('Profile update successfully');
       } catch (e) {
         print('profile update error $e');
+        rethrow;
       }
     }
   }
@@ -262,7 +257,7 @@ class ProfileController extends GetxController with BaseController {
       "subtitle": "Offers, Order tracking messages.."
     },
     {
-      "icon": "assets/icon/user-key.png",
+      "icon": "assets/icon/profilecall.svg",
       "title": "Contact Us",
       "subtitle": "Customer Support, FAQs"
     },

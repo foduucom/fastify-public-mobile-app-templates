@@ -1,3 +1,5 @@
+import 'resilience_strings.dart';
+
 class AppException implements Exception {
   final String? message;
   final String? prefix;
@@ -5,6 +7,10 @@ class AppException implements Exception {
   final int? statusCode;
 
   AppException([this.message, this.prefix, this.url, this.statusCode]);
+  @override
+  String toString() {
+    return (prefix != null ? "$prefix: " : "") + (message ?? "");
+  }
 }
 
 class BadRequestException extends AppException {
@@ -39,6 +45,14 @@ class ApiNotRespondingException extends AppException {
       "prefix": this.prefix
     };
   }
+}
+
+/// 502 / 503 / 504, timeouts and connection failures: the server is (briefly)
+/// unreachable. The message is always safe to show to a user.
+class ServiceUnavailableException extends AppException {
+  ServiceUnavailableException([String? message, String? url, int? statusCode])
+      : super(message ?? ResilienceStrings.unavailableMessage, null, url,
+            statusCode);
 }
 
 class UnAuthorizedException extends AppException {

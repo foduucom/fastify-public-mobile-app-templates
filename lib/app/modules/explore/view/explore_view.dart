@@ -1,4 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
+import '/constants/helper_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../components/app_back_button.dart';
@@ -370,12 +372,16 @@ class _NearbyStoreCard extends StatelessWidget {
         child: Stack(
           children: [
             Positioned.fill(
-              child: CachedNetworkImage(
-                imageUrl: store['image'] as String? ?? '',
-                fit: BoxFit.cover,
-                errorWidget: (_, __, ___) =>
-                    Container(color: colorScheme.surfaceContainerHighest),
-              ),
+              child: ((store['image'] as String? ?? '').isNotEmpty &&
+                      (store['image'] as String? ?? '') !=
+                          HelperFunctions.getNoImage())
+                  ? CachedNetworkImage(
+                      imageUrl: store['image'] as String? ?? '',
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) =>
+                          const AppImagePlaceholder(radius: 16),
+                    )
+                  : const AppImagePlaceholder(radius: 16),
             ),
 
             // ── Fix 3: withOpacity → withValues ──────────────────────
@@ -493,18 +499,25 @@ class _OtherStoreTile extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: CachedNetworkImage(
-                imageUrl: store['image'] as String? ?? '',
-                width: 70,
-                height: 70,
-                fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => Container(
-                  width: 70,
-                  height: 70,
-                  color: colorScheme.surfaceContainerHighest,
-                  child: Icon(Icons.store, color: colorScheme.onSurfaceVariant),
-                ),
-              ),
+              child: ((store['image'] as String? ?? '').isNotEmpty &&
+                      (store['image'] as String? ?? '') !=
+                          HelperFunctions.getNoImage())
+                  ? CachedNetworkImage(
+                      imageUrl: store['image'] as String? ?? '',
+                      width: 70,
+                      height: 70,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) => const AppImagePlaceholder(
+                        radius: 10,
+                        width: 70,
+                        height: 70,
+                      ),
+                    )
+                  : const AppImagePlaceholder(
+                      radius: 10,
+                      width: 70,
+                      height: 70,
+                    ),
             ),
             const SizedBox(width: 14),
             Expanded(

@@ -1,39 +1,39 @@
+import '../widgets/chat_attachment_widget.dart';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart' hide ImageSource;
-import '/constants/helper_functions.dart';
-import '/constants/support_ticket_status.dart';
+import 'package:new_fastify_template/constants/helper_functions.dart';
+import 'package:new_fastify_template/constants/support_ticket_status.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../controllers/support_ticket_details_controller.dart';
 
-// Restyled to TARGET's theme (colorScheme/textTheme throughout, HtmlWidget
-// already used the same way in blog_view.dart) rather than a visual copy of
-// SOURCE's chat-thread screen.
 class SupportTicketDetailsView extends GetView<SupportTicketDetailsController> {
   const SupportTicketDetailsView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
 
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
           elevation: 0,
-          backgroundColor: Colors.transparent,
-          iconTheme: IconThemeData(color: colorScheme.onSurface),
           title: Obx(() {
             final ticket = controller.supportTicketDetails;
-            final ticketNo = (ticket['id'] ?? ticket['_id'] ?? ticket['ticket_number'] ?? '').toString();
+            final ticketNo = (ticket['ticket_id'] ?? ticket['id'] ?? ticket['_id'] ?? ticket['ticket_number'] ?? '').toString();
             final subject = (ticket['subject'] ?? '').toString();
+            final title = ticketNo.isEmpty
+                ? 'Support Ticket'
+                : (subject.isNotEmpty ? '#$ticketNo · $subject' : '#$ticketNo');
             return Text(
-              ticketNo.isEmpty ? 'Support Ticket' : '#$ticketNo${subject.isNotEmpty ? ' · $subject' : ''}',
+              title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: textTheme.titleMedium,
@@ -61,13 +61,13 @@ class SupportTicketDetailsView extends GetView<SupportTicketDetailsController> {
             Expanded(
               child: Obx(() {
                 if (controller.isChatLoading.isTrue && controller.chatMessages.isEmpty) {
-                  return Center(child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.primary));
+                  return const Center(child: CircularProgressIndicator(strokeWidth: 2));
                 }
                 if (controller.chatMessages.isEmpty) {
                   return Center(
                     child: Text(
                       'No messages yet',
-                      style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                      style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface.withOpacity(0.5)),
                     ),
                   );
                 }
@@ -101,12 +101,12 @@ class SupportTicketDetailsView extends GetView<SupportTicketDetailsController> {
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: colorScheme.surface,
-                      border: Border(top: BorderSide(color: colorScheme.outline.withValues(alpha: 0.3))),
+                      border: Border(top: BorderSide(color: colorScheme.outline.withOpacity(0.1))),
                     ),
                     child: Text(
                       'This ticket is closed and can no longer be replied to.',
                       textAlign: TextAlign.center,
-                      style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                      style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.5)),
                     ),
                   ),
                 );
@@ -142,8 +142,6 @@ class SupportTicketDetailsView extends GetView<SupportTicketDetailsController> {
   }
 }
 
-// ─── Chat Bubble ────────────────────────────────────────────────────────────
-
 class _MessageBubble extends StatelessWidget {
   const _MessageBubble({required this.message, required this.colorScheme, required this.textTheme});
   final dynamic message;
@@ -154,27 +152,24 @@ class _MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final isCustomer = message['is_customer'] == true;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).primaryColor;
     final bubbleColor = isCustomer
-        ? colorScheme.primary.withValues(alpha: isDark ? 0.22 : 0.12)
-        : colorScheme.surfaceContainerHighest;
+        ? (primaryColor != Colors.transparent
+            ? primaryColor.withOpacity(isDark ? 0.22 : 0.12)
+            : colorScheme.primary.withOpacity(isDark ? 0.22 : 0.12))
+        : colorScheme.onSurface.withOpacity(isDark ? 0.12 : 0.06);
 
     final rawDate = message['created_at']?.toString();
     final timeLabel = rawDate != null && DateTime.tryParse(rawDate) != null
         ? DateFormat('h:mm a').format(DateTime.parse(rawDate))
         : '';
 
-    final attachments = message['attachments'];
-    final images = <Map<String, dynamic>>[];
-    if (attachments is List) {
-      for (final item in attachments) {
-        if (item is Map) images.add(Map<String, dynamic>.from(item));
-      }
-    }
+    final text = (message['message'] ?? '').toString();
 
     return Align(
       alignment: isCustomer ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
         margin: const EdgeInsets.symmetric(vertical: 4),
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -184,102 +179,22 @@ class _MessageBubble extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            isCustomer
-                ? Text((message['message'] ?? '').toString(), style: textTheme.bodyMedium)
-                : HtmlWidget((message['message'] ?? '').toString()),
-            if (images.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              _AttachmentGrid(images: images),
+            ChatAttachmentWidget(messageData: message, isSender: isCustomer),
+            if (text.trim().isNotEmpty) ...[
+              isCustomer
+                  ? Text(text, style: textTheme.bodyMedium)
+                  : HtmlWidget(text),
+              const SizedBox(height: 4),
             ],
-            const SizedBox(height: 4),
-            Text(
-              timeLabel,
-              style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant, fontSize: 10),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Text(
+                timeLabel,
+                style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.4), fontSize: 10),
+              ),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _AttachmentGrid extends StatelessWidget {
-  const _AttachmentGrid({required this.images});
-  final List<Map<String, dynamic>> images;
-
-  @override
-  Widget build(BuildContext context) {
-    final visible = images.take(4).toList();
-    final remaining = images.length - visible.length;
-
-    return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children: List.generate(visible.length, (index) {
-        final imageUrl = HelperFunctions().getImage(visible[index]);
-        final isLastVisible = index == visible.length - 1 && remaining > 0;
-        return GestureDetector(
-          onTap: () => Get.to(
-            () => const _AttachmentPreview(),
-            arguments: {'images': images},
-          ),
-          child: Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  width: 90,
-                  height: 90,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              if (isLastVisible)
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.45),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '+$remaining',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        );
-      }),
-    );
-  }
-}
-
-class _AttachmentPreview extends StatelessWidget {
-  const _AttachmentPreview();
-
-  @override
-  Widget build(BuildContext context) {
-    final images = (Get.arguments?['images'] as List?) ?? [];
-    final controller = PageController();
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: PageView.builder(
-        controller: controller,
-        itemCount: images.length,
-        itemBuilder: (context, index) {
-          final imageUrl = HelperFunctions().getImage(images[index]);
-          return InteractiveViewer(
-            child: Center(
-              child: CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.contain),
-            ),
-          );
-        },
       ),
     );
   }
@@ -292,19 +207,18 @@ class _DateSeparator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (dateLabel.isEmpty) return const SizedBox.shrink();
-    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Center(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
-            color: colorScheme.primary,
+            color: Theme.of(context).primaryColor,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
             dateLabel,
-            style: TextStyle(color: colorScheme.onPrimary, fontSize: 11, fontWeight: FontWeight.w600),
+            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
           ),
         ),
       ),
@@ -312,23 +226,16 @@ class _DateSeparator extends StatelessWidget {
   }
 }
 
-// TARGET's order-status-chip convention (see SupportTicketStatus doc-comment)
-// applied to the appbar status/priority chips.
 class _StatusChip extends StatelessWidget {
   const _StatusChip({required this.status});
   final String status;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final color = SupportTicketStatus.statusColor(status, colorScheme);
+    final color = SupportTicketStatus.statusColor(status);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color, width: 1.2),
-      ),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
       child: Text(status, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w600)),
     );
   }
@@ -340,65 +247,197 @@ class _PriorityChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final color = SupportTicketStatus.priorityColor(priority, colorScheme);
+    final color = SupportTicketStatus.priorityColor(priority);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
       child: Text(priority, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w600)),
     );
   }
 }
-
-// ─── Input Area ─────────────────────────────────────────────────────────────
 
 class _InputArea extends StatelessWidget {
   const _InputArea({required this.controller, required this.colorScheme});
   final SupportTicketDetailsController controller;
   final ColorScheme colorScheme;
 
+  void _showAttachmentPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Share Attachment',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.titleMedium?.color,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _PickerOption(
+                      icon: Icons.camera_alt_rounded,
+                      label: 'Camera',
+                      color: const Color(0xFFE91E63),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        controller.pickImageFromCamera();
+                      },
+                    ),
+                    _PickerOption(
+                      icon: Icons.photo_library_rounded,
+                      label: 'Gallery',
+                      color: const Color(0xFF9C27B0),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        controller.pickImageFromGallery();
+                      },
+                    ),
+                    _PickerOption(
+                      icon: Icons.videocam_rounded,
+                      label: 'Video',
+                      color: const Color(0xFFFF9800),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        controller.pickVideoFromGallery();
+                      },
+                    ),
+                    _PickerOption(
+                      icon: Icons.insert_drive_file_rounded,
+                      label: 'Document',
+                      color: const Color(0xFF2196F3),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        controller.pickDocument();
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).primaryColor;
     return SafeArea(
       top: false,
       child: Container(
         padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          border: Border(top: BorderSide(color: colorScheme.outline.withValues(alpha: 0.3))),
+          border: Border(top: BorderSide(color: colorScheme.outline.withOpacity(0.1))),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Obx(() {
               if (controller.selectedFiles.isEmpty) return const SizedBox.shrink();
+              final file = controller.selectedFiles.first;
+              final fileName = file.path.split('/').last;
+              final ext = fileName.split('.').last.toLowerCase();
+              final isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif'].contains(ext);
+              final isVideo = ['mp4', 'mov', 'mkv', 'webm', '3gp'].contains(ext);
+              final isPdf = ext == 'pdf';
+
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: SizedBox(
-                  height: 60,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: controller.selectedFiles.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 8),
-                    itemBuilder: (context, index) {
-                      final file = controller.selectedFiles[index];
-                      return Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.file(file, width: 60, height: 60, fit: BoxFit.cover),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      if (isImage)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.file(file, width: 44, height: 44, fit: BoxFit.cover),
+                        )
+                      else
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: isPdf
+                                ? const Color(0xFFFFEBEE)
+                                : (isVideo ? const Color(0xFFFFF3E0) : const Color(0xFFE3F2FD)),
+                            borderRadius: BorderRadius.circular(6),
                           ),
-                          Positioned(
-                            top: -6,
-                            right: -6,
-                            child: GestureDetector(
-                              onTap: () => controller.removeSelectedFile(file),
-                              child: Icon(Icons.cancel, size: 18, color: colorScheme.error),
+                          child: Icon(
+                            isPdf
+                                ? Icons.picture_as_pdf_rounded
+                                : (isVideo ? Icons.videocam_rounded : Icons.description_rounded),
+                            color: isPdf
+                                ? const Color(0xFFE53935)
+                                : (isVideo ? const Color(0xFFFF9800) : const Color(0xFF1E88E5)),
+                            size: 24,
+                          ),
+                        ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              fileName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                             ),
-                          ),
-                        ],
-                      );
-                    },
+                            Text(
+                              isImage
+                                  ? 'Photo ready to send'
+                                  : (isVideo
+                                      ? 'Video ready to send'
+                                      : (isPdf ? 'PDF document ready to send' : 'Document ready to send')),
+                              style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.cancel, size: 20, color: Colors.red),
+                        onPressed: () => controller.removeSelectedFile(file),
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -411,7 +450,7 @@ class _InputArea extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: colorScheme.surface,
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: colorScheme.outline.withValues(alpha: 0.4)),
+                      border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
                     ),
                     child: TextField(
                       controller: controller.messageController,
@@ -420,7 +459,7 @@ class _InputArea extends StatelessWidget {
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: 'Type a message...',
-                        hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                        hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.4)),
                       ),
                     ),
                   ),
@@ -428,15 +467,14 @@ class _InputArea extends StatelessWidget {
                 Obx(() => IconButton(
                       icon: Icon(
                         controller.selectedFiles.isEmpty ? Icons.attach_file : Icons.remove_circle_outline,
-                        color: controller.selectedFiles.isEmpty ? colorScheme.onSurfaceVariant : colorScheme.error,
+                        color: controller.selectedFiles.isEmpty ? colorScheme.onSurface.withOpacity(0.6) : Colors.red,
                       ),
-                      onPressed: () async {
+                      onPressed: () {
                         if (controller.selectedFiles.isNotEmpty) {
                           controller.selectedFiles.clear();
-                          return;
+                        } else {
+                          _showAttachmentPicker(context);
                         }
-                        final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-                        if (picked != null) controller.selectedFiles.add(File(picked.path));
                       },
                     )),
                 Obx(() {
@@ -455,16 +493,16 @@ class _InputArea extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: canSend ? colorScheme.primary : colorScheme.outline.withValues(alpha: 0.3),
+                        color: canSend ? primaryColor : colorScheme.outline.withOpacity(0.3),
                         shape: BoxShape.circle,
                       ),
                       child: controller.isMessageSendLoading.isTrue
-                          ? SizedBox(
+                          ? const SizedBox(
                               width: 18,
                               height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
-                          : Icon(Icons.send_rounded, size: 18, color: colorScheme.onPrimary),
+                          : const Icon(Icons.send_rounded, size: 18, color: Colors.white),
                     ),
                   );
                 }),
@@ -472,6 +510,44 @@ class _InputArea extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _PickerOption extends StatelessWidget {
+  const _PickerOption({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            height: 52,
+            width: 52,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 26),
+          ),
+          const SizedBox(height: 6),
+          Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+        ],
       ),
     );
   }

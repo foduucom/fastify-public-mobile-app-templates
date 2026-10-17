@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
 import '/app/modules/product/controllers/product_controller.dart';
 import '/components/ImagePreviewMultipleView.dart';
@@ -86,10 +87,7 @@ class ProductGallery extends StatelessWidget {
             isLog: false,
             moduleName: 'products details',
           ),
-          errorWidget: (_, __, ___) => Container(
-            color: Colors.grey.shade300,
-            child: const Center(child: Icon(Icons.error)),
-          ),
+          errorWidget: (_, __, ___) => const AppImagePlaceholder(radius: 8),
           progressIndicatorBuilder: (_, __, ___) => Container(
             color: Colors.grey.shade300,
             child: Center(
@@ -126,10 +124,8 @@ class ProductGallery extends StatelessWidget {
               child: CachedNetworkImage(
                 fit: BoxFit.cover,
                 imageUrl: HelperFunctions().getImage(productGallery[index]),
-                errorWidget: (_, __, ___) => Container(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  child: const Center(child: Icon(Icons.error)),
-                ),
+                errorWidget: (_, __, ___) =>
+                    const AppImagePlaceholder(radius: 8),
                 progressIndicatorBuilder: (_, __, ___) => Container(
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   child: Center(

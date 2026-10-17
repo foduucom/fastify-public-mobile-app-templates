@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_typing_uninitialized_variables
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
 import '/app/modules/homepage/controllers/homepage_controller.dart';
 import '/app/routes/app_pages.dart';
@@ -223,23 +224,29 @@ class _HomeBannerState extends State<HomeBanner>
   }
 
   Widget _buildCachedImage(Map<String, dynamic> item) {
-    return CachedNetworkImage(
-      fit: BoxFit.cover,
-      imageUrl: getImage(item),
-      progressIndicatorBuilder: (context, url, progress) {
-        return Container(
-          decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest),
-          child: HelperFunctions().loadingIndicator(),
-        );
-      },
-      errorWidget: (context, url, error) {
-        return Container(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: const Icon(Icons.error, size: 40),
-        );
-      },
-    );
+    final imgUrl = getImage(item);
+    return (imgUrl.isNotEmpty && imgUrl != HelperFunctions.getNoImage())
+        ? CachedNetworkImage(
+            fit: BoxFit.cover,
+            imageUrl: imgUrl,
+            progressIndicatorBuilder: (context, url, progress) {
+              return Container(
+                decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest),
+                child: HelperFunctions().loadingIndicator(),
+              );
+            },
+            errorWidget: (context, url, error) {
+              return const AppImagePlaceholder(
+                radius: 12,
+                fit: BoxFit.cover,
+              );
+            },
+          )
+        : const AppImagePlaceholder(
+            radius: 12,
+            fit: BoxFit.cover,
+          );
   }
 
   void handleBannerTap(Map<String, dynamic> banner) {
@@ -396,9 +403,10 @@ class _BannerCarouselState extends State<BannerCarousel> {
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
           child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
         ),
-        errorWidget: (context, url, error) => Container(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: const Icon(Icons.error),
+        errorWidget: (context, url, error) => const AppImagePlaceholder(
+          radius: 12,
+          width: 160,
+          fit: BoxFit.cover,
         ),
       );
     } else {
@@ -406,9 +414,10 @@ class _BannerCarouselState extends State<BannerCarousel> {
         imagePath,
         width: 160,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => Container(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: const Icon(Icons.broken_image),
+        errorBuilder: (context, error, stackTrace) => const AppImagePlaceholder(
+          radius: 12,
+          width: 160,
+          fit: BoxFit.cover,
         ),
       );
     }

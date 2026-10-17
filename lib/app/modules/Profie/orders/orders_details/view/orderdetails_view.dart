@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -405,20 +406,33 @@ class PriceDetails extends StatelessWidget {
                         decoration: BoxDecoration(
                             border: Border.all(width: 2),
                             borderRadius: BorderRadius.circular(8)),
-                        child: CachedNetworkImage(
-                            errorWidget: (context, url, error) => Container(
-                                  decoration: BoxDecoration(
-                                      color: Theme.of(context).colorScheme.surfaceContainerHighest),
-                                  child: const Center(
-                                    child: Icon(Icons.error),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: (item['products'][index]['image'] != null &&
+                                  item['products'][index]['image']
+                                      .toString()
+                                      .isNotEmpty &&
+                                  (url + item['products'][index]['image']) !=
+                                      HelperFunctions.getNoImage())
+                              ? CachedNetworkImage(
+                                  errorWidget: (context, url, error) =>
+                                      const AppImagePlaceholder(
+                                    radius: 6,
+                                    height: 100,
+                                    width: 100,
                                   ),
+                                  height: 100,
+                                  width: 100,
+                                  imageUrl:
+                                      url + item['products'][index]['image'],
+                                  fit: BoxFit.cover,
+                                )
+                              : const AppImagePlaceholder(
+                                  radius: 6,
+                                  height: 100,
+                                  width: 100,
                                 ),
-                            height: 100,
-                            width: 100,
-                            imageUrl: item['products'][index]['image'] == null
-                                ? HelperFunctions.getNoImage()
-                                : url + item['products'][index]['image'],
-                            fit: BoxFit.cover)),
+                        )),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

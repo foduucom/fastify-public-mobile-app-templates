@@ -1,49 +1,45 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import '/app/routes/app_pages.dart';
-import '/constants/helper_functions.dart';
-import '/constants/support_ticket_status.dart';
+import 'package:new_fastify_template/app/routes/app_pages.dart';
+import 'package:new_fastify_template/constants/helper_functions.dart';
+import 'package:new_fastify_template/constants/support_ticket_status.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../controllers/support_ticket_controller.dart';
 
-// Restyled to TARGET's own theme/design system (Theme.of(context).colorScheme
-// + textTheme throughout, matching the card/tile look used elsewhere in
-// TARGET e.g. Profie/orders/view/order_view.dart) rather than a visual copy
-// of SOURCE's ticket list.
 class SupportTicketView extends GetView<SupportTicketController> {
   const SupportTicketView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
 
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Support Tickets'),
+          centerTitle: true,
           elevation: 0,
-          backgroundColor: Colors.transparent,
-          iconTheme: IconThemeData(color: colorScheme.onSurface),
         ),
         floatingActionButton: Obx(() {
           if (controller.isLoading.isTrue && controller.supportTickets.isEmpty) {
             return const SizedBox.shrink();
           }
           return FloatingActionButton.extended(
-            backgroundColor: colorScheme.primary,
-            foregroundColor: colorScheme.onPrimary,
+            backgroundColor: theme.primaryColor,
+            foregroundColor: Colors.white,
             icon: const Icon(Icons.add),
             label: const Text('Generate Ticket'),
             onPressed: () => _showGenerateTicketBottomSheet(context, colorScheme, textTheme),
           );
         }),
         body: RefreshIndicator(
-          color: colorScheme.primary,
+          color: theme.primaryColor,
           onRefresh: () => controller.getSupportTickets(),
           child: Obx(() {
             if (controller.isLoading.isTrue && controller.supportTickets.isEmpty) {
@@ -101,7 +97,7 @@ class SupportTicketView extends GetView<SupportTicketController> {
         title: Text('Close Ticket', style: TextStyle(color: colorScheme.onSurface)),
         content: Text(
           'Are you sure you want to close this support ticket? You will not be able to reply to it once closed.',
-          style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.7)),
+          style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
         ),
         actions: [
           TextButton(
@@ -184,11 +180,11 @@ class SupportTicketView extends GetView<SupportTicketController> {
                         spacing: 8,
                         children: priorities.map((priority) {
                           final selected = selectedPriority.value == priority;
-                          final color = SupportTicketStatus.priorityColor(priority, colorScheme);
+                          final color = _priorityColor(priority);
                           return ChoiceChip(
                             label: Text(priority),
                             selected: selected,
-                            selectedColor: color.withValues(alpha: 0.15),
+                            selectedColor: color.withOpacity(0.15),
                             labelStyle: TextStyle(color: selected ? color : colorScheme.onSurface),
                             onSelected: (_) => selectedPriority.value = priority,
                           );
@@ -232,6 +228,11 @@ class SupportTicketView extends GetView<SupportTicketController> {
                   Obx(() => SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
                           onPressed: isSubmitting.value
                               ? null
                               : () async {
@@ -248,10 +249,10 @@ class SupportTicketView extends GetView<SupportTicketController> {
                                   if (success) Get.back();
                                 },
                           child: isSubmitting.value
-                              ? SizedBox(
+                              ? const SizedBox(
                                   height: 20,
                                   width: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                 )
                               : const Text('Submit'),
                         ),
@@ -266,9 +267,9 @@ class SupportTicketView extends GetView<SupportTicketController> {
       backgroundColor: Colors.transparent,
     );
   }
-}
 
-// ─── Ticket Card ────────────────────────────────────────────────────────────
+  static Color _priorityColor(String priority) => SupportTicketStatus.priorityColor(priority);
+}
 
 class _TicketCard extends StatelessWidget {
   const _TicketCard({
@@ -293,16 +294,18 @@ class _TicketCard extends StatelessWidget {
     final status = (ticket['status'] ?? 'new').toString();
     final priority = (ticket['priority'] ?? 'medium').toString();
     final createdAt = ticket['created_at']?.toString();
-    final createdDate = (createdAt != null && createdAt.isNotEmpty)
-        ? HelperFunctions().toCarbonToHumanDateFormat(createdAt)
-        : '';
+    final createdDate =
+        (createdAt != null && createdAt.isNotEmpty) ? HelperFunctions().toCarbonToHumanDateFormat(createdAt) : '';
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3)),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.08)),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 3)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -312,7 +315,7 @@ class _TicketCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest,
+                  color: colorScheme.onSurface.withOpacity(0.06),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text('TKT-$id', style: textTheme.labelSmall),
@@ -329,7 +332,7 @@ class _TicketCard extends StatelessWidget {
               message,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+              style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.5)),
             ),
           ],
           const SizedBox(height: 10),
@@ -339,14 +342,14 @@ class _TicketCard extends StatelessWidget {
               const Spacer(),
               if (createdDate.isNotEmpty)
                 Text(createdDate,
-                    style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+                    style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.4))),
               const SizedBox(width: 8),
               InkWell(
                 onTap: onView,
                 borderRadius: BorderRadius.circular(20),
                 child: Padding(
                   padding: const EdgeInsets.all(4),
-                  child: Icon(Icons.visibility_outlined, size: 18, color: colorScheme.primary),
+                  child: Icon(Icons.visibility_outlined, size: 18, color: Theme.of(context).primaryColor),
                 ),
               ),
               if (onClose != null) ...[
@@ -368,31 +371,24 @@ class _TicketCard extends StatelessWidget {
   }
 }
 
-// TARGET's own order-status-chip convention (dot + pill, colors bucketed
-// through ColorScheme via SupportTicketStatus.statusColor), not SOURCE's
-// hardcoded Colors.green/blue/orange/purple badge.
 class _StatusBadge extends StatelessWidget {
   const _StatusBadge({required this.status});
   final String status;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final color = SupportTicketStatus.statusColor(status, colorScheme);
+    final color = SupportTicketStatus.statusColor(status);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(8),
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.5)),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(width: 7, height: 7, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-          const SizedBox(width: 5),
-          Text(status, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600)),
-        ],
+      child: Text(
+        status,
+        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -404,8 +400,7 @@ class _PriorityBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final color = SupportTicketStatus.priorityColor(priority, colorScheme);
+    final color = SupportTicketStatus.priorityColor(priority);
     IconData icon;
     switch (priority.toLowerCase()) {
       case 'high':
@@ -420,7 +415,7 @@ class _PriorityBadge extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -432,8 +427,6 @@ class _PriorityBadge extends StatelessWidget {
     );
   }
 }
-
-// ─── Empty / Shimmer ──────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.colorScheme, required this.textTheme});
@@ -449,8 +442,8 @@ class _EmptyState extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest, shape: BoxShape.circle),
-            child: Icon(Icons.confirmation_num_outlined, size: 48, color: colorScheme.onSurfaceVariant),
+            decoration: BoxDecoration(color: colorScheme.onSurface.withOpacity(0.06), shape: BoxShape.circle),
+            child: Icon(Icons.confirmation_num_outlined, size: 48, color: colorScheme.onSurface.withOpacity(0.35)),
           ),
           const SizedBox(height: 20),
           Text('No Support Tickets', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
@@ -458,7 +451,7 @@ class _EmptyState extends StatelessWidget {
           Text(
             'Tap "Generate Ticket" to raise a new support request.',
             textAlign: TextAlign.center,
-            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface.withOpacity(0.5)),
           ),
         ],
       ),
@@ -473,7 +466,7 @@ class _TicketCardShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final base = isDark ? colorScheme.surfaceContainerHighest : Colors.grey.shade300;
+    final base = isDark ? colorScheme.surfaceVariant : Colors.grey.shade300;
     final highlight = isDark ? colorScheme.surface : Colors.white;
 
     return Shimmer.fromColors(

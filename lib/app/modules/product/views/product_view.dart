@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -631,7 +632,7 @@ class ProductView extends GetView<ProductController> {
           child: IconButton(
             icon: Icon(Icons.share_outlined,
                 color: colorScheme.onSurface, size: 18),
-            onPressed: () {},
+            onPressed: () => controller.shareContent(context),
             padding: EdgeInsets.zero,
           ),
         ),
@@ -1124,13 +1125,7 @@ class _ProductImageGalleryState extends State<_ProductImageGallery> {
           imageUrl: url,
           fit: BoxFit.contain,
           placeholder: (_, __) => _buildMainShimmer(),
-          errorWidget: (ctx, __, ___) => Center(
-            child: Icon(
-              Icons.image_not_supported_outlined,
-              size: 48,
-              color: Theme.of(ctx).colorScheme.outline,
-            ),
-          ),
+          errorWidget: (_, __, ___) => const AppImagePlaceholder(radius: 12),
         ),
       ),
     );
@@ -1220,11 +1215,7 @@ class _ThumbChip extends StatelessWidget {
             child: CachedNetworkImage(
               imageUrl: imageUrl,
               fit: BoxFit.cover,
-              errorWidget: (_, __, ___) => Icon(
-                Icons.image_not_supported_outlined,
-                size: 20,
-                color: colorScheme.outline,
-              ),
+              errorWidget: (_, __, ___) => const AppImagePlaceholder(radius: 8),
             ),
           ),
         ),

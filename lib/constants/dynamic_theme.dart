@@ -5,6 +5,11 @@ import 'package:get_storage/get_storage.dart';
 
 class DefaultThemeColors {
   DefaultThemeColors._(); // Private constructor - prevents instantiation
+
+  static const Color alertSuccessLight = Color(0xFF3BC24F);
+  static const Color alertErrorLighter = Color(0xFFFF6766);
+  static const Color alertWarninglight = Color(0xFFF9A825);
+
   // ============ LIGHT THEME DEFAULTS ============
   static const Color lightPrimary = Color(0xFF6200EE);
   static const Color lightOnPrimary = Color(0xFFFFFFFF);
@@ -664,6 +669,8 @@ extension ThemeColorExtension on BuildContext {
   Color get onSurfaceColor => colorScheme.onSurface;
   Color get errorColor => colorScheme.error;
   Color get outlineColor => colorScheme.outline;
+  Color get surfaceVariantColor => colorScheme.surfaceVariant;
+  Color get onSurfaceVariantColor => colorScheme.onSurfaceVariant;
 
   /// Check if current theme is dark
   bool get isDarkMode => Theme.of(this).brightness == Brightness.dark;

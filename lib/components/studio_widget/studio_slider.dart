@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
@@ -161,45 +162,45 @@ class _FoduuSliderState extends State<FoduuSlider>
                                     padding: pageSurroundingPadding,
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(12.0),
-                                      child: CachedNetworkImage(
-                                          height: sliderHeight,
-                                          imageUrl:
-                                              HelperFunctions().getImage(item),
-                                          fit: BoxFit.cover,
-                                          width: Get.width,
-                                          errorWidget: ((context, url, error) =>
-                                              Container(
-                                                width: MediaQuery.of(context)
-                                                        .size
-                                                        .width -
-                                                    20,
-                                                height: sliderHeight,
-                                                decoration: BoxDecoration(
-                                                    color:
-                                                        Colors.grey.shade300),
-                                                child: Center(
-                                                  child: Icon(Icons.error),
-                                                ),
-                                              )),
-                                          progressIndicatorBuilder: ((context,
-                                                  url, progress) =>
-                                              Container(
-                                                width: MediaQuery.of(context)
-                                                    .size
-                                                    .width,
-                                                height: 100,
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey.shade300,
-                                                ),
-                                                child: Center(
-                                                  child: SizedBox(
-                                                    height: 40,
-                                                    width: 40,
-                                                    child: HelperFunctions()
-                                                        .loadingIndicator(),
-                                                  ),
-                                                ),
-                                              ))),
+                                      child: (HelperFunctions().getImage(item).isNotEmpty &&
+                                              HelperFunctions().getImage(item) != HelperFunctions.getNoImage())
+                                          ? CachedNetworkImage(
+                                              height: sliderHeight,
+                                              imageUrl:
+                                                  HelperFunctions().getImage(item),
+                                              fit: BoxFit.cover,
+                                              width: Get.width,
+                                              errorWidget: ((context, url, error) =>
+                                                  AppImagePlaceholder(
+                                                    radius: 12,
+                                                    height: sliderHeight,
+                                                    width: double.infinity,
+                                                    fit: BoxFit.cover,
+                                                  )),
+                                              progressIndicatorBuilder: ((context,
+                                                      url, progress) =>
+                                                  Container(
+                                                    width: MediaQuery.of(context)
+                                                            .size
+                                                            .width -
+                                                        20,
+                                                    height: sliderHeight,
+                                                    decoration: BoxDecoration(
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .surfaceContainerHighest),
+                                                    child: Center(
+                                                      child: HelperFunctions()
+                                                          .loadingIndicator(),
+                                                    ),
+                                                  )),
+                                            )
+                                          : AppImagePlaceholder(
+                                              radius: 12,
+                                              height: sliderHeight,
+                                              width: double.infinity,
+                                              fit: BoxFit.cover,
+                                            ),
                                     ),
                                   ),
                                 ),

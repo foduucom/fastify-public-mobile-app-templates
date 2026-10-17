@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import '/app/modules/blog/controller/blog_detail_controller.dart';
@@ -37,13 +38,11 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
                                   fit: BoxFit.cover,
                                   width: double.infinity,
                                   errorWidget: (context, url, error) =>
-                                      Container(
-                                        decoration: BoxDecoration(
-                                            color: Theme.of(context).colorScheme.surfaceContainerHighest),
-                                        child: const Center(
-                                          child: Icon(Icons.error),
-                                        ),
-                                      ),
+                                      const AppImagePlaceholder(
+                                    radius: 14,
+                                    height: 200,
+                                    width: double.infinity,
+                                  ),
                                   // imageUrl: controller
                                   //         .blogDetails['featured_image'] ??
                                   //     ''),
