@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'web_theme_helper.dart';
 
 class AppWebViewScreen extends StatefulWidget {
   final String title;
@@ -22,6 +25,7 @@ class AppWebViewScreen extends StatefulWidget {
 class _AppWebViewScreenState extends State<AppWebViewScreen> {
   InAppWebViewController? _webViewController;
   PullToRefreshController? _pullToRefreshController;
+  Timer? _webTimeoutTimer;
   double _progress = 0;
   bool _isLoading = true;
   bool _hasError = false;
@@ -31,6 +35,29 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
   void initState() {
     super.initState();
     _initPullToRefresh();
+    _initWebFallbackTimer();
+  }
+
+  @override
+  void dispose() {
+    _webTimeoutTimer?.cancel();
+    super.dispose();
+  }
+
+  void _initWebFallbackTimer() {
+    if (kIsWeb) {
+      _webTimeoutTimer?.cancel();
+      // Browsers often don't fire granular progress events for cross-origin iframes.
+      // A fallback timer guarantees the loading overlay is dismissed so the iframe view displays.
+      _webTimeoutTimer = Timer(const Duration(milliseconds: 2500), () {
+        if (mounted && _isLoading) {
+          setState(() {
+            _isLoading = false;
+            _progress = 1.0;
+          });
+        }
+      });
+    }
   }
 
   void _initPullToRefresh() {
@@ -162,21 +189,26 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
   }
 
   void _applyThemeStyling(bool isDark) {
-    if (_webViewController == null) return;
-    final css = _getInjectedCss(isDark: isDark);
-    final escapedCss = css.replaceAll('\n', ' ').replaceAll('"', '\\"');
-    final js = '''
-      (function() {
-        var styleEl = document.getElementById('flutter-webview-theme-override');
-        if (!styleEl) {
-          styleEl = document.createElement('style');
-          styleEl.id = 'flutter-webview-theme-override';
-          document.head.appendChild(styleEl);
-        }
-        styleEl.innerHTML = "$escapedCss";
-      })();
-    ''';
-    _webViewController!.evaluateJavascript(source: js);
+    // Avoid evaluating JS inside cross-origin iframes on web to prevent SecurityErrors
+    if (kIsWeb || _webViewController == null) return;
+    try {
+      final css = _getInjectedCss(isDark: isDark);
+      final escapedCss = css.replaceAll('\n', ' ').replaceAll('"', '\\"');
+      final js = '''
+        (function() {
+          var styleEl = document.getElementById('flutter-webview-theme-override');
+          if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = 'flutter-webview-theme-override';
+            document.head.appendChild(styleEl);
+          }
+          styleEl.innerHTML = "$escapedCss";
+        })();
+      ''';
+      _webViewController!.evaluateJavascript(source: js);
+    } catch (e) {
+      debugPrint('WebView theme styling ignored: $e');
+    }
   }
 
   @override
@@ -185,8 +217,12 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
     final isDark = theme.brightness == Brightness.dark || Get.isDarkMode;
     final colorScheme = theme.colorScheme;
 
-    // Reactively update styling if theme changes
-    _applyThemeStyling(isDark);
+    // Reactively update styling
+    if (kIsWeb) {
+      setWebThemeMode(isDark);
+    } else {
+      _applyThemeStyling(isDark);
+    }
 
     return PopScope(
       canPop: true,
@@ -208,18 +244,30 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
               color: colorScheme.onSurface,
             ),
             onPressed: () {
-              // Immediately navigate back to the previous screen (e.g. Profile in BottombarView)
               Get.back();
             },
           ),
           actions: [
+            IconButton(
+              icon:
+                  Icon(Icons.open_in_new_rounded, color: colorScheme.onSurface),
+              tooltip: 'Open in browser',
+              onPressed: () async {
+                final uri = Uri.tryParse(widget.url);
+                if (uri != null) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+            ),
             IconButton(
               icon: Icon(Icons.refresh_rounded, color: colorScheme.onSurface),
               tooltip: 'Reload',
               onPressed: () {
                 _hasError = false;
                 _isLoading = true;
+                _progress = 0;
                 setState(() {});
+                _initWebFallbackTimer();
                 _webViewController?.reload();
               },
             ),
@@ -237,69 +285,7 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
             Expanded(
               child: Stack(
                 children: [
-                  InAppWebView(
-                    initialUrlRequest: URLRequest(url: WebUri(widget.url)),
-                    initialSettings: InAppWebViewSettings(
-                      isInspectable: kDebugMode,
-                      javaScriptEnabled: true,
-                      useShouldOverrideUrlLoading: true,
-                      mediaPlaybackRequiresUserGesture: true,
-                      allowsInlineMediaPlayback: true,
-                      transparentBackground: true,
-                      forceDark: isDark ? ForceDark.ON : ForceDark.OFF,
-                      forceDarkStrategy:
-                          ForceDarkStrategy.USER_AGENT_DARKENING_ONLY,
-                      algorithmicDarkeningAllowed: true,
-                      supportZoom: true,
-                      builtInZoomControls: false,
-                      displayZoomControls: false,
-                      cacheMode: CacheMode.LOAD_DEFAULT,
-                      clearCache: false,
-                    ),
-                    pullToRefreshController: _pullToRefreshController,
-                    onWebViewCreated: (controller) {
-                      _webViewController = controller;
-                    },
-                    onLoadStart: (controller, url) {
-                      setState(() {
-                        _hasError = false;
-                      });
-                      _applyThemeStyling(isDark);
-                    },
-                    onProgressChanged: (controller, progress) {
-                      setState(() {
-                        _progress = progress / 100.0;
-                        if (progress >= 70) {
-                          _isLoading = false;
-                        }
-                      });
-                      if (progress > 30) {
-                        _applyThemeStyling(isDark);
-                      }
-                      if (progress == 100) {
-                        _pullToRefreshController?.endRefreshing();
-                      }
-                    },
-                    onLoadStop: (controller, url) async {
-                      _pullToRefreshController?.endRefreshing();
-                      _applyThemeStyling(isDark);
-                      if (mounted) {
-                        setState(() {
-                          _isLoading = false;
-                        });
-                      }
-                    },
-                    onReceivedError: (controller, request, error) {
-                      _pullToRefreshController?.endRefreshing();
-                      if (request.isForMainFrame ?? true) {
-                        setState(() {
-                          _hasError = true;
-                          _isLoading = false;
-                          _errorMessage = error.description;
-                        });
-                      }
-                    },
-                  ),
+                  _buildWebView(isDark),
                   if (_isLoading && !_hasError)
                     Container(
                       color: colorScheme.surface,
@@ -394,5 +380,104 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildWebView(bool isDark) {
+    Widget webView = InAppWebView(
+      initialUrlRequest: URLRequest(url: WebUri(widget.url)),
+      initialSettings: InAppWebViewSettings(
+        isInspectable: kDebugMode,
+        javaScriptEnabled: true,
+        useShouldOverrideUrlLoading: true,
+        mediaPlaybackRequiresUserGesture: true,
+        allowsInlineMediaPlayback: true,
+        transparentBackground: true,
+        forceDark: (!kIsWeb && isDark) ? ForceDark.ON : ForceDark.OFF,
+        forceDarkStrategy: ForceDarkStrategy.USER_AGENT_DARKENING_ONLY,
+        algorithmicDarkeningAllowed: !kIsWeb,
+        supportZoom: true,
+        builtInZoomControls: false,
+        displayZoomControls: false,
+        cacheMode: CacheMode.LOAD_DEFAULT,
+        clearCache: false,
+        iframeAllow: "fullscreen; camera; microphone",
+        iframeAllowFullscreen: true,
+      ),
+      pullToRefreshController: _pullToRefreshController,
+      onWebViewCreated: (controller) {
+        _webViewController = controller;
+      },
+      onLoadStart: (controller, url) {
+        setState(() {
+          _hasError = false;
+        });
+        if (!kIsWeb) {
+          _applyThemeStyling(isDark);
+        }
+      },
+      onProgressChanged: (controller, progress) {
+        setState(() {
+          _progress = progress / 100.0;
+          if (progress >= 70) {
+            _isLoading = false;
+          }
+        });
+        if (!kIsWeb && progress > 30) {
+          _applyThemeStyling(isDark);
+        }
+        if (progress == 100) {
+          _webTimeoutTimer?.cancel();
+          _pullToRefreshController?.endRefreshing();
+        }
+      },
+      onLoadStop: (controller, url) async {
+        _webTimeoutTimer?.cancel();
+        _pullToRefreshController?.endRefreshing();
+        if (kIsWeb) {
+          setWebThemeMode(isDark);
+        } else {
+          _applyThemeStyling(isDark);
+        }
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _progress = 1.0;
+          });
+        }
+      },
+      onReceivedError: (controller, request, error) {
+        _webTimeoutTimer?.cancel();
+        _pullToRefreshController?.endRefreshing();
+        if (request.isForMainFrame ?? true) {
+          setState(() {
+            _hasError = true;
+            _isLoading = false;
+            _errorMessage = error.description;
+          });
+        }
+      },
+    );
+
+    if (kIsWeb && widget.cleanView) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return ClipRect(
+            child: OverflowBox(
+              alignment: Alignment.topCenter,
+              minHeight: constraints.maxHeight + 70,
+              maxHeight: constraints.maxHeight + 70,
+              minWidth: constraints.maxWidth,
+              maxWidth: constraints.maxWidth,
+              child: Transform.translate(
+                offset: const Offset(0, -70),
+                child: webView,
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    return webView;
   }
 }

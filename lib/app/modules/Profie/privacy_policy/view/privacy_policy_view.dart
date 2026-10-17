@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/components/app_web_view_screen.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:get/get.dart';
 import '../controller/privacy_policy_controller.dart';
 
@@ -8,9 +9,9 @@ class PrivacyPolicyView extends GetView<PrivacyPolicyController> {
 
   @override
   Widget build(BuildContext context) {
-    return const AppWebViewScreen(
+    return AppWebViewScreen(
       title: 'Privacy Policy',
-      url: 'https://traditional-ecom.vbought.com/privacy-policy',
+      url: '${url}privacy-policy',
     );
   }
 }
