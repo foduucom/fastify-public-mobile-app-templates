@@ -7,71 +7,100 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 class RegisterController extends GetxController {
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  final box = GetStorage();
+  final formKey = GlobalKey<FormState>();
+  var box = GetStorage();
 
-  // ✅ No more `late` — initialized directly as fields
-  final nameController            = TextEditingController();
-  final mobileController          = TextEditingController();
-  final emailController           = TextEditingController();
-  final passwordController        = TextEditingController();
-  final confirmPasswordController = TextEditingController();
+  late TextEditingController nameController,
+      mobileController,
+      emailController,
+      passwordController,
+      confirmPasswordController;
 
-  var isLoading     = false.obs;
-  var showPassword  = false.obs;
-  var isChecked     = true.obs;
-  var isOtpMode     = false.obs;
+  var isLoading = false.obs;
+  var showPassword = false.obs;
+  var isChecked = true.obs;
+
+  // Auth settings
+  var isOtpMode = false.obs;
   var isPasswordMode = true.obs;
 
   @override
   void onInit() {
-    super.onInit(); // ✅ super.onInit() FIRST
+    nameController = TextEditingController();
+    mobileController = TextEditingController();
+    emailController = TextEditingController();
+    passwordController = TextEditingController();
+    confirmPasswordController = TextEditingController();
+
+    // Load auth settings
     loadAuthSettings();
+    super.onInit();
   }
 
   void loadAuthSettings() {
-    isOtpMode.value     = AuthSettingsHelper.isEmailOtpEnabled();
+    isOtpMode.value = AuthSettingsHelper.isEmailOtpEnabled();
     isPasswordMode.value = AuthSettingsHelper.isEmailPasswordEnabled();
-    print('Register Auth Mode - OTP: ${isOtpMode.value}, Password: ${isPasswordMode.value}');
+    print(
+        'Register Auth Mode - OTP: ${isOtpMode.value}, Password: ${isPasswordMode.value}');
   }
 
-  void onChecked(val) => isChecked.value = val;
+  void onChecked(val) {
+    isChecked.value = val;
+  }
 
-  Future<void> onSubmit() async {
-    if (formKey.currentState!.validate()) {
+  @override
+  void onClose() {
+    nameController.dispose();
+    mobileController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.onClose();
+  }
+
+  /// Main submit handler - routes to OTP or password flow
+  Future<void> onSubmit([GlobalKey<FormState>? key]) async {
+    final targetForm = key ?? formKey;
+    if (targetForm.currentState!.validate()) {
       isLoading(true);
-      try {
-        final deviceDetails = await HelperFunctions.getDeviceDetails();
 
-        final body = isOtpMode.value
-            ? {
-          'email':          emailController.text,
-          'name':           nameController.text,
-          'mobile':         mobileController.text,
-          'device_details': deviceDetails,
+      try {
+        var body = {};
+
+        if (isOtpMode.value) {
+          body = {
+            'email': emailController.text.trim(),
+            'name': nameController.text.trim(),
+            'mobile': mobileController.text.trim(),
+            'device_details': await HelperFunctions.getDeviceDetails(),
+          };
+        } else {
+          body = {
+            'name': nameController.text.trim(),
+            'mobile': mobileController.text.trim(),
+            'email': emailController.text.trim(),
+            'password': passwordController.text,
+            'device_details': await HelperFunctions.getDeviceDetails(),
+          };
         }
-            : {
-          'name':              nameController.text,
-          'mobile':            mobileController.text,
-          'email':             emailController.text,
-          'password':          passwordController.text,
-          'confirem-password': confirmPasswordController.text,
-          'device_details':    deviceDetails,
-        };
 
         print('register form submitted $body');
 
-        final response = await BasicProvider('auth/register').postRequest(body);
-
+        var response = await BasicProvider('auth/register').postRequest(body);
         if (response != null) {
-          HelperFunctions().showSnackBarSuccess(response);
+          String successMessage = 'Registration successful!';
+          if (response is Map && response['message'] != null) {
+            successMessage = response['message'].toString();
+          } else if (response is String && response.isNotEmpty) {
+            successMessage = response;
+          }
+          HelperFunctions().showSnackBarSuccess(successMessage);
           if (isOtpMode.value) {
             Get.toNamed(Routes.OTP, arguments: {
-              'email':             emailController.text,
-              'mobile':            mobileController.text,
-              'name':              nameController.text,
-              'password':          passwordController.text,
-              'confirem-password': confirmPasswordController.text,
+              'email': emailController.text.trim(),
+              'mobile': mobileController.text.trim(),
+              'name': nameController.text.trim(),
+              'password': passwordController.text,
             });
           } else {
             Get.offAllNamed(Routes.LOGIN);
@@ -83,15 +112,5 @@ class RegisterController extends GetxController {
         isLoading(false);
       }
     }
-  }
-
-  @override
-  void onClose() {
-    nameController.dispose();
-    mobileController.dispose();
-    emailController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
-    super.onClose();
   }
 }

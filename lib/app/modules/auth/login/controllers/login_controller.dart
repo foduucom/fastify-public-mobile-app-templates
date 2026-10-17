@@ -10,7 +10,7 @@ import 'package:get_storage/get_storage.dart';
 class LoginController extends GetxController with BaseController {
   var obsecuretext = true.obs;
   var isLoading = false.obs;
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  GlobalKey<FormState> formKey = GlobalKey<FormState>();
   late TextEditingController emailController, passwordController;
   var email = "";
   var password = "";
@@ -22,6 +22,7 @@ class LoginController extends GetxController with BaseController {
   @override
   void onInit() {
     super.onInit();
+    formKey = GlobalKey<FormState>();
     emailController = TextEditingController();
     passwordController = TextEditingController();
 
@@ -51,14 +52,15 @@ class LoginController extends GetxController with BaseController {
   }
 
   /// Main submit handler - routes based on auth type
-  Future<void> onSubmit() async {
-    if (!formKey.currentState!.validate()) return;
+  Future<void> onSubmit([GlobalKey<FormState>? key]) async {
+    final targetForm = key ?? formKey;
+    if (targetForm.currentState == null || !targetForm.currentState!.validate()) return;
 
     isLoading(true);
 
     try {
       var form = {
-        'email': emailController.text,
+        'email': emailController.text.trim(),
         'device_details': await HelperFunctions.getDeviceDetails(),
       };
 
@@ -71,14 +73,14 @@ class LoginController extends GetxController with BaseController {
           .catchError(handleError);
 
       if (response != null) {
-        if (!isOtpMode.value) {
-          HelperFunctions().showSnackBarSuccess(response);
-          Get.toNamed(Routes.OTP, arguments: {'email': emailController.text});
-        } else {
-          // Get.toNamed(Routes.BOTTOMBAR);
-          HelperFunctions().showSnackBarSuccess(response);
-          Get.toNamed(Routes.OTP, arguments: {'email': emailController.text});
+        String successMessage = 'OTP sent successfully!';
+        if (response is Map && response['message'] != null) {
+          successMessage = response['message'].toString();
+        } else if (response is String && response.isNotEmpty) {
+          successMessage = response;
         }
+        HelperFunctions().showSnackBarSuccess(successMessage);
+        Get.toNamed(Routes.OTP, arguments: {'email': emailController.text.trim()});
       }
 
       // if (response != null) {

@@ -369,7 +369,9 @@ class BasicProvider {
       case 401:
       case 403:
         throw UnAuthorizedException(
-            message ?? response.request!.url.toString());
+            (message != null && message.toString().isNotEmpty)
+                ? message.toString()
+                : "Your session has expired");
       case 404:
         throw BadRequestException(message ?? "Requested URL does not exist!",
             response.request!.url.toString());

@@ -54,7 +54,10 @@ class AuthDetails with BaseController {
 
   static bool isUserLogin() {
     var isLogin = box.read('isLogin');
-    if (isLogin == true || isLogin == 'true') {
+    var token = box.read('token');
+    if ((isLogin == true || isLogin == 'true') &&
+        token != null &&
+        token.toString().isNotEmpty) {
       return true;
     } else {
       return false;
@@ -65,7 +68,7 @@ class AuthDetails with BaseController {
     var token = box.read('token');
     //print("Get Token: $token");
     if (token != null) {
-      return token;
+      return token.toString();
     } else {
       return null;
     }
@@ -92,22 +95,48 @@ class AuthDetails with BaseController {
 
   static void saveLoginResponse(dynamic response) {
     if (response != null) {
-      box.write('userData', response);
+      final userMap = (response is Map && response['data'] is Map && response['data']['id'] != null)
+          ? response['data']
+          : response;
+      box.write('userData', userMap);
       box.write('isLogin', true);
 
-      final data = response['data'];
+      // Support both unwrapped response (direct map) and wrapped { data: { token: ... } }
+      dynamic tokenData;
+      if (response is Map) {
+        tokenData = response['token'] ??
+            (response['data'] is Map ? response['data']['token'] : null) ??
+            response['access_token'] ??
+            (response['data'] is Map ? response['data']['access_token'] : null);
+      }
 
-      print("Save Login Response (data.token): ${data?['token']}");
+      print("Save Login Response (tokenData): $tokenData");
 
-      if (data != null && data['token'] != null) {
-        if (data['token'] is Map) {
-          box.write('token', data['token']['value']);
-          box.write('tokenExpiry', data['token']['expiry']);
+      if (tokenData != null) {
+        if (tokenData is Map) {
+          final tokenVal = tokenData['value'] ?? tokenData['token'];
+          final expiry = tokenData['expiry'];
+          if (tokenVal != null) {
+            box.write('token', tokenVal.toString());
+          }
+          if (expiry != null) {
+            box.write('tokenExpiry', expiry.toString());
+          }
         } else {
-          box.write('token', data['token']);
+          box.write('token', tokenData.toString());
         }
+        print("Save Login Response - Successfully stored token: ${box.read('token')}");
+      } else {
+        print("WARNING: Could not extract token from response: $response");
       }
     }
+  }
+
+  static void logOut() {
+    box.remove('token');
+    box.remove('tokenExpiry');
+    box.remove('userData');
+    box.write('isLogin', false);
   }
 
   static dynamic getUserDetails() {

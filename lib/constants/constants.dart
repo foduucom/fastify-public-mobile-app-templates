@@ -15,7 +15,7 @@ const appMode = "test";
 //var websiteDomain = "mywatch.vbought.com";
 
 // Foduu Restaurant websiteDomain
-var websiteDomain = "food-restuarant.vbought.com";
+var websiteDomain = "fashion-ecom.vbought.com";
 var url = "https://${websiteDomain}/";
 var socketUrl = "https://studio.vbought.com/";
 
@@ -25,7 +25,7 @@ var socketUrl = "https://studio.vbought.com/";
 //var ACCESS_KEY = 'd01c57ea80f544bb8b7f8c4d39cafe3f733c20524391ce73';
 
 // Foduu Restaurant ACCESS Key
-var ACCESS_KEY = '729890100c546c681b5a1e3a48c3478107b4a031df03d136';
+var ACCESS_KEY = 'b24b72857e003bd93ed74e58ff3457b0ca13de3b3f6c52bc';
 
 var assetURL = "${url}images/";
 var imageBase =

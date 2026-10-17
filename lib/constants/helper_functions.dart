@@ -30,8 +30,19 @@ class HelperFunctions {
     }
   }
 
-  void showSnackBarError(String message) {
-    Get.snackbar("Error!", message,
+  void showSnackBarError(dynamic message) {
+    String msgStr = 'Something went wrong!';
+    if (message is String) {
+      msgStr = message;
+    } else if (message is Map) {
+      msgStr = message['message']?.toString() ??
+          message['error']?.toString() ??
+          message['data']?.toString() ??
+          message.toString();
+    } else if (message != null) {
+      msgStr = message.toString();
+    }
+    Get.snackbar("Error!", msgStr,
         backgroundColor: Colors.red,
         colorText: Colors.white,
         isDismissible: true,
@@ -40,8 +51,18 @@ class HelperFunctions {
         duration: const Duration(seconds: 3));
   }
 
-  void showSnackBarSuccess(String message) {
-    Get.snackbar("Success!", message,
+  void showSnackBarSuccess(dynamic message) {
+    String msgStr = 'Success!';
+    if (message is String) {
+      msgStr = message;
+    } else if (message is Map) {
+      msgStr = message['message']?.toString() ??
+          message['data']?.toString() ??
+          message.toString();
+    } else if (message != null) {
+      msgStr = message.toString();
+    }
+    Get.snackbar("Success!", msgStr,
         backgroundColor: Colors.green,
         colorText: Colors.white,
         isDismissible: true,

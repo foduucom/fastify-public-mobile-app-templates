@@ -1,13 +1,12 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
-import '../../../../../components/app_back_button.dart';
-import '../../otp/view/otp_view.dart';
-import '/app/routes/app_pages.dart';
-import '/components/buttons/appbutton.dart';
-
-import '/constants/helper_functions.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+
+import '../../../../../components/app_back_button.dart';
+import '/app/routes/app_pages.dart';
+import '/constants/helper_functions.dart';
 import '../controllers/register_controller.dart';
 
 class RegisterView extends GetView<RegisterController> {
@@ -51,7 +50,7 @@ class RegisterView extends GetView<RegisterController> {
 
               // ── Headline ───────────────────────────────────────────
               Text(
-                'Complet your account',
+                'Complete your account',
                 style: textTheme.headlineMedium?.copyWith(
                   color: colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
@@ -74,16 +73,16 @@ class RegisterView extends GetView<RegisterController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── First Name ─────────────────────────────────
-                    _FieldLabel('First Name', textTheme),
+                    // ── Full Name ──────────────────────────────────
+                    _FieldLabel('Name', textTheme),
                     const SizedBox(height: 8),
                     _InputField(
                       controller: controller.nameController,
-                      hint: 'Enter your email address',
+                      hint: 'Enter your name',
                       keyType: TextInputType.name,
                       validator: (v) {
                         if (v == null || v.trim().length < 2) {
-                          return 'Enter valid first name';
+                          return 'Enter valid name';
                         }
                         return null;
                       },
@@ -91,13 +90,23 @@ class RegisterView extends GetView<RegisterController> {
 
                     const SizedBox(height: 20),
 
-                    // ── Last Name ──────────────────────────────────
-                    _FieldLabel('Last Name', textTheme),
+                    // ── Mobile Number ──────────────────────────────
+                    _FieldLabel('Phone Number', textTheme),
                     const SizedBox(height: 8),
                     _InputField(
                       controller: controller.mobileController,
-                      hint: 'Enter your name',
-                      keyType: TextInputType.name,
+                      hint: 'Enter 10-digit mobile number',
+                      keyType: TextInputType.phone,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(10),
+                      ],
+                      validator: (v) {
+                        if (v == null || v.trim().length != 10) {
+                          return 'Please enter a valid 10-digit mobile number';
+                        }
+                        return null;
+                      },
                     ),
 
                     const SizedBox(height: 20),
@@ -110,8 +119,10 @@ class RegisterView extends GetView<RegisterController> {
                       hint: 'Enter your email',
                       keyType: TextInputType.emailAddress,
                       validator: (v) {
-                        if (v == null || v.isEmpty) return 'Email required';
-                        if (!GetUtils.isEmail(v)) return 'Enter valid email';
+                        if (v == null || v.trim().isEmpty)
+                          return 'Email required';
+                        if (!GetUtils.isEmail(v.trim()))
+                          return 'Enter valid email';
                         return null;
                       },
                     ),
@@ -149,12 +160,14 @@ class RegisterView extends GetView<RegisterController> {
                     ),
 
                     const SizedBox(height: 32),
-// ── Sign Up Button ─────────────────────────────────────────────
+
+                    // ── Sign Up Button ─────────────────────────────
                     Obx(() {
                       if (controller.isLoading.value) {
                         return Center(
                           child: CircularProgressIndicator(
-                              color: colorScheme.primary),
+                            color: colorScheme.primary,
+                          ),
                         );
                       }
                       return SizedBox(
@@ -163,8 +176,6 @@ class RegisterView extends GetView<RegisterController> {
                         child: ElevatedButton(
                           onPressed: () {
                             HelperFunctions().closeKeyboard(context);
-                            // ✅ onSubmit() already navigates to OTP or LOGIN internally
-                            // ❌ REMOVED: Navigator.push to OTPView — was causing double navigation
                             controller.onSubmit();
                           },
                           style: ElevatedButton.styleFrom(
@@ -176,7 +187,7 @@ class RegisterView extends GetView<RegisterController> {
                             elevation: 0,
                           ),
                           child: Text(
-                            'Sign Up',
+                            controller.isOtpMode.value ? 'Send OTP' : 'Sign Up',
                             style: textTheme.titleMedium?.copyWith(
                               color: colorScheme.onPrimary,
                               fontWeight: FontWeight.w600,
@@ -186,51 +197,6 @@ class RegisterView extends GetView<RegisterController> {
                         ),
                       );
                     }),
-                    // ── Sign Up Button ─────────────────────────────
-                    // Obx(() {
-                    //   if (controller.isLoading.value) {
-                    //     return Center(
-                    //       child: CircularProgressIndicator(
-                    //           color: colorScheme.primary),
-                    //     );
-                    //   }
-                    //   return SizedBox(
-                    //     width: double.infinity,
-                    //     height: 54,
-                    //     child: ElevatedButton(
-                    //       onPressed: () {
-                    //         HelperFunctions().closeKeyboard(context);
-                    //
-                    //         if (controller.formKey.currentState!.validate()) {
-                    //           controller.onSubmit();
-                    //
-                    //           Navigator.push(
-                    //             context,
-                    //             MaterialPageRoute(
-                    //               builder: (context) => OTPView(),
-                    //             ),
-                    //           );
-                    //         }
-                    //       },
-                    //       style: ElevatedButton.styleFrom(
-                    //         backgroundColor: colorScheme.primary,
-                    //         foregroundColor: colorScheme.onPrimary,
-                    //         shape: RoundedRectangleBorder(
-                    //           borderRadius: BorderRadius.circular(30),
-                    //         ),
-                    //         elevation: 0,
-                    //       ),
-                    //       child: Text(
-                    //         'Sign Up',
-                    //         style: textTheme.titleMedium?.copyWith(
-                    //           color: colorScheme.onPrimary,
-                    //           fontWeight: FontWeight.w600,
-                    //           fontSize: 16,
-                    //         ),
-                    //       ),
-                    //     ),
-                    //   );
-                    // }),
 
                     const SizedBox(height: 24),
 
@@ -295,12 +261,14 @@ class _InputField extends StatelessWidget {
   final String hint;
   final TextInputType keyType;
   final String? Function(String?)? validator;
+  final List<TextInputFormatter>? inputFormatters;
 
   const _InputField({
     required this.controller,
     required this.hint,
     this.keyType = TextInputType.text,
     this.validator,
+    this.inputFormatters,
   });
 
   @override
@@ -310,6 +278,7 @@ class _InputField extends StatelessWidget {
       controller: controller,
       keyboardType: keyType,
       validator: validator,
+      inputFormatters: inputFormatters,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14),
@@ -374,7 +343,9 @@ class _PasswordFieldState extends State<_PasswordField> {
       decoration: InputDecoration(
         hintText: widget.hint,
         hintStyle: TextStyle(
-            color: colorScheme.onSurfaceVariant, fontSize: 14),
+          color: colorScheme.onSurfaceVariant,
+          fontSize: 14,
+        ),
         filled: true,
         fillColor: colorScheme.surfaceContainerHighest,
         contentPadding:

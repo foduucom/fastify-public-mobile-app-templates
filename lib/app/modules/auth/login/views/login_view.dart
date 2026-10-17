@@ -10,8 +10,22 @@ import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import '../controllers/login_controller.dart';
 
-class LoginView extends GetView<LoginController> {
-  LoginView({Key? key}) : super(key: key);
+class LoginView extends StatefulWidget {
+  const LoginView({Key? key}) : super(key: key);
+
+  @override
+  State<LoginView> createState() => _LoginViewState();
+}
+
+class _LoginViewState extends State<LoginView> {
+  final _formKey = GlobalKey<FormState>();
+  late final LoginController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.find<LoginController>();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +86,7 @@ class LoginView extends GetView<LoginController> {
                   ),
                 ),
                 child: Form(
-                  key: controller.formKey,
+                  key: _formKey,
                   child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,7 +171,7 @@ class LoginView extends GetView<LoginController> {
                             child: ElevatedButton(
                               onPressed: () {
                                 HelperFunctions().closeKeyboard(context);
-                                controller.onSubmit();
+                                controller.onSubmit(_formKey);
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: colorScheme.primary,

@@ -51,8 +51,11 @@ class HomepageController extends GetxController
           .catchError(handleError);
 
       if (response != null) {
-        var list = response['value'];
-        drawernavigationItems.assignAll(list);
+        if (response is Map && response['value'] is Iterable) {
+          drawernavigationItems.assignAll(response['value']);
+        } else if (response is Iterable) {
+          drawernavigationItems.assignAll(response);
+        }
       }
 
       return response;
