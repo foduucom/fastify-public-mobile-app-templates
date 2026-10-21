@@ -74,21 +74,41 @@ class CheckOutView extends GetView<CheckOutController> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          Obx(
-                            () => controller.paymentOptions.isEmpty
-                                ? const PaymentMethodShimmer()
-                                : ListView.separated(
-                                    separatorBuilder: (_, __) =>
-                                        const SizedBox(height: 10),
-                                    shrinkWrap: true,
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    itemCount: controller.paymentOptions.length,
-                                    itemBuilder: (context, index) {
-                                      return _buildPaymentTile(index);
-                                    },
+                          Obx(() {
+                            if (controller.isPaymentLoading.value &&
+                                controller.paymentOptions.isEmpty) {
+                              return const PaymentMethodShimmer();
+                            }
+                            if (controller.paymentOptions.isEmpty) {
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 24),
+                                child: Center(
+                                  child: Text(
+                                    'No payment methods available',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                        ),
                                   ),
-                          ),
+                                ),
+                              );
+                            }
+                            return ListView.separated(
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 10),
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: controller.paymentOptions.length,
+                              itemBuilder: (context, index) {
+                                return _buildPaymentTile(index);
+                              },
+                            );
+                          }),
                         ],
                       ),
                     ),
@@ -294,8 +314,7 @@ class CheckOutView extends GetView<CheckOutController> {
           double originalBagTotal = cartController.bagPriceAmount.value;
           double itemSavings = cartController.discountAmount.value;
           double couponDiscountAmount =
-              double.tryParse(cartController.couponDiscountAmount.value) ??
-                  0.0;
+              double.tryParse(cartController.couponDiscountAmount.value) ?? 0.0;
           double taxableValue =
               cartController.subTotalAmount.value - couponDiscountAmount;
           double totalTaxAmount = cartController.tax.value;
