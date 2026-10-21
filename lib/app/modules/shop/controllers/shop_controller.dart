@@ -477,7 +477,21 @@ class ShopController extends GetxController
     applyFiltersAndRefresh();
   }
 
+  /// Back to the plain Shop landing: reset filters without triggering a
+  /// product fetch, then reload the CMS layout.
+  void resetToPlainShop() {
+    isPlainShopEntry.value = true;
+    collectionName.value = "Shop";
+    _clearFiltersWithoutFetch();
+    fetchLayout(pageSlug);
+  }
+
   void clearAllFilters() {
+    _clearFiltersWithoutFetch();
+    applyFiltersAndRefresh();
+  }
+
+  void _clearFiltersWithoutFetch() {
     isFeatured.value = false;
     isHot.value = false;
     isTrending.value = false;
@@ -486,13 +500,13 @@ class ShopController extends GetxController
     selectedCategories.clear();
     selectedBrands.clear();
     selectedAttributes.clear();
+    filterCurrentCategories.clear();
     minPrice.value = 0.0;
     maxPrice.value = 10000.0;
     currentPriceRange.value = const RangeValues(0, 10000);
     sortBy.value = "created_at";
     sortOrder.value = "desc";
     selectedSortOption.value = ShopSortOption.newest;
-    applyFiltersAndRefresh();
   }
 
   bool get hasActiveFilters {

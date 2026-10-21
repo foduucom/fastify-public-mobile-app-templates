@@ -49,7 +49,8 @@ mixin ShopCategoryFilterMixin on GetxController {
     filterCategoryStack.removeLast();
     if (filterCategoryStack.isEmpty) {
       // Back to the root category passed in via navigation arguments.
-      final rawChildren = Get.arguments is Map ? Get.arguments['children'] : null;
+      final rawChildren =
+          Get.arguments is Map ? Get.arguments['children'] : null;
       filterCurrentCategories.assignAll(rawChildren is List ? rawChildren : []);
     } else {
       final parent = filterCategoryStack.last['cat'] as Map;
@@ -61,8 +62,8 @@ mixin ShopCategoryFilterMixin on GetxController {
   List<Map<String, dynamic>> getSearchedCategories(String query) {
     final lower = query.toLowerCase();
     return allCategories
-        .where((c) =>
-            (c['name']?.toString().toLowerCase() ?? '').contains(lower))
+        .where(
+            (c) => (c['name']?.toString().toLowerCase() ?? '').contains(lower))
         .map((e) => Map<String, dynamic>.from(e))
         .toList();
   }

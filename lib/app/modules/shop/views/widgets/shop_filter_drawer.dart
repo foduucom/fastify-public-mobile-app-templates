@@ -233,8 +233,7 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
   }) {
     return Obx(() {
       final loading = controller.isCategoryTreeLoading.value;
-      final hasError =
-          controller.categoryTreeErrorByType[attributeKey] == true;
+      final hasError = controller.categoryTreeErrorByType[attributeKey] == true;
       final nodes = controller.categoryTreeByType[attributeKey] ?? [];
 
       final selectedCount = tempSet.length;
@@ -789,4 +788,3 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
     );
   }
 }
-
