@@ -1,14 +1,13 @@
 import 'dart:io';
-import 'package:foduu_ecommerce/app/modules/auth/token_manager.dart';
-import 'package:foduu_ecommerce/constants/constants.dart';
+import '/constants/constants.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
-import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
-import 'package:foduu_ecommerce/app/data/basic_provider.dart';
-import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import '/app/controllers/api_exception_handle_controller.dart';
+import '/app/data/basic_provider.dart';
+import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -19,57 +18,69 @@ class OrderdetailController extends GetxController with BaseController {
   var isLoading = false.obs;
   var downloading = false.obs;
 
-  var box = GetStorage();
+  final List<String> stages = [
+    'Order Placed',
+    'Processing',
+    'Shipped',
+    'Out for Delivery',
+    'Delivered',
+  ];
+
   @override
   Future<void> onInit() async {
     super.onInit();
     if (Get.arguments != null && Get.arguments['id'] != null) {
-      id.value = Get.arguments['id'];
+      id.value = Get.arguments['id'].toString();
     }
 
     await OrderDetail();
   }
 
   Future<void> OrderDetail() async {
-    isLoading.value = true;
-    var response = await BasicProvider("orders/show/$id")
-        .getRequest()
-        .catchError(handleError);
+    try {
+      isLoading.value = true;
+      var response = await BasicProvider("order/$id")
+          .getRequest()
+          .catchError(handleError);
 
-    if (response == null) return;
-    item.value = response;
-    isLoading.value = false;
+      printInfo(info: 'OrderDetail response: $response');
+      if (response == null) return;
+
+      item.value = response;
+    } catch (e) {
+      print('Error in OrderDetail: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  // Future<void> downloadAndSavePDF(String orderId) async {
-  //   final String apiUrl =
-  //       'http://mern.foduu.com:3016/api/public/orders/exporttopdf/$id';
-  //   // final String apiUrl = apiURL + endpiont;
-  //   final PermissionStatus permissionStatus =
-  //       await Permission.storage.request();
-  //   if (permissionStatus != PermissionStatus.granted) {
-  //     return;
-  //   }
-  //   try {
-  //     final http.Response response = await http.get(Uri.parse(apiUrl));
-  //     final appDocDir = await getExternalStorageDirectory();
-  //     final List<int> bytes = response.bodyBytes;
-  //     final String fileName = 'invoice_$orderId.pdf';
-  //     // final String filePath = '${appDocDir!.path}/$fileName';
-  //     final String filePath = '/storage/emulated/0/Download/$fileName';
-
-  //     final File file = File(filePath);
-  //     await file.writeAsBytes(bytes);
-  //     HelperFunctions()
-  //         .showSnackBarSuccess('Invoice downloaded and saved successfully');
-  //     // launchUrl(file.path);
-  //   } catch (e) {
-  //     print('Error: $e');
-  //     // Handle error
-  //   }
-  // }
+  /// Returns the current stage index (1-based) based on order status.
+  int getCurrentStage() {
+    final orderData = item.containsKey('data') && item['data'] is Map
+        ? item['data']
+        : item;
+    final status = (orderData['status'] is Map
+            ? orderData['status']['name']
+            : orderData['status'])
+        ?.toString()
+        .toLowerCase() ??
+        '';
+    if (status.contains('delivered')) return 5;
+    if (status.contains('out for delivery') ||
+        status.contains('out_for_delivery')) return 4;
+    if (status.contains('shipped')) return 3;
+    if (status.contains('processing')) return 2;
+    return 1; // Order Placed
+  }
 
   Future<void> downloadAndSavePDF(String id) async {
+    final orderData = item.containsKey('data') && item['data'] is Map ? item['data'] : item;
+    final paymentMethod = (orderData['payment_method'] ?? '').toString().toLowerCase();
+    final paymentStatus = (orderData['payment_status'] ?? '').toString().toLowerCase();
+    if (paymentMethod == 'cod' && paymentStatus != 'paid') {
+      HelperFunctions().showSnackBarError('Invoice will be available after payment is completed on delivery.');
+      return;
+    }
     if (await Permission.storage.request().isGranted) {
       try {
         downloading.value = true;
@@ -121,59 +132,6 @@ class OrderdetailController extends GetxController with BaseController {
     }
   }
 
-  Map<String, String> headerType() {
-    // var userData = box.read("userDetails");
-
-    // print('token $userData');
-    var token = TokenManager.accessToken;
-    Map<String, String> userHeader;
-    if (token != null) {
-      userHeader = {
-        "Accept": "application/json",
-        "Authorization": "Bearer ${token}"
-      };
-    } else {
-      userHeader = {
-        "Accept": "application/json",
-      };
-    }
-    return userHeader;
-  }
-
-  // Future<void> downloadAndSavePDF(String orderId) async {
-  //   isLoading.value = true;
-
-  //   final String endpiont = 'orders/pdf/$orderId';
-  //   final String apiUrl = apiURL + endpiont;
-
-  //   final PermissionStatus permissionStatus =
-  //       await Permission.storage.request();
-  //   // if (permissionStatus != PermissionStatus.granted) {
-  //   //   return;
-  //   // }
-  //   try {
-  //     final http.Response response =
-  //         await http.get(Uri.parse(apiUrl), headers: headerType());
-  //     final appDocDir = await getExternalStorageDirectory();
-  //     final List<int> bytes = response.bodyBytes;
-  //     final String fileName = 'invoice_$orderId.pdf';
-  //     // final String filePath = '${appDocDir!.path}/$fileName';
-  //     final String filePath = '/storage/emulated/0/Download/$fileName';
-
-  //     final File file = File(filePath);
-  //     await file.writeAsBytes(bytes);
-  //     HelperFunctions()
-  //         .showSnackBarSuccess('Invoice downloaded and saved successfully');
-  //     // launchUrl(file.path);
-  //     isLoading.value = false;
-  //   } catch (e) {
-  //     isLoading.value = false;
-
-  //     print('Error: $e');
-  //     // Handle error
-  //   }
-  // }
-
   @override
   void onReady() {
     super.onReady();
@@ -191,7 +149,7 @@ class OrderdetailController extends GetxController with BaseController {
       'rating': rating,
       'summary': summary,
     };
-    var response = await BasicProvider("reviews/product")
+    var response = await BasicProvider("public/reviews/product")
         .postRequest(form)
         .catchError(handleError);
     print('$response     $id');

@@ -237,26 +237,45 @@ class CheckoutViews extends GetView<CheckOutController> {
             // Force a rebuild by accessing the observable
             final currentIndex = controller.selectedIndex.value;
 
-            return controller.paymentOptions.isEmpty
-                ? _buildPaymentMethodShimmer(width, height, context)
-                : ListView.separated(
-                    separatorBuilder: (_, __) =>
-                        SizedBox(height: height * 0.012),
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: EdgeInsets.zero,
-                    itemCount: controller.paymentOptions.length,
-                    itemBuilder: (context, index) {
-                      // Pass currentIndex to force comparison
-                      return _buildPaymentTile(
-                        index,
-                        width,
-                        height,
-                        currentIndex, // Pass current index for comparison
-                        context,
-                      );
-                    },
-                  );
+            if (controller.isPaymentLoading.value &&
+                controller.paymentOptions.isEmpty) {
+              return _buildPaymentMethodShimmer(width, height, context);
+            }
+
+            if (controller.paymentOptions.isEmpty) {
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: height * 0.02),
+                child: Center(
+                  child: Text(
+                    'No payment methods available',
+                    style: TextStyle(
+                      fontFamily: 'lato',
+                      fontSize: 14,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            return ListView.separated(
+              separatorBuilder: (_, __) =>
+                  SizedBox(height: height * 0.012),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              itemCount: controller.paymentOptions.length,
+              itemBuilder: (context, index) {
+                // Pass currentIndex to force comparison
+                return _buildPaymentTile(
+                  index,
+                  width,
+                  height,
+                  currentIndex, // Pass current index for comparison
+                  context,
+                );
+              },
+            );
           }),
         ],
       ),

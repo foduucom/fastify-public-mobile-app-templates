@@ -17,7 +17,9 @@ const appMode = "test";
 // var socketUrl = "https://studio.vbought.com/";
 
 // ZOOHI websiteDomain
-var websiteDomain = "traditional-ecom.vbought.com";
+//var websiteDomain = "traditional-ecom.vbought.com";
+
+var websiteDomain = "traditional-ecom.foduu.store";
 var url = "https://${websiteDomain}/";
 var socketUrl = "https://studio.vbought.com/";
 

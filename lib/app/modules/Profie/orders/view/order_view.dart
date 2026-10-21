@@ -157,7 +157,12 @@ class OrderCard extends StatelessWidget {
 
     final orderId =
         (item['order_no'] ?? item['_id'] ?? item['id'] ?? '').toString();
-    final paymentStatus = (item['payment_status'] ?? 'Pending').toString();
+    final paymentMethod = (item['payment_method'] ?? '').toString();
+    final isCod = paymentMethod.toLowerCase() == 'cod';
+    final rawPaymentStatus = (item['payment_status'] ?? 'Pending').toString();
+    final paymentStatus = (isCod && rawPaymentStatus.toLowerCase() == 'pending')
+        ? 'COD - Pending'
+        : rawPaymentStatus;
     final currency = (item['currency'] ?? '₹').toString();
     final total = (item['total'] ?? '0').toString();
     final createdAt = item['created_at']?.toString();
@@ -182,8 +187,11 @@ class OrderCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: theme.outline.withOpacity(0.25)),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // ── Product Image ──────────────────────────────
             ClipRRect(
@@ -290,12 +298,65 @@ class OrderCard extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(width: 4),
-            Icon(
-              Icons.chevron_right_rounded,
-              color: theme.onSurface.withValues(alpha: 0.3),
-              size: 18,
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => Get.toNamed(
+                  Routes.ORDER_PRODUCTS,
+                  arguments: {'order': item},
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: theme.onSurface,
+                  side: BorderSide(color: theme.outline.withValues(alpha: 0.5)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                ),
+                child: Text(
+                  'Details',
+                  style: textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: theme.onSurface,
+                    fontFamily: 'lato',
+                  ),
+                ),
+              ),
             ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () {
+                  final rawId = (item['_id'] ?? item['id'] ?? '').toString();
+                  if (rawId.isNotEmpty) {
+                    Get.toNamed(Routes.ORDER_DETAILS, arguments: {'id': rawId});
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.primary,
+                  foregroundColor: theme.onPrimary,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                ),
+                child: Text(
+                  'Tracking',
+                  style: textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.onPrimary,
+                    fontFamily: 'lato',
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
           ],
         ),
       ),
@@ -328,6 +389,7 @@ class _StatusBadge extends StatelessWidget {
       case 'completed':
         color = const Color(0xFF3BC24F);
         break;
+      case 'cod - pending':
       case 'pending':
       case 'unpaid':
       case 'processing':
