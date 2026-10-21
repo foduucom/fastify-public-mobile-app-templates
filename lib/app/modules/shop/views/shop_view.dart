@@ -23,193 +23,185 @@ class ShopView extends GetView<ShopController> {
     // Plain Shop landing: the CMS layout fills the screen, so the filter /
     // sort toolbar only shows once the user is looking at a filtered list.
     return Obx(() {
-      final isPlain = controller.isPlainShopEntry.value;
-      return Scaffold(
-        key: scaffoldKey,
+    final isPlain = controller.isPlainShopEntry.value;
+    return Scaffold(
+      key: scaffoldKey,
+      backgroundColor: colorScheme.background,
+      drawer: ShopFilterDrawer(controller: controller),
+      appBar: AppBar(
         backgroundColor: colorScheme.background,
-        drawer: ShopFilterDrawer(controller: controller),
-        appBar: AppBar(
-          backgroundColor: colorScheme.background,
-          elevation: 0,
-          centerTitle: true,
-          leading: Obx(() {
-            if (controller.isPlainShopEntry.value) {
-              return const SizedBox.shrink();
-            }
-            return IconButton(
-              icon: Icon(
-                Icons.arrow_back_ios_new,
-                color: colorScheme.onSurface,
-                size: 20,
-              ),
-              tooltip: 'Back',
-              onPressed: () {
-                if (controller.filterCategoryStack.isNotEmpty) {
-                  controller.goUpFilterCategory();
-                } else if (Navigator.canPop(context)) {
-                  Get.back();
-                } else if (Get.isRegistered<BottombarController>() &&
-                    Get.find<BottombarController>().popTabHistory()) {
-                  // Popped back to previous tab
-                } else {
-                  controller.isPlainShopEntry.value = true;
-                  controller.fetchLayout(ShopController.pageSlug);
-                }
-              },
+        elevation: 0,
+        centerTitle: true,
+        leading: Obx(() {
+          if (controller.isPlainShopEntry.value) {
+            return const SizedBox.shrink();
+          }
+          return IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_new,
+              color: colorScheme.onSurface,
+              size: 20,
+            ),
+            tooltip: 'Back',
+            onPressed: () {
+              if (controller.filterCategoryStack.isNotEmpty) {
+                controller.goUpFilterCategory();
+              } else if (Navigator.canPop(context)) {
+                Get.back();
+              } else if (Get.isRegistered<BottombarController>() &&
+                  Get.find<BottombarController>().popTabHistory()) {
+                // Popped back to previous tab
+              } else {
+                controller.isPlainShopEntry.value = true;
+                controller.fetchLayout(ShopController.pageSlug);
+              }
+            },
+          );
+        }),
+        title: Obx(() {
+          if (controller.isPlainShopEntry.value) {
+            return Text(
+              "Shop",
+              style:
+                  textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             );
-          }),
-          title: Obx(() {
-            if (controller.isPlainShopEntry.value) {
-              return Text(
-                "Shop",
+          }
+          return Column(
+            children: [
+              Text(
+                controller.collectionName.value,
                 style:
                     textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              );
-            }
-            return Column(
-              children: [
-                Text(
-                  controller.collectionName.value,
-                  style: textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  "${controller.totalProducts.value} items",
-                  style: textTheme.bodySmall
-                      ?.copyWith(color: colorScheme.onSurfaceVariant),
-                ),
-              ],
-            );
-          }),
-          bottom: isPlain
-              ? null
-              : PreferredSize(
-                  preferredSize: const Size.fromHeight(52),
-                  child: Obx(() {
-                    return Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                      child: Row(
-                        children: [
-                          Flexible(
-                            child: _FilterTrigger(
-                              count: controller.activeFilterCount,
-                              onTap: () {
-                                controller.ensureFilterDataLoaded();
-                                controller.ensureCategoryTreeLoaded();
-                                scaffoldKey.currentState?.openDrawer();
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: PopupMenuButton<ShopSortOption>(
-                              onSelected: controller.applySortOption,
-                              itemBuilder: (_) => [
-                                CheckedPopupMenuItem(
-                                  value: ShopSortOption.featured,
-                                  checked:
-                                      controller.selectedSortOption.value ==
-                                          ShopSortOption.featured,
-                                  child: const Text("Featured"),
-                                ),
-                                CheckedPopupMenuItem(
-                                  value: ShopSortOption.priceLowHigh,
-                                  checked:
-                                      controller.selectedSortOption.value ==
-                                          ShopSortOption.priceLowHigh,
-                                  child: const Text("Price: Low to High"),
-                                ),
-                                CheckedPopupMenuItem(
-                                  value: ShopSortOption.priceHighLow,
-                                  checked:
-                                      controller.selectedSortOption.value ==
-                                          ShopSortOption.priceHighLow,
-                                  child: const Text("Price: High to Low"),
-                                ),
-                                CheckedPopupMenuItem(
-                                  value: ShopSortOption.newest,
-                                  checked:
-                                      controller.selectedSortOption.value ==
-                                          ShopSortOption.newest,
-                                  child: const Text("Newest"),
-                                ),
-                                CheckedPopupMenuItem(
-                                  value: ShopSortOption.trending,
-                                  checked:
-                                      controller.selectedSortOption.value ==
-                                          ShopSortOption.trending,
-                                  child: const Text("Trending"),
-                                ),
-                              ],
-                              child: _SortTrigger(label: controller.sortLabel),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                ),
-        ),
-        body: PopScope(
-          canPop: controller.filterCategoryStack.isEmpty &&
-              controller.isPlainShopEntry.value,
-          onPopInvokedWithResult: (didPop, _) {
-            if (didPop) return;
-            if (controller.filterCategoryStack.isNotEmpty) {
-              controller.goUpFilterCategory();
-              return;
-            }
-            if (Navigator.canPop(context)) {
-              Get.back();
-              return;
-            }
-            if (Get.isRegistered<BottombarController>() &&
-                Get.find<BottombarController>().popTabHistory()) {
-              return;
-            }
-            if (!controller.isPlainShopEntry.value) {
-              controller.isPlainShopEntry.value = true;
-              controller.fetchLayout(ShopController.pageSlug);
-              return;
-            }
-          },
+              ),
+              Text(
+                "${controller.totalProducts.value} items",
+                style: textTheme.bodySmall
+                    ?.copyWith(color: colorScheme.onSurfaceVariant),
+              ),
+            ],
+          );
+        }),
+        bottom: isPlain ? null : PreferredSize(
+          preferredSize: const Size.fromHeight(52),
           child: Obx(() {
-            if (controller.isPlainShopEntry.value) {
-              return FoduuStudioLayoutView(
-                onRefresh: () =>
-                    controller.fetchLayout(ShopController.pageSlug),
-                widgetList: controller.widgetList,
-                isLoading: controller.isLayoutLoading,
-                hasError: controller.hasError,
-              );
-            }
-            // ── FILTERED / DASHBOARD ENTRY ──
-            return Column(
-              children: [
-                // ── CMS FREE-WILL SECTIONS (banner, rich_text, etc.) ──
-                ...controller.buildWidgetsExcluding(['categories', 'products']),
-
-                // ── ACTIVE FILTER CHIPS (Horizontal Scroll) ──
-                if (_hasActiveFilters()) _buildActiveFilterChips(colorScheme),
-
-                // ── SUB CATEGORY STRIP (only when entered with category context) ──
-                _buildSubCategorySection(colorScheme),
-
-                // ── PRODUCT GRID ──
-                Expanded(
-                  child: controller.isLoading.value
-                      ? _buildGridShimmer()
-                      : RefreshIndicator(
-                          onRefresh: () =>
-                              controller.fetchProducts(isRefresh: true),
-                          child: _buildProductGrid(colorScheme, textTheme),
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Row(
+                children: [
+                  Flexible(
+                    child: _FilterTrigger(
+                      count: controller.activeFilterCount,
+                      onTap: () {
+                        controller.ensureFilterDataLoaded();
+                        controller.ensureCategoryTreeLoaded();
+                        scaffoldKey.currentState?.openDrawer();
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: PopupMenuButton<ShopSortOption>(
+                      onSelected: controller.applySortOption,
+                      itemBuilder: (_) => [
+                        CheckedPopupMenuItem(
+                          value: ShopSortOption.featured,
+                          checked: controller.selectedSortOption.value ==
+                              ShopSortOption.featured,
+                          child: const Text("Featured"),
                         ),
-                ),
-              ],
+                        CheckedPopupMenuItem(
+                          value: ShopSortOption.priceLowHigh,
+                          checked: controller.selectedSortOption.value ==
+                              ShopSortOption.priceLowHigh,
+                          child: const Text("Price: Low to High"),
+                        ),
+                        CheckedPopupMenuItem(
+                          value: ShopSortOption.priceHighLow,
+                          checked: controller.selectedSortOption.value ==
+                              ShopSortOption.priceHighLow,
+                          child: const Text("Price: High to Low"),
+                        ),
+                        CheckedPopupMenuItem(
+                          value: ShopSortOption.newest,
+                          checked: controller.selectedSortOption.value ==
+                              ShopSortOption.newest,
+                          child: const Text("Newest"),
+                        ),
+                        CheckedPopupMenuItem(
+                          value: ShopSortOption.trending,
+                          checked: controller.selectedSortOption.value ==
+                              ShopSortOption.trending,
+                          child: const Text("Trending"),
+                        ),
+                      ],
+                      child: _SortTrigger(label: controller.sortLabel),
+                    ),
+                  ),
+                ],
+              ),
             );
           }),
         ),
-      );
+      ),
+      body: PopScope(
+        canPop: controller.filterCategoryStack.isEmpty &&
+            controller.isPlainShopEntry.value,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) return;
+          if (controller.filterCategoryStack.isNotEmpty) {
+            controller.goUpFilterCategory();
+            return;
+          }
+          if (Navigator.canPop(context)) {
+            Get.back();
+            return;
+          }
+          if (Get.isRegistered<BottombarController>() &&
+              Get.find<BottombarController>().popTabHistory()) {
+            return;
+          }
+          if (!controller.isPlainShopEntry.value) {
+            controller.isPlainShopEntry.value = true;
+            controller.fetchLayout(ShopController.pageSlug);
+            return;
+          }
+        },
+        child: Obx(() {
+          if (controller.isPlainShopEntry.value) {
+            return FoduuStudioLayoutView(
+              onRefresh: () => controller.fetchLayout(ShopController.pageSlug),
+              widgetList: controller.widgetList,
+              isLoading: controller.isLayoutLoading,
+              hasError: controller.hasError,
+            );
+          }
+          // ── FILTERED / DASHBOARD ENTRY ──
+          return Column(
+            children: [
+              // ── CMS FREE-WILL SECTIONS (banner, rich_text, etc.) ──
+              ...controller.buildWidgetsExcluding(['categories', 'products']),
+
+              // ── ACTIVE FILTER CHIPS (Horizontal Scroll) ──
+              if (_hasActiveFilters()) _buildActiveFilterChips(colorScheme),
+
+              // ── SUB CATEGORY STRIP (only when entered with category context) ──
+              _buildSubCategorySection(colorScheme),
+
+              // ── PRODUCT GRID ──
+              Expanded(
+                child: controller.isLoading.value
+                    ? _buildGridShimmer()
+                    : RefreshIndicator(
+                        onRefresh: () =>
+                            controller.fetchProducts(isRefresh: true),
+                        child: _buildProductGrid(colorScheme, textTheme),
+                      ),
+              ),
+            ],
+          );
+        }),
+      ),
+    );
     });
   }
 

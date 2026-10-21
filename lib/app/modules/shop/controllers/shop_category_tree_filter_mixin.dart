@@ -31,8 +31,7 @@ mixin ShopCategoryTreeFilterMixin on GetxController {
     isCategoryTreeLoading.value = true;
     try {
       if (categoryTypes.isEmpty) {
-        categoryTypes
-            .assignAll(await _categoryFilterService.getCategoryTypes());
+        categoryTypes.assignAll(await _categoryFilterService.getCategoryTypes());
       }
 
       // Sequential, not Future.wait: a single failed type must not blank
