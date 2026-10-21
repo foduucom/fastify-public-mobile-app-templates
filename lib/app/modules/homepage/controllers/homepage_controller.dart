@@ -8,7 +8,6 @@ import '../../../../core/foduuStudio/foduu_studio_layout_mixin.dart';
 
 class HomepageController extends GetxController
     with BaseController, FoduuStudioLayoutMixin {
-  var selectcategory = 0.obs;
   var isLoading = true.obs;
   var box = GetStorage();
   final isLogin = false.obs;

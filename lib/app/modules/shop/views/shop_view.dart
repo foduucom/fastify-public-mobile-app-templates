@@ -1,16 +1,12 @@
-import 'package:cached_network_image/cached_network_image.dart';
-import '/components/app_image_placeholder.dart';
-import '/constants/helper_functions.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:get/get.dart';
 
-import '/app/modules/product/views/product_view.dart';
-import '/app/modules/shop/bindings/shop_binding.dart';
-import '/app/modules/shop/controllers/shop_controller.dart';
-import '/app/modules/shop/views/widgets/shop_filter_drawer.dart';
-import '/constants/constants.dart';
+import 'package:new_fastify_template/app/modules/shop/controllers/shop_controller.dart';
+import 'package:new_fastify_template/app/modules/shop/views/widgets/shop_filter_drawer.dart';
+import 'package:new_fastify_template/components/parent_web_product_card.dart';
+import 'package:new_fastify_template/components/studio_widget/studio_category.dart';
+import 'package:new_fastify_template/core/foduuStudio/foduu_studio_layout_view.dart';
 
 class ShopView extends GetView<ShopController> {
   const ShopView({Key? key}) : super(key: key);
@@ -24,94 +20,162 @@ class ShopView extends GetView<ShopController> {
 
     return Scaffold(
       key: scaffoldKey,
-      backgroundColor: colorScheme.background,
-      // Category/Material/Style/Brand/Price filters live in the ported
-      // ShopFilterDrawer (PORT_AUDIT.md Phase 4); the header's tune icon
-      // opens it, and it's also reachable via edge-swipe.
-      endDrawer: ShopFilterDrawer(controller: controller),
+      backgroundColor: colorScheme.surface,
+      drawer: ShopFilterDrawer(controller: controller),
       appBar: AppBar(
-        backgroundColor: colorScheme.background,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         centerTitle: true,
-        title: Obx(() => Column(
+        title: Obx(() {
+          if (controller.isPlainShopEntry.value) {
+            return Text(
+              "Shop",
+              style:
+                  textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            );
+          }
+          return Column(
+            children: [
+              Text(
+                controller.collectionName.value,
+                style:
+                    textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              Text(
+                "${controller.totalProducts.value} items",
+                style: textTheme.bodySmall
+                    ?.copyWith(color: colorScheme.onSurfaceVariant),
+              ),
+            ],
+          );
+        }),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(56),
+          child: _ShopHeaderToolbar(
+            controller: controller,
+            onFilterTap: () {
+              controller.ensureFilterDataLoaded();
+              controller.ensureCategoryTreeLoaded();
+              scaffoldKey.currentState?.openDrawer();
+            },
+          ),
+        ),
+      ),
+      body: PopScope(
+        canPop: controller.filterCategoryStack.isEmpty,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) return;
+          controller.goUpFilterCategory();
+        },
+        child: Obx(() {
+          if (controller.isPlainShopEntry.value) {
+            return FoduuStudioLayoutView(
+              onRefresh: () => controller.fetchLayout(ShopController.pageSlug),
+              widgetList: controller.widgetList,
+              isLoading: controller.isLayoutLoading,
+            );
+          }
+          // ── FILTERED / DASHBOARD ENTRY ──
+          return Column(
+            children: [
+              // ── CMS FREE-WILL SECTIONS (banner, rich_text, etc.) ──
+              ...controller.buildWidgetsExcluding(['categories', 'products']),
+
+              // ── ACTIVE FILTER CHIPS (Horizontal Scroll) ──
+              if (_hasActiveFilters()) _buildActiveFilterChips(colorScheme),
+
+              // ── SUB CATEGORY STRIP (only when entered with category context) ──
+              _buildSubCategorySection(colorScheme),
+
+              // ── PRODUCT GRID ──
+              Expanded(
+                child: controller.isLoading.value
+                    ? _buildGridShimmer()
+                    : RefreshIndicator(
+                        onRefresh: () =>
+                            controller.fetchProducts(isRefresh: true),
+                        child: _buildProductGrid(colorScheme, textTheme),
+                      ),
+              ),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+  // ─── SUB CATEGORY STRIP + BREADCRUMB ─────────────────────────────────
+  Widget _buildSubCategorySection(ColorScheme colorScheme) {
+    if (controller.filterCurrentCategories.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      children: [
+        if (controller.filterCategoryStack.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            child: Row(
               children: [
-                Text(
-                  controller.collectionName.value,
-                  style: textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                GestureDetector(
+                  onTap: controller.goUpFilterCategory,
+                  child: Icon(Icons.arrow_back_ios_new,
+                      size: 14, color: colorScheme.primary),
                 ),
-                Text(
-                  "${controller.totalProducts.value} items",
-                  style: textTheme.bodySmall
-                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Text(
+                      [
+                        'All',
+                        ...controller.filterCategoryStack.map(
+                            (e) => (e['cat'] as Map)['name']?.toString() ?? ''),
+                      ].join(' › '),
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                    ),
+                  ),
                 ),
               ],
-            )),
-        actions: [
-          Obx(() => Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.tune_rounded), // Filter Icon
-                    onPressed: () => scaffoldKey.currentState?.openEndDrawer(),
-                  ),
-                  if (controller.activeFilterCount > 0)
-                    Positioned(
-                      right: 6,
-                      top: 6,
-                      child: Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          color: colorScheme.error,
-                          shape: BoxShape.circle,
-                        ),
-                        constraints:
-                            const BoxConstraints(minWidth: 16, minHeight: 16),
-                        child: Text(
-                          "${controller.activeFilterCount}",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: colorScheme.onError,
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              )),
-          IconButton(
-            icon: const Icon(Icons.sort_rounded), // Sort options
-            onPressed: () => _showFilterBottomSheet(context),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: Obx(() {
-        return Column(
-          children: [
-            // ── ACTIVE FILTER CHIPS (Horizontal Scroll) ──
-            if (_hasActiveFilters()) _buildActiveFilterChips(colorScheme),
-
-            // ── PRODUCT GRID ──
-            Expanded(
-              child: controller.isLoading.value
-                  ? _buildGridShimmer()
-                  : RefreshIndicator(
-                      onRefresh: () =>
-                          controller.fetchProducts(isRefresh: true),
-                      child: _buildProductGrid(colorScheme, textTheme),
-                    ),
             ),
-          ],
-        );
-      }),
+          ),
+        CategoryHome(
+          categoryData: {
+            'categories': controller.filterCurrentCategories,
+            'view': 'list',
+            'layout': 'circular',
+            'list_view_type': 'horizontal',
+          },
+          onCategoryTap: (category) {
+            controller.selectedCategories.clear();
+            final slug = category['slug']?.toString();
+            if (slug != null && slug.isNotEmpty) {
+              controller.selectedCategories.add(slug);
+            }
+            controller.drillIntoCategory(category);
+            controller.applyFiltersAndRefresh();
+          },
+        ),
+      ],
     );
   }
 
   // ─── ACTIVE FILTER HELPERS ────────────────────────────────────────────
   bool _hasActiveFilters() {
-    return controller.hasActiveFilters;
+    return controller.isFeatured.value ||
+        controller.isHot.value ||
+        controller.isTrending.value ||
+        controller.isRecommended.value ||
+        controller.isRecentlyViewed.value ||
+        controller.selectedCategories.isNotEmpty ||
+        controller.selectedBrands.isNotEmpty ||
+        controller.minPrice.value > 0 ||
+        controller.maxPrice.value < 10000;
   }
 
   Widget _buildActiveFilterChips(ColorScheme colorScheme) {
@@ -161,24 +225,11 @@ class ShopView extends GetView<ShopController> {
               controller.fetchProducts(isRefresh: true);
             }, colorScheme),
 
-          ...controller.selectedCategories
-              .map((cat) => _activeChip(cat.capitalizeFirst!, () {
-                    controller.toggleCategory(cat);
-                    controller.fetchProducts(isRefresh: true);
-                  }, colorScheme)),
-
           ...controller.selectedBrands
               .map((brand) => _activeChip(brand.capitalizeFirst!, () {
                     controller.toggleBrand(brand);
                     controller.fetchProducts(isRefresh: true);
                   }, colorScheme)),
-
-          ...controller.selectedAttributes.entries.expand((entry) => entry
-              .value
-              .map((value) => _activeChip(value.capitalizeFirst!, () {
-                    controller.toggleAttribute(entry.key, value);
-                    controller.fetchProducts(isRefresh: true);
-                  }, colorScheme))),
         ],
       ),
     );
@@ -199,239 +250,7 @@ class ShopView extends GetView<ShopController> {
     );
   }
 
-  // ─── PREMIUM FILTER BOTTOM SHEET ──────────────────────────────────────
-  void _showFilterBottomSheet(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    Get.bottomSheet(
-      Container(
-        height:
-            MediaQuery.of(context).size.height * 0.75, // 75% of screen height
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          children: [
-            // Handle Bar
-            const SizedBox(height: 12),
-            Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                    color: colorScheme.outline.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(10))),
-
-            // Header
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("Sort & Filter",
-                      style: textTheme.titleLarge
-                          ?.copyWith(fontWeight: FontWeight.bold)),
-                  TextButton(
-                    onPressed: () {
-                      controller.clearAllFilters();
-                      Get.back();
-                    },
-                    child: Text("Clear All",
-                        style: TextStyle(color: colorScheme.error)),
-                  )
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-
-            // Scrollable Filter Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 1. SORTING
-                    Text("Sort By",
-                        style: textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _sortChip("Newest", "created_at", "desc", colorScheme),
-                        _sortChip(
-                            "Price: Low-High", "price", "asc", colorScheme),
-                        _sortChip(
-                            "Price: High-Low", "price", "desc", colorScheme),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // 2. QUICK TOGGLES
-                    Text("Collections",
-                        style: textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    Obx(() => CheckboxListTile(
-                          title: const Text("Featured Products"),
-                          value: controller.isFeatured.value,
-                          contentPadding: EdgeInsets.zero,
-                          controlAffinity: ListTileControlAffinity.leading,
-                          onChanged: (val) =>
-                              controller.isFeatured.value = val!,
-                        )),
-                    Obx(() => CheckboxListTile(
-                          title: const Text("Hot Trending"),
-                          value: controller.isHot.value,
-                          contentPadding: EdgeInsets.zero,
-                          controlAffinity: ListTileControlAffinity.leading,
-                          onChanged: (val) => controller.isHot.value = val!,
-                        )),
-                    const SizedBox(height: 16),
-
-                    // 3. PRICE RANGE
-                    Text("Price Range",
-                        style: textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    Obx(() => Column(
-                          children: [
-                            RangeSlider(
-                              values: controller.currentPriceRange.value,
-                              min: 0,
-                              max: 10000,
-                              divisions: 100,
-                              activeColor: colorScheme.primary,
-                              labels: RangeLabels(
-                                "₹${controller.currentPriceRange.value.start.round()}",
-                                "₹${controller.currentPriceRange.value.end.round()}",
-                              ),
-                              onChanged: (RangeValues values) {
-                                controller.currentPriceRange.value = values;
-                                controller.minPrice.value = values.start;
-                                controller.maxPrice.value = values.end;
-                              },
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text("₹${controller.minPrice.value.round()}"),
-                                Text("₹${controller.maxPrice.value.round()}"),
-                              ],
-                            )
-                          ],
-                        )),
-                    const SizedBox(height: 24),
-
-                    // 4. CATEGORIES — live data from ShopController.fetchCategories()
-                    // (previously hardcoded placeholder chips; real
-                    // Category/Material/Style drill-down now lives in the
-                    // ported ShopFilterDrawer, this stays as a quick-pick).
-                    Text("Categories",
-                        style: textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 10),
-                    Obx(() {
-                      if (controller.isCategoriesLoading.value &&
-                          controller.availableCategories.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: Center(child: CupertinoActivityIndicator()),
-                        );
-                      }
-                      if (controller.availableCategories.isEmpty) {
-                        return Text(
-                          "No categories available",
-                          style: textTheme.bodySmall
-                              ?.copyWith(color: colorScheme.onSurfaceVariant),
-                        );
-                      }
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: controller.availableCategories.map((cat) {
-                          final slug = cat['slug']?.toString() ?? '';
-                          final name = cat['name']?.toString() ?? slug;
-                          if (slug.isEmpty) return const SizedBox.shrink();
-                          return _categoryChip(slug, name, colorScheme);
-                        }).toList(),
-                      );
-                    }),
-                  ],
-                ),
-              ),
-            ),
-
-            // Apply Button Sticky Footer
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, -5))
-                ],
-              ),
-              child: SafeArea(
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Get.back(); // Close sheet
-                      controller.fetchProducts(isRefresh: true); // Trigger API
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text("Apply Filters",
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ),
-            )
-          ],
-        ),
-      ),
-      isScrollControlled: true,
-    );
-  }
-
-  Widget _sortChip(
-      String label, String by, String order, ColorScheme colorScheme) {
-    return Obx(() {
-      bool isSelected =
-          controller.sortBy.value == by && controller.sortOrder.value == order;
-      return ChoiceChip(
-        label: Text(label),
-        selected: isSelected,
-        selectedColor: colorScheme.primaryContainer,
-        onSelected: (val) {
-          controller.sortBy.value = by;
-          controller.sortOrder.value = order;
-        },
-      );
-    });
-  }
-
-  Widget _categoryChip(String slug, String label, ColorScheme colorScheme) {
-    bool isSelected = controller.selectedCategories.contains(slug);
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      selectedColor: colorScheme.primaryContainer,
-      onSelected: (val) => controller.toggleCategory(slug),
-    );
-  }
-
-  // ── MAIN PRODUCT GRID (REUSED FROM PREVIOUS) ───────────────────────────
+  // ── MAIN PRODUCT GRID ──
   Widget _buildProductGrid(ColorScheme colorScheme, TextTheme textTheme) {
     if (controller.products.isEmpty) {
       return Center(
@@ -439,7 +258,7 @@ class ShopView extends GetView<ShopController> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.inventory_2_outlined,
-                size: 80, color: colorScheme.outline.withOpacity(0.5)),
+                size: 80, color: colorScheme.outline.withValues(alpha: 0.5)),
             const SizedBox(height: 16),
             Text("No products match your filters",
                 style: textTheme.titleLarge
@@ -449,311 +268,310 @@ class ShopView extends GetView<ShopController> {
       );
     }
 
-    return SingleChildScrollView(
-      controller: controller.scrollController,
-      physics: const AlwaysScrollableScrollPhysics(),
-      child: Column(
-        children: [
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 0.66,
-            ),
-            itemCount: controller.products.length,
-            itemBuilder: (context, index) {
-              final product = controller.products[index];
-              return _ProductGridCard(
-                product: product,
-                onTap: () {
-                  final productId = product['_id']?.toString() ?? '';
-                  if (productId.isNotEmpty) {
-                    Get.to(() => ProductView(),
-                        binding: ShopBinding(),
-                        arguments: {'productId': productId});
-                  }
-                },
+    return Obx(() {
+      final isList = controller.isListView.value;
+      if (isList) {
+        return ListView.builder(
+          controller: controller.scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          itemCount:
+              controller.products.length + (controller.hasNextPage ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index >= controller.products.length) {
+              if (!controller.isFetchingMore.value) {
+                controller.fetchProducts(isRefresh: false);
+              }
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: CircularProgressIndicator(),
+                ),
               );
-            },
-          ),
-          if (controller.isFetchingMore.value)
-            const Padding(
-                padding: EdgeInsets.all(24.0),
-                child: CupertinoActivityIndicator(radius: 14)),
-          const SizedBox(height: 40),
-        ],
-      ),
-    );
-  }
+            }
+            final p = controller.products[index];
+            return ParentWebProductCard(
+              product:
+                  p is Map<String, dynamic> ? p : Map<String, dynamic>.from(p),
+              isList: true,
+            );
+          },
+        );
+      }
 
-  Widget _buildGridShimmer() {
-    return Builder(builder: (context) {
-      final isDark = Theme.of(context).brightness == Brightness.dark;
-      final cs = Theme.of(context).colorScheme;
-      return Shimmer.fromColors(
-        baseColor: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-        highlightColor: isDark ? Colors.grey.shade600 : Colors.grey.shade100,
-        child: GridView.builder(
-          padding: const EdgeInsets.all(16),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 0.55,
-          ),
-          itemCount: 6,
-          itemBuilder: (_, __) => Container(
-              decoration: BoxDecoration(
-                  color: cs.surface, borderRadius: BorderRadius.circular(16))),
+      return GridView.builder(
+        controller: controller.scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 0.58,
         ),
+        itemCount:
+            controller.products.length + (controller.hasNextPage ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index >= controller.products.length) {
+            if (!controller.isFetchingMore.value) {
+              controller.fetchProducts(isRefresh: false);
+            }
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+          final p = controller.products[index];
+          return ParentWebProductCard(
+            product:
+                p is Map<String, dynamic> ? p : Map<String, dynamic>.from(p),
+            isList: false,
+          );
+        },
       );
     });
   }
+
+  Widget _buildGridShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade300,
+      highlightColor: Colors.grey.shade100,
+      child: GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.58,
+        ),
+        itemCount: 6,
+        itemBuilder: (_, __) => Container(
+            decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(16))),
+      ),
+    );
+  }
 }
 
-// ── Beautiful Product Grid Card ──────────────────────────────────────────────
-class _ProductGridCard extends StatelessWidget {
-  final Map<String, dynamic> product;
-  final VoidCallback onTap;
+// ─── SHOP HEADER TOOLBAR (Filter, Count, Grid/List Switcher, Sort) ───
+class _ShopHeaderToolbar extends StatelessWidget {
+  final ShopController controller;
+  final VoidCallback onFilterTap;
 
-  const _ProductGridCard({required this.product, required this.onTap});
-
-  String _getImageUrl() {
-    final featuredImg = product['featured_image'];
-    if (featuredImg != null && featuredImg is Map) {
-      final filepath = featuredImg['filepath']?.toString() ?? '';
-      if (filepath.isNotEmpty) {
-        final cleanPath =
-            filepath.startsWith('/') ? filepath.substring(1) : filepath;
-        return '$imageBase$cleanPath';
-      }
-    }
-    return '';
-  }
+  const _ShopHeaderToolbar({
+    required this.controller,
+    required this.onFilterTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final String imageUrl = _getImageUrl();
-    final String name = product['name']?.toString() ?? 'Unknown Product';
+    return Obx(() {
+      final total = controller.totalProducts.value > 0
+          ? controller.totalProducts.value
+          : controller.products.length;
+      final isList = controller.isListView.value;
 
-    // Price — works for both simple and variable products
-    double price = 0.0;
-    double salePrice = 0.0;
-    int quantity = 0;
-
-    if (product['variants'] != null && product['variants'].isNotEmpty) {
-      final v = product['variants'][0];
-      price = double.tryParse(v['price']?.toString() ?? '0') ?? 0.0;
-      salePrice = double.tryParse(v['sale_price']?.toString() ?? '0') ?? 0.0;
-      // null quantity means unlimited stock; only treat as out-of-stock when explicitly 0 or less
-      final rawQty = v['quantity'];
-      quantity = rawQty == null ? -1 : (int.tryParse(rawQty.toString()) ?? 0);
-    }
-
-    final bool hasDiscount = salePrice > 0 && salePrice < price;
-    final double displayPrice = hasDiscount ? salePrice : price;
-    final bool isOutOfStock = quantity != -1 && quantity <= 0;
-
-    // Badges
-    final bool isHot = product['hot'] == true;
-    final bool isFeatured = product['featured'] == true;
-    final bool isTrending = product['trending'] == true;
-
-    // Rating
-    final double rating =
-        double.tryParse(product['average_rating']?.toString() ?? '0') ?? 0.0;
-    final int ratingCount =
-        int.tryParse(product['rating_count']?.toString() ?? '0') ?? 0;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colorScheme.outline.withOpacity(0.15)),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 4))
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+        child: Row(
           children: [
-            // ── Image + Overlays ──
+            // 1. Filter Trigger Button
+            _FilterTrigger(
+              count: controller.activeFilterCount,
+              onTap: onFilterTap,
+            ),
+            const SizedBox(width: 8),
+
+            // 2. Results text counter
             Expanded(
-              flex: 6,
-              child: Stack(
-                fit: StackFit.expand,
+              child: Text(
+                "There are $total results in total",
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontSize: 11.5,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 6),
+
+            // 3. Layout Switcher (List vs Grid)
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(15)),
-                    child: (imageUrl.isNotEmpty &&
-                            imageUrl != HelperFunctions.getNoImage())
-                        ? CachedNetworkImage(
-                            imageUrl: imageUrl,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => const Center(
-                                child: CupertinoActivityIndicator()),
-                            errorWidget: (context, url, error) =>
-                                const AppImagePlaceholder(radius: 15),
-                          )
-                        : const AppImagePlaceholder(radius: 15),
+                  // List icon
+                  InkWell(
+                    onTap: () => controller.setViewMode(true),
+                    borderRadius: const BorderRadius.horizontal(
+                        left: Radius.circular(8)),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      color: isList
+                          ? colorScheme.primary.withValues(alpha: 0.15)
+                          : Colors.transparent,
+                      child: Icon(
+                        Icons.view_agenda_outlined,
+                        size: 18,
+                        color: isList
+                            ? colorScheme.primary
+                            : colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ),
-
-                  // Out-of-stock overlay
-                  if (isOutOfStock)
-                    ClipRRect(
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(15)),
-                      child: Container(
-                        color: Colors.black.withValues(alpha: 0.45),
-                        alignment: Alignment.center,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                              color: Colors.black54,
-                              borderRadius: BorderRadius.circular(8)),
-                          child: const Text("Out of Stock",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold)),
-                        ),
+                  // Grid icon
+                  InkWell(
+                    onTap: () => controller.setViewMode(false),
+                    borderRadius: const BorderRadius.horizontal(
+                        right: Radius.circular(8)),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      color: !isList
+                          ? colorScheme.primary.withValues(alpha: 0.15)
+                          : Colors.transparent,
+                      child: Icon(
+                        Icons.grid_view_rounded,
+                        size: 18,
+                        color: !isList
+                            ? colorScheme.primary
+                            : colorScheme.onSurfaceVariant,
                       ),
                     ),
-
-                  // Discount badge — top left
-                  if (hasDiscount && price > 0)
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                            color: colorScheme.error,
-                            borderRadius: BorderRadius.circular(8)),
-                        child: Text(
-                            "${((price - salePrice) / price * 100).round()}% OFF",
-                            style: TextStyle(
-                                color: colorScheme.onError,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-
-                  // Hot / Featured / Trending badges — top right
-                  if (isHot || isFeatured || isTrending)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          if (isHot) _badgePill("HOT", Colors.deepOrange),
-                          if (isTrending) _badgePill("TREND", Colors.purple),
-                          if (isFeatured) _badgePill("FEAT", Colors.teal),
-                        ],
-                      ),
-                    ),
+                  ),
                 ],
               ),
             ),
+            const SizedBox(width: 6),
 
-            // ── Info Section ──
-            Expanded(
-              flex: 3,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(name.toUpperCase(),
-                        style: textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600, height: 1.2),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Rating row
-                        if (ratingCount > 0)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Row(
-                              children: [
-                                Icon(Icons.star_rounded,
-                                    size: 13, color: Colors.amber.shade600),
-                                const SizedBox(width: 2),
-                                Text(rating.toStringAsFixed(1),
-                                    style: textTheme.bodySmall?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 11)),
-                                const SizedBox(width: 3),
-                                Text("($ratingCount)",
-                                    style: textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurfaceVariant,
-                                        fontSize: 10)),
-                              ],
-                            ),
-                          ),
+            // 4. Sort Trigger Dropdown
+            PopupMenuButton<ShopSortOption>(
+              onSelected: controller.applySortOption,
+              itemBuilder: (_) => [
+                CheckedPopupMenuItem(
+                  value: ShopSortOption.priceHighLow,
+                  checked: controller.selectedSortOption.value ==
+                      ShopSortOption.priceHighLow,
+                  child: const Text("Price, high to low"),
+                ),
+                CheckedPopupMenuItem(
+                  value: ShopSortOption.priceLowHigh,
+                  checked: controller.selectedSortOption.value ==
+                      ShopSortOption.priceLowHigh,
+                  child: const Text("Price: low to high"),
+                ),
+                CheckedPopupMenuItem(
+                  value: ShopSortOption.newest,
+                  checked: controller.selectedSortOption.value ==
+                      ShopSortOption.newest,
+                  child: const Text("Newest"),
+                ),
+                CheckedPopupMenuItem(
+                  value: ShopSortOption.featured,
+                  checked: controller.selectedSortOption.value ==
+                      ShopSortOption.featured,
+                  child: const Text("Featured"),
+                ),
+                CheckedPopupMenuItem(
+                  value: ShopSortOption.trending,
+                  checked: controller.selectedSortOption.value ==
+                      ShopSortOption.trending,
+                  child: const Text("Trending"),
+                ),
+              ],
+              child: _SortTrigger(label: controller.sortLabel),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+}
 
-                        // Price row
-                        if (displayPrice > 0) ...[
-                          Text("₹${displayPrice.toStringAsFixed(2)}",
-                              style: textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.primary)),
-                          if (hasDiscount) ...[
-                            const SizedBox(width: 4),
-                            Text("₹${price.toStringAsFixed(2)}",
-                                style: textTheme.bodySmall?.copyWith(
-                                    decoration: TextDecoration.lineThrough,
-                                    color: colorScheme.onSurfaceVariant)),
-                          ],
-                        ] else
-                          Text("Price on request",
-                              style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant)),
-                      ],
-                    ),
-                  ],
+// ─── HEADER TRIGGER CHIPS ────────────────────────────────────────────────
+class _FilterTrigger extends StatelessWidget {
+  final int count;
+  final VoidCallback onTap;
+
+  const _FilterTrigger({required this.count, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.4)),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.tune_rounded, size: 16),
+            const SizedBox(width: 4),
+            const Text("Filter", style: TextStyle(fontSize: 12)),
+            if (count > 0) ...[
+              const SizedBox(width: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$count',
+                  style: const TextStyle(color: Colors.white, fontSize: 10),
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _badgePill(String label, Color color) {
+class _SortTrigger extends StatelessWidget {
+  final String label;
+
+  const _SortTrigger({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      margin: const EdgeInsets.only(bottom: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration:
-          BoxDecoration(color: color, borderRadius: BorderRadius.circular(6)),
-      child: Text(label,
-          style: const TextStyle(
-              color: Colors.white,
-              fontSize: 9,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5)),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.4)),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+          const SizedBox(width: 2),
+          const Icon(Icons.arrow_drop_down, size: 18),
+        ],
+      ),
     );
   }
 }

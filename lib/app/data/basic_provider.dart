@@ -322,7 +322,7 @@ class BasicProvider {
         "Content-Type": "application/json",
       };
 
-      if (AuthDetails.getToken() != null) {
+      if (AuthDetails.isUserLogin() && AuthDetails.getToken() != null) {
         userHeader['Authorization'] = 'Bearer ${AuthDetails.getToken()}';
       }
 

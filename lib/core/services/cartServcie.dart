@@ -142,7 +142,7 @@ class CartService extends GetxService with BaseController {
         };
       }).toList();
 
-      var response = await BasicProvider("cart/manage?populate=*")
+      var response = await BasicProvider("cart/manage")
           .postRequest({'items': items}).catchError(handleError);
 
       if (response != null) {
@@ -159,12 +159,48 @@ class CartService extends GetxService with BaseController {
   // ══════════════════════════════════════════════════════════
   //  PARSE API RESPONSE
   // ══════════════════════════════════════════════════════════
-  void parseCartResponse(Map<String, dynamic> data) {
-    final items = data['items'] as List? ?? [];
-    cartItems.value = items.map((e) => Map<String, dynamic>.from(e)).toList();
-    subTotal.value = (data['sub_total'] ?? 0).toDouble();
-    total.value = (data['total'] ?? 0).toDouble();
-    cartItems.refresh();
+  void parseCartResponse(dynamic data) {
+    if (data == null || data is! Map) return;
+
+    final rawItems = data['items'] ?? data['data'] ?? data['cart'];
+    final items = rawItems is List ? rawItems : [];
+
+    // Build a lookup of existing image objects keyed by product ID so we can
+    // restore them when cart/manage returns featured_image as a bare string ID.
+    final Map<String, dynamic> existingImages = {};
+    for (final item in cartItems) {
+      final p = item['product_id'];
+      if (p is Map) {
+        final pid = (p['_id'] ?? p['id'] ?? '').toString();
+        final img = p['featured_image'];
+        if (pid.isNotEmpty && img is Map) {
+          existingImages[pid] = img;
+        }
+      }
+    }
+
+    cartItems.value = items.whereType<Map>().map((e) {
+      final item = Map<String, dynamic>.from(e);
+      final p = item['product_id'];
+      if (p is Map) {
+        final product = Map<String, dynamic>.from(p);
+        final img = product['featured_image'];
+        // API returned a bare ID string — restore the full image object if we
+        // have it from the previous fetch so the URL builds correctly.
+        if (img is String && img.isNotEmpty) {
+          final restored = existingImages[img] ??
+              existingImages[product['_id'] ?? product['id'] ?? ''];
+          if (restored != null) {
+            product['featured_image'] = restored;
+          }
+        }
+        item['product_id'] = product;
+      }
+      return item;
+    }).toList();
+
+    subTotal.value = HelperFunctions.parseAmount(data['sub_total']);
+    total.value = HelperFunctions.parseAmount(data['total']);
   }
 
   // ══════════════════════════════════════════════════════════
@@ -268,13 +304,9 @@ class CartService extends GetxService with BaseController {
     Map<String, dynamic>? product,
   }) {
     final existingIndex = cartItems.indexWhere((item) {
-      final p = item['product_id'] ?? item['product'];
+      final p = item['product_id'];
       final pid = p is Map ? (p['_id'] ?? p['id'] ?? '') : p.toString();
-      final vid = (item['variant_id'] is Map)
-          ? (item['variant_id']['_id'] ?? item['variant_id']['id'])
-          : item['variant_id'];
-      return pid.toString() == productId &&
-          (variantId.isEmpty || vid.toString() == variantId);
+      return pid == productId && item['variant_id'] == variantId;
     });
 
     if (existingIndex != -1) {
@@ -296,13 +328,10 @@ class CartService extends GetxService with BaseController {
       Map<String, dynamic> variantData = {};
       final variants = product['variants'] as List? ?? [];
       for (var v in variants) {
-        if (v is Map && v['_id']?.toString() == variantId.toString()) {
+        if (v['_id'] == variantId) {
           variantData = Map<String, dynamic>.from(v);
           break;
         }
-      }
-      if (variantData.isEmpty && variants.isNotEmpty && variants.first is Map) {
-        variantData = Map<String, dynamic>.from(variants.first);
       }
 
       cartItems.add({
@@ -324,13 +353,9 @@ class CartService extends GetxService with BaseController {
     required String variantSlug,
   }) {
     cartItems.removeWhere((item) {
-      final p = item['product_id'] ?? item['product'];
+      final p = item['product_id'];
       final pid = p is Map ? (p['_id'] ?? p['id'] ?? '') : p.toString();
-      final vid = (item['variant_id'] is Map)
-          ? (item['variant_id']['_id'] ?? item['variant_id']['id'])
-          : item['variant_id'];
-      return pid.toString() == productId &&
-          (variantSlug.isEmpty || vid.toString() == variantSlug);
+      return pid == productId && item['variant_id'] == variantSlug;
     });
 
     _recalculateLocalTotals();

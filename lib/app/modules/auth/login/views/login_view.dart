@@ -42,16 +42,43 @@ class _LoginViewState extends State<LoginView> {
             SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 32, 24, 36),
+                padding: const EdgeInsets.fromLTRB(24, 16, 20, 28),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Debug text — keep as-is (your existing code)
-                    // Text(
-                    //   AuthDetails.isUserLogin().toString(),
-                    //   style: TextStyle(color: Colors.red),
-                    // ),
-
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: InkWell(
+                        onTap: () {
+                          AuthDetails.logOut();
+                          Get.offAllNamed(Routes.BOTTOMBAR);
+                        },
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: const Text(
+                            'SKIP',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontFamily: 'Lato',
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Text(
                       'Hi, Welcome Back! 👋',
                       style: textTheme.headlineMedium?.copyWith(
@@ -62,7 +89,7 @@ class _LoginViewState extends State<LoginView> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Lorem ipsum dolor sit amet',
+                      'Sign in to continue shopping',
                       style: textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onPrimary.withOpacity(0.85),
                         fontSize: 15,

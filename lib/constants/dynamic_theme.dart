@@ -175,6 +175,17 @@ class AppThemeColors {
       brightness: isDark ? Brightness.dark : Brightness.light,
     );
 
+    Color onPrimary =
+        _hexToColor(themeMap['onPrimary']) ?? generatedScheme.onPrimary;
+    // Contrast guard: if primary is light, ensure onPrimary is dark for readability
+    if (primary.computeLuminance() > 0.5 &&
+        onPrimary.computeLuminance() > 0.5) {
+      onPrimary = const Color(0xFF111111);
+    } else if (primary.computeLuminance() <= 0.5 &&
+        onPrimary.computeLuminance() <= 0.5) {
+      onPrimary = const Color(0xFFFFFFFF);
+    }
+
     // 3️⃣ Override generated colors with API if available
     return AppThemeColors._(
       primary: primary,
@@ -182,8 +193,7 @@ class AppThemeColors {
       background: background,
       surface: surface,
       error: error,
-      onPrimary:
-          _hexToColor(themeMap['onPrimary']) ?? generatedScheme.onPrimary,
+      onPrimary: onPrimary,
       onSecondary:
           _hexToColor(themeMap['onSecondary']) ?? generatedScheme.onSecondary,
       onBackground:

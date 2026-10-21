@@ -19,7 +19,8 @@ mixin BaseController {
       var message = error.message;
       HelperFunctions().showSnackBarError(message.toString());
     } else if (error is UnAuthorizedException) {
-      if (_isHandlingUnauthorized ||
+      if (!AuthDetails.isUserLogin() ||
+          _isHandlingUnauthorized ||
           Get.currentRoute == Routes.LOGIN ||
           Get.currentRoute == Routes.MOBILELOGIN) {
         return;

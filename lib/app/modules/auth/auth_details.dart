@@ -65,6 +65,7 @@ class AuthDetails with BaseController {
   }
 
   static String? getToken() {
+    if (!isUserLogin()) return null;
     var token = box.read('token');
     //print("Get Token: $token");
     if (token != null) {

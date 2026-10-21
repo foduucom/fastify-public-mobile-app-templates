@@ -205,10 +205,10 @@ class _HomeBannerState extends State<HomeBanner>
   // Single Banner
   Widget _buildSingleBanner(List items, Map<String, dynamic> config) {
     final height = config['height']?.toDouble() ?? 150.0;
-    final borderRadius = config['border_radius']?.toDouble() ?? 10.0;
+    final borderRadius = config['border_radius']?.toDouble() ?? 14.0;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: GestureDetector(
         onTap: () => handleBannerTap(items[0]),
         child: ClipRRect(

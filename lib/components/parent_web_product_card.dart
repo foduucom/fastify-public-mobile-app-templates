@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:new_fastify_template/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
 import 'package:new_fastify_template/app/routes/app_pages.dart';
+import 'package:new_fastify_template/components/product_quick_view_modal.dart';
 import 'package:new_fastify_template/constants/dynamic_theme.dart';
 import 'package:new_fastify_template/constants/helper_functions.dart';
 import 'package:new_fastify_template/constants/product_helper.dart';
@@ -9,7 +11,7 @@ import 'package:new_fastify_template/core/services/cartServcie.dart';
 import 'package:new_fastify_template/core/services/wishlistService.dart';
 import 'package:get/get.dart';
 
-class ParentWebProductCard extends StatelessWidget {
+class ParentWebProductCard extends StatefulWidget {
   final Map<String, dynamic> product;
   final bool isList;
   final VoidCallback? onTap;
@@ -21,7 +23,48 @@ class ParentWebProductCard extends StatelessWidget {
     this.onTap,
   }) : super(key: key);
 
+  @override
+  State<ParentWebProductCard> createState() => _ParentWebProductCardState();
+}
+
+class _ParentWebProductCardState extends State<ParentWebProductCard> {
+  bool _isHovered = false;
+  Timer? _autoHideTimer;
+
+  Map<String, dynamic> get product => widget.product;
+  bool get isList => widget.isList;
+  VoidCallback? get onTap => widget.onTap;
+
   String get _productId => ProductHelper.getProductId(product);
+
+  @override
+  void dispose() {
+    _autoHideTimer?.cancel();
+    super.dispose();
+  }
+
+  void _setHovered(bool val) {
+    if (_isHovered == val) return;
+    setState(() {
+      _isHovered = val;
+    });
+  }
+
+  void _onImageTapped() {
+    if (!_isHovered) {
+      // First tap: Focus card, zoom image to 1.08x and slide in action capsule
+      _setHovered(true);
+      _autoHideTimer?.cancel();
+      _autoHideTimer = Timer(const Duration(milliseconds: 3500), () {
+        if (mounted) {
+          _setHovered(false);
+        }
+      });
+    } else {
+      // Second tap while focused: navigate to detail
+      _navigateToDetail();
+    }
+  }
 
   String _resolveDefaultVariantId() {
     final variants = product['variants'];
@@ -130,7 +173,7 @@ class ParentWebProductCard extends StatelessWidget {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // 1. GRID CARD (Portrait 2-column fashion card)
+  // 1. GRID CARD (Portrait 2-column fashion card matching Images 3 & 4)
   // ─────────────────────────────────────────────────────────────
   Widget _buildGridCard(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -144,42 +187,59 @@ class ParentWebProductCard extends StatelessWidget {
     final discountRateStr = priceInfo['discountRate']?.toString() ?? '';
     final hasDiscount = discountRateStr.trim().isNotEmpty;
 
-    return GestureDetector(
-      onTap: _navigateToDetail,
+    return MouseRegion(
+      onEnter: (_) {
+        _autoHideTimer?.cancel();
+        _setHovered(true);
+      },
+      onExit: (_) {
+        _autoHideTimer?.cancel();
+        _setHovered(false);
+      },
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.max,
         children: [
-          // Image with Floating Wishlist and Bag
+          // Image with Hover/Focus Zoom & Animated Floating Action Capsule
           Expanded(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  (imageUrl.isNotEmpty &&
-                          imageUrl != HelperFunctions.getNoImage())
-                      ? CachedNetworkImage(
-                          imageUrl: imageUrl,
-                          fit: BoxFit.cover,
-                          progressIndicatorBuilder: (_, __, ___) =>
-                              HelperFunctions().loadingIndicator(),
-                          errorWidget: (_, __, ___) =>
-                              const AppImagePlaceholder(radius: 12),
-                        )
-                      : const AppImagePlaceholder(radius: 12),
+                  // Smooth 1.08x Zooming Image with touch gesture
+                  GestureDetector(
+                    onTap: _onImageTapped,
+                    behavior: HitTestBehavior.opaque,
+                    child: AnimatedScale(
+                      scale: _isHovered ? 1.08 : 1.0,
+                      duration: const Duration(milliseconds: 380),
+                      curve: Curves.easeOutCubic,
+                      child: (imageUrl.isNotEmpty &&
+                              imageUrl != HelperFunctions.getNoImage())
+                          ? CachedNetworkImage(
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              progressIndicatorBuilder: (_, __, ___) =>
+                                  HelperFunctions().loadingIndicator(),
+                              errorWidget: (_, __, ___) =>
+                                  const AppImagePlaceholder(radius: 12),
+                            )
+                          : const AppImagePlaceholder(radius: 12),
+                    ),
+                  ),
 
-                  // Sale badge (top-left)
+                  // Sale badge (top-left if present)
                   if (hasDiscount)
                     Positioned(
                       left: 8,
                       top: 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 7, vertical: 3),
+                            horizontal: 6, vertical: 3),
                         decoration: BoxDecoration(
                           color: colorScheme.error,
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(4),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.2),
@@ -192,144 +252,223 @@ class ParentWebProductCard extends StatelessWidget {
                           style: textTheme.labelSmall?.copyWith(
                             color: colorScheme.onError,
                             fontWeight: FontWeight.w700,
-                            fontSize: 10,
+                            fontSize: 9,
                           ),
                         ),
                       ),
                     ),
 
-                  // Floating Wishlist Heart (top-right)
+                  // Bottom-Center Floating Action Capsule: [ 👁️ Quick View ]  [ ♡ Wishlist ]
+                  // Slides up and fades in only when hovered or focused
                   Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Obx(() {
-                      final isFav = WishListService.to.isInWishlist(_productId);
-                      return GestureDetector(
-                        onTap: _handleToggleWishlist,
-                        child: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: context.surfaceColor.withValues(alpha: 0.9),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.12),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            isFav
-                                ? Icons.favorite_rounded
-                                : Icons.favorite_border_rounded,
-                            size: 17,
-                            color: isFav
-                                ? colorScheme.error
-                                : context.onSurfaceColor,
+                    bottom: 10,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: AnimatedSlide(
+                        offset:
+                            _isHovered ? Offset.zero : const Offset(0, 0.4),
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOutCubic,
+                        child: AnimatedOpacity(
+                          opacity: _isHovered ? 1.0 : 0.0,
+                          duration: const Duration(milliseconds: 250),
+                          child: IgnorePointer(
+                            ignoring: !_isHovered,
+                            child: Builder(
+                              builder: (context) {
+                                final isDark = Theme.of(context).brightness ==
+                                    Brightness.dark;
+                                final capsuleBg = isDark
+                                    ? const Color(0xF01E1E1E)
+                                    : Colors.white;
+                                final capsuleIconColor = isDark
+                                    ? Colors.white
+                                    : const Color(0xFF111111);
+
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 5, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: capsuleBg,
+                                    borderRadius: BorderRadius.circular(24),
+                                    border: isDark
+                                        ? Border.all(
+                                            color: Colors.white
+                                                .withValues(alpha: 0.14))
+                                        : null,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black
+                                            .withValues(alpha: 0.22),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      // 1. Quick View Eye Button
+                                      GestureDetector(
+                                        onTap: () => ProductQuickViewModal.show(
+                                            context, product),
+                                        behavior: HitTestBehavior.opaque,
+                                        child: Container(
+                                          width: 30,
+                                          height: 30,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: capsuleBg,
+                                          ),
+                                          child: Icon(
+                                            Icons.visibility_outlined,
+                                            size: 16,
+                                            color: capsuleIconColor,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      // 2. Wishlist Heart Button
+                                      Obx(() {
+                                        final isFav = WishListService.to
+                                            .isInWishlist(_productId);
+                                        return GestureDetector(
+                                          onTap: _handleToggleWishlist,
+                                          behavior: HitTestBehavior.opaque,
+                                          child: Container(
+                                            width: 30,
+                                            height: 30,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: capsuleBg,
+                                            ),
+                                            child: Icon(
+                                              isFav
+                                                  ? Icons.favorite_rounded
+                                                  : Icons
+                                                      .favorite_border_rounded,
+                                              size: 16,
+                                              color: isFav
+                                                  ? colorScheme.error
+                                                  : capsuleIconColor,
+                                            ),
+                                          ),
+                                        );
+                                      }),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ),
-                      );
-                    }),
+                      ),
+                    ),
                   ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
 
-                  // Floating Quick Add to Bag (bottom-right)
-                  Positioned(
-                    right: 8,
-                    bottom: 8,
-                    child: GestureDetector(
+          // Footer Layout: Left Title & Price | Right [ ADD TO CART ] Pill Button
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Left Column: Title + Price
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _navigateToDetail,
+                    behavior: HitTestBehavior.opaque,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          productName,
+                          textAlign: TextAlign.start,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: context.onSurfaceColor,
+                            height: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 4,
+                          children: [
+                            Text(
+                              ProductHelper.formatPrice(priceStr),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: context.onSurfaceColor,
+                              ),
+                            ),
+                            if (hasDiscount && regularPriceStr.isNotEmpty)
+                              Text(
+                                ProductHelper.formatPrice(regularPriceStr),
+                                style: TextStyle(
+                                  fontSize: 10.5,
+                                  decoration: TextDecoration.lineThrough,
+                                  color: context.onSurfaceVariantColor,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                // Right Column: Sleek black [ ADD TO CART ] pill button
+                Builder(
+                  builder: (context) {
+                    final isDark =
+                        Theme.of(context).brightness == Brightness.dark;
+                    final btnBg =
+                        isDark ? Colors.white : const Color(0xFF1A1A1A);
+                    final btnText = isDark ? Colors.black : Colors.white;
+
+                    return GestureDetector(
                       onTap: () => _handleAddToCart(context),
+                      behavior: HitTestBehavior.opaque,
                       child: Container(
-                        width: 34,
-                        height: 34,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 9, vertical: 6),
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: colorScheme.primary,
+                          color: btnBg,
+                          borderRadius: BorderRadius.circular(18),
                           boxShadow: [
                             BoxShadow(
-                              color: colorScheme.primary.withValues(alpha: 0.35),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
+                              color: Colors.black
+                                  .withValues(alpha: isDark ? 0.35 : 0.15),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
                             ),
                           ],
                         ),
-                        child: Icon(
-                          Icons.shopping_bag_outlined,
-                          size: 17,
-                          color: colorScheme.onPrimary,
+                        child: Text(
+                          'ADD TO CART',
+                          style: TextStyle(
+                            color: btnText,
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.4,
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-
-          // Rating Stars (5 gold stars centered)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              5,
-              (index) => const Icon(
-                Icons.star_rounded,
-                size: 13,
-                color: DefaultThemeColors.alertWarninglight,
-              ),
-            ),
-          ),
-          const SizedBox(height: 3),
-
-          // Product Title (centered)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              productName,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.bodyMedium?.copyWith(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600,
-                color: context.onSurfaceColor,
-                height: 1.25,
-              ),
-            ),
-          ),
-          const SizedBox(height: 3),
-
-          // Product Price (centered)
-          Center(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    ProductHelper.formatPrice(priceStr),
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: colorScheme.primary,
-                    ),
-                    maxLines: 1,
-                  ),
-                  if (hasDiscount && regularPriceStr.isNotEmpty) ...[
-                    const SizedBox(width: 5),
-                    Text(
-                      ProductHelper.formatPrice(regularPriceStr),
-                      style: textTheme.bodySmall?.copyWith(
-                        fontSize: 11,
-                        decoration: TextDecoration.lineThrough,
-                        color: context.onSurfaceVariantColor,
-                      ),
-                      maxLines: 1,
-                    ),
-                  ],
-                ],
-              ),
+                    );
+                  },
+                ),
+              ],
             ),
           ),
         ],

@@ -92,12 +92,68 @@ mixin FoduuStudioLayoutMixin on GetxController {
   /// Build the [widgetList] from a raw list of section maps.
   void buildLayout(List sections) {
     widgetList.clear();
-    for (var section in sections) {
+    for (int i = 0; i < sections.length; i++) {
+      final section = sections[i];
+      if (section is! Map<String, dynamic>) continue;
+
+      // Skip orphaned rich_text headers if next section is empty
+      if (section['type'] == 'rich_text') {
+        final html =
+            (section['content_json']?['html_content'] ?? '').toString().trim();
+        if (html.isEmpty) continue;
+        if (html.toUpperCase().contains('BLOG') && i + 1 < sections.length) {
+          final next = sections[i + 1];
+          if (next is Map && next['type'] == 'blog') {
+            final blogs = next['content_json']?['blogs'];
+            if (blogs is List && blogs.isEmpty) continue;
+          }
+        }
+
+        // Pair with following products or text_block section as eyebrow
+        if (i + 1 < sections.length) {
+          final next = sections[i + 1];
+          if (next is Map && (next['type'] == 'products' || next['type'] == 'text_block')) {
+            if (next['content_json'] is Map) {
+              final Map<String, dynamic> cJson =
+                  Map<String, dynamic>.from(next['content_json']);
+              cJson['eyebrow'] = html;
+              next['content_json'] = cJson;
+            }
+            continue; // Skip standalone rich_text widget!
+          }
+        }
+      }
+
+      final widget = _registry.build(section);
+      if (widget != null) widgetList.add(widget);
+    }
+  }
+
+  /// Build widgets for the last-fetched sections, skipping [excludeTypes].
+  /// Not reactive — recomputed on every call.
+  List<Widget> buildWidgetsExcluding(List<String> excludeTypes) {
+    final result = <Widget>[];
+    for (var section in _initialComponents) {
       if (section is Map<String, dynamic>) {
+        if (excludeTypes.contains(section['type'])) continue;
         final widget = _registry.build(section);
-        if (widget != null) widgetList.add(widget);
+        if (widget != null) result.add(widget);
       }
     }
+    return result;
+  }
+
+  /// `content_json` of the first section of [type] in the last-fetched
+  /// layout, or null when the page has no such section.
+  Map<String, dynamic>? contentJsonFor(String type) {
+    for (final section in _initialComponents) {
+      if (section is Map && section['type'] == type) {
+        final cj = section['content_json'];
+        if (cj is Map) return Map<String, dynamic>.from(cj);
+        return null;
+      }
+    }
+    return null;
   }
 
   /// Fetch layout JSON from the API and build widgets.

@@ -2,15 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import '../../../../components/shimmer/home_shimmer.dart';
-import '/app/modules/auth/auth_details.dart';
-import '/app/modules/bottomar/controllers/bottombar_controller.dart';
 import '/app/modules/homepage/controllers/homepage_controller.dart';
 import '/app/modules/notification/controller/notification_controller.dart';
 import '/app/routes/app_pages.dart';
-import '/components/buttons/appbutton.dart';
 import '../../../../components/studio_widget/customDrawer.dart';
 import '/constants/constants.dart';
-import '/constants/theme.dart';
 import '../../../../core/foduuStudio/foduu_studio_layout_view.dart';
 import '/helpers/socket_helper.dart';
 import 'package:get/get.dart';
@@ -31,12 +27,12 @@ class Testinghome extends GetView<HomepageController> {
 
   @override
   Widget build(BuildContext context) {
-    final scaffoldKey = GlobalKey<ScaffoldState>();
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      key: scaffoldKey,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       // ── AppBar ──────────────────────────────────────────────────────
@@ -44,77 +40,47 @@ class Testinghome extends GetView<HomepageController> {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         automaticallyImplyLeading: false,
-        titleSpacing: 16,
+        leadingWidth: 56,
 
-        // ── Greeting rows pinned as AppBar.bottom ────────────────────
-        // ✅ Fix 1: Moved greeting here — plain Text, no Obx
-        // ── Greeting rows pinned as AppBar.bottom ────────────────────
-        // bottom: PreferredSize(
-        //   preferredSize: const Size.fromHeight(
-        //       110), // ✅ was 72 — too small for 2-line headline
-        //   child: Padding(
-        //     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        //     child: Column(
-        //       crossAxisAlignment: CrossAxisAlignment.start,
-        //       children: [
-        //         Text(
-        //           'Hello, ${_getGreetingName()}! 👋',
-        //           style: textTheme.bodyMedium?.copyWith(
-        //             color: colorScheme.onSurfaceVariant,
-        //             fontSize: 14,
-        //           ),
-        //         ),
-        //         const SizedBox(height: 6),
-        //         Text(
-        //           'Fulfill all your daily needs\nwith HarvestHub',
-        //           style: textTheme.headlineMedium?.copyWith(
-        //             color: colorScheme.onSurface,
-        //             fontWeight: FontWeight.w600,
-        //             fontSize: 24, // ✅ was 20 — design shows ~28px
-        //             height: 1.25,
-        //           ),
-        //         ),
-        //       ],
-        //     ),
-        //   ),
-        // ),
-
-        // ── Left: Location Pill ──────────────────────────────────────
-        title: GestureDetector(
-          onTap: () {},
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 14, vertical: 8), // ✅ slightly taller
-            decoration: BoxDecoration(
-              color: colorScheme.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.location_on, color: colorScheme.primary, size: 16),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Obx(() => Text(
-                        controller.selectcategory.value.toString().isNotEmpty
-                            ? controller.selectcategory.value.toString()
-                            : 'Select Location',
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurface,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 13,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      )),
+        // ── Left: Menu / Drawer Button ──────────────────────────────
+        leading: Builder(
+          builder: (innerContext) => Container(
+            margin: const EdgeInsets.only(left: 16),
+            alignment: Alignment.center,
+            child: GestureDetector(
+              onTap: () => Scaffold.of(innerContext).openDrawer(),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF161616)
+                      : colorScheme.surfaceContainerHighest,
+                  shape: BoxShape.circle,
+                  border: isDark
+                      ? Border.all(color: Colors.white.withValues(alpha: 0.08))
+                      : null,
                 ),
-                const SizedBox(width: 4),
-                Icon(Icons.keyboard_arrow_down,
-                    color: colorScheme.onSurface, size: 18),
-              ],
+                child: Icon(
+                  Icons.menu_rounded,
+                  color: colorScheme.onSurface,
+                  size: 20,
+                ),
+              ),
             ),
           ),
         ),
+
+        // ── Center: Brand Title ──────────────────────────────────────
+        title: Text(
+          appName,
+          style: textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+            color: colorScheme.onSurface,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: true,
 
         // ── Right: Socket dot + Chat + Notification ──────────────────
         actions: [
@@ -142,8 +108,13 @@ class Testinghome extends GetView<HomepageController> {
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest,
+                color: isDark
+                    ? const Color(0xFF161616)
+                    : colorScheme.surfaceContainerHighest,
                 shape: BoxShape.circle,
+                border: isDark
+                    ? Border.all(color: Colors.white.withValues(alpha: 0.08))
+                    : null,
               ),
               child: Icon(Icons.chat_bubble_outline,
                   color: colorScheme.onSurface, size: 20),
@@ -165,8 +136,14 @@ class Testinghome extends GetView<HomepageController> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest,
+                        color: isDark
+                            ? const Color(0xFF161616)
+                            : colorScheme.surfaceContainerHighest,
                         shape: BoxShape.circle,
+                        border: isDark
+                            ? Border.all(
+                                color: Colors.white.withValues(alpha: 0.08))
+                            : null,
                       ),
                       child: SvgPicture.asset(
                         'assets/icon/appbarnotification.svg',
@@ -200,29 +177,7 @@ class Testinghome extends GetView<HomepageController> {
       ),
 
       // ── Drawer ──────────────────────────────────────────────────────
-      drawer: Drawer(
-        child: AuthDetails.isUserLogin()
-            ? const CustomDrawer()
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Center(
-                    child: Text(
-                      'Login to View Profile',
-                      style: txtTheme().displayMedium,
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  SizedBox(
-                    width: Get.width * 0.6,
-                    child: AppButton(
-                      itemText: 'Login',
-                      keypressEvent: () => Get.offAllNamed(Routes.LOGIN),
-                    ),
-                  ),
-                ],
-              ),
-      ),
+      drawer: const CustomDrawer(),
 
       // ── Body ────────────────────────────────────────────────────────
       // ✅ Fix 2: FoduuStudioLayoutView is the DIRECT body child —

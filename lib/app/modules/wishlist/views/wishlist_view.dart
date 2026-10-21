@@ -1,10 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import '/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
-import '../../../../components/app_bar2.dart';
 import '../../../../components/shimmer/cart_shimmer.dart';
 import '/app/modules/auth/auth_details.dart';
-import '/constants/constants.dart';
 import '/constants/product_helper.dart';
 import '/core/foduuStudio/foduu_studio_layout_view.dart';
 import '/app/modules/bottomar/controllers/bottombar_controller.dart';
@@ -13,6 +11,7 @@ import '/components/buttons/appbutton.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import '/core/services/wishlistService.dart';
+import 'package:new_fastify_template/components/studio_widget/studio_products.dart';
 import '../controllers/wishlist_controller.dart';
 
 class WishlistView extends GetView<WishlistController> {
@@ -253,6 +252,23 @@ class WishlistView extends GetView<WishlistController> {
                   widgetList: controller.widgetList,
                   isLoading: controller.isLayoutLoading)
               : const SizedBox.shrink()),
+
+          // ── Trending Products Discovery Feed ──
+          const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 24),
+              TrendingProductSection(
+                contentJson: {
+                  'heading': 'Trending Now',
+                  'subheading': 'Explore popular picks and save what you love',
+                  'layout': 'standard',
+                  'infinite_scroll': true,
+                },
+                hideHeader: false,
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -526,11 +542,11 @@ class _WishListItemCard extends StatelessWidget {
   Widget _buildBadges(
       Map product, ColorScheme colorScheme, TextTheme textTheme) {
     final badges = <MapEntry<String, Color>>[
-      if (product['featured'] == true) MapEntry('Featured', Colors.teal),
-      if (product['hot'] == true) MapEntry('Hot', Colors.deepOrange),
-      if (product['trending'] == true) MapEntry('Trending', Colors.purple),
+      if (product['featured'] == true) const MapEntry('Featured', Colors.teal),
+      if (product['hot'] == true) const MapEntry('Hot', Colors.deepOrange),
+      if (product['trending'] == true) const MapEntry('Trending', Colors.purple),
       if (product['recommended'] == true)
-        MapEntry('Recommended', Colors.indigo),
+        const MapEntry('Recommended', Colors.indigo),
     ];
     if (badges.isEmpty) return const SizedBox.shrink();
     return Padding(

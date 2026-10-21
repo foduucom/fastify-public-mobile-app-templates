@@ -8,6 +8,7 @@ import '/app/modules/bottomar/controllers/bottombar_controller.dart';
 import '/app/modules/shop/controllers/shop_controller.dart';
 import '/components/drawerList.dart';
 import '/constants/dynamic_theme.dart';
+import '/constants/constants.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
@@ -53,18 +54,7 @@ class CustomDrawer extends GetView<HomepageController> {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  if (!isLoggedIn)
-                    DrawerTile(
-                      icon: Icon(Icons.login,
-                          color: Theme.of(context).colorScheme.secondary),
-                      title: 'Login',
-                      onTap: () {
-                        Get.back();
-                        Get.toNamed(Routes.LOGIN);
-                      },
-                    ),
-                  if (controller.drawernavigationItems.isEmpty &&
-                      isLoggedIn) ...[
+                  if (controller.drawernavigationItems.isEmpty) ...[
                     DrawerTile(
                       icon: Icon(Icons.home_outlined,
                           color: Theme.of(context).colorScheme.onSurface),
@@ -87,38 +77,76 @@ class CustomDrawer extends GetView<HomepageController> {
                       icon: Icon(Icons.category_outlined,
                           color: Theme.of(context).colorScheme.onSurface),
                       title: 'Shop By categories',
+                      subtitle: 'Explore sections',
                       onTap: () => _navigateToBottomBarPage(1),
                     ),
                     DrawerTile(
                       icon: Icon(Icons.filter_alt_outlined,
                           color: Theme.of(context).colorScheme.onSurface),
                       title: 'Filter',
+                      subtitle: 'Refine your search',
                       onTap: () => _navigateToBottomBarPage(1),
                     ),
-                    _buildSectionHeader(context, 'MY ACCOUNT'),
-                    DrawerTile(
-                      icon: Icon(Icons.shopping_basket_outlined,
-                          color: Theme.of(context).colorScheme.onSurface),
-                      title: 'Orders',
-                      onTap: () {
-                        Get.back();
-                        Get.toNamed(Routes.ORDERS);
-                      },
-                    ),
-                    DrawerTile(
-                      icon: Icon(Icons.favorite_border,
-                          color: Theme.of(context).colorScheme.onSurface),
-                      title: 'My Wishlist',
-                      onTap: () {
-                        Get.back();
-                        Get.toNamed(Routes.WISHLIST);
-                      },
-                    ),
+                    if (isLoggedIn) ...[
+                      _buildSectionHeader(context, 'MY ACCOUNT'),
+                      DrawerTile(
+                        icon: Icon(Icons.shopping_basket_outlined,
+                            color: Theme.of(context).colorScheme.onSurface),
+                        title: 'Orders',
+                        subtitle: 'Track your purchases',
+                        onTap: () {
+                          Get.back();
+                          Get.toNamed(Routes.ORDERS);
+                        },
+                      ),
+                      DrawerTile(
+                        icon: Icon(Icons.favorite_border,
+                            color: Theme.of(context).colorScheme.onSurface),
+                        title: 'My Wishlist',
+                        subtitle: 'Items you saved',
+                        onTap: () {
+                          Get.back();
+                          Get.toNamed(Routes.WISHLIST);
+                        },
+                      ),
+                    ],
                     _buildSectionHeader(context, 'SUPPORT & HELP'),
                     DrawerTile(
-                      icon: Icon(Icons.help_outline,
+                      icon: Icon(Icons.headset_mic_outlined,
                           color: Theme.of(context).colorScheme.onSurface),
-                      title: 'Help and support',
+                      title: 'Help & Customer Care',
+                      subtitle: 'FAQs, contact & support',
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(Routes.CONTACTUS);
+                      },
+                    ),
+                    if (isLoggedIn)
+                      DrawerTile(
+                        icon: Icon(Icons.confirmation_number_outlined,
+                            color: Theme.of(context).colorScheme.onSurface),
+                        title: 'Support Tickets',
+                        subtitle: 'Track or raise tickets',
+                        onTap: () {
+                          Get.back();
+                          Get.toNamed(Routes.SUPPORT_TICKET);
+                        },
+                      ),
+                    DrawerTile(
+                      icon: Icon(Icons.info_outline,
+                          color: Theme.of(context).colorScheme.onSurface),
+                      title: 'About Us',
+                      subtitle: 'Learn about our store',
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(Routes.ABOUTUS);
+                      },
+                    ),
+                    DrawerTile(
+                      icon: Icon(Icons.mail_outline,
+                          color: Theme.of(context).colorScheme.onSurface),
+                      title: 'Contact Us',
+                      subtitle: 'Reach out to our team',
                       onTap: () {
                         Get.back();
                         Get.toNamed(Routes.CONTACTUS);
@@ -126,12 +154,6 @@ class CustomDrawer extends GetView<HomepageController> {
                     ),
                     const SizedBox(height: 8),
                   ] else ...[
-                    if (controller.drawernavigationItems.isEmpty &&
-                        isLoggedIn)
-                      const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text('No navigation items available'),
-                      ),
                     ...controller.drawernavigationItems
                         .map(_buildItem)
                         .toList(),
@@ -150,11 +172,16 @@ class CustomDrawer extends GetView<HomepageController> {
   Widget _buildDrawerHeader(
       BuildContext context, bool isLoggedIn, dynamic userData) {
     return InkWell(
-      onTap: isLoggedIn
-          ? () {
-              _navigateToBottomBarPage(4);
-            }
-          : null,
+      onTap: () {
+        Get.back();
+        if (isLoggedIn) {
+          _navigateToBottomBarPage(4);
+        } else {
+          isOtpLogin
+              ? Get.toNamed(Routes.MOBILELOGIN)
+              : Get.toNamed(Routes.LOGIN);
+        }
+      },
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.only(
@@ -403,17 +430,27 @@ class CustomDrawer extends GetView<HomepageController> {
                         borderRadius: BorderRadius.circular(10)),
                   ),
                 )
-              : ElevatedButton(
+              : ElevatedButton.icon(
                   onPressed: () {
                     Get.back();
-                    Get.toNamed(Routes.LOGIN);
+                    isOtpLogin
+                        ? Get.toNamed(Routes.MOBILELOGIN)
+                        : Get.toNamed(Routes.LOGIN);
                   },
+                  icon: const Icon(Icons.login_rounded, size: 18),
+                  label: const Text(
+                    'Sign In / Register',
+                    style: TextStyle(
+                      fontFamily: 'lato',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13.5,
+                    ),
+                  ),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('Sign In / Register'),
                 ),
         ),
       ),

@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import '/app/data/basic_provider.dart';
+import '/app/modules/auth/auth_details.dart';
+import '/app/routes/app_pages.dart';
 import '/constants/helper_functions.dart';
 import '/constants/resilience_strings.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
@@ -25,6 +28,10 @@ class WishListService extends GetxService with BaseController {
 
   // ── Fetch full cart ──────────────────────────────────────
   Future<void> fetchWishList() async {
+    if (!AuthDetails.isUserLogin()) {
+      wishListItems.clear();
+      return;
+    }
     try {
       var response = await BasicProvider("wishlist/list")
           .getRequest()
@@ -48,6 +55,9 @@ class WishListService extends GetxService with BaseController {
     required String variantSlug,
     String? variantId,
   }) async {
+    if (!AuthDetails.isUserLogin()) {
+      return null;
+    }
     var form = {
       'product_id': productId,
       'variant_slug': variantSlug,
@@ -69,6 +79,9 @@ class WishListService extends GetxService with BaseController {
     required String variantSlug,
     String? variantId,
   }) async {
+    if (!AuthDetails.isUserLogin()) {
+      return null;
+    }
     var form = {
       'product_id': productId,
       'variant_slug': variantSlug,
@@ -101,6 +114,13 @@ class WishListService extends GetxService with BaseController {
     String? variantId,
     Map<String, dynamic>? productData,
   }) async {
+    if (!AuthDetails.isUserLogin()) {
+      HelperFunctions().showSnackBarError('Please login to manage your wishlist');
+      final isOtp = GetStorage().read('isOtpLogin') == true;
+      Get.toNamed(isOtp ? Routes.MOBILELOGIN : Routes.LOGIN);
+      return;
+    }
+
     final bool currentlyInWishlist = isInWishlist(productId);
 
     // --- Optimistic Update: Update UI instantly ---

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../components/app_bar.dart';
+import '/app/modules/auth/auth_details.dart';
 import '/app/routes/app_pages.dart';
 import '/components/foduuformtextfield.dart';
 import '/constants/constants.dart';
@@ -19,7 +20,27 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-       appBar: CustomAppBar(title: ''),
+      appBar: CustomAppBar(
+        title: '',
+        actions: [
+          TextButton(
+            onPressed: () {
+              AuthDetails.logOut();
+              Get.offAllNamed(Routes.BOTTOMBAR);
+            },
+            child: Text(
+              'SKIP',
+              style: TextStyle(
+                color: colorScheme.primary,
+                fontSize: 14,
+                fontFamily: 'Lato',
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: SafeArea(
         child: GestureDetector(
           onTap: () => FocusScope.of(context).requestFocus(FocusNode()),

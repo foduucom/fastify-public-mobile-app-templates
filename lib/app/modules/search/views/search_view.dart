@@ -7,10 +7,9 @@ import 'package:shimmer/shimmer.dart';
 import '/app/modules/product/views/product_view.dart';
 import '/app/modules/shop/bindings/shop_binding.dart';
 import '/app/routes/app_pages.dart';
-import '/constants/constants.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
-import '/constants/product_helper.dart';
+import 'package:new_fastify_template/components/studio_widget/studio_products.dart';
 import '../controllers/search_controller.dart';
 
 class SearchView extends GetView<SearchsController> {
@@ -310,16 +309,14 @@ class SearchView extends GetView<SearchsController> {
                             crossAxisCount: 2,
                             crossAxisSpacing: 14,
                             mainAxisSpacing: 14,
-                            childAspectRatio: 0.88,
+                            childAspectRatio: 0.62,
                           ),
                           itemCount: controller.searchProduct.length,
                           itemBuilder: (context, index) {
                             final product = controller.searchProduct[index]
                                 as Map<String, dynamic>;
-                            return _ProductCard(
+                            return StudioProductCard(
                               product: product,
-                              colorScheme: colorScheme,
-                              textTheme: textTheme,
                               onTap: () {
                                 final productId =
                                     product['_id']?.toString() ?? '';
@@ -494,181 +491,6 @@ class SearchView extends GetView<SearchsController> {
           'https://images.unsplash.com/photo-1588347818481-1e4bb5a52f21?w=200',
     },
   ];
-}
-
-// ── Product Card ──────────────────────────────────────────────────────────────
-class _ProductCard extends StatelessWidget {
-  final Map<String, dynamic> product;
-  final ColorScheme colorScheme;
-  final TextTheme textTheme;
-  final VoidCallback onTap;
-
-  const _ProductCard({
-    required this.product,
-    required this.colorScheme,
-    required this.textTheme,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final priceInfo = ProductHelper.calculatePriceInfo(product);
-    final imageUrl = ProductHelper.getProductImage(product);
-    final name = ProductHelper.getProductName(product);
-
-    final displayPrice =
-        double.tryParse(priceInfo['productPrice']?.toString() ?? '0') ?? 0.0;
-    final originalPrice =
-        double.tryParse(priceInfo['salePrice']?.toString() ?? '0') ?? 0.0;
-    final hasDiscount = originalPrice > 0 && originalPrice > displayPrice;
-    final discountPct = hasDiscount
-        ? ((originalPrice - displayPrice) / originalPrice * 100).round()
-        : 0;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          //border: Border.all(color: colorScheme.outline),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 7,
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(15),
-                      bottom: Radius.circular(15),
-                    ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: double.infinity,
-                      child: (imageUrl.isNotEmpty &&
-                              imageUrl != HelperFunctions.getNoImage())
-                          ? CachedNetworkImage(
-                              imageUrl: imageUrl,
-                              fit: BoxFit.cover,
-                              placeholder: (_, __) => Container(
-                                  color: colorScheme.surfaceContainerHighest),
-                              errorWidget: (_, __, ___) =>
-                                  const AppImagePlaceholder(radius: 15),
-                            )
-                          : const AppImagePlaceholder(radius: 15),
-                    ),
-                  ),
-                  if (hasDiscount)
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: colorScheme.error,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          '$discountPct%',
-                          style: TextStyle(
-                              color: colorScheme.onError,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 4,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      name,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurface,
-                            fontSize: 13,
-                          ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    // Text(
-                    //   'For 1Kg',
-                    //   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    //       color: colorScheme.onSurfaceVariant, fontSize: 11),
-                    // ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // 👇 Single container wrapping both price texts
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '₹${displayPrice.toStringAsFixed(2)}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.onSurface,
-                                    fontSize: 13,
-                                  ),
-                            ),
-                            if (hasDiscount)
-                              Text(
-                                '₹${originalPrice.toStringAsFixed(2)}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      decoration: TextDecoration.lineThrough,
-                                      color: colorScheme.error,
-                                      decorationColor: colorScheme.error,
-                                      fontSize: 11,
-                                    ),
-                              ),
-                          ],
-                        ),
-                        // 👇 Add button
-                        GestureDetector(
-                          onTap: onTap,
-                          child: Container(
-                            width: 28,
-                            height: 28,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primary
-                                  .withValues(alpha: 0.15),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(Icons.add,
-                                color: Theme.of(context).colorScheme.primary,
-                                size: 18),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 // ── Store Tile ────────────────────────────────────────────────────────────────

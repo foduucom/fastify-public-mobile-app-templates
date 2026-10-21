@@ -40,12 +40,32 @@ class _FoduuSliderState extends State<FoduuSlider>
   double _getSliderHeight() {
     final bool isFullScreen = widget.sliderData['full_screen'] ?? false;
     if (isFullScreen) {
-      // For full screen, calculate height based on width with 16:9 aspect ratio
       return Get.width * 9 / 16;
     } else {
-      // Use the height from content_json, default to 200 if not provided
       final dynamic height = widget.sliderData['height'];
-      return height != null ? height.toDouble() : 200.0;
+      final double h = height != null
+          ? (double.tryParse(height.toString()) ?? 200.0)
+          : 200.0;
+      return h < 215.0 ? 215.0 : h;
+    }
+  }
+
+  void _handleSliderClick(dynamic item) {
+    if (item['sliderType'] == 'categories' && item['link'] != null) {
+      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+        'source': 'category',
+        'productId': item['link'],
+        'name': item['heading'] ?? 'Category',
+      });
+    } else if (item['sliderType'] == 'blog' && item['link'] != null) {
+      Get.toNamed(Routes.BLOG, arguments: {
+        'id': item['link'],
+      });
+    } else {
+      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+        'source': 'slider',
+        'name': item['heading'] ?? 'Collection',
+      });
     }
   }
 
@@ -61,8 +81,6 @@ class _FoduuSliderState extends State<FoduuSlider>
   void initState() {
     super.initState();
     homeController = Get.find<HomepageController>();
-    // sliderImage.clear();
-    // initFetchSliderImage(widget.id);
 
     Timer.periodic(const Duration(seconds: 8), (Timer timer) {
       if (_currentPage < _sliderContent.length - 1) {
@@ -82,8 +100,7 @@ class _FoduuSliderState extends State<FoduuSlider>
 
   @override
   Widget build(BuildContext context) {
-    super.build(
-        context); // Call to the super method for AutomaticKeepAliveClientMixin
+    super.build(context);
     final double sliderHeight = _getSliderHeight();
 
     return Column(
@@ -139,30 +156,24 @@ class _FoduuSliderState extends State<FoduuSlider>
                           itemCount: _sliderContent.length,
                           itemBuilder: (context, index) {
                             final item = _sliderContent[index];
-                            return Stack(
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    if (item['sliderType'] == 'categories') {
-                                      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW,
-                                          arguments: {
-                                            'source': 'category',
-                                            'productId': item['link'],
-                                            'name': item['heading']
-                                          });
-                                    }
-                                    if (item['sliderType'] == 'page') {}
-                                    if (item['sliderType'] == 'blog') {
-                                      Get.toNamed(Routes.BLOG, arguments: {
-                                        'id': item['link'],
-                                      });
-                                    }
-                                  },
-                                  child: Padding(
-                                    padding: pageSurroundingPadding,
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(12.0),
-                                      child: (HelperFunctions().getImage(item).isNotEmpty &&
+                            final String heading =
+                                (item['heading'] ?? '').toString().trim();
+                            final String description =
+                                (item['description'] ?? '').toString().trim();
+                            final String buttonText =
+                                (item['button_text'] ?? '').toString().trim();
+
+                            return GestureDetector(
+                              onTap: () => _handleSliderClick(item),
+                              child: Padding(
+                                padding: pageSurroundingPadding,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(14.0),
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      // 1. Background Image
+                                      (HelperFunctions().getImage(item).isNotEmpty &&
                                               HelperFunctions().getImage(item) != HelperFunctions.getNoImage())
                                           ? CachedNetworkImage(
                                               height: sliderHeight,
@@ -172,7 +183,7 @@ class _FoduuSliderState extends State<FoduuSlider>
                                               width: Get.width,
                                               errorWidget: ((context, url, error) =>
                                                   AppImagePlaceholder(
-                                                    radius: 12,
+                                                    radius: 14,
                                                     height: sliderHeight,
                                                     width: double.infinity,
                                                     fit: BoxFit.cover,
@@ -196,57 +207,150 @@ class _FoduuSliderState extends State<FoduuSlider>
                                                   )),
                                             )
                                           : AppImagePlaceholder(
-                                              radius: 12,
+                                              radius: 14,
                                               height: sliderHeight,
                                               width: double.infinity,
                                               fit: BoxFit.cover,
                                             ),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                    child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      SizedBox(height: 6),
-                                      Text(
-                                        item['heading'],
-                                        style: TextStyle(
-                                          fontFamily: 'Lato',
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w700,
+
+                                      // 2. High-contrast luxury scrim overlay
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.centerLeft,
+                                            end: Alignment.centerRight,
+                                            colors: [
+                                              Colors.black.withValues(alpha: 0.85),
+                                              Colors.black.withValues(alpha: 0.50),
+                                              Colors.black.withValues(alpha: 0.15),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                      SizedBox(height: 6),
-                                      Text(
-                                        item['description'],
-                                        style: TextStyle(
-                                          fontFamily: 'Lato',
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w300,
+
+                                      // 3. Editorial Text & CTA Button
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 22.0,
+                                          vertical: 18.0,
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            if (heading.isNotEmpty)
+                                              Text(
+                                                heading,
+                                                style: const TextStyle(
+                                                  fontFamily: 'Lato',
+                                                  fontSize: 21,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: Colors.white,
+                                                  letterSpacing: -0.3,
+                                                  shadows: [
+                                                    Shadow(
+                                                      color: Colors.black45,
+                                                      blurRadius: 4,
+                                                      offset: Offset(0, 1),
+                                                    ),
+                                                  ],
+                                                ),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            if (description.isNotEmpty) ...[
+                                              const SizedBox(height: 6),
+                                              Text(
+                                                description,
+                                                style: TextStyle(
+                                                  fontFamily: 'Lato',
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w400,
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.9),
+                                                  height: 1.35,
+                                                  shadows: const [
+                                                    Shadow(
+                                                      color: Colors.black38,
+                                                      blurRadius: 3,
+                                                      offset: Offset(0, 1),
+                                                    ),
+                                                  ],
+                                                ),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
+                                            if (buttonText.isNotEmpty) ...[
+                                              const SizedBox(height: 12),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 14,
+                                                  vertical: 7,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black
+                                                          .withValues(
+                                                              alpha: 0.25),
+                                                      blurRadius: 6,
+                                                      offset:
+                                                          const Offset(0, 2),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                      buttonText.toUpperCase(),
+                                                      style: const TextStyle(
+                                                        fontSize: 11,
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                        color:
+                                                            Color(0xFF111111),
+                                                        letterSpacing: 0.8,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    const Icon(
+                                                      Icons
+                                                          .arrow_forward_rounded,
+                                                      size: 13,
+                                                      color: Color(0xFF111111),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ],
                                         ),
                                       ),
                                     ],
                                   ),
-                                ))
-                              ],
+                                ),
+                              ),
                             );
                           }),
                     ),
             ),
-            Positioned(
-              bottom: 20,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [..._buildPageIndicator()],
-              ),
-            )
+            if (_sliderContent.length > 1)
+              Positioned(
+                bottom: 12,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [..._buildPageIndicator()],
+                ),
+              )
           ],
         ),
       ],
@@ -259,14 +363,18 @@ class _FoduuSliderState extends State<FoduuSlider>
 
 Widget _indicator(bool isActive) {
   return Container(
-    height: 10,
-    width: isActive ? 20 : 10,
-    margin: const EdgeInsets.symmetric(horizontal: 4.0),
+    height: 5,
+    width: isActive ? 22 : 6,
+    margin: const EdgeInsets.symmetric(horizontal: 3.0),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(50),
-      color: isActive
-          ? Theme.of(Get.context!).colorScheme.primary
-          : Theme.of(Get.context!).colorScheme.outline,
+      color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.45),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.35),
+          blurRadius: 3,
+        ),
+      ],
     ),
   );
 }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import '/app/modules/bottomar/controllers/bottombar_controller.dart';
+import '/app/modules/shop/shop_navigation.dart';
 import '/app/routes/app_pages.dart';
 import '/constants/constants.dart';
 import '/helpers/socket_helper.dart';
@@ -12,10 +13,12 @@ class StudioSocketRouting extends GetxController {
   final SocketHelper _socketHelper = SocketHelper();
 
   // Map of bottom bar slugs to their tab indices
-  // Index 0=Home, 1=Category, 2=Cart, 3=Wishlist, 4=Profile
+  // Index 0=Home, 1=Shop/Category/Explore, 2=Cart, 3=Wishlist, 4=Profile
   static const Map<String, int> _bottomBarTabs = {
     'home': 0,
+    'shop': 1,
     'category': 1,
+    'explore': 1,
     'cart': 2,
     'wishlist': 3,
     'profile': 4,
@@ -120,7 +123,7 @@ class StudioSocketRouting extends GetxController {
         Get.toNamed(Routes.SEARCH);
         break;
       case 'product-listing':
-        Get.toNamed(Routes.SHOPPRODUCTLISTVIEW);
+        openShop();
         break;
       default:
         Get.toNamed(Routes.CUSTOMPAGE,

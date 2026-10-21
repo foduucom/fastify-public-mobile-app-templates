@@ -6,9 +6,9 @@ import '/core/services/cartServcie.dart';
 import '/core/services/wishlistService.dart';
 import '/app/data/basic_provider.dart';
 import '/app/modules/auth/auth_details.dart';
+import '/app/modules/shop/controllers/shop_controller.dart';
 import '/app/routes/app_pages.dart';
 import '/constants/constants.dart';
-import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -25,10 +25,23 @@ class BottombarController extends GetxController with BaseController {
   void onInit() async {
     super.onInit();
 
-    await AuthDetails().updateUserDetailsFromServer();
+    if (AuthDetails.isUserLogin()) {
+      await AuthDetails().updateUserDetailsFromServer();
+    }
 
     // Always fetch cart — CartService handles guest (local) vs logged-in (API)
     CartService.to.fetchCart();
+
+    // Listen to reactive auth state so any login/logout automatically refreshes
+    AuthDetails.loggedIn.listen((isLoggedIn) {
+      if (isLoggedIn) {
+        CartService.to.fetchCart();
+        WishListService.to.fetchWishList();
+      } else {
+        CartService.to.fetchCart(); // loads local cart
+        WishListService.to.fetchWishList(); // clears wishlist
+      }
+    });
   }
 
   void getShippingSetting() async {
@@ -54,6 +67,10 @@ class BottombarController extends GetxController with BaseController {
     currentPageIndex.value = value;
     pageController.jumpToPage(value);
     update();
+    // Reset to plain shop CMS layout whenever user explicitly taps Shop tab (index 1)
+    if (value == 1 && Get.isRegistered<ShopController>()) {
+      Get.find<ShopController>().resetToPlainShop();
+    }
     // Refresh wishlist data whenever the wishlist tab (index 3) is opened
     if (value == 3 && AuthDetails.isUserLogin()) {
       WishListService.to.fetchWishList();

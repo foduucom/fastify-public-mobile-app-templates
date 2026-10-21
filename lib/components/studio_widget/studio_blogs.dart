@@ -58,13 +58,33 @@ class _BlogSectionState extends State<BlogSection>
               itemCount: blogs.length,
               itemBuilder: ((context, index) {
                 var blog = blogs[index];
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+
                 return InkWell(
                   onTap: () {},
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.vertical(bottom: Radius.circular(10)),
-                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(14),
+                      color: isDark
+                          ? const Color(0xFF161616)
+                          : Theme.of(context).colorScheme.surface,
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.08)
+                            : Theme.of(context)
+                                .colorScheme
+                                .outlineVariant
+                                .withValues(alpha: 0.35),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black
+                              .withValues(alpha: isDark ? 0.25 : 0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -73,7 +93,7 @@ class _BlogSectionState extends State<BlogSection>
                       children: [
                         ClipRRect(
                           borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(10)),
+                              top: Radius.circular(13)),
                           child: (HelperFunctions()
                                       .getImage(blog['featured_image'])
                                       .isNotEmpty &&
@@ -113,12 +133,12 @@ class _BlogSectionState extends State<BlogSection>
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                    fontSize: 15,
+                                    fontSize: 14,
                                     fontFamily: 'Lato',
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w700,
                                     color: Theme.of(context)
                                         .colorScheme
-                                        .onSurfaceVariant),
+                                        .onSurface),
                               ),
                               const SizedBox(height: 4),
                               _buildDescription(blog),
@@ -139,6 +159,7 @@ class _BlogSectionState extends State<BlogSection>
 
   Widget _buildDescription(dynamic blog) {
     String content = blog['excerpt'] ?? blog['content'] ?? '';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SizedBox(
       // height: 35, // Approximate height for 2 lines
@@ -147,7 +168,10 @@ class _BlogSectionState extends State<BlogSection>
         textStyle: TextStyle(
             fontSize: 12,
             fontFamily: 'Lato',
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            height: 1.35,
+            color: isDark
+                ? const Color(0xFF9E9E9E)
+                : Theme.of(context).colorScheme.onSurfaceVariant,
             overflow: TextOverflow
                 .ellipsis // Helper for text overflow if supported by HtmlWidget context
             ),

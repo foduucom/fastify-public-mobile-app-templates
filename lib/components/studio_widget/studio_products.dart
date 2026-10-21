@@ -3,13 +3,17 @@ import '/components/app_image_placeholder.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '/core/services/wishlistService.dart';
+import '/core/services/cartServcie.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
 import '/app/modules/product/views/product_view.dart';
+import '/app/modules/bottomar/controllers/bottombar_controller.dart';
 import '/app/routes/app_pages.dart';
 import '/constants/constants.dart';
+import '/constants/dynamic_theme.dart';
 import '/constants/helper_functions.dart';
 import '/constants/product_helper.dart';
+import '/components/product_quick_view_modal.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
@@ -19,9 +23,32 @@ import 'package:new_fastify_template/components/parent_web_product_card.dart';
 class TrendingProductSection extends StatefulWidget {
   final Map<String, dynamic>? contentJson;
 
+  /// When provided, the section renders this externally-owned list instead of
+  /// fetching its own data — used by pages (Shop) that run their own filtered,
+  /// paginated product fetch and just want the shared grid/card rendering.
+  final RxList<dynamic>? externalProducts;
+
+  /// Whether the external caller has more pages to load (external mode only).
+  final bool externalHasMore;
+
+  /// Whether the external caller is fetching another page (external mode only).
+  final bool externalIsLoadingMore;
+
+  /// Called when scrolling nears the end in external mode; the caller fetches
+  /// and appends to [externalProducts].
+  final VoidCallback? onLoadMore;
+
+  /// Hides the heading/subheading/"see all" row (external mode).
+  final bool hideHeader;
+
   const TrendingProductSection({
     super.key,
     this.contentJson,
+    this.externalProducts,
+    this.externalHasMore = false,
+    this.externalIsLoadingMore = false,
+    this.onLoadMore,
+    this.hideHeader = false,
   });
 
   @override
@@ -30,7 +57,8 @@ class TrendingProductSection extends StatefulWidget {
 
 class _TrendingProductCardState extends State<TrendingProductSection>
     with BaseController {
-  final trendingList = <dynamic>[].obs;
+  late final RxList<dynamic> trendingList;
+  bool get _isExternal => widget.externalProducts != null;
 
   // ─── Pagination State ───
   bool _infiniteScroll = false;
@@ -43,9 +71,33 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   bool _useParentScroll = false;
   final _debugScrollInfo = "Pos: N/A".obs;
 
+  bool get _hasMoreValue =>
+      _isExternal ? widget.externalHasMore : _hasMore.value;
+  bool get _isLoadingMoreValue =>
+      _isExternal ? widget.externalIsLoadingMore : _isLoadingMore.value;
+
+  void _triggerLoadMore() {
+    if (_isExternal) {
+      if (!_hasMoreValue || _isLoadingMoreValue) return;
+      widget.onLoadMore?.call();
+    } else {
+      _fetchProductsFromApi();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    trendingList = widget.externalProducts ?? <dynamic>[].obs;
+
+    if (_isExternal) {
+      _infiniteScroll = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _attachParentScrollListener();
+      });
+      return;
+    }
+
     _infiniteScroll = widget.contentJson?['infinite_scroll'] == true;
     _countPerPage = widget.contentJson?['count'] ?? 10;
 
@@ -133,20 +185,21 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     _debugScrollInfo.value =
         "Pos: ${pos.pixels.toInt()} / ${pos.maxScrollExtent.toInt()}";
     if (pos.pixels >= pos.maxScrollExtent - 100) {
-      _fetchProductsFromApi();
+      _triggerLoadMore();
     }
   }
 
   /// Fires for parent-scrolling layouts (grid / vertical / horizontal-style).
   void _onParentScroll() {
-    if (_parentScrollPosition == null || !_parentScrollPosition!.hasPixels)
+    if (_parentScrollPosition == null || !_parentScrollPosition!.hasPixels) {
       return;
+    }
     final pos = _parentScrollPosition!;
     _debugScrollInfo.value =
         "Pos: ${pos.pixels.toInt()} / ${pos.maxScrollExtent.toInt()}";
 
     if (pos.pixels >= pos.maxScrollExtent - 200) {
-      _fetchProductsFromApi();
+      _triggerLoadMore();
     }
   }
 
@@ -280,11 +333,6 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final subheading = widget.contentJson?['section_subtitle'] ??
         widget.contentJson?['subheading'] ??
         '';
-    final categoryType =
-        widget.contentJson?['category_type'] ?? 'random_category';
-    final categoryIds = widget.contentJson?['categories'];
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     // ─── Layout Configuration ───
     // 'style': 'standard' (default), 'horizontal', or 'overlay'
@@ -295,8 +343,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             Column(
               children: [
                 // ─── Section Header ───
-                if (!_infiniteScroll)
+                if (!_infiniteScroll && !widget.hideHeader)
                   StudioSectionHeader(
+                    eyebrow: widget.contentJson?['eyebrow']?.toString(),
                     title: heading,
                     subtitle: subheading,
                     onSeeAll: () => Get.toNamed(Routes.CATEGORY),
@@ -316,7 +365,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
               ],
             ),
             // ─── DEBUG OVERLAY ───
-            if (_infiniteScroll)
+            if (_infiniteScroll && !_isExternal)
               Positioned(
                 top: 0,
                 right: 10,
@@ -445,6 +494,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         return _buildOverlayStyleList();
       case 'standard':
       default:
+        if (websiteDomain.contains('fashion-ecom')) {
+          return _buildParentWebHorizontalList();
+        }
         return _buildStandardStyleList();
     }
   }
@@ -479,8 +531,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           }
           final product = trendingList[index] as Map<String, dynamic>;
           final priceInfo = ProductHelper.calculatePriceInfo(product);
-          if (!priceInfo['hasValidVariants'])
+          if (!priceInfo['hasValidVariants']) {
             return const Text('No Valide Variants');
+          }
           return _buildGridItem(product, priceInfo, style);
         },
       ),
@@ -490,7 +543,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   /// Build a single grid item — uses the card style from `layout`
   Widget _buildGridItem(Map<String, dynamic> product,
       Map<String, dynamic> priceInfo, String style) {
-    if (style == 'parent_web') {
+    if (style == 'parent_web' ||
+        (style == 'standard' && websiteDomain.contains('fashion-ecom'))) {
       return ParentWebProductCard(product: product, isList: false);
     }
 
@@ -534,10 +588,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // STYLE 0 — PARENT WEB (Portrait 2-col fashion card mirroring parent website)
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildParentWebHorizontalList() {
-    final cardWidth = (MediaQuery.of(context).size.width * 0.40)
-        .clamp(145.0, 175.0)
+    final cardWidth = (MediaQuery.of(context).size.width * 0.46)
+        .clamp(170.0, 195.0)
         .toDouble();
-    const totalCardHeight = 270.0;
+    const totalCardHeight = 315.0;
 
     return SizedBox(
       height: totalCardHeight,
@@ -573,30 +627,39 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // STYLE 1 — STANDARD (Vertical Card, Image on Top)
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildStandardStyleList() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 6.0),
-      child: SizedBox(
-        height: 270, // Increased to 320 to prevent overflows
-        child: _withScrollConfig(
-          ListView.separated(
-            controller: _scrollController,
-            separatorBuilder: (context, index) => const SizedBox(width: 10),
-            shrinkWrap: false,
-            cacheExtent: 9999,
-            physics: const AlwaysScrollableScrollPhysics(),
-            scrollDirection: Axis.horizontal,
-            itemCount: _itemCount,
-            itemBuilder: (context, index) {
-              if (index >= trendingList.length) {
-                return _buildLoadingIndicator();
-              }
-              final product = trendingList[index];
-              final priceInfo = ProductHelper.calculatePriceInfo(product);
-              if (!priceInfo['hasValidVariants'])
-                return const SizedBox.shrink();
-              return _buildStandardItem(product, priceInfo);
-            },
-          ),
+    final cardWidth = (MediaQuery.of(context).size.width * 0.38)
+        .clamp(140.0, 160.0)
+        .toDouble();
+    const imageAspectRatio = 0.75;
+    final imageHeight = cardWidth / imageAspectRatio;
+    const textSectionHeight = 88.0;
+    final totalCardHeight = imageHeight + textSectionHeight;
+
+    return SizedBox(
+      height: totalCardHeight,
+      child: _withScrollConfig(
+        ListView.separated(
+          controller: _scrollController,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          separatorBuilder: (context, index) => const SizedBox(width: 12),
+          shrinkWrap: false,
+          physics: const AlwaysScrollableScrollPhysics(),
+          scrollDirection: Axis.horizontal,
+          itemCount: _itemCount,
+          itemBuilder: (context, index) {
+            if (index >= trendingList.length) {
+              return _buildLoadingIndicator();
+            }
+            final product = trendingList[index] as Map<String, dynamic>;
+            final priceInfo = ProductHelper.calculatePriceInfo(product);
+            if (!priceInfo['hasValidVariants']) {
+              return const SizedBox.shrink();
+            }
+            return SizedBox(
+              width: cardWidth,
+              child: _buildSiteProductCard(product, priceInfo, imageHeight),
+            );
+          },
         ),
       ),
     );
@@ -604,156 +667,344 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   Widget _buildStandardItem(
       Map<String, dynamic> product, Map<String, dynamic> priceInfo) {
+    final cardWidth = (MediaQuery.of(context).size.width * 0.38)
+        .clamp(140.0, 160.0)
+        .toDouble();
+    const imageAspectRatio = 0.75;
+    final imageHeight = cardWidth / imageAspectRatio;
+
+    return SizedBox(
+      width: cardWidth,
+      child: _buildSiteProductCard(product, priceInfo, imageHeight),
+    );
+  }
+
+  Widget _buildSiteProductCard(Map<String, dynamic> product,
+      Map<String, dynamic> priceInfo, double imageHeight) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final productName = ProductHelper.getProductName(product);
+    final hasDiscount = priceInfo['discountRate'] != null &&
+        priceInfo['discountRate'].toString().trim().isNotEmpty;
+    final isVariable = priceInfo['productType'] == 'variable';
+    final productId = ProductHelper.getProductId(product);
+    final variantId = _resolveDefaultVariantId(product);
     final imageUrl = ProductHelper.getProductImage(product);
-    final (:displayPrice, :originalPrice, :hasDiscount, :discountRate) =
-        _parsePriceData(priceInfo);
 
     return GestureDetector(
       onTap: () => _navigateToProduct(product),
-      child: Container(
-        width: 180,
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Image Section ───────────────────────────────────────
-            Expanded(
-              flex: 5,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: SizedBox(
+              height: imageHeight,
+              width: double.infinity,
               child: Stack(
+                fit: StackFit.expand,
                 children: [
-                  ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(15)),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: double.infinity,
-                      child: (imageUrl.isNotEmpty &&
-                              imageUrl != HelperFunctions.getNoImage())
-                          ? CachedNetworkImage(
-                              imageUrl: imageUrl,
-                              fit: BoxFit.cover,
-                              progressIndicatorBuilder: (_, __, ___) =>
-                                  HelperFunctions().loadingIndicator(),
-                              errorWidget: (_, __, ___) =>
-                                  const AppImagePlaceholder(radius: 15),
-                            )
-                          : const AppImagePlaceholder(radius: 15),
-                    ),
-                  ),
-                  // Discount Badge
-                  if (hasDiscount && discountRate.isNotEmpty)
+                  (imageUrl.isNotEmpty &&
+                          imageUrl != HelperFunctions.getNoImage())
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                          progressIndicatorBuilder: (_, __, ___) =>
+                              HelperFunctions().loadingIndicator(),
+                          errorWidget: (_, __, ___) =>
+                              const AppImagePlaceholder(radius: 10),
+                        )
+                      : const AppImagePlaceholder(radius: 10),
+                  if (hasDiscount)
                     Positioned(
-                      top: 8,
                       left: 8,
+                      top: 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: colorScheme.error,
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          discountRate.replaceAll('off', '').trim(),
-                          style: TextStyle(
-                              color: colorScheme.onError,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold),
+                          'Sale',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onError,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 10,
+                          ),
                         ),
                       ),
                     ),
-                  // Wishlist Button
+                  // Floating 3-action vertical button stack (top right)
                   Positioned(
                     right: 8,
                     top: 8,
-                    child: _buildWishlistButton(product),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 1. Add to cart
+                        _actionCircleBtn(
+                          icon: Icons.shopping_bag_outlined,
+                          tooltip: 'Add to Cart',
+                          onTap: () async {
+                            if (ProductHelper.isInStock(product) &&
+                                variantId.isNotEmpty) {
+                              await _handleAddToCart(
+                                  product, productId, variantId, 1);
+                              Get.snackbar(
+                                'Added to Cart',
+                                '${ProductHelper.getProductName(product)} added to your cart',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: colorScheme.primary,
+                                colorText: colorScheme.onPrimary,
+                                duration: const Duration(seconds: 3),
+                                margin: const EdgeInsets.all(16),
+                                mainButton: TextButton(
+                                  onPressed: () {
+                                    if (Get.isRegistered<
+                                        BottombarController>()) {
+                                      Get.find<BottombarController>()
+                                          .currentPageIndex
+                                          .value = 4;
+                                      Get.find<BottombarController>()
+                                          .pageController
+                                          .jumpToPage(4);
+                                    }
+                                  },
+                                  child: Text(
+                                    'VIEW CART',
+                                    style: TextStyle(
+                                      color: colorScheme.onPrimary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            } else {
+                              Get.snackbar(
+                                'Out of Stock',
+                                'This product is out of stock',
+                                snackPosition: SnackPosition.BOTTOM,
+                                margin: const EdgeInsets.all(16),
+                              );
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        // 2. Quick view
+                        _actionCircleBtn(
+                          icon: Icons.remove_red_eye_outlined,
+                          tooltip: 'Quick View',
+                          onTap: () =>
+                              ProductQuickViewModal.show(context, product),
+                        ),
+                        const SizedBox(height: 5),
+                        // 3. Wishlist
+                        Obx(() {
+                          final isFav =
+                              WishListService.to.isInWishlist(productId);
+                          return _actionCircleBtn(
+                            icon: isFav
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            iconColor: isFav ? colorScheme.error : null,
+                            tooltip: 'Wishlist',
+                            onTap: () => _handleWishlistTap(product),
+                          );
+                        }),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-            // ── Details Section ─────────────────────────────────────
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          ),
+          const SizedBox(height: 6),
+          // 5-star rating centered
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              5,
+              (index) => const Icon(
+                Icons.star_rounded,
+                size: 13,
+                color: DefaultThemeColors.alertWarninglight,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          // Title centered
+          SizedBox(
+            height: 32,
+            child: Text(
+              ProductHelper.getProductName(product),
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodyMedium?.copyWith(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w500,
+                height: 1.25,
+                color: colorScheme.onSurface,
+              ),
+            ),
+          ),
+          const SizedBox(height: 3),
+          // Price centered
+          if (isVariable)
+            Center(child: _buildVariablePrice(priceInfo))
+          else
+            Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      productName,
+                      ProductHelper.formatPrice(
+                          priceInfo['productPrice']?.toString() ?? '0'),
                       style: textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                        fontSize: 13,
+                        color: colorScheme.primary,
                       ),
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    // Text(
-                    //   'For 1Kg',
-                    //   style: textTheme.bodySmall?.copyWith(
-                    //     color: colorScheme.onSurfaceVariant,
-                    //     fontSize: 11,
-                    //   ),
-                    // ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '₹$displayPrice',
-                              style: textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.onSurface,
-                                fontSize: 13,
-                              ),
-                            ),
-                            if (hasDiscount)
-                              Text(
-                                '₹$originalPrice',
-                                style: textTheme.bodySmall?.copyWith(
-                                  decoration: TextDecoration.lineThrough,
-                                  color: colorScheme.error,
-                                  decorationColor: colorScheme.error,
-                                  fontSize: 11,
-                                ),
-                              ),
-                          ],
+                    if (hasDiscount && priceInfo['salePrice'] != null) ...[
+                      const SizedBox(width: 5),
+                      Text(
+                        ProductHelper.formatPrice(
+                            priceInfo['salePrice'].toString()),
+                        style: textTheme.bodySmall?.copyWith(
+                          fontSize: 11,
+                          decoration: TextDecoration.lineThrough,
+                          color: colorScheme.onSurfaceVariant,
                         ),
-                        // Add Button (Visual mock)
-                        Container(
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary.withValues(alpha: 0.12),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.add,
-                            size: 18,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                      ],
-                    ),
+                        maxLines: 1,
+                      ),
+                    ],
                   ],
                 ),
               ),
             ),
-          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _actionCircleBtn({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onTap,
+    Color? iconColor,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: colorScheme.surface,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.2),
+              width: 0.5,
+            ),
+          ),
+          child: Icon(
+            icon,
+            size: 15,
+            color: iconColor ?? colorScheme.onSurface,
+          ),
         ),
       ),
+    );
+  }
+
+  Future<void> _handleAddToCart(Map<String, dynamic> product, String productId,
+      String variantId, int delta) async {
+    try {
+      await CartService.to.manageCart(
+        productId: productId,
+        variantId: variantId,
+        quantity: delta,
+        product: product,
+      );
+    } catch (e) {
+      HelperFunctions().showSnackBarError("Failed to update cart".tr);
+    }
+  }
+
+  String _resolveDefaultVariantId(Map<String, dynamic> product) {
+    final variants = product['variants'];
+    if (variants is! List || variants.isEmpty) return '';
+
+    Map? bestInStock;
+    double bestInStockPrice = double.infinity;
+    Map? bestOverall;
+    double bestOverallPrice = double.infinity;
+
+    for (final v in variants) {
+      if (v is! Map) continue;
+      final price = HelperFunctions.parseAmount(v['sale_price']) > 0
+          ? HelperFunctions.parseAmount(v['sale_price'])
+          : HelperFunctions.parseAmount(v['price']);
+
+      if (price < bestOverallPrice) {
+        bestOverallPrice = price;
+        bestOverall = v;
+      }
+
+      final stockStatus = (v['stock_status'] ?? '').toString();
+      final inStock = stockStatus.isEmpty || stockStatus == 'in_stock';
+      if (inStock && price < bestInStockPrice) {
+        bestInStockPrice = price;
+        bestInStock = v;
+      }
+    }
+
+    final chosen = bestInStock ?? bestOverall;
+    return (chosen?['_id'] ?? chosen?['id'] ?? '').toString();
+  }
+
+  String _formatPrice(dynamic val) {
+    if (val == null) return '';
+    final s = val.toString().trim();
+    if (s.isEmpty) return '';
+    final numVal = num.tryParse(s);
+    if (numVal != null) {
+      if (numVal == numVal.roundToDouble()) {
+        return numVal.toInt().toString();
+      }
+      return numVal.toStringAsFixed(2);
+    }
+    return s;
+  }
+
+  Widget _buildVariablePrice(Map<String, dynamic> priceInfo) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Text(
+      '₹${_formatPrice(priceInfo['lowestPrice'])} - ₹${_formatPrice(priceInfo['highestPrice'])}',
+      style: textTheme.bodyMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+        fontSize: 11,
+        color: colorScheme.primary,
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 
@@ -950,8 +1201,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
               }
               final product = trendingList[index] as Map<String, dynamic>;
               final priceInfo = ProductHelper.calculatePriceInfo(product);
-              if (!priceInfo['hasValidVariants'])
+              if (!priceInfo['hasValidVariants']) {
                 return const SizedBox.shrink();
+              }
               return _buildOverlayItem(product, priceInfo);
             },
           ),
@@ -1090,7 +1342,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   /// Horizontal loading indicator (for standard & overlay horizontal lists)
   Widget _buildLoadingIndicator() {
-    if (!_hasMore.value) return const SizedBox.shrink();
+    if (!_hasMoreValue) return const SizedBox.shrink();
     return const SizedBox(
       width: 60,
       child: Center(
@@ -1105,7 +1357,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   /// Vertical loading indicator (for horizontal-style vertical list)
   Widget _buildLoadingIndicatorVertical() {
-    if (!_hasMore.value) return const SizedBox.shrink();
+    if (!_hasMoreValue) return const SizedBox.shrink();
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 16.0),
       child: Center(
@@ -1314,5 +1566,354 @@ class TrendingProductsShimmer extends StatelessWidget {
             );
           },
         ));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EXPORTABLE COMMON STUDIO PRODUCT CARD
+// ═══════════════════════════════════════════════════════════════════════════
+class StudioProductCard extends StatelessWidget {
+  final Map<String, dynamic> product;
+  final double? imageHeight;
+  final VoidCallback? onTap;
+
+  const StudioProductCard({
+    super.key,
+    required this.product,
+    this.imageHeight,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final priceInfo = ProductHelper.calculatePriceInfo(product);
+    final hasDiscount = priceInfo['discountRate'] != null &&
+        priceInfo['discountRate'].toString().trim().isNotEmpty;
+    final isVariable = priceInfo['productType'] == 'variable';
+    final productId = ProductHelper.getProductId(product);
+    final variantId = _resolveDefaultVariantId(product);
+    final imageUrl = ProductHelper.getProductImage(product);
+
+    final cardWidth = (MediaQuery.of(context).size.width * 0.38)
+        .clamp(140.0, 160.0)
+        .toDouble();
+    const imageAspectRatio = 0.75;
+    final calculatedHeight = imageHeight ?? (cardWidth / imageAspectRatio);
+
+    return GestureDetector(
+      onTap: onTap ??
+          () {
+            Get.to(
+              () => ProductView(),
+              preventDuplicates: false,
+              arguments: {'productId': productId},
+            );
+          },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: SizedBox(
+              height: calculatedHeight,
+              width: double.infinity,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  (imageUrl.isNotEmpty &&
+                          imageUrl != HelperFunctions.getNoImage())
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                          progressIndicatorBuilder: (_, __, ___) =>
+                              HelperFunctions().loadingIndicator(),
+                          errorWidget: (_, __, ___) =>
+                              const AppImagePlaceholder(radius: 10),
+                        )
+                      : const AppImagePlaceholder(radius: 10),
+                  if (hasDiscount)
+                    Positioned(
+                      left: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: colorScheme.error,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Sale',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onError,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                    ),
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _actionBtn(
+                          context: context,
+                          icon: Icons.shopping_bag_outlined,
+                          tooltip: 'Add to Cart',
+                          onTap: () async {
+                            if (ProductHelper.isInStock(product) &&
+                                variantId.isNotEmpty) {
+                              try {
+                                await CartService.to.manageCart(
+                                  productId: productId,
+                                  variantId: variantId,
+                                  quantity: 1,
+                                  product: product,
+                                );
+                                Get.snackbar(
+                                  'Added to Cart',
+                                  '${ProductHelper.getProductName(product)} added to your cart',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: colorScheme.primary,
+                                  colorText: colorScheme.onPrimary,
+                                  duration: const Duration(seconds: 3),
+                                  margin: const EdgeInsets.all(16),
+                                  mainButton: TextButton(
+                                    onPressed: () {
+                                      if (Get.isRegistered<
+                                          BottombarController>()) {
+                                        Get.find<BottombarController>()
+                                            .currentPageIndex
+                                            .value = 4;
+                                        Get.find<BottombarController>()
+                                            .pageController
+                                            .jumpToPage(4);
+                                      }
+                                    },
+                                    child: Text(
+                                      'VIEW CART',
+                                      style: TextStyle(
+                                        color: colorScheme.onPrimary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              } catch (_) {
+                                HelperFunctions().showSnackBarError(
+                                    "Failed to update cart".tr);
+                              }
+                            } else {
+                              Get.snackbar(
+                                'Out of Stock',
+                                'This product is out of stock',
+                                snackPosition: SnackPosition.BOTTOM,
+                                margin: const EdgeInsets.all(16),
+                              );
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        _actionBtn(
+                          context: context,
+                          icon: Icons.remove_red_eye_outlined,
+                          tooltip: 'Quick View',
+                          onTap: () =>
+                              ProductQuickViewModal.show(context, product),
+                        ),
+                        const SizedBox(height: 5),
+                        Obx(() {
+                          final isFav =
+                              WishListService.to.isInWishlist(productId);
+                          return _actionBtn(
+                            context: context,
+                            icon: isFav
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            iconColor: isFav ? colorScheme.error : null,
+                            tooltip: 'Wishlist',
+                            onTap: () async {
+                              String variantSlug =
+                                  product['variant_slug'] ?? '';
+                              String? vId;
+                              if (product['type'] == 'variable') {
+                                final vList = product['variants'];
+                                if (vList is List && vList.isNotEmpty) {
+                                  final v0 = vList[0];
+                                  vId = (v0['_id'] ?? v0['id'])?.toString();
+                                  variantSlug = v0['variant_slug'] ?? '';
+                                }
+                              }
+                              await WishListService.to.toggleWishlist(
+                                productId: productId,
+                                variantSlug: variantSlug,
+                                variantId: vId,
+                              );
+                            },
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              5,
+              (index) => const Icon(
+                Icons.star_rounded,
+                size: 13,
+                color: DefaultThemeColors.alertWarninglight,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          SizedBox(
+            height: 32,
+            child: Text(
+              ProductHelper.getProductName(product),
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodyMedium?.copyWith(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w500,
+                height: 1.25,
+                color: colorScheme.onSurface,
+              ),
+            ),
+          ),
+          const SizedBox(height: 3),
+          if (isVariable)
+            Center(
+              child: Text(
+                '₹${ProductHelper.formatPrice(priceInfo['lowestPrice']?.toString() ?? '0')} - ₹${ProductHelper.formatPrice(priceInfo['highestPrice']?.toString() ?? '0')}',
+                style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
+                  color: colorScheme.primary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            )
+          else
+            Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      ProductHelper.formatPrice(
+                          priceInfo['productPrice']?.toString() ?? '0'),
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                      maxLines: 1,
+                    ),
+                    if (hasDiscount && priceInfo['salePrice'] != null) ...[
+                      const SizedBox(width: 5),
+                      Text(
+                        ProductHelper.formatPrice(
+                            priceInfo['salePrice'].toString()),
+                        style: textTheme.bodySmall?.copyWith(
+                          fontSize: 11,
+                          decoration: TextDecoration.lineThrough,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _actionBtn({
+    required BuildContext context,
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onTap,
+    Color? iconColor,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: colorScheme.surface,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.2),
+              width: 0.5,
+            ),
+          ),
+          child: Icon(
+            icon,
+            size: 15,
+            color: iconColor ?? colorScheme.onSurface,
+          ),
+        ),
+      ),
+    );
+  }
+
+  static String _resolveDefaultVariantId(Map<String, dynamic> product) {
+    final variants = product['variants'];
+    if (variants is! List || variants.isEmpty) return '';
+
+    Map? bestInStock;
+    double bestInStockPrice = double.infinity;
+    Map? bestOverall;
+    double bestOverallPrice = double.infinity;
+
+    for (final v in variants) {
+      if (v is! Map) continue;
+      final price = HelperFunctions.parseAmount(v['sale_price']) > 0
+          ? HelperFunctions.parseAmount(v['sale_price'])
+          : HelperFunctions.parseAmount(v['price']);
+
+      if (price < bestOverallPrice) {
+        bestOverallPrice = price;
+        bestOverall = v;
+      }
+
+      final stockStatus = (v['stock_status'] ?? '').toString();
+      final inStock = stockStatus.isEmpty || stockStatus == 'in_stock';
+      if (inStock && price < bestInStockPrice) {
+        bestInStockPrice = price;
+        bestInStock = v;
+      }
+    }
+
+    final chosen = bestInStock ?? bestOverall;
+    return (chosen?['_id'] ?? chosen?['id'] ?? '').toString();
   }
 }

@@ -1,8 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '/constants/constants.dart';
-import '/constants/foduuCachedImageNetwork.dart';
-import '/constants/helper_functions.dart';
 import 'studio_common_widgets.dart';
 
 class TrustBadgesComponent extends StatelessWidget {
@@ -27,9 +25,6 @@ class TrustBadgesComponent extends StatelessWidget {
         .toString()
         .trim();
 
-    final viewMode = (contentJson['view'] ?? 'grid').toString();
-    final listViewType =
-        (contentJson['list_view_type'] ?? 'horizontal').toString();
 
     int requestedColumns = int.tryParse(contentJson['no_of_columns']?.toString() ??
             contentJson['columns']?.toString() ??
@@ -42,8 +37,12 @@ class TrustBadgesComponent extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    final bool isHorizontalList =
-        viewMode == 'list' || listViewType == 'horizontal';
+    final hasExplicitColumns = contentJson.containsKey('no_of_columns') ||
+        contentJson.containsKey('columns');
+    final isExplicitGrid = contentJson['view'] == 'grid' || hasExplicitColumns;
+    final bool isHorizontalList = !isExplicitGrid &&
+        (contentJson['view'] == 'list' ||
+            contentJson['list_view_type'] == 'horizontal');
 
     return Padding(
       padding: pageSurroundingPadding,
@@ -185,7 +184,7 @@ class TrustBadgesComponent extends StatelessWidget {
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: crossAxisCount == 1 ? 2.5 : 0.92,
+        childAspectRatio: crossAxisCount == 1 ? 2.4 : 0.95,
       ),
       itemCount: cards.length,
       itemBuilder: (context, index) {
@@ -205,17 +204,24 @@ class TrustBadgesComponent extends StatelessWidget {
         (card['text'] ?? card['subtitle'] ?? card['description'] ?? '')
             .toString()
             .trim();
-    final image = card['image'] ?? card['icon'];
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color iconColor = colorScheme.onSurface;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+        color: isDark ? const Color(0xFF161616) : colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : colorScheme.outlineVariant.withValues(alpha: 0.4),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -225,50 +231,43 @@ class TrustBadgesComponent extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            height: 48,
-            width: 48,
-            decoration: BoxDecoration(
-              color: colorScheme.primary.withValues(alpha: 0.08),
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: ClipOval(
-              child: image == null || image.toString().isEmpty
-                  ? Icon(
-                      _getFallbackIcon(heading),
-                      color: colorScheme.primary,
-                      size: 24,
-                    )
-                  : FoduuCachedNetworkImage(
-                      image: HelperFunctions().getImage(image),
-                      height: 24,
-                      width: 24,
-                      fit: BoxFit.contain,
-                    ),
+          // Crisp vector icon directly on card
+          SizedBox(
+            height: 34,
+            width: 34,
+            child: Center(
+              child: _buildWebsiteIcon(heading, iconColor),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           if (heading.isNotEmpty)
             Text(
               heading,
               textAlign: TextAlign.center,
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+                letterSpacing: 0.2,
+                color: colorScheme.onSurface,
               ),
             ),
           if (text.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              text,
-              textAlign: TextAlign.center,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                height: 1.3,
+            const SizedBox(height: 5),
+            Flexible(
+              child: Text(
+                text,
+                textAlign: TextAlign.center,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.bodySmall?.copyWith(
+                  color: isDark
+                      ? const Color(0xFF9E9E9E)
+                      : colorScheme.onSurfaceVariant,
+                  fontSize: 11,
+                  height: 1.35,
+                ),
               ),
             ),
           ],
@@ -277,28 +276,179 @@ class TrustBadgesComponent extends StatelessWidget {
     );
   }
 
-  IconData _getFallbackIcon(String heading) {
+  Widget _buildWebsiteIcon(String heading, Color iconColor) {
     final lower = heading.toLowerCase();
-    if (lower.contains('hallmark') ||
-        lower.contains('bis') ||
-        lower.contains('purity')) {
-      return Icons.verified_outlined;
+
+    // 1. "Sustainable Fabrics" -> Clean bold checkmark (Image 2)
+    if (lower.contains('fabric') ||
+        lower.contains('cotton') ||
+        lower.contains('sustain') ||
+        lower.contains('check')) {
+      return CleanCheckmarkIcon(color: iconColor, size: 28);
     }
-    if (lower.contains('buyback') ||
-        lower.contains('exchange') ||
-        lower.contains('return')) {
-      return Icons.published_with_changes_rounded;
+
+    // 2. "Timeless Design, Not Trends" -> Solid black star (Image 2)
+    if (lower.contains('timeless') ||
+        lower.contains('trend') ||
+        lower.contains('design') ||
+        lower.contains('star')) {
+      return Icon(
+        Icons.star_rounded,
+        size: 32,
+        color: iconColor,
+      );
     }
-    if (lower.contains('diamond') ||
-        lower.contains('certif') ||
-        lower.contains('stone')) {
-      return Icons.workspace_premium_outlined;
+
+    // 3. "Eco-Conscious Production" -> 3D Isometric outline cube (Image 2)
+    if (lower.contains('eco') ||
+        lower.contains('product') ||
+        lower.contains('planet') ||
+        lower.contains('box') ||
+        lower.contains('cube')) {
+      return IsometricCubeIcon(color: iconColor, size: 28);
     }
-    if (lower.contains('ship') ||
-        lower.contains('delivery') ||
-        lower.contains('insur')) {
-      return Icons.local_shipping_outlined;
+
+    // 4. "Effortless Versatility" -> Clean outline heart (Image 2)
+    if (lower.contains('versatil') ||
+        lower.contains('wardrobe') ||
+        lower.contains('heart') ||
+        lower.contains('effort')) {
+      return Icon(
+        Icons.favorite_border_rounded,
+        size: 28,
+        color: iconColor,
+      );
     }
-    return Icons.verified_user_outlined;
+
+    return Icon(
+      Icons.verified_outlined,
+      size: 28,
+      color: iconColor,
+    );
   }
+}
+
+class CleanCheckmarkIcon extends StatelessWidget {
+  final double size;
+  final Color color;
+  final double strokeWidth;
+
+  const CleanCheckmarkIcon({
+    Key? key,
+    this.size = 28.0,
+    required this.color,
+    this.strokeWidth = 2.4,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(
+        painter: _CheckmarkPainter(color: color, strokeWidth: strokeWidth),
+      ),
+    );
+  }
+}
+
+class _CheckmarkPainter extends CustomPainter {
+  final Color color;
+  final double strokeWidth;
+
+  _CheckmarkPainter({required this.color, required this.strokeWidth});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final path = Path()
+      ..moveTo(size.width * 0.22, size.height * 0.52)
+      ..lineTo(size.width * 0.44, size.height * 0.74)
+      ..lineTo(size.width * 0.78, size.height * 0.28);
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _CheckmarkPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
+}
+
+class IsometricCubeIcon extends StatelessWidget {
+  final double size;
+  final Color color;
+  final double strokeWidth;
+
+  const IsometricCubeIcon({
+    Key? key,
+    this.size = 28.0,
+    required this.color,
+    this.strokeWidth = 2.0,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(
+        painter: _IsometricCubePainter(color: color, strokeWidth: strokeWidth),
+      ),
+    );
+  }
+}
+
+class _IsometricCubePainter extends CustomPainter {
+  final Color color;
+  final double strokeWidth;
+
+  _IsometricCubePainter({required this.color, required this.strokeWidth});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final r = size.width * 0.44;
+    final dx = r * 0.866; // cos(30 deg)
+    final dy = r * 0.5; // sin(30 deg)
+
+    // Outer hexagon path
+    final path = Path()
+      ..moveTo(cx, cy - r)
+      ..lineTo(cx + dx, cy - dy)
+      ..lineTo(cx + dx, cy + dy)
+      ..lineTo(cx, cy + r)
+      ..lineTo(cx - dx, cy + dy)
+      ..lineTo(cx - dx, cy - dy)
+      ..close();
+
+    // 3 inner radial lines meeting at center
+    path.moveTo(cx, cy);
+    path.lineTo(cx, cy + r);
+
+    path.moveTo(cx, cy);
+    path.lineTo(cx - dx, cy - dy);
+
+    path.moveTo(cx, cy);
+    path.lineTo(cx + dx, cy - dy);
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _IsometricCubePainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
 }

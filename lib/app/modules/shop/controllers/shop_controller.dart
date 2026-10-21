@@ -4,24 +4,28 @@ import '/app/data/basic_provider.dart';
 import '/app/modules/shop/controllers/shop_attribute_filter_mixin.dart';
 import '/app/modules/shop/controllers/shop_category_filter_mixin.dart';
 import '/app/modules/shop/controllers/shop_category_tree_filter_mixin.dart';
+import '/core/foduuStudio/foduu_studio_layout_mixin.dart';
 import 'package:get/get.dart';
 
 enum ShopSortOption { featured, priceLowHigh, priceHighLow, newest, trending }
 
 // Mixin order is append-only: new mixins are added at the end of this list
-// to avoid shadowing symbols declared by earlier ones. Ported from SOURCE
-// (fastify-public-mobile-app-templates) as part of PORT_AUDIT.md Phase 4 —
-// TARGET's controller previously had no filter mixins wired in (filter code
-// was commented out); this restores that logic while keeping TARGET's own
-// simpler product-grid shop entry (no CMS layout on plain entry, unlike
-// SOURCE's FoduuStudioLayoutMixin usage — TARGET's ShopView is always a
-// filtered product grid, never a CMS layout page).
+// to avoid shadowing symbols declared by earlier ones.
 class ShopController extends GetxController
     with
         BaseController,
         ShopCategoryFilterMixin,
         ShopAttributeFilterMixin,
+        FoduuStudioLayoutMixin,
         ShopCategoryTreeFilterMixin {
+  static const String pageSlug = 'shop';
+
+  /// True when ShopView was opened plainly (bottom-tab entry, no filter
+  /// args) — renders the CMS dynamic layout instead of the filtered grid.
+  var isPlainShopEntry = true.obs;
+
+  /// Layout toggle: false = 2-column grid, true = 1-column list
+  var isListView = false.obs;
   // ─── STATE VARIABLES ──────────────────────────────────────────
   var products = [].obs;
   var isLoading = true.obs;
@@ -94,9 +98,13 @@ class ShopController extends GetxController
       maxPrice.value = values.end;
     });
 
-    fetchBrands();
-    fetchCategories();
-    fetchProducts(isRefresh: true);
+    if (isPlainShopEntry.value) {
+      fetchLayout(pageSlug);
+    } else {
+      fetchBrands();
+      fetchCategories();
+      fetchProducts(isRefresh: true);
+    }
   }
 
   void ensureFilterDataLoaded() {
@@ -139,6 +147,7 @@ class ShopController extends GetxController
     selectedSortOption.value = ShopSortOption.newest;
 
     final args = arguments;
+    isPlainShopEntry.value = false;
     collectionName.value = args['name'] ?? "Shop";
 
     // TARGET's older args shape used 'categoryId'; keep accepting it
@@ -379,9 +388,32 @@ class ShopController extends GetxController
     }
   }
 
+  // ─── VIEW MODE CONTROLS ───────────────────────────────────────
+  void setViewMode(bool isList) {
+    if (isListView.value == isList && !isPlainShopEntry.value) return;
+
+    isListView.value = isList;
+
+    if (isPlainShopEntry.value) {
+      isPlainShopEntry.value = false;
+      ensureFilterDataLoaded();
+      fetchProducts(isRefresh: true);
+    } else if (products.isEmpty && !isLoading.value) {
+      fetchProducts(isRefresh: true);
+    }
+  }
+
   // ─── FILTER CONTROLS ───────────────────────────────────────
   void applyFiltersAndRefresh() {
+    isPlainShopEntry.value = false;
     fetchProducts(isRefresh: true);
+  }
+
+  void resetToPlainShop() {
+    isPlainShopEntry.value = true;
+    collectionName.value = "Shop";
+    clearAllFilters();
+    fetchLayout(pageSlug);
   }
 
   /// Kept for older call sites (bottom-sheet sort chips) that set

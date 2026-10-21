@@ -20,7 +20,8 @@ class _CategoryTypeStyle {
 
 class CategoryHome extends StatefulWidget {
   final dynamic categoryData;
-  CategoryHome({super.key, required this.categoryData});
+  final void Function(dynamic category)? onCategoryTap;
+  const CategoryHome({super.key, required this.categoryData, this.onCategoryTap});
 
   @override
   State<CategoryHome> createState() => _TopCategoryHomeState();
@@ -140,10 +141,20 @@ class _TopCategoryHomeState extends State<CategoryHome>
             _buildCategoryItem(categories[index], style, isVerticalList: true),
       );
     } else {
+      final bool hasAnyImage = categories.any((c) {
+        final img = HelperFunctions().getImage(c['featured_image']);
+        return img.isNotEmpty && img != HelperFunctions.getNoImage();
+      });
+
+      // When images are missing (fashion SDUI response), render luxury pill chips
+      final double listHeight = !hasAnyImage
+          ? 52.0
+          : (style == 'rectangular'
+              ? 140.0
+              : (style == 'overlay' ? 100.0 : 110.0));
+
       return SizedBox(
-        height: style == 'rectangular'
-            ? 140
-            : 110, // Increased to 110 to prevent overflows
+        height: listHeight,
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(
             dragDevices: {
@@ -155,9 +166,16 @@ class _TopCategoryHomeState extends State<CategoryHome>
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: categories.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 13),
-            itemBuilder: (context, index) =>
-                _buildCategoryItem(categories[index], style),
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              if (!hasAnyImage) {
+                return GestureDetector(
+                  onTap: () => _onCategoryTap(categories[index]),
+                  child: _buildLuxuryPillItem(categories[index]),
+                );
+              }
+              return _buildCategoryItem(categories[index], style);
+            },
           ),
         ),
       );
@@ -172,7 +190,9 @@ class _TopCategoryHomeState extends State<CategoryHome>
         crossAxisCount: columns,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: style == 'rectangular' ? 1.1 : 0.7,
+        childAspectRatio: style == 'rectangular'
+            ? 1.1
+            : (style == 'overlay' ? 1.4 : 0.7),
       ),
       itemCount: categories.length,
       itemBuilder: (context, index) =>
@@ -180,39 +200,333 @@ class _TopCategoryHomeState extends State<CategoryHome>
     );
   }
 
+  void _onCategoryTap(dynamic category) {
+    if (widget.onCategoryTap != null) {
+      widget.onCategoryTap!(category);
+      return;
+    }
+    List children = category['children'] ?? [];
+    if (children.isNotEmpty) {
+      Get.toNamed(Routes.DETAILCATEGORY, arguments: {
+        'name': category['name'],
+        'id': category['_id'],
+        'children': children,
+        'bannerData': {
+          'name': category['name'],
+          'image': category['featured_image'],
+        }
+      });
+    } else {
+      Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+        'productId': category['_id'],
+        'categorySlug': category['slug'],
+        'name': category['name'],
+        'source': 'category'
+      });
+    }
+  }
+
+  IconData _getCategoryIcon(String name) {
+    final lower = name.toLowerCase();
+    if (lower.contains('women') ||
+        lower.contains('female') ||
+        lower.contains('lady') ||
+        lower.contains('girl')) {
+      return Icons.woman_rounded;
+    }
+    if (lower.contains('men') ||
+        lower.contains('male') ||
+        lower.contains('boy')) {
+      return Icons.man_rounded;
+    }
+    if (lower.contains('kid') ||
+        lower.contains('child') ||
+        lower.contains('baby')) {
+      return Icons.child_care_rounded;
+    }
+    if (lower.contains('shoe') || lower.contains('footwear')) {
+      return Icons.skateboarding_rounded;
+    }
+    if (lower.contains('bag') || lower.contains('purse')) {
+      return Icons.shopping_bag_outlined;
+    }
+    if (lower.contains('watch') ||
+        lower.contains('jewel') ||
+        lower.contains('accessor')) {
+      return Icons.watch_outlined;
+    }
+    return Icons.checkroom_rounded;
+  }
+
+  Widget _buildLuxuryPillItem(dynamic category) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final name = category['name']?.toString() ?? '';
+    final icon = _getCategoryIcon(name);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF161616) : colorScheme.surface,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.10)
+              : colorScheme.outlineVariant.withValues(alpha: 0.7),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isDark
+                  ? const Color(0xFF242424)
+                  : colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+            ),
+            child: Icon(
+              icon,
+              size: 15,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            name,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+              letterSpacing: 0.2,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Icon(
+            Icons.chevron_right_rounded,
+            size: 16,
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCategoryItem(dynamic category, String style,
       {bool isVerticalList = false, bool isGrid = false}) {
     return GestureDetector(
-      onTap: () {
-        List children = category['children'] ?? [];
-        if (children.isNotEmpty) {
-          Get.toNamed(Routes.DETAILCATEGORY, arguments: {
-            'name': category['name'],
-            'id': category['_id'],
-            'children': children,
-            'bannerData': {
-              'name': category['name'],
-              'image': category['featured_image'],
-            }
-          });
-        } else {
-          Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
-            'productId': category['_id'],
-            'categorySlug': category['slug'],
-            'name': category['name'],
-            'source': 'category'
-          });
-        }
-      },
+      onTap: () => _onCategoryTap(category),
       child: style == 'rectangular'
           ? _buildRectangularItem(category, isVerticalList)
-          : _buildCircularItem(category, isGrid),
+          : (style == 'overlay'
+              ? _buildOverlayItem(category, isVerticalList, isGrid)
+              : _buildCircularItem(category, isGrid)),
+    );
+  }
+
+  Widget _buildOverlayItem(dynamic category, bool isVerticalList, bool isGrid) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final imgUrl = HelperFunctions().getImage(category['featured_image']);
+    final bool hasImage =
+        imgUrl.isNotEmpty && imgUrl != HelperFunctions.getNoImage();
+    final name = category['name']?.toString() ?? '';
+    final icon = _getCategoryIcon(name);
+
+    final cardWidth =
+        isGrid ? double.infinity : (isVerticalList ? double.infinity : 130.0);
+    final cardHeight = isVerticalList ? 80.0 : 100.0;
+
+    if (!hasImage) {
+      // Luxury minimal card without generic placeholder
+      return Container(
+        width: cardWidth,
+        height: cardHeight,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          color: colorScheme.surface,
+          border: Border.all(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+              ),
+              child: Icon(icon, size: 20, color: colorScheme.onSurface),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  name,
+                  style: textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                    color: colorScheme.onSurface,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Explore',
+                      style: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 10,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      width: cardWidth,
+      height: cardHeight,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: colorScheme.surfaceContainerHighest,
+        border:
+            Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          CachedNetworkImage(
+            imageUrl: imgUrl,
+            fit: BoxFit.cover,
+            errorWidget: (_, __, ___) => _buildOverlayPlaceholder(colorScheme),
+            progressIndicatorBuilder: (_, __, ___) =>
+                HelperFunctions().loadingIndicator(),
+          ),
+          // Gradient Overlay
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.75),
+                ],
+              ),
+            ),
+          ),
+          // Text & Shop Action
+          Positioned(
+            left: 8,
+            right: 8,
+            bottom: 8,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  name,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Shop Now →',
+                  style: TextStyle(
+                    color: colorScheme.primary.computeLuminance() > 0.5
+                        ? const Color(0xFFFFF176)
+                        : colorScheme.primary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOverlayPlaceholder(ColorScheme cs) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            cs.primary.withValues(alpha: 0.15),
+            cs.surfaceContainerHighest,
+          ],
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.checkroom_outlined,
+          color: cs.onSurfaceVariant.withValues(alpha: 0.4),
+          size: 28,
+        ),
+      ),
     );
   }
 
   Widget _buildCircularItem(dynamic category, bool isGrid) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final name = category['name']?.toString() ?? '';
+    final icon = _getCategoryIcon(name);
+    final imgUrl = HelperFunctions().getImage(category['featured_image']);
+    final bool hasImage =
+        imgUrl.isNotEmpty && imgUrl != HelperFunctions.getNoImage();
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -222,32 +536,27 @@ class _TopCategoryHomeState extends State<CategoryHome>
           height: 52,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: colorScheme.surfaceContainerHighest,
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
             border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.4),
+              color: colorScheme.outline.withValues(alpha: 0.3),
             ),
           ),
-          padding: const EdgeInsets.all(12),
-          child: (HelperFunctions()
-                      .getImage(category['featured_image'])
-                      .isNotEmpty &&
-                  HelperFunctions().getImage(category['featured_image']) !=
-                      HelperFunctions.getNoImage())
+          padding: hasImage ? const EdgeInsets.all(6) : const EdgeInsets.all(12),
+          child: hasImage
               ? CachedNetworkImage(
-                  imageUrl:
-                      HelperFunctions().getImage(category['featured_image']),
+                  imageUrl: imgUrl,
                   fit: BoxFit.contain,
                   errorWidget: (_, __, ___) =>
-                      const AppImagePlaceholder.circular(),
+                      Icon(icon, size: 22, color: colorScheme.onSurface),
                   progressIndicatorBuilder: (_, __, ___) =>
                       HelperFunctions().loadingIndicator(),
                 )
-              : const AppImagePlaceholder.circular(),
+              : Icon(icon, size: 22, color: colorScheme.onSurface),
         ),
         const SizedBox(height: 4),
         Flexible(
           child: Text(
-            category['name'].toString(),
+            name,
             style: textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
               fontSize: 11,
