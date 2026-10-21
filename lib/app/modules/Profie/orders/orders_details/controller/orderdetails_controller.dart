@@ -18,26 +18,57 @@ class OrderdetailController extends GetxController with BaseController {
   var isLoading = false.obs;
   var downloading = false.obs;
 
-  var box = GetStorage();
+  final List<String> stages = [
+    'Order Placed',
+    'Processing',
+    'Shipped',
+    'Out for Delivery',
+    'Delivered',
+  ];
+
   @override
   Future<void> onInit() async {
     super.onInit();
     if (Get.arguments != null && Get.arguments['id'] != null) {
-      id.value = Get.arguments['id'];
+      id.value = Get.arguments['id'].toString();
     }
 
     await OrderDetail();
   }
 
   Future<void> OrderDetail() async {
-    isLoading.value = true;
-    var response = await BasicProvider("public/orders/show/$id")
-        .getRequest()
-        .catchError(handleError);
+    try {
+      isLoading.value = true;
+      var response =
+          await BasicProvider("order/$id").getRequest().catchError(handleError);
 
-    if (response == null) return;
-    item.value = response;
-    isLoading.value = false;
+      printInfo(info: 'OrderDetail response: $response');
+      if (response == null) return;
+
+      item.value = response;
+    } catch (e) {
+      print('Error in OrderDetail: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// Returns the current stage index (1-based) based on order status.
+  int getCurrentStage() {
+    final orderData =
+        item.containsKey('data') && item['data'] is Map ? item['data'] : item;
+    final status = (orderData['status'] is Map
+                ? orderData['status']['name']
+                : orderData['status'])
+            ?.toString()
+            .toLowerCase() ??
+        '';
+    if (status.contains('delivered')) return 5;
+    if (status.contains('out for delivery') ||
+        status.contains('out_for_delivery')) return 4;
+    if (status.contains('shipped')) return 3;
+    if (status.contains('processing')) return 2;
+    return 1; // Order Placed
   }
 
   Future<void> downloadAndSavePDF(String id) async {

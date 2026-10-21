@@ -11,6 +11,7 @@ import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:timeline_tile/timeline_tile.dart';
 
 class OrderdetailView extends GetView<OrderdetailController> {
   OrderdetailView({Key? key}) : super(key: key);
@@ -32,9 +33,9 @@ class OrderdetailView extends GetView<OrderdetailController> {
                 const SizedBox(width: 8),
                 Flexible(
                   child: Text(
-                    controller.item.isEmpty || controller.item['id'] == null
+                    controller.item.isEmpty
                         ? ''
-                        : '#${controller.item["id"]}',
+                        : '#${controller.item["order_no"] ?? controller.item["_id"] ?? controller.item["id"] ?? ''}',
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 13,
@@ -53,9 +54,27 @@ class OrderdetailView extends GetView<OrderdetailController> {
               ? const Center(child: CircularProgressIndicator())
               : ListView(
                   children: [
+                    // Order status timeline (placed → delivered)
+                    _OrderStatusTimeline(controller: controller),
+                    Divider(
+                      thickness: 8,
+                      color: Theme.of(context).dividerTheme.color ??
+                          Colors.grey.shade100,
+                    ),
+
                     // Order Tracking Card
                     OrderTrackingCard(),
                     const SizedBox(height: 10),
+                    Divider(
+                      thickness: 8,
+                      color: Theme.of(context).dividerTheme.color ??
+                          Colors.grey.shade100,
+                    ),
+
+                    // Amount paid / due on delivery
+                    Obx(() => controller.item.isNotEmpty
+                        ? PaymentTransactionsCard(item: controller.item)
+                        : const SizedBox.shrink()),
                     Divider(
                       thickness: 8,
                       color: Theme.of(context).dividerTheme.color ??
@@ -136,8 +155,7 @@ class OrderdetailView extends GetView<OrderdetailController> {
                                 ? controller.item['address']['mobile']
                                     .toString()
                                 : (controller.item['customer'] is Map &&
-                                        controller.item['customer']
-                                                ['mobile'] !=
+                                        controller.item['customer']['mobile'] !=
                                             null)
                                     ? controller.item['customer']['mobile']
                                         .toString()
@@ -163,10 +181,38 @@ class OrderdetailView extends GetView<OrderdetailController> {
                               ?.toString()
                               .toLowerCase() ??
                           '';
-                      if (status != 'paid') return const SizedBox.shrink();
+                      if (status != 'paid') {
+                        final scheme = Theme.of(context).colorScheme;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: scheme.surfaceContainerHighest
+                                  .withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.info_outline,
+                                    size: 18, color: scheme.onSurfaceVariant),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'Invoice will be available for download once order payment is completed.',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: scheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
                       return Padding(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: SizedBox(
                           width: double.infinity,
                           height: 48,
@@ -192,6 +238,278 @@ class OrderdetailView extends GetView<OrderdetailController> {
                   ],
                 ),
         ),
+      ),
+    );
+  }
+}
+
+/// Five-stage order status timeline driven by [OrderdetailController.getCurrentStage].
+class _OrderStatusTimeline extends StatelessWidget {
+  const _OrderStatusTimeline({required this.controller});
+  final OrderdetailController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Obx(() {
+      if (controller.item.isEmpty) return const SizedBox.shrink();
+      final currentStage = controller.getCurrentStage();
+      final stages = controller.stages;
+
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Order Status',
+                style: textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            ListView.builder(
+              itemCount: stages.length,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                final isCompleted = (index + 1) <= currentStage;
+                final muted = colorScheme.outline.withValues(alpha: 0.3);
+                return TimelineTile(
+                  isFirst: index == 0,
+                  isLast: index == stages.length - 1,
+                  indicatorStyle: IndicatorStyle(
+                    width: 28,
+                    height: 28,
+                    indicator: Container(
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: isCompleted
+                            ? colorScheme.primary
+                            : colorScheme.surfaceContainerHighest,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: isCompleted ? colorScheme.primary : muted,
+                            width: 2),
+                      ),
+                      child: Icon(
+                        isCompleted ? Icons.check : Icons.circle,
+                        color: isCompleted
+                            ? colorScheme.onPrimary
+                            : colorScheme.outline,
+                        size: isCompleted ? 16 : 8,
+                      ),
+                    ),
+                  ),
+                  beforeLineStyle: LineStyle(
+                      color: isCompleted ? colorScheme.primary : muted,
+                      thickness: 2),
+                  afterLineStyle: LineStyle(
+                      color: (index + 1) < currentStage
+                          ? colorScheme.primary
+                          : muted,
+                      thickness: 2),
+                  endChild: Padding(
+                    padding:
+                        const EdgeInsets.only(left: 16, top: 12, bottom: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          stages[index],
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: isCompleted
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: isCompleted
+                                ? colorScheme.onSurface
+                                : colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        if (index + 1 == currentStage) ...[
+                          const SizedBox(height: 2),
+                          Text('In Progress',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: colorScheme.primary)),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      );
+    });
+  }
+}
+
+/// Amount paid vs. due-on-delivery summary, with a COD advisory.
+class PaymentTransactionsCard extends StatelessWidget {
+  const PaymentTransactionsCard({super.key, required this.item});
+  final dynamic item;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    double parseDouble(dynamic value) =>
+        double.tryParse(value?.toString() ?? '') ?? 0.0;
+
+    final symbol = (item['currency'] ?? '₹').toString();
+    final double totalVal = parseDouble(item['total']);
+    final payments = item['payments'] is List ? item['payments'] as List : null;
+    final paymentStatus =
+        (item['payment_status'] ?? '').toString().toUpperCase();
+    final isCod =
+        (item['payment_method'] ?? 'COD').toString().toLowerCase() == 'cod';
+
+    double amountPaid = 0.0;
+    if (payments != null && payments.isNotEmpty) {
+      for (final pay in payments) {
+        if (pay is Map) {
+          final status = (pay['status'] ?? '').toString().toLowerCase();
+          if (status == 'paid' ||
+              status == 'success' ||
+              status == 'completed') {
+            amountPaid += parseDouble(pay['amount']);
+          }
+        }
+      }
+    } else if (paymentStatus == 'PAID' && !isCod) {
+      amountPaid = totalVal;
+    }
+
+    double pendingAmount = totalVal - amountPaid;
+    if (pendingAmount < 0) pendingAmount = 0.0;
+
+    Widget metric({
+      required String label,
+      required String value,
+      required IconData icon,
+      required Color color,
+    }) {
+      return Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: color.withValues(alpha: 0.35)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 16),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label,
+                        style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: color,
+                            letterSpacing: 0.5)),
+                    const SizedBox(height: 2),
+                    Text(value,
+                        style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: color),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: pageSurroundingPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 3.5,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(Icons.payment_outlined,
+                  size: 17, color: colorScheme.primary),
+              const SizedBox(width: 6),
+              const Text('Payment Summary',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              metric(
+                label: 'AMOUNT PAID',
+                value: '$symbol${amountPaid.toStringAsFixed(2)}',
+                icon: Icons.check,
+                color: colorScheme.primary,
+              ),
+              const SizedBox(width: 10),
+              metric(
+                label: 'DUE ON DELIVERY',
+                value: '$symbol${pendingAmount.toStringAsFixed(2)}',
+                icon: Icons.access_time_rounded,
+                color: pendingAmount > 0
+                    ? colorScheme.error
+                    : colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+          if (isCod && pendingAmount > 0) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline,
+                      size: 16, color: Colors.amber.shade800),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Payment of $symbol${pendingAmount.toStringAsFixed(2)} will be collected on delivery.',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.amber.shade900),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -232,24 +550,24 @@ class OrderTrackingCard extends StatelessWidget {
       final item = controller.item;
       if (item.isEmpty) return const OrderTrackingShimmer();
 
-      final total =
-          double.tryParse(item['total']?.toString() ?? '0') ?? 0.0;
-      final totalStr = '\u{20B9}${total.toStringAsFixed(total % 1 == 0 ? 0 : 2)}';
+      final total = double.tryParse(item['total']?.toString() ?? '0') ?? 0.0;
+      final totalStr =
+          '\u{20B9}${total.toStringAsFixed(total % 1 == 0 ? 0 : 2)}';
 
       final paymentStatus =
           item['payment_status']?.toString().toLowerCase() ?? '';
       final isPaid = paymentStatus == 'paid';
       final isFailed = paymentStatus == 'failed';
       final payments = item['payments'] as List?;
-      final paidAt =
-          payments != null && payments.isNotEmpty ? payments[0]['paid_at'] : null;
+      final paidAt = payments != null && payments.isNotEmpty
+          ? payments[0]['paid_at']
+          : null;
       final paymentMethod =
           item['payment_method']?.toString().toUpperCase() ?? '';
       final orderDate = paidAt ?? item['createdAt'];
 
-      final statusColor = isPaid
-          ? Colors.green
-          : (isFailed ? Colors.red : Colors.orange);
+      final statusColor =
+          isPaid ? Colors.green : (isFailed ? Colors.red : Colors.orange);
 
       return Padding(
         padding: pageSurroundingPadding,
@@ -347,7 +665,8 @@ class OrderTrackingCard extends StatelessWidget {
                       : 'Will be confirmed after payment'.tr),
               isCompleted: isPaid,
               isFailed: isFailed,
-              icon: isFailed ? Icons.cancel_outlined : Icons.check_circle_outline,
+              icon:
+                  isFailed ? Icons.cancel_outlined : Icons.check_circle_outline,
               isLast: true,
             ),
           ],
@@ -383,9 +702,8 @@ class _TimelineItem extends StatelessWidget {
         ? Colors.green.shade50
         : (isFailed ? Colors.red.shade50 : Colors.grey.shade100);
     final iconColor = isCompleted ? Colors.green : Colors.grey;
-    final titleColor = isCompleted
-        ? Theme.of(context).textTheme.bodyLarge?.color
-        : outline;
+    final titleColor =
+        isCompleted ? Theme.of(context).textTheme.bodyLarge?.color : outline;
 
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 20),
@@ -395,7 +713,8 @@ class _TimelineItem extends StatelessWidget {
           Container(
             width: 32,
             height: 32,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: containerColor),
+            decoration:
+                BoxDecoration(shape: BoxShape.circle, color: containerColor),
             child: Icon(icon, size: 16, color: iconColor),
           ),
           const SizedBox(width: 12),
@@ -408,13 +727,17 @@ class _TimelineItem extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: titleColor),
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: titleColor),
                     ),
                     Text(date, style: TextStyle(fontSize: 11, color: outline)),
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(description, style: TextStyle(fontSize: 12, color: outline)),
+                Text(description,
+                    style: TextStyle(fontSize: 12, color: outline)),
               ],
             ),
           ),
@@ -483,7 +806,8 @@ class ShippingAddress extends StatelessWidget {
             if (address['name'] != null) ...[
               Text(
                 address['name'].toString(),
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
               ),
               const SizedBox(height: 6),
             ],
@@ -507,7 +831,8 @@ class ShippingAddress extends StatelessWidget {
                 children: [
                   Icon(Icons.phone_outlined, size: 14, color: outline),
                   const SizedBox(width: 4),
-                  Text(mobileNo, style: TextStyle(color: outline, fontSize: 13)),
+                  Text(mobileNo,
+                      style: TextStyle(color: outline, fontSize: 13)),
                 ],
               ),
             ],
@@ -655,9 +980,8 @@ class PriceDetails extends StatelessWidget {
     double actualBagTotal = 0.0;
     for (var currentProduct in products) {
       if (currentProduct is Map) {
-        final qty =
-            (currentProduct['qty'] ?? currentProduct['quantity'] ?? 1)
-                .toDouble();
+        final qty = (currentProduct['qty'] ?? currentProduct['quantity'] ?? 1)
+            .toDouble();
         final unitPrice = _getUnitPrice(currentProduct);
         final originalPrice = _getOriginalPrice(currentProduct, unitPrice);
         originalBagTotal += originalPrice * qty;
@@ -718,19 +1042,23 @@ class PriceDetails extends StatelessWidget {
                         border: Border.all(
                             color: Theme.of(context).colorScheme.outline),
                         borderRadius: BorderRadius.circular(8)),
-                    child: (HelperFunctions.resolveProductImage(currentProduct).isNotEmpty &&
-                            HelperFunctions.resolveProductImage(currentProduct) != HelperFunctions.getNoImage())
+                    child: (HelperFunctions.resolveProductImage(currentProduct)
+                                .isNotEmpty &&
+                            HelperFunctions.resolveProductImage(
+                                    currentProduct) !=
+                                HelperFunctions.getNoImage())
                         ? CachedNetworkImage(
-                            errorWidget: (context, url, error) => const AppImagePlaceholder(
-                              radius: 6,
-                              width: 100,
-                              height: 100,
-                              fit: BoxFit.contain,
-                            ),
+                            errorWidget: (context, url, error) =>
+                                const AppImagePlaceholder(
+                                  radius: 6,
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.contain,
+                                ),
                             height: 100,
                             width: 100,
-                            imageUrl:
-                                HelperFunctions.resolveProductImage(currentProduct),
+                            imageUrl: HelperFunctions.resolveProductImage(
+                                currentProduct),
                             fit: BoxFit.contain)
                         : const AppImagePlaceholder(
                             radius: 6,
@@ -794,8 +1122,7 @@ class PriceDetails extends StatelessWidget {
             _buildPriceRow(context, 'Product Savings'.tr, -itemSavings,
                 isNegative: true),
           if (discount > 0)
-            _buildPriceRow(context, 'discount'.tr, -discount,
-                isNegative: true),
+            _buildPriceRow(context, 'discount'.tr, -discount, isNegative: true),
           if (shippingCharges > 0)
             _buildPriceRow(context, 'Delivery'.tr, shippingCharges),
           if (taxAmount > 0) _buildPriceRow(context, 'Tax'.tr, taxAmount),
