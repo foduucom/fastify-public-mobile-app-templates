@@ -88,6 +88,16 @@ class AddressController extends GetxController with BaseController {
     if (item['landmark'] != null && item['landmark'].toString().isNotEmpty) {
       parts.add(item['landmark']);
     }
+    if (item['city'] != null) {
+      final cityName = item['city'] is Map
+          ? item['city']['name']?.toString()
+          : item['city'].toString();
+      if (cityName != null &&
+          cityName.trim().isNotEmpty &&
+          !RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(cityName.trim())) {
+        parts.add(cityName.trim());
+      }
+    }
     if (item['state'] != null && item['state']['name'] != null) {
       parts.add(item['state']['name']);
     }

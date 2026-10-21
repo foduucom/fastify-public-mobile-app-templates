@@ -9,6 +9,17 @@ import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 
 class AddressListView extends GetView<AddressListController> {
+  static final RegExp _objectId = RegExp(r'^[0-9a-fA-F]{24}$');
+
+  /// Name of a region (Map or String), hiding raw ObjectIds that were never
+  /// resolved to a name.
+  String _displayRegion(dynamic value) {
+    if (value == null) return '';
+    final name =
+        (value is Map ? value['name'] : value)?.toString().trim() ?? '';
+    return _objectId.hasMatch(name) ? '' : name;
+  }
+
   const AddressListView({Key? key}) : super(key: key);
 
   @override
@@ -216,45 +227,18 @@ class AddressListView extends GetView<AddressListController> {
                                                     // ── City/State ────
                                                     Text(
                                                       [
-                                                            if (userAddress[
-                                                                    'city'] !=
-                                                                null)
-                                                              (userAddress[
-                                                                          'city']
-                                                                      is Map
-                                                                  ? userAddress[
-                                                                          'city']
-                                                                      ['name']
-                                                                  : userAddress[
-                                                                      'city']),
-                                                            if (userAddress[
-                                                                    'state'] !=
-                                                                null)
-                                                              (userAddress[
-                                                                          'state']
-                                                                      is Map
-                                                                  ? userAddress[
-                                                                          'state']
-                                                                      ['name']
-                                                                  : userAddress[
-                                                                      'state']),
-                                                            if (userAddress[
-                                                                    'country'] !=
-                                                                null)
-                                                              (userAddress[
-                                                                          'country']
-                                                                      is Map
-                                                                  ? userAddress[
-                                                                          'country']
-                                                                      ['name']
-                                                                  : userAddress[
-                                                                      'country']),
+                                                            _displayRegion(
+                                                                userAddress[
+                                                                    'city']),
+                                                            _displayRegion(
+                                                                userAddress[
+                                                                    'state']),
+                                                            _displayRegion(
+                                                                userAddress[
+                                                                    'country']),
                                                           ]
                                                               .where((e) =>
-                                                                  e != null &&
-                                                                  e
-                                                                      .toString()
-                                                                      .isNotEmpty)
+                                                                  e.isNotEmpty)
                                                               .join(', ') +
                                                           (userAddress[
                                                                       'postal_code'] !=

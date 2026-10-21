@@ -69,8 +69,9 @@ class _AddressFormViewState extends State<AddressFormView> {
                       title: "Full Name",
                       fieldHintText: "Enter full name",
                       controller: controller.name,
-                      validationmsg: "Name is required",
-                      validCheck: (v) => v!.isEmpty ? "Enter Name" : null,
+                      validationmsg: "",
+                      isRequired: false,
+                      validCheck: null,
                     ),
                     const SizedBox(height: 15),
                     FoduuFormTextField(
@@ -78,8 +79,11 @@ class _AddressFormViewState extends State<AddressFormView> {
                       fieldHintText: "Enter 10 digit mobile number",
                       controller: controller.mobile,
                       keyType: TextInputType.phone,
-                      validationmsg: "Valid mobile number is required",
-                      validCheck: (v) => (v!.isEmpty || v.length != 10)
+                      validationmsg: "",
+                      isRequired: false,
+                      validCheck: (v) => (v != null &&
+                              v.trim().isNotEmpty &&
+                              v.trim().length != 10)
                           ? "Enter Valid Mobile Number"
                           : null,
                     ),
@@ -89,9 +93,12 @@ class _AddressFormViewState extends State<AddressFormView> {
                       fieldHintText: "Enter email",
                       controller: controller.email,
                       keyType: TextInputType.emailAddress,
-                      validationmsg: "Valid email is required",
+                      validationmsg: "",
+                      isRequired: false,
                       validCheck: (v) =>
-                          !v!.isEmail ? "Enter Valid Email" : null,
+                          (v != null && v.trim().isNotEmpty && !v.trim().isEmail)
+                              ? "Enter Valid Email"
+                              : null,
                     ),
                     const SizedBox(height: 15),
                     FoduuFormTextField(

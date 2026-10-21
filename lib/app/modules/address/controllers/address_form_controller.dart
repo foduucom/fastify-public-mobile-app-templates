@@ -3,6 +3,7 @@ import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/data/models/region_model.dart';
 import 'package:foduu_ecommerce/app/data/services/region_service.dart';
+import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/address/controllers/address_list_controller.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
@@ -22,6 +23,10 @@ class AddressFormController extends GetxController with BaseController {
   /// Country / state the user picked, as `{_id, name, slug}` (state has no slug).
   var selectedCountry = {}.obs;
   var selectedState = {}.obs;
+
+  var isCountryLoading = false.obs;
+
+  static final RegExp _objectId = RegExp(r'^[0-9a-fA-F]{24}$');
 
   Map _regionMap(Region r) => {'_id': r.id, 'name': r.name, 'slug': r.slug};
 
@@ -63,11 +68,14 @@ class AddressFormController extends GetxController with BaseController {
   Future<void> _defaultCountry() async {
     if (isEditMode || selectedCountry.isNotEmpty) return;
     try {
+      isCountryLoading.value = true;
       final page = await RegionService.fetchCountries(search: 'india');
       final india = page.items.firstWhereOrNull((r) => r.slug == 'india');
       if (india != null && selectedCountry.isEmpty) onCountryChanged(india);
     } catch (e) {
       print('Error defaulting country: $e');
+    } finally {
+      isCountryLoading.value = false;
     }
   }
 
@@ -102,10 +110,11 @@ class AddressFormController extends GetxController with BaseController {
         name.text = (addr['name'] ?? '').toString();
         email.text = (addr['email'] ?? '').toString();
         mobile.text = (addr['mobile'] ?? '').toString();
-        postal_code.text = (addr['postal_code'] ?? '').toString();
+        postal_code.text =
+            (addr['postal_code'] ?? addr['pincode'] ?? '').toString();
 
         landmark.text = (addr['landmark'] ?? '').toString();
-        street.text = (addr['street'] ?? '').toString();
+        street.text = (addr['street'] ?? addr['address'] ?? '').toString();
         addressType.value = (addr['address_type'] ?? 'Home').toString();
         isDefault.value = (addr['is_default'] == 1 ||
             addr['is_default'] == true ||
@@ -116,11 +125,34 @@ class AddressFormController extends GetxController with BaseController {
             : {};
         selectedState.value =
             (addr['state'] is Map) ? Map.from(addr['state']) : {};
-        city.text = addr['city'] is Map
+        final cityValue = addr['city'] is Map
             ? (addr['city']['name'] ?? '').toString()
             : (addr['city'] ?? '').toString();
+        // A bare ObjectId means the city was never resolved to a name.
+        city.text = _objectId.hasMatch(cityValue.trim()) ? '' : cityValue;
       }
     }
+    if (!isEditMode) _prefillFromProfile();
+  }
+
+  /// Prefills a new address with the logged-in user's profile details.
+  void _prefillFromProfile() {
+    final user = AuthDetails.getUserDetails();
+    if (user == null) return;
+    name.text = user['name']?.toString() ?? '';
+    email.text = user['email']?.toString() ?? '';
+    mobile.text = (user['mobile'] ?? user['phone'])?.toString() ?? '';
+  }
+
+  String _orProfile(TextEditingController c, List<String> profileKeys) {
+    if (c.text.trim().isNotEmpty) return c.text.trim();
+    final user = AuthDetails.getUserDetails();
+    if (user == null) return '';
+    for (final k in profileKeys) {
+      final v = user[k]?.toString();
+      if (v != null && v.isNotEmpty) return v;
+    }
+    return '';
   }
 
   Future<void> saveAddress(GlobalKey<FormState> formKey) async {
@@ -135,11 +167,11 @@ class AddressFormController extends GetxController with BaseController {
       HelperFunctions().showOverlayLoader();
 
       var body = {
-        'name': name.text,
-        'email': email.text,
-        'mobile': mobile.text,
-        'street': street.text,
-        'landmark': landmark.text,
+        'name': _orProfile(name, ['name']),
+        'email': _orProfile(email, ['email']),
+        'mobile': _orProfile(mobile, ['mobile', 'phone']),
+        'street': street.text.trim(),
+        'landmark': landmark.text.trim(),
         'country': selectedCountry['_id'],
         'state': selectedState['_id'],
         'city': city.text.trim(),
