@@ -3,54 +3,99 @@ import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/data/models/region_model.dart';
 import 'package:foduu_ecommerce/app/data/services/region_service.dart';
+import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
+import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:get/get.dart';
 import 'package:foduu_ecommerce/app/modules/address/controllers/address_list_controller.dart';
 
 class OrderSuccessController extends GetxController with BaseController {
   var item = {}.obs;
   final id = '0'.obs;
+  final orderNo = ''.obs;
   var totalAmount = ''.obs;
   var address = {}.obs;
-  var isLoading = false.obs;
+  var isLoading = true.obs;
   var checkoutMethod = ''.obs;
 
   @override
   Future<void> onInit() async {
     super.onInit();
-    if (Get.arguments != null) {
-      // If arguments is a String (order_no), use it directly. If it's a Map, look for 'id'/'method'.
-      if (Get.arguments is String) {
-        id.value = Get.arguments;
-      } else if (Get.arguments['id'] != null) {
-        id.value = Get.arguments['id'];
-        checkoutMethod.value = Get.arguments['method'] ?? '';
-      }
+    isLoading.value = true;
+    final args = Get.arguments;
+    // A String is the order id; a Map carries id / order_no / method.
+    if (args is String) {
+      id.value = args;
+    } else if (args is Map) {
+      if (args['id'] != null) id.value = args['id'].toString();
+      if (args['order_no'] != null) orderNo.value = args['order_no'].toString();
+      checkoutMethod.value = (args['method'] ?? '').toString();
     }
-    await OrderDetail();
+    try {
+      await OrderDetail();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    _refreshCartAfterOrder();
+  }
+
+  /// The backend empties the cart when the order is created; drop the stale
+  /// local copy (and any applied coupon) so the cart tab doesn't still show
+  /// the items that were just ordered.
+  void _refreshCartAfterOrder() {
+    try {
+      if (Get.isRegistered<CartController>()) {
+        final cart = Get.find<CartController>();
+        cart.couponDetails.clear();
+        cart.isCouponApply.value = false;
+      }
+      if (Get.isRegistered<CartService>()) {
+        CartService.to.fetchCart();
+      }
+    } catch (e) {
+      print('Error refreshing cart after order: $e');
+    }
   }
 
   Future<void> OrderDetail() async {
-    if (id.value == '0') return;
-    isLoading.value = true;
-    var response = await BasicProvider("order/${id.value}")
-        .getRequest()
-        .catchError(handleError);
-
-    print('response $response');
-
-    if (response == null) {
+    if (id.value == '0' || id.value.isEmpty) {
       isLoading.value = false;
       return;
     }
+    try {
+      isLoading.value = true;
+      var response = await BasicProvider("order/${id.value}")
+          .getRequest()
+          .catchError(handleError);
 
-    if (response != null) {
-      var data = response;
+      printInfo(info: 'OrderDetail response: $response');
+
+      if (response == null) return;
+
+      final orderData = response is Map &&
+              response.containsKey('data') &&
+              response['data'] is Map
+          ? response['data']
+          : response;
+
       item.clear();
-      item.value = data;
-      address.value = data['address'] != null ? Map<String, dynamic>.from(data['address']) : {};
+      item.value = response;
+      if (orderData['order_no'] != null && orderNo.value.isEmpty) {
+        orderNo.value = orderData['order_no'].toString();
+      }
+      address.value = orderData['address'] is Map
+          ? Map<String, dynamic>.from(orderData['address'])
+          : {};
       await _resolveAddressNames();
+    } catch (e) {
+      print('Error in OrderDetail $e');
+    } finally {
+      isLoading.value = false;
     }
-    isLoading.value = false;
   }
 
   List _extractDataList(dynamic response) {
@@ -76,8 +121,9 @@ class OrderSuccessController extends GetxController with BaseController {
         final matchedAddr = addressController.userAddressList.firstWhere(
           (addr) =>
               (addr['street']?.toString() == address['address']?.toString() &&
-               addr['name']?.toString() == address['name']?.toString()) ||
-              (addr['_id']?.toString() == address['_id']?.toString() && address['_id'] != null),
+                  addr['name']?.toString() == address['name']?.toString()) ||
+              (addr['_id']?.toString() == address['_id']?.toString() &&
+                  address['_id'] != null),
           orElse: () => null,
         );
         if (matchedAddr != null) {
