@@ -52,9 +52,9 @@ class AddressFormView extends GetView<AddressFormController> {
                   title: "Full Name",
                   fieldHintText: "Enter full name",
                   controller: controller.name,
-                  validationmsg: "Name is required",
-                  validCheck: (v) =>
-                      (v == null || v.trim().isEmpty) ? "Enter Name" : null,
+                  validationmsg: "",
+                  isRequired: false,
+                  validCheck: null,
                 ),
                 const SizedBox(height: 16),
 
@@ -64,11 +64,10 @@ class AddressFormView extends GetView<AddressFormController> {
                   fieldHintText: "Enter 10 digit mobile number",
                   controller: controller.mobile,
                   keyType: TextInputType.phone,
-                  validationmsg: "Valid mobile number is required",
+                  validationmsg: "",
+                  isRequired: false,
                   validCheck: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return "Enter Mobile Number";
-                    }
+                    if (v == null || v.trim().isEmpty) return null;
                     if (v.trim().length != 10) {
                       return "Enter 10 digit Mobile Number";
                     }
@@ -83,11 +82,10 @@ class AddressFormView extends GetView<AddressFormController> {
                   fieldHintText: "Enter email address",
                   controller: controller.email,
                   keyType: TextInputType.emailAddress,
-                  validationmsg: "Valid email is required",
+                  validationmsg: "",
+                  isRequired: false,
                   validCheck: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return "Enter Email Address";
-                    }
+                    if (v == null || v.trim().isEmpty) return null;
                     if (!v.isEmail) {
                       return "Enter Valid Email Address";
                     }

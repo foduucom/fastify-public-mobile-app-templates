@@ -16,8 +16,10 @@ class FoduuFormTextField extends StatelessWidget {
     this.obsecure = false,
     this.maxLine = 1,
     this.inputFormatters,
-    this.showAsterisk = true,
-  }) : super(key: key);
+    bool? showAsterisk,
+    this.isRequired = true,
+  })  : showAsterisk = showAsterisk ?? isRequired,
+        super(key: key);
 
   final String fieldHintText;
   final String title;
@@ -32,6 +34,7 @@ class FoduuFormTextField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final Widget? suffixIcon;
   final bool showAsterisk;
+  final bool isRequired;
 
   @override
   Widget build(BuildContext context) {

@@ -3,6 +3,7 @@ import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
 import '/app/data/models/region_model.dart';
 import '/app/data/services/region_service.dart';
+import '/app/modules/auth/auth_details.dart';
 import '/constants/helper_functions.dart';
 import '/helpers/dialog_helper.dart';
 import 'package:get/get.dart';
@@ -134,9 +135,14 @@ class AddressFormController extends GetxController with BaseController {
               : {};
           selectedState.value =
               addr['state'] is Map ? Map.from(addr['state']) : {};
-          city.text = addr['city'] is Map
+          final rawCity = addr['city'] is Map
               ? (addr['city']['name'] ?? '').toString()
               : (addr['city'] ?? '').toString();
+          if (RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(rawCity.trim())) {
+            city.text = ''; // Clear legacy ObjectId so user types actual city
+          } else {
+            city.text = rawCity;
+          }
         } else {
           print('Error: Address is not a Map, it is a ${addr.runtimeType}');
           // If addr is a String, try to parse it or handle the error
@@ -146,7 +152,16 @@ class AddressFormController extends GetxController with BaseController {
             snackPosition: SnackPosition.BOTTOM,
           );
         }
+        return;
       }
+    }
+
+    // Prefill with logged-in user profile details for a new address
+    final user = AuthDetails.getUserDetails();
+    if (user != null) {
+      name.text = user['name']?.toString() ?? '';
+      email.text = user['email']?.toString() ?? '';
+      mobile.text = (user['mobile'] ?? user['phone'])?.toString() ?? '';
     }
   }
 
@@ -161,16 +176,27 @@ class AddressFormController extends GetxController with BaseController {
       isLoading.value = true;
       HelperFunctions().showOverlayLoader();
 
+      final user = AuthDetails.getUserDetails();
+      final addressName = name.text.trim().isNotEmpty
+          ? name.text.trim()
+          : (user != null ? (user['name']?.toString() ?? '') : '');
+      final addressEmail = email.text.trim().isNotEmpty
+          ? email.text.trim()
+          : (user != null ? (user['email']?.toString() ?? '') : '');
+      final addressMobile = mobile.text.trim().isNotEmpty
+          ? mobile.text.trim()
+          : (user != null ? (user['mobile'] ?? user['phone'])?.toString() ?? '' : '');
+
       var body = {
-        'name': name.text,
-        'email': email.text,
-        'mobile': mobile.text,
-        'street': street.text,
-        'landmark': landmark.text,
+        'name': addressName,
+        'email': addressEmail,
+        'mobile': addressMobile,
+        'street': street.text.trim(),
+        'landmark': landmark.text.trim(),
         'country': selectedCountry['_id'],
         'state': selectedState['_id'],
         'city': city.text.trim(),
-        'postal_code': postal_code.text,
+        'postal_code': postal_code.text.trim(),
         'address_type': addressType.value,
         'is_default': isDefault.value ? 1 : 0
       };
