@@ -43,7 +43,8 @@ class SearchView extends GetView<SearchsController> {
               if (controller.sectionTypes.contains('search'))
                 _SearchBar(controller: controller),
               Expanded(
-                child: _buildBody(context, colorScheme, textTheme, isSearchMode),
+                child:
+                    _buildBody(context, colorScheme, textTheme, isSearchMode),
               ),
             ],
           );
@@ -89,128 +90,137 @@ class SearchView extends GetView<SearchsController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-              // ── CMS FREE-WILL SECTIONS (banner, rich_text, etc.) ──
-              ...controller.buildWidgetsExcluding(['search', 'products']),
+            // ── CMS FREE-WILL SECTIONS (banner, rich_text, etc.) ──
+            ...controller.buildWidgetsExcluding(['search', 'products']),
 
-              // ── RECENT SEARCHES (CHIPS) ──
-              if (controller.recentSearchList.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Recent Searches",
-                                style: textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.onSurface,
-                                ),
-                              ),
-                              Icon(Icons.history,
-                                  size: 20,
-                                  color: colorScheme.onSurfaceVariant),
-                            ],
+            // ── RECENT SEARCHES (CHIPS) ──
+            if (controller.recentSearchList.isNotEmpty &&
+                controller.queryText.value.trim().isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Recent Searches",
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
                           ),
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children:
-                                controller.recentSearchList.take(6).map((item) {
-                              return ActionChip(
-                                label: Text(item['name']?.toString() ?? ''),
-                                backgroundColor: colorScheme
-                                    .surfaceContainerHighest
-                                    .withValues(alpha: 0.4),
-                                side: BorderSide.none,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20)),
-                                labelStyle: textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurface,
-                                    fontWeight: FontWeight.w500),
-                                onPressed: () {
-                                  controller.searchTextController.text =
-                                      item['name']?.toString() ?? '';
-                                  controller.getSearchSuggestion(
-                                      text:
-                                          controller.searchTextController.text);
-                                },
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                  // ── EMPTY STATE ──
-                  if (!controller.isSearching.value &&
-                      controller.searchProduct.isEmpty &&
-                      controller.searchCategories.isEmpty &&
-                      controller.searchBlogs.isEmpty)
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 60),
-                        child: Column(
-                          children: [
-                            Icon(Icons.search_off_rounded,
-                                size: 80,
-                                color:
-                                    colorScheme.outline.withValues(alpha: 0.5)),
-                            const SizedBox(height: 16),
-                            Text("No results found",
-                                style: textTheme.titleLarge
-                                    ?.copyWith(fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 8),
-                            Text("Try searching with a different keyword.",
-                                style: TextStyle(
-                                    color: colorScheme.onSurfaceVariant)),
-                          ],
                         ),
-                      ),
+                        TextButton(
+                          onPressed: controller.clearRecentSearches,
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            'Clear All',
+                            style: textTheme.labelLarge?.copyWith(
+                                color: colorScheme.primary,
+                                fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
                     ),
-
-                  // ── RESULT GROUPS, in the order the CMS lays them out ──
-                  for (final type in controller.resultOrder) ...[
-                    if (type == 'products')
-                      ..._buildProductsGroup(textTheme, colorScheme),
-                    if (type == 'categories')
-                      ..._buildCategoriesGroup(textTheme, colorScheme),
-                    if (type == 'blog')
-                      ..._buildBlogsGroup(textTheme, colorScheme),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: controller.recentSearchList.take(6).map((item) {
+                        return InputChip(
+                          label: Text(item['name']?.toString() ?? ''),
+                          avatar: Icon(Icons.history,
+                              size: 16, color: colorScheme.onSurfaceVariant),
+                          deleteIcon: Icon(Icons.close,
+                              size: 16, color: colorScheme.onSurfaceVariant),
+                          onDeleted: () => controller.removeRecentSearch(item),
+                          backgroundColor: colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.4),
+                          side: BorderSide.none,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20)),
+                          labelStyle: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurface,
+                              fontWeight: FontWeight.w500),
+                          onPressed: () {
+                            controller.searchTextController.text =
+                                item['name']?.toString() ?? '';
+                            controller.getSearchSuggestion(
+                                text: controller.searchTextController.text);
+                          },
+                        );
+                      }).toList(),
+                    ),
                   ],
-
-                  // ── PAGINATION LOADER ──
-                  if (!controller.searchesProducts)
-                    const SizedBox(height: 40)
-                  else if (controller.isFetchingMore.value)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: Center(
-                        child: CupertinoActivityIndicator(radius: 14),
-                      ),
-                    )
-                  else if (!controller.hasNextPage &&
-                      controller.searchProduct.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 24),
-                      child: Center(
-                        child: Text("No more products",
-                            style:
-                                TextStyle(color: colorScheme.onSurfaceVariant)),
-                      ),
-                    )
-                  else
-                    const SizedBox(height: 40),
-                ],
+                ),
               ),
-            ),
+
+            // ── EMPTY STATE ──
+            if (!controller.isSearching.value &&
+                controller.searchProduct.isEmpty &&
+                controller.searchCategories.isEmpty &&
+                controller.searchBlogs.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 60),
+                  child: Column(
+                    children: [
+                      Icon(Icons.search_off_rounded,
+                          size: 80,
+                          color: colorScheme.outline.withValues(alpha: 0.5)),
+                      const SizedBox(height: 16),
+                      Text("No results found",
+                          style: textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Text("Try searching with a different keyword.",
+                          style:
+                              TextStyle(color: colorScheme.onSurfaceVariant)),
+                    ],
+                  ),
+                ),
+              ),
+
+            // ── RESULT GROUPS, in the order the CMS lays them out ──
+            for (final type in controller.resultOrder) ...[
+              if (type == 'products')
+                ..._buildProductsGroup(textTheme, colorScheme),
+              if (type == 'categories')
+                ..._buildCategoriesGroup(textTheme, colorScheme),
+              if (type == 'blog') ..._buildBlogsGroup(textTheme, colorScheme),
+            ],
+
+            // ── PAGINATION LOADER ──
+            if (!controller.searchesProducts)
+              const SizedBox(height: 40)
+            else if (controller.isFetchingMore.value)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: CupertinoActivityIndicator(radius: 14),
+                ),
+              )
+            else if (!controller.hasNextPage &&
+                controller.searchProduct.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: Text("No more products",
+                      style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                ),
+              )
+            else
+              const SizedBox(height: 40),
+          ],
+        ),
+      ),
     );
   }
-
-
 
   Widget _groupTitle(String text, TextTheme textTheme, ColorScheme cs) =>
       Padding(
@@ -298,13 +308,18 @@ class SearchView extends GetView<SearchsController> {
                             color: cs.outline.withValues(alpha: 0.15)),
                       ),
                       child: ClipOval(
-                        child: (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
-                                HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
+                        child: (HelperFunctions()
+                                    .getImage(category['featured_image'])
+                                    .isNotEmpty &&
+                                HelperFunctions()
+                                        .getImage(category['featured_image']) !=
+                                    HelperFunctions.getNoImage())
                             ? CachedNetworkImage(
                                 fit: BoxFit.cover,
                                 imageUrl: HelperFunctions()
                                     .getImage(category['featured_image']),
-                                errorWidget: (_, __, ___) => const AppImagePlaceholder.circular(
+                                errorWidget: (_, __, ___) =>
+                                    const AppImagePlaceholder.circular(
                                   size: 66,
                                 ),
                               )
@@ -336,12 +351,8 @@ class SearchView extends GetView<SearchsController> {
     return [
       _groupTitle("Blogs", textTheme, cs),
       ...controller.searchBlogs.map((blog) {
-        final title = (blog['name'] ?? blog['title'] ?? '').toString();
-        final excerpt = (blog['excerpt'] ?? '')
-            .toString()
-            .replaceAll(RegExp(r'<[^>]*>|&[^;]+;'), ' ')
-            .replaceAll(RegExp(r'\s+'), ' ')
-            .trim();
+        final title = blog.title;
+        final excerpt = blog.cleanExcerpt;
         final placeholder = const AppImagePlaceholder(
           width: 72,
           height: 72,
@@ -350,11 +361,10 @@ class SearchView extends GetView<SearchsController> {
         );
         return InkWell(
           onTap: () {
-            final blogId = blog['_id'] ?? blog['id'];
-            if (blogId == null) return;
-            controller.saveRecentSearch(
-                id: blogId.toString(), name: title, type: 'blog');
-            Get.toNamed(Routes.BLOG_DETAILS, arguments: {'id': blogId});
+            if (blog.id.isEmpty) return;
+            controller.saveRecentSearch(id: blog.id, name: title, type: 'blog');
+            Get.toNamed(Routes.BLOG_DETAILS,
+                arguments: {'id': blog.id, 'blog': blog});
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -363,8 +373,7 @@ class SearchView extends GetView<SearchsController> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: CachedNetworkImage(
-                    imageUrl:
-                        HelperFunctions().getImage(blog['featured_image']),
+                    imageUrl: blog.imageUrl ?? HelperFunctions.getNoImage(),
                     width: 72,
                     height: 72,
                     fit: BoxFit.cover,

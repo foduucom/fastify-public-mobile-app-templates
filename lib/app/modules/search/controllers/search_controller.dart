@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_mixin.dart';
+import 'package:foduu_ecommerce/models/blog_model.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -17,7 +18,7 @@ class SearchsController extends GetxController
   var searchProduct = [].obs;
   final queryText = ''.obs;
   var searchCategories = [].obs;
-  var searchBlogs = [].obs;
+  var searchBlogs = <BlogModel>[].obs;
   var recentSearchList = [].obs;
 
   var isSearching = false.obs; // True for initial load
@@ -33,7 +34,7 @@ class SearchsController extends GetxController
 
   Timer? _debounce;
   int _searchToken = 0;
-  List? _blogCache;
+  List<BlogModel>? _blogCache;
 
   // ── CMS-allotted entities ──
   // The backend CMS decides what the search bar covers: an entity is searched
@@ -91,7 +92,8 @@ class SearchsController extends GetxController
 
   void _scrollListener() {
     // If we are near the bottom of the page, NOT already fetching, and there is a next page
-    if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent - 200) {
       if (!isFetchingMore.value && hasNextPage) {
         loadNextPage();
       }
@@ -105,13 +107,23 @@ class SearchsController extends GetxController
     }
   }
 
+  void clearRecentSearches() {
+    recentSearchList.clear();
+    box.remove('recentSearch');
+  }
+
+  void removeRecentSearch(dynamic item) {
+    recentSearchList.remove(item);
+    box.write('recentSearch', recentSearchList.toList());
+  }
+
   void saveRecentSearch({
     required String id,
     required String name,
     required String type,
   }) {
-    final exists = recentSearchList
-        .any((e) => e['productId'] == id && e['type'] == type);
+    final exists =
+        recentSearchList.any((e) => e['productId'] == id && e['type'] == type);
     if (!exists) {
       recentSearchList.add({'productId': id, 'name': name, 'type': type});
       box.write('recentSearch', recentSearchList.toList());
@@ -126,9 +138,9 @@ class SearchsController extends GetxController
       isSearching.value = true;
       searchProduct.clear();
 
-      var response = await BasicProvider('products')
-          .getRequest(queryParams: {'page': currentPage.toString()})
-          .catchError(handleError);
+      var response = await BasicProvider('products').getRequest(queryParams: {
+        'page': currentPage.toString()
+      }).catchError(handleError);
 
       _parseAndSetProducts(response, isRefresh: true);
     } catch (e) {
@@ -181,9 +193,10 @@ class SearchsController extends GetxController
       isSearching.value = true;
       searchProduct.clear();
 
-      var response = await BasicProvider('products')
-          .getRequest(queryParams: {'search': text, 'page': currentPage.toString()})
-          .catchError(handleError);
+      var response = await BasicProvider('products').getRequest(queryParams: {
+        'search': text,
+        'page': currentPage.toString()
+      }).catchError(handleError);
 
       if (token != _searchToken) return; // a newer search superseded this one
       _parseAndSetProducts(response, isRefresh: true);
@@ -198,8 +211,10 @@ class SearchsController extends GetxController
   // ── Categories ──
   Future<void> _searchCategories(String text, int token) async {
     try {
-      final response = await BasicProvider('category').getRequest(
-          queryParams: {'search': text.trim(), 'page': '1'}).catchError(handleError);
+      final response = await BasicProvider('category').getRequest(queryParams: {
+        'search': text.trim(),
+        'page': '1'
+      }).catchError(handleError);
       if (token != _searchToken) return;
       final List data = response is List
           ? response
@@ -214,17 +229,17 @@ class SearchsController extends GetxController
 
   // ── Blogs ──
   // The blogs endpoint has no server-side search, so fetch one page once and
-  // match name / excerpt on the device.
+  // match title / excerpt / author on the device.
   Future<void> _searchBlogs(String text, int token) async {
     try {
       _blogCache ??= await _loadBlogs();
       if (token != _searchToken) return;
       final q = text.trim().toLowerCase();
-      bool hit(dynamic v) => v?.toString().toLowerCase().contains(q) ?? false;
       searchBlogs.assignAll(_blogCache!
           .where((b) =>
-              b is Map &&
-              (hit(b['name']) || hit(b['title']) || hit(b['excerpt'])))
+              b.title.toLowerCase().contains(q) ||
+              b.cleanExcerpt.toLowerCase().contains(q) ||
+              b.authorName.toLowerCase().contains(q))
           .take(_previewLimit)
           .toList());
     } catch (e) {
@@ -232,7 +247,7 @@ class SearchsController extends GetxController
     }
   }
 
-  Future<List> _loadBlogs() async {
+  Future<List<BlogModel>> _loadBlogs() async {
     final response = await BasicProvider('blogs?count=50&page=1')
         .getRequest()
         .catchError(handleError);
@@ -243,7 +258,11 @@ class SearchsController extends GetxController
     } else if (response is List) {
       raw = response;
     }
-    return raw is List ? raw : const [];
+    if (raw is! List) return const [];
+    return raw
+        .whereType<Map>()
+        .map((e) => BlogModel.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
   }
 
   // ── Pagination Load (Page 2+) ──
@@ -299,7 +318,8 @@ class SearchsController extends GetxController
         } else {
           searchProduct.addAll(newItems);
         }
-        hasNextPage = response['has_next'] == true || response['hasNextPage'] == true;
+        hasNextPage =
+            response['has_next'] == true || response['hasNextPage'] == true;
         return;
       }
 
