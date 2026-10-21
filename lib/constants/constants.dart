@@ -15,7 +15,7 @@ const appMode = "test";
 // Instad Mywatch = basicecom
 // var websiteDomain = "mywatch.vbought.com";
 
-var websiteDomain = "jewel-ecomm.vbought.com";
+var websiteDomain = "jewel-ecomm.foduu.store";
 
 var url = "https://${websiteDomain}/";
 // var socketUrl = "https://mywatch.vbought.com/";
