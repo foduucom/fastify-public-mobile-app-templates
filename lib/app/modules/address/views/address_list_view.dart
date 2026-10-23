@@ -152,42 +152,22 @@ class AddressListView extends GetView<AddressListController> {
                                                   const SizedBox(height: 4),
                                                   Text(
                                                     [
-                                                          if (userAddress[
-                                                                  'city'] !=
-                                                              null)
-                                                            (userAddress['city']
-                                                                    is Map
-                                                                ? userAddress[
-                                                                        'city']
-                                                                    ['name']
-                                                                : userAddress[
-                                                                    'city']),
-                                                          if (userAddress[
-                                                                      'state']
-                                                                  ?['name'] !=
-                                                              null)
-                                                            userAddress['state']
-                                                                ['name'],
-                                                          if (userAddress[
-                                                                      'country']
-                                                                  ?['name'] !=
-                                                              null)
-                                                            userAddress[
-                                                                    'country']
-                                                                ['name'],
-                                                        ]
-                                                            .where((e) =>
-                                                                e != null)
-                                                            .join(', ') +
-                                                        (userAddress[
-                                                                    'postal_code'] !=
+                                                      _getDisplayCity(userAddress['city']),
+                                                      _getDisplayState(userAddress['state']),
+                                                      _getDisplayCountry(userAddress['country']),
+                                                    ]
+                                                        .where((e) =>
+                                                            e != null && e.isNotEmpty)
+                                                        .join(', ') +
+                                                    (userAddress[
+                                                                'postal_code'] !=
+                                                            null
+                                                        ? ' - ${userAddress['postal_code']}'
+                                                        : (userAddress[
+                                                                    'pincode'] !=
                                                                 null
-                                                            ? ' - ${userAddress['postal_code']}'
-                                                            : (userAddress[
-                                                                        'pincode'] !=
-                                                                    null
-                                                                ? ' - ${userAddress['pincode']}'
-                                                                : '')),
+                                                            ? ' - ${userAddress['pincode']}'
+                                                            : '')),
                                                     style: TextStyle(
                                                       fontSize: 14,
                                                       color: Theme.of(context)
@@ -447,5 +427,29 @@ class AddressListView extends GetView<AddressListController> {
         ],
       ),
     );
+  }
+
+  String? _getDisplayCity(dynamic cityVal) {
+    if (cityVal == null) return null;
+    String name =
+        (cityVal is Map ? cityVal['name'] : cityVal).toString().trim();
+    if (RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(name)) return null;
+    return name.isNotEmpty ? name : null;
+  }
+
+  String? _getDisplayState(dynamic stateVal) {
+    if (stateVal == null) return null;
+    if (stateVal is Map) return stateVal['name']?.toString().trim();
+    final str = stateVal.toString().trim();
+    if (RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(str)) return null;
+    return str.isNotEmpty ? str : null;
+  }
+
+  String? _getDisplayCountry(dynamic countryVal) {
+    if (countryVal == null) return null;
+    if (countryVal is Map) return countryVal['name']?.toString().trim();
+    final str = countryVal.toString().trim();
+    if (RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(str)) return null;
+    return str.isNotEmpty ? str : null;
   }
 }

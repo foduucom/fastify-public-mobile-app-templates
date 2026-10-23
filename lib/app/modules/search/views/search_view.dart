@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import '/components/app_image_placeholder.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:new_fastify_template/app/modules/search/views/filter_view.dart';
@@ -9,7 +8,9 @@ import '/app/modules/shop/bindings/shop_binding.dart';
 import '/app/routes/app_pages.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
+import '/core/foduuStudio/foduu_studio_layout_view.dart';
 import 'package:new_fastify_template/components/studio_widget/studio_products.dart';
+import 'package:new_fastify_template/models/blog_model.dart';
 import '../controllers/search_controller.dart';
 
 class SearchView extends GetView<SearchsController> {
@@ -54,25 +55,14 @@ class SearchView extends GetView<SearchsController> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.more_vert,
-                    color: colorScheme.onSurface, size: 22),
-              ),
-            ),
-          ],
         ),
 
-        // ✅ Body is NOT wrapped in Obx — only individual sections are
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 8),
 
-            // ── Search Bar — stable, never in Obx ─────────────────────
+            // ── Search Bar — respects CMS searchPlaceholder ──────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
@@ -88,30 +78,29 @@ class SearchView extends GetView<SearchsController> {
                         color: colorScheme.onSurfaceVariant, size: 22),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: TextField(
-                        controller: controller.searchTextController,
-                        onChanged: (v) =>
-                            controller.getSearchSuggestion(text: v),
-                        style: textTheme.bodyMedium
-                            ?.copyWith(color: colorScheme.onSurface),
-                        decoration: InputDecoration(
-                          hintText: 'Search...',
-                          hintStyle: TextStyle(
-                            color: colorScheme.onSurfaceVariant,
-                            fontSize: 14,
+                      child: Obx(
+                        () => TextField(
+                          controller: controller.searchTextController,
+                          onChanged: (v) => controller.onSearchChanged(v),
+                          style: textTheme.bodyMedium
+                              ?.copyWith(color: colorScheme.onSurface),
+                          decoration: InputDecoration(
+                            hintText: controller.searchPlaceholder,
+                            hintStyle: TextStyle(
+                              color: colorScheme.onSurfaceVariant,
+                              fontSize: 14,
+                            ),
+                            isDense: true,
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 14),
+                            filled: true,
+                            fillColor: Colors.transparent,
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            errorBorder: InputBorder.none,
+                            focusedErrorBorder: InputBorder.none,
                           ),
-                          isDense: true,
-                          contentPadding:
-                              const EdgeInsets.symmetric(vertical: 14),
-
-                          // ✅ these 3 lines make TextField fully transparent
-                          filled: true,
-                          fillColor: Colors.transparent,
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          errorBorder: InputBorder.none,
-                          focusedErrorBorder: InputBorder.none,
                         ),
                       ),
                     ),
@@ -122,7 +111,7 @@ class SearchView extends GetView<SearchsController> {
                             ? GestureDetector(
                                 onTap: () {
                                   controller.searchTextController.clear();
-                                  controller.getSearchSuggestion(text: '');
+                                  controller.onSearchChanged('');
                                   HelperFunctions().closeKeyboard(context);
                                 },
                                 child: Padding(
@@ -142,7 +131,15 @@ class SearchView extends GetView<SearchsController> {
                       color: colorScheme.outline,
                     ),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () async {
+                        final filter = await showFilterBottomSheet(
+                          context,
+                          controller.currentFilter,
+                        );
+                        if (filter != null) {
+                          controller.applyFilter(filter);
+                        }
+                      },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 14),
@@ -155,265 +152,492 @@ class SearchView extends GetView<SearchsController> {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
 
-            // ✅ Expanded gives bounded height to scrollable content
+            // ── Popular Brands ───────────────────────────────────────
+            _buildBrandsSection(context),
+
+            // ── Recent Searches ──────────────────────────────────────
+            Obx(() => _buildRecentSearches(context)),
+
+            const SizedBox(height: 8),
+
+            // ── Body: CMS dynamic layout in browse mode; search results otherwise ──
             Expanded(
               child: Obx(() {
-                if (controller.isSearching.value &&
-                    controller.searchProduct.isEmpty) {
+                final isSearchMode =
+                    controller.queryText.value.trim().isNotEmpty ||
+                        controller.selectedBrandSlug.value.isNotEmpty ||
+                        controller.activeFilter.value.hasActiveFilters;
+
+                // When user is not searching and CMS allocated widgets, render CMS layout
+                if (!isSearchMode && controller.widgetList.isNotEmpty) {
+                  return FoduuStudioLayoutView(
+                    onRefresh: () =>
+                        controller.fetchLayout(SearchsController.pageSlug),
+                    widgetList: controller.widgetList,
+                    isLoading: controller.isLayoutLoading,
+                  );
+                }
+
+                // Shimmer during layout loading
+                if (!isSearchMode &&
+                    controller.widgetList.isEmpty &&
+                    controller.isLayoutLoading.value) {
                   return _buildShimmer(context);
                 }
 
-                return SingleChildScrollView(
-                  controller: controller.scrollController,
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                // If CMS has 0 widgets allocated and not searching, show clean empty state (Image 2)
+                if (!isSearchMode && controller.widgetList.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+
+                // Shimmer during active search
+                if (controller.isSearching.value &&
+                    controller.searchProduct.isEmpty &&
+                    controller.searchCategories.isEmpty &&
+                    controller.searchBlogs.isEmpty) {
+                  return _buildShimmer(context);
+                }
+
+                // Results grouped strictly by backend CMS resultOrder
+                return _buildResults(context, isSearchMode);
+              }),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Popular Brands Section ──────────────────────────────────────────────
+  Widget _buildBrandsSection(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Obx(() {
+      if (controller.brands.isEmpty) return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: controller.brands.take(8).map((brand) {
+              final name = brand['name']?.toString() ?? '';
+              final slug = brand['slug']?.toString() ?? '';
+              final isSelected = controller.selectedBrandSlug.value == slug;
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: GestureDetector(
+                  onTap: () {
+                    if (isSelected) {
+                      controller.fetchProductsByBrand('');
+                    } else {
+                      controller.fetchProductsByBrand(slug);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? colorScheme.primary
+                          : colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      name,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: isSelected
+                            ? colorScheme.onPrimary
+                            : colorScheme.onSurface,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      );
+    });
+  }
+
+  // ── Recent Searches ─────────────────────────────────────────────────────
+  Widget _buildRecentSearches(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    if (controller.queryText.value.isNotEmpty ||
+        controller.recentSearchList.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Recent Searches',
+                  style: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  )),
+              GestureDetector(
+                onTap: () {
+                  controller.recentSearchList.clear();
+                  controller.box.remove('recentSearch');
+                },
+                child: Text('Clear All',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    )),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: controller.recentSearchList.take(6).map((item) {
+              final name = item['name']?.toString() ?? '';
+              return GestureDetector(
+                onTap: () {
+                  controller.searchTextController.text = name;
+                  controller.onSearchChanged(name);
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      // ── Recent Searches ──────────────────────────────
-                      if (controller.recentSearchList.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('Last Search',
-                                      style: textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.onSurface,
-                                        fontSize: 17,
-                                      )),
-                                  GestureDetector(
-                                    onTap: () {
-                                      controller.recentSearchList.clear();
-                                      controller.box.remove('recentSearch');
-                                    },
-                                    child: Text('Clear All',
-                                        style: textTheme.bodyMedium?.copyWith(
-                                          color: colorScheme.primary,
-                                          fontWeight: FontWeight.w500,
-                                        )),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 14),
-                              Wrap(
-                                spacing: 10,
-                                runSpacing: 10,
-                                children: controller.recentSearchList
-                                    .take(8)
-                                    .map((item) {
-                                  final name = item['name']?.toString() ?? '';
-                                  return GestureDetector(
-                                    onTap: () {
-                                      controller.searchTextController.text =
-                                          name;
-                                      controller.getSearchSuggestion(
-                                          text: name);
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 14, vertical: 8),
-                                      decoration: BoxDecoration(
-                                        color: colorScheme.surface,
-                                        borderRadius: BorderRadius.circular(30),
-                                        border: Border.all(
-                                            color: colorScheme.outline),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(name,
-                                              style: textTheme.bodyMedium
-                                                  ?.copyWith(
-                                                color: colorScheme
-                                                    .onSurfaceVariant,
-                                                fontWeight: FontWeight.w500,
-                                              )),
-                                          const SizedBox(width: 6),
-                                          GestureDetector(
-                                            onTap: () {
-                                              controller.recentSearchList
-                                                  .remove(item);
-                                              controller.box.write(
-                                                  'recentSearch',
-                                                  controller.recentSearchList
-                                                      .toList());
-                                            },
-                                            child: Icon(Icons.close,
-                                                size: 14,
-                                                color: colorScheme
-                                                    .onSurfaceVariant),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                              const SizedBox(height: 28),
-                            ],
-                          ),
-                        ),
-
-                      // ── Search Results ───────────────────────────────
-                      if (controller.searchProduct.isNotEmpty) ...[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                controller.searchTextController.text
-                                        .trim()
-                                        .isEmpty
-                                    ? 'Last seen'
-                                    : 'Search Results',
-                                style: textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.onSurface,
-                                  fontSize: 17,
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () async {
-                                  final filter = await showFilterBottomSheet(
-                                    context,
-                                    controller.currentFilter,
-                                  );
-                                  if (filter != null) {
-                                    controller.applyFilter(filter);
-                                  }
-                                },
-                                child: Text('See All',
-                                    style: textTheme.bodyMedium?.copyWith(
-                                      color: colorScheme.primary,
-                                      fontWeight: FontWeight.w500,
-                                    )),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 14,
-                            mainAxisSpacing: 14,
-                            childAspectRatio: 0.62,
-                          ),
-                          itemCount: controller.searchProduct.length,
-                          itemBuilder: (context, index) {
-                            final product = controller.searchProduct[index]
-                                as Map<String, dynamic>;
-                            return StudioProductCard(
-                              product: product,
-                              onTap: () {
-                                final productId =
-                                    product['_id']?.toString() ?? '';
-                                final productName =
-                                    product['name']?.toString() ?? '';
-                                if (productId.isNotEmpty) {
-                                  controller.saveRecentSearch(
-                                      id: productId,
-                                      name: productName,
-                                      type: 'product');
-                                  Get.to(
-                                    () => ProductView(),
-                                    binding: ShopBinding(),
-                                    arguments: {'productId': productId},
-                                  );
-                                }
-                              },
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 28),
-                      ],
-
-                      // ── Best Store ───────────────────────────────────
-                      if (controller.searchProduct.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('Best Store',
-                                      style: textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.onSurface,
-                                        fontSize: 17,
-                                      )),
-                                  GestureDetector(
-                                    onTap: () => Get.toNamed(Routes.EXPLORE),
-                                    child: Text('See All',
-                                        style: textTheme.bodyMedium?.copyWith(
-                                          color: colorScheme.primary,
-                                          fontWeight: FontWeight.w500,
-                                        )),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 14),
-                              ..._dummyStores.map((store) => _StoreTile(
-                                    store: store,
-                                    textTheme: textTheme,
-                                    colorScheme: colorScheme,
-                                  )),
-                            ],
-                          ),
-                        ),
-
-                      // ── Empty State ──────────────────────────────────
-                      if (!controller.isSearching.value &&
-                          controller.searchProduct.isEmpty)
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 60),
-                            child: Column(
-                              children: [
-                                Icon(Icons.search_off_rounded,
-                                    size: 80, color: colorScheme.outline),
-                                const SizedBox(height: 16),
-                                Text('No products found',
-                                    style: textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Try searching with a different keyword.',
-                                  style: TextStyle(
-                                      color: colorScheme.onSurfaceVariant),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                      if (controller.isFetchingMore.value)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24),
-                          child: Center(
-                              child: CupertinoActivityIndicator(radius: 14)),
-                        )
-                      else
-                        const SizedBox(height: 32),
+                      Text(name,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          )),
+                      const SizedBox(width: 4),
+                      GestureDetector(
+                        onTap: () {
+                          controller.recentSearchList.remove(item);
+                          controller.box.write('recentSearch',
+                              controller.recentSearchList.toList());
+                        },
+                        child: Icon(Icons.close,
+                            size: 14, color: colorScheme.onSurfaceVariant),
+                      ),
                     ],
                   ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Unified Results: groups follow the CMS section order ────────────────
+  Widget _buildResults(BuildContext context, bool isSearchMode) {
+    final order = controller.resultOrder;
+    final hasAny = controller.searchProduct.isNotEmpty ||
+        controller.searchCategories.isNotEmpty ||
+        controller.searchBlogs.isNotEmpty;
+
+    return SingleChildScrollView(
+      controller: controller.scrollController,
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Other CMS blocks (banner, rich text, ...) above the results if in search mode
+          if (isSearchMode)
+            ...controller.buildWidgetsExcluding(
+                ['search', 'products', 'categories', 'blog']),
+
+          if (!hasAny && !controller.isSearching.value)
+            _buildEmptyState(context)
+          else
+            for (final type in order) ...[
+              if (type == 'products')
+                ..._buildProductsGroup(context, isSearchMode),
+              if (type == 'categories') ..._buildCategoriesGroup(context),
+              if (type == 'blog') ..._buildBlogsGroup(context),
+            ],
+
+          // Pagination Loader
+          if (controller.searchesProducts)
+            Obx(() {
+              if (controller.isFetchingMore.value) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(child: CupertinoActivityIndicator(radius: 14)),
                 );
-              }),
+              } else if (!controller.hasNextPage &&
+                  controller.searchProduct.isNotEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Center(
+                    child: Text("No more products",
+                        style: TextStyle(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant)),
+                  ),
+                );
+              }
+              return const SizedBox(height: 40);
+            }),
+        ],
+      ),
+    );
+  }
+
+  // ── Products Group ──────────────────────────────────────────────────────
+  List<Widget> _buildProductsGroup(BuildContext context, bool isSearchMode) {
+    if (controller.searchProduct.isEmpty) return const [];
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        child: Text(
+          isSearchMode ? "Products" : "Discover Products",
+          style: textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface,
+          ),
+        ),
+      ),
+      GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 14,
+          mainAxisSpacing: 14,
+          childAspectRatio: 0.62,
+        ),
+        itemCount: controller.searchProduct.length,
+        itemBuilder: (context, index) {
+          final product =
+              controller.searchProduct[index] as Map<String, dynamic>;
+          return StudioProductCard(
+            product: product,
+            onTap: () {
+              final productId = product['_id']?.toString() ?? '';
+              final productName = product['name']?.toString() ?? '';
+              if (productId.isNotEmpty) {
+                controller.saveRecentSearch(
+                    id: productId, name: productName, type: 'product');
+                Get.to(
+                  () => ProductView(),
+                  binding: ShopBinding(),
+                  arguments: {'productId': productId},
+                );
+              }
+            },
+          );
+        },
+      ),
+    ];
+  }
+
+  // ── Categories Group ────────────────────────────────────────────────────
+  List<Widget> _buildCategoriesGroup(BuildContext context) {
+    if (controller.searchCategories.isEmpty) return const [];
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        child: Text(
+          "Categories",
+          style: textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface,
+          ),
+        ),
+      ),
+      SizedBox(
+        height: 104,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: controller.searchCategories.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 14),
+          itemBuilder: (context, i) {
+            final category = controller.searchCategories[i];
+            final name = category['name']?.toString() ?? '';
+            return GestureDetector(
+              onTap: () {
+                controller.saveRecentSearch(
+                    id: category['_id']?.toString() ?? '',
+                    name: name,
+                    type: 'category');
+                Get.toNamed(
+                  Routes.SHOPPRODUCTLISTVIEW,
+                  arguments: {
+                    'categoryId': category['_id'],
+                    'categorySlug': category['slug'],
+                    'name': name,
+                    'source': 'category',
+                  },
+                );
+              },
+              child: SizedBox(
+                width: 76,
+                child: Column(
+                  children: [
+                    Container(
+                      width: 66,
+                      height: 66,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: colorScheme.surfaceContainerHighest,
+                        border: Border.all(
+                            color: colorScheme.outline.withValues(alpha: 0.15)),
+                      ),
+                      child: ClipOval(
+                        child: CachedNetworkImage(
+                          fit: BoxFit.cover,
+                          imageUrl: HelperFunctions()
+                              .getImage(category['featured_image']),
+                          errorWidget: (_, __, ___) => Icon(
+                              Icons.category_outlined,
+                              color: colorScheme.onSurfaceVariant),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: textTheme.bodySmall
+                            ?.copyWith(fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    ];
+  }
+
+  // ── Blogs Group ─────────────────────────────────────────────────────────
+  List<Widget> _buildBlogsGroup(BuildContext context) {
+    if (controller.searchBlogs.isEmpty) return const [];
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        child: Text(
+          "Blogs",
+          style: textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface,
+          ),
+        ),
+      ),
+      ...controller.searchBlogs.map((blog) => _blogTile(context, blog)),
+    ];
+  }
+
+  Widget _blogTile(BuildContext context, BlogModel blog) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final placeholder = Container(
+      width: 72,
+      height: 72,
+      color: colorScheme.surfaceContainerHighest,
+      child: Icon(Icons.article_outlined, color: colorScheme.onSurfaceVariant),
+    );
+    return InkWell(
+      onTap: () {
+        controller.saveRecentSearch(
+            id: blog.id, name: blog.title, type: 'blog');
+        Get.toNamed(Routes.BLOG_DETAILS, arguments: {'blog': blog});
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: blog.imageUrl != null && blog.imageUrl!.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: blog.imageUrl!,
+                      width: 72,
+                      height: 72,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) => placeholder,
+                    )
+                  : placeholder,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(blog.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 4),
+                  Text(blog.cleanExcerpt,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodySmall
+                          ?.copyWith(color: colorScheme.onSurfaceVariant)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 60),
+        child: Column(
+          children: [
+            Icon(Icons.search_off_rounded,
+                size: 80, color: colorScheme.outline.withValues(alpha: 0.5)),
+            const SizedBox(height: 16),
+            Text('No results found',
+                style: textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(
+              'Try searching with a different keyword.',
+              style: TextStyle(color: colorScheme.onSurfaceVariant),
             ),
           ],
         ),
@@ -454,7 +678,7 @@ class SearchView extends GetView<SearchsController> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 14,
                   mainAxisSpacing: 14,
-                  childAspectRatio: 0.88,
+                  childAspectRatio: 0.62,
                 ),
                 itemCount: 4,
                 itemBuilder: (_, __) => Container(
@@ -470,120 +694,4 @@ class SearchView extends GetView<SearchsController> {
       ),
     );
   }
-
-  static final _dummyStores = [
-    {
-      'name': 'The Store Pantry',
-      'time': '19 mins',
-      'distance': '0.6 km',
-      'rating': '4.4',
-      'promo': true,
-      'image':
-          'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200',
-    },
-    {
-      'name': 'Farm to Feast Store',
-      'time': '15 mins',
-      'distance': '0.6 km',
-      'rating': '4.4',
-      'promo': true,
-      'image':
-          'https://images.unsplash.com/photo-1588347818481-1e4bb5a52f21?w=200',
-    },
-  ];
 }
-
-// ── Store Tile ────────────────────────────────────────────────────────────────
-class _StoreTile extends StatelessWidget {
-  final Map<String, dynamic> store;
-  final TextTheme textTheme;
-  final ColorScheme colorScheme;
-
-  const _StoreTile({
-    required this.store,
-    required this.textTheme,
-    required this.colorScheme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: ((store['image'] as String? ?? '').isNotEmpty &&
-                    (store['image'] as String? ?? '') !=
-                        HelperFunctions.getNoImage())
-                ? CachedNetworkImage(
-                    imageUrl: store['image'] as String? ?? '',
-                    width: 64,
-                    height: 64,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, __, ___) => const AppImagePlaceholder(
-                      radius: 10,
-                      width: 64,
-                      height: 64,
-                    ),
-                  )
-                : const AppImagePlaceholder(
-                    radius: 10,
-                    width: 64,
-                    height: 64,
-                  ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (store['promo'] == true)
-                  Text(
-                    'PROMO',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: colorScheme.error,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 11,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                const SizedBox(height: 2),
-                Text(
-                  store['name'] as String? ?? '',
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(store['time'] as String? ?? '',
-                        style: textTheme.bodySmall
-                            ?.copyWith(color: colorScheme.onSurfaceVariant)),
-                    const SizedBox(width: 10),
-                    Text(store['distance'] as String? ?? '',
-                        style: textTheme.bodySmall
-                            ?.copyWith(color: colorScheme.onSurfaceVariant)),
-                    const SizedBox(width: 10),
-                    const Icon(Icons.star, color: Colors.amber, size: 14),
-                    const SizedBox(width: 3),
-                    Text(store['rating'] as String? ?? '',
-                        style: textTheme.bodySmall
-                            ?.copyWith(color: colorScheme.onSurfaceVariant)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Icon(Icons.chevron_right,
-              color: colorScheme.onSurfaceVariant, size: 22),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Product Card, Store Tile unchanged below ──────────────────────────────────
-// ... (keep your existing _ProductCard and _StoreTile as-is)

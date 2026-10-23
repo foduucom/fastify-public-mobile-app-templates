@@ -11,7 +11,6 @@ import '/components/buttons/appbutton.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import '/core/services/wishlistService.dart';
-import 'package:new_fastify_template/components/studio_widget/studio_products.dart';
 import '../controllers/wishlist_controller.dart';
 
 class WishlistView extends GetView<WishlistController> {
@@ -253,22 +252,7 @@ class WishlistView extends GetView<WishlistController> {
                   isLoading: controller.isLayoutLoading)
               : const SizedBox.shrink()),
 
-          // ── Trending Products Discovery Feed ──
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 24),
-              TrendingProductSection(
-                contentJson: {
-                  'heading': 'Trending Now',
-                  'subheading': 'Explore popular picks and save what you love',
-                  'layout': 'standard',
-                  'infinite_scroll': true,
-                },
-                hideHeader: false,
-              ),
-            ],
-          ),
+          const SizedBox(height: 16),
         ],
       ),
     );

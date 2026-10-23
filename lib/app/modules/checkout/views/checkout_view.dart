@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../../routes/app_pages.dart';
 import '../../cart/views/cards.dart';
 import '/app/modules/cart/controllers/cart_controller.dart';
 import '../controllers/checkout_controller.dart';
@@ -108,18 +107,34 @@ class CheckOutView extends GetView<CheckOutController> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        Obx(() => controller.paymentOptions.isEmpty
-                            ? const PaymentMethodShimmer()
-                            : ListView.separated(
-                          separatorBuilder: (_, __) =>
-                          const SizedBox(height: 10),
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: controller.paymentOptions.length,
-                          itemBuilder: (context, index) =>
-                              _buildPaymentTile(
-                                  index, colorScheme, textTheme),
-                        )),
+                        Obx(() {
+                          if (controller.isPaymentLoading.value &&
+                              controller.paymentOptions.isEmpty) {
+                            return const PaymentMethodShimmer();
+                          }
+                          if (controller.paymentOptions.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24),
+                              child: Center(
+                                child: Text(
+                                  'No payment methods available',
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                          return ListView.separated(
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 10),
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: controller.paymentOptions.length,
+                            itemBuilder: (context, index) =>
+                                _buildPaymentTile(index, colorScheme, textTheme),
+                          );
+                        }),
                       ],
                     ),
                   ),

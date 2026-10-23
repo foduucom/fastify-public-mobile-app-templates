@@ -412,8 +412,26 @@ class ShopController extends GetxController
   void resetToPlainShop() {
     isPlainShopEntry.value = true;
     collectionName.value = "Shop";
-    clearAllFilters();
+    _clearFiltersWithoutFetch();
     fetchLayout(pageSlug);
+  }
+
+  void _clearFiltersWithoutFetch() {
+    isFeatured.value = false;
+    isHot.value = false;
+    isTrending.value = false;
+    isRecommended.value = false;
+    isRecentlyViewed.value = false;
+    selectedCategories.clear();
+    selectedBrands.clear();
+    selectedAttributes.clear();
+    filterCurrentCategories.clear();
+    minPrice.value = 0.0;
+    maxPrice.value = 10000.0;
+    currentPriceRange.value = const RangeValues(0, 10000);
+    sortBy.value = "created_at";
+    sortOrder.value = "desc";
+    selectedSortOption.value = ShopSortOption.newest;
   }
 
   /// Kept for older call sites (bottom-sheet sort chips) that set
@@ -511,20 +529,7 @@ class ShopController extends GetxController
   }
 
   void clearAllFilters() {
-    isFeatured.value = false;
-    isHot.value = false;
-    isTrending.value = false;
-    isRecommended.value = false;
-    isRecentlyViewed.value = false;
-    selectedCategories.clear();
-    selectedBrands.clear();
-    selectedAttributes.clear();
-    minPrice.value = 0.0;
-    maxPrice.value = 10000.0;
-    currentPriceRange.value = const RangeValues(0, 10000);
-    sortBy.value = "created_at";
-    sortOrder.value = "desc";
-    selectedSortOption.value = ShopSortOption.newest;
+    _clearFiltersWithoutFetch();
     applyFiltersAndRefresh();
   }
 

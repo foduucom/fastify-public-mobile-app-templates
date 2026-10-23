@@ -17,229 +17,544 @@ import 'package:timeline_tile/timeline_tile.dart';
 
 class OrderdetailView extends GetView<OrderdetailController> {
   OrderdetailView({Key? key}) : super(key: key);
-  int totalSteps = 3;
-
-  List name = [
-    'out for delivery'.tr,
-    'in transit'.tr,
-    'ready to ship'.tr,
-    'ordered'.tr
-  ];
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return SafeArea(
       child: Scaffold(
-          appBar: AppBar(
-              title: Obx(
-                () => Text(
-                    controller.item.isEmpty || controller.item["id"] == null
-                        ? 'order details'.tr
-                        : 'Order Details'.tr + '#${controller.item["id"]}'),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(
+          title: Obx(() {
+            final orderData = controller.item.containsKey('data') &&
+                    controller.item['data'] is Map
+                ? controller.item['data']
+                : controller.item;
+            final orderNo = orderData['order_no'] ??
+                orderData['_id'] ??
+                controller.id.value;
+            return Text(
+              orderNo != null && orderNo.toString().isNotEmpty && orderNo != '0'
+                  ? 'Order #$orderNo'
+                  : 'Order Details',
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontFamily: 'lato',
               ),
-              elevation: 0.0),
-          body: Stack(
+            );
+          }),
+          elevation: 0.0,
+        ),
+        body: Obx(() {
+          if (controller.isLoading.value && controller.item.isEmpty) {
+            return Center(child: HelperFunctions().loadingIndicator());
+          }
+
+          final orderData = controller.item.containsKey('data') &&
+                  controller.item['data'] is Map
+              ? controller.item['data']
+              : controller.item;
+
+          if (orderData == null || (orderData is Map && orderData.isEmpty)) {
+            return const Center(child: Text('Order not found'));
+          }
+
+          final currentStage = controller.getCurrentStage();
+          final paymentStatus =
+              (orderData['payment_status'] ?? '').toString().toLowerCase();
+          final isPaid = paymentStatus == 'paid';
+
+          return ListView(
             children: [
-              Positioned(
-                top: 0,
-                right: 0,
-                bottom: 0,
-                left: 0,
-                child: ListView(
+              const SizedBox(height: 12),
+
+              // ── Dynamic Order Tracking Timeline ─────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                        padding: const EdgeInsets.only(left: 30, top: 20),
-                        child: ListView.builder(
-                            itemCount: 4,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              return TimelineTile(
-                                // isFirst: index == 0 ? true : false,
-                                // isLast: index == totalSteps - 1 ? true : false,
-                                indicatorStyle: IndicatorStyle(
-                                    color: Theme.of(context).colorScheme.primary,
-                                    indicator: Container(
-                                      height: 50,
-                                      width: 50,
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                          color: Theme.of(context).colorScheme.primary,
-                                          shape: BoxShape.circle),
-                                      child: Icon(
-                                        Icons.check,
-                                        color: Theme.of(context).colorScheme.onPrimary,
-                                        size: 15,
-                                      ),
-                                    )),
-                                beforeLineStyle:
-                                    LineStyle(color: Theme.of(context).colorScheme.outline),
-                                afterLineStyle:
-                                    LineStyle(color: Theme.of(context).colorScheme.primary),
-                                endChild: Container(
-                                  padding: const EdgeInsets.all(20),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        height: 28,
-                                        width: Get.width * 0.42,
-                                        decoration: BoxDecoration(
-                                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                            borderRadius:
-                                                BorderRadius.circular(10)),
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          name[index],
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            // color: themeTextColor
-                                          ),
-                                        ),
-                                      ),
-                                      const Text(
-                                        "expected delivery on monday",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          // color: themeTextColor
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            })),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 20),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            CupertinoIcons.star,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                reviewModal(controller);
-                              },
-                              child: Text(
-                                'rate and review product'.tr,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          SvgPicture.asset(
-                            'assets/images/helpcircle.svg',
-                            height: 20,
-                            width: 20,
-                          ),
-                          const SizedBox(width: 4),
-                          GestureDetector(
-                            onTap: () {
-                              Get.toNamed(Routes.HELPANDSUPPORT);
-                            },
-                            child: Row(
-                              children: [
-                                Text(
-                                  'need help'.tr,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const Text(
-                                  ' ?',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 14,
-                                  ),
-                                )
-                              ],
-                            ),
-                          )
-                        ],
+                    Text(
+                      'Order Status',
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'lato',
                       ),
                     ),
-                    Container(
-                      height: 10,
-                    ),
-                    const SizedBox(height: 10),
-                    Obx(() => controller.item.isNotEmpty &&
-                            controller.item['customer'] != null &&
-                            controller.item['customer'] is Map &&
-                            controller.item['address'] != null
-                        ? ShippingAddress(
-                            mobileNo: controller.item['customer']['mobile']
-                                    ?.toString() ??
-                                '',
-                            address: controller.item['address'])
-                        : const ShippingAddressShimmer()),
-                    const SizedBox(height: 20),
-                    Container(
-                      height: 10,
-                    ),
-                    const SizedBox(height: 20),
-                    Obx(() => controller.item.isNotEmpty
-                        ? PriceDetails(item: controller.item)
-                        : const ShippingAddressShimmer()),
-                    const SizedBox(height: 10),
-                    Builder(
-                      builder: (context) {
-                        final cs = Theme.of(context).colorScheme;
-                        return Obx(
-                          () => Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 50),
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: cs.primary,
-                                foregroundColor: cs.onPrimary,
-                                shape: const BeveledRectangleBorder(),
+                    const SizedBox(height: 16),
+                    ListView.builder(
+                      itemCount: controller.stages.length,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        final isCompleted = (index + 1) <= currentStage;
+                        final isLast = index == controller.stages.length - 1;
+
+                        return TimelineTile(
+                          isFirst: index == 0,
+                          isLast: isLast,
+                          indicatorStyle: IndicatorStyle(
+                            width: 28,
+                            height: 28,
+                            indicator: Container(
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: isCompleted
+                                    ? colorScheme.primary
+                                    : colorScheme.surfaceContainerHighest,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isCompleted
+                                      ? colorScheme.primary
+                                      : colorScheme.outline
+                                          .withValues(alpha: 0.3),
+                                  width: 2,
+                                ),
                               ),
-                              onPressed: () => controller
-                                  .downloadAndSavePDF(controller.item['_id']),
-                              child: controller.downloading.value
-                                  ? HelperFunctions().loadingIndicator(
-                                      color: cs.onPrimary,
-                                    )
-                                  : Text(
-                                      'Download PDF'.tr,
-                                      style: TextStyle(color: cs.onPrimary),
+                              child: Icon(
+                                isCompleted ? Icons.check : Icons.circle,
+                                color: isCompleted
+                                    ? colorScheme.onPrimary
+                                    : colorScheme.outline,
+                                size: isCompleted ? 16 : 8,
+                              ),
+                            ),
+                          ),
+                          beforeLineStyle: LineStyle(
+                            color: isCompleted
+                                ? colorScheme.primary
+                                : colorScheme.outline.withValues(alpha: 0.3),
+                            thickness: 2,
+                          ),
+                          afterLineStyle: LineStyle(
+                            color: (index + 1) < currentStage
+                                ? colorScheme.primary
+                                : colorScheme.outline.withValues(alpha: 0.3),
+                            thickness: 2,
+                          ),
+                          endChild: Padding(
+                            padding: const EdgeInsets.only(
+                                left: 16, top: 12, bottom: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  controller.stages[index],
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: isCompleted
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    fontFamily: 'lato',
+                                    color: isCompleted
+                                        ? colorScheme.onSurface
+                                        : colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                if (index + 1 == currentStage) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'In Progress',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: colorScheme.primary,
+                                      fontFamily: 'lato',
                                     ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                         );
                       },
                     ),
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),
-              // Positioned(
-              //   bottom: 10,
-              //   right: 10,
-              //   left: 10,
-              //   child: Center(
-              //     child: Obx(
-              //       () => controller.downloading.value
-              //           ? HelperFunctions().loadingIndicator()
-              //           : ElevatedButton(
-              //               onPressed: () => controller
-              //                   .downloadAndSavePDF(controller.item['_id']),
-              //               child: Text('Download PDF'.tr),
-              //             ),
-              //     ),
-              //   ),
-              // ),
 
-              // DownloadInvoice(item: controller.item['invoice'] ?? '')
+              Divider(
+                thickness: 8,
+                color: colorScheme.surfaceContainerHighest,
+              ),
+
+              // ── Payment Transactions Card ───────────────────────
+              PaymentTransactionsCard(item: orderData),
+
+              Divider(
+                thickness: 8,
+                color: colorScheme.surfaceContainerHighest,
+              ),
+
+              // ── Price Details ───────────────────────────────────
+              PriceDetails(item: orderData),
+
+              Divider(
+                thickness: 8,
+                color: colorScheme.surfaceContainerHighest,
+              ),
+
+              // ── Shipping Address ────────────────────────────────
+              if (orderData['address'] != null)
+                ShippingAddress(
+                  mobileNo: orderData['customer'] is Map
+                      ? (orderData['customer']['mobile']?.toString() ?? '')
+                      : '',
+                  address: orderData['address'],
+                ),
+
+              const SizedBox(height: 16),
+
+              // ── Download Invoice Button (Paid only) ─────────────
+              if (isPaid)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () => controller
+                        .downloadAndSavePDF(orderData['_id'] ?? controller.id.value),
+                    child: controller.downloading.value
+                        ? HelperFunctions().loadingIndicator(
+                            color: colorScheme.onPrimary,
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.download_rounded,
+                                  size: 20, color: colorScheme.onPrimary),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Download Invoice'.tr,
+                                style: TextStyle(
+                                  color: colorScheme.onPrimary,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'lato',
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline,
+                            size: 18, color: colorScheme.onSurfaceVariant),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Invoice will be available for download once order payment is completed.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.onSurfaceVariant,
+                              fontFamily: 'lato',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              const SizedBox(height: 16),
+
+              // ── Need Help Section ────────────────────────────────
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: GestureDetector(
+                  onTap: () {
+                    Get.toNamed(Routes.HELPANDSUPPORT);
+                  },
+                  child: Row(
+                    children: [
+                      SvgPicture.asset(
+                        'assets/images/helpcircle.svg',
+                        height: 20,
+                        width: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'need help'.tr,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          fontFamily: 'lato',
+                        ),
+                      ),
+                      const Spacer(),
+                      const Icon(Icons.arrow_forward_ios, size: 14),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 40),
             ],
-          )),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class PaymentTransactionsCard extends StatelessWidget {
+  const PaymentTransactionsCard({super.key, required this.item});
+  final dynamic item;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    double parseDouble(dynamic value) {
+      if (value == null) return 0.0;
+      return double.tryParse(value.toString()) ?? 0.0;
+    }
+
+    final symbol = (item['currency'] ?? '₹').toString();
+    final double totalVal = parseDouble(item['total']);
+    final payments = item['payments'] as List?;
+    final paymentStatus =
+        (item['payment_status'] ?? '').toString().toUpperCase();
+    final paymentMethod =
+        (item['payment_method'] ?? 'COD').toString().toUpperCase();
+    final isCod = paymentMethod.toLowerCase() == 'cod';
+
+    double amountPaid = 0.0;
+    if (payments != null && payments.isNotEmpty) {
+      for (var pay in payments) {
+        if (pay is Map) {
+          final pStatus = (pay['status'] ?? '').toString().toLowerCase();
+          if (pStatus == 'paid' ||
+              pStatus == 'success' ||
+              pStatus == 'completed') {
+            amountPaid += parseDouble(pay['amount']);
+          }
+        }
+      }
+    } else if (paymentStatus == 'PAID' && !isCod) {
+      amountPaid = totalVal;
+    }
+
+    double pendingAmount = totalVal - amountPaid;
+    if (pendingAmount < 0) pendingAmount = 0.0;
+
+    final String amountPaidStr = amountPaid.toStringAsFixed(2);
+    final String pendingAmountStr = pendingAmount.toStringAsFixed(2);
+
+    return Padding(
+      padding: pageSurroundingPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 3.5,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(Icons.payment_outlined,
+                  size: 17, color: colorScheme.primary),
+              const SizedBox(width: 6),
+              const Text(
+                'Payment Summary',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'lato',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Highlight Metric Boxes
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFF86EFAC)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 30,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFDCFCE7),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.check,
+                            color: Color(0xFF16A34A), size: 16),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'AMOUNT PAID',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF166534),
+                                fontFamily: 'lato',
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '$symbol$amountPaidStr',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF16A34A),
+                                fontFamily: 'lato',
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: pendingAmount > 0
+                        ? const Color(0xFFFEF2F2)
+                        : const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: pendingAmount > 0
+                          ? const Color(0xFFFCA5A5)
+                          : const Color(0xFFE5E7EB),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: pendingAmount > 0
+                              ? const Color(0xFFFEE2E2)
+                              : const Color(0xFFF3F4F6),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.access_time_rounded,
+                          color: pendingAmount > 0
+                              ? const Color(0xFFDC2626)
+                              : Colors.grey,
+                          size: 16,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'DUE ON DELIVERY',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: pendingAmount > 0
+                                    ? const Color(0xFF991B1B)
+                                    : Colors.grey.shade700,
+                                fontFamily: 'lato',
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '$symbol$pendingAmountStr',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: pendingAmount > 0
+                                    ? const Color(0xFFDC2626)
+                                    : Colors.grey.shade800,
+                                fontFamily: 'lato',
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // COD Advisory Message
+          if (isCod && pendingAmount > 0) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, size: 16, color: Colors.amber.shade800),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Payment of $symbol$pendingAmountStr will be collected on delivery.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.amber.shade900,
+                        fontFamily: 'lato',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

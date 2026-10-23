@@ -22,44 +22,11 @@ class ShopView extends GetView<ShopController> {
       key: scaffoldKey,
       backgroundColor: colorScheme.surface,
       drawer: ShopFilterDrawer(controller: controller),
-      appBar: AppBar(
-        backgroundColor: colorScheme.surface,
-        elevation: 0,
-        centerTitle: true,
-        title: Obx(() {
-          if (controller.isPlainShopEntry.value) {
-            return Text(
-              "Shop",
-              style:
-                  textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            );
-          }
-          return Column(
-            children: [
-              Text(
-                controller.collectionName.value,
-                style:
-                    textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              Text(
-                "${controller.totalProducts.value} items",
-                style: textTheme.bodySmall
-                    ?.copyWith(color: colorScheme.onSurfaceVariant),
-              ),
-            ],
-          );
-        }),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56),
-          child: _ShopHeaderToolbar(
-            controller: controller,
-            onFilterTap: () {
-              controller.ensureFilterDataLoaded();
-              controller.ensureCategoryTreeLoaded();
-              scaffoldKey.currentState?.openDrawer();
-            },
-          ),
-        ),
+      appBar: _AdaptiveShopAppBar(
+        controller: controller,
+        colorScheme: colorScheme,
+        textTheme: textTheme,
+        scaffoldKey: scaffoldKey,
       ),
       body: PopScope(
         canPop: controller.filterCategoryStack.isEmpty,
@@ -350,6 +317,69 @@ class ShopView extends GetView<ShopController> {
         itemBuilder: (_, __) => Container(
             decoration: BoxDecoration(
                 color: Colors.white, borderRadius: BorderRadius.circular(16))),
+      ),
+    );
+  }
+}
+
+class _AdaptiveShopAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final ShopController controller;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+  final GlobalKey<ScaffoldState> scaffoldKey;
+
+  const _AdaptiveShopAppBar({
+    required this.controller,
+    required this.colorScheme,
+    required this.textTheme,
+    required this.scaffoldKey,
+  });
+
+  @override
+  Size get preferredSize => Size.fromHeight(
+        kToolbarHeight + (controller.isPlainShopEntry.value ? 0 : 56),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(
+      () => AppBar(
+        backgroundColor: colorScheme.surface,
+        elevation: 0,
+        centerTitle: true,
+        title: controller.isPlainShopEntry.value
+            ? Text(
+                "Shop",
+                style: textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              )
+            : Column(
+                children: [
+                  Text(
+                    controller.collectionName.value,
+                    style: textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    "${controller.totalProducts.value} items",
+                    style: textTheme.bodySmall
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  ),
+                ],
+              ),
+        bottom: controller.isPlainShopEntry.value
+            ? null
+            : PreferredSize(
+                preferredSize: const Size.fromHeight(56),
+                child: _ShopHeaderToolbar(
+                  controller: controller,
+                  onFilterTap: () {
+                    controller.ensureFilterDataLoaded();
+                    controller.ensureCategoryTreeLoaded();
+                    scaffoldKey.currentState?.openDrawer();
+                  },
+                ),
+              ),
       ),
     );
   }

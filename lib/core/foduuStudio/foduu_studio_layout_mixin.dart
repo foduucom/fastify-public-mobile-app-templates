@@ -37,6 +37,8 @@ mixin FoduuStudioLayoutMixin on GetxController {
   // ─── Observable state ────────────────────────────────────────
   final widgetList = <Widget>[].obs;
   final isLayoutLoading = true.obs;
+  final sectionTypes = <String>[].obs;
+  List<String> excludeSectionTypes = const [];
 
   // ─── Internal state ──────────────────────────────────────────
   List _initialComponents = [];
@@ -92,9 +94,27 @@ mixin FoduuStudioLayoutMixin on GetxController {
   /// Build the [widgetList] from a raw list of section maps.
   void buildLayout(List sections) {
     widgetList.clear();
+    sectionTypes.assignAll(sections
+        .whereType<Map<String, dynamic>>()
+        .map((s) => s['type'])
+        .whereType<String>());
+
+    // The products section builds its category tabs from the categories
+    // section of the same page, so hand the category list over to it.
+    List? tabCategories;
+    for (var section in sections) {
+      if (section is Map && section['type'] == 'categories') {
+        final cats = (section['content_json'] as Map?)?['categories'];
+        if (cats is List && cats.isNotEmpty) tabCategories = cats;
+        break;
+      }
+    }
+
+    var tabsInjected = false;
     for (int i = 0; i < sections.length; i++) {
       final section = sections[i];
       if (section is! Map<String, dynamic>) continue;
+      if (excludeSectionTypes.contains(section['type'])) continue;
 
       // Skip orphaned rich_text headers if next section is empty
       if (section['type'] == 'rich_text') {
@@ -124,7 +144,21 @@ mixin FoduuStudioLayoutMixin on GetxController {
         }
       }
 
-      final widget = _registry.build(section);
+      var toBuild = section;
+      if (tabCategories != null &&
+          !tabsInjected &&
+          section['type'] == 'products') {
+        tabsInjected = true;
+        toBuild = {
+          ...section,
+          'content_json': {
+            ...Map<String, dynamic>.from(section['content_json'] as Map? ?? {}),
+            'tab_categories': tabCategories,
+          },
+        };
+      }
+
+      final widget = _registry.build(toBuild);
       if (widget != null) widgetList.add(widget);
     }
   }
@@ -229,7 +263,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
       // Register this controller for the given slug
       _slugHandlers[slug] = this;
 
-      final eventName = '${domain}:mobileapp';
+      final eventName = '$domain:mobileapp';
 
       // Only set up the socket listener ONCE across all controllers
       if (_registeredEventName != eventName) {

@@ -17,8 +17,6 @@ class StudioSocketRouting extends GetxController {
   static const Map<String, int> _bottomBarTabs = {
     'home': 0,
     'shop': 1,
-    'category': 1,
-    'explore': 1,
     'cart': 2,
     'wishlist': 3,
     'profile': 4,

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
+import '/app/data/models/region_model.dart';
+import '/app/data/services/region_service.dart';
+import '/app/modules/auth/auth_details.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
@@ -16,15 +19,17 @@ class AddressFormController extends GetxController with BaseController {
   late TextEditingController postal_code;
   late TextEditingController street;
   late TextEditingController landmark;
+  late TextEditingController city;
 
-  // Selection Data
-  var countryList = [].obs;
-  var stateList = [].obs;
-  var cityList = [].obs;
+  // Region Selection Data
+  RxnString selectedCountry = RxnString();
+  var selectedCountryId = ''.obs;
+  var selectedCountrySlug = ''.obs;
 
-  var selectedCountry = {}.obs;
-  var selectedState = {}.obs;
-  var selectedCity = {}.obs;
+  RxnString selectedState = RxnString();
+  var selectedStateId = ''.obs;
+
+  var isCountryLoading = false.obs;
 
   var addressType = "Home".obs;
   var isDefault = false.obs;
@@ -41,9 +46,10 @@ class AddressFormController extends GetxController with BaseController {
     postal_code = TextEditingController();
     street = TextEditingController();
     landmark = TextEditingController();
+    city = TextEditingController();
 
     _initFromArgs();
-    fetchCountries();
+    initDefaultCountry();
     super.onInit();
   }
 
@@ -52,99 +58,125 @@ class AddressFormController extends GetxController with BaseController {
       isEditMode = Get.arguments['isEdit'] ?? false;
       if (isEditMode && Get.arguments['address'] != null) {
         var addr = Get.arguments['address'];
-        editAddressId = addr['_id'];
-        name.text = addr['name'] ?? '';
-        email.text = addr['email'] ?? '';
-        mobile.text = addr['mobile'] ?? '';
-        postal_code.text = addr['postal_code'] ?? '';
+        editAddressId = addr['_id'] ?? '';
+        name.text = addr['name']?.toString() ?? '';
+        email.text = addr['email']?.toString() ?? '';
+        mobile.text = addr['mobile']?.toString() ?? '';
+        postal_code.text = (addr['postal_code'] ?? addr['pincode'])?.toString() ?? '';
+        landmark.text = addr['landmark']?.toString() ?? '';
+        street.text = (addr['street'] ?? addr['address'])?.toString() ?? '';
+        addressType.value = addr['address_type']?.toString() ?? 'Home';
+        isDefault.value = (addr['is_default'] == 1 || addr['is_default'] == true || addr['is_default'] == '1');
 
-        landmark.text = addr['landmark'] ?? '';
-        street.text = addr['street'] ?? '';
-        addressType.value = addr['address_type'] ?? 'Home';
-        isDefault.value = (addr['is_default'] == 1);
+        // City handling (handle Map or String, and ignore raw 24-hex Mongo ObjectIds)
+        final rawCity = addr['city'] is Map
+            ? (addr['city']['name']?.toString() ?? '')
+            : (addr['city']?.toString() ?? '');
+        if (RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(rawCity.trim())) {
+          city.text = ''; // Clear raw ObjectId so user enters their actual city
+        } else {
+          city.text = rawCity;
+        }
 
-        // Initial values for dropdowns (will be populated fully when lists load)
-        selectedCountry.value = addr['country'] ?? {};
-        selectedState.value = addr['state'] ?? {};
-        selectedCity.value = addr['city'] ?? {};
+        // Region values
+        final c = addr['country'];
+        if (c is Map) {
+          selectedCountry.value = Region.cleanName(c['name']);
+          selectedCountryId.value = (c['_id'] ?? c['id'] ?? '').toString();
+          selectedCountrySlug.value = (c['slug'] ?? '').toString();
+        } else if (c is String && c.isNotEmpty) {
+          selectedCountryId.value = c;
+        }
 
-        if (selectedCountry.isNotEmpty) _fetchStates(selectedCountry['_id']);
-        if (selectedState.isNotEmpty) _fetchCities(selectedState['_id']);
+        final st = addr['state'];
+        if (st is Map) {
+          selectedState.value = Region.cleanName(st['name']);
+          selectedStateId.value = (st['_id'] ?? st['id'] ?? '').toString();
+        } else if (st is String && st.isNotEmpty) {
+          selectedStateId.value = st;
+        }
+        return;
       }
+    }
+
+    // Prefill with logged-in user profile details for a new address
+    final user = AuthDetails.getUserDetails();
+    if (user != null) {
+      name.text = user['name']?.toString() ?? '';
+      email.text = user['email']?.toString() ?? '';
+      mobile.text = (user['mobile'] ?? user['phone'])?.toString() ?? '';
     }
   }
 
-  Future<void> fetchCountries() async {
+  /// Default to India for new addresses
+  Future<void> initDefaultCountry() async {
+    if (isEditMode || selectedCountryId.value.isNotEmpty) return;
     try {
-      var response = await BasicProvider('countries?search=indi')
-          .getRequest()
-          .catchError(handleError);
-      print('address r esponse  ${response}');
-      if (response != null) {
-        countryList.assignAll(response['data']);
+      isCountryLoading.value = true;
+      final page = await RegionService.fetchCountries(search: 'india');
+      final india = page.items.firstWhereOrNull((r) => r.slug == 'india');
+      if (india != null && !isEditMode && selectedCountryId.value.isEmpty) {
+        selectCountry(india);
       }
     } catch (e) {
-      print('Error fetching countries: $e');
+      debugPrint('Error fetching default country: $e');
+    } finally {
+      isCountryLoading.value = false;
     }
   }
 
-  Future<void> _fetchStates(String countryId) async {
-    try {
-      stateList.clear();
-      var response = await BasicProvider('states/$countryId')
-          .getRequest()
-          .catchError(handleError);
-      print('state resonse  ${response}');
-      if (response != null) {
-        stateList.assignAll(response['data']);
-      }
-    } catch (e) {
-      print('Error fetching states: $e');
+  void selectCountry(Region r) {
+    if (selectedCountryId.value != r.id) {
+      clearState();
     }
+    selectedCountry.value = r.name;
+    selectedCountryId.value = r.id;
+    selectedCountrySlug.value = r.slug;
   }
 
-  Future<void> _fetchCities(String stateId) async {
-    try {
-      cityList.clear();
-      var response = await BasicProvider('cities/$stateId')
-          .getRequest()
-          .catchError(handleError);
-      if (response != null) {
-        print('city response ${response}');
-        cityList.assignAll(response['data']);
-      }
-    } catch (e) {
-      print('Error fetching cities: $e');
-    }
+  void selectState(Region r) {
+    selectedState.value = r.name;
+    selectedStateId.value = r.id;
   }
 
-  void onCountryChanged(dynamic value) {
-    selectedCountry.value = value;
-    selectedState.value = {};
-    selectedCity.value = {};
-    stateList.clear();
-    cityList.clear();
-    _fetchStates(value['_id']);
+  void clearState() {
+    selectedState.value = null;
+    selectedStateId.value = '';
   }
 
-  void onStateChanged(dynamic value) {
-    selectedState.value = value;
-    selectedCity.value = {};
-    cityList.clear();
-    _fetchCities(value['_id']);
+  void clearRegions() {
+    selectedCountry.value = null;
+    selectedCountryId.value = '';
+    selectedCountrySlug.value = '';
+    clearState();
   }
 
-  void onCityChanged(dynamic value) {
-    selectedCity.value = value;
+  Future<RegionPage> loadCountries(int page, String search) =>
+      RegionService.fetchCountries(page: page, search: search);
+
+  Future<RegionPage> loadStates(int page, String search) async {
+    await ensureCountrySlug();
+    return RegionService.fetchStates(
+        countrySlug: selectedCountrySlug.value, page: page, search: search);
+  }
+
+  Future<void> ensureCountrySlug() async {
+    if (selectedCountrySlug.value.isNotEmpty) return;
+    final cName = selectedCountry.value;
+    if (cName == null || cName.isEmpty) return;
+    final page = await RegionService.fetchCountries(search: cName);
+    final match = page.items.firstWhereOrNull(
+            (r) => r.id == selectedCountryId.value) ??
+        page.items.firstWhereOrNull(
+            (r) => r.name.toLowerCase() == cName.toLowerCase());
+    if (match != null) selectedCountrySlug.value = match.slug;
   }
 
   Future<void> saveAddress() async {
     if (!formKey.currentState!.validate()) return;
-    if (selectedCountry.isEmpty ||
-        selectedState.isEmpty ||
-        selectedCity.isEmpty) {
+    if (selectedCountryId.value.isEmpty || selectedStateId.value.isEmpty) {
       HelperFunctions()
-          .showSnackBarError("Please select country, state, and city");
+          .showSnackBarError("Please select country and state");
       return;
     }
 
@@ -152,21 +184,30 @@ class AddressFormController extends GetxController with BaseController {
       isLoading.value = true;
       HelperFunctions().showOverlayLoader();
 
+      final user = AuthDetails.getUserDetails();
+      final addressName = name.text.trim().isNotEmpty
+          ? name.text.trim()
+          : (user != null ? (user['name']?.toString() ?? '') : '');
+      final addressEmail = email.text.trim().isNotEmpty
+          ? email.text.trim()
+          : (user != null ? (user['email']?.toString() ?? '') : '');
+      final addressMobile = mobile.text.trim().isNotEmpty
+          ? mobile.text.trim()
+          : (user != null ? (user['mobile'] ?? user['phone'])?.toString() ?? '' : '');
+
       var body = {
-        'name': name.text,
-        'email': email.text,
-        'mobile': mobile.text,
-        'street': street.text,
-        'landmark': landmark.text,
-        'country': selectedCountry['_id'],
-        'state': selectedState['_id'],
-        'city': selectedCity['_id'],
-        'postal_code': postal_code.text,
+        'name': addressName,
+        'email': addressEmail,
+        'mobile': addressMobile,
+        'street': street.text.trim(),
+        'landmark': landmark.text.trim(),
+        'country': selectedCountryId.value,
+        'state': selectedStateId.value,
+        'city': city.text.trim(),
+        'postal_code': postal_code.text.trim(),
         'address_type': addressType.value,
         'is_default': isDefault.value ? 1 : 0
       };
-
-      print('postman body ${body}');
 
       dynamic response;
       if (isEditMode) {
@@ -180,8 +221,6 @@ class AddressFormController extends GetxController with BaseController {
             .catchError(handleError);
       }
 
-      print('response fro add address ${response}');
-
       Get.until((route) => !Get.isDialogOpen!); // Close loader
       isLoading.value = false;
 
@@ -191,7 +230,7 @@ class AddressFormController extends GetxController with BaseController {
     } catch (e) {
       Get.until((route) => !Get.isDialogOpen!);
       isLoading.value = false;
-      print('Error saving address: $e');
+      debugPrint('Error saving address: $e');
     }
   }
 
@@ -203,6 +242,7 @@ class AddressFormController extends GetxController with BaseController {
     postal_code.dispose();
     street.dispose();
     landmark.dispose();
+    city.dispose();
     super.onClose();
   }
 }

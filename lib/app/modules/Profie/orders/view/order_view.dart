@@ -232,9 +232,13 @@ class OrderCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme   = Theme.of(context).textTheme;
 
-    final paymentStatus =
-    (item['payment_status'] ?? 'Pending').toString();
-    final currency  = (item['currency'] ?? '\$').toString();
+    final paymentMethod = (item['payment_method'] ?? '').toString();
+    final isCod = paymentMethod.toLowerCase() == 'cod';
+    final rawPaymentStatus = (item['payment_status'] ?? 'Pending').toString();
+    final paymentStatus = (isCod && rawPaymentStatus.toLowerCase() == 'pending')
+        ? 'COD - Pending'
+        : rawPaymentStatus;
+    final currency  = (item['currency'] ?? '₹').toString();
     final total     = (item['total'] ?? '0').toString();
     final createdAt = item['created_at']?.toString();
     final orderDate = (createdAt != null && createdAt.isNotEmpty)
@@ -354,7 +358,7 @@ class OrderCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       if (productCount > 0)
                         Text(
-                          'For ${productCount}Kg',
+                          '$productCount ${productCount == 1 ? 'Item' : 'Items'}',
                           style: textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                             fontSize: 13,
@@ -423,10 +427,15 @@ class OrderCard extends StatelessWidget {
 
                 const SizedBox(width: 12),
 
-                // Tracking — filled green
+                // Tracking — filled primary
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      final orderId = (item['_id'] ?? item['id'] ?? '').toString();
+                      if (orderId.isNotEmpty) {
+                        Get.toNamed(Routes.ORDER_DETAILS, arguments: {'id': orderId});
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
@@ -483,6 +492,9 @@ class _StatusBadge extends StatelessWidget {
       case 'completed':
       case 'towards you':
         color = colorScheme.primary;
+        break;
+      case 'cod - pending':
+        color = Colors.amber.shade800;
         break;
       case 'pending':
       case 'unpaid':

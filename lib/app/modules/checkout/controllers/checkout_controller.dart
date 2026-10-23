@@ -83,6 +83,8 @@ class CheckOutController extends GetxController with BaseController {
     super.onClose();
   }
 
+  var isPaymentLoading = true.obs;
+
   // ── Payment options ───────────────────────────────────────────────────
 
   /// Populates [paymentOptions] from the current [paymentConfig].
@@ -90,7 +92,18 @@ class CheckOutController extends GetxController with BaseController {
     paymentOptions.clear();
     for (final entry in _gatewayRegistry) {
       final key = entry['name']!;
-      if (paymentConfig[key]?['enabled'] == true) {
+      dynamic cfg = paymentConfig[key];
+      // Support COD aliases (backend can return 'cash', 'cod', or 'cash_on_delivery')
+      if (cfg == null && (key == 'cod' || key == 'cash')) {
+        cfg = paymentConfig['cod'] ??
+            paymentConfig['cash'] ??
+            paymentConfig['cash_on_delivery'];
+      }
+      final bool isEnabled = cfg != null &&
+          (cfg['enabled'] == true ||
+              cfg['enabled']?.toString().toLowerCase() == 'true' ||
+              cfg['enabled']?.toString() == '1');
+      if (isEnabled) {
         paymentOptions.add({
           "name": key,
           "method": entry['method'],
@@ -102,34 +115,61 @@ class CheckOutController extends GetxController with BaseController {
 
   /// Fetches payment methods from the API and rebuilds the option list.
   Future<void> getPaymentOption() async {
-    // Build from static defaults first so the UI isn't empty.
-    _buildPaymentOptionsFromConfig();
-
-    var response = await BasicProvider("payment-methods")
-        .getRequest()
-        .catchError(handleError);
-
-    printInfo(info: 'payment-methods response: $response');
-
-    if (response != null && response is Map) {
-      // Merge API data into local config.
-      for (final key in response.keys) {
-        paymentConfig[key] = response[key];
-      }
-      // Rebuild options with the updated config.
+    isPaymentLoading.value = true;
+    try {
+      // Build from static defaults first so the UI isn't empty if preconfigured.
       _buildPaymentOptionsFromConfig();
-    } else if (response != null && response is List) {
-      for (var opt in response) {
-        if (!paymentOptions.any((e) => e['name'] == opt['name'])) {
-          paymentOptions.add(opt);
+
+      var response = await BasicProvider("payment-methods")
+          .getRequest()
+          .catchError(handleError);
+
+      printInfo(info: 'payment-methods response: $response');
+
+      if (response != null) {
+        if (response is Map) {
+          // Unwrap data key if backend wraps it
+          final Map actualData =
+              response.containsKey('data') && response['data'] is Map
+                  ? response['data']
+                  : response;
+
+          // Merge API data into local config.
+          actualData.forEach((key, value) {
+            paymentConfig[key] = value;
+          });
+
+          // Ensure COD aliases are synchronized
+          if (paymentConfig.containsKey('cash')) {
+            paymentConfig['cod'] = paymentConfig['cash'];
+          }
+          if (paymentConfig.containsKey('cod')) {
+            paymentConfig['cash'] = paymentConfig['cod'];
+          }
+
+          // Rebuild options with the updated config.
+          _buildPaymentOptionsFromConfig();
+        } else if (response is List) {
+          for (var opt in response) {
+            if (opt is Map && opt['name'] != null) {
+              paymentConfig[opt['name']] = opt;
+            }
+            if (!paymentOptions.any((e) => e['name'] == opt['name'])) {
+              paymentOptions.add(opt);
+            }
+          }
         }
       }
-    }
 
-    // Select the first option by default.
-    if (paymentOptions.isNotEmpty) {
-      deliveryOption.value = paymentOptions[0];
-      selectedIndex.value = 0;
+      // Select the first option by default.
+      if (paymentOptions.isNotEmpty) {
+        deliveryOption.value = paymentOptions[0];
+        selectedIndex.value = 0;
+      }
+    } catch (e) {
+      printInfo(info: 'getPaymentOption error: $e');
+    } finally {
+      isPaymentLoading.value = false;
     }
   }
 
@@ -170,7 +210,7 @@ class CheckOutController extends GetxController with BaseController {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: paymentOptions
-                    .where((o) => o['name'] != 'cod')
+                    .where((o) => o['name'] != 'cod' && o['name'] != 'cash')
                     .map((option) => ListTile(
                           leading: SvgPicture.asset(
                             option['image'] ?? 'assets/icon/wallet.svg',
@@ -201,7 +241,7 @@ class CheckOutController extends GetxController with BaseController {
   }
 
   Future<Map<String, dynamic>?> createOrder({String currency = 'INR'}) async {
-    final String methodName = deliveryOption['name'];
+    final String methodName = deliveryOption['name'] ?? 'cod';
     String addressId = "";
 
     try {
@@ -220,16 +260,20 @@ class CheckOutController extends GetxController with BaseController {
         return null;
       }
 
+      final bool isCod = methodName == 'cod' || methodName == 'cash';
+
       // Build the order form.
       var form = <String, String>{
         "address_id": addressId,
-        "primary_method": methodName,
+        "primary_method": isCod ? 'cod' : methodName,
+        "payment_method": isCod ? 'cod' : methodName,
         "currency":
             currency, // ✅ tells backend which currency to use for payment gateway
       };
 
-      if (methodName == 'cod') {
+      if (isCod) {
         form['cod'] = 'true';
+        form['cash'] = 'true';
 
         // Include the secondary gateway when COD prepayment applies.
         if (secondaryPaymentGateway.value.isNotEmpty) {
@@ -325,19 +369,214 @@ class CheckOutController extends GetxController with BaseController {
     }
   }
 
+  /// Shows confirmation dialog matching design when COD option is clicked
+  void showCodConfirmationDialog({required VoidCallback onConfirm}) {
+    final BuildContext? context = Get.context;
+    if (context == null) {
+      onConfirm();
+      return;
+    }
+
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final double totalVal = cartController.total.value;
+    final String formattedTotal = totalVal.toStringAsFixed(2);
+
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: colorScheme.surface,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Confirm Your Order',
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () => Get.back(),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Icon(
+                        Icons.close,
+                        color: colorScheme.onSurfaceVariant,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.local_shipping_outlined,
+                    size: 32,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                  children: [
+                    const TextSpan(text: 'You have selected '),
+                    TextSpan(
+                      text: 'Cash On Delivery',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const TextSpan(text: '. Your order of '),
+                    TextSpan(
+                      text: '₹$formattedTotal',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                    const TextSpan(
+                      text:
+                          ' will be placed right away and payable when it is delivered. Do you really want to place this order?',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Get.back(),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24)),
+                        side: BorderSide(
+                            color: colorScheme.outline.withValues(alpha: 0.5)),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: textTheme.labelLarge?.copyWith(
+                          color: colorScheme.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Get.back();
+                        onConfirm();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24)),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'Place Order',
+                        style: textTheme.labelLarge?.copyWith(
+                          color: colorScheme.onPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _executeOrderPlacement({
+    required String methodName,
+    required double amount,
+  }) async {
+    HelperFunctions().showOverlayLoader();
+
+    try {
+      var orderResponse = await createOrder(
+        currency: methodName == 'paypal' ? 'USD' : 'INR',
+      );
+      printInfo(info: 'orderResponse: $orderResponse');
+
+      if (orderResponse == null) {
+        if (Get.isDialogOpen ?? false) Get.back();
+        return;
+      }
+
+      final String rawOrderId =
+          (orderResponse['_id'] ?? orderResponse['id'] ?? "").toString();
+      final String orderNo =
+          (orderResponse['order_no'] ?? rawOrderId).toString();
+
+      await _processGatewayPayment(
+        methodName: methodName,
+        amount: amount,
+        orderResponse: orderResponse,
+        rawOrderId: rawOrderId,
+      );
+
+      if (Get.isDialogOpen ?? false) Get.back();
+      Get.offAllNamed(
+        Routes.ORDERSUCCESS,
+        arguments: {'id': rawOrderId, 'order_no': orderNo},
+      );
+    } catch (e) {
+      if (Get.isDialogOpen ?? false) Get.back();
+      HelperFunctions().showSnackBarError('Failed to place order: $e');
+    }
+  }
+
   Future<void> processOrder() async {
     if (deliveryOption.isEmpty) {
       HelperFunctions().showSnackBarError('Please select a payment method');
       return;
     }
 
-    final String methodName = deliveryOption['name'];
+    final String methodName = deliveryOption['name'] ?? 'cod';
     final double amount = cartController.total.value;
 
-    // ── COD prepayment flow ──
-    if (methodName == 'cod') {
-      final codConfig = paymentConfig['cod'];
-      final bool needsPrepayment = codConfig['cod_prepayment_type'] != null &&
+    final bool isCod = methodName == 'cod' || methodName == 'cash';
+
+    // ── COD flow ──
+    if (isCod) {
+      final codConfig = paymentConfig['cod'] ?? paymentConfig['cash'];
+      final bool needsPrepayment = codConfig != null &&
+          codConfig['cod_prepayment_type'] != null &&
           codConfig['cod_prepayment_ammount'] != null &&
           codConfig['cod_prepayment_ammount'].toString().isNotEmpty;
 
@@ -353,7 +592,6 @@ class CheckOutController extends GetxController with BaseController {
 
             HelperFunctions().showOverlayLoader();
             try {
-              // ✅ pass USD if COD prepayment is via PayPal
               var orderResponse = await createOrder(
                 currency: selectedOnlineMethod == 'paypal' ? 'USD' : 'INR',
               );
@@ -362,9 +600,10 @@ class CheckOutController extends GetxController with BaseController {
                 return;
               }
 
-              final String orderId =
-                  orderResponse['order_no'] ?? orderResponse['_id'] ?? "";
-              final String rawOrderId = orderResponse['_id'] ?? "";
+              final String rawOrderId =
+                  (orderResponse['_id'] ?? orderResponse['id'] ?? "").toString();
+              final String orderNo =
+                  (orderResponse['order_no'] ?? rawOrderId).toString();
 
               await _processGatewayPayment(
                 methodName: selectedOnlineMethod,
@@ -376,7 +615,10 @@ class CheckOutController extends GetxController with BaseController {
               await CODPayment().processPayment(amount: amount);
 
               if (Get.isDialogOpen ?? false) Get.back();
-              Get.offAllNamed(Routes.ORDERSUCCESS, arguments: orderId);
+              Get.offAllNamed(
+                Routes.ORDERSUCCESS,
+                arguments: {'id': rawOrderId, 'order_no': orderNo},
+              );
             } catch (e) {
               if (Get.isDialogOpen ?? false) Get.back();
               HelperFunctions().showSnackBarError('Prepayment failed: $e');
@@ -387,40 +629,18 @@ class CheckOutController extends GetxController with BaseController {
         );
         return;
       }
+
+      // Show COD confirmation dialog when user clicks Place Order
+      showCodConfirmationDialog(
+        onConfirm: () async {
+          await _executeOrderPlacement(methodName: methodName, amount: amount);
+        },
+      );
+      return;
     }
 
-    // ── Standard flow ──
-    HelperFunctions().showOverlayLoader();
-
-    try {
-      // ✅ pass USD when PayPal is the primary method
-      var orderResponse = await createOrder(
-        currency: methodName == 'paypal' ? 'USD' : 'INR',
-      );
-      printInfo(info: 'orderResponse: $orderResponse');
-
-      if (orderResponse == null) {
-        if (Get.isDialogOpen ?? false) Get.back();
-        return;
-      }
-
-      final String orderId =
-          orderResponse['order_no'] ?? orderResponse['_id'] ?? "";
-      final String rawOrderId = orderResponse['_id'] ?? "";
-
-      await _processGatewayPayment(
-        methodName: methodName,
-        amount: amount,
-        orderResponse: orderResponse,
-        rawOrderId: rawOrderId,
-      );
-
-      if (Get.isDialogOpen ?? false) Get.back();
-      Get.offAllNamed(Routes.ORDERSUCCESS, arguments: orderId);
-    } catch (e) {
-      if (Get.isDialogOpen ?? false) Get.back();
-      HelperFunctions().showSnackBarError('Failed to place order: $e');
-    }
+    // ── Standard flow for online payment methods ──
+    await _executeOrderPlacement(methodName: methodName, amount: amount);
   }
 
   Future<void> _processGatewayPayment({
@@ -484,6 +704,7 @@ class CheckOutController extends GetxController with BaseController {
         break;
 
       case 'cod':
+      case 'cash':
         await CODPayment().processPayment(amount: amount);
         break;
 
