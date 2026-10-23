@@ -1,0 +1,15 @@
+<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Accent Circle -->
+  <circle cx="14" cy="14" r="8" fill="#FF4C3B" fill-opacity="0.2"></circle>
+
+  <!-- Document -->
+  <path d="M7.25 3.25H12.9L16.75 7.1V15.6C16.75 17.2 15.7 18.25 14.1 18.25H7.9C6.3 18.25 5.25 17.2 5.25 15.6V5.9C5.25 4.3 6.3 3.25 7.9 3.25H7.25Z" stroke="#1A1D1F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+
+  <!-- Folded Corner -->
+  <path d="M12.75 3.35V6.85H16.25" stroke="#1A1D1F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+
+  <!-- Quote Marks -->
+  <path d="M8.2 9.3C8.2 8.7 8.6 8.3 9.2 8.3V9.55C8.85 9.55 8.7 9.75 8.7 10V10.15H9.65V11.65H8.2V10C8.2 9.75 8.2 9.5 8.2 9.3Z" fill="#1A1D1F"></path>
+
+  <path d="M11.2 9.3C11.2 8.7 11.6 8.3 12.2 8.3V9.55C11.85 9.55 11.7 9.75 11.7 10V10.15H12.65V11.65H11.2V10C11.2 9.75 11.2 9.5 11.2 9.3Z" fill="#1A1D1F"></path>
+</svg>
