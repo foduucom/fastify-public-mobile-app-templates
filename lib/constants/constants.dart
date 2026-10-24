@@ -15,6 +15,9 @@ var razorPayKey = "";
 
 //var accessToken = "f654e0a9ed1f267915a55b950a579ad47d281f74d7fd4cd6";
 var accessToken = "c50c0c1258bb25df3082b9053e7b3bc0ab5fcf96a0d78a04";
+var websiteDomain = "vision.foduu.store";
+var socketUrl = "https://studio.foduu.store/";
+var ACCESS_KEY = "c50c0c1258bb25df3082b9053e7b3bc0ab5fcf96a0d78a04";
 
 bool isOtpLogin = false;
 

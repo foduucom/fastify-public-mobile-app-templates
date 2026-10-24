@@ -18,6 +18,12 @@ import 'package:zouhi/app/controllers/currency_controller.dart';
 import 'package:zouhi/components/buttons/appbutton.dart';
 
 class HelperFunctions {
+  static double parseAmount(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? 0.0;
+  }
+
   static final Map<dynamic, String> _imageUrlCache = {};
   static DateTime? _lastErrorSnackBarTime;
   static String? _lastErrorSnackBarMessage;

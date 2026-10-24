@@ -25,6 +25,7 @@ class BasicProvider extends GetConnect {
 
   /// Set by [getRequest]; [RequestFailure.none] when a response was obtained.
   RequestFailure lastFailure = RequestFailure.none;
+  bool servedFromCache = false;
 
   BasicProvider(this.custom_url, {this.showSnackBar = true});
   var box = GetStorage();

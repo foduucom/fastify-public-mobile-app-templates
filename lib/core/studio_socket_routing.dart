@@ -1,10 +1,12 @@
+// ignore_for_file: avoid_print
+
 import 'dart:convert';
-import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
-import 'package:foduu_ecommerce/app/routes/app_pages.dart';
-import 'package:foduu_ecommerce/constants/constants.dart';
-import 'package:foduu_ecommerce/helpers/socket_helper.dart';
+import 'package:zouhi/app/modules/bottomar/controllers/bottombar_controller.dart';
+import 'package:zouhi/app/routes/app_pages.dart';
+import 'package:zouhi/constants/constants.dart';
+import 'package:zouhi/helpers/socket_helper.dart';
 import 'package:get/get.dart';
-import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
+import 'package:zouhi/app/modules/shop/shop_navigation.dart';
 
 class StudioSocketRouting extends GetxController {
   final String? initialSlug;

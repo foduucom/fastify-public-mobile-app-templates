@@ -4,13 +4,13 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:foduu_ecommerce/constants/constants.dart';
-import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
-import '/app/data/basic_provider.dart';
-import '/constants/app_exceptions.dart';
-import '/constants/resilience_strings.dart';
-import '/services/api_health_service.dart';
-import '/helpers/socket_helper.dart';
+import 'package:zouhi/constants/constants.dart';
+import 'package:zouhi/constants/dynamic_theme.dart';
+import 'package:zouhi/app/data/basic_provider.dart';
+import 'package:zouhi/constants/app_exceptions.dart';
+import 'package:zouhi/constants/resilience_strings.dart';
+import 'package:zouhi/services/api_health_service.dart';
+import 'package:zouhi/helpers/socket_helper.dart';
 import 'package:get/get.dart';
 
 import 'widget_registry.dart';
@@ -271,7 +271,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
       // Register this controller for the given slug
       _slugHandlers[slug] = this;
 
-      final eventName = '${domain}:mobileapp';
+      final eventName = '$domain:mobileapp';
 
       // Only set up the socket listener ONCE across all controllers
       if (_registeredEventName != eventName) {

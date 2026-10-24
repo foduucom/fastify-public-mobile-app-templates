@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart'; // Assuming this package is used
-import 'package:foduu_ecommerce/services/payment_service.dart';
-import 'package:foduu_ecommerce/constants/helper_functions.dart';
-import 'package:foduu_ecommerce/app/routes/app_pages.dart'; // For navigation
+import 'package:zouhi/services/payment_service.dart';
+import 'package:zouhi/constants/helper_functions.dart';
+import 'package:zouhi/app/routes/app_pages.dart'; // For navigation
 import 'package:get_storage/get_storage.dart';
-import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
+import 'package:zouhi/app/modules/auth/auth_details.dart';
 
 class PaymentHandlerController extends GetxController {
   // These would typically be passed to this controller when initiating the payment

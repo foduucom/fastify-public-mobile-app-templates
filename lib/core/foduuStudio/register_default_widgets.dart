@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:foduu_ecommerce/components/home_component/icon_button_section.dart';
-import 'package:foduu_ecommerce/components/search_bar_rounded.dart';
-import '/app/routes/app_pages.dart';
-import '/components/home_component/home_products.dart';
-import '/components/home_component/home_rich_text_component.dart';
-import '/components/home_component/home_slider.dart';
-import '/components/home_component/home_trust_badges.dart';
-import '/components/home_component/home_banner.dart';
-import '/components/home_component/home_blogs.dart';
-import '/components/home_component/home_category.dart';
-import '/components/home_component/home_common_widgets.dart';
-import '/components/home_component/home_price_filter.dart';
-import '/constants/constants.dart';
+import 'package:zouhi/components/search_bar_rounded.dart';
+import 'package:zouhi/app/routes/app_pages.dart';
+import 'package:zouhi/components/home_component/home_products.dart';
+import 'package:zouhi/components/home_component/home_rich_text_component.dart';
+import 'package:zouhi/components/home_component/home_slider.dart';
+import 'package:zouhi/components/home_component/home_trust_badges.dart';
+import 'package:zouhi/components/home_component/home_banner.dart';
+import 'package:zouhi/components/home_component/home_blogs.dart';
+import 'package:zouhi/components/home_component/home_category.dart';
+import 'package:zouhi/components/home_component/home_common_widgets.dart';
+import 'package:zouhi/components/home_component/home_price_filter.dart';
+import 'package:zouhi/constants/constants.dart';
 import 'package:get/get.dart';
 
 import 'widget_registry.dart';
@@ -59,7 +58,7 @@ void registerDefaultWidgets() {
   // ─── Banner ─────────────────────────────────────────────────
   r.register('banner', (json) {
     if (json != null) {
-      return HomeBanner(bannerContent: json);
+      return HomeBanner(bannerData: json);
     }
     return const SizedBox.shrink();
   });
@@ -95,7 +94,7 @@ void registerDefaultWidgets() {
   });
 
   r.register('countdown', (json) {
-    return Text('Count down timeer maintendedddd ');
+    return const Text('Count down timeer maintendedddd ');
   });
 
   // r.register('icon_button', (json) {

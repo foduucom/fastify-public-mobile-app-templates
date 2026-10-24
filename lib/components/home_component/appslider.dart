@@ -2,17 +2,14 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:zouhi/app/controllers/api_exception_handle_controller.dart';
-import 'package:zouhi/app/data/basic_provider.dart';
 import 'package:zouhi/app/modules/homepage/controllers/homepage_controller.dart';
 import 'package:zouhi/app/modules/bottomar/controllers/bottombar_controller.dart';
-import 'package:zouhi/app/routes/app_pages.dart';
 import 'package:zouhi/components/shimmer_effects.dart';
-import 'package:zouhi/constants/constants.dart';
 import 'package:zouhi/constants/helper_functions.dart';
 import 'package:zouhi/constants/theme_ext.dart';
 import 'package:get/get.dart';
-import 'package:shimmer/shimmer.dart';
 
 class FoduuSlider extends StatefulWidget {
   final String id;
@@ -256,8 +253,11 @@ class _SliderItemWidgetState extends State<SliderItemWidget>
     return Stack(
       children: [
         GestureDetector(
-          onTap: () {
-            if (sliderData['sliderType'] == 'categories') {
+          onTap: () async {
+            final link = (sliderData['link'] ?? '').toString().trim();
+            final sliderType = sliderData['sliderType']?.toString() ?? '';
+
+            if (sliderType == 'categories') {
               BottombarController.switchTab(
                 1,
                 arguments: {
@@ -266,6 +266,13 @@ class _SliderItemWidgetState extends State<SliderItemWidget>
                   'name': sliderData['heading'],
                 },
               );
+            } else if (link == '/product' || link == '/products' || link == '/shop') {
+              BottombarController.switchTab(1);
+            } else if (link.startsWith('http://') || link.startsWith('https://')) {
+              final uri = Uri.tryParse(link);
+              if (uri != null && await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              }
             }
           },
           child: ClipRRect(

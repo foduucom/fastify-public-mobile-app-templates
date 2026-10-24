@@ -26,6 +26,7 @@ class HomepageController extends GetxController with BaseController {
   var isTrendingProductsLoading = false.obs;
 
   var sliderImageList = [].obs;
+  var solutionSliderList = [].obs;
   var trendingProductList = [].obs;
   var editorsChoiceList = [].obs;
   var trendingProductsList = [].obs;
@@ -155,7 +156,19 @@ class HomepageController extends GetxController with BaseController {
 
       final cachedSliders = box.read('home_slider_images');
       if (cachedSliders != null && cachedSliders is List) {
-        sliderImageList.assignAll(cachedSliders);
+        final filteredSliders = cachedSliders.where((item) {
+          if (item is Map) {
+            final heading = (item['heading'] ?? '').toString().toLowerCase();
+            return !heading.contains('not sure which solution');
+          }
+          return true;
+        }).toList();
+        sliderImageList.assignAll(filteredSliders);
+      }
+
+      final cachedSolutionSliders = box.read('solution_slider_images');
+      if (cachedSolutionSliders != null && cachedSolutionSliders is List) {
+        solutionSliderList.assignAll(cachedSolutionSliders);
       }
 
       final cachedCategories = box.read('home_product_categories');
@@ -419,17 +432,58 @@ class HomepageController extends GetxController with BaseController {
             slidersList = response['data']['data'];
           }
         }
-        List allImages = [];
+        // 1. Extract home-slider items specifically for homepage hero
+        dynamic homeSlider;
+        dynamic solutionSlider;
+
         for (var slider in slidersList) {
-          if (slider is Map &&
-              slider['content'] != null &&
-              slider['content'] is List) {
-            allImages.addAll(slider['content']);
+          if (slider is Map) {
+            final slug = (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
+            if (slug == 'home-slider') {
+              homeSlider = slider;
+            } else if (slug == 'solution') {
+              solutionSlider = slider;
+            }
           }
         }
-        if (allImages.isNotEmpty) {
-          sliderImageList.assignAll(allImages);
-          box.write('home_slider_images', allImages);
+
+        // Fallback: if 'home-slider' slug not found, find first non-solution slider with content
+        if (homeSlider == null) {
+          for (var slider in slidersList) {
+            if (slider is Map) {
+              final slug = (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
+              if (slug != 'solution' &&
+                  slider['content'] != null &&
+                  slider['content'] is List &&
+                  (slider['content'] as List).isNotEmpty) {
+                homeSlider = slider;
+                break;
+              }
+            }
+          }
+        }
+
+        if (homeSlider != null &&
+            homeSlider['content'] != null &&
+            homeSlider['content'] is List) {
+          final List homeImages = List.from(homeSlider['content']);
+          // Sort slides by 'order' ascending if available
+          homeImages.sort((a, b) {
+            final int orderA = (a is Map && a['order'] is num) ? (a['order'] as num).toInt() : 0;
+            final int orderB = (b is Map && b['order'] is num) ? (b['order'] as num).toInt() : 0;
+            return orderA.compareTo(orderB);
+          });
+          sliderImageList.assignAll(homeImages);
+          box.write('home_slider_images', homeImages);
+        }
+
+        // 2. Extract and preserve solution slider separately
+        if (solutionSlider != null &&
+            solutionSlider['content'] != null &&
+            solutionSlider['content'] is List) {
+          final List solutionImages = List.from(solutionSlider['content']);
+          solutionSliderList.assignAll(solutionImages);
+          box.write('solution_slider_images', solutionImages);
         }
       }
       isSliderLoading.value = false;

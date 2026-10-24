@@ -45,6 +45,16 @@ class UnAuthorizedException extends AppException {
       : super(message, 'UnAuthorized request', url);
 }
 
+class ServiceUnavailableException extends AppException {
+  ServiceUnavailableException([String? message, String? url, int? statusCode])
+      : super(
+            message ??
+                "We're making things better for you. This only takes a moment.",
+            null,
+            url,
+            statusCode);
+}
+
 /// Converts any error thrown by the API layer (AppException, String, Map,
 /// socket/timeout errors, ...) into a user-facing message. Never throws.
 String errorMessageOf(Object? err,

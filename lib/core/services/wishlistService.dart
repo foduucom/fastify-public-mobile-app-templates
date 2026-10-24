@@ -1,9 +1,11 @@
+// ignore_for_file: avoid_print, file_names
+
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import '/app/data/basic_provider.dart';
-import '/constants/helper_functions.dart';
-import '/constants/resilience_strings.dart';
-import '/app/controllers/api_exception_handle_controller.dart';
+import 'package:zouhi/app/data/basic_provider.dart';
+import 'package:zouhi/constants/helper_functions.dart';
+import 'package:zouhi/constants/resilience_strings.dart';
+import 'package:zouhi/app/controllers/api_exception_handle_controller.dart';
 
 typedef WishlistService = WishListService;
 
@@ -37,7 +39,7 @@ class WishListService extends GetxService with BaseController {
 
       loadError.value = false;
       parseWishListResponse(response);
-    } catch (e, stackTrack) {
+    } catch (e) {
       debugPrint('WishlistService.fetchWishList error: $e');
     }
   }

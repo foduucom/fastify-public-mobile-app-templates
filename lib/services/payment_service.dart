@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:get/get.dart';
 import '../app/data/basic_provider.dart';
 import '../constants/helper_functions.dart';

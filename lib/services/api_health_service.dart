@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:zouhi/app/data/basic_provider.dart';
 import 'package:get/get.dart';
 
 enum ApiHealth { healthy, reconnecting, down }
@@ -99,8 +99,8 @@ class ApiHealthService extends GetxService {
     if (_probing || _outageStart == null) return;
     _probing = true;
     try {
-      await BasicProvider('public-settings')
-          .getRequest(useCache: false, retry: false);
+      await BasicProvider('public-settings', showSnackBar: false)
+          .getRequest();
     } catch (_) {
       _refreshOffline();
     } finally {

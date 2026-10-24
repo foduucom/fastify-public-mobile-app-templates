@@ -1,10 +1,12 @@
+// ignore_for_file: avoid_print, file_names
+
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import '/app/data/basic_provider.dart';
 import '/app/modules/auth/auth_details.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
-import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:zouhi/constants/helper_functions.dart';
 
 class CartService extends GetxService with BaseController {
   /// Convenience accessor: CartService.to

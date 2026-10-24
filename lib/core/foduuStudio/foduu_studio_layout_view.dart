@@ -1,7 +1,9 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
-import '/components/resilience/friendly_error_state.dart';
-import '/services/api_health_service.dart';
-import '/constants/helper_functions.dart';
+import 'package:zouhi/components/resilience/friendly_error_state.dart';
+import 'package:zouhi/services/api_health_service.dart';
+import 'package:zouhi/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
 /// A reusable view widget that renders a dynamic layout from an observable
