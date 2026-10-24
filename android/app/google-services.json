@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "112188638285",
+    "project_id": "vision-infrastructure-canada",
+    "storage_bucket": "vision-infrastructure-canada.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:112188638285:android:182866f4c973dd44e44804",
+        "android_client_info": {
+          "package_name": "com.vision_infrastructure_canada"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCKgwVhcfQHoUhBW5Rw-Y03eetoTekcdFA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

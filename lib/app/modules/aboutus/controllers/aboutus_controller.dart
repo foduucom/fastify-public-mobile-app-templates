@@ -2,18 +2,16 @@ import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zouhi/app/controllers/api_exception_handle_controller.dart';
 import 'package:zouhi/app/data/models/about_us_sections.dart';
-import 'package:zouhi/app/data/models/page_model.dart';
-import 'package:zouhi/app/data/services/page_api_service.dart';
 import 'package:zouhi/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:zouhi/app/routes/app_pages.dart';
 import 'package:zouhi/constants/constants.dart';
+import 'package:zouhi/core/foduuStudio/foduu_studio_layout_mixin.dart';
 
-class AboutusController extends GetxController with BaseController {
-  final PageApiService _apiService = PageApiService();
-
+class AboutusController extends GetxController
+    with BaseController, FoduuStudioLayoutMixin {
   final isLoading = false.obs;
   final error = ''.obs;
-  final components = <PageComponent>[].obs;
+  final rawSections = <dynamic>[].obs;
 
   // Structured Sections with Website Canonical Defaults
   late final Rx<AboutHeroHeader> header;
@@ -46,55 +44,42 @@ class AboutusController extends GetxController with BaseController {
     testimonials = AboutTestimonialsSection.fromComponent(null).obs;
   }
 
+  /// Intercepts both initial fetch and live WebSocket broadcasts from FoduuStudioLayoutMixin
+  @override
+  void buildLayout(List sections) {
+    super.buildLayout(sections);
+    _parseCmsSections(sections);
+  }
+
   Future<void> fetchAboutUs() async {
     isLoading(true);
     error('');
     try {
-      final response = await _apiService.getPageByType('about');
-      final content = response.data?.content ?? [];
-      components.assignAll(content);
-      _parseComponents(content);
+      final response = await fetchLayout('about-us');
+      if (response != null && response is Map) {
+        final list = response['sections'];
+        if (list is List && list.isNotEmpty) {
+          rawSections.assignAll(list);
+          _parseCmsSections(list);
+          return;
+        }
+      }
+      _parseCmsSections(rawSections);
     } catch (e) {
       error(e.toString());
-      // Ensure defaults remain active even on error
-      _parseComponents(components);
+      _parseCmsSections(rawSections);
     } finally {
       isLoading(false);
     }
   }
 
-  void _parseComponents(List<PageComponent> list) {
-    PageComponent? headerComp;
-    PageComponent? storyComp;
-    PageComponent? whyComp;
-    PageComponent? processComp;
-    PageComponent? testimonialComp;
-
-    for (final c in list) {
-      switch (c.type) {
-        case 'about-us_page-header':
-          headerComp = c;
-          break;
-        case 'about-us_hero-banner':
-          storyComp = c;
-          break;
-        case 'about-us_why-choose':
-          whyComp = c;
-          break;
-        case 'about-us_our-process':
-          processComp = c;
-          break;
-        case 'about-us_testimonials':
-          testimonialComp = c;
-          break;
-      }
-    }
-
-    header.value = AboutHeroHeader.fromComponent(headerComp);
-    story.value = AboutHeroStory.fromComponent(storyComp);
-    whyChoose.value = AboutWhyChooseSection.fromComponent(whyComp);
-    process.value = AboutProcessSection.fromComponent(processComp);
-    testimonials.value = AboutTestimonialsSection.fromComponent(testimonialComp);
+  void _parseCmsSections(List list) {
+    if (list.isEmpty) return;
+    header.value = AboutHeroHeader.fromSections(list);
+    story.value = AboutHeroStory.fromSections(list);
+    whyChoose.value = AboutWhyChooseSection.fromSections(list);
+    process.value = AboutProcessSection.fromSections(list);
+    testimonials.value = AboutTestimonialsSection.fromSections(list);
   }
 
   void visitStore() {
@@ -118,4 +103,3 @@ class AboutusController extends GetxController with BaseController {
     Get.toNamed(Routes.CONTACT);
   }
 }
-

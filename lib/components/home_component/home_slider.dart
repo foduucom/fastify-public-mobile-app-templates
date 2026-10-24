@@ -80,20 +80,24 @@ class _FoduuSliderState extends State<FoduuSlider>
 
     _resolveImageUrls();
 
-    _timer = Timer.periodic(const Duration(seconds: 8), (Timer timer) {
-      if (_currentPage < widget.sliderData['slider']['content'].length - 1) {
-        _currentPage++;
-      } else {
-        _currentPage = 0;
-      }
-      if (_pageController.hasClients) {
-        _pageController.animateToPage(
-          _currentPage,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeIn,
-        );
-      }
-    });
+    final int contentCount =
+        widget.sliderData['slider']?['content']?.length ?? 0;
+    if (contentCount > 1) {
+      _timer = Timer.periodic(const Duration(seconds: 8), (Timer timer) {
+        if (_currentPage < contentCount - 1) {
+          _currentPage++;
+        } else {
+          _currentPage = 0;
+        }
+        if (_pageController.hasClients) {
+          _pageController.animateToPage(
+            _currentPage,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeIn,
+          );
+        }
+      });
+    }
   }
 
   @override
@@ -344,13 +348,14 @@ class _FoduuSliderState extends State<FoduuSlider>
                       }),
                 ),
         ),
-        Positioned(
-          bottom: 10,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [..._buildPageIndicator()],
-          ),
-        )
+        if ((widget.sliderData['slider']?['content']?.length ?? 0) > 1)
+          Positioned(
+            bottom: 10,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [..._buildPageIndicator()],
+            ),
+          )
       ],
     );
   }

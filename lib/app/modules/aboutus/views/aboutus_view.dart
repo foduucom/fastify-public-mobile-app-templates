@@ -16,7 +16,11 @@ class AboutusView extends GetView<AboutusController> {
   String _imageUrl(String path) {
     if (path.isEmpty) return '';
     if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    return path.startsWith('/') ? '$url${path.substring(1)}' : '$url$path';
+    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    if (cleanPath.startsWith('images/')) {
+      return '$url$cleanPath';
+    }
+    return '$assetURL$cleanPath';
   }
 
   @override
@@ -58,7 +62,7 @@ class AboutusView extends GetView<AboutusController> {
         ],
       ),
       body: Obx(() {
-        if (controller.isLoading.value && controller.components.isEmpty) {
+        if (controller.isLoading.value && controller.rawSections.isEmpty) {
           return Center(child: HelperFunctions().loadingIndicator());
         }
 
@@ -67,7 +71,6 @@ class AboutusView extends GetView<AboutusController> {
         final whyChoose = controller.whyChoose.value;
         final process = controller.process.value;
         final testimonials = controller.testimonials.value;
-        final stats = controller.stats;
 
         return RefreshIndicator(
           onRefresh: controller.fetchAboutUs,
@@ -351,11 +354,24 @@ class AboutusView extends GetView<AboutusController> {
                               context.themePrimaryColor.withValues(alpha: 0.2),
                         ),
                       ),
-                      child: Icon(
-                        iconData,
-                        color: context.themePrimaryColor,
-                        size: 21,
-                      ),
+                      child: feature.imageUrl.isNotEmpty
+                          ? Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: CachedNetworkImage(
+                                imageUrl: _imageUrl(feature.imageUrl),
+                                fit: BoxFit.contain,
+                                errorWidget: (_, __, ___) => Icon(
+                                  iconData,
+                                  color: context.themePrimaryColor,
+                                  size: 21,
+                                ),
+                              ),
+                            )
+                          : Icon(
+                              iconData,
+                              color: context.themePrimaryColor,
+                              size: 21,
+                            ),
                     ),
                     const SizedBox(width: 14),
                     Expanded(

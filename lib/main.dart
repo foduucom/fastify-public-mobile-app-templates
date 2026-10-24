@@ -7,7 +7,12 @@ import 'package:zouhi/app/data/services/notification_service.dart';
 import 'package:zouhi/app/controllers/currency_controller.dart';
 import 'package:zouhi/app/controllers/internetconnection_controller.dart';
 import 'package:zouhi/constants/theme.dart';
+import 'package:zouhi/core/foduuStudio/register_default_widgets.dart';
 import 'app/routes/app_pages.dart';
+
+import 'package:flutter/foundation.dart';
+import 'package:zouhi/constants/constants.dart';
+import 'package:zouhi/core/studio_socket_routing.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,8 +24,36 @@ Future<void> main() async {
   }
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  registerDefaultWidgets();
   Get.put(InternetconnectionController(), permanent: true);
   Get.put(CurrencyController(), permanent: true);
+
+  if (kIsWeb) {
+    var accessKey = Uri.base.queryParameters['api_key'];
+    var domain = Uri.base.queryParameters['domain_name'];
+    String? slug = Uri.base.queryParameters['slug'] ?? 'home';
+    if (accessKey == null && Uri.base.fragment.isNotEmpty) {
+      try {
+        final fragmentUri = Uri.parse(Uri.base.fragment);
+        accessKey = fragmentUri.queryParameters['api_key'];
+        domain = fragmentUri.queryParameters['domain_name'];
+        slug = fragmentUri.queryParameters['slug'] ?? slug;
+      } catch (e) {
+        print("Error parsing URI fragment: $e");
+      }
+    }
+
+    if (accessKey != null && accessKey.isNotEmpty) {
+      ACCESS_KEY = accessKey;
+      accessToken = accessKey;
+    }
+
+    if (domain != null && domain.isNotEmpty) {
+      websiteDomain = domain;
+    }
+
+    Get.put(StudioSocketRouting(initialSlug: slug));
+  }
 
   runApp(const AppRoot());
 

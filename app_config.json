@@ -53,6 +53,12 @@
       "slug": "product-listing",
       "route": "/product-listing",
       "description": "Shop / product list view with optional dynamic sections"
+    },
+    {
+      "title": "About Us",
+      "slug": "about-us",
+      "route": "/aboutus",
+      "description": "About Us page — fully CMS broadcasting driven dynamic layout"
     }
   ],
   "layouts": {

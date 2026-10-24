@@ -1,6 +1,6 @@
 import 'package:zouhi/app/data/services/session_service.dart';
 import 'dart:async';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:zouhi/app/controllers/api_exception_handle_controller.dart';
 import 'package:zouhi/app/controllers/currency_controller.dart';
@@ -8,7 +8,6 @@ import '../auth/auth_details.dart';
 import 'package:zouhi/app/routes/app_pages.dart';
 import 'package:zouhi/constants/constants.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:zouhi/constants/helper_functions.dart';
 import 'package:zouhi/constants/theme_ext.dart';
 
 import 'package:get/get.dart';
@@ -80,6 +79,11 @@ class _SplashscreenViewState extends State<SplashscreenView> {
   /// moved the user away (or this screen is gone) so Login is never rebuilt.
   void _navigateOnce() {
     if (!mounted || Get.currentRoute != Routes.SPLASH) return;
+    if (kIsWeb) {
+      // In web preview (e.g. Studio editor iframe), do not redirect to Login.
+      // StudioSocketRouting directly handles navigating to initialSlug (e.g. about-us or home).
+      return;
+    }
     if (AuthDetails.isUserLogin()) {
       Get.offAllNamed(Routes.BOTTOMBAR);
     } else {

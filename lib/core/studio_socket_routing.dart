@@ -7,6 +7,7 @@ import 'package:zouhi/constants/constants.dart';
 import 'package:zouhi/helpers/socket_helper.dart';
 import 'package:get/get.dart';
 import 'package:zouhi/app/modules/shop/shop_navigation.dart';
+import 'package:zouhi/app/modules/aboutus/controllers/aboutus_controller.dart';
 
 class StudioSocketRouting extends GetxController {
   final String? initialSlug;
@@ -126,6 +127,17 @@ class StudioSocketRouting extends GetxController {
         break;
       case 'product-listing':
         openShop();
+        break;
+      case 'about-us':
+      case 'about':
+      case 'aboutus':
+        if (Get.currentRoute == Routes.ABOUTUS) {
+          if (Get.isRegistered<AboutusController>()) {
+            Get.find<AboutusController>().fetchAboutUs();
+          }
+        } else {
+          Get.toNamed(Routes.ABOUTUS);
+        }
         break;
       default:
       // Get.toNamed(Routes.CUSTOMPAGE,

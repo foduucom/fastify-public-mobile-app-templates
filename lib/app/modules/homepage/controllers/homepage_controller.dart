@@ -11,9 +11,13 @@ import 'package:zouhi/app/data/models/home_cms.dart';
 import 'package:zouhi/app/data/services/category_product_service.dart';
 import 'package:zouhi/app/data/services/home_cms_service.dart';
 import 'package:zouhi/constants/api_sanitizer.dart';
+import 'package:zouhi/constants/constants.dart';
 import 'package:zouhi/constants/home_config.dart';
+import 'package:zouhi/core/foduuStudio/foduu_studio_layout_mixin.dart';
 
-class HomepageController extends GetxController with BaseController {
+class HomepageController extends GetxController
+    with BaseController, FoduuStudioLayoutMixin {
+  var pageSlug = 'home';
   var selectcategory = 0.obs;
   var sliderImage = List<dynamic>.empty().obs;
   var productCategoryList = List<dynamic>.empty().obs;
@@ -35,7 +39,6 @@ class HomepageController extends GetxController with BaseController {
 
   var box = GetStorage();
   final isLogin = false.obs;
-  var widgetList = [].obs;
   List offerCornerList = [].obs;
   var trendingList = [].obs;
   var blogList = [].obs;
@@ -132,8 +135,9 @@ class HomepageController extends GetxController with BaseController {
   @override
   Future<void> onInit() async {
     super.onInit();
+    enableSocketUpdates(domain: websiteDomain, slug: pageSlug);
     loadCachedData();
-    refreshAllData();
+    getDashboardDesign(pageSlug);
     _setupConnectivityListener();
   }
 
@@ -152,6 +156,15 @@ class HomepageController extends GetxController with BaseController {
 
   void loadCachedData() {
     try {
+      final cachedSections = box.read('home_cms_broadcasting_sections');
+      if (cachedSections != null &&
+          cachedSections is List &&
+          cachedSections.isNotEmpty) {
+        buildLayout(cachedSections);
+        isLayoutLoading.value = false;
+        isLoading.value = false;
+      }
+
       cms.value = _cmsService.cached() ?? HomeCms.fallback();
 
       final cachedSliders = box.read('home_slider_images');
@@ -220,6 +233,25 @@ class HomepageController extends GetxController with BaseController {
     }
   }
 
+  Future<dynamic> getDashboardDesign(String slug,
+      {dynamic requestBody}) async {
+    try {
+      isLoading.value = true;
+      var response = await fetchLayout(slug, requestBody: requestBody);
+      if (response != null &&
+          response is Map &&
+          response['sections'] is List &&
+          (response['sections'] as List).isNotEmpty) {
+        box.write('home_cms_broadcasting_sections', response['sections']);
+      }
+      return response;
+    } catch (e) {
+      debugPrint('home page controller getDashboardDesign error $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   /// Concurrent callers (init, pull-to-refresh, connectivity) share one run
   /// instead of firing every endpoint again.
   Future<void> refreshAllData() {
@@ -229,36 +261,7 @@ class HomepageController extends GetxController with BaseController {
   }
 
   Future<void> _refreshAllData() async {
-    // Only show primary loader if there's no cached data to show
-    if (sliderImageList.isEmpty && productCategoryList.isEmpty) {
-      isLoading.value = true;
-    }
-    
-    try {
-      // Phase 1: High Priority (Above-the-fold content: Banners, Main Categories, Top Highlights)
-      await Future.wait([
-        getSliderData(),
-        loadCms(),
-        getProductCategoryHome(),
-      ]);
-    } catch (e) {
-      debugPrint("Error in Phase 1 home loading: $e");
-    } finally {
-      // Immediately display rendered content to user
-      isLoading.value = false;
-    }
-
-    try {
-      // Phase 2: Medium Priority (Best Sellers, Latest Products)
-      await Future.wait([
-        loadBestSellers(),
-        loadLatestProducts(),
-      ]);
-    } catch (e) {
-      debugPrint("Error in Phase 2 home loading: $e");
-    }
-
-    // Phase 3: Background / Low Priority (Blogs, Material Tree, Category Trees, Brands)
+    await getDashboardDesign(pageSlug);
     _loadBackgroundData();
   }
 
@@ -711,6 +714,7 @@ class HomepageController extends GetxController with BaseController {
 
   @override
   void onClose() {
+    disableSocketUpdates(websiteDomain, pageSlug);
     _connectivitySubscription?.cancel();
     _connectivityDebounce?.cancel();
     super.onClose();

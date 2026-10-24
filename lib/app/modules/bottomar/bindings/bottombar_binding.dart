@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 
 import '../controllers/bottombar_controller.dart';
+import '../../homepage/controllers/homepage_controller.dart';
 import '../../shop/controllers/shop_controller.dart';
 
 class BottombarBinding extends Bindings {
@@ -8,6 +9,9 @@ class BottombarBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<BottombarController>(
       () => BottombarController(),
+    );
+    Get.lazyPut<HomepageController>(
+      () => HomepageController(),
     );
     Get.lazyPut<ShopController>(
       () => ShopController(),
