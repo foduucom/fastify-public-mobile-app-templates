@@ -478,7 +478,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         .toDouble();
     const imageAspectRatio = 0.75;
     final imageHeight = cardWidth / imageAspectRatio;
-    const textSectionHeight = 88.0;
+    const textSectionHeight = 92.0;
     final totalCardHeight = imageHeight + textSectionHeight;
 
     return SizedBox(
@@ -1269,7 +1269,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         .toDouble();
     const imageAspectRatio = 0.75;
     final imageHeight = cardWidth / imageAspectRatio;
-    const textSectionHeight = 88.0;
+    const textSectionHeight = 92.0;
     final totalCardHeight = imageHeight + textSectionHeight;
 
     return SizedBox(

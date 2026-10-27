@@ -10,6 +10,7 @@ import 'package:zouhi/app/data/models/category_products_page.dart';
 import 'package:zouhi/app/data/models/home_cms.dart';
 import 'package:zouhi/app/data/services/category_product_service.dart';
 import 'package:zouhi/app/data/services/home_cms_service.dart';
+import 'package:zouhi/app/data/models/home_sections.dart';
 import 'package:zouhi/constants/api_sanitizer.dart';
 import 'package:zouhi/constants/constants.dart';
 import 'package:zouhi/constants/home_config.dart';
@@ -18,6 +19,16 @@ import 'package:zouhi/core/foduuStudio/foduu_studio_layout_mixin.dart';
 class HomepageController extends GetxController
     with BaseController, FoduuStudioLayoutMixin {
   var pageSlug = 'home';
+
+  // ── CMS Broadcasting Strongly Typed Sections ───────────────────────────
+  late final Rx<HomeHeroSliderData> heroSlider;
+  late final Rx<HomeTrustBadgesData> trustBadges;
+  late final Rx<HomeTopCategoriesData> topCategories;
+  late final Rx<HomeSpecialOffersData> specialOffersSection;
+  late final Rx<HomeBannersData> banners;
+  late final Rx<HomeBestSellersData> bestSellersSection;
+  late final Rx<HomeLatestProductsData> latestProductsSection;
+
   var selectcategory = 0.obs;
   var sliderImage = List<dynamic>.empty().obs;
   var productCategoryList = List<dynamic>.empty().obs;
@@ -36,6 +47,7 @@ class HomepageController extends GetxController
   var trendingProductsList = [].obs;
   var categoryTreeList = [].obs;
   var isCategoryTreeLoading = false.obs;
+  final cmsCategoriesList = <dynamic>[].obs;
 
   var box = GetStorage();
   final isLogin = false.obs;
@@ -132,12 +144,64 @@ class HomepageController extends GetxController
   Future<void>? _refreshInFlight;
   Timer? _connectivityDebounce;
 
+  void _initDefaults() {
+    heroSlider = HomeHeroSliderData.fallback().obs;
+    trustBadges = HomeTrustBadgesData.fallback().obs;
+    topCategories = HomeTopCategoriesData.fallback().obs;
+    specialOffersSection = HomeSpecialOffersData.fallback().obs;
+    banners = HomeBannersData.fallback().obs;
+    bestSellersSection = HomeBestSellersData.fallback().obs;
+    latestProductsSection = HomeLatestProductsData.fallback().obs;
+  }
+
+  /// Intercepts both initial fetch and live WebSocket broadcasts from FoduuStudioLayoutMixin
+  @override
+  void buildLayout(List sections) {
+    super.buildLayout(sections);
+    _parseCmsSections(sections);
+  }
+
+  void _parseCmsSections(List sections) {
+    if (sections.isEmpty) return;
+    try {
+      heroSlider.value = HomeHeroSliderData.fromSections(sections);
+      trustBadges.value = HomeTrustBadgesData.fromSections(sections);
+      topCategories.value = HomeTopCategoriesData.fromSections(sections);
+      specialOffersSection.value = HomeSpecialOffersData.fromSections(sections);
+      banners.value = HomeBannersData.fromSections(sections);
+      bestSellersSection.value = HomeBestSellersData.fromSections(sections);
+      latestProductsSection.value = HomeLatestProductsData.fromSections(sections);
+      for (final s in sections) {
+        if (s is Map) {
+          final type = (s['type'] ?? '').toString();
+          final id = (s['id'] ?? '').toString();
+          if (type == 'categories' || id == 'categories') {
+            final cj = s['content_json'] is Map
+                ? s['content_json']
+                : (s['data'] is Map ? s['data'] : {});
+            final rawCats = cj['categories'] ?? cj['items'] ?? cj['data'];
+            if (rawCats is List && rawCats.isNotEmpty) {
+              final sanitized = stripHeavyList(rawCats);
+              cmsCategoriesList.assignAll(sanitized);
+              box.write('home_cms_categories', sanitized);
+            }
+          }
+        }
+      }
+      box.write('home_cms_broadcasting_sections', sections);
+    } catch (e) {
+      debugPrint('Error parsing home CMS sections: $e');
+    }
+  }
+
   @override
   Future<void> onInit() async {
     super.onInit();
+    _initDefaults();
     enableSocketUpdates(domain: websiteDomain, slug: pageSlug);
     loadCachedData();
     getDashboardDesign(pageSlug);
+    loadSpecialOffers();
     _setupConnectivityListener();
   }
 
@@ -219,6 +283,11 @@ class HomepageController extends GetxController
         categoryTreeList.assignAll(cachedTree);
       }
 
+      final cachedCmsCats = box.read('home_cms_categories');
+      if (cachedCmsCats != null && cachedCmsCats is List) {
+        cmsCategoriesList.assignAll(cachedCmsCats);
+      }
+
       final cachedBrands = box.read('home_brands');
       if (cachedBrands != null && cachedBrands is List) {
         brandsList.assignAll(cachedBrands);
@@ -262,6 +331,7 @@ class HomepageController extends GetxController
 
   Future<void> _refreshAllData() async {
     await getDashboardDesign(pageSlug);
+    await loadSpecialOffers();
     _loadBackgroundData();
   }
 

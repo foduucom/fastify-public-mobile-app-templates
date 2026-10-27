@@ -70,6 +70,13 @@ class _TopCategoryHomeState extends State<CategoryHome>
       _checkAndSelectInitialCategory();
     });
 
+    ever(homeController.cmsCategoriesList, (_) {
+      if (mounted) {
+        _checkAndSelectInitialCategory();
+        setState(() {});
+      }
+    });
+
     if (homeController.categoryTreeList.isEmpty) {
       homeController.getCategoryTreeData().then((_) {
         if (mounted) {
@@ -96,15 +103,39 @@ class _TopCategoryHomeState extends State<CategoryHome>
     final list = _topCategories;
     if (list.isEmpty) return;
 
-    final currIndex =
-        homeController.selectedTopCategoryIndex.value.clamp(0, list.length - 1);
-    final cat = list[currIndex];
+    // By default auto-select "Cleaning, Tooling and Adapters / Consumables" just like the parent website
+    int targetIndex = -1;
+    for (int i = 0; i < list.length; i++) {
+      final item = list[i];
+      final slug = (item['slug'] ?? '').toString().toLowerCase();
+      final name = (item['name'] ?? '').toString().toLowerCase();
+      if (slug.contains('cleaning') || name.contains('cleaning')) {
+        targetIndex = i;
+        break;
+      }
+    }
+
+    if (targetIndex == -1) {
+      for (int i = 0; i < list.length; i++) {
+        final item = list[i];
+        final slug = (item['slug'] ?? '').toString().toLowerCase();
+        if (slug != 'cable-assemblies' && slug != 'mtp-solution') {
+          targetIndex = i;
+          break;
+        }
+      }
+    }
+
+    if (targetIndex == -1) targetIndex = 0;
+
+    homeController.selectedTopCategoryIndex.value = targetIndex;
+    final cat = list[targetIndex];
     final id = (cat['_id'] ?? cat['id'] ?? '').toString();
     final slug = (cat['slug'] ?? '').toString();
     final key = id.isNotEmpty ? id : slug;
 
     if (!homeController.topCategoryProducts.containsKey(key)) {
-      homeController.selectTopCategory(currIndex, cat);
+      homeController.selectTopCategory(targetIndex, cat);
     }
   }
 
@@ -132,7 +163,9 @@ class _TopCategoryHomeState extends State<CategoryHome>
     'id': 'cable-assemblies',
     'name': 'Cable Assemblies',
     'slug': 'cable-assemblies',
-    'featured_image_url': _defaultCategoryLogo,
+    'featured_image': '2026/10/23/RF-Cable-Assemblies-28c6f0e1.webp',
+    'featured_image_url':
+        'https://vision.foduu.store/images/2026/10/23/RF-Cable-Assemblies-28c6f0e1.webp',
   };
 
   static const Map<String, dynamic> _mtpSolutionCategory = {
@@ -140,7 +173,9 @@ class _TopCategoryHomeState extends State<CategoryHome>
     'id': 'mtp-solution',
     'name': 'MTP Solution',
     'slug': 'mtp-solution',
-    'featured_image_url': _defaultCategoryLogo,
+    'featured_image': '2026/10/23/mtp-89b9bc19.webp',
+    'featured_image_url':
+        'https://vision.foduu.store/images/2026/10/23/mtp-89b9bc19.webp',
   };
 
   int _orderWeight(dynamic cat) {
@@ -156,7 +191,15 @@ class _TopCategoryHomeState extends State<CategoryHome>
   }
 
   List get _topCategories {
-    final list = homeController.categoryTreeList.whereType<Map>().toList();
+    // 1. Prefer categories from live CMS broadcasting / home API sections (matches parent website)
+    List list = [];
+    if (homeController.cmsCategoriesList.isNotEmpty) {
+      list = homeController.cmsCategoriesList.whereType<Map>().toList();
+    } else if (homeController.categoryTreeList.isNotEmpty) {
+      list = homeController.categoryTreeList.whereType<Map>().toList();
+    } else if (widget.productCategoryList is List && (widget.productCategoryList as List).isNotEmpty) {
+      list = (widget.productCategoryList as List).whereType<Map>().toList();
+    }
 
     final hasCableAssemblies = list.any((c) {
       final slug = (c['slug'] ?? '').toString().toLowerCase();
@@ -171,9 +214,9 @@ class _TopCategoryHomeState extends State<CategoryHome>
     });
 
     final combined = <dynamic>[];
+    combined.addAll(list);
     if (!hasCableAssemblies) combined.add(_cableAssembliesCategory);
     if (!hasMtp) combined.add(_mtpSolutionCategory);
-    combined.addAll(list);
 
     combined.sort((a, b) => _orderWeight(a).compareTo(_orderWeight(b)));
     return combined.take(widget.itemLimit ?? 10).toList();
@@ -184,13 +227,10 @@ class _TopCategoryHomeState extends State<CategoryHome>
 
     var featuredImage = category['featured_image'] ??
         category['featured_image_url'] ??
-        category['featured_image_icon'];
+        category['featured_image_icon'] ??
+        category['image'];
 
-    if (featuredImage != null && featuredImage.toString().trim().isNotEmpty) {
-      final str = featuredImage.toString().trim();
-      if (str.startsWith('http://') || str.startsWith('https://')) {
-        return str;
-      }
+    if (featuredImage != null) {
       final img = HelperFunctions().getImage(
         featuredImage,
         moduleName: "categories",

@@ -1,0 +1,834 @@
+#25     MultiChildRenderObjectElement.mount
+(package:flutter/src/widgets/framework.dart:7292:32)
+...     Normal element mounting (7 frames)
+#32     Element.inflateWidget
+(package:flutter/src/widgets/framework.dart:4600:20)
+#33     MultiChildRenderObjectElement.inflateWidget
+(package:flutter/src/widgets/framework.dart:7277:36)
+#34     MultiChildRenderObjectElement.mount
+(package:flutter/src/widgets/framework.dart:7292:32)
+...     Normal element mounting (64 frames)
+#98     Element.inflateWidget
+(package:flutter/src/widgets/framework.dart:4600:20)
+#99     Element.updateChild
+(package:flutter/src/widgets/framework.dart:4072:18)
+#100    SliverMultiBoxAdaptorElement.updateChild
+(package:flutter/src/widgets/sliver.dart:1092:37)
+#101    SliverMultiBoxAdaptorElement.createChild.<anonymous
+closure> (package:flutter/src/widgets/sliver.dart:1077:20)
+#102    BuildOwner.buildScope
+(package:flutter/src/widgets/framework.dart:3114:19)
+#103    SliverMultiBoxAdaptorElement.createChild
+(package:flutter/src/widgets/sliver.dart:1067:12)
+#104
+RenderSliverMultiBoxAdaptor._createOrObtainChild.<anonymous
+closure>
+(package:flutter/src/rendering/sliver_multi_box_adaptor.dart:368:
+23)
+#105    RenderObject.invokeLayoutCallback.<anonymous closure>
+(package:flutter/src/rendering/object.dart:3042:17)
+#106    PipelineOwner._enableMutationsToDirtySubtrees
+(package:flutter/src/rendering/object.dart:1223:15)
+#107    RenderObject.invokeLayoutCallback
+(package:flutter/src/rendering/object.dart:3041:14)
+#108    RenderSliverMultiBoxAdaptor._createOrObtainChild
+(package:flutter/src/rendering/sliver_multi_box_adaptor.dart:357:
+5)
+#109    RenderSliverMultiBoxAdaptor.addInitialChild
+(package:flutter/src/rendering/sliver_multi_box_adaptor.dart:455:
+5)
+#110    RenderSliverList.performLayout
+(package:flutter/src/rendering/sliver_list.dart:79:12)
+#111    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#112    RenderSliverEdgeInsetsPadding.performLayout
+(package:flutter/src/rendering/sliver_padding.dart:133:12)
+#113    RenderSliverPadding.performLayout
+(package:flutter/src/rendering/sliver_padding.dart:368:11)
+#114    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#115    RenderViewportBase.layoutChildSequence
+(package:flutter/src/rendering/viewport.dart:821:13)
+#116    RenderViewport._attemptLayout
+(package:flutter/src/rendering/viewport.dart:1831:12)
+#117    RenderViewport.performLayout
+(package:flutter/src/rendering/viewport.dart:1724:20)
+#118    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#119    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#120    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#121    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#122    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#123    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#124    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#125    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#126    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#127    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#128    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#129    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#130    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#131    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#132    RenderCustomPaint.performLayout
+(package:flutter/src/rendering/custom_paint.dart:574:11)
+#133    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#134    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#135    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#136    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#137    _RenderCustomClip.performLayout
+(package:flutter/src/rendering/proxy_box.dart:1549:11)
+#138    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#139    RenderConstrainedBox.performLayout
+(package:flutter/src/rendering/proxy_box.dart:296:14)
+#140    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#141    ChildLayoutHelper.layoutChild
+(package:flutter/src/rendering/layout_helper.dart:62:11)
+#142    RenderFlex._computeSizes
+(package:flutter/src/rendering/flex.dart:1237:28)
+#143    RenderFlex.performLayout
+(package:flutter/src/rendering/flex.dart:1329:32)
+#144    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#145    ChildLayoutHelper.layoutChild
+(package:flutter/src/rendering/layout_helper.dart:62:11)
+#146    RenderStack._computeSize
+(package:flutter/src/rendering/stack.dart:647:43)
+#147    RenderStack.performLayout
+(package:flutter/src/rendering/stack.dart:682:12)
+#148    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#149    ChildLayoutHelper.layoutChild
+(package:flutter/src/rendering/layout_helper.dart:62:11)
+#150    RenderFlex._computeSizes
+(package:flutter/src/rendering/flex.dart:1237:28)
+#151    RenderFlex.performLayout
+(package:flutter/src/rendering/flex.dart:1329:32)
+#152    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#153    RenderPadding.performLayout
+(package:flutter/src/rendering/shifted_box.dart:262:12)
+#154    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#155    _RenderSingleChildViewport.performLayout
+(package:flutter/src/widgets/single_child_scroll_view.dart:502:14
+)
+#156    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#157    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#158    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#159    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#160    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#161    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#162    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#163    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#164    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#165    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#166    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#167    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#168    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#169    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#170    RenderCustomPaint.performLayout
+(package:flutter/src/rendering/custom_paint.dart:574:11)
+#171    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#172    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#173    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#174    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#175    _RenderCustomClip.performLayout
+(package:flutter/src/rendering/proxy_box.dart:1549:11)
+#176    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#177    ChildLayoutHelper.layoutChild
+(package:flutter/src/rendering/layout_helper.dart:62:11)
+#178    RenderStack._computeSize
+(package:flutter/src/rendering/stack.dart:647:43)
+#179    RenderStack.performLayout
+(package:flutter/src/rendering/stack.dart:682:12)
+#180    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#181    MultiChildLayoutDelegate.layoutChild
+(package:flutter/src/rendering/custom_layout.dart:180:12)
+#182    _ScaffoldLayout.performLayout
+(package:flutter/src/material/scaffold.dart:1113:7)
+#183    MultiChildLayoutDelegate._callPerformLayout
+(package:flutter/src/rendering/custom_layout.dart:246:7)
+#184    RenderCustomMultiChildLayoutBox.performLayout
+(package:flutter/src/rendering/custom_layout.dart:417:14)
+#185    RenderObject._layoutWithoutResize
+(package:flutter/src/rendering/object.dart:2771:7)
+#186    PipelineOwner.flushLayout
+(package:flutter/src/rendering/object.dart:1174:18)
+#187    PipelineOwner.flushLayout
+(package:flutter/src/rendering/object.dart:1187:15)
+#188    RendererBinding.drawFrame
+(package:flutter/src/rendering/binding.dart:692:23)
+#189    WidgetsBinding.drawFrame
+(package:flutter/src/widgets/binding.dart:1573:13)
+#190    RendererBinding._handlePersistentFrameCallback
+(package:flutter/src/rendering/binding.dart:558:5)
+#191    SchedulerBinding._invokeFrameCallback
+(package:flutter/src/scheduler/binding.dart:1430:15)
+#192    SchedulerBinding.handleDrawFrame
+(package:flutter/src/scheduler/binding.dart:1345:9)
+#193    SchedulerBinding._handleDrawFrame
+(package:flutter/src/scheduler/binding.dart:1198:5)
+#194    _invoke (dart:ui/hooks.dart:441:13)
+#195    PlatformDispatcher._drawFrame
+(dart:ui/platform_dispatcher.dart:450:5)
+#196    _drawFrame (dart:ui/hooks.dart:413:31)
+
+═════════════════════════════════════════════════════════════════
+═══════════════════════════════════
+
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: A RenderFlex overflowed by 199898
+pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 99743
+pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 199898
+pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 99743
+pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 199898
+pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 99743
+pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 199898
+pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 99743
+pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 199898
+pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 99743
+pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 199898
+pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 99743
+pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 199898
+pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 99743
+pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 199898
+pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 99743
+pixels on the right.
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+I/flutter ( 6439): DEBUG PRODUCTS SECTION: heading=_, layout=standard, infiniteScroll=false, contentJson={heading: _, subheading: , category_type: parent_category, count: 10, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6ad8526cb863113209407496, name: Enclosure and Racks (Coming Soon), slug: enclosure-and-racks-coming-soon, type: simple, content: <p><br /></p>, long_content: <p><br /></p>, gallery: [], categories: [6acf3e2b9a283ef78ba96d68], vector_category: null, calory_level: null, suitable_weathers: [], tags: [], departments: [], average_rating: null, rating_count: null, meta_title: %%title%% %%separator%% %%sitename%%, meta_description: %%excerpt%%, meta_keywords: , status: 68f3830994ea74ef09b2a25d, published_at: 2026-10-21T05:48:00.000Z, featured: false, hot: false, trending: false, recommended: false, jain_food: false, chef_special: false, best_seller: false, bought_together_products: [], addons: [], recipe: null, areas: [], isTaxable: fal
+I/flutter ( 6439): DEBUG PRODUCTS SECTION: heading=Latest Products, layout=standard, infiniteScroll=false, contentJson={heading: Latest Products, subheading: , category_type: recently_created, count: 8, infinite_scroll: false, layout: standard, view: list, list_view_type: vertical, products: {data: [{_id: 6ad9f0df59131344953108cd, name: Catalog Product Test, slug: catalog-product-test, type: simple, content: <p>this is catalog product and is test </p>, long_content: <p><b>asdfasfasdfasdf</b></p><p>asdfasdfasdfasdfasdfsadfsdafsadfsdf</p>, gallery: [], categories: [], vector_category: null, calory_level: null, suitable_weathers: [], tags: [], departments: [], average_rating: null, rating_count: null, meta_title: %%title%% %%separator%% %%sitename%%, meta_description: %%excerpt%%, meta_keywords: , status: 68f3830994ea74ef09b2a25d, published_at: 2026-10-22T11:16:43.000Z, featured: false, hot: false, trending: false, recommended: false, jain_food: false, chef_special: false, best_seller: false, bought_together_products: [], addons
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/get-tree/product
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/get-tree/material
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/featured
+D/WindowOnBackDispatcher( 6439): setTopOnBackInvokedCallback (unwrapped): io.flutter.embedding.android.FlutterActivity$1@376f19c
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a99656a1345902ddb0c0870
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a9965ad1345902ddb0c0c9d
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a9965d21345902ddb0c0e9f
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a9965e71345902ddb0c1166
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a9965f31345902ddb0c1358
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a9966191345902ddb0c146e
+Another exception was thrown: setState() or markNeedsBuild()
+called during build.
+
+
+Performing hot restart...                                               
+Restarted application in 1,386ms.
+I/FLTFireMsgService( 6439): FlutterFirebaseMessagingBackgroundService started!
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/currency
+D/WindowOnBackDispatcher( 6439): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@6018bc0
+W/FLTFireMsgService( 6439): Attempted to start a duplicate background isolate. Returning...
+I/flutter ( 6439): User notification permission status: AuthorizationStatus.authorized
+E/FirebaseMessaging( 6439): Failed to get FIS auth token
+E/FirebaseMessaging( 6439): java.util.concurrent.ExecutionException: com.google.firebase.installations.FirebaseInstallationsException: Firebase Installations Service is unavailable. Please try again later.
+E/FirebaseMessaging( 6439):     at com.google.android.gms.tasks.Tasks.zza(com.google.android.gms:play-services-tasks@@18.1.0:5)
+E/FirebaseMessaging( 6439):     at com.google.android.gms.tasks.Tasks.await(com.google.android.gms:play-services-tasks@@18.1.0:9)
+E/FirebaseMessaging( 6439):     at com.google.firebase.messaging.GmsRpc.setDefaultAttributesToBundle(GmsRpc.java:280)
+E/FirebaseMessaging( 6439):     at com.google.firebase.messaging.GmsRpc.startRpc(GmsRpc.java:242)
+E/FirebaseMessaging( 6439):     at com.google.firebase.messaging.GmsRpc.getToken(GmsRpc.java:192)
+E/FirebaseMessaging( 6439):     at com.google.firebase.messaging.FirebaseMessaging.lambda$blockingGetToken$14$com-google-firebase-messaging-FirebaseMessaging(FirebaseMessaging.java:650)
+E/FirebaseMessaging( 6439):     at com.google.firebase.messaging.FirebaseMessaging$$ExternalSyntheticLambda14.start(D8$$SyntheticClass:0)
+E/FirebaseMessaging( 6439):     at com.google.firebase.messaging.RequestDeduplicator.getOrStartGetTokenRequest(RequestDeduplicator.java:67)
+E/FirebaseMessaging( 6439):     at com.google.firebase.messaging.FirebaseMessaging.blockingGetToken(FirebaseMessaging.java:646)
+E/FirebaseMessaging( 6439):     at com.google.firebase.messaging.FirebaseMessaging.lambda$getToken$7$com-google-firebase-messaging-FirebaseMessaging(FirebaseMessaging.java:420)
+E/FirebaseMessaging( 6439):     at com.google.firebase.messaging.FirebaseMessaging$$ExternalSyntheticLambda11.run(D8$$SyntheticClass:0)
+E/FirebaseMessaging( 6439):     at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:520)
+E/FirebaseMessaging( 6439):     at java.util.concurrent.FutureTask.run(FutureTask.java:317)
+E/FirebaseMessaging( 6439):     at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:348)
+E/FirebaseMessaging( 6439):     at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1154)
+E/FirebaseMessaging( 6439):     at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:652)
+E/FirebaseMessaging( 6439):     at com.google.android.gms.common.util.concurrent.zza.run(com.google.android.gms:play-services-basement@@18.5.0:2)
+E/FirebaseMessaging( 6439):     at java.lang.Thread.run(Thread.java:1563)
+E/FirebaseMessaging( 6439): Caused by: com.google.firebase.installations.FirebaseInstallationsException: Firebase Installations Service is unavailable. Please try again later.
+E/FirebaseMessaging( 6439):     at com.google.firebase.installations.remote.FirebaseInstallationServiceClient.createFirebaseInstallation(FirebaseInstallationServiceClient.java:154)
+E/FirebaseMessaging( 6439):     at com.google.firebase.installations.FirebaseInstallations.registerFidWithServer(FirebaseInstallations.java:533)
+E/FirebaseMessaging( 6439):     at com.google.firebase.installations.FirebaseInstallations.doNetworkCallIfNecessary(FirebaseInstallations.java:387)
+E/FirebaseMessaging( 6439):     at com.google.firebase.installations.FirebaseInstallations.lambda$doRegistrationOrRefresh$3$com-google-firebase-installations-FirebaseInstallations(FirebaseInstallations.java:372)
+E/FirebaseMessaging( 6439):     at com.google.firebase.installations.FirebaseInstallations$$ExternalSyntheticLambda1.run(D8$$SyntheticClass:0)
+E/FirebaseMessaging( 6439):     at com.google.firebase.concurrent.SequentialExecutor$1.run(SequentialExecutor.java:117)
+E/FirebaseMessaging( 6439):     at com.google.firebase.concurrent.SequentialExecutor$QueueWorker.workOnQueue(SequentialExecutor.java:229)
+E/FirebaseMessaging( 6439):     at com.google.firebase.concurrent.SequentialExecutor$QueueWorker.run(SequentialExecutor.java:174)
+E/FirebaseMessaging( 6439):     at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1154)
+E/FirebaseMessaging( 6439):     at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:652)
+E/FirebaseMessaging( 6439):     at com.google.firebase.concurrent.CustomThreadFactory.lambda$newThread$0$com-google-firebase-concurrent-CustomThreadFactory(CustomThreadFactory.java:47)
+E/FirebaseMessaging( 6439):     at com.google.firebase.concurrent.CustomThreadFactory$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+E/FirebaseMessaging( 6439):     ... 1 more
+E/FirebaseMessaging( 6439): Failed to sync topics. Won't retry sync. java.util.concurrent.ExecutionException: java.io.IOException: FIS_AUTH_ERROR
+I/flutter ( 6439): Error saving token to backend: [firebase_messaging/unknown] java.io.IOException: java.util.concurrent.ExecutionException: java.io.IOException: FIS_AUTH_ERROR
+I/flutter ( 6439): 🟢 DynamicLayout: Setting up SHARED socket listener for: vision.foduu.store:mobileapp
+I/flutter ( 6439): ❌ Socket not initialized. Please call connect() first.
+I/flutter ( 6439): widgetList.length: 11
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/mobile-app/home
+I/flutter ( 6439): Hi Fetch Layout Response received
+I/flutter ( 6439): 🎨 DynamicLayout: Theme found in API response
+I/flutter ( 6439): 🎨 Using default LIGHT theme colors
+I/flutter ( 6439): 🎨 Using default DARK theme colors
+I/flutter ( 6439): 🌐 Updating themes from API
+I/flutter ( 6439): 🌐 Parsing LIGHT theme colors
+I/flutter ( 6439): 🎨 Parsed color: #FF000000
+I/flutter ( 6439): 🎨 Parsed color: #FF000000
+I/flutter ( 6439): 🎨 Parsed color: #FF000000
+I/flutter ( 6439): 🎨 Parsed color: #FF000000
+I/flutter ( 6439): 🎨 Parsed color: #FF000000
+I/flutter ( 6439): 🎨 Parsed color: #FF000000
+I/flutter ( 6439): 🎨 Parsed color: #FF000000
+I/flutter ( 6439): 🎨 Parsed color: #FF000000
+I/flutter ( 6439): ✅ Light theme updated & saved successfully
+I/flutter ( 6439): 🌐 Parsing DARK theme colors
+I/flutter ( 6439): 🎨 Parsed color: #FF000000
+I/flutter ( 6439): 🎨 Parsed color: #FF000000
+I/flutter ( 6439): 🎨 Parsed color: #FF000000
+I/flutter ( 6439): 🎨 Parsed color: #FF000000
+I/flutter ( 6439): 🎨 Parsed color: #FF000000
+I/flutter ( 6439): 🎨 Parsed color: #FF000000
+I/flutter ( 6439): 🎨 Parsed color: #FF000000
+I/flutter ( 6439): 🎨 Parsed color: #FF000000
+I/flutter ( 6439): ✅ Dark theme updated & saved successfully
+I/flutter ( 6439): widgetList.length: 11
+I/flutter ( 6439): DEBUG PRODUCTS SECTION: heading=Special Offers! Up to 50% OFF, layout=standard, infiniteScroll=false, contentJson={heading: Special Offers! Up to 50% OFF, subheading: Hurry Up! Offer End In:, category_type: parent_category, count: 10, infinite_scroll: false, layout: standard, view: list, list_view_type: vertical, parent_type: product, products: {data: [{_id: 6ad8526cb863113209407496, name: Enclosure and Racks (Coming Soon), slug: enclosure-and-racks-coming-soon, type: simple, content: <p><br /></p>, long_content: <p><br /></p>, gallery: [], categories: [6acf3e2b9a283ef78ba96d68], vector_category: null, calory_level: null, suitable_weathers: [], tags: [], departments: [], average_rating: null, rating_count: null, meta_title: %%title%% %%separator%% %%sitename%%, meta_description: %%excerpt%%, meta_keywords: , status: 68f3830994ea74ef09b2a25d, published_at: 2026-10-21T05:48:00.000Z, featured: false, hot: false, trending: false, recommended: false, jain_food: false, chef_special: false, best_seller: false, boug
+
+══╡ EXCEPTION CAUGHT BY WIDGETS LIBRARY
+╞═══════════════════════════════════════════════════════════
+The following message was thrown building Obx(has builder, dirty,
+state: ObxState#cdf4b):
+"WishListService" not found. You need to call
+"Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+
+The relevant error-causing widget was:
+  Obx
+  Obx:file:///Users/flutterdev/Desktop/vIsioninfra/lib/components
+  /home_component/home_products.dart:627:25
+
+When the exception was thrown, this was the stack:
+#0      GetInstance.find
+(package:get/get_instance/src/get_instance.dart:306:7)
+#1      Inst.find
+(package:get/get_instance/src/extension_instance.dart:69:45)
+#2      WishListService.to
+(package:zouhi/core/services/wishlistService.dart:14:40)
+#3
+_TrendingProductCardState._buildSiteProductCard.<anonymous
+closure>
+(package:zouhi/components/home_component/home_products.dart:629:4
+7)
+#4      Obx.build
+(package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart:
+72:28)
+#5      RxInterface.notifyChildren
+(package:get/get_rx/src/rx_types/rx_core/rx_interface.dart:26:27)
+#6      ObxState.build
+(package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart:
+56:19)
+#7      StatefulElement.build
+(package:flutter/src/widgets/framework.dart:5944:27)
+#8      ComponentElement.performRebuild
+(package:flutter/src/widgets/framework.dart:5830:15)
+#9      StatefulElement.performRebuild
+(package:flutter/src/widgets/framework.dart:5995:11)
+#10     Element.rebuild
+(package:flutter/src/widgets/framework.dart:5542:7)
+#11     ComponentElement._firstBuild
+(package:flutter/src/widgets/framework.dart:5812:5)
+#12     StatefulElement._firstBuild
+(package:flutter/src/widgets/framework.dart:5986:11)
+#13     ComponentElement.mount
+(package:flutter/src/widgets/framework.dart:5806:5)
+#14     Element.inflateWidget
+(package:flutter/src/widgets/framework.dart:4600:20)
+#15     MultiChildRenderObjectElement.inflateWidget
+(package:flutter/src/widgets/framework.dart:7277:36)
+#16     MultiChildRenderObjectElement.mount
+(package:flutter/src/widgets/framework.dart:7292:32)
+...     Normal element mounting (7 frames)
+#23     Element.inflateWidget
+(package:flutter/src/widgets/framework.dart:4600:20)
+#24     MultiChildRenderObjectElement.inflateWidget
+(package:flutter/src/widgets/framework.dart:7277:36)
+#25     MultiChildRenderObjectElement.mount
+(package:flutter/src/widgets/framework.dart:7292:32)
+...     Normal element mounting (7 frames)
+#32     Element.inflateWidget
+(package:flutter/src/widgets/framework.dart:4600:20)
+#33     MultiChildRenderObjectElement.inflateWidget
+(package:flutter/src/widgets/framework.dart:7277:36)
+#34     MultiChildRenderObjectElement.mount
+(package:flutter/src/widgets/framework.dart:7292:32)
+...     Normal element mounting (64 frames)
+#98     Element.inflateWidget
+(package:flutter/src/widgets/framework.dart:4600:20)
+#99     Element.updateChild
+(package:flutter/src/widgets/framework.dart:4072:18)
+#100    SliverMultiBoxAdaptorElement.updateChild
+(package:flutter/src/widgets/sliver.dart:1092:37)
+#101    SliverMultiBoxAdaptorElement.createChild.<anonymous
+closure> (package:flutter/src/widgets/sliver.dart:1077:20)
+#102    BuildOwner.buildScope
+(package:flutter/src/widgets/framework.dart:3114:19)
+#103    SliverMultiBoxAdaptorElement.createChild
+(package:flutter/src/widgets/sliver.dart:1067:12)
+#104
+RenderSliverMultiBoxAdaptor._createOrObtainChild.<anonymous
+closure>
+(package:flutter/src/rendering/sliver_multi_box_adaptor.dart:368:
+23)
+#105    RenderObject.invokeLayoutCallback.<anonymous closure>
+(package:flutter/src/rendering/object.dart:3042:17)
+#106    PipelineOwner._enableMutationsToDirtySubtrees
+(package:flutter/src/rendering/object.dart:1223:15)
+#107    RenderObject.invokeLayoutCallback
+(package:flutter/src/rendering/object.dart:3041:14)
+#108    RenderSliverMultiBoxAdaptor._createOrObtainChild
+(package:flutter/src/rendering/sliver_multi_box_adaptor.dart:357:
+5)
+#109    RenderSliverMultiBoxAdaptor.addInitialChild
+(package:flutter/src/rendering/sliver_multi_box_adaptor.dart:455:
+5)
+#110    RenderSliverList.performLayout
+(package:flutter/src/rendering/sliver_list.dart:79:12)
+#111    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#112    RenderSliverEdgeInsetsPadding.performLayout
+(package:flutter/src/rendering/sliver_padding.dart:133:12)
+#113    RenderSliverPadding.performLayout
+(package:flutter/src/rendering/sliver_padding.dart:368:11)
+#114    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#115    RenderViewportBase.layoutChildSequence
+(package:flutter/src/rendering/viewport.dart:821:13)
+#116    RenderViewport._attemptLayout
+(package:flutter/src/rendering/viewport.dart:1831:12)
+#117    RenderViewport.performLayout
+(package:flutter/src/rendering/viewport.dart:1724:20)
+#118    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#119    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#120    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#121    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#122    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#123    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#124    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#125    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#126    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#127    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#128    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#129    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#130    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#131    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#132    RenderCustomPaint.performLayout
+(package:flutter/src/rendering/custom_paint.dart:574:11)
+#133    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#134    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#135    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#136    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#137    _RenderCustomClip.performLayout
+(package:flutter/src/rendering/proxy_box.dart:1549:11)
+#138    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#139    RenderConstrainedBox.performLayout
+(package:flutter/src/rendering/proxy_box.dart:296:14)
+#140    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#141    ChildLayoutHelper.layoutChild
+(package:flutter/src/rendering/layout_helper.dart:62:11)
+#142    RenderFlex._computeSizes
+(package:flutter/src/rendering/flex.dart:1237:28)
+#143    RenderFlex.performLayout
+(package:flutter/src/rendering/flex.dart:1329:32)
+#144    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#145    ChildLayoutHelper.layoutChild
+(package:flutter/src/rendering/layout_helper.dart:62:11)
+#146    RenderStack._computeSize
+(package:flutter/src/rendering/stack.dart:647:43)
+#147    RenderStack.performLayout
+(package:flutter/src/rendering/stack.dart:682:12)
+#148    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#149    ChildLayoutHelper.layoutChild
+(package:flutter/src/rendering/layout_helper.dart:62:11)
+#150    RenderFlex._computeSizes
+(package:flutter/src/rendering/flex.dart:1237:28)
+#151    RenderFlex.performLayout
+(package:flutter/src/rendering/flex.dart:1329:32)
+#152    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#153    RenderPadding.performLayout
+(package:flutter/src/rendering/shifted_box.dart:262:12)
+#154    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#155    _RenderSingleChildViewport.performLayout
+(package:flutter/src/widgets/single_child_scroll_view.dart:502:14
+)
+#156    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#157    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#158    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#159    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#160    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#161    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#162    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#163    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#164    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#165    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#166    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#167    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#168    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#169    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#170    RenderCustomPaint.performLayout
+(package:flutter/src/rendering/custom_paint.dart:574:11)
+#171    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#172    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#173    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#174    RenderProxyBoxMixin.performLayout
+(package:flutter/src/rendering/proxy_box.dart:118:18)
+#175    _RenderCustomClip.performLayout
+(package:flutter/src/rendering/proxy_box.dart:1549:11)
+#176    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#177    ChildLayoutHelper.layoutChild
+(package:flutter/src/rendering/layout_helper.dart:62:11)
+#178    RenderStack._computeSize
+(package:flutter/src/rendering/stack.dart:647:43)
+#179    RenderStack.performLayout
+(package:flutter/src/rendering/stack.dart:682:12)
+#180    RenderObject.layout
+(package:flutter/src/rendering/object.dart:2923:7)
+#181    MultiChildLayoutDelegate.layoutChild
+(package:flutter/src/rendering/custom_layout.dart:180:12)
+#182    _ScaffoldLayout.performLayout
+(package:flutter/src/material/scaffold.dart:1113:7)
+#183    MultiChildLayoutDelegate._callPerformLayout
+(package:flutter/src/rendering/custom_layout.dart:246:7)
+#184    RenderCustomMultiChildLayoutBox.performLayout
+(package:flutter/src/rendering/custom_layout.dart:417:14)
+#185    RenderObject._layoutWithoutResize
+(package:flutter/src/rendering/object.dart:2771:7)
+#186    PipelineOwner.flushLayout
+(package:flutter/src/rendering/object.dart:1174:18)
+#187    PipelineOwner.flushLayout
+(package:flutter/src/rendering/object.dart:1187:15)
+#188    RendererBinding.drawFrame
+(package:flutter/src/rendering/binding.dart:692:23)
+#189    WidgetsBinding.drawFrame
+(package:flutter/src/widgets/binding.dart:1573:13)
+#190    RendererBinding._handlePersistentFrameCallback
+(package:flutter/src/rendering/binding.dart:558:5)
+#191    SchedulerBinding._invokeFrameCallback
+(package:flutter/src/scheduler/binding.dart:1430:15)
+#192    SchedulerBinding.handleDrawFrame
+(package:flutter/src/scheduler/binding.dart:1345:9)
+#193    SchedulerBinding._handleDrawFrame
+(package:flutter/src/scheduler/binding.dart:1198:5)
+#194    _invoke (dart:ui/hooks.dart:441:13)
+#195    PlatformDispatcher._drawFrame
+(dart:ui/platform_dispatcher.dart:450:5)
+#196    _drawFrame (dart:ui/hooks.dart:413:31)
+
+═════════════════════════════════════════════════════════════════
+═══════════════════════════════════
+
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: "WishListService" not found. You
+need to call "Get.put(WishListService())" or
+"Get.lazyPut(()=>WishListService())"
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: A RenderFlex overflowed by 199898
+pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 99743
+pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 199898
+pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 99743
+pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 199898
+pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 99743
+pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 199898
+pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 99743
+pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 199898
+pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 99743
+pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 199898
+pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 99743
+pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 199898
+pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 99743
+pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 199898
+pixels on the bottom.
+Another exception was thrown: A RenderFlex overflowed by 99743
+pixels on the right.
+I/flutter ( 6439): DEBUG PRODUCTS SECTION: heading=_, layout=standard, infiniteScroll=false, contentJson={heading: _, subheading: , category_type: parent_category, count: 10, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6ad8526cb863113209407496, name: Enclosure and Racks (Coming Soon), slug: enclosure-and-racks-coming-soon, type: simple, content: <p><br /></p>, long_content: <p><br /></p>, gallery: [], categories: [6acf3e2b9a283ef78ba96d68], vector_category: null, calory_level: null, suitable_weathers: [], tags: [], departments: [], average_rating: null, rating_count: null, meta_title: %%title%% %%separator%% %%sitename%%, meta_description: %%excerpt%%, meta_keywords: , status: 68f3830994ea74ef09b2a25d, published_at: 2026-10-21T05:48:00.000Z, featured: false, hot: false, trending: false, recommended: false, jain_food: false, chef_special: false, best_seller: false, bought_together_products: [], addons: [], recipe: null, areas: [], isTaxable: fal
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+I/flutter ( 6439): DEBUG PRODUCTS SECTION: heading=Latest Products, layout=standard, infiniteScroll=false, contentJson={heading: Latest Products, subheading: , category_type: recently_created, count: 8, infinite_scroll: false, layout: standard, view: list, list_view_type: vertical, products: {data: [{_id: 6ad9f0df59131344953108cd, name: Catalog Product Test, slug: catalog-product-test, type: simple, content: <p>this is catalog product and is test </p>, long_content: <p><b>asdfasfasdfasdf</b></p><p>asdfasdfasdfasdfasdfsadfsdafsadfsdf</p>, gallery: [], categories: [], vector_category: null, calory_level: null, suitable_weathers: [], tags: [], departments: [], average_rating: null, rating_count: null, meta_title: %%title%% %%separator%% %%sitename%%, meta_description: %%excerpt%%, meta_keywords: , status: 68f3830994ea74ef09b2a25d, published_at: 2026-10-22T11:16:43.000Z, featured: false, hot: false, trending: false, recommended: false, jain_food: false, chef_special: false, best_seller: false, bought_together_products: [], addons
+D/WindowOnBackDispatcher( 6439): setTopOnBackInvokedCallback (unwrapped): io.flutter.embedding.android.FlutterActivity$1@376f19c
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/featured
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/get-tree/product
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/get-tree/material
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a99656a1345902ddb0c0870
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a9965ad1345902ddb0c0c9d
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a9965d21345902ddb0c0e9f
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a9965e71345902ddb0c1166
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a9965f31345902ddb0c1358
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a9966191345902ddb0c146e
+D/WindowOnBackDispatcher( 6439): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@6018bc0
+D/WindowOnBackDispatcher( 6439): setTopOnBackInvokedCallback (unwrapped): io.flutter.embedding.android.FlutterActivity$1@376f19c
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/get-tree/product
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/get-tree/material
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a99656a1345902ddb0c0870
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a9965ad1345902ddb0c0c9d
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a9965d21345902ddb0c0e9f
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a9965e71345902ddb0c1166
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a9965f31345902ddb0c1358
+I/flutter ( 6439): fetchUrl: https://vision.foduu.store/api/category/children/6a9966191345902ddb0c146e
+Another exception was thrown: "CartService" not found. You need
+to call "Get.put(CartService())" or
+"Get.lazyPut(()=>CartService())"
+Another exception was thrown: setState() or markNeedsBuild()
+called during build.

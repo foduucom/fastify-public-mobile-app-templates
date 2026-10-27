@@ -978,12 +978,12 @@ class HelperFunctions {
     if (urlStr.contains('/owner/images/')) {
       urlStr = urlStr.replaceAll('/owner/images/', '/images/');
     }
-    // Backend may return tenant / website_id subdomains (e.g. https://6a92a52778a2a51e604f819d.vbought.com/images/...)
-    // which return 404, while the active app domain (https://vision.vbought.com/images/...) serves the image with 200 OK.
+    // Backend may return tenant / website_id subdomains (e.g. https://6a92a52778a2a51e604f819d.foduu.store/images/...)
+    // which return 404, while the active app domain (https://vision.foduu.store/images/...) serves the image with 200 OK.
     final baseUri = Uri.tryParse(url);
     if (baseUri != null && baseUri.hasAuthority) {
       urlStr = urlStr.replaceAll(
-        RegExp(r'^https?://[a-zA-Z0-9_\.-]+\.vbought\.com/images/'),
+        RegExp(r'^https?://[a-zA-Z0-9_\.-]+\.(vbought\.com|foduu\.store)/images/'),
         '${baseUri.origin}/images/',
       );
     }
@@ -998,6 +998,17 @@ class HelperFunctions {
 
     // Case 1: featuredImage is a Map
     if (featuredImage is Map) {
+      // Prioritize filepath: "2026/10/23/leaninig-f7fd5666.webp" gives 200 OK on active origin
+      final path = featuredImage['filePath'] ??
+          featuredImage['filepath'] ??
+          featuredImage['filename'] ??
+          featuredImage['path'];
+
+      if (path != null && path.toString().trim().isNotEmpty) {
+        String pathStr = path.toString().trim();
+        return _processImageSource(pathStr, isLog, moduleName);
+      }
+
       final directUrl = featuredImage['download_url'] ??
           featuredImage['downloadUrl'] ??
           featuredImage['url'];
@@ -1009,15 +1020,6 @@ class HelperFunctions {
         } else {
           return _processImageSource(urlStr, isLog, moduleName);
         }
-      }
-
-      final path = featuredImage['filePath'] ??
-          featuredImage['filepath'] ??
-          featuredImage['filename'];
-
-      if (path != null && path.toString().trim().isNotEmpty) {
-        String pathStr = path.toString().trim();
-        return _processImageSource(pathStr, isLog, moduleName);
       }
     }
 

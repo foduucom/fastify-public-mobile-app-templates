@@ -9,8 +9,14 @@ import '/app/controllers/api_exception_handle_controller.dart';
 import 'package:zouhi/constants/helper_functions.dart';
 
 class CartService extends GetxService with BaseController {
-  /// Convenience accessor: CartService.to
-  static CartService get to => Get.find<CartService>();
+  /// Convenience accessor: CartService.to (self-healing lookup)
+  static CartService get to {
+    try {
+      return Get.find<CartService>();
+    } catch (_) {
+      return Get.put(CartService(), permanent: true);
+    }
+  }
 
   static const String _localCartKey = 'local_cart';
   final _box = GetStorage();

@@ -15,12 +15,7 @@ class AboutusView extends GetView<AboutusController> {
 
   String _imageUrl(String path) {
     if (path.isEmpty) return '';
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
-    if (cleanPath.startsWith('images/')) {
-      return '$url$cleanPath';
-    }
-    return '$assetURL$cleanPath';
+    return HelperFunctions().getImage(path);
   }
 
   @override
@@ -62,7 +57,9 @@ class AboutusView extends GetView<AboutusController> {
         ],
       ),
       body: Obx(() {
-        if (controller.isLoading.value && controller.rawSections.isEmpty) {
+        if (controller.isLoading.value &&
+            controller.rawSections.isEmpty &&
+            controller.story.value.description.isEmpty) {
           return Center(child: HelperFunctions().loadingIndicator());
         }
 
@@ -82,16 +79,14 @@ class AboutusView extends GetView<AboutusController> {
               _buildHeroBanner(context, header),
               const SizedBox(height: 16),
               _buildStorySection(context, story),
-              const SizedBox(height: 24),
-              //_buildTrustStats(context, stats),
-              //const SizedBox(height: 28),
+              const SizedBox(height: 28),
               _buildWhyChooseSection(context, whyChoose),
               const SizedBox(height: 28),
               _buildProcessSection(context, process),
-              const SizedBox(height: 28),
-              _buildTestimonialsSection(context, testimonials),
-              const SizedBox(height: 28),
-              //_buildSupportCtaSection(context),
+              if (testimonials.items.isNotEmpty) ...[
+                const SizedBox(height: 28),
+                _buildTestimonialsSection(context, testimonials),
+              ],
             ],
           ),
         );
@@ -207,7 +202,17 @@ class AboutusView extends GetView<AboutusController> {
                     color: context.themegreyColor,
                     child: Center(child: HelperFunctions().loadingIndicator()),
                   ),
-                  errorWidget: (_, __, ___) => const SizedBox.shrink(),
+                  errorWidget: (_, __, ___) => Container(
+                    height: 185,
+                    color: context.themegreyColor,
+                    child: Center(
+                      child: Icon(
+                        Icons.business_rounded,
+                        size: 48,
+                        color: context.themeSecondrytext.withValues(alpha: 0.4),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             const SizedBox(height: 18),
@@ -237,67 +242,7 @@ class AboutusView extends GetView<AboutusController> {
     );
   }
 
-  // MARK: - 3. Trust Stats Strip
-  Widget _buildTrustStats(BuildContext context, List<AboutTrustStat> stats) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-        decoration: BoxDecoration(
-          color: context.themePrimaryLight.withValues(alpha: 0.55),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-              color: context.themePrimaryColor.withValues(alpha: 0.18)),
-        ),
-        child: Row(
-          children: stats.map((stat) {
-            final isLast = stats.indexOf(stat) == stats.length - 1;
-            return Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  border: isLast
-                      ? null
-                      : Border(
-                          right: BorderSide(
-                            color:
-                                context.themeBorderColor.withValues(alpha: 0.7),
-                            width: 1,
-                          ),
-                        ),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      stat.value,
-                      style: TextStyle(
-                        fontFamily: _poppins,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: context.themePrimaryColor,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      stat.label,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: _poppins,
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w500,
-                        color: context.themeSecondrytext,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  // MARK: - 4. Why Choose Vision Infrastructure
+  // MARK: - 3. Why Choose Vision Infrastructure
   Widget _buildWhyChooseSection(
       BuildContext context, AboutWhyChooseSection section) {
     return Padding(
@@ -356,10 +301,16 @@ class AboutusView extends GetView<AboutusController> {
                       ),
                       child: feature.imageUrl.isNotEmpty
                           ? Padding(
-                              padding: const EdgeInsets.all(8.0),
+                              padding: const EdgeInsets.all(9.0),
                               child: CachedNetworkImage(
                                 imageUrl: _imageUrl(feature.imageUrl),
                                 fit: BoxFit.contain,
+                                color: context.themePrimaryColor,
+                                placeholder: (_, __) => Icon(
+                                  iconData,
+                                  color: context.themePrimaryColor,
+                                  size: 21,
+                                ),
                                 errorWidget: (_, __, ___) => Icon(
                                   iconData,
                                   color: context.themePrimaryColor,
@@ -724,125 +675,6 @@ class AboutusView extends GetView<AboutusController> {
             );
           }),
         ],
-      ),
-    );
-  }
-
-  // MARK: - 7. Support & Quick Consultation Banner
-  Widget _buildSupportCtaSection(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF16324F), Color(0xFF20558A)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: cardShadowHover,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.headset_mic_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                const Text(
-                  'Got Questions? Call Us 24/7',
-                  style: TextStyle(
-                    fontFamily: _poppins,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white70,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Looking for Custom Network Solutions?',
-              style: TextStyle(
-                fontFamily: _poppins,
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Our infrastructure specialists are available around the clock to support your enterprise deployments.',
-              style: TextStyle(
-                fontFamily: _poppins,
-                fontSize: 12.5,
-                height: 1.5,
-                color: Colors.white.withValues(alpha: 0.85),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: controller.callSupport,
-                    icon: const Icon(Icons.phone, size: 16),
-                    label: const Text(
-                      '1-800-570-7777',
-                      style: TextStyle(
-                        fontFamily: _poppins,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF16324F),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: controller.goToContact,
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.white, width: 1.2),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                    ),
-                    child: const Text(
-                      'Contact Us',
-                      style: TextStyle(
-                        fontFamily: _poppins,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

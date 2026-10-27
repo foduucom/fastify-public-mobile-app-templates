@@ -6,6 +6,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:zouhi/app/data/services/notification_service.dart';
 import 'package:zouhi/app/controllers/currency_controller.dart';
 import 'package:zouhi/app/controllers/internetconnection_controller.dart';
+import 'package:zouhi/core/services/wishlistService.dart';
+import 'package:zouhi/core/services/cartServcie.dart';
 import 'package:zouhi/constants/theme.dart';
 import 'package:zouhi/core/foduuStudio/register_default_widgets.dart';
 import 'app/routes/app_pages.dart';
@@ -25,6 +27,8 @@ Future<void> main() async {
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   registerDefaultWidgets();
+  Get.put(WishListService(), permanent: true);
+  Get.put(CartService(), permanent: true);
   Get.put(InternetconnectionController(), permanent: true);
   Get.put(CurrencyController(), permanent: true);
 

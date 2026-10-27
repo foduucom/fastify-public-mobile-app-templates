@@ -8,6 +8,7 @@ import 'package:zouhi/helpers/socket_helper.dart';
 import 'package:get/get.dart';
 import 'package:zouhi/app/modules/shop/shop_navigation.dart';
 import 'package:zouhi/app/modules/aboutus/controllers/aboutus_controller.dart';
+import 'package:zouhi/app/modules/helpandsupport/controllers/policy_controller.dart';
 
 class StudioSocketRouting extends GetxController {
   final String? initialSlug;
@@ -137,6 +138,33 @@ class StudioSocketRouting extends GetxController {
           }
         } else {
           Get.toNamed(Routes.ABOUTUS);
+        }
+        break;
+      case 'terms-and-conditions':
+      case 'terms-conditions':
+      case 'terms':
+        if (Get.currentRoute == Routes.POLICY_DETAIL) {
+          if (Get.isRegistered<PolicyController>()) {
+            Get.find<PolicyController>().fetchPolicy('terms', forceRefresh: true);
+          }
+        } else {
+          Get.toNamed(
+            Routes.POLICY_DETAIL,
+            arguments: {'type': 'terms', 'title': 'Terms & Conditions'},
+          );
+        }
+        break;
+      case 'privacy-policy':
+      case 'privacy':
+        if (Get.currentRoute == Routes.POLICY_DETAIL) {
+          if (Get.isRegistered<PolicyController>()) {
+            Get.find<PolicyController>().fetchPolicy('privacy', forceRefresh: true);
+          }
+        } else {
+          Get.toNamed(
+            Routes.POLICY_DETAIL,
+            arguments: {'type': 'privacy', 'title': 'Privacy Policy'},
+          );
         }
         break;
       default:

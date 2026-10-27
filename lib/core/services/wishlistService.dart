@@ -10,8 +10,14 @@ import 'package:zouhi/app/controllers/api_exception_handle_controller.dart';
 typedef WishlistService = WishListService;
 
 class WishListService extends GetxService with BaseController {
-  /// Convenience accessor: CartService.to
-  static WishListService get to => Get.find<WishListService>();
+  /// Convenience accessor: WishListService.to (self-healing lookup)
+  static WishListService get to {
+    try {
+      return Get.find<WishListService>();
+    } catch (_) {
+      return Get.put(WishListService(), permanent: true);
+    }
+  }
 
   // ── Reactive state ───────────────────────────────────────
   var wishListItems = <Map<String, dynamic>>[].obs;

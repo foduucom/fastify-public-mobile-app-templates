@@ -32,13 +32,43 @@ class AboutHeroHeader {
 
   factory AboutHeroHeader.fromSections(List sections) {
     for (final s in sections) {
-      if (s is Map && (s['type'] == 'header' || s['id'] == 'header')) {
-        final cj = s['content_json'] is Map ? s['content_json'] : {};
+      if (s is! Map) continue;
+      final type = s['type']?.toString();
+      final id = s['id']?.toString();
+      final cj = s['content_json'] is Map
+          ? Map<String, dynamic>.from(s['content_json'])
+          : <String, dynamic>{};
+
+      if (type == 'header' || id == 'header') {
         return AboutHeroHeader(
           title: _s(cj, 'title', 'About Us'),
           backgroundImage:
               _s(cj, 'backgroundImage', '/images/2026/08/31/3-9d37ade8.webp'),
         );
+      }
+
+      // Fastify Studio CMS layout sends the top header as a slider section
+      if (type == 'slider' || id == 'slider') {
+        final slider = cj['slider'] is Map
+            ? Map<String, dynamic>.from(cj['slider'])
+            : <String, dynamic>{};
+        final name = (slider['name'] ?? slider['slug'] ?? '').toString().toLowerCase();
+        if (name.contains('about-us-slider') ||
+            name.contains('header') ||
+            name == 'about-us-slider') {
+          final content = slider['content'];
+          if (content is List && content.isNotEmpty && content.first is Map) {
+            final first = content.first as Map;
+            final path = first['filePath'] ?? first['download_url'] ?? first['url'] ?? '';
+            final heading = first['heading']?.toString().trim() ?? '';
+            return AboutHeroHeader(
+              title: heading.isNotEmpty ? heading : 'About Us',
+              backgroundImage: path.toString().trim().isNotEmpty
+                  ? path.toString().trim()
+                  : '/images/2026/08/31/3-9d37ade8.webp',
+            );
+          }
+        }
       }
     }
     return const AboutHeroHeader(
@@ -78,10 +108,7 @@ class AboutHeroStory {
     }
     final f = c.fields;
     final rawDesc = _s(f, 'section_description');
-    final desc =
-        (rawDesc.isEmpty || rawDesc.toLowerCase().startsWith('lorem ipsum'))
-            ? defaultDescription
-            : rawDesc;
+    final desc = rawDesc.isNotEmpty ? rawDesc : defaultDescription;
 
     return AboutHeroStory(
       title: _s(f, 'section_title', 'About Vision Infrastructure'),
@@ -105,7 +132,33 @@ class AboutHeroStory {
           ? Map<String, dynamic>.from(s['content_json'])
           : <String, dynamic>{};
 
-      if (type == 'banner' || id == 'banner') {
+      // 1. Fastify Studio CMS sends the main banner story as a slider (e.g. "about-us-main-banner")
+      if (type == 'slider' || id == 'slider') {
+        final slider = cj['slider'] is Map
+            ? Map<String, dynamic>.from(cj['slider'])
+            : <String, dynamic>{};
+        final name = (slider['name'] ?? slider['slug'] ?? '').toString().toLowerCase();
+        if (name.contains('main-banner') ||
+            name.contains('story') ||
+            name.contains('about-us-main')) {
+          final content = slider['content'];
+          if (content is List && content.isNotEmpty && content.first is Map) {
+            final first = content.first as Map;
+            final path = first['filePath'] ?? first['download_url'] ?? first['url'];
+            if (path != null && path.toString().trim().isNotEmpty) {
+              bannerImg = path.toString().trim();
+            }
+            final h = first['heading']?.toString().trim() ?? '';
+            if (h.isNotEmpty) {
+              title = h;
+            }
+            final d = first['description']?.toString().trim() ?? '';
+            if (d.isNotEmpty) {
+              desc = d;
+            }
+          }
+        }
+      } else if (type == 'banner' || id == 'banner') {
         final banners = cj['banners'];
         if (banners is List && banners.isNotEmpty) {
           final firstBanner = banners.first;
@@ -116,7 +169,7 @@ class AboutHeroStory {
               if (item is Map) {
                 final feat = item['featured_image'];
                 if (feat is Map) {
-                  final url = feat['download_url'] ?? feat['filepath'];
+                  final url = feat['download_url'] ?? feat['filepath'] ?? feat['filePath'];
                   if (url != null && url.toString().trim().isNotEmpty) {
                     bannerImg = url.toString().trim();
                   }
@@ -137,8 +190,7 @@ class AboutHeroStory {
             title = lines.first;
             if (lines.length > 1) {
               final remaining = lines.sublist(1).join(' ').trim();
-              if (remaining.isNotEmpty &&
-                  !remaining.toLowerCase().startsWith('lorem ipsum')) {
+              if (remaining.isNotEmpty) {
                 desc = remaining;
               }
             }
@@ -309,7 +361,19 @@ class AboutWhyChooseSection {
         if (c is! Map) continue;
         final heading = _s(c, 'heading', _s(c, 'title'));
         final text = _s(c, 'text', _s(c, 'description'));
-        final img = _s(c, 'image', _s(c, 'icon'));
+
+        String img = '';
+        if (c['image'] is Map) {
+          final m = c['image'] as Map;
+          img = (m['download_url'] ?? m['filepath'] ?? m['filePath'] ?? m['url'] ?? '').toString();
+        } else if (c['image'] != null && c['image'].toString().trim().isNotEmpty) {
+          img = c['image'].toString().trim();
+        } else if (c['icon'] is Map) {
+          final m = c['icon'] as Map;
+          img = (m['download_url'] ?? m['filepath'] ?? m['filePath'] ?? m['url'] ?? '').toString();
+        } else if (c['icon'] != null && c['icon'].toString().trim().isNotEmpty) {
+          img = c['icon'].toString().trim();
+        }
 
         String iconKey = 'verification';
         final lowerHeading = heading.toLowerCase();
@@ -583,22 +647,53 @@ class AboutTestimonialsSection {
       return const AboutTestimonialsSection(
         eyebrow: 'Testimonials',
         title: 'What Our Clients Say',
-        items: defaultItems,
+        items: [],
       );
     }
     final f = c.fields;
     return AboutTestimonialsSection(
       eyebrow: _s(f, 'section_subtitle', 'Testimonials'),
       title: _s(f, 'section_title', 'What Our Clients Say'),
-      items: defaultItems,
+      items: const [],
     );
   }
 
   factory AboutTestimonialsSection.fromSections(List sections) {
+    for (final s in sections) {
+      if (s is! Map) continue;
+      final type = s['type']?.toString();
+      final id = s['id']?.toString();
+      if (type == 'testimonials' || id == 'testimonials') {
+        final cj = s['content_json'] is Map
+            ? Map<String, dynamic>.from(s['content_json'])
+            : <String, dynamic>{};
+        final cards = cj['cards'] ?? cj['items'] ?? cj['reviews'];
+        if (cards is List && cards.isNotEmpty) {
+          final items = <AboutTestimonialItem>[];
+          for (final c in cards) {
+            if (c is Map) {
+              items.add(AboutTestimonialItem(
+                name: _s(c, 'name', _s(c, 'title')),
+                role: _s(c, 'role', _s(c, 'designation')),
+                avatarUrl: _s(c, 'avatar', _s(c, 'image')),
+                review: _s(c, 'review', _s(c, 'text')),
+              ));
+            }
+          }
+          if (items.isNotEmpty) {
+            return AboutTestimonialsSection(
+              eyebrow: _s(cj, 'eyebrow', 'Testimonials'),
+              title: _s(cj, 'title', 'What Our Clients Say'),
+              items: items,
+            );
+          }
+        }
+      }
+    }
     return const AboutTestimonialsSection(
       eyebrow: 'Testimonials',
       title: 'What Our Clients Say',
-      items: defaultItems,
+      items: [],
     );
   }
 }

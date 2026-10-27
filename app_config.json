@@ -59,6 +59,18 @@
       "slug": "about-us",
       "route": "/aboutus",
       "description": "About Us page — fully CMS broadcasting driven dynamic layout"
+    },
+    {
+      "title": "Terms & Conditions",
+      "slug": "terms-and-conditions",
+      "route": "/policy-detail?type=terms",
+      "description": "Terms & Conditions — fully CMS broadcasting driven dynamic layout"
+    },
+    {
+      "title": "Privacy Policy",
+      "slug": "privacy-policy",
+      "route": "/policy-detail?type=privacy",
+      "description": "Privacy Policy — fully CMS broadcasting driven dynamic layout"
     }
   ],
   "layouts": {
