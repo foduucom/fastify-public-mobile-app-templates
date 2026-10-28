@@ -2,10 +2,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:zouhi/app/data/models/page_model.dart';
+import 'package:zouhi/app/data/models/solutions_sections.dart';
 import 'package:zouhi/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:zouhi/app/routes/app_pages.dart';
 import 'package:zouhi/constants/constants.dart';
+import 'package:zouhi/constants/helper_functions.dart';
 import 'package:zouhi/constants/theme_ext.dart';
 import '../controllers/solutions_controller.dart';
 
@@ -15,14 +16,8 @@ class SolutionsView extends GetView<SolutionsController> {
   String _imageUrl(String path) {
     if (path.isEmpty) return '';
     if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    return path.startsWith('/') ? '$url${path.substring(1)}' : '$url$path';
-  }
-
-  String _stripHtml(String text) {
-    return text
-        .replaceAll(RegExp(r'<[^>]*>'), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
+    if (path.startsWith('assets/images/')) return '$url$path';
+    return HelperFunctions().getImage(path);
   }
 
   @override
@@ -47,127 +42,36 @@ class SolutionsView extends GetView<SolutionsController> {
         ],
       ),
       body: Obx(() {
-        if (controller.isLoading.value && controller.components.isEmpty) {
+        if (controller.isLoading.value && controller.rawSections.isEmpty) {
           return _buildShimmerLoading(context);
         }
-        if (controller.components.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: context.themePrimaryLight,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.cloud_off_rounded,
-                      size: 36,
-                      color: context.themePrimaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    controller.error.value.isNotEmpty
-                        ? controller.error.value
-                        : 'Unable to load Solutions',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: context.themeTextColor,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Please check your connection and try again.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 13,
-                      color: context.themeSecondrytext,
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  ElevatedButton.icon(
-                    onPressed: controller.fetchSolutions,
-                    icon: const Icon(Icons.refresh_rounded, size: 18),
-                    label: const Text('Try Again'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: context.themePrimaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
+
+        final data = controller.data.value;
+
         return RefreshIndicator(
           onRefresh: controller.fetchSolutions,
           color: context.themePrimaryColor,
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.only(bottom: 36),
-            children: controller.components
-                .map((c) => _renderComponent(context, c))
-                .toList(),
+            children: [
+              _buildHeader(context, data.header),
+              _buildIntro(context, data.intro),
+              _buildIndustrySolutions(context, data.byIndustry),
+              _buildCapabilities(context, data.byNeed),
+              _buildCta(context, data.cta),
+            ],
           ),
         );
       }),
     );
   }
 
-  Widget _renderComponent(BuildContext context, PageComponent c) {
-    final f = c.fields;
-    String s(String key) => f[key]?.toString().trim() ?? '';
-
-    switch (c.type) {
-      case 'about-us_page-header':
-      case 'solutions_page-header':
-        return _buildHeader(
-          context,
-          s('header_image'),
-          s('h1_about_us').isNotEmpty ? s('h1_about_us') : 'Solutions',
-        );
-
-      case 'solutions_solutions-intro':
-        return _buildIntro(context, f);
-
-      case 'solutions_industry-solutions':
-        return _buildIndustrySolutions(context, f);
-
-      case 'solutions_solution-capabilities':
-        return _buildCapabilities(context, f);
-
-      case 'solutions_solution-cta':
-        return _buildCta(context, f);
-
-      case 'spacer_bs':
-        final h = double.tryParse(
-                s('height').replaceAll(RegExp(r'[^0-9.]'), '')) ??
-            16.0;
-        return SizedBox(height: h);
-
-      default:
-        return const SizedBox.shrink();
-    }
-  }
-
   // ─── 1. BANNER HEADER ──────────────────────────────────────────────
-  Widget _buildHeader(BuildContext context, String imagePath, String title) {
+  Widget _buildHeader(BuildContext context, SolutionsBannerHeader header) {
     return Container(
       width: double.infinity,
-      height: 145,
+      height: header.height,
       decoration: BoxDecoration(
         color: const Color(0xFF12253D),
         gradient: LinearGradient(
@@ -182,11 +86,11 @@ class SolutionsView extends GetView<SolutionsController> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (imagePath.isNotEmpty)
+          if (header.imageUrl.isNotEmpty)
             Opacity(
-              opacity: 0.18,
+              opacity: 0.22,
               child: CachedNetworkImage(
-                imageUrl: _imageUrl(imagePath),
+                imageUrl: _imageUrl(header.imageUrl),
                 fit: BoxFit.cover,
                 errorWidget: (_, __, ___) => const SizedBox.shrink(),
               ),
@@ -195,9 +99,9 @@ class SolutionsView extends GetView<SolutionsController> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
+                const Text(
+                  'Solutions',
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 27,
                     fontWeight: FontWeight.w700,
@@ -223,11 +127,7 @@ class SolutionsView extends GetView<SolutionsController> {
   }
 
   // ─── 2. WHAT WE DELIVER (SOLUTIONS INTRO) ──────────────────────────
-  Widget _buildIntro(BuildContext context, Map<String, dynamic> f) {
-    String s(String key) => f[key]?.toString().trim() ?? '';
-    final bgImg = s('background_image');
-    final statItem = _stripHtml(s('stat_item'));
-
+  Widget _buildIntro(BuildContext context, SolutionsIntroSection intro) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
       child: Container(
@@ -250,11 +150,11 @@ class SolutionsView extends GetView<SolutionsController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (bgImg.isNotEmpty)
+            if (intro.imageUrl.isNotEmpty)
               Stack(
                 children: [
                   CachedNetworkImage(
-                    imageUrl: _imageUrl(bgImg),
+                    imageUrl: _imageUrl(intro.imageUrl),
                     width: double.infinity,
                     height: 200,
                     fit: BoxFit.cover,
@@ -285,7 +185,7 @@ class SolutionsView extends GetView<SolutionsController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (s('section_subtitle').isNotEmpty)
+                  if (intro.eyebrow.isNotEmpty)
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
@@ -294,7 +194,7 @@ class SolutionsView extends GetView<SolutionsController> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        s('section_subtitle').toUpperCase(),
+                        intro.eyebrow.toUpperCase(),
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 11,
@@ -306,9 +206,7 @@ class SolutionsView extends GetView<SolutionsController> {
                     ),
                   const SizedBox(height: 10),
                   Text(
-                    s('section_title').isNotEmpty
-                        ? s('section_title')
-                        : 'Network Infrastructure Solutions Built Around Your Industry',
+                    intro.title,
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 18.5,
@@ -319,9 +217,7 @@ class SolutionsView extends GetView<SolutionsController> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    s('section_description').isNotEmpty
-                        ? s('section_description')
-                        : 'From data centers to retail chains, Vision Infrastructure designs, supplies, and supports the fiber optic, switching, and surveillance backbone that keeps your operations connected.',
+                    intro.description,
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 13,
@@ -329,7 +225,7 @@ class SolutionsView extends GetView<SolutionsController> {
                       color: context.themeSecondrytext,
                     ),
                   ),
-                  if (statItem.isNotEmpty) ...[
+                  if (intro.statItem.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -351,7 +247,7 @@ class SolutionsView extends GetView<SolutionsController> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            statItem,
+                            intro.statItem,
                             style: TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 13.5,
@@ -377,8 +273,8 @@ class SolutionsView extends GetView<SolutionsController> {
                         elevation: 0,
                       ),
                       child: Text(
-                        s('cta_text').isNotEmpty
-                            ? s('cta_text')
+                        intro.buttonText.isNotEmpty
+                            ? intro.buttonText
                             : 'Talk To Our Team',
                         style: const TextStyle(
                           color: Colors.white,
@@ -400,79 +296,13 @@ class SolutionsView extends GetView<SolutionsController> {
 
   // ─── 3. SOLUTIONS BY INDUSTRY ──────────────────────────────────────
   Widget _buildIndustrySolutions(
-      BuildContext context, Map<String, dynamic> f) {
-    String s(String key) => f[key]?.toString().trim() ?? '';
-
-    // Industry solutions exactly matching https://vision.vbought.com/solution
-    final industries = [
-      {
-        'title': 'Data Center & Enterprise',
-        'desc':
-            'High-density fiber cabling, switching, and rack infrastructure engineered for uptime and scale.',
-        'image':
-            'https://vision.vbought.com/assets/images/demos/demo15/categories/Networking.webp',
-        'icon': Icons.dns_rounded,
-        'categorySlug': 'networking',
-        'categoryName': 'Networking',
-      },
-      {
-        'title': 'ISP & Telecom',
-        'desc':
-            'FTTH drop cables, splitters, and outside-plant fiber built for large-scale last-mile rollouts.',
-        'image':
-            'https://vision.vbought.com/assets/images/demos/demo15/categories/Fiber Cables.webp',
-        'icon': Icons.cell_tower_rounded,
-        'categorySlug': 'fiber-cables',
-        'categoryName': 'Fiber Cables',
-      },
-      {
-        'title': 'Retail & Warehousing',
-        'desc':
-            'PoE switching and surveillance-ready networking for multi-site retail and logistics operations.',
-        'image':
-            'https://vision.vbought.com/assets/images/demos/demo15/categories/Transceivers.webp',
-        'icon': Icons.storefront_rounded,
-        'categorySlug': 'transceivers',
-        'categoryName': 'Transceivers',
-      },
-      {
-        'title': 'Education Campuses',
-        'desc':
-            'Structured cabling and patch panels that scale across classrooms, labs, and administration buildings.',
-        'image':
-            'https://vision.vbought.com/assets/images/demos/demo15/categories/Panels, Enclosures & Racks.webp',
-        'icon': Icons.school_rounded,
-        'categorySlug': 'panels-enclosures-and-racks',
-        'categoryName': 'Panels, Enclosures & Racks',
-      },
-      {
-        'title': 'Healthcare Facilities',
-        'desc':
-            'Reliable, redundant network paths for mission-critical systems and always-on patient care.',
-        'image':
-            'https://vision.vbought.com/assets/images/demos/demo15/categories/Switches.webp',
-        'icon': Icons.local_hospital_rounded,
-        'categorySlug': 'switches',
-        'categoryName': 'Switches',
-      },
-      {
-        'title': 'Security & Surveillance',
-        'desc':
-            'Bandwidth-ready backbones and PoE switching purpose-built for city-wide and campus camera networks.',
-        'image':
-            'https://vision.vbought.com/assets/images/pages/about_us/4.jpg',
-        'icon': Icons.videocam_rounded,
-        'categorySlug': 'security-and-surveillance',
-        'categoryName': 'Security & Surveillance',
-      },
-    ];
-
+      BuildContext context, SolutionsByIndustrySection section) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 26, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (s('section_eyebrow').isNotEmpty)
+          if (section.eyebrow.isNotEmpty)
             Container(
               padding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -481,7 +311,7 @@ class SolutionsView extends GetView<SolutionsController> {
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                s('section_eyebrow').toUpperCase(),
+                section.eyebrow.toUpperCase(),
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 11,
@@ -493,8 +323,8 @@ class SolutionsView extends GetView<SolutionsController> {
             ),
           const SizedBox(height: 6),
           Text(
-            s('section_title').isNotEmpty
-                ? s('section_title')
+            section.title.isNotEmpty
+                ? section.title
                 : 'Built For Every Environment',
             style: TextStyle(
               fontFamily: 'Poppins',
@@ -503,10 +333,10 @@ class SolutionsView extends GetView<SolutionsController> {
               color: context.themeTextColor,
             ),
           ),
-          if (s('section_subtitle').isNotEmpty) ...[
+          if (section.subtitle.isNotEmpty) ...[
             const SizedBox(height: 6),
             Text(
-              s('section_subtitle'),
+              section.subtitle,
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 13,
@@ -516,7 +346,7 @@ class SolutionsView extends GetView<SolutionsController> {
             ),
           ],
           const SizedBox(height: 18),
-          ...industries.map((ind) {
+          ...section.cards.map((ind) {
             return Container(
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
@@ -542,7 +372,7 @@ class SolutionsView extends GetView<SolutionsController> {
                   Stack(
                     children: [
                       CachedNetworkImage(
-                        imageUrl: _imageUrl(ind['image'] as String),
+                        imageUrl: _imageUrl(ind.coverImageUrl),
                         height: 155,
                         width: double.infinity,
                         fit: BoxFit.cover,
@@ -555,7 +385,7 @@ class SolutionsView extends GetView<SolutionsController> {
                           color: context.themePrimaryLight,
                           child: Center(
                             child: Icon(
-                              ind['icon'] as IconData,
+                              ind.fallbackIcon,
                               size: 40,
                               color: context.themePrimaryColor,
                             ),
@@ -566,22 +396,38 @@ class SolutionsView extends GetView<SolutionsController> {
                         top: 12,
                         right: 12,
                         child: Container(
+                          width: 38,
+                          height: 38,
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.92),
+                            color: context.themePrimaryColor,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 6,
+                                color: Colors.black.withValues(alpha: 0.25),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               )
                             ],
                           ),
-                          child: Icon(
-                            ind['icon'] as IconData,
-                            size: 18,
-                            color: context.themePrimaryColor,
-                          ),
+                          child: ind.iconUrl.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: _imageUrl(ind.iconUrl),
+                                  width: 20,
+                                  height: 20,
+                                  fit: BoxFit.contain,
+                                  color: Colors.white,
+                                  errorWidget: (_, __, ___) => Icon(
+                                    ind.fallbackIcon,
+                                    size: 18,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Icon(
+                                  ind.fallbackIcon,
+                                  size: 18,
+                                  color: Colors.white,
+                                ),
                         ),
                       ),
                     ],
@@ -593,7 +439,7 @@ class SolutionsView extends GetView<SolutionsController> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          ind['title'] as String,
+                          ind.title,
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 16,
@@ -603,7 +449,7 @@ class SolutionsView extends GetView<SolutionsController> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          ind['desc'] as String,
+                          ind.description,
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 12.5,
@@ -615,8 +461,8 @@ class SolutionsView extends GetView<SolutionsController> {
                         InkWell(
                           onTap: () {
                             BottombarController.switchTab(1, arguments: {
-                              'name': ind['categoryName'],
-                              'categorySlug': ind['categorySlug'],
+                              'name': ind.categoryName,
+                              'categorySlug': ind.categorySlug,
                               'source': 'category',
                             });
                           },
@@ -627,9 +473,7 @@ class SolutionsView extends GetView<SolutionsController> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  s('link_text').isNotEmpty
-                                      ? s('link_text')
-                                      : 'Explore Products',
+                                  'Explore Products',
                                   style: TextStyle(
                                     fontFamily: 'Poppins',
                                     fontSize: 13,
@@ -660,43 +504,14 @@ class SolutionsView extends GetView<SolutionsController> {
   }
 
   // ─── 4. SOLUTIONS BY NEED (CAPABILITIES) ────────────────────────────
-  Widget _buildCapabilities(BuildContext context, Map<String, dynamic> f) {
-    String s(String key) => f[key]?.toString().trim() ?? '';
-
-    // Solutions By Need capabilities exactly matching the website
-    final capabilities = [
-      {
-        'title': 'Network Design & Planning',
-        'desc':
-            'Site surveys, capacity planning, and topology design that scale with your growth, not against it.',
-        'icon': Icons.schema_rounded,
-      },
-      {
-        'title': 'Network Security & Redundancy',
-        'desc':
-            'Failover paths, managed switching, and access control designed to keep critical systems online.',
-        'icon': Icons.security_rounded,
-      },
-      {
-        'title': 'Legacy Network Upgrades',
-        'desc':
-            'Migrate aging copper and unmanaged gear to fiber-ready, centrally managed infrastructure with minimal downtime.',
-        'icon': Icons.published_with_changes_rounded,
-      },
-      {
-        'title': 'Deployment & After-Sales Support',
-        'desc':
-            'On-site installation, testing, and ongoing technical support long after the network goes live.',
-        'icon': Icons.support_agent_rounded,
-      },
-    ];
-
+  Widget _buildCapabilities(
+      BuildContext context, SolutionsByNeedSection section) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 26, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (s('section_subtitle').isNotEmpty)
+          if (section.eyebrow.isNotEmpty)
             Container(
               padding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -705,7 +520,7 @@ class SolutionsView extends GetView<SolutionsController> {
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                s('section_subtitle').toUpperCase(),
+                section.eyebrow.toUpperCase(),
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 11,
@@ -717,8 +532,8 @@ class SolutionsView extends GetView<SolutionsController> {
             ),
           const SizedBox(height: 6),
           Text(
-            s('section_title').isNotEmpty
-                ? s('section_title')
+            section.title.isNotEmpty
+                ? section.title
                 : 'Whatever The Challenge, We Have A Solution',
             style: TextStyle(
               fontFamily: 'Poppins',
@@ -727,8 +542,20 @@ class SolutionsView extends GetView<SolutionsController> {
               color: context.themeTextColor,
             ),
           ),
+          if (section.subtitle.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              section.subtitle,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 13,
+                color: context.themeSecondrytext,
+                height: 1.45,
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
-          ...capabilities.map((cap) {
+          ...section.cards.map((cap) {
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(16),
@@ -751,16 +578,29 @@ class SolutionsView extends GetView<SolutionsController> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    width: 48,
+                    height: 48,
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: context.themePrimaryLight,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(
-                      cap['icon'] as IconData,
-                      size: 24,
-                      color: context.themePrimaryColor,
-                    ),
+                    child: cap.imageUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: _imageUrl(cap.imageUrl),
+                            fit: BoxFit.contain,
+                            color: context.themePrimaryColor,
+                            errorWidget: (_, __, ___) => Icon(
+                              cap.fallbackIcon,
+                              size: 24,
+                              color: context.themePrimaryColor,
+                            ),
+                          )
+                        : Icon(
+                            cap.fallbackIcon,
+                            size: 24,
+                            color: context.themePrimaryColor,
+                          ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -768,7 +608,7 @@ class SolutionsView extends GetView<SolutionsController> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          cap['title'] as String,
+                          cap.title,
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 15,
@@ -778,7 +618,7 @@ class SolutionsView extends GetView<SolutionsController> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          cap['desc'] as String,
+                          cap.description,
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 12.5,
@@ -799,9 +639,7 @@ class SolutionsView extends GetView<SolutionsController> {
   }
 
   // ─── 5. PROJECT CONSULTATION CTA ────────────────────────────────────
-  Widget _buildCta(BuildContext context, Map<String, dynamic> f) {
-    String s(String key) => f[key]?.toString().trim() ?? '';
-
+  Widget _buildCta(BuildContext context, SolutionsConsultationCta cta) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 26, 16, 0),
       child: Container(
@@ -828,8 +666,8 @@ class SolutionsView extends GetView<SolutionsController> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              s('cta_heading').isNotEmpty
-                  ? s('cta_heading')
+              cta.heading.isNotEmpty
+                  ? cta.heading
                   : 'Not Sure Which Solution Fits Your Project?',
               style: const TextStyle(
                 fontFamily: 'Poppins',
@@ -841,8 +679,8 @@ class SolutionsView extends GetView<SolutionsController> {
             ),
             const SizedBox(height: 8),
             Text(
-              s('cta_description').isNotEmpty
-                  ? s('cta_description')
+              cta.description.isNotEmpty
+                  ? cta.description
                   : 'Tell us about your site and requirements — our engineers will recommend the right infrastructure and a bill of materials to match.',
               style: TextStyle(
                 fontFamily: 'Poppins',
@@ -865,8 +703,8 @@ class SolutionsView extends GetView<SolutionsController> {
                 elevation: 0,
               ),
               child: Text(
-                s('cta_button_text').isNotEmpty
-                    ? s('cta_button_text')
+                cta.buttonText.isNotEmpty
+                    ? cta.buttonText
                     : 'Request A Consultation',
                 style: TextStyle(
                   fontFamily: 'Poppins',

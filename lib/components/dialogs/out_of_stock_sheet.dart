@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:zouhi/components/product_image_placeholder.dart';
 import 'package:zouhi/constants/constants.dart';
 import 'package:zouhi/constants/helper_functions.dart';
@@ -92,7 +91,7 @@ Future<void> showOutOfStockBottomSheet({
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      Iconsax.box_remove,
+                      Icons.remove_shopping_cart_outlined,
                       size: 28,
                       color: context.themeRedColor,
                     ),
@@ -291,7 +290,7 @@ Future<void> showOutOfStockBottomSheet({
                       icon: isSavingWishlist
                           ? const SizedBox.shrink()
                           : Icon(
-                              Iconsax.heart,
+                              Icons.favorite_border_rounded,
                               size: 18,
                               color: context.themeTextColor,
                             ),

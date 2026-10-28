@@ -82,21 +82,24 @@ class TermsPageData {
 
         final isContact = id.toLowerCase().contains('contact') ||
             text.toLowerCase().contains('contact the vision support team') ||
-            text.toLowerCase().contains('contact information provided on our website');
+            text.toLowerCase().contains('contact information provided on our website') ||
+            text.toLowerCase().contains('sales@visioninfrastructurecanada.com') ||
+            text.toLowerCase().contains('please contact') ||
+            (list.isNotEmpty && list.last.text.toLowerCase().contains('contact us'));
 
         if (isContact) {
-          String cleanText = text;
-          String? contactUrl;
-          final urlMatch = RegExp(r'(https?:\/\/[^\s]+)').firstMatch(text);
-          if (urlMatch != null) {
-            contactUrl = urlMatch.group(0);
-            cleanText = text.replaceAll(contactUrl!, '').trim();
-          }
-          cleanText = cleanText
+          String cleanText = text
+              .replaceAll(RegExp(r'Webiste:', caseSensitive: false), 'Website:')
               .replaceAll('\r\n', '\n')
               .replaceAll(RegExp(r'\n[ \t]+'), '\n')
               .replaceAll(RegExp(r'\n{2,}'), '\n\n')
               .trim();
+          String? contactUrl;
+          final urlMatch = RegExp(r'((?:https?:\/\/|www\.)[^\s]+)').firstMatch(text);
+          if (urlMatch != null) {
+            contactUrl = urlMatch.group(0);
+            cleanText = cleanText.replaceAll(contactUrl!, '').trim();
+          }
 
           final size = double.tryParse(contentJson['size']?.toString() ?? '') ?? 15.0;
           final weight = contentJson['weight']?.toString() ?? 'normal';

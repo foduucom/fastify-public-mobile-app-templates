@@ -357,15 +357,26 @@ class PolicyController extends GetxController
     }
   }
 
-  /// Launch external URL (e.g. Vision support link https://vision.vbought.com)
-  Future<void> openUrl(String url) async {
+  /// Launch external URL, email, or telephone link with scheme normalization
+  Future<void> openUrl(String rawUrl) async {
     try {
-      final uri = Uri.parse(url);
+      String formattedUrl = rawUrl.trim();
+      if (formattedUrl.contains('@') && !formattedUrl.startsWith('mailto:')) {
+        formattedUrl = 'mailto:$formattedUrl';
+      } else if (!formattedUrl.startsWith('http://') &&
+          !formattedUrl.startsWith('https://') &&
+          !formattedUrl.startsWith('mailto:') &&
+          !formattedUrl.startsWith('tel:')) {
+        formattedUrl = 'https://$formattedUrl';
+      }
+      final uri = Uri.parse(formattedUrl);
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(uri);
       }
     } catch (e) {
-      debugPrint("Could not launch url $url: $e");
+      debugPrint("Could not launch url $rawUrl: $e");
     }
   }
 }

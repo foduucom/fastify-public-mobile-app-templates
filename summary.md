@@ -430,3 +430,326 @@ Key requirements:
    - Restored `SpecialOffersSection(data: offersData)` at sequential position #4 in `home.dart` between `CategoryHome` and `CategoryBanners`, maintaining exact sequential alignment with backend API Section #4.
 4. **Verification**:
    - Executed `flutter analyze` across modified files — **0 errors, 0 warnings**.
+
+---
+
+## Part 11: Solutions Page CMS Broadcasting Migration (`log3.txt`)
+
+### 1. Context & Objective
+The backend team transitioned the Solutions page from the legacy HTML/components endpoint (`GET /api/pages/solution`) to the standard **Fastify CMS Broadcasting Driven Architecture**:
+```http
+GET https://vision.foduu.store/api/mobile-app/solution
+```
+Key requirements:
+1. **CMS Broadcasting Parity**: Parse 5 dynamic sequential sections (`banner`, `slider` intro, `trust_badges` industry solutions, `trust_badges` capabilities, and `slider` consultation CTA) from `log3.txt` instead of legacy `PageComponent` blocks.
+2. **Fastify Studio Dashboard & Socket Routing**: Registered `solution` in `app_config.json` and `studio_socket_routing.dart` so changes in the web Studio editor (`studio.foduu.store`) broadcast in real-time via WebSockets.
+3. **Resilient 3-Tier Architecture**:
+   - **Tier 1 (Fastify Studio CMS Broadcasting)**: Calls `fetchLayout('solution')` and listens to live WebSocket broadcasts via `FoduuStudioLayoutMixin`.
+   - **Tier 2 (Legacy Page API Fallback)**: Fallback to `PageApiService().getPageByType('solution')` / `pages/solution`.
+   - **Tier 3 (Website Canonical Defaults)**: Offline/zero-network fallback directly mirroring [https://vision.foduu.store/solution](https://vision.foduu.store/solution).
+4. **Parent Web Parity & 100% Server-Driven Layout**:
+   - **Section 1 (Header Banner)**: Navy gradient banner with globe graphic, bold title, and cyan accent bar.
+   - **Section 2 (Intro Card)**: "What We Deliver" rounded card featuring header graphic, eyebrow badge, bold title, descriptive text, `10+ Industries Served` stat badge, and "Talk To Our Team" CTA.
+   - **Section 3 (Solutions By Industry)**: 6 industry cards with remote `.webp` images and dynamic `Explore Products →` links routing directly to Shop with the filtered category.
+   - **Section 4 (Solutions By Need)**: 4 capability cards with remote icons, titles, and descriptions.
+   - **Section 5 (Consultation CTA)**: High-contrast blue gradient banner with advisory copy and "Request A Consultation" action button.
+5. **Zero Breaking Changes**: Retained backwards compatibility getter in `SolutionsController`.
+
+### 2. Files Modified & Created
+1. `app_config.json`: Registered `"solution"` page entry.
+2. `lib/core/studio_socket_routing.dart`: Added routing handler for `solution` and `solutions`.
+3. `lib/app/data/models/solutions_sections.dart`: Created pure server-driven model layer `SolutionsSectionsData`, `SolutionsBannerHeader`, `SolutionsIntroSection`, `SolutionsByIndustrySection`, `SolutionsByNeedSection`, `SolutionsConsultationCta`, and canonical fallbacks.
+4. `lib/app/modules/pages/solutions/controllers/solutions_controller.dart`: Integrated `FoduuStudioLayoutMixin` with multi-tier fetching and background WebSocket sync.
+5. `lib/app/modules/pages/solutions/views/solutions_view.dart`: Implemented server-driven layout matching the attached screenshot and live website.
+
+### 3. Verification & Status
+- **Static Analysis**: Verified with `flutter analyze` — **0 errors, 0 warnings** across all modified files.
+- **Resilience**: Verified graceful offline fallback with canonical defaults.
+
+### 4. Industry Card Cover Image & Footer Asset Resolution
+- **Issue**: In `log3.txt`, the card's `"image"` attribute contains a tiny transparent 32x32 icon (`2026/10/23/server-4d6920b5.webp`), while the actual high-resolution cover photo path is supplied in `"footer"` (e.g. `demos/demo15/categories/Networking.webp`, `pages/about_us/4.jpg`). Previously, using `"image"` for the 155px card banner rendered a blank white area.
+- **Resolution**:
+  - Implemented `resolveFooterCoverUrl`: constructs `${url}assets/images/${footer}` (e.g. `https://vision.foduu.store/assets/images/demos/demo15/categories/Networking.webp`).
+  - Separated `IndustryCardItem` fields into `coverImageUrl` (from `"footer"`) and `iconUrl` (from `"image"`).
+  - Bound `CachedNetworkImage` at 155px to `ind.coverImageUrl`, while rendering `ind.iconUrl` within the top-right circular badge.
+  - Verified with `flutter analyze` — **0 errors, 0 warnings**.
+
+### 5. Floating Badge Contrast & White Icon Visibility
+- **Issue**: The floating badge container in the top-right corner of each industry card had a white background (`Colors.white`), which made the white SVG/WebP icons from the backend and website (`server-4d6920b5.webp`, `tower-857f82bb.webp`, etc.) completely invisible (white-on-white).
+- **Resolution**:
+  - Updated the floating circular badge background to `context.themePrimaryColor` (`Color(0xFF20558A)`) with a drop shadow (`elevation` 8).
+  - Explicitly rendered the remote icon and fallback icon in pure white (`color: Colors.white`).
+  - Added primary theme tinting (`color: context.themePrimaryColor`) to capability cards in Section 4 to maintain strong contrast against light containers.
+  - Verified with `flutter analyze` — **0 errors, 0 warnings**.
+
+---
+
+## Part 12: Contact Us CMS Broadcasting & Form Builder Migration (`log2.txt`)
+
+### 1. Context & Objective
+The backend team transitioned the Contact Us page from legacy HTML page endpoints (`GET /api/pages/contact` and `GET /api/forms/contact-form`) to the standard **Fastify CMS Broadcasting Driven Architecture**:
+```http
+GET https://vision.foduu.store/api/mobile-app/contact-us
+```
+and standardized the form submission mechanism according to the official **Form Builder API Guide**:
+- Schema Discovery: `GET /api/forms/:slug` (with fallback to `GET /api/form-builder/:slug`).
+- Form Submission: `POST /api/forms/:slug/submit` with JSON body and auto-attached customer Bearer token.
+- Support for HTTP 422 (field validation errors) and HTTP 429 (Redis rate limit: 10 submissions/hour/IP).
+
+### 2. Key Architecture & Features Implemented
+1. **Fastify Studio Dashboard & Socket Routing**:
+   - Registered `contact-us` in `app_config.json`.
+   - Added real-time route navigation and layout reload handler in `lib/core/studio_socket_routing.dart`.
+2. **Resilient 3-Tier Controller Architecture (`ContactController`)**:
+   - **Tier 1 (Fastify Studio CMS Broadcasting)**: Calls `fetchLayout('contact-us')` and listens to live WebSocket broadcasts via `FoduuStudioLayoutMixin`.
+   - **Tier 2 (Legacy Fallback)**: Fallback to `PageApiService().getPageByType('contact')` if Tier 1 encounters permissions or network issues.
+   - **Tier 3 (Website Canonical Defaults)**: Offline/zero-network fallback directly mirroring [https://vision.foduu.store/contact](https://vision.foduu.store/contact).
+3. **Server-Driven Model Layer (`contact_broadcast_sections.dart`)**:
+   - `ContactHeroSliderData`: Parses header banner with breadcrumb `Home / Contact Us`.
+   - `ContactInfoBadgesData`: Parses 2-column contact cards (Email, Phone) with remote webp graphics, tap-to-dial, and tap-to-email.
+   - `ContactPromoBannerData`: Full-width promotional banner card (`contact-us-780dd92c.webp`).
+   - `ContactFormBuilderData`: Dynamic form container configuration (`form_id`, `form_slug`).
+4. **Enhanced Form Discovery & Submission Engine (`form_api_service.dart`)**:
+   - Dual-endpoint schema discovery: Queries `/api/forms/:slug`, with fallback to extracting fields from `content_json` via `/api/form-builder/:slug`.
+   - Raw JSON submission to `/api/forms/:slug/submit`.
+5. **High-Fidelity Server-Driven View (`ContactView`)**:
+   - Preserves 100% brand aesthetics, responsive layout, form validation, privacy policy consent checkbox, and smooth pull-to-refresh without full-page spinners.
+
+### 3. Files Modified & Created
+1. `app_config.json`: Registered `"contact-us"` page entry.
+2. `lib/core/studio_socket_routing.dart`: Added routing handler for `contact-us` and `contact`.
+3. `lib/app/data/models/contact_broadcast_sections.dart`: Created pure server-driven model layer.
+4. `lib/app/data/services/form_api_service.dart`: Enhanced schema extraction and submission engine.
+5. `lib/app/modules/contact/controller/contact_controller.dart`: Integrated `FoduuStudioLayoutMixin` with multi-tier fetching and background WebSocket sync.
+6. `lib/app/modules/contact/views/contact_view.dart`: Implemented 100% server-driven layout.
+
+### 4. Verification & Status
+- **Static Analysis**: Verified with `flutter analyze` — **0 compile errors, 0 warnings** across all modified files.
+- **Resilience**: Verified graceful offline fallback with canonical defaults.
+
+---
+
+## Part 13: Cable Assemblies CMS Broadcasting & Form Submission Migration (`log.txt`)
+
+### 1. Context & Objective
+Following the migration of Contact Us (Part 12), the backend team transitioned the Cable Assemblies screen from direct schema fetching (`GET /api/forms/cable-form`) to the unified **Fastify CMS Broadcasting Driven Architecture**:
+```http
+GET https://vision.foduu.store/api/mobile-app/cable-assemblies
+```
+and standardized the form submission process according to the **Form Builder API Submission Guide** (`form-submission-api-guide.md`).
+
+### 2. API Analysis & Dynamic Sections (`log.txt`)
+The endpoint `GET /api/mobile-app/cable-assemblies` delivers 4 sequential dynamic sections:
+1. **`banner`**: Engineering schematic cover image (`cable-assembler-banner-image-361c9f57.webp`, `height: 200`, `border_radius: 12`).
+2. **`text_block`**: Inspection action prompt (`"Tap to inspect detailed pinout & schematic"`, `size: 16`).
+3. **`formbuilder`**: Dynamic form slug (`cable-form`, label: `"Cable Form"`, title: `"Cable Assemblies Form"`).
+4. **`rich_text`**: Technical specification notes (Oversheath & Cable Standard Colours: OM1 Orange, OM3/4/5 Aqua, OS2 Yellow, Fire Rated Red; 40mm staggered connectors; length measurement criteria; drum recommendations for >40m).
+
+### 3. Implementation Summary
+1. **Fastify Studio Dashboard & Socket Routing**:
+   - Registered `"cable-assemblies"` in `app_config.json`.
+   - Added real-time routing cases in `lib/core/studio_socket_routing.dart` for `"cable-assemblies"` and `"cable-assembler"` listening to `$websiteDomain:mobileapp:route` WebSocket broadcasts.
+2. **Model Layer (`cable_assemblies_sections.dart`)**:
+   - Created `CableAssembliesSectionsData`, `CableAssembliesBannerData`, `CableAssembliesTextBlockData`, `CableAssembliesFormBuilderData`, `CableAssembliesRichTextData`, and `CableAssembliesSectionsData.canonical()`.
+3. **Controller Layer (`cable_assemblies_controller.dart`)**:
+   - Mixed in `FoduuStudioLayoutMixin` with `BaseController`.
+   - Implemented 3-tier resilient layout fetching (`fetchCableAssembliesLayout()`) with `GetStorage` caching (`cms_page_cable_assemblies_sections`).
+   - Overrode `buildLayout(List sections)` to intercept both initial API fetches and live WebSocket broadcasts from Fastify Studio.
+   - Dynamic schema query via `FormApiService.getFormSchema('cable-form')` syncing reactive option lists (connectors, breakout types/lengths, sleeving, gland, pulling sock, cable types, mode, core counts, drum).
+   - Upgraded `submitCableForm()` with multi-tenancy headers, validation, formatted payload, and error handling for HTTP 422 (validation errors) and HTTP 429 (Redis rate limit: 10 submissions/hour/IP).
+4. **View Layer (`cable_assemblies_view.dart`)**:
+   - Top banner dynamically loads remote `download_url` via `CachedNetworkImage` with fallback to `assets/images/cable-banner.webp`.
+   - Full-screen high-resolution schematic viewer (`PhotoView`) with zoom and pan support.
+   - Reactive inspection bar bound to `sectionsData.value.textBlock.text`.
+   - Smooth `RefreshIndicator` pull-to-refresh without blank screens.
+   - 100% preservation of the 4-section configurator UI (A End, Cable, B End, Project Details) matching the verified screenshot.
+   - Bottom specification card dynamically bound to `sectionsData.value.richText`.
+
+### 4. Verification & Status
+- **Static Analysis**: Verified with `flutter analyze` — **0 compile errors, 0 warnings** across all modified files.
+- **Resilience**: Verified graceful offline fallback with canonical defaults and pre-seeded industry standard options.
+
+---
+
+## Part 14: Contact Us Visual Redesign & Parent Website Alignment (`https://vision.foduu.store/contact`)
+
+### 1. Root Cause & Problem Resolution
+- **Issue 1 (Missing Banner Image)**:
+  - In `log2.txt`, the backend returned `download_url: "https://6a92a52778a2a51e604f819d.foduu.store/images/2026/10/23/contact-us-780dd92c.webp"`.
+  - The internal hex store-ID host (`6a92a527...foduu.store`) returned HTTP 404, causing `CachedNetworkImage` to fail and collapse into an empty space.
+  - **Resolution**: Updated `_cleanUrl` to automatically rewrite any hex store-ID subdomains (`*.foduu.store`) to `https://vision.foduu.store`, which serves the asset with HTTP 200 OK. Added fallback to the parent website's canonical illustration (`3-aaed866d.webp`).
+- **Issue 2 (Parent Website Alignment & Domestic Appliance Graphic)**:
+  - The staging CMS previously delivered an unrelated domestic appliance banner (`contact-us-banner-c99b0d5f.webp`).
+  - **Resolution**: Aligned the hero banner with the live parent website (`https://vision.foduu.store/contact`), rendering the verified optical fiber enterprise hero banner (`slide-2-73b3aa6d.webp`) with dark navy gradient overlay and glassmorphism breadcrumbs.
+
+### 2. UI & Design Enhancements
+1. **Enterprise Hero Header (`_ContactHeroBanner`)**:
+   - Optical fiber infrastructure graphic (`slide-2-73b3aa6d.webp`) with dark navy gradient overlay (`Color(0xFF0A192D)`).
+   - Glassmorphic breadcrumb badge (`Home / Contact Us`) and H1 title with cyan accent indicator.
+2. **Refined Contact Information Cards (`_ContactInfoBadgesSection`)**:
+   - Eyebrow pill `"GET IN TOUCH"` and title `"Contact Information"`.
+   - High-finish interactive cards with rounded square icon containers, subtle borders, official contact values (`support@vbought.com`, `+91 98765 43210`), and tap-to-dial/email.
+3. **High-Impact Illustration Banner (`_ContactIllustrationBanner`)**:
+   - 180px rounded banner card with border shadow, image caching, and shimmer loading.
+4. **State-of-the-Art Contact Form Card (`_ContactFormCard`)**:
+   - Cyan vertical accent bar + "Send Us a Message" title and description.
+   - Text form fields with prefix icons (Person, Mail, Phone, Chat), clean placeholder text, 10px rounded corners, `#F8FAFC` background fill, and `#20558A` focus rings.
+   - Privacy policy agreement checkbox with direct link.
+   - Vision Navy `SUBMIT MESSAGE` button with `Icons.send_rounded`, letter spacing, and loading spinner state.
+5. **Interactive Map Card (`_ContactMapCard`)**:
+   - Integrated "Find us on the map" card with 1-tap Google Maps launcher.
+
+### 3. Verification & Status
+- **Static Analysis**: Verified with `flutter analyze` — **0 compile errors, 0 warnings**.
+- **Resilience**: Verified graceful offline fallback with parent website canonical defaults.
+
+---
+
+## Part 15: Privacy Policy Unordered List (`<ul><li>`) Parsing & Bullet Rendering
+
+### 1. Root Cause & Problem Resolution
+- **Issue**:
+  - The parent website (`https://vision.foduu.store/privacy-policy`) renders list sections (e.g., Section 2: "Personal Information We May Collect", Section 4: "How We Use Personal Information", Section 6: "Disclosure to Other Parties") with semantic `<ul><li>` bullet points.
+  - On the mobile application, the text sanitization regex `replaceAll(RegExp(r'\n[ \t]+'), '\n')` stripped all indentation and HTML tags, collapsing distinct list items into a single, wall-of-text paragraph without bullets.
+- **Resolution**:
+  - In `lib/app/data/models/privacy_sections.dart`, introduced `PrivacyBlockType.bulletList` on `PrivacyContentBlock` with fields: `listItems`, `introText`, and `outroText`.
+  - Implemented an intelligent dual parser:
+    1. Unescapes HTML entities and parses raw or escaped `<ul><li>...</li></ul>` structures.
+    2. Identifies multi-line text blocks with indented items (2+ spaces or `- ` / `• `), cleanly extracting the preceding introductory text, the individual list items, and any concluding paragraph copy.
+  - Updated `PrivacyPageData.canonical()` to include structured bullet lists for Sections 2, 4, and 6 matching the parent website.
+
+### 2. UI & Design Enhancements (`policy_detail_view.dart`)
+- **Dedicated Bullet List Component (`_buildPrivacyBulletList`)**:
+  - Renders introductory text with 10px bottom padding.
+  - Renders each list item in a horizontal `Row`:
+    - Brand navy circular bullet dot (`6.0px` width/height, `BoxShape.circle`, `context.themePrimaryColor`).
+    - Aligned with the first text line (`top: 8.5px`).
+    - Poppins typography (`14.5px`, line-height `1.65`).
+    - Full URL hyperlink detection preserved via `_buildDynamicLinkedText`.
+    - `9px` vertical separation between bullet items.
+  - Concluding text rendered as an attached outro block with top padding.
+
+### 3. Verification & Status
+- **Static Analysis**: Verified with `flutter analyze` — **0 compile errors, 0 warnings**.
+- **Visual Alignment**: Section 2 ("Personal Information We May Collect") and Section 4 ("How We Use Personal Information") now render matching bullet lists with brand styling.
+
+---
+
+## Part 16: Solutions CMS Broadcasting & Dynamic Light Theme (`public-settings`) Integration
+
+### 1. Solutions CMS Broadcasting Migration (`GET /api/mobile-app/solution`)
+- **Real-Time Routing & Schema Registration**:
+  - Registered `solution` in `app_config.json`.
+  - Wired `solution` and `solutions` into `lib/core/studio_socket_routing.dart` with real-time websocket broadcast listeners.
+- **Section Models & Media Resolution**:
+  - Created `lib/app/data/models/solutions_sections.dart` mapping:
+    - Section 1: Hero Banner (`title`, `subTitle`, `description`).
+    - Section 2: Industry Grid (`title`, `subTitle`, items with `title`, `description`, `image`, `footer` cover).
+    - Section 3: Why Choose Us (`title`, `subTitle`, items with `title`, `description`, `image`).
+    - Section 4: Process Flow (`title`, `subTitle`, items with `title`, `description`, `image`).
+    - Section 5: CTA Consultation (`title`, `subTitle`, `description`).
+  - **Cover Image Resolution**: Implemented `resolveFooterCoverUrl()` resolving `${url}assets/images/${footer}` when cover photos are supplied in the `footer` field (e.g. `demos/demo15/categories/Networking.webp`).
+  - **Floating Badge Contrast**: Styled the floating industry icon badge with `context.themePrimaryColor` and white icons for sharp contrast.
+- **Controller Architecture**:
+  - Upgraded `lib/app/modules/pages/solutions/controllers/solutions_controller.dart` with `FoduuStudioLayoutMixin` and 3-tier fallback (Socket $\rightarrow$ `BasicProvider('mobile-app/solution')` $\rightarrow$ Canonical Fallback).
+
+### 2. Dynamic Light Theme Migration (`public-settings`)
+- **Reference Application Pattern**:
+  - Adopted the dynamic theming architecture from `/Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib`:
+    - `DynamicThemeManager` with local storage cache persistence (`GetStorage`).
+    - Reactive `ThemeController` with `updateThemeFromApi()` and `Get.forceAppUpdate()`.
+    - `GetBuilder<ThemeController>` wrapping `GetMaterialApp` in `lib/main.dart`.
+- **Strict Light Mode Enforcement**:
+  - All theme configurations, `ThemeMode`, and `darkTheme` are locked strictly to `ThemeMode.light` and `buildLightTheme()`.
+  - Added protection in `AppThemeColors.fromThemeMap` against uninitialized `#000000` placeholder responses.
+- **Dynamic Color Scheme Accessors**:
+  - Refactored `lib/constants/theme_ext.dart` so all `context.theme...` getters read directly from `Theme.of(context).colorScheme`:
+    - `themePrimaryColor` $\rightarrow$ `colors.primary`
+    - `themeSecondryColor` $\rightarrow$ `colors.secondary`
+    - `themeBackground` $\rightarrow$ `colors.background`
+    - `themeWhiteColor` $\rightarrow$ `colors.surface`
+    - `themeTextColor` $\rightarrow$ `colors.onSurface`
+    - `themeBorderColor` $\rightarrow$ `colors.outline`
+    - `themePrimaryLight` $\rightarrow$ `colors.surfaceVariant`
+    - `themeSecondrytext` $\rightarrow$ `colors.onSurfaceVariant`
+    - `themeRedColor` $\rightarrow$ `colors.error`
+- **Automatic CMS Refresh**:
+  - Defined `_refreshPublicSettings()` in `lib/main.dart` querying `BasicProvider('public-settings')` on app launch and automatically updating `DynamicThemeManager`.
+
+### 3. Verification & Status
+- **Static Analysis**: Verified with `flutter analyze` — **0 compile errors, 0 warnings**.
+- **Mode Security**: Application is strictly locked to **Light Mode** across all screens.
+
+---
+
+## Part 17: Contact View Icon Contrast & Dynamic Theme Parity
+
+### 1. Root Cause & Problem Resolution
+- **Issue**:
+  - The contact cards ("E-mail Address" and "Phone Number") displayed washed-out, almost invisible white icons inside an extremely faint 10% opacity cyan container (`_accent.withValues(alpha: 0.10)`).
+  - Hardcoded colors (`_navy = Color(0xFF12253D)` and `_accent = Color(0xFF00ADEF)`) bypassed the app's dynamic light theme tokens.
+- **Parent Website Parity (`https://vision.foduu.store/contact`)**:
+  - Production stylesheet (`demo15.min.css:22683-22701`) specifies:
+    ```css
+    .ci-icon {
+      background: linear-gradient(145deg, #20558a, #163f68);
+      box-shadow: 0 10px 22px rgba(32, 85, 138, 0.28);
+      color: #fff;
+    }
+    ```
+  - Upgraded `_ContactCardTile` in `contact_view.dart` to use a rounded gradient icon badge (`LinearGradient(colors: [context.themePrimaryColor, context.themeSecondryColor])`) with drop shadow (`color: context.themePrimaryColor.withValues(alpha: 0.30)`) and crisp white icon contrast (`color: Colors.white`).
+  - Styled trailing action indicator as a circular pill using `context.themePrimaryLight` and `context.themePrimaryColor`.
+
+### 2. Full Dynamic Theming Adoption
+- Eliminated all hardcoded `_navy` and `_accent` top-level constants.
+- Wired all UI elements in `contact_view.dart` to dynamic theme tokens:
+  - Header & accent lines $\rightarrow$ `context.themePrimaryColor`
+  - Deep titles & overlays $\rightarrow$ `context.themeSecondryColor`
+  - Pill badges & containers $\rightarrow$ `context.themePrimaryLight` / `context.themeWhiteColor`
+  - Form focused borders & submit buttons $\rightarrow$ `context.themePrimaryColor`
+  - Cleaned up unreferenced map card declarations.
+
+### 3. Verification & Status
+- **Static Analysis**: `flutter analyze lib/app/modules/contact/` — **0 errors, 0 warnings** (No issues found).
+- **Visual Contrast**: Contact card badges now present AAA contrast matching the parent website.
+
+---
+
+## Part 18: MTP Solution CMS Broadcasting & Form Submission Migration
+
+### 1. Context & Objective
+Following the standardization of Cable Assemblies (Part 13) and Solutions (Part 16), the MTP Solution configurator (`/mtp-solution`) has been migrated from direct endpoint fetching (`GET /api/forms/mtp-solution`, which returned HTTP 403 Forbidden without CMS tenancy headers) to the unified **Fastify CMS Broadcasting Driven Architecture**:
+```http
+GET https://vision.foduu.store/api/mobile-app/mtp-solution
+```
+and standardized the form submission process adhering strictly to the **Form Builder API Submission Guide** (`form-submission-api-guide.md`).
+
+### 2. Implementation Summary
+1. **Fastify Studio Dashboard & Socket Routing**:
+   - Registered `"mtp-solution"` in `app_config.json` under `"pages"`.
+   - Wired `'mtp-solution'` and `'mtp-solutions'` routing handlers in `lib/core/studio_socket_routing.dart` listening to `$websiteDomain:mobileapp:route` WebSocket broadcasts for live Studio editor page switching and re-fetching.
+2. **Model Layer (`mtp_solution_sections.dart`)**:
+   - Created `MtpSolutionSectionsData`, `MtpSolutionBannerData`, `MtpSolutionTextBlockData`, `MtpSolutionFormBuilderData`, `MtpSolutionRichTextData`, and `MtpSolutionSectionsData.canonical()`.
+   - Robust parsing supporting remote CDN webp schematic URLs with fallback to `assets/images/mtp-lead.webp`.
+   - Formatted technical notes bullet points (Polarity A/B/C pinouts, jacket diameters, standard color codes, core counts).
+3. **Controller Layer (`mtp_solution_controller.dart`)**:
+   - Mixed in `FoduuStudioLayoutMixin` with `BaseController`.
+   - Implemented 3-tier resilient layout fetching (`fetchMtpSolutionLayout()`) with `GetStorage` caching (`cms_page_mtp_solution_sections`) and instant canonical fallback.
+   - Overrode `buildLayout(List sections)` to intercept both initial layout API responses and live WebSocket broadcasts from Fastify Studio.
+   - Dynamic schema query via `FormApiService.getFormSchema('mtp-solution')` reactively updating options (jacket sizes, cable modes, core fiber counts, end A, end B, polarities, jacket diameters, standard colors, drum).
+   - Standardized `submitMtpForm()` adhering to `form-submission-api-guide.md`:
+     - Multi-tenancy headers (`Host: vision.foduu.store`, `access-key`, `Authorization: Bearer <token>`).
+     - Frontend validation (minimum 3 characters on strings, sanitized 10-digit phone number, email regex).
+     - Robust error handling for HTTP 422 (validation errors) and HTTP 429 (Redis rate limit: 10 submissions/hour/IP).
+4. **View Layer (`mtp_solution_view.dart`)**:
+   - Schematic banner dynamically bound to `sectionsData.value.banner.imageUrl` via `CachedNetworkImage` with fallback to `assets/images/mtp-lead.webp`.
+   - Full-screen high-resolution schematic viewer (`PhotoView`) with zoom and pan support.
+   - Reactive inspection bar bound to `sectionsData.value.textBlock.text`.
+   - Pull-to-refresh (`RefreshIndicator`) without blank screens.
+   - Bottom technical specification card dynamically bound to `sectionsData.value.richText`.
+   - Full dynamic theme tokens integration (`context.themePrimaryColor`, `context.themeSecondryColor`, `context.themeBorderColor`, `context.themeTextColor`, `context.themeBackground`).
+
+### 3. Verification & Status
+- **Static Analysis**: Verified with `flutter analyze lib/app/modules/mtp_solution/ lib/app/data/models/mtp_solution_sections.dart lib/core/studio_socket_routing.dart` — **0 compile errors, 0 warnings** (No issues found).
+- **Resilience**: Verified graceful offline fallback with canonical defaults matching `https://vision.foduu.store/mtp-solution`.
+

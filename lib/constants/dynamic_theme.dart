@@ -6,48 +6,49 @@ import 'package:google_fonts/google_fonts.dart';
 
 class DefaultThemeColors {
   DefaultThemeColors._(); // Private constructor - prevents instantiation
-  // ============ STILIFY ANIKET COLORS ============
-  static const Color lightSecondary = Color(0xFFFA9571);
+
+  // ============ STATUS / ALERT & LEGACY COLORS ============
+  static const Color alertSuccessLight = Color(0xFF3BC24F);
+  static const Color alertErrorLighter = Color(0xFFFF6766);
+  static const Color alertWarninglight = Color(0xFFF9A825);
   static const Color lighterSecondary = Color(0xFFFBAF95);
-  static const Color lightDarker = Color(0xFFC2C2C2); //It's Original Color
+  static const Color lightDarker = Color(0xFFC2C2C2);
   static const Color mainprimary = Color(0xFF702F6E);
   static const Color darklighter = Color(0xFFA3A3A3);
   static const Color darkmain = Color(0xFF666666);
-  static const Color alertSuccessLight = Color(0xFF3BC24F);
-  static const Color alertErrorLighter = Color(0xFFFF6766);
   static const Color darklight = Color(0xFFE0E0E0);
   static const Color secondarymain = Color(0xFFF97A4E);
   static const Color darkdark = Color(0xFF4C4C4C);
-  static const Color alertWarninglight = Color(0xFFF9A825);
 
-  // ============ LIGHT THEME DEFAULTS ============
-  static const Color lightPrimary = Color(0xFF6200EE);
-  static const Color lightOnPrimary = Color(0xFFFFFFFF);
-  //static const Color lightSecondary = Color(0xFF03DAC6);
-  static const Color lightOnSecondary = Color(0xFF000000);
-  static const Color lightBackground = Color(0xFFFFFFFF);
-  static const Color lightOnBackground = Color(0xFF000000);
-  static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightOnSurface = Color(0xFF000000);
-  static const Color lightError = Color(0xFFB00020);
+  // ============ LIGHT THEME DEFAULTS (VISION INFRASTRUCTURE) ============
+  static const Color lightPrimary = Color(0xFF20558A); // #20558a
+  static const Color lightOnPrimary = Color(0xFFFFFFFF); // #ffffff
+  static const Color lightSecondary = Color(0xFF16324F); // #16324f
+  static const Color lightOnSecondary = Color(0xFFFFFFFF);
+  static const Color lightBackground = Color(0xFFF4F8FB); // #f4f8fb
+  static const Color lightOnBackground = Color(0xFF1E293B);
+  static const Color lightSurface = Color(0xFFFFFFFF); // #ffffff
+  static const Color lightOnSurface = Color(0xFF1E293B);
+  static const Color lightError = Color(0xFFFF0000); // #ff0000
   static const Color lightOnError = Color(0xFFFFFFFF);
-  static const Color lightOutline = Color(0xFFDDDDDD);
-  static const Color lightSurfaceVariant = Color(0xFFF5F5F5);
-  static const Color lightOnSurfaceVariant = Color(0xFF666666);
-  // ============ DARK THEME DEFAULTS ============
-  static const Color darkPrimary = Color(0xFFBB86FC);
-  static const Color darkOnPrimary = Color(0xFF000000);
-  static const Color darkSecondary = Color(0xFF03DAC6);
-  static const Color darkOnSecondary = Color(0xFF000000);
-  static const Color darkBackground = Color(0xFF121212);
-  static const Color darkOnBackground = Color(0xFFFFFFFF);
-  static const Color darkSurface = Color(0xFF1E1E1E);
-  static const Color darkOnSurface = Color(0xFFFFFFFF);
-  static const Color darkError = Color(0xFFCF6679);
-  static const Color darkOnError = Color(0xFF000000);
-  static const Color darkOutline = Color(0xFF444444);
-  static const Color darkSurfaceVariant = Color(0xFF2C2C2C);
-  static const Color darkOnSurfaceVariant = Color(0xFFAAAAAA);
+  static const Color lightOutline = Color(0xFFE2E8F0);
+  static const Color lightSurfaceVariant = Color(0xFFEEF4F9);
+  static const Color lightOnSurfaceVariant = Color(0xFF64748B);
+
+  // ============ DARK THEME (LOCKED TO LIGHT DEFAULTS FOR LIGHT-ONLY MODE) ============
+  static const Color darkPrimary = Color(0xFF20558A);
+  static const Color darkOnPrimary = Color(0xFFFFFFFF);
+  static const Color darkSecondary = Color(0xFF16324F);
+  static const Color darkOnSecondary = Color(0xFFFFFFFF);
+  static const Color darkBackground = Color(0xFFF4F8FB);
+  static const Color darkOnBackground = Color(0xFF1E293B);
+  static const Color darkSurface = Color(0xFFFFFFFF);
+  static const Color darkOnSurface = Color(0xFF1E293B);
+  static const Color darkError = Color(0xFFFF0000);
+  static const Color darkOnError = Color(0xFFFFFFFF);
+  static const Color darkOutline = Color(0xFFE2E8F0);
+  static const Color darkSurfaceVariant = Color(0xFFEEF4F9);
+  static const Color darkOnSurfaceVariant = Color(0xFF64748B);
 }
 
 class AppThemeColors {
@@ -158,65 +159,59 @@ class AppThemeColors {
     );
   }
 
-  /// Parse from API response
+  /// Parse from API response (Enforcing Light-Only mode with dummy-black protection)
   factory AppThemeColors.fromThemeMap(
       Map<String, dynamic> themeMap, bool isDark) {
-    debugPrint('🌐 Parsing ${isDark ? "DARK" : "LIGHT"} theme colors');
+    debugPrint('🌐 Parsing LIGHT theme colors from API');
+
+    // Detect uninitialized template placeholder (e.g. all #000000)
+    final rawPrimary =
+        themeMap['primary']?.toString().replaceAll('#', '').toLowerCase();
+    final rawBg =
+        themeMap['background']?.toString().replaceAll('#', '').toLowerCase();
+    final isDummyAllBlack =
+        rawPrimary == '000000' && (rawBg == '000000' || rawBg == null);
+
+    if (isDummyAllBlack) {
+      debugPrint(
+          '⚠️ Detected uninitialized template #000000 theme; using Vision Infrastructure Light defaults');
+      return AppThemeColors.defaultsLight();
+    }
+
+    final primary =
+        _hexToColor(themeMap['primary']) ?? DefaultThemeColors.lightPrimary;
+    final secondary =
+        _hexToColor(themeMap['secondary']) ?? DefaultThemeColors.lightSecondary;
+    final background = _hexToColor(themeMap['background']) ??
+        DefaultThemeColors.lightBackground;
+    final surface =
+        _hexToColor(themeMap['surface']) ?? DefaultThemeColors.lightSurface;
+    final error =
+        _hexToColor(themeMap['error']) ?? DefaultThemeColors.lightError;
 
     return AppThemeColors.fromCoreColors(
-      primary: _hexToColor(themeMap['primary']) ??
-          (isDark
-              ? DefaultThemeColors.darkPrimary
-              : DefaultThemeColors.lightPrimary),
-      secondary: _hexToColor(themeMap['secondary']) ??
-          (isDark
-              ? DefaultThemeColors.darkSecondary
-              : DefaultThemeColors.lightSecondary),
-      background: _hexToColor(themeMap['background']) ??
-          (isDark
-              ? DefaultThemeColors.darkBackground
-              : DefaultThemeColors.lightBackground),
-      error: _hexToColor(themeMap['error']) ??
-          (isDark
-              ? DefaultThemeColors.darkError
-              : DefaultThemeColors.lightError),
-      isDark: isDark,
+      primary: primary,
+      secondary: secondary,
+      background: background,
+      error: error,
+      isDark: false, // Strictly Light Mode
       onPrimary: _hexToColor(themeMap['onPrimary']) ??
-          (isDark
-              ? DefaultThemeColors.darkOnPrimary
-              : DefaultThemeColors.lightOnPrimary),
+          DefaultThemeColors.lightOnPrimary,
       onSecondary: _hexToColor(themeMap['onSecondary']) ??
-          (isDark
-              ? DefaultThemeColors.darkOnSecondary
-              : DefaultThemeColors.lightOnSecondary),
+          DefaultThemeColors.lightOnSecondary,
       onBackground: _hexToColor(themeMap['onBackground']) ??
-          (isDark
-              ? DefaultThemeColors.darkOnBackground
-              : DefaultThemeColors.lightOnBackground),
-      surface: _hexToColor(themeMap['surface']) ??
-          (isDark
-              ? DefaultThemeColors.darkSurface
-              : DefaultThemeColors.lightSurface),
+          DefaultThemeColors.lightOnBackground,
+      surface: surface,
       onSurface: _hexToColor(themeMap['onSurface']) ??
-          (isDark
-              ? DefaultThemeColors.darkOnSurface
-              : DefaultThemeColors.lightOnSurface),
-      onError: _hexToColor(themeMap['onError']) ??
-          (isDark
-              ? DefaultThemeColors.darkOnError
-              : DefaultThemeColors.lightOnError),
-      outline: _hexToColor(themeMap['outline']) ??
-          (isDark
-              ? DefaultThemeColors.darkOutline
-              : DefaultThemeColors.lightOutline),
+          DefaultThemeColors.lightOnSurface,
+      onError:
+          _hexToColor(themeMap['onError']) ?? DefaultThemeColors.lightOnError,
+      outline:
+          _hexToColor(themeMap['outline']) ?? DefaultThemeColors.lightOutline,
       surfaceVariant: _hexToColor(themeMap['surfaceVariant']) ??
-          (isDark
-              ? DefaultThemeColors.darkSurfaceVariant
-              : DefaultThemeColors.lightSurfaceVariant),
+          DefaultThemeColors.lightSurfaceVariant,
       onSurfaceVariant: _hexToColor(themeMap['onSurfaceVariant']) ??
-          (isDark
-              ? DefaultThemeColors.darkOnSurfaceVariant
-              : DefaultThemeColors.lightOnSurfaceVariant),
+          DefaultThemeColors.lightOnSurfaceVariant,
     );
   }
 
@@ -280,7 +275,6 @@ class DynamicThemeManager {
   AppThemeColors _darkColors = AppThemeColors.defaultsDark();
 
   ThemeData? _cachedLightTheme;
-  ThemeData? _cachedDarkTheme;
 
   AppThemeColors get lightColors => _lightColors;
   AppThemeColors get darkColors => _darkColors;
@@ -315,41 +309,50 @@ class DynamicThemeManager {
         Map<String, dynamic>.from(storedDark),
         true,
       );
-      _cachedDarkTheme = null;
     } else {
       debugPrint('ℹ️ No stored dark theme found, using defaults');
     }
   }
 
   /// Update theme colors from API response
-  /// Expected format: { "light": { "primary": "#xxx", "secondary": "#xxx", "background": "#xxx", "error": "#xxx" }, "dark": { ... } }
+  /// Expected format: { "light": { ... } } or { "storeSettings": { "app_theme_color": ... } }
   void updateFromApi(Map<String, dynamic> appThemeColor) {
     debugPrint('🌐 Updating themes from API');
 
-    // Parse light theme
-    if (appThemeColor.containsKey('light') && appThemeColor['light'] != null) {
-      _lightColors = AppThemeColors.fromThemeMap(
-        Map<String, dynamic>.from(appThemeColor['light']),
-        false,
-      );
-      _cachedLightTheme = null;
-      _box.write(_lightThemeKey, _lightColors.toJson());
-      debugPrint('✅ Light theme updated & saved successfully');
-    } else {
-      debugPrint('⚠️ API response does not contain light theme');
+    Map<String, dynamic> colorData = appThemeColor;
+    if (colorData.containsKey('storeSettings') &&
+        colorData['storeSettings'] is Map) {
+      final ss = colorData['storeSettings'] as Map;
+      if (ss.containsKey('app_theme_color') && ss['app_theme_color'] is Map) {
+        colorData = Map<String, dynamic>.from(ss['app_theme_color']);
+      }
+    } else if (colorData.containsKey('app_theme_color') &&
+        colorData['app_theme_color'] is Map) {
+      colorData = Map<String, dynamic>.from(colorData['app_theme_color']);
     }
 
-    // Parse dark theme
-    if (appThemeColor.containsKey('dark') && appThemeColor['dark'] != null) {
-      _darkColors = AppThemeColors.fromThemeMap(
-        Map<String, dynamic>.from(appThemeColor['dark']),
-        true,
+    // Parse light theme
+    if (colorData.containsKey('light') && colorData['light'] != null) {
+      _lightColors = AppThemeColors.fromThemeMap(
+        Map<String, dynamic>.from(colorData['light']),
+        false,
       );
-      _cachedDarkTheme = null;
-      _box.write(_darkThemeKey, _darkColors.toJson());
-      debugPrint('✅ Dark theme updated & saved successfully');
+      _darkColors = _lightColors; // Lock dark to light
+      _cachedLightTheme = null;
+
+      _box.write(_lightThemeKey, _lightColors.toJson());
+      debugPrint(
+          '✅ Light theme updated & saved successfully: primary=${_lightColors.primary}');
+    } else if (colorData.containsKey('primary')) {
+      _lightColors = AppThemeColors.fromThemeMap(colorData, false);
+      _darkColors = _lightColors; // Lock dark to light
+      _cachedLightTheme = null;
+
+      _box.write(_lightThemeKey, _lightColors.toJson());
+      debugPrint(
+          '✅ Light theme updated & saved successfully: primary=${_lightColors.primary}');
     } else {
-      debugPrint('⚠️ API response does not contain dark theme');
+      debugPrint('⚠️ API response does not contain light theme');
     }
   }
 
@@ -359,9 +362,8 @@ class DynamicThemeManager {
     _box.remove(_lightThemeKey);
     _box.remove(_darkThemeKey);
     _lightColors = AppThemeColors.defaultsLight();
-    _darkColors = AppThemeColors.defaultsDark();
+    _darkColors = AppThemeColors.defaultsLight();
     _cachedLightTheme = null;
-    _cachedDarkTheme = null;
   }
 
   /// Build LIGHT ThemeData
@@ -370,10 +372,9 @@ class DynamicThemeManager {
     return _cachedLightTheme!;
   }
 
-  /// Build DARK ThemeData
+  /// Build DARK ThemeData - Locked to Light Theme for Light-Only Mode
   ThemeData buildDarkTheme() {
-    _cachedDarkTheme ??= _buildTheme(_darkColors, Brightness.dark);
-    return _cachedDarkTheme!;
+    return buildLightTheme();
   }
 
   /// Internal method to build ThemeData from colors
@@ -400,7 +401,7 @@ class DynamicThemeManager {
         backgroundColor: colors.surface,
         elevation: 0,
       ),
-      fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
+      fontFamily: 'Poppins',
       scaffoldBackgroundColor: colors.background,
       colorScheme: ColorScheme(
         brightness: brightness,
@@ -566,7 +567,7 @@ class DynamicThemeManager {
   }
 
   TextTheme _buildTextTheme(AppThemeColors colors) {
-    return GoogleFonts.plusJakartaSansTextTheme(TextTheme(
+    return GoogleFonts.poppinsTextTheme(TextTheme(
       displayLarge: TextStyle(
         fontSize: 32,
         fontWeight: FontWeight.w600,
@@ -644,79 +645,44 @@ class DynamicThemeManager {
 
 /// Reactive Theme Controller using GetX
 class ThemeController extends GetxController {
-  /// Observable theme mode
-  final Rx<ThemeMode> _themeMode = ThemeMode.system.obs;
-  ThemeMode get themeMode => _themeMode.value;
+  static ThemeController get to => Get.find<ThemeController>();
+
+  /// Strictly Light Mode
+  ThemeMode get themeMode => ThemeMode.light;
 
   // Single instance of theme manager
   final DynamicThemeManager _themeManager = DynamicThemeManager();
 
-  final _box = GetStorage();
-  static const String _themeModeKey = 'theme_mode';
-
   @override
   void onInit() {
     super.onInit();
-    _loadThemeMode();
-
-    // Listen to theme mode changes
-    ever(_themeMode, (_) {
-      update(); // Trigger rebuild when theme mode changes
-    });
   }
 
-  /// Initialize theme manager (Now called from Splash Screen)
+  /// Initialize theme manager
   Future<void> initThemeManager() async {
     await _themeManager.init();
-    debugPrint("we are gettinmg this after debugg");
     refreshTheme();
   }
 
-  void _loadThemeMode() {
-    final stored = _box.read(_themeModeKey);
-    if (stored != null) {
-      _themeMode.value = ThemeMode.values.firstWhere(
-        (mode) => mode.name == stored,
-        orElse: () => ThemeMode.system,
-      );
-    }
-  }
-
-  /// Get current light theme - recomputed each time
+  /// Get current light theme
   ThemeData get lightTheme {
-    debugPrint('🎨 Building light theme for mode: ${_themeMode.value}');
     return _themeManager.buildLightTheme();
   }
 
-  /// Get current dark theme - recomputed each time
+  /// Get current dark theme - strictly locked to lightTheme
   ThemeData get darkTheme {
-    debugPrint('🎨 Building dark theme for mode: ${_themeMode.value}');
-    return _themeManager.buildDarkTheme();
+    return _themeManager.buildLightTheme();
   }
 
-  /// Set theme mode (light, dark, or system)
+  /// Enforce Light Mode
   void setThemeMode(ThemeMode mode) {
-    _themeMode.value = mode;
-    _box.write(_themeModeKey, mode.name);
-    Get.changeThemeMode(mode);
-    update(); // Force update
+    Get.changeThemeMode(ThemeMode.light);
+    update();
   }
 
-  /// Toggle between light and dark mode
+  /// No-op toggle since app is Light-Only
   void toggleTheme() {
-    if (_themeMode.value == ThemeMode.dark) {
-      setThemeMode(ThemeMode.light);
-    } else if (_themeMode.value == ThemeMode.light) {
-      setThemeMode(ThemeMode.dark);
-    } else {
-      // If system, check current brightness and toggle opposite
-      final brightness = Get.mediaQuery.platformBrightness;
-      if (brightness == Brightness.dark) {
-        setThemeMode(ThemeMode.light);
-      } else {
-        setThemeMode(ThemeMode.dark);
-      }
-    }
+    setThemeMode(ThemeMode.light);
   }
 
   /// Update theme from API

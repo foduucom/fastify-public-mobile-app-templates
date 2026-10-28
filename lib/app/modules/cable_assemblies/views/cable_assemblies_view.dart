@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:photo_view/photo_view.dart';
@@ -15,6 +16,10 @@ class CableAssembliesView extends GetView<CableAssembliesController> {
   static const _labelColor = Color(0xFF374151);
 
   void _openSchematicViewer(BuildContext context) {
+    final remoteUrl = controller.sectionsData.value.banner.imageUrl;
+    final isRemote = remoteUrl.isNotEmpty &&
+        (remoteUrl.startsWith('http://') || remoteUrl.startsWith('https://'));
+
     showDialog(
       context: context,
       barrierColor: Colors.black87,
@@ -32,8 +37,9 @@ class CableAssembliesView extends GetView<CableAssembliesController> {
               ),
               clipBehavior: Clip.antiAlias,
               child: PhotoView(
-                imageProvider:
-                    const AssetImage('assets/images/cable-banner.webp'),
+                imageProvider: isRemote
+                    ? CachedNetworkImageProvider(remoteUrl) as ImageProvider
+                    : const AssetImage('assets/images/cable-banner.webp'),
                 backgroundDecoration: const BoxDecoration(color: Colors.white),
                 minScale: PhotoViewComputedScale.contained,
                 maxScale: PhotoViewComputedScale.covered * 3.5,
@@ -81,6 +87,111 @@ class CableAssembliesView extends GetView<CableAssembliesController> {
     );
   }
 
+  Widget _buildSchematicBanner(BuildContext context) {
+    return Obx(() {
+      final banner = controller.sectionsData.value.banner;
+      final textBlock = controller.sectionsData.value.textBlock;
+      final isRemote = banner.imageUrl.isNotEmpty &&
+          (banner.imageUrl.startsWith('http://') ||
+              banner.imageUrl.startsWith('https://'));
+
+      return InkWell(
+        onTap: () => _openSchematicViewer(context),
+        borderRadius: BorderRadius.circular(banner.borderRadius),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(banner.borderRadius),
+            border: Border.all(color: _borderColor),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            children: [
+              if (isRemote)
+                CachedNetworkImage(
+                  imageUrl: banner.imageUrl,
+                  width: double.infinity,
+                  fit: BoxFit.fitWidth,
+                  placeholder: (_, __) => Container(
+                    height: 140,
+                    color: Colors.grey.shade100,
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: _brandNavy,
+                      ),
+                    ),
+                  ),
+                  errorWidget: (_, __, ___) => Image.asset(
+                    'assets/images/cable-banner.webp',
+                    width: double.infinity,
+                    fit: BoxFit.fitWidth,
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 140,
+                      color: Colors.grey.shade100,
+                      child: const Center(
+                        child: Icon(Icons.cable_rounded,
+                            size: 40, color: _brandNavy),
+                      ),
+                    ),
+                  ),
+                )
+              else
+                Image.asset(
+                  'assets/images/cable-banner.webp',
+                  width: double.infinity,
+                  fit: BoxFit.fitWidth,
+                  errorBuilder: (_, __, ___) => Container(
+                    height: 140,
+                    color: Colors.grey.shade100,
+                    child: const Center(
+                      child: Icon(Icons.cable_rounded,
+                          size: 40, color: _brandNavy),
+                    ),
+                  ),
+                ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                color: _brandNavy.withValues(alpha: 0.05),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.zoom_in_rounded,
+                        size: 16, color: _brandNavy),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        textBlock.text.isNotEmpty
+                            ? textBlock.text
+                            : 'Tap to inspect detailed pinout & schematic',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontFamily: _poppins,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: _brandNavy,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -101,75 +212,21 @@ class CableAssembliesView extends GetView<CableAssembliesController> {
           backgroundColor: Colors.white,
           iconTheme: const IconThemeData(color: _textDark),
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          child: Form(
-            key: controller.formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top Engineering Schematic Banner with Tap to Zoom
-                InkWell(
-                  onTap: () => _openSchematicViewer(context),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: _borderColor),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 4,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      children: [
-                        Image.asset(
-                          'assets/images/cable-banner.webp',
-                          width: double.infinity,
-                          fit: BoxFit.fitWidth,
-                          errorBuilder: (_, __, ___) => Container(
-                            height: 140,
-                            color: Colors.grey.shade100,
-                            child: const Center(
-                              child: Icon(Icons.cable_rounded,
-                                  size: 40, color: _brandNavy),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 7),
-                          color: _brandNavy.withValues(alpha: 0.05),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.zoom_in_rounded,
-                                  size: 16, color: _brandNavy),
-                              SizedBox(width: 6),
-                              Text(
-                                'Tap to inspect detailed pinout & schematic',
-                                style: TextStyle(
-                                  fontFamily: _poppins,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: _brandNavy,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+        body: RefreshIndicator(
+          color: _brandNavy,
+          onRefresh: () => controller.fetchCableAssembliesLayout(),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            child: Form(
+              key: controller.formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top Engineering Schematic Banner with Tap to Zoom (Server-Driven)
+                  _buildSchematicBanner(context),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
                 // SECTION 1: A END (Pulling End)
                 _buildCardSection(
@@ -452,8 +509,9 @@ class CableAssembliesView extends GetView<CableAssembliesController> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildCardSection({
     required String title,
@@ -630,24 +688,26 @@ class CableAssembliesView extends GetView<CableAssembliesController> {
   }
 
   Widget _buildTechnicalNotesCard() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Obx(() {
+      final richText = controller.sectionsData.value.richText;
+      return Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           Row(
             children: [
               Container(
@@ -731,23 +791,38 @@ class CableAssembliesView extends GetView<CableAssembliesController> {
             ),
           ),
           const SizedBox(height: 8),
-          _buildSpecBullet(
-            'Staggered connectors are paired and spaced 40mm apart',
-          ),
-          _buildSpecBullet(
-            'Cable Length: Measured from end of connector A End to end of connector B End',
-          ),
-          _buildSpecBullet(
-            'Drum recommended for lengths in excess of 40m',
-          ),
-          _buildSpecBullet(
-            'Breakout length is measured from breakout point to longest staggered connector',
-            isLast: true,
-          ),
+          if (richText.bulletPoints.isNotEmpty)
+            ...richText.bulletPoints
+                .where((b) =>
+                    !b.toLowerCase().contains('colour') &&
+                    !b.toLowerCase().contains('om1') &&
+                    !b.toLowerCase().contains('os2') &&
+                    !b.toLowerCase().contains('aqua') &&
+                    !b.toLowerCase().contains('red'))
+                .map(
+                  (b) => _buildSpecBullet(b,
+                      isLast: b == richText.bulletPoints.last),
+                )
+          else ...[
+            _buildSpecBullet(
+              'Staggered connectors are paired and spaced 40mm apart',
+            ),
+            _buildSpecBullet(
+              'Cable Length: Measured from end of connector A End to end of connector B End',
+            ),
+            _buildSpecBullet(
+              'Drum recommended for lengths in excess of 40m',
+            ),
+            _buildSpecBullet(
+              'Breakout length is measured from breakout point to longest staggered connector',
+              isLast: true,
+            ),
+          ],
         ],
       ),
     );
-  }
+  });
+}
 
   Widget _buildColorChip({required String label, required Color dotColor}) {
     return Container(

@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:zouhi/app/controllers/api_exception_handle_controller.dart';
+import 'package:zouhi/app/data/models/mtp_solution_sections.dart';
 import 'package:zouhi/app/data/services/form_api_service.dart';
 import 'package:zouhi/constants/constants.dart';
+import 'package:zouhi/core/foduuStudio/foduu_studio_layout_mixin.dart';
 
-class MtpSolutionController extends GetxController {
+class MtpSolutionController extends GetxController
+    with BaseController, FoduuStudioLayoutMixin {
   final formKey = GlobalKey<FormState>();
+
+  static const _cacheKey = 'cms_page_mtp_solution_sections';
+  final box = GetStorage();
+
+  // ── Dynamic CMS Broadcasting Reactive Layout ────────────────────────────────
+  final sectionsData = MtpSolutionSectionsData.canonical().obs;
+  final isPageLoading = false.obs;
 
   // ── Specifications (matching https://vision.foduu.store/mtp-solution) ───
   final jacketSize = 'Single'.obs;
@@ -28,17 +40,20 @@ class MtpSolutionController extends GetxController {
   final additionalNotes = TextEditingController();
 
   final isSubmitting = false.obs;
+  final isSchemaLoading = false.obs;
 
-  // Options matching parent website form
-  final jacketSizeOptions = const ['Single', 'Double'];
-  final cableModeOptions = const ['SM', 'OM1', 'OM3', 'OM4', 'OM5'];
-  final coreFiberOptions = const ['12', '24'];
-  final endAOptions = const ['MTPF', 'MTPM', 'M24F', 'M24M'];
-  final endBOptions = const ['MTPF', 'MTPM', 'M24F', 'M24M'];
-  final polarityOptions = const ['Polarity A', 'Polarity B', 'Polarity C'];
-  final jacketDiameterOptions = const ['2mm', '3mm', '4.5mm', '4.8mm', '6.0mm'];
-  final standardColorOptions = const ['Yes', 'No'];
-  final nonStandardColorOptions = const [
+  // ── Dynamic Reactive Option Lists (Synced from GET /api/forms/mtp-solution) ─
+  final jacketSizeOptions = <String>['Single', 'Double'].obs;
+  final cableModeOptions = <String>['SM', 'OM1', 'OM3', 'OM4', 'OM5'].obs;
+  final coreFiberOptions = <String>['12', '24'].obs;
+  final endAOptions = <String>['MTPF', 'MTPM', 'M24F', 'M24M'].obs;
+  final endBOptions = <String>['MTPF', 'MTPM', 'M24F', 'M24M'].obs;
+  final polarityOptions =
+      <String>['Polarity A', 'Polarity B', 'Polarity C'].obs;
+  final jacketDiameterOptions =
+      <String>['2mm', '3mm', '4.5mm', '4.8mm', '6.0mm'].obs;
+  final standardColorOptions = <String>['Yes', 'No'].obs;
+  final nonStandardColorOptions = <String>[
     'Yellow',
     'Blue',
     'Pink',
@@ -46,25 +61,151 @@ class MtpSolutionController extends GetxController {
     'Green',
     'Red',
     'Purple'
-  ];
-  final drumOptions = const ['Yes', 'No'];
+  ].obs;
+  final drumOptions = <String>['Yes', 'No'].obs;
 
   final FormApiService _formApiService = FormApiService();
 
   @override
   void onInit() {
     super.onInit();
-    _fetchSchemaOptions();
+    _prefillUserDetails();
+    _loadCachedLayout();
+    fetchMtpSolutionLayout();
   }
 
-  Future<void> _fetchSchemaOptions() async {
+  void _prefillUserDetails() {
     try {
-      final fields = await _formApiService.getFormSchema('mtp-solution');
+      final userDetails = box.read('userDetails');
+      if (userDetails is Map) {
+        final user = userDetails['user'];
+        if (user is Map) {
+          final userEmail = user['email']?.toString() ?? '';
+          final userPhone =
+              user['mobile']?.toString() ?? user['phone']?.toString() ?? '';
+          if (email.text.isEmpty && userEmail.isNotEmpty) {
+            email.text = userEmail;
+          }
+          if (contactNumber.text.isEmpty && userPhone.isNotEmpty) {
+            contactNumber.text = userPhone;
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  void _loadCachedLayout() {
+    try {
+      final cached = box.read(_cacheKey);
+      if (cached is List && cached.isNotEmpty) {
+        sectionsData.value = MtpSolutionSectionsData.fromSections(cached);
+      }
+    } catch (_) {}
+  }
+
+  /// Intercepts both initial fetch and live WebSocket broadcasts from Fastify Studio
+  @override
+  void buildLayout(List sections) {
+    super.buildLayout(sections);
+    if (sections.isNotEmpty) {
+      sectionsData.value = MtpSolutionSectionsData.fromSections(sections);
+      try {
+        box.write(_cacheKey, sections);
+      } catch (_) {}
+
+      final slug = sectionsData.value.formBuilder.formSlug;
+      if (slug.isNotEmpty) {
+        _fetchSchemaOptions(slug);
+      }
+    }
+  }
+
+  /// 3-Tier Resilient CMS Broadcasting Layout Fetch
+  Future<void> fetchMtpSolutionLayout() async {
+    isPageLoading(true);
+
+    try {
+      // Tier 1: Fastify CMS Broadcasting (GET /api/mobile-app/mtp-solution)
+      final response = await fetchLayout('mtp-solution');
+      if (response != null && response is Map) {
+        final list = response['sections'];
+        if (list is List && list.isNotEmpty) {
+          sectionsData.value = MtpSolutionSectionsData.fromSections(list);
+          try {
+            box.write(_cacheKey, list);
+          } catch (_) {}
+        }
+      }
+    } catch (e) {
+      debugPrint('MtpSolutionController.fetchMtpSolutionLayout error: $e');
+      // Tier 2: Cache was already preloaded in onInit
+      // Tier 3: Canonical fallback is initialized in the .obs definition
+    } finally {
+      isPageLoading(false);
+      final slug = sectionsData.value.formBuilder.formSlug;
+      _fetchSchemaOptions(slug.isNotEmpty ? slug : 'mtp-solution');
+    }
+  }
+
+  Future<void> _fetchSchemaOptions(String formSlug) async {
+    isSchemaLoading(true);
+    try {
+      final fields = await _formApiService.getFormSchema(formSlug);
       if (fields.isNotEmpty) {
-        // Dynamic options hydrated successfully
+        for (final field in fields) {
+          final label = field.label.toLowerCase().trim();
+          final options =
+              field.options.map((e) => e.label.trim()).where((e) => e.isNotEmpty).toList();
+
+          if (options.isEmpty) continue;
+
+          if (label.contains('jacket size')) {
+            jacketSizeOptions.assignAll(options);
+            if (!options.contains(jacketSize.value)) {
+              jacketSize.value = options.first;
+            }
+          } else if (label.contains('cable mode') || label.contains('mode')) {
+            cableModeOptions.assignAll(options);
+            if (!options.contains(cableMode.value)) {
+              cableMode.value = options.first;
+            }
+          } else if (label.contains('core') || label.contains('fibre') || label.contains('fiber')) {
+            coreFiberOptions.assignAll(options);
+            if (!options.contains(coreFiberCount.value)) {
+              coreFiberCount.value = options.first;
+            }
+          } else if (label.contains('end a')) {
+            endAOptions.assignAll(options);
+            if (!options.contains(endA.value)) {
+              endA.value = options.first;
+            }
+          } else if (label.contains('end b')) {
+            endBOptions.assignAll(options);
+            if (!options.contains(endB.value)) {
+              endB.value = options.first;
+            }
+          } else if (label.contains('polarity')) {
+            polarityOptions.assignAll(options);
+            if (!options.contains(polarity.value)) {
+              polarity.value = options.first;
+            }
+          } else if (label.contains('diameter')) {
+            jacketDiameterOptions.assignAll(options);
+            if (!options.contains(jacketDiameter.value)) {
+              jacketDiameter.value = options.first;
+            }
+          } else if (label.contains('drum')) {
+            drumOptions.assignAll(options);
+            if (!options.contains(drumRequired.value)) {
+              drumRequired.value = options.first;
+            }
+          }
+        }
       }
     } catch (_) {
-      // Fallback to preset constants
+      // Retain verified fallback constants
+    } finally {
+      isSchemaLoading(false);
     }
   }
 
@@ -79,11 +220,12 @@ class MtpSolutionController extends GetxController {
     super.onClose();
   }
 
+  /// Standardized Form Submission adhering to form-submission-api-guide.md
   Future<void> submitMtpForm(BuildContext context) async {
     if (!formKey.currentState!.validate()) {
       Get.snackbar(
         'Required Fields',
-        'Please enter your contact details before submitting.',
+        'Please enter all required contact details before submitting.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: const Color(0xFFC62828),
         colorText: Colors.white,
@@ -98,8 +240,12 @@ class MtpSolutionController extends GetxController {
     try {
       var rawQty = quantityRequired.text.trim();
       if (rawQty.isEmpty) rawQty = '1';
-      // Backend validates text inputs with min 3 characters
+      // Backend validates text inputs with minimum 3 characters
       final formattedQty = rawQty.length < 3 ? '$rawQty units' : rawQty;
+
+      final formSlug = sectionsData.value.formBuilder.formSlug.isNotEmpty
+          ? sectionsData.value.formBuilder.formSlug
+          : 'mtp-solution';
 
       final payload = {
         'Jacket Size': jacketSize.value,
@@ -123,7 +269,7 @@ class MtpSolutionController extends GetxController {
         'Additional Notes': additionalNotes.text.trim(),
       };
 
-      final response = await _formApiService.submitForm('mtp-solution', payload);
+      final response = await _formApiService.submitForm(formSlug, payload);
 
       isSubmitting.value = false;
       if (response != null) {
@@ -133,8 +279,10 @@ class MtpSolutionController extends GetxController {
       isSubmitting.value = false;
       final msg = e.toString().replaceAll('Exception:', '').trim();
       Get.snackbar(
-        'Submission Failed',
-        msg.isNotEmpty ? msg : 'Unable to submit your quote request. Please try again.',
+        'Submission Notice',
+        msg.isNotEmpty
+            ? msg
+            : 'Unable to submit your quote request. Please check your network or try again later.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: const Color(0xFFC62828),
         colorText: Colors.white,
@@ -205,7 +353,8 @@ class MtpSolutionController extends GetxController {
                   },
                   child: const Text(
                     'Done',
-                    style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                        fontFamily: 'Poppins', fontWeight: FontWeight.w600),
                   ),
                 ),
               ),

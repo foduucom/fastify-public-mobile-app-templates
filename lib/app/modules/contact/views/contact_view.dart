@@ -3,20 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:zouhi/app/data/models/contact_sections.dart';
-import 'package:zouhi/app/data/models/page_model.dart';
+import 'package:zouhi/app/data/models/contact_broadcast_sections.dart';
 import 'package:zouhi/app/modules/contact/controller/contact_controller.dart';
-import 'package:zouhi/components/buttons/appbutton.dart';
 import 'package:zouhi/components/check_internet_widget.dart';
-import 'package:zouhi/components/cms/cms_widgets.dart';
-import 'package:zouhi/components/foduuformtextfield.dart';
 import 'package:zouhi/app/routes/app_pages.dart';
 import 'package:zouhi/constants/helper_functions.dart';
 import 'package:zouhi/constants/theme_ext.dart';
-
-const _navy = Color(0xFF12253D);
-const _accent = Color(0xFF00ADEF);
-
 class ContactView extends GetView<ContactController> {
   const ContactView({Key? key}) : super(key: key);
 
@@ -26,76 +18,82 @@ class ContactView extends GetView<ContactController> {
     } catch (_) {}
   }
 
-  /// Opens a mailto:/tel:/maps target for an info item. Only whitelisted
-  /// schemes from the CMS are launched.
-  void _openItem(ContactInfoItem item) {
-    final link = item.link;
-    final lower = link.toLowerCase();
-    if (lower.startsWith('mailto:') ||
-        lower.startsWith('tel:') ||
-        lower.startsWith('https://')) {
-      _open(Uri.parse(link));
-      return;
+  void _handleCardTap(ContactInfoCard card) {
+    if (card.isEmail) {
+      final email = card.text.trim();
+      if (email.isNotEmpty) {
+        _open(Uri(scheme: 'mailto', path: email));
+      }
+    } else if (card.isPhone) {
+      final phone = card.cleanPhone;
+      if (phone.isNotEmpty) {
+        _open(Uri(scheme: 'tel', path: phone));
+      }
+    } else if (card.text.toLowerCase().startsWith('http')) {
+      _open(Uri.parse(card.text.trim()));
     }
-    final cls = item.iconHtml.toLowerCase();
-    if (cls.contains('envelop') || item.value.contains('@')) {
-      _open(Uri(scheme: 'mailto', path: item.value));
-    } else if (cls.contains('phone')) {
-      _open(Uri(
-          scheme: 'tel', path: item.value.replaceAll(RegExp(r'[^\d+]'), '')));
-    } else {
-      _openMap(item.value);
-    }
-  }
-
-  void _openMap(String address) {
-    if (address.isEmpty) return;
-    _open(Uri.https(
-        'www.google.com', '/maps/search/', {'api': '1', 'query': address}));
-  }
-
-  String _addressFrom(List<PageComponent> components) {
-    for (final c in components) {
-      if (c.type != 'contact-us_contact-information') continue;
-      final v = c.fields['address_text']?.toString().trim() ?? '';
-      if (v.isNotEmpty) return v;
-    }
-    return '';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.themeBackground,
-      appBar: AppBar(title: const Text('Contact Us'), elevation: 0.0),
+      appBar: AppBar(
+        title: const Text('Contact Us'),
+        elevation: 0.0,
+      ),
       body: GestureDetector(
         onTap: () => HelperFunctions().closeKeyboard(context),
         child: FoduuCheckInternetBody(
           child: Obx(() {
-            if (controller.isPageLoading.value &&
-                controller.components.isEmpty) {
+            final sections = controller.sectionsData.value;
+            final isInitialLoading = controller.isPageLoading.value &&
+                controller.rawSections.isEmpty &&
+                sections.infoBadges.cards.isEmpty;
+
+            if (isInitialLoading) {
               return Center(child: HelperFunctions().loadingIndicator());
             }
-            if (controller.components.isEmpty) {
-              return _ErrorState(
-                message: controller.error.value.isNotEmpty
-                    ? controller.error.value
-                    : 'Unable to load Contact page',
-                onRetry: controller.fetchContactPage,
-              );
-            }
-            final address = _addressFrom(controller.components);
+
             return RefreshIndicator(
-              onRefresh: controller.fetchContactPage,
+              onRefresh: controller.fetchContactLayout,
               color: context.themePrimaryColor,
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 keyboardDismissBehavior:
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: EdgeInsets.zero,
-                children: controller.components
-                    .map((c) => _section(context, c, address))
-                    .toList(),
+                children: [
+                  // Section 1: Enterprise Optical Fiber Hero Banner
+                  _ContactHeroBanner(data: sections.heroSlider),
+
+                  // Section 2: Contact Information Badges
+                  _ContactInfoBadgesSection(
+                    data: sections.infoBadges,
+                    onCardTap: _handleCardTap,
+                  ),
+
+                  // Section 3: Mid-Page Illustration Banner (Parent Web Parity)
+                  if (sections.promoBanner != null &&
+                      sections.promoBanner!.imageUrl.isNotEmpty)
+                    _ContactIllustrationBanner(
+                      data: sections.promoBanner!,
+                      onTap: () {
+                        final link = sections.promoBanner!.link;
+                        if (link.isNotEmpty && link.startsWith('http')) {
+                          _open(Uri.parse(link));
+                        }
+                      },
+                    ),
+
+                  // Section 4: Modern Contact Form Card
+                  _ContactFormCard(
+                    data: sections.formBuilder,
+                    controller: controller,
+                  ),
+
+                  const SizedBox(height: 36),
+                ],
               ),
             );
           }),
@@ -103,70 +101,103 @@ class ContactView extends GetView<ContactController> {
       ),
     );
   }
-
-  Widget _section(BuildContext context, PageComponent c, String address) {
-    switch (c.type) {
-      case 'services_page-header':
-        final t = c.fields['h1_services']?.toString().trim() ?? '';
-        return CmsPageHeader(
-          title: t.isEmpty ? 'Contact Us' : t,
-          imagePath: c.fields['header_image']?.toString() ?? '',
-        );
-      case 'contact-us_contact-information':
-        return _InfoSection(
-          data: ContactInfoSection.fromComponent(c),
-          onTap: _openItem,
-        );
-      case 'contact-us_contact-form-section_form_banner':
-        return _FormBanner(
-          data: FormBannerSection.fromComponent(c),
-          controller: controller,
-        );
-      case 'contact-us_google-map':
-        return address.isEmpty
-            ? const SizedBox.shrink()
-            : _MapCard(address: address, onTap: () => _openMap(address));
-      case 'spacer_bs':
-        final h = double.tryParse((c.fields['height']?.toString() ?? '')
-                .replaceAll(RegExp(r'[^0-9.]'), '')) ??
-            16.0;
-        return CmsSpacer(h.clamp(0, 120).toDouble());
-      case 'shop_footer-newsletter_form_banner':
-        return _NewsletterBanner(
-          data: NewsletterSection.fromComponent(c),
-          controller: controller,
-        );
-      default:
-        return const SizedBox.shrink();
-    }
-  }
 }
 
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.message, required this.onRetry});
-  final String message;
-  final VoidCallback onRetry;
+/// Section 1: Enterprise Optical Fiber Hero Banner matching Parent Website
+class _ContactHeroBanner extends StatelessWidget {
+  const _ContactHeroBanner({required this.data});
+  final ContactHeroSliderData data;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return Container(
+      width: double.infinity,
+      height: data.height.clamp(170, 230).toDouble(),
+      decoration: BoxDecoration(color: context.themeSecondryColor),
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          Icon(Icons.signal_wifi_connected_no_internet_4_rounded,
-              size: 48, color: context.themeSecondrytext.withOpacity(0.5)),
-          const SizedBox(height: 12),
-          Text(message,
-              style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: context.themeTextColor)),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: onRetry,
-            icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: const Text('Try Again'),
+          if (data.imageUrl.isNotEmpty)
+            CachedNetworkImage(
+              imageUrl: data.imageUrl,
+              fit: BoxFit.cover,
+              errorWidget: (_, __, ___) => CachedNetworkImage(
+                imageUrl:
+                    'https://vision.foduu.store/images/2026/08/29/slide-2-73b3aa6d.webp',
+                fit: BoxFit.cover,
+              ),
+            ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  const Color(0xFF0A192D).withValues(alpha: 0.45),
+                  const Color(0xFF0A192D).withValues(alpha: 0.88),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Glassmorphism Breadcrumb Badge
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.25),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.home_outlined,
+                          size: 13,
+                          color: Colors.white.withValues(alpha: 0.90)),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Home / Contact Us',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withValues(alpha: 0.95),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  data.heading.isNotEmpty ? data.heading : 'Contact Us',
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  width: 44,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: context.themePrimaryColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -174,38 +205,72 @@ class _ErrorState extends StatelessWidget {
   }
 }
 
-class _InfoSection extends StatelessWidget {
-  const _InfoSection({required this.data, required this.onTap});
-  final ContactInfoSection data;
-  final void Function(ContactInfoItem) onTap;
+/// Section 2: Contact Information Badges Section
+class _ContactInfoBadgesSection extends StatelessWidget {
+  const _ContactInfoBadgesSection({
+    required this.data,
+    required this.onCardTap,
+  });
+
+  final ContactInfoBadgesData data;
+  final void Function(ContactInfoCard) onCardTap;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 28, 20, 8),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(data.title,
-              style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: context.themeTextColor)),
-          if (data.description.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(data.description,
+          if (data.eyebrow.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: context.themePrimaryLight,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                data.eyebrow.toUpperCase(),
                 style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 13,
-                    height: 1.5,
-                    color: context.themeSecondrytext)),
+                  fontFamily: 'Poppins',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
+                  color: context.themePrimaryColor,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+          Text(
+            data.title.isNotEmpty ? data.title : 'Contact Information',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: context.themeTextColor,
+            ),
+          ),
+          if (data.subtitle.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              data.subtitle,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 13,
+                height: 1.5,
+                color: context.themeSecondrytext,
+              ),
+            ),
           ],
           const SizedBox(height: 16),
-          for (final item in data.items)
+          for (final card in data.cards)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _InfoCard(item: item, onTap: () => onTap(item)),
+              child: _ContactCardTile(
+                card: card,
+                onTap: () => onCardTap(card),
+              ),
             ),
         ],
       ),
@@ -213,61 +278,181 @@ class _InfoSection extends StatelessWidget {
   }
 }
 
-class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.item, required this.onTap});
-  final ContactInfoItem item;
+/// Single interactive Contact Card
+class _ContactCardTile extends StatelessWidget {
+  const _ContactCardTile({required this.card, required this.onTap});
+
+  final ContactInfoCard card;
+  final VoidCallback onTap;
+
+  IconData get _fallbackIcon {
+    if (card.isEmail) return Icons.mail_outline_rounded;
+    if (card.isPhone) return Icons.phone_in_talk_outlined;
+    return Icons.location_on_outlined;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: context.themeWhiteColor,
+      borderRadius: BorderRadius.circular(16),
+      elevation: 2.0,
+      shadowColor: Colors.black.withValues(alpha: 0.08),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: context.themeBorderColor.withValues(alpha: 0.70),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              // Circular/Rounded Gradient Icon Badge (Parent Web Parity)
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      context.themePrimaryColor,
+                      context.themeSecondryColor,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: context.themePrimaryColor.withValues(alpha: 0.30),
+                      blurRadius: 12,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: card.image.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: card.fullImageUrl,
+                          width: 26,
+                          height: 26,
+                          fit: BoxFit.contain,
+                          color: Colors.white,
+                          errorWidget: (_, __, ___) =>
+                              Icon(_fallbackIcon, color: Colors.white, size: 24),
+                        )
+                      : Icon(_fallbackIcon, color: Colors.white, size: 24),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      card.heading,
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w500,
+                        color: context.themeSecondrytext,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      card.text,
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: context.themeTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: context.themePrimaryLight,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.arrow_forward_rounded,
+                  color: context.themePrimaryColor,
+                  size: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Section 3: High-Impact Mid-Page Contact Illustration Banner
+class _ContactIllustrationBanner extends StatelessWidget {
+  const _ContactIllustrationBanner({
+    required this.data,
+    required this.onTap,
+  });
+
+  final ContactPromoBannerData data;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: '${item.heading}: ${item.value}',
-      child: Material(
-        color: context.themeWhiteColor,
-        borderRadius: BorderRadius.circular(14),
-        elevation: 1.5,
-        shadowColor: Colors.black26,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 14),
+      child: Semantics(
+        button: true,
+        label: 'Contact Us Illustration Banner',
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: _accent.withOpacity(0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(iconFromHtml(item.iconHtml),
-                      color: _accent, size: 24),
+          borderRadius: BorderRadius.circular(data.borderRadius),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(data.borderRadius),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(item.heading,
-                          style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 12,
-                              color: context.themeSecondrytext)),
-                      const SizedBox(height: 2),
-                      Text(item.value,
-                          style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w600,
-                              color: context.themeTextColor)),
-                    ],
-                  ),
-                ),
-                Icon(Icons.chevron_right_rounded,
-                    color: context.themeSecondrytext),
               ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(data.borderRadius),
+              child: CachedNetworkImage(
+                imageUrl: data.imageUrl,
+                height: data.height.clamp(150, 220).toDouble(),
+                width: double.infinity,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => Container(
+                  height: data.height.clamp(150, 220).toDouble(),
+                  color: Colors.grey.withValues(alpha: 0.12),
+                  child: const Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                ),
+                errorWidget: (_, __, ___) => CachedNetworkImage(
+                  imageUrl:
+                      'https://vision.foduu.store/images/2026/08/29/3-aaed866d.webp',
+                  height: data.height.clamp(150, 220).toDouble(),
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
           ),
         ),
@@ -276,38 +461,70 @@ class _InfoCard extends StatelessWidget {
   }
 }
 
-class _FormBanner extends StatelessWidget {
-  const _FormBanner({required this.data, required this.controller});
-  final FormBannerSection data;
+/// Section 4: Modern State-of-the-Art Contact Form Card
+class _ContactFormCard extends StatelessWidget {
+  const _ContactFormCard({
+    required this.data,
+    required this.controller,
+  });
+
+  final ContactFormBuilderData data;
   final ContactController controller;
+
+  IconData _iconForField(String name, String type) {
+    final lowerName = name.toLowerCase();
+    final lowerType = type.toLowerCase();
+    if (lowerType == 'email' || lowerName.contains('email')) {
+      return Icons.mail_outline_rounded;
+    }
+    if (lowerType == 'tel' ||
+        lowerName.contains('phone') ||
+        lowerName.contains('mobile')) {
+      return Icons.phone_outlined;
+    }
+    if (lowerType == 'textarea' ||
+        lowerName == 'message' ||
+        lowerName.contains('message')) {
+      return Icons.chat_bubble_outline_rounded;
+    }
+    return Icons.person_outline_rounded;
+  }
+
+  String _cleanPlaceholder(String name, String rawPlaceholder) {
+    if (rawPlaceholder.isNotEmpty && !rawPlaceholder.contains('.....')) {
+      return rawPlaceholder;
+    }
+    final lower = name.toLowerCase();
+    if (lower.contains('name')) return 'e.g. John Doe';
+    if (lower.contains('email')) return 'name@company.com';
+    if (lower.contains('phone') || lower.contains('mobile')) {
+      return '+91 98765 43210';
+    }
+    if (lower.contains('message')) {
+      return 'Describe your inquiry or optical product requirements...';
+    }
+    return 'Enter $name...';
+  }
 
   @override
   Widget build(BuildContext context) {
-    final bg = cmsImageUrl(data.backgroundImage);
-    return Container(
-      margin: const EdgeInsets.only(top: 20),
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
-      decoration: BoxDecoration(
-        color: _navy,
-        image: bg.isEmpty
-            ? null
-            : DecorationImage(
-                image: CachedNetworkImageProvider(bg),
-                fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(
-                    const Color(0xFF0A192D).withOpacity(0.72),
-                    BlendMode.darken),
-              ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 14),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(22),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.themeWhiteColor,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.grey.withValues(alpha: 0.15),
+            width: 1,
+          ),
           boxShadow: const [
             BoxShadow(
-                color: Colors.black26, blurRadius: 18, offset: Offset(0, 8))
+              color: Colors.black12,
+              blurRadius: 16,
+              offset: Offset(0, 6),
+            ),
           ],
         ),
         child: Form(
@@ -315,12 +532,38 @@ class _FormBanner extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(data.title,
-                  style: const TextStyle(
+              Row(
+                children: [
+                  Container(
+                    width: 4,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: context.themePrimaryColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    data.title.isNotEmpty ? data.title : 'Send Us a Message',
+                    style: TextStyle(
                       fontFamily: 'Poppins',
-                      fontSize: 20,
+                      fontSize: 19,
                       fontWeight: FontWeight.w700,
-                      color: _navy)),
+                      color: context.themeSecondryColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Have a question or looking for enterprise quotes? Fill out the details below and our team will get back to you.',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12.5,
+                  height: 1.45,
+                  color: context.themeSecondrytext,
+                ),
+              ),
               const SizedBox(height: 20),
               Obx(() {
                 final fields = controller.formFields;
@@ -347,11 +590,11 @@ class _FormBanner extends StatelessWidget {
                       keyType = TextInputType.phone;
                       formatters = [
                         FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(10),
+                        LengthLimitingTextInputFormatter(15),
                       ];
                     } else if (isMessage) {
                       keyType = TextInputType.multiline;
-                      maxLine = 5;
+                      maxLine = 4;
                     } else if (field.name == 'Name' ||
                         field.label.toLowerCase().contains('name')) {
                       formatters = [
@@ -360,42 +603,136 @@ class _FormBanner extends StatelessWidget {
                       ];
                     }
 
+                    final labelText =
+                        field.label.isNotEmpty ? field.label : field.name;
+                    final placeholder =
+                        _cleanPlaceholder(labelText, field.placeholder);
+
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 15),
-                      child: FoduuFormTextField(
-                        title: field.label.isNotEmpty
-                            ? field.label
-                            : field.name,
-                        controller: ctrl,
-                        fieldHintText: field.placeholder,
-                        keyType: keyType,
-                        maxLine: maxLine,
-                        inputFormatters: formatters,
-                        validCheck: (value) {
-                          final v = value?.trim() ?? '';
-                          if (field.required && v.isEmpty) {
-                            return 'Please enter ${field.label.isNotEmpty ? field.label : 'this field'}!';
-                          }
-                          if (isEmail &&
-                              v.isNotEmpty &&
-                              !GetUtils.isEmail(v)) {
-                            return 'Enter a valid email address!';
-                          }
-                          if (isTel && v.isNotEmpty && v.length != 10) {
-                            return 'Please enter valid 10-digit mobile number!';
-                          }
-                          if (isMessage && v.isNotEmpty && v.length < 3) {
-                            return 'Please enter message greater than 3 characters';
-                          }
-                          return null;
-                        },
-                        validationmsg: '',
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                labelText,
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: context.themeTextColor,
+                                ),
+                              ),
+                              if (field.required)
+                                const Text(
+                                  ' *',
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 7),
+                          TextFormField(
+                            controller: ctrl,
+                            keyboardType: keyType,
+                            maxLines: maxLine,
+                            inputFormatters: formatters,
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 14,
+                              color: context.themeTextColor,
+                            ),
+                            validator: (value) {
+                              final v = value?.trim() ?? '';
+                              if (field.required && v.isEmpty) {
+                                return 'Please enter $labelText';
+                              }
+                              if (isEmail &&
+                                  v.isNotEmpty &&
+                                  !GetUtils.isEmail(v)) {
+                                return 'Enter a valid email address';
+                              }
+                              if (isTel && v.isNotEmpty) {
+                                final minDigits = field.min ?? 10;
+                                if (v.length < minDigits) {
+                                  return 'Please enter valid $minDigits-digit phone number';
+                                }
+                              }
+                              if (isMessage && v.isNotEmpty && v.length < 3) {
+                                return 'Message must be at least 3 characters';
+                              }
+                              return null;
+                            },
+                            decoration: InputDecoration(
+                              hintText: placeholder,
+                              hintStyle: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 13.5,
+                                color: context.themeSecondrytext
+                                    .withValues(alpha: 0.70),
+                              ),
+                              prefixIcon: isMessage
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(
+                                          bottom: 50, left: 12, right: 12),
+                                      child: Icon(
+                                        _iconForField(field.name, field.type),
+                                        size: 20,
+                                        color: context.themeSecondrytext,
+                                      ),
+                                    )
+                                  : Icon(
+                                      _iconForField(field.name, field.type),
+                                      size: 20,
+                                      color: context.themeSecondrytext,
+                                    ),
+                              filled: true,
+                              fillColor: context.themeBackground,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.withValues(alpha: 0.25),
+                                  width: 1,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: context.themePrimaryColor,
+                                  width: 1.5,
+                                ),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: const BorderSide(
+                                  color: Colors.redAccent,
+                                  width: 1,
+                                ),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: const BorderSide(
+                                  color: Colors.redAccent,
+                                  width: 1.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   }).toList(),
                 );
               }),
-              const SizedBox(height: 5),
+              const SizedBox(height: 2),
+              // Privacy Policy Checkbox
               Obx(() => Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -436,15 +773,14 @@ class _FormBanner extends StatelessWidget {
                                       Get.toNamed(Routes.POLICY_DETAIL,
                                           arguments: {'type': 'privacy'});
                                     },
-                                    child: const Text(
+                                    child: Text(
                                       'privacy policy',
                                       style: TextStyle(
                                         fontFamily: 'Poppins',
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
-                                        color: _accent,
-                                        decoration:
-                                            TextDecoration.underline,
+                                        color: context.themePrimaryColor,
+                                        decoration: TextDecoration.underline,
                                       ),
                                     ),
                                   ),
@@ -456,17 +792,39 @@ class _FormBanner extends StatelessWidget {
                       ),
                     ],
                   )),
-              const SizedBox(height: 20),
+              const SizedBox(height: 22),
+              // Submit Button with icon and elevation
               Obx(() => controller.isLoading.value
                   ? Center(
                       child: CircularProgressIndicator(
                           color: context.themePrimaryColor))
-                  : AppButton(
-                      itemText: 'SUBMIT',
-                      keypressEvent: () {
-                        HelperFunctions().closeKeyboard(context);
-                        controller.sendFormData();
-                      },
+                  : SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.send_rounded, size: 18),
+                        label: const Text(
+                          'SUBMIT MESSAGE',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        onPressed: () {
+                          HelperFunctions().closeKeyboard(context);
+                          controller.sendFormData();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: context.themePrimaryColor,
+                          foregroundColor: Colors.white,
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
                     )),
             ],
           ),
@@ -476,153 +834,3 @@ class _FormBanner extends StatelessWidget {
   }
 }
 
-class _MapCard extends StatelessWidget {
-  const _MapCard({required this.address, required this.onTap});
-  final String address;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-      child: Semantics(
-        button: true,
-        label: 'Open $address in maps',
-        child: Material(
-          color: const Color(0xFFE8F4FB),
-          borderRadius: BorderRadius.circular(14),
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(14),
-            child: Container(
-              height: 140,
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  const Icon(Icons.map_outlined, size: 44, color: _accent),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Find us on the map',
-                            style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: _navy)),
-                        const SizedBox(height: 4),
-                        Text(address,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 12.5,
-                                color: _navy)),
-                        const SizedBox(height: 8),
-                        const Text('OPEN IN MAPS',
-                            style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1,
-                                color: _accent)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NewsletterBanner extends StatelessWidget {
-  const _NewsletterBanner({required this.data, required this.controller});
-  final NewsletterSection data;
-  final ContactController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 32, 20, 32),
-      color: _navy,
-      child: Column(
-        children: [
-          Icon(iconFromHtml(data.iconHtml, fallback: Icons.mail_outline),
-              size: 38, color: _accent),
-          const SizedBox(height: 12),
-          Text(data.title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white)),
-          if (data.description.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(data.description,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 13,
-                    height: 1.5,
-                    color: Colors.white.withOpacity(0.8))),
-          ],
-          const SizedBox(height: 18),
-          TextField(
-            controller: controller.newsletterController,
-            keyboardType: TextInputType.emailAddress,
-            textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.email],
-            decoration: InputDecoration(
-              hintText: 'Your E-mail Address',
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: Obx(() => ElevatedButton(
-                  onPressed: controller.isSubscribing.value
-                      ? null
-                      : () {
-                          HelperFunctions().closeKeyboard(context);
-                          controller.subscribeNewsletter();
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _accent,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: controller.isSubscribing.value
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
-                      : const Text('SUBSCRIBE',
-                          style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1)),
-                )),
-          ),
-        ],
-      ),
-    );
-  }
-}

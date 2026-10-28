@@ -11,7 +11,6 @@ import 'package:zouhi/components/commonWidgets/appbarIcons.dart';
 import 'package:zouhi/constants/helper_functions.dart';
 import 'package:zouhi/constants/theme.dart';
 import 'package:get/get.dart';
-import 'package:iconsax/iconsax.dart';
 
 import 'package:zouhi/app/controllers/internetconnection_controller.dart';
 import 'package:zouhi/components/check_internet_widget.dart';
@@ -739,7 +738,7 @@ class WishListCard extends StatelessWidget {
                           child: Row(
                             children: [
                               Icon(
-                                Iconsax.shopping_bag,
+                                Icons.shopping_bag_outlined,
                                 size: 15,
                                 color: context.themeTextColor,
                               ),
@@ -770,7 +769,7 @@ class WishListCard extends StatelessWidget {
                           child: Row(
                             children: [
                               Icon(
-                                Iconsax.trash,
+                                Icons.delete_outline_rounded,
                                 size: 16,
                                 color: context.themeTextColor,
                               ),

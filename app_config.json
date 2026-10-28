@@ -71,6 +71,30 @@
       "slug": "privacy-policy",
       "route": "/policy-detail?type=privacy",
       "description": "Privacy Policy — fully CMS broadcasting driven dynamic layout"
+    },
+    {
+      "title": "Solutions",
+      "slug": "solution",
+      "route": "/solution",
+      "description": "Solutions page — fully CMS broadcasting driven dynamic layout"
+    },
+    {
+      "title": "Contact Us",
+      "slug": "contact-us",
+      "route": "/contact",
+      "description": "Contact Us page — fully CMS broadcasting driven dynamic layout"
+    },
+    {
+      "title": "Cable Assemblies",
+      "slug": "cable-assemblies",
+      "route": "/cable-assemblies",
+      "description": "Cable Assemblies Configurator — fully CMS broadcasting driven dynamic layout"
+    },
+    {
+      "title": "MTP Solutions",
+      "slug": "mtp-solution",
+      "route": "/mtp-solution",
+      "description": "MTP Solutions Configurator — fully CMS broadcasting driven dynamic layout"
     }
   ],
   "layouts": {

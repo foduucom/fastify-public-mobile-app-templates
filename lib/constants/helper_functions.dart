@@ -10,7 +10,6 @@ import 'package:zouhi/app/modules/auth/auth_details.dart';
 import 'package:zouhi/components/foduuformtextfield.dart';
 import 'package:zouhi/constants/constants.dart';
 import 'package:zouhi/constants/theme_ext.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:zouhi/app/controllers/currency_controller.dart';
@@ -389,7 +388,7 @@ class HelperFunctions {
 
   void showOverlayIconDialog(
       {barrierDismissible = false,
-      icon = Iconsax.tick_circle,
+      icon = Icons.check_circle_outline_rounded,
       text = "Success"}) {
     final ctx = Get.context;
     Get.dialog(

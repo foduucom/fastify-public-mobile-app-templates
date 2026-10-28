@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:zouhi/constants/constants.dart';
 import 'package:zouhi/constants/theme_ext.dart';
-import 'package:iconsax/iconsax.dart';
 
 class SearchBarRounded extends StatelessWidget {
   const SearchBarRounded(
@@ -53,14 +52,14 @@ class SearchBarRounded extends StatelessWidget {
         ),
         fillColor: context.themegreyColor,
         prefixIcon: Icon(
-          Iconsax.search_normal_1,
+          Icons.search_rounded,
           size: 20,
           color: context.themeSecondrytext,
         ),
         // suffixIcon: TextButton(
         //   onPressed: () {},
         //   child: const Icon(
-        //     Iconsax.camera,
+        //     Icons.camera_alt_outlined,
         //     color: themeSecondrytext,
         //     size: 20,
         //   ),

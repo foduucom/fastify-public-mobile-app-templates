@@ -1,16 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:zouhi/app/data/basic_provider.dart';
+import 'package:zouhi/app/data/models/contact_broadcast_sections.dart';
 import 'package:zouhi/app/data/models/form_schema_model.dart';
 import 'package:zouhi/app/data/models/page_model.dart';
 import 'package:zouhi/app/data/services/form_api_service.dart';
 import 'package:zouhi/app/data/services/page_api_service.dart';
 import 'package:zouhi/constants/helper_functions.dart';
+import 'package:zouhi/core/foduuStudio/foduu_studio_layout_mixin.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 import '../../../controllers/api_exception_handle_controller.dart';
 
-class ContactController extends GetxController with BaseController {
+class ContactController extends GetxController
+    with BaseController, FoduuStudioLayoutMixin {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final isLoading = false.obs;
   var box = GetStorage();
@@ -19,10 +22,13 @@ class ContactController extends GetxController with BaseController {
   final PageApiService _pageService = PageApiService();
   final FormApiService _formService = FormApiService();
 
-  static const _cacheKey = 'cms_page_contact_content';
+  static const _cacheKey = 'cms_page_contact_sections';
+  static const _legacyCacheKey = 'cms_page_contact_content';
   static const _schemaCacheKey = 'cms_form_schema_contact_form';
 
-  // Ordered CMS sections (GET /api/pages/contact).
+  // Server-Driven CMS Broadcasting Layout
+  final rawSections = <dynamic>[].obs;
+  final sectionsData = ContactBroadcastSectionsData.canonical().obs;
   final components = <PageComponent>[].obs;
   final isPageLoading = false.obs;
   final error = ''.obs;
@@ -36,7 +42,7 @@ class ContactController extends GetxController with BaseController {
   final RxBool agreePolicy = true.obs;
   String currentFormSlug = 'contact-form';
 
-  // Legacy controllers kept for compatibility
+  // Legacy controllers kept for backwards compatibility
   TextEditingController get nameController =>
       _controllerForName('Name', fallbackType: 'text');
   TextEditingController get emailController =>
@@ -96,18 +102,31 @@ class ContactController extends GetxController with BaseController {
     _loadCached();
     _loadCachedFormSchema();
 
-    fetchContactPage();
-    fetchFormSchema(currentFormSlug);
+    fetchContactLayout();
   }
 
   void _loadCached() {
     try {
-      final cached = box.read(_cacheKey);
-      if (cached is List) {
-        final list = cached
+      final cachedSections = box.read(_cacheKey);
+      if (cachedSections is List && cachedSections.isNotEmpty) {
+        rawSections.assignAll(cachedSections);
+        sectionsData.value =
+            ContactBroadcastSectionsData.fromSections(cachedSections);
+        return;
+      }
+    } catch (_) {}
+
+    try {
+      final cachedLegacy = box.read(_legacyCacheKey);
+      if (cachedLegacy is List && cachedLegacy.isNotEmpty) {
+        final list = cachedLegacy
             .map((e) => PageComponent.fromJson(Map<String, dynamic>.from(e)))
             .toList();
-        if (list.isNotEmpty) components.assignAll(list);
+        if (list.isNotEmpty) {
+          components.assignAll(list);
+          sectionsData.value =
+              ContactBroadcastSectionsData.fromLegacyComponents(list);
+        }
       }
     } catch (_) {}
   }
@@ -126,7 +145,6 @@ class ContactController extends GetxController with BaseController {
       }
     } catch (_) {}
 
-    // Seed with standard fallback schema so form displays without flicker
     _updateFormFields(FormSchemaField.fallbackContactFormSchema);
   }
 
@@ -137,34 +155,103 @@ class ContactController extends GetxController with BaseController {
     }
   }
 
-  Future<void> fetchContactPage() async {
-    if (components.isEmpty) isPageLoading(true);
-    error('');
-    try {
-      final response = await _pageService.getPageByType('contact');
-      final content = response.data?.content ?? [];
-      if (content.isNotEmpty) {
-        components.assignAll(content);
-        box.write(_cacheKey, content.map((c) => c.toJson()).toList());
+  /// Intercepts both initial fetch and live WebSocket broadcasts from Fastify Studio
+  @override
+  void buildLayout(List sections) {
+    super.buildLayout(sections);
+    if (sections.isNotEmpty) {
+      rawSections.assignAll(sections);
+      sectionsData.value = ContactBroadcastSectionsData.fromSections(sections);
+      try {
+        box.write(_cacheKey, sections);
+      } catch (_) {}
 
-        // Extract formSlug from FormBannerSection if available
-        for (final c in content) {
-          if (c.type == 'contact-us_contact-form-section_form_banner') {
-            final slug = c.fields['form_slug']?.toString().trim() ?? '';
-            if (slug.isNotEmpty && slug != currentFormSlug) {
-              currentFormSlug = slug;
-              fetchFormSchema(slug);
-            }
-            break;
+      final newSlug = sectionsData.value.formBuilder.formSlug;
+      if (newSlug.isNotEmpty && newSlug != currentFormSlug) {
+        currentFormSlug = newSlug;
+        fetchFormSchema(newSlug);
+      }
+    }
+  }
+
+  /// 3-Tier resilient fetching for Contact Us layout
+  Future<void> fetchContactLayout() async {
+    isPageLoading(true);
+    error('');
+
+    try {
+      // Tier 1: Fastify CMS Broadcasting layout (GET /api/mobile-app/contact-us)
+      try {
+        final response = await fetchLayout('contact-us');
+        if (response != null && response is Map) {
+          final list = response['sections'];
+          if (list is List && list.isNotEmpty) {
+            rawSections.assignAll(list);
+            sectionsData.value = ContactBroadcastSectionsData.fromSections(list);
+            try {
+              box.write(_cacheKey, list);
+            } catch (_) {}
+
+            final formSlug = sectionsData.value.formBuilder.formSlug;
+            currentFormSlug =
+                formSlug.isNotEmpty ? formSlug : 'contact-form';
+            await fetchFormSchema(currentFormSlug);
+            return;
           }
         }
+      } catch (cmsError) {
+        debugPrint('ContactController: Tier 1 CMS fetchLayout error: $cmsError');
       }
+
+      // Tier 2: Fallback to legacy Page API (GET /api/pages/contact)
+      try {
+        final response = await _pageService.getPageByType('contact');
+        final content = response.data?.content ?? [];
+        if (content.isNotEmpty) {
+          components.assignAll(content);
+          sectionsData.value =
+              ContactBroadcastSectionsData.fromLegacyComponents(content);
+          try {
+            box.write(
+                _legacyCacheKey, content.map((c) => c.toJson()).toList());
+          } catch (_) {}
+
+          for (final c in content) {
+            if (c.type == 'contact-us_contact-form-section_form_banner') {
+              final slug = c.fields['form_slug']?.toString().trim() ?? '';
+              if (slug.isNotEmpty) {
+                currentFormSlug = slug;
+              }
+              break;
+            }
+          }
+          await fetchFormSchema(currentFormSlug);
+          return;
+        }
+      } catch (pageError) {
+        debugPrint('ContactController: Tier 2 Legacy Page error: $pageError');
+      }
+
+      // Tier 3: Website Canonical Defaults (https://vision.foduu.store/contact)
+      if (rawSections.isNotEmpty) {
+        sectionsData.value =
+            ContactBroadcastSectionsData.fromSections(rawSections);
+      } else {
+        sectionsData.value = ContactBroadcastSectionsData.canonical();
+      }
+      await fetchFormSchema(currentFormSlug);
     } catch (e) {
-      if (components.isEmpty) error('Unable to load Contact page');
+      debugPrint("ContactController.fetchContactLayout error: $e");
+      if (sectionsData.value.infoBadges.cards.isEmpty) {
+        error('Unable to load Contact page');
+      }
     } finally {
       isPageLoading(false);
     }
   }
+
+  /// Backwards compatibility alias
+  Future<void> fetchContactPage() => fetchContactLayout();
 
   Future<void> fetchFormSchema(String slug) async {
     isFormSchemaLoading(true);
@@ -172,8 +259,7 @@ class ContactController extends GetxController with BaseController {
       final fields = await _formService.getFormSchema(slug);
       if (fields.isNotEmpty) {
         _updateFormFields(fields);
-        box.write(
-            _schemaCacheKey, fields.map((f) => f.toJson()).toList());
+        box.write(_schemaCacheKey, fields.map((f) => f.toJson()).toList());
       }
     } catch (e) {
       debugPrint("fetchFormSchema error: $e");
@@ -241,7 +327,6 @@ class ContactController extends GetxController with BaseController {
   }
 
   Future<void> _submit() async {
-    // Construct dynamic payload mapping field.name -> field text value
     final Map<String, dynamic> payload = {};
 
     for (final field in formFields) {
@@ -250,7 +335,6 @@ class ContactController extends GetxController with BaseController {
       payload[field.name] = val;
     }
 
-    // Append policy agreement checkbox
     if (agreePolicy.value) {
       payload['check-box'] = ["I agree with the site privacy policy"];
     }
@@ -275,7 +359,7 @@ class ContactController extends GetxController with BaseController {
 
       HelperFunctions().showSnackBarSuccess(successMessage);
 
-      // Clear all fields after submission
+      // Reset form fields
       for (final ctrl in fieldControllers.values) {
         ctrl.clear();
       }

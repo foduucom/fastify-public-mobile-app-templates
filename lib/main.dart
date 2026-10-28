@@ -8,7 +8,8 @@ import 'package:zouhi/app/controllers/currency_controller.dart';
 import 'package:zouhi/app/controllers/internetconnection_controller.dart';
 import 'package:zouhi/core/services/wishlistService.dart';
 import 'package:zouhi/core/services/cartServcie.dart';
-import 'package:zouhi/constants/theme.dart';
+import 'package:zouhi/constants/dynamic_theme.dart';
+import 'package:zouhi/app/data/basic_provider.dart';
 import 'package:zouhi/core/foduuStudio/register_default_widgets.dart';
 import 'app/routes/app_pages.dart';
 
@@ -16,9 +17,44 @@ import 'package:flutter/foundation.dart';
 import 'package:zouhi/constants/constants.dart';
 import 'package:zouhi/core/studio_socket_routing.dart';
 
+Future<void> _refreshPublicSettings() async {
+  try {
+    final response =
+        await BasicProvider('public-settings', showSnackBar: false).getRequest();
+    if (response != null && response is Map) {
+      if (response.containsKey('storeSettings')) {
+        final storeSettings = response['storeSettings'];
+        if (storeSettings is Map &&
+            storeSettings.containsKey('app_theme_color')) {
+          final themeColor = storeSettings['app_theme_color'];
+          if (themeColor is Map) {
+            if (Get.isRegistered<ThemeController>()) {
+              Get.find<ThemeController>().updateThemeFromApi(
+                  Map<String, dynamic>.from(themeColor));
+            } else {
+              DynamicThemeManager().updateFromApi(
+                  Map<String, dynamic>.from(themeColor));
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {
+    debugPrint('⚠️ Error fetching public-settings for dynamic theme: $e');
+  }
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
+
+  // Initialize dynamic theme manager from local cache
+  await DynamicThemeManager().init();
+  Get.put(ThemeController(), permanent: true);
+
+  // Refresh public settings in background to keep theme up-to-date with backend CMS
+  _refreshPublicSettings();
+
   try {
     await Firebase.initializeApp();
   } catch (e) {
@@ -90,13 +126,19 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: "Vision Infrastructure",
-      theme: lightThemeData(),
-      themeMode: ThemeMode.light,
-      initialRoute: AppPages.INITIAL,
-      getPages: AppPages.routes,
+    return GetBuilder<ThemeController>(
+      builder: (themeController) {
+        return GetMaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: "Vision Infrastructure",
+          theme: themeController.lightTheme,
+          darkTheme: themeController.lightTheme,
+          themeMode: ThemeMode.light,
+          initialRoute: AppPages.INITIAL,
+          getPages: AppPages.routes,
+        );
+      },
     );
   }
 }
+

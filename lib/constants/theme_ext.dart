@@ -10,24 +10,24 @@ extension AppTheme on BuildContext {
 
   Color get themePrimaryColor => colors.primary;
   Color get themePrimaryDark => c.themePrimaryDark;
-  Color get themePrimaryLight => c.themePrimaryLight;
-  Color get themeBackground => c.themeBackground;
+  Color get themePrimaryLight => colors.surfaceVariant;
+  Color get themeBackground => colors.background;
   Color get themeSecondryColor => colors.secondary;
   Color get themeTextColor => colors.onSurface;
-  Color get themetitleColor => c.themeHeadingColor;
-  Color get themeSecondrytext => c.themeSecondrytext;
+  Color get themetitleColor => colors.onSurface;
+  Color get themeSecondrytext => colors.onSurfaceVariant;
   Color get themeBorderColor => colors.outline;
   Color get themeWhiteColor => colors.surface;
-  Color get themegreyColor => c.themegreyColor;
-  Color get themeCardColor =>
-      isDark ? const Color(0xFF1E293B) : Theme.of(this).cardColor;
+  Color get themegreyColor => colors.surfaceVariant;
+  Color get themeCardColor => Theme.of(this).cardColor;
 
   // Status / accent colors.
   Color get themePurpleColor => c.themePurpleColor;
-  Color get themeRedColor => c.themeRedColor;
+  Color get themeRedColor => colors.error;
   Color get themeYellowColor => c.themeYellowColor;
   Color get themeSkyBlueColor => c.themeSkyBlueColor;
   Color get themeBlueColor => c.themeBlueColor;
   Color get themeGreenColor => c.themeGreenColor;
   Color get themeTealColor => c.themeTealColor;
 }
+

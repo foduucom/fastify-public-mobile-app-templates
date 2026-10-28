@@ -11,7 +11,6 @@ import 'package:zouhi/constants/theme.dart';
 import 'package:get/get.dart';
 import 'package:zouhi/app/modules/auth/auth_details.dart';
 import 'package:zouhi/components/cart_auth_bottom_sheet.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:zouhi/app/controllers/currency_controller.dart';
 import 'package:zouhi/constants/theme_ext.dart';
 import 'package:zouhi/components/catalog_mode_bottom_sheet.dart';
@@ -309,7 +308,7 @@ class SearchView extends GetView<SearchsController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader("Trending Searches", Iconsax.trend_up),
+        _sectionHeader("Trending Searches", Icons.trending_up_rounded),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Wrap(
@@ -338,7 +337,7 @@ class SearchView extends GetView<SearchsController> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          i < 2 ? Iconsax.flash_1 : Iconsax.trend_up,
+                          i < 2 ? Icons.bolt_rounded : Icons.trending_up_rounded,
                           size: 13,
                           color: primaryColor,
                         ),
@@ -373,7 +372,7 @@ class SearchView extends GetView<SearchsController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader("Recent Searches", Iconsax.clock,
+        _sectionHeader("Recent Searches", Icons.access_time_rounded,
             actionText: "Clear all", onAction: controller.clearRecentSearches),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -423,7 +422,7 @@ class SearchView extends GetView<SearchsController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader("Shop by category", Iconsax.category,
+        _sectionHeader("Shop by category", Icons.category_outlined,
             actionText: "View all",
             onAction: () => BottombarController.switchTab(1)),
         Padding(
@@ -450,7 +449,7 @@ class SearchView extends GetView<SearchsController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader("Best sellers", Iconsax.trend_up,
+        _sectionHeader("Best sellers", Icons.trending_up_rounded,
             actionText: "See all",
             onAction: () => BottombarController.switchTab(1)),
         SizedBox(
@@ -662,7 +661,7 @@ class SearchView extends GetView<SearchsController> {
           Center(
             child: Column(
               children: [
-                Icon(Iconsax.search_status,
+                Icon(Icons.search_off_rounded,
                     size: 72, color: Get.context!.themeBorderColor),
                 const SizedBox(height: 16),
                 Padding(
@@ -805,7 +804,7 @@ class SearchView extends GetView<SearchsController> {
                     width: 96,
                     height: 72,
                     color: Colors.grey.shade100,
-                    child: Icon(Iconsax.document,
+                    child: Icon(Icons.article_outlined,
                         color: Colors.grey.shade300, size: 28),
                   ),
                 ),
@@ -942,7 +941,7 @@ class SearchView extends GetView<SearchsController> {
                     ),
                   ),
                   errorWidget: (_, url, error) => Icon(
-                    Iconsax.category,
+                    Icons.category_outlined,
                     color: secondaryTextColor,
                     size: 24,
                   ),
@@ -999,7 +998,7 @@ class SearchView extends GetView<SearchsController> {
                     fontSize: 18,
                     color: Get.context!.themeTextColor),
               ),
-              //const Icon(Iconsax.filter_edit, size: 20, color: Colors.grey),
+              //const Icon(Icons.tune_rounded, size: 20, color: Colors.grey),
             ],
           ),
         ),
@@ -1128,7 +1127,7 @@ class SearchView extends GetView<SearchsController> {
             bool isLiked =
                 wishController.wishlistProductIds.contains(productId);
             return Icon(
-              isLiked ? Iconsax.heart5 : Iconsax.heart,
+              isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
               size: 16,
               color: isLiked ? Colors.red : Colors.grey,
             );
@@ -1218,15 +1217,15 @@ class SearchView extends GetView<SearchsController> {
     String label;
 
     if (type == 'category') {
-      icon = Iconsax.category;
+      icon = Icons.category_outlined;
       iconColor = Colors.orange;
       label = "CATEGORY";
     } else if (type == 'blog') {
-      icon = Iconsax.document;
+      icon = Icons.article_outlined;
       iconColor = Colors.blue;
       label = "BLOG";
     } else {
-      icon = Iconsax.shopping_bag;
+      icon = Icons.shopping_bag_outlined;
       iconColor = themePrimaryColor;
       label = "PRODUCT";
     }
@@ -1495,7 +1494,7 @@ class SearchView extends GetView<SearchsController> {
                       height: 110,
                       width: double.infinity,
                       color: Colors.grey.shade100,
-                      child: Icon(Iconsax.document,
+                      child: Icon(Icons.article_outlined,
                           color: Colors.grey.shade300, size: 30),
                     ),
                   ),

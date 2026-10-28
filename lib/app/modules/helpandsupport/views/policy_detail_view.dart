@@ -14,8 +14,8 @@ class PolicyDetailView extends GetView<PolicyController> {
 
   @override
   Widget build(BuildContext context) {
-    final isDocumentStyle = controller.policyType == 'terms' ||
-        controller.policyType == 'privacy';
+    final isDocumentStyle =
+        controller.policyType == 'terms' || controller.policyType == 'privacy';
 
     return Scaffold(
       backgroundColor:
@@ -275,6 +275,9 @@ class PolicyDetailView extends GetView<PolicyController> {
           ),
         );
 
+      case PrivacyBlockType.bulletList:
+        return _buildPrivacyBulletList(context, block);
+
       case PrivacyBlockType.contact:
         return _buildPrivacyContactBlock(context, block);
 
@@ -305,182 +308,519 @@ class PolicyDetailView extends GetView<PolicyController> {
     }
   }
 
+  Widget _buildPrivacyBulletList(
+    BuildContext context,
+    PrivacyContentBlock block,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. Intro text (e.g. "Depending on how you interact with us, we may collect:")
+          if (block.introText != null && block.introText!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10.0),
+              child: _buildDynamicLinkedText(
+                context,
+                block.introText!,
+                size: block.size,
+                alignment: block.alignment,
+              ),
+            ),
+
+          // 2. Unordered bullet items (<ul><li>...</li></ul>)
+          ...block.listItems.map((item) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 9.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Brand navy bullet dot centered vertically to the first line
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(top: 8.5, left: 2.0, right: 10.0),
+                    child: Container(
+                      width: 6.0,
+                      height: 6.0,
+                      decoration: BoxDecoration(
+                        color: context.themePrimaryColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  // List item body with URL linking and Poppins typography
+                  Expanded(
+                    child: _buildDynamicLinkedText(
+                      context,
+                      item,
+                      size: block.size,
+                      alignment: block.alignment,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+
+          // 3. Outro text (e.g. "We do not seek to collect sensitive information...")
+          if (block.outroText != null && block.outroText!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: _buildDynamicLinkedText(
+                context,
+                block.outroText!,
+                size: block.size,
+                alignment: block.alignment,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPrivacyContactBlock(
     BuildContext context,
     PrivacyContentBlock block,
   ) {
-    final portalUrl = block.url ?? 'https://vision.vbought.com';
+    String? email = block.email;
+    String? website = block.website;
+    String? companyName = block.companyName;
+    String? effectiveDate = block.effectiveDate;
+    String? regulatoryNotice = block.regulatoryNotice;
+    String intro = block.text;
+
+    // Fallback on-the-fly extraction if block was parsed from a raw paragraph or legacy cache
+    if (email == null) {
+      final emailMatch =
+          RegExp(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}')
+              .firstMatch(block.text);
+      email = emailMatch?.group(0) ?? 'sales@visioninfrastructurecanada.com';
+    }
+    if (website == null) {
+      final webMatch =
+          RegExp(r'(?:https?:\/\/|www\.)[a-zA-Z0-9.\-_]+(?:\/[^\s]*)?')
+              .firstMatch(block.text);
+      website = webMatch?.group(0) ?? 'www.visioninfrastructurecanada.com';
+    }
+    if (companyName == null) {
+      if (block.text.contains('Vision Infrastructure Canada')) {
+        companyName = 'Vision Infrastructure Canada';
+      } else {
+        companyName = 'Vision Infrastructure Canada';
+      }
+    }
+    if (effectiveDate == null) {
+      final dateMatch = RegExp(
+        r'(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}',
+        caseSensitive: false,
+      ).firstMatch(block.text);
+      effectiveDate = dateMatch?.group(0);
+    }
+    if (regulatoryNotice == null) {
+      final regMatch = RegExp(
+        r'We will review privacy enquiries and complaints and respond within a reasonable period[\s\S]*?(?:jurisdiction\.|applicable law\.)',
+        caseSensitive: false,
+      ).firstMatch(block.text);
+      regulatoryNotice = regMatch?.group(0)?.trim();
+    }
+    // Clean intro text from raw block text
+    final introMatch = RegExp(
+      r'^([\s\S]*?)(?:Vision Infrastructure Canada|Email:|Website:|Webiste:|sales@)',
+      caseSensitive: false,
+    ).firstMatch(block.text);
+    if (introMatch != null && introMatch.group(1)!.trim().isNotEmpty) {
+      intro = introMatch.group(1)!.trim();
+    } else if (intro.toLowerCase().contains('sales@') ||
+        intro.toLowerCase().contains('www.')) {
+      intro =
+          'If you have questions about this Privacy Policy, wish to make a privacy request, or want to raise a concern about how personal information is handled, please contact:';
+    }
+
+    final webUrl = block.url ??
+        (website.startsWith('http') ? website : 'https://$website');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 12.0),
-          child: Text(
-            block.text,
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: block.size,
-              height: 1.65,
-              color: context.themeTextColor,
+        // 1. Intro text
+        if (intro.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: Text(
+              intro,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 14.5,
+                height: 1.6,
+                color: context.themeTextColor,
+              ),
             ),
           ),
-        ),
+
+        // 2. Elevated Official Contact Card (Industry Standard)
         Container(
           width: double.infinity,
-          margin: const EdgeInsets.only(top: 4.0, bottom: 8.0),
-          padding: const EdgeInsets.all(16.0),
+          margin: const EdgeInsets.only(bottom: 16.0),
           decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(14.0),
+            color: context.themeWhiteColor,
+            borderRadius: BorderRadius.circular(16.0),
             border: Border.all(
-              color: context.themeBorderColor.withValues(alpha: 0.85),
-              width: 1.0,
+              color: context.themeBorderColor.withValues(alpha: 0.9),
+              width: 1.2,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
+                color: context.themePrimaryColor.withValues(alpha: 0.05),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 42.0,
-                    height: 42.0,
-                    decoration: BoxDecoration(
-                      color: context.themePrimaryColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    child: Icon(
-                      Icons.privacy_tip_outlined,
-                      color: context.themePrimaryColor,
-                      size: 24.0,
+              // Header banner with official company badge
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 14.0),
+                decoration: BoxDecoration(
+                  color: context.themePrimaryColor.withValues(alpha: 0.05),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(15.0),
+                    topRight: Radius.circular(15.0),
+                  ),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: context.themeBorderColor.withValues(alpha: 0.7),
+                      width: 1.0,
                     ),
                   ),
-                  const SizedBox(width: 12.0),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Vision Privacy Team',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w700,
-                            color: context.themeTextColor,
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        Text(
-                          'Questions about your data protection or privacy rights?',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 12.0,
-                            color: context.themeSecondrytext,
-                          ),
-                        ),
-                      ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40.0,
+                      height: 40.0,
+                      decoration: BoxDecoration(
+                        color:
+                            context.themePrimaryColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      child: Icon(
+                        Icons.shield_outlined,
+                        color: context.themePrimaryColor,
+                        size: 22.0,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 12.0),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            companyName,
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 15.0,
+                              fontWeight: FontWeight.w700,
+                              color: context.themeTextColor,
+                            ),
+                          ),
+                          const SizedBox(height: 2.0),
+                          Text(
+                            'Official Privacy & Compliance Office',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 12.0,
+                              color: context.themeSecondrytext,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 14.0),
-              Divider(
-                height: 1.0,
-                thickness: 1.0,
-                color: context.themeBorderColor.withValues(alpha: 0.7),
+
+              // Interactive Channels
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    // Email Tile
+                    _buildInteractiveContactTile(
+                      context,
+                      icon: Icons.mail_outline_rounded,
+                      title: 'Email',
+                      value: email,
+                      actionLabel: 'Send email',
+                      onTap: () => controller.openUrl('mailto:$email'),
+                    ),
+                    const SizedBox(height: 12.0),
+                    Divider(
+                      height: 1.0,
+                      thickness: 0.8,
+                      color: context.themeBorderColor.withValues(alpha: 0.6),
+                    ),
+                    const SizedBox(height: 12.0),
+                    // Website Tile (Typo corrected, clickable)
+                    _buildInteractiveContactTile(
+                      context,
+                      icon: Icons.language_rounded,
+                      title: 'Website',
+                      value: website,
+                      actionLabel: 'Open site',
+                      trailingIcon: Icons.open_in_new_rounded,
+                      onTap: () => controller.openUrl(webUrl),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12.0),
-              Row(
-                children: [
-                  // Primary in-app Contact button
-                  Expanded(
-                    child: Material(
-                      color: context.themePrimaryColor,
-                      borderRadius: BorderRadius.circular(9.0),
-                      child: InkWell(
-                        onTap: () => Get.toNamed('/contact'),
-                        borderRadius: BorderRadius.circular(9.0),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.mail_outline_rounded,
-                                color: context.themeWhiteColor,
-                                size: 16.0,
-                              ),
-                              const SizedBox(width: 6.0),
-                              Text(
-                                'Contact Us',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 13.0,
-                                  fontWeight: FontWeight.w600,
+
+              // Action Buttons Bar
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 16.0, right: 16.0, bottom: 16.0),
+                child: Row(
+                  children: [
+                    // Primary Email Button
+                    Expanded(
+                      child: Material(
+                        color: context.themePrimaryColor,
+                        borderRadius: BorderRadius.circular(10.0),
+                        child: InkWell(
+                          onTap: () => controller.openUrl('mailto:$email'),
+                          borderRadius: BorderRadius.circular(10.0),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 11.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.email_outlined,
                                   color: context.themeWhiteColor,
+                                  size: 16.0,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 8.0),
+                                Text(
+                                  'Email Us',
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 13.0,
+                                    fontWeight: FontWeight.w600,
+                                    color: context.themeWhiteColor,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10.0),
-                  // Secondary external website portal button
-                  Expanded(
-                    child: Material(
-                      color: context.themeWhiteColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(9.0),
-                        side: BorderSide(
-                          color: context.themePrimaryColor,
-                          width: 1.2,
+                    const SizedBox(width: 12.0),
+                    // Secondary Website Button
+                    Expanded(
+                      child: Material(
+                        color: context.themeWhiteColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          side: BorderSide(
+                            color: context.themePrimaryColor,
+                            width: 1.3,
+                          ),
                         ),
-                      ),
-                      child: InkWell(
-                        onTap: () => controller.openUrl(portalUrl),
-                        borderRadius: BorderRadius.circular(9.0),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.open_in_new_rounded,
-                                color: context.themePrimaryColor,
-                                size: 15.0,
-                              ),
-                              const SizedBox(width: 6.0),
-                              Text(
-                                'Visit Website',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 13.0,
-                                  fontWeight: FontWeight.w600,
+                        child: InkWell(
+                          onTap: () => controller.openUrl(webUrl),
+                          borderRadius: BorderRadius.circular(10.0),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 11.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.open_in_new_rounded,
                                   color: context.themePrimaryColor,
+                                  size: 15.0,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 8.0),
+                                Text(
+                                  'Visit Website',
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 13.0,
+                                    fontWeight: FontWeight.w600,
+                                    color: context.themePrimaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
         ),
+
+        // 3. Regulatory compliance / enquiries response card
+        if (regulatoryNotice != null && regulatoryNotice.isNotEmpty)
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 16.0),
+            padding: const EdgeInsets.all(14.0),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12.0),
+              border: Border.all(
+                color: const Color(0xFFE2E8F0),
+                width: 1.0,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  color: context.themePrimaryColor,
+                  size: 20.0,
+                ),
+                const SizedBox(width: 10.0),
+                Expanded(
+                  child: Text(
+                    regulatoryNotice,
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 12.5,
+                      height: 1.55,
+                      color: context.themeSecondrytext,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        // 4. Effective Date Badge (if present)
+        if (effectiveDate != null && effectiveDate.isNotEmpty)
+          Container(
+            width: double.infinity,
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+            decoration: BoxDecoration(
+              color: context.themegreyColor.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(10.0),
+              border: Border.all(
+                color: context.themeBorderColor.withValues(alpha: 0.7),
+                width: 1.0,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.calendar_today_outlined,
+                  size: 15.0,
+                  color: context.themeSecondrytext,
+                ),
+                const SizedBox(width: 8.0),
+                Expanded(
+                  child: Text(
+                    'Effective Date: $effectiveDate • $companyName',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 12.0,
+                      fontWeight: FontWeight.w500,
+                      color: context.themeSecondrytext,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
+    );
+  }
+
+  /// Reusable interactive contact channel tile for email/website
+  Widget _buildInteractiveContactTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String value,
+    required String actionLabel,
+    IconData trailingIcon = Icons.arrow_forward_ios_rounded,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10.0),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 4.0),
+          child: Row(
+            children: [
+              Container(
+                width: 38.0,
+                height: 38.0,
+                decoration: BoxDecoration(
+                  color: context.themePrimaryColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(9.0),
+                ),
+                child: Icon(
+                  icon,
+                  color: context.themePrimaryColor,
+                  size: 19.0,
+                ),
+              ),
+              const SizedBox(width: 12.0),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w500,
+                        color: context.themeSecondrytext,
+                      ),
+                    ),
+                    const SizedBox(height: 2.0),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        value,
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: context.themePrimaryColor,
+                          decoration: TextDecoration.underline,
+                          decorationColor:
+                              context.themePrimaryColor.withValues(alpha: 0.4),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                trailingIcon,
+                size: trailingIcon == Icons.arrow_forward_ios_rounded
+                    ? 13.0
+                    : 16.0,
+                color: context.themePrimaryColor.withValues(alpha: 0.7),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -830,14 +1170,26 @@ class PolicyDetailView extends GetView<PolicyController> {
     if (alignment == 'center') textAlign = TextAlign.center;
     if (alignment == 'right') textAlign = TextAlign.right;
 
-    final sanitizedText = text
+    // 1. Sanitize text: fix typo "Webiste:", filter out internal lawyer/CMS template notes
+    String sanitizedText = text
+        .replaceAll(RegExp(r'Webiste:', caseSensitive: false), 'Website:')
+        .replaceAll(
+          RegExp(
+            r'Important:\s*This policy is a general template and should be reviewed against[^\n]*before publication\.?',
+            caseSensitive: false,
+          ),
+          '',
+        )
         .replaceAll('\r\n', '\n')
         .replaceAll(RegExp(r'\n[ \t]+'), '\n')
         .replaceAll(RegExp(r'\n{3,}'), '\n\n')
         .trim();
 
-    final urlRegex = RegExp(r'(https?:\/\/[^\s]+)');
-    final matches = urlRegex.allMatches(sanitizedText);
+    // 2. Comprehensive regex matching emails, web URLs, and www domains
+    final linkRegex = RegExp(
+      r'([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})|((?:https?:\/\/|www\.)[^\s]+)',
+    );
+    final matches = linkRegex.allMatches(sanitizedText);
 
     if (matches.isEmpty) {
       return Text(
@@ -859,14 +1211,22 @@ class PolicyDetailView extends GetView<PolicyController> {
         spans
             .add(TextSpan(text: sanitizedText.substring(lastEnd, match.start)));
       }
-      final url = match.group(0)!;
+      final matchedString = match.group(0)!;
+      final isEmail =
+          matchedString.contains('@') && !matchedString.startsWith('http');
+      final targetUrl = isEmail
+          ? 'mailto:$matchedString'
+          : (matchedString.startsWith('http')
+              ? matchedString
+              : 'https://$matchedString');
+
       spans.add(
         WidgetSpan(
           alignment: PlaceholderAlignment.middle,
           child: InkWell(
-            onTap: () => controller.openUrl(url),
+            onTap: () => controller.openUrl(targetUrl),
             child: Text(
-              url,
+              matchedString,
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: size,

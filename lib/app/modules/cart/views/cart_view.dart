@@ -18,7 +18,6 @@ import 'package:zouhi/constants/theme.dart';
 import 'package:zouhi/constants/theme_ext.dart';
 import 'package:get/get.dart';
 import 'package:zouhi/app/controllers/currency_controller.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:lottie/lottie.dart';
 
 class CartView extends GetView<CartController> {
@@ -1260,7 +1259,7 @@ class ShoppingCartItem extends GetView<CartController> {
             onTap: () => _showRemoveDialog(),
             child: Row(
               children: [
-                Icon(Iconsax.trash,
+                Icon(Icons.delete_outline_rounded,
                     size: 16, color: Get.context!.themeTextColor),
                 const SizedBox(width: 5.0),
                 Text(

@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:zouhi/app/controllers/api_exception_handle_controller.dart';
+import 'package:zouhi/app/data/models/cable_assemblies_sections.dart';
 import 'package:zouhi/app/data/services/form_api_service.dart';
 import 'package:zouhi/constants/constants.dart';
+import 'package:zouhi/core/foduuStudio/foduu_studio_layout_mixin.dart';
 
-class CableAssembliesController extends GetxController {
+class CableAssembliesController extends GetxController
+    with BaseController, FoduuStudioLayoutMixin {
   final formKey = GlobalKey<FormState>();
+
+  static const _cacheKey = 'cms_page_cable_assemblies_sections';
+  final box = GetStorage();
+
+  // ── Dynamic CMS Broadcasting Reactive Layout ────────────────────────────────
+  final sectionsData = CableAssembliesSectionsData.canonical().obs;
+  final isPageLoading = false.obs;
 
   // ── Section 1: A END (Pulling End) ──────────────────────────────────────────
   final aConnectorType = 'LC'.obs;
@@ -39,6 +51,7 @@ class CableAssembliesController extends GetxController {
   final additionalNotes = TextEditingController();
 
   final isSubmitting = false.obs;
+  final isSchemaLoading = false.obs;
 
   // ── Dynamic Reactive Option Lists (Synced from GET /api/forms/cable-form) ───
   final connectorOptions = <String>[
@@ -123,12 +136,93 @@ class CableAssembliesController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _fetchSchemaOptions();
+    _prefillUserDetails();
+    _loadCachedLayout();
+    fetchCableAssembliesLayout();
   }
 
-  Future<void> _fetchSchemaOptions() async {
+  void _prefillUserDetails() {
     try {
-      final fields = await _formApiService.getFormSchema('cable-form');
+      final userDetails = box.read('userDetails');
+      if (userDetails is Map) {
+        final user = userDetails['user'];
+        if (user is Map) {
+          final userEmail = user['email']?.toString() ?? '';
+          final userPhone =
+              user['mobile']?.toString() ?? user['phone']?.toString() ?? '';
+          if (email.text.isEmpty && userEmail.isNotEmpty) {
+            email.text = userEmail;
+          }
+          if (contactNumber.text.isEmpty && userPhone.isNotEmpty) {
+            contactNumber.text = userPhone;
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  void _loadCachedLayout() {
+    try {
+      final cached = box.read(_cacheKey);
+      if (cached is List && cached.isNotEmpty) {
+        sectionsData.value = CableAssembliesSectionsData.fromSections(cached);
+      }
+    } catch (_) {}
+  }
+
+  /// Intercepts both initial fetch and live WebSocket broadcasts from Fastify Studio
+  @override
+  void buildLayout(List sections) {
+    super.buildLayout(sections);
+    if (sections.isNotEmpty) {
+      sectionsData.value = CableAssembliesSectionsData.fromSections(sections);
+      try {
+        box.write(_cacheKey, sections);
+      } catch (_) {}
+
+      final slug = sectionsData.value.formBuilder.formSlug;
+      if (slug.isNotEmpty) {
+        _fetchSchemaOptions(slug);
+      }
+    }
+  }
+
+  /// 3-Tier Resilient CMS Broadcasting Layout Fetch
+  Future<void> fetchCableAssembliesLayout() async {
+    isPageLoading(true);
+
+    try {
+      // Tier 1: Fastify CMS Broadcasting (GET /api/mobile-app/cable-assemblies)
+      final response = await fetchLayout('cable-assemblies');
+      if (response != null && response is Map) {
+        final list = response['sections'];
+        if (list is List && list.isNotEmpty) {
+          sectionsData.value = CableAssembliesSectionsData.fromSections(list);
+          try {
+            box.write(_cacheKey, list);
+          } catch (_) {}
+
+          final slug = sectionsData.value.formBuilder.formSlug;
+          await _fetchSchemaOptions(slug.isNotEmpty ? slug : 'cable-form');
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('CableAssembliesController fetchLayout error: $e');
+    } finally {
+      isPageLoading(false);
+    }
+
+    // Tier 2 & 3: Fallback to cached or canonical defaults
+    final slug = sectionsData.value.formBuilder.formSlug;
+    await _fetchSchemaOptions(slug.isNotEmpty ? slug : 'cable-form');
+  }
+
+  /// Dynamic Form Schema Query per backend guide (GET /api/forms/:slug)
+  Future<void> _fetchSchemaOptions([String formSlug = 'cable-form']) async {
+    isSchemaLoading(true);
+    try {
+      final fields = await _formApiService.getFormSchema(formSlug);
       for (final field in fields) {
         if (field.options.isEmpty) continue;
         final opts = field.options
@@ -162,6 +256,8 @@ class CableAssembliesController extends GetxController {
       }
     } catch (_) {
       // Clean offline fallback to pre-seeded arrays
+    } finally {
+      isSchemaLoading(false);
     }
   }
 
@@ -177,6 +273,7 @@ class CableAssembliesController extends GetxController {
     super.onClose();
   }
 
+  /// Form Submission per Backend Guide (POST /api/forms/:slug/submit)
   Future<void> submitCableForm(BuildContext context) async {
     if (!formKey.currentState!.validate()) {
       Get.snackbar(
@@ -233,7 +330,10 @@ class CableAssembliesController extends GetxController {
         'Additional Notes': specSummary,
       };
 
-      final response = await _formApiService.submitForm('cable-form', payload);
+      final formSlug = sectionsData.value.formBuilder.formSlug;
+      final targetSlug = formSlug.isNotEmpty ? formSlug : 'cable-form';
+
+      final response = await _formApiService.submitForm(targetSlug, payload);
 
       isSubmitting.value = false;
       if (response != null) {
@@ -241,10 +341,21 @@ class CableAssembliesController extends GetxController {
       }
     } catch (e) {
       isSubmitting.value = false;
-      final msg = e.toString().replaceAll('Exception:', '').trim();
+      var msg = e.toString().replaceAll('Exception:', '').trim();
+
+      // Check for Redis rate limit (HTTP 429) per backend guide
+      if (msg.contains('429') ||
+          msg.toLowerCase().contains('too many') ||
+          msg.toLowerCase().contains('rate limit')) {
+        msg =
+            'You have submitted this form too many times. Please try again later.';
+      }
+
       Get.snackbar(
-        'Submission Failed',
-        msg.isNotEmpty ? msg : 'Unable to submit your cable assembly inquiry. Please try again.',
+        'Submission Notice',
+        msg.isNotEmpty
+            ? msg
+            : 'Unable to submit your cable assembly inquiry. Please try again.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: const Color(0xFFC62828),
         colorText: Colors.white,

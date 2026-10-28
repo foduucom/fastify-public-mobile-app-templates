@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:zouhi/app/routes/app_pages.dart';
 import 'package:zouhi/components/buttons/appbutton.dart';
 import 'package:zouhi/constants/theme_ext.dart';
@@ -37,12 +36,12 @@ Future<void> showCartAuthBottomSheet({String? title, String? message}) async {
                 color: context.themeRedColor.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                Iconsax.shopping_bag,
-                size: 30,
-                color: context.themeRedColor,
-              ),
+            child: Icon(
+              Icons.shopping_bag_outlined,
+              size: 30,
+              color: context.themeRedColor,
             ),
+          ),
             const SizedBox(height: 18),
             Text(
               title ?? 'Sign in to Add to Cart',

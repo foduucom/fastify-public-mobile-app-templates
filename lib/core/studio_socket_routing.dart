@@ -9,6 +9,10 @@ import 'package:get/get.dart';
 import 'package:zouhi/app/modules/shop/shop_navigation.dart';
 import 'package:zouhi/app/modules/aboutus/controllers/aboutus_controller.dart';
 import 'package:zouhi/app/modules/helpandsupport/controllers/policy_controller.dart';
+import 'package:zouhi/app/modules/pages/solutions/controllers/solutions_controller.dart';
+import 'package:zouhi/app/modules/contact/controller/contact_controller.dart';
+import 'package:zouhi/app/modules/cable_assemblies/controllers/cable_assemblies_controller.dart';
+import 'package:zouhi/app/modules/mtp_solution/controllers/mtp_solution_controller.dart';
 
 class StudioSocketRouting extends GetxController {
   final String? initialSlug;
@@ -165,6 +169,47 @@ class StudioSocketRouting extends GetxController {
             Routes.POLICY_DETAIL,
             arguments: {'type': 'privacy', 'title': 'Privacy Policy'},
           );
+        }
+        break;
+      case 'solution':
+      case 'solutions':
+        if (Get.currentRoute == Routes.SOLUTION ||
+            Get.currentRoute == Routes.SOLUTIONS) {
+          if (Get.isRegistered<SolutionsController>()) {
+            Get.find<SolutionsController>().fetchSolutions();
+          }
+        } else {
+          Get.toNamed(Routes.SOLUTION);
+        }
+        break;
+      case 'contact-us':
+      case 'contact':
+        if (Get.currentRoute == Routes.CONTACT) {
+          if (Get.isRegistered<ContactController>()) {
+            Get.find<ContactController>().fetchContactLayout();
+          }
+        } else {
+          Get.toNamed(Routes.CONTACT);
+        }
+        break;
+      case 'cable-assemblies':
+      case 'cable-assembler':
+        if (Get.currentRoute == Routes.CABLE_ASSEMBLIES) {
+          if (Get.isRegistered<CableAssembliesController>()) {
+            Get.find<CableAssembliesController>().fetchCableAssembliesLayout();
+          }
+        } else {
+          Get.toNamed(Routes.CABLE_ASSEMBLIES);
+        }
+        break;
+      case 'mtp-solution':
+      case 'mtp-solutions':
+        if (Get.currentRoute == Routes.MTP_SOLUTION) {
+          if (Get.isRegistered<MtpSolutionController>()) {
+            Get.find<MtpSolutionController>().fetchMtpSolutionLayout();
+          }
+        } else {
+          Get.toNamed(Routes.MTP_SOLUTION);
         }
         break;
       default:
