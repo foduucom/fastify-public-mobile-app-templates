@@ -17,11 +17,9 @@ const appMode = "test";
 // var socketUrl = "https://studio.vbought.com/";
 
 // ZOOHI websiteDomain
-//var websiteDomain = "traditional-ecom.vbought.com";
-
 var websiteDomain = "traditional-ecom.foduu.store";
 var url = "https://${websiteDomain}/";
-var socketUrl = "https://studio.vbought.com/";
+var socketUrl = "https://studio.foduu.store/";
 
 // var ACCESS_KEY = '72a5a13ab02a20737217279980c33374f41554ec60742815';
 
