@@ -17,6 +17,11 @@ class FetchDataException extends AppException {
       : super(message, 'Unable to process', url, statusCode);
 }
 
+class ServiceUnavailableException extends AppException {
+  ServiceUnavailableException([String? message, String? url, int? statusCode])
+      : super(message, 'Service Unavailable', url, statusCode);
+}
+
 class ApiNotRespondingException extends AppException {
   var statusCode;
   var prefix;

@@ -30,6 +30,8 @@ class FoduuStudioLayoutView extends StatelessWidget {
 
   /// Observable loading flag from [DynamicLayoutMixin.isLayoutLoading].
   final RxBool isLoading;
+  final RxBool? hasError;
+  final RxString? errorMessage;
 
   /// Callback for pull-to-refresh. Required only in full-page mode.
   final Future<void> Function()? onRefresh;
@@ -44,6 +46,8 @@ class FoduuStudioLayoutView extends StatelessWidget {
     required this.widgetList,
     required this.isLoading,
     required this.onRefresh,
+    this.hasError,
+    this.errorMessage,
     this.embedded = false,
   });
 
@@ -52,6 +56,8 @@ class FoduuStudioLayoutView extends StatelessWidget {
     super.key,
     required this.widgetList,
     required this.isLoading,
+    this.hasError,
+    this.errorMessage,
   })  : onRefresh = null,
         embedded = true;
 
@@ -63,6 +69,17 @@ class FoduuStudioLayoutView extends StatelessWidget {
           children: [
             Center(child: HelperFunctions().loadingIndicator()),
           ],
+        );
+      }
+
+      if (hasError?.value == true && widgetList.isEmpty) {
+        return Center(
+          child: Text(
+            errorMessage?.value.isNotEmpty == true
+                ? errorMessage!.value
+                : 'Unable to load this content.',
+            textAlign: TextAlign.center,
+          ),
         );
       }
 

@@ -80,7 +80,7 @@ class CreateAccountView extends GetView<CreateAccountController> {
             Text(
               'Create Account',
               // ✅ Dynamic title styling
-              style: context.textTheme.headlineLarge?.copyWith(
+              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                 fontSize: 28,
                 fontWeight: FontWeight.w800,
                 color: context.onSurfaceColor,
@@ -92,9 +92,9 @@ class CreateAccountView extends GetView<CreateAccountController> {
             Text(
               'Sign up to get started',
               // ✅ Dynamic subtitle
-              style: context.textTheme.bodyLarge?.copyWith(
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 fontSize: 15,
-                color: context.onSurfaceVariant,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
 
@@ -132,7 +132,7 @@ class CreateAccountView extends GetView<CreateAccountController> {
                         : Icons.visibility,
                     size: 20,
                     // ✅ Dynamic icon color
-                    color: context.onSurfaceVariant,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -170,7 +170,7 @@ class CreateAccountView extends GetView<CreateAccountController> {
                     : Text(
                   'Continue',
                   // ✅ Dynamic button text
-                  style: context.textTheme.titleMedium?.copyWith(
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: context.onPrimaryColor,
@@ -190,7 +190,7 @@ class CreateAccountView extends GetView<CreateAccountController> {
   Widget _buildLabel(BuildContext context, String text) {
     return Text(
       text,
-      style: context.textTheme.titleMedium?.copyWith(
+      style: Theme.of(context).textTheme.titleMedium?.copyWith(
         fontSize: 15,
         fontWeight: FontWeight.w600,
         color: context.onSurfaceColor,
@@ -202,9 +202,9 @@ class CreateAccountView extends GetView<CreateAccountController> {
   InputDecoration _inputDecoration(BuildContext context, String hint) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: context.textTheme.bodyMedium?.copyWith(
+      hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
         fontSize: 14,
-        color: context.onSurfaceVariant,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
       filled: true,
       // ✅ Dynamic field background

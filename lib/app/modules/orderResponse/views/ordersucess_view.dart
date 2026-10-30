@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
+import '/app/modules/Profie/orders/controller/orders_controller.dart';
 import '../controllers/ordersucess_controller.dart';
 import '/app/routes/app_pages.dart';
 import '/components/buttons/bottombutton.dart';
@@ -195,7 +196,18 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                     ),
                   ),
                 ),
-
+                Obx(
+                  () => bottomButton(
+                    opacity: 1,
+                    deliveryAmount: controller.item['shipping'].toString(),
+                    buttonText: 'Continue Shopping',
+                    priceText: controller.item['total'].toString(),
+                    keypressEvent: () {
+                      Get.offAllNamed(Routes.BOTTOMBAR);
+                    },
+                    otherText: 'View details',
+                  ),
+                )
               ],
             )),
       ),

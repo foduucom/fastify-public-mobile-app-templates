@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '/constants/constants.dart';
+import 'package:foddu/constants/constants.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -14,6 +14,7 @@ Future<dynamic> openImagePickerSheet(controller) {
           FoduuButtonWithIcon(
             name: "Camera",
             onPressed: () {
+              Get.back();
               controller.getImageFromGalleryOrCamera(ImageSource.camera);
             },
             icon: Icons.camera_alt_outlined,
@@ -22,6 +23,7 @@ Future<dynamic> openImagePickerSheet(controller) {
           FoduuButtonWithIcon(
             name: "Gallery",
             onPressed: () {
+              Get.back();
               controller.getImageFromGalleryOrCamera(ImageSource.gallery);
             },
             icon: Icons.photo_library_outlined,
@@ -64,7 +66,6 @@ class FoduuButtonWithIcon extends StatelessWidget {
                 child: Icon(
                   icon,
                   size: 35,
-                  color: Colors.white,
                 ),
               ),
             ),

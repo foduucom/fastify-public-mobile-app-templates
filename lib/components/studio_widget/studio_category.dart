@@ -1,12 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import '/components/app_image_placeholder.dart';
 import '/app/routes/app_pages.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/constants/constants.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:foddu/app/modules/shop/shop_navigation.dart';
 
 class CategoryHome extends StatefulWidget {
   final dynamic categoryData;
@@ -56,7 +58,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
       );
     } else {
       return SizedBox(
-        height: style == 'circular' ? 100 : 140, // Adjust height based on style
+        height: style == 'circular' ? 115 : 140, // Adjust height based on style
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(
             dragDevices: {
@@ -113,7 +115,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
               }
             });
           } else {
-            Get.toNamed(Routes.SHOPPRODUCTLISTVIEW, arguments: {
+            openShop({
               'productId': category['_id'],
               'categorySlug': category['slug'],
               'name': category['name'],
@@ -139,18 +141,25 @@ class _TopCategoryHomeState extends State<CategoryHome>
           borderRadius: BorderRadius.circular(50),
           child: Container(
             width: 70,
-            height: 70,
+            height: 65,
             color: Theme.of(context).colorScheme.surfaceVariant,
-            child: CachedNetworkImage(
-              fit: BoxFit.cover,
-              imageUrl: HelperFunctions().getImage(category['featured_image']),
-              errorWidget: (_, __, ___) => const Icon(Icons.category_outlined),
-              progressIndicatorBuilder: (_, __, ___) =>
-                  HelperFunctions().loadingIndicator(),
-            ),
+            child: (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
+                    HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
+                ? CachedNetworkImage(
+                    fit: BoxFit.cover,
+                    imageUrl: HelperFunctions().getImage(category['featured_image']),
+                    errorWidget: (_, __, ___) => const AppImagePlaceholder.circular(
+                      size: 65,
+                    ),
+                    progressIndicatorBuilder: (_, __, ___) =>
+                        HelperFunctions().loadingIndicator(),
+                  )
+                : const AppImagePlaceholder.circular(
+                    size: 65,
+                  ),
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         SizedBox(
           width: isGrid ? null : 80,
           child: Text(
@@ -193,12 +202,25 @@ class _TopCategoryHomeState extends State<CategoryHome>
                 borderRadius: const BorderRadius.horizontal(
                   left: Radius.circular(10),
                 ),
-                child: CachedNetworkImage(
-                  imageUrl:
-                      HelperFunctions().getImage(category['featured_image']),
-                  fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => const Icon(Icons.category),
-                ),
+                child: (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
+                        HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
+                    ? CachedNetworkImage(
+                        imageUrl:
+                            HelperFunctions().getImage(category['featured_image']),
+                        fit: BoxFit.cover,
+                        errorWidget: (_, __, ___) => const AppImagePlaceholder(
+                          radius: 0,
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : const AppImagePlaceholder(
+                        radius: 0,
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
               ),
             ),
             Expanded(
@@ -255,13 +277,24 @@ class _TopCategoryHomeState extends State<CategoryHome>
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(12),
                 ),
-                child: CachedNetworkImage(
-                  imageUrl:
-                      HelperFunctions().getImage(category['featured_image']),
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => const Icon(Icons.category),
-                ),
+                child: (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
+                        HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
+                    ? CachedNetworkImage(
+                        imageUrl:
+                            HelperFunctions().getImage(category['featured_image']),
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorWidget: (_, __, ___) => const AppImagePlaceholder(
+                          radius: 0,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : const AppImagePlaceholder(
+                        radius: 0,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
               ),
             ),
             Padding(

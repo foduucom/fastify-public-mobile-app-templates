@@ -1,411 +1,1456 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '/components/app_image_placeholder.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
-import '/components/ProductGallery.dart';
-import '/app/modules/product/controllers/product_controller.dart';
-import '/core/services/wishlistService.dart';
-import '/app/routes/app_pages.dart';
-import '../../../../components/shimmer/shimmer_effects.dart';
-import '/constants/constants.dart';
-import '/constants/helper_functions.dart';
-import '/constants/product_helper.dart';
-import '/constants/theme.dart';
+import 'package:foddu/app/modules/product/controllers/product_controller.dart';
+import 'package:foddu/app/modules/wishlist/controllers/wishlist_controller.dart';
+import 'package:foddu/app/routes/app_pages.dart';
+import 'package:foddu/components/ImagePreviewMultipleView.dart';
+import 'package:foddu/components/buttons/primary_action_button.dart';
+import 'package:foddu/components/commonWidgets/secondary_app_header.dart';
+import 'package:foddu/components/commonWidgets/simple_price_text.dart';
+import 'package:foddu/components/commonWidgets/variable_price_text.dart';
+import 'package:foddu/components/shimmer_effects.dart';
+import 'package:foddu/constants/constants.dart';
+import 'package:foddu/constants/dynamic_theme.dart';
+import 'package:foddu/constants/helper_functions.dart';
+import 'package:foddu/constants/product_helper.dart';
+import 'package:foddu/constants/theme.dart';
+import 'package:foddu/core/services/wishlistService.dart';
 import 'package:get/get.dart';
+import 'package:shimmer/shimmer.dart';
 
 class ProductView extends GetView<ProductController> {
   ProductView({Key? key}) : super(key: key);
 
+  ColorScheme get colorScheme => Theme.of(Get.context!).colorScheme;
+  TextTheme get textTheme => Theme.of(Get.context!).textTheme;
+
+  WishlistController wishListController = Get.find<WishlistController>();
+
   @override
   Widget build(BuildContext context) {
-    Get.create(() => ProductController(), permanent: false);
-    final controller = Get.find<ProductController>();
+    var width = Get.width;
+    var height = Get.height;
+    // Removed redundant Get.create which was causing an infinite loop of API calls
+    // ProductView is a GetView<ProductController>, so it already has access to 'controller'
 
     return SafeArea(
-        child: Scaffold(
-      appBar: AppBar(
-        title: Obx(() {
-          if (controller.productDetials['name'] == null) {
-            return const ShimmerEffect(height: 10, width: 100);
-          } else {
-            return Text(
-              controller.productDetials['name'].toString(),
-              style: Theme.of(context).textTheme.titleLarge,
+      child: Scaffold(
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: Obx(() {
+            final isInWishlist =
+                WishListService.to.isInWishlist(controller.productId);
+            return SecondaryAppHeader(
+              title: "Product Detail",
+              extraActions: [
+                IconButton(
+                  icon: const Icon(Icons.share_outlined),
+                  tooltip: 'Share',
+                  onPressed: () => controller.shareContent(context),
+                ),
+              ],
+              rightIcon: isInWishlist
+                  ? Icons.favorite
+                  : Icons.favorite_outline,
+              onRightIconTap: () async {
+                String? variantId;
+                if (controller.productDetials['type'] == 'variable') {
+                  final variants =
+                      controller.productDetials['variants'];
+                  if (variants != null &&
+                      variants is List &&
+                      controller.selectedVariantIndex.value <
+                          variants.length) {
+                    variantId = variants[
+                        controller.selectedVariantIndex.value]['_id'];
+                  }
+                }
+
+                await WishListService.to.toggleWishlist(
+                  productId: controller.productId,
+                  variantSlug:
+                      controller.productDetials['variant_slug'] ?? '',
+                  variantId: variantId,
+                );
+              },
             );
-          }
-        }),
-        actions: const [
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.spaceAround,
-          //   children: [
-          //     IconButton(
-          //         onPressed: () {},
-          //         icon: SvgPicture.asset('assets/icon/appbarshare.svg')),
-          //     Obx(
-          //       () => Get.find<BottombarController>().cartbadge(
-          //           child: CartIcon(() {
-          //             Get.toNamed(Routes.CART);
-          //           }),
-          //           badgeNumber: 0),
-          //     ),
-          //     const SizedBox(
-          //       width: 14,
-          //     )
-          //   ],
-          // )
-        ],
-        titleSpacing: 0.0,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
+          }),
+        ),
+        body: Stack(
           children: [
-            Obx(() {
-              final galleryImages = ProductHelper.getProductGallery(
-                Map<String, dynamic>.from(controller.productDetials),
-                variantIndex: controller.selectedVariantIndex.value,
-              );
+            Positioned(
+              top: 0,
+              right: 0,
+              left: 0,
+              bottom: 0,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // In your product details screen where you call ProductGallery
+                    Obx(
+                      () {
+                        List gallery = [];
 
-              return ProductGallery(
-                isLoading: controller.isLoading.value,
-                controller: controller,
-                productGallery: galleryImages,
-              );
-            }),
-            const SizedBox(height: 8.0),
-            Column(
-              children: [
-                Padding(
-                  padding: pageSurroundingPadding,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 10),
-                      Obx(() => controller.productDetials['name'] == null
-                          ? const ShimmerEffect(height: 10, width: 100)
-                          : Text(
-                              controller.productDetials['name'].toString(),
-                              style: Theme.of(context).textTheme.titleLarge,
-                            )),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 5),
-                        child: Obx(() {
-                          return controller.productDetials['content'] != null
-                              ? HtmlWidget(controller.productDetials['content']
-                                  .toString())
-                              : Container();
-                        }),
-                      ),
-                      Obx(
-                        () => Row(
-                          children: [
-                            RatingBarIndicator(
-                              rating:
-                                  controller.productDetials['average_rating'] ==
-                                          null
-                                      ? 0.0
-                                      : double.parse(controller
-                                          .productDetials['average_rating']
-                                          .toString()),
-                              itemBuilder: (context, index) => Icon(
-                                Icons.star,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              unratedColor:
-                                  Theme.of(context).colorScheme.outline,
-                              itemCount: 5,
-                              itemSize: 18.0,
-                              direction: Axis.horizontal,
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              controller.productDetials['rating_count'] == null
-                                  ? '0'
-                                  : controller.productDetials['rating_count']
-                                      .toString(),
-                              style: txtTheme().titleLarge!.copyWith(),
-                            )
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Obx(() {
-                        if (controller.productDetials['name'] == null) {
-                          return const ShimmerEffect(height: 10, width: 50);
-                        } else {
-                          final priceInfo = ProductHelper.calculatePriceInfo(
-                            Map<String, dynamic>.from(
-                                controller.productDetials),
-                            variantIndex: controller.selectedVariantIndex.value,
-                          );
+                        if (controller.productDetials['type'] == 'variable') {
+                          var variants = controller.productDetials['variants'];
+                          int selectedIdx =
+                              controller.selectedVariantIndex.value;
 
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                "₹${priceInfo['productPrice']}",
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
-                              const SizedBox(width: 04),
-                              priceInfo['salePrice'] == "0" ||
-                                      priceInfo['salePrice'] == ""
-                                  ? Container()
-                                  : Text(
-                                      "₹${priceInfo['salePrice']}",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(
-                                            decoration:
-                                                TextDecoration.lineThrough,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .outline,
-                                          ),
-                                    ),
-                              Text(
-                                priceInfo['discountRate'] ?? '',
-                                style: txtTheme().titleLarge!.copyWith(
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              )
-                            ],
-                          );
+                          if (variants != null &&
+                              variants is List &&
+                              selectedIdx < variants.length) {
+                            var variant = variants[selectedIdx];
+
+                            // 1. Add variant's featured image
+                            if (variant['featured_image'] != null) {
+                              gallery.add(variant['featured_image']);
+                            }
+
+                            // 2. Add variant's gallery/images
+                            var variantGallery =
+                                variant['gallery'] ?? variant['images'];
+                            if (variantGallery != null &&
+                                variantGallery is List) {
+                              gallery.addAll(variantGallery);
+                            }
+                          }
                         }
-                      }),
-                    ],
-                  ),
-                ),
-                Divider(
-                  color: Theme.of(context).dividerTheme.color,
-                ),
-                Padding(
-                  padding: pageSurroundingPadding,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Obx(
-                        () {
-                          return Column(
+
+                        // If gallery is still empty (simple product or variant has no images), use product-level gallery
+                        if (gallery.isEmpty) {
+                          if (controller.productDetials['featured_image'] !=
+                              null) {
+                            gallery.add(
+                                controller.productDetials['featured_image']);
+                          }
+                          gallery.addAll(controller.productGallery);
+                        }
+
+                        return ProductGallery(
+                          controller: controller,
+                          productGallery: gallery,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 8.0),
+                    Obx(() {
+                      int galleryLength = 0;
+                      if (controller.productDetials['type'] == 'variable') {
+                        var variants = controller.productDetials['variants'];
+                        int selectedIdx = controller.selectedVariantIndex.value;
+
+                        if (variants != null &&
+                            variants is List &&
+                            selectedIdx < variants.length) {
+                          var variant = variants[selectedIdx];
+                          var variantGallery =
+                              variant['gallery'] ?? variant['images'];
+                          if (variantGallery != null &&
+                              variantGallery is List) {
+                            galleryLength = variantGallery.length +
+                                (variant['featured_image'] != null ? 1 : 0);
+                          }
+                        }
+                      }
+
+                      if (galleryLength == 0) {
+                        galleryLength = controller.productGallery.length +
+                            (controller.productDetials['featured_image'] != null
+                                ? 1
+                                : 0);
+                      }
+
+                      return galleryLength <= 1
+                          ? Container()
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: List.generate(
+                                galleryLength,
+                                (index) => Obx(() {
+                                  return Container(
+                                    width: controller.selectedPageIndex.value ==
+                                            index
+                                        ? 30
+                                        : 9,
+                                    height: 9,
+                                    margin: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          controller.selectedPageIndex.value ==
+                                                  index
+                                              ? colorScheme.primary
+                                              : colorScheme.outline
+                                                  .withOpacity(0.5),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  );
+                                }),
+                              ));
+                    }),
+                    Column(
+                      children: [
+                        Padding(
+                          padding: pageSurroundingPadding,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ListView.separated(
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  shrinkWrap: true,
-                                  itemBuilder: (context, parentIndex) {
-                                    return Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                            'Select ${controller.labels[parentIndex]}',
-                                            style: txtTheme()
-                                                .titleLarge!
-                                                .copyWith(
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 8.0),
-                                          child: SizedBox(
-                                            height: 40,
-                                            child: ListView.builder(
-                                              shrinkWrap: true,
-                                              scrollDirection: Axis.horizontal,
-                                              itemCount: controller
-                                                  .labelVariant[parentIndex]
-                                                  .length,
-                                              itemBuilder: (context, index) {
-                                                return GestureDetector(
-                                                  onTap: () {
-                                                    controller.onSelectVariant(
-                                                        controller.labels[
-                                                            parentIndex],
-                                                        controller.labelVariant[
-                                                                parentIndex]
-                                                            [index]);
-                                                  },
-                                                  child: Obx(
-                                                    () {
-                                                      return Container(
-                                                        margin: const EdgeInsets
-                                                            .only(right: 10),
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .symmetric(
-                                                                horizontal: 15,
-                                                                vertical: 2),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          border: Border.all(
-                                                              width: controller.selectedVariant[controller.labels[parentIndex]] ==
-                                                                      controller
-                                                                              .labelVariant[parentIndex]
-                                                                          [
-                                                                          index]
-                                                                  ? 2.5
-                                                                  : 1.5,
-                                                              color: controller.selectedVariant[controller.labels[parentIndex]] ==
-                                                                      controller
-                                                                              .labelVariant[parentIndex]
-                                                                          [
-                                                                          index]
-                                                                  ? Theme.of(context)
-                                                                      .colorScheme
-                                                                      .primary
-                                                                  : Theme.of(context)
-                                                                      .colorScheme
-                                                                      .outline),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(08),
-                                                        ),
-                                                        child: Center(
-                                                          child: Text(
-                                                            controller.labelVariant[
-                                                                    parentIndex]
-                                                                [index],
-                                                            style: Theme.of(
-                                                                    context)
-                                                                .textTheme
-                                                                .labelLarge,
-                                                          ),
-                                                        ),
-                                                      );
-                                                    },
+                              const SizedBox(height: 10),
+                              // In your ProductView build method, after the gallery and before color selector:
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  // Product Name (Left side)
+                                  Expanded(
+                                    child: Obx(
+                                      () => controller.productDetials['name'] ==
+                                              null
+                                          ? const ShimmerEffect(
+                                              height: 20, width: 150)
+                                          : Text(
+                                              controller.productDetials['name']
+                                                  .toString(),
+                                              style: txtTheme()
+                                                  .displayMedium!
+                                                  .copyWith(
+                                                    fontSize: height * 0.020,
+                                                    fontWeight: FontWeight.w600,
                                                   ),
-                                                );
-                                              },
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                    ),
+                                  ),
+
+                                  SizedBox(width: 10),
+
+                                  // Price (Right side)
+                                  Flexible(
+                                    child: Obx(
+                                      () {
+                                        if (controller.productDetials.isEmpty) {
+                                          return const ShimmerEffect(
+                                              height: 20, width: 80);
+                                        }
+
+                                        final productType =
+                                            controller.productDetials['type'] ??
+                                                'simple';
+
+                                        if (productType == 'variable') {
+                                          final variants = controller
+                                                  .productDetials['variants']
+                                              as List?;
+                                          if (variants != null &&
+                                              variants.isNotEmpty) {
+                                            final selectedVariant = variants[
+                                                controller.selectedVariantIndex
+                                                    .value];
+
+                                            String discountRate = '';
+                                            final priceStr =
+                                                selectedVariant['price']
+                                                        ?.toString() ??
+                                                    '0';
+                                            final saleStr =
+                                                selectedVariant['sale_price']
+                                                        ?.toString() ??
+                                                    '0';
+                                            final price =
+                                                double.tryParse(priceStr) ?? 0;
+                                            final discountedPrice =
+                                                double.tryParse(saleStr) ?? 0;
+
+                                            // Both price and sale_price are 0 → free product
+                                            if (price == 0 &&
+                                                discountedPrice == 0) {
+                                              return Text(
+                                                'Free',
+                                                style: txtTheme()
+                                                    .displayMedium!
+                                                    .copyWith(
+                                                      fontSize: height * 0.020,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: Colors.green,
+                                                    ),
+                                              );
+                                            }
+
+                                            // sale_price "0" on a paid product = no discount
+                                            final hasDiscount =
+                                                discountedPrice > 0 &&
+                                                    price > discountedPrice;
+                                            if (hasDiscount) {
+                                              final discount =
+                                                  ((price - discountedPrice) /
+                                                          price *
+                                                          100)
+                                                      .round();
+                                              discountRate = '$discount% off';
+                                            }
+
+                                            return SimplePriceText(
+                                              price: hasDiscount
+                                                  ? discountedPrice
+                                                  : price,
+                                              originalPrice:
+                                                  hasDiscount ? price : null,
+                                              discountLabel: hasDiscount
+                                                  ? discountRate
+                                                  : null,
+                                              priceStyle: txtTheme()
+                                                  .displayMedium!
+                                                  .copyWith(
+                                                    fontSize: height * 0.020,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: colorScheme.primary,
+                                                  ),
+                                            );
+                                          }
+                                        }
+
+                                        // Fallback
+                                        final priceInfo =
+                                            ProductHelper.calculatePriceInfo(
+                                                Map<String, dynamic>.from(
+                                                    controller.productDetials));
+
+                                        if (productType == 'variable') {
+                                          final low = double.tryParse(
+                                                  priceInfo['lowestPrice']
+                                                          ?.toString() ??
+                                                      '0') ??
+                                              0;
+                                          final high = double.tryParse(
+                                                  priceInfo['highestPrice']
+                                                          ?.toString() ??
+                                                      '0') ??
+                                              0;
+                                          return VariablePriceText(
+                                            lowestPrice: low,
+                                            highestPrice: high,
+                                            style: txtTheme()
+                                                .displayMedium!
+                                                .copyWith(
+                                                  fontSize: height * 0.020,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: colorScheme.primary,
+                                                ),
+                                          );
+                                        } else {
+                                          final prodPrice = double.tryParse(
+                                                  priceInfo['productPrice']
+                                                          ?.toString() ??
+                                                      '0') ??
+                                              0;
+                                          final origPrice = double.tryParse(
+                                              priceInfo['discountPrice']
+                                                      ?.toString() ??
+                                                  '');
+                                          return SimplePriceText(
+                                            price: prodPrice,
+                                            originalPrice: origPrice,
+                                            discountLabel:
+                                                priceInfo['discountRate'],
+                                            priceStyle: txtTheme()
+                                                .displayMedium!
+                                                .copyWith(
+                                                  fontSize: height * 0.020,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: colorScheme.primary,
+                                                ),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: height * 0.001),
+                              Padding(
+                                padding: EdgeInsets.zero,
+                                //width: width * 0.80,
+                                child: Row(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.star,
+                                          size: height * 0.018, // ≈ 16
+                                          color: Colors.amber,
+                                        ),
+                                        Obx(() {
+                                          final rating = controller
+                                              .productDetials['average_rating'];
+                                          final ratingStr = rating != null
+                                              ? rating.toString()
+                                              : '—';
+                                          return Text(ratingStr,
+                                              style: txtTheme()
+                                                  .titleSmall!
+                                                  .copyWith(
+                                                    fontSize: height * 0.018,
+                                                    height: 1.4,
+                                                    fontFamily:
+                                                        'Plus Jakarta Sans',
+                                                  ));
+                                        }),
+                                      ],
+                                    ),
+                                    SizedBox(width: width * 0.012),
+                                    Text(
+                                      "•",
+                                      style: TextStyle(
+                                        fontSize: height * 0.02,
+                                        color: colorScheme.outline,
+                                      ),
+                                    ),
+                                    SizedBox(width: width * 0.012),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.storefront,
+                                          size: height * 0.02, // ≈ 16
+                                          color: colorScheme.onSurface,
+                                        ),
+                                        SizedBox(width: width * 0.015),
+                                        Obx(() {
+                                          final brand = controller
+                                              .productDetials['brand'];
+                                          final brandName = (brand is Map)
+                                              ? (brand['name']?.toString() ??
+                                                  '')
+                                              : (brand?.toString() ?? '');
+                                          return Text(
+                                            brandName.isEmpty
+                                                ? 'Unknown Brand'
+                                                : brandName,
+                                            style: txtTheme()
+                                                .titleSmall!
+                                                .copyWith(
+                                                  fontFamily:
+                                                      'Plus Jakarta Sans',
+                                                  color: colorScheme.onSurface,
+                                                  fontSize: height * 0.018,
+                                                  height: 1.4,
+                                                ),
+                                          );
+                                        }),
+                                      ],
+                                    ),
+                                    SizedBox(width: width * 0.012),
+                                    Text(
+                                      "•",
+                                      style: TextStyle(
+                                        fontSize: height * 0.02,
+                                        color: colorScheme.outline,
+                                      ),
+                                    ),
+                                    SizedBox(width: width * 0.012),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.chat_bubble_outline,
+                                          size: height * 0.02, // ≈ 16
+                                          color: colorScheme.onSurface,
+                                        ),
+                                        SizedBox(width: width * 0.015),
+                                        Obx(
+                                          () {
+                                            return Text(
+                                              '${controller.productReview.length} Reviews',
+                                              style: txtTheme()
+                                                  .titleSmall!
+                                                  .copyWith(
+                                                    fontFamily:
+                                                        'Plus Jakarta Sans',
+                                                    fontSize: height * 0.018,
+                                                    height: 1.4,
+                                                  ),
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              ),
+                              // HOT / TRENDING / FEATURED badges
+                              Obx(() {
+                                final badges = <String>[];
+                                if (controller.productDetials['hot'] == true)
+                                  badges.add('Hot');
+                                if (controller.productDetials['trending'] ==
+                                    true) badges.add('Trending');
+                                if (controller.productDetials['featured'] ==
+                                    true) badges.add('Featured');
+                                if (badges.isEmpty) return SizedBox.shrink();
+                                return Padding(
+                                  padding: EdgeInsets.only(top: height * 0.008),
+                                  child: Wrap(
+                                    spacing: 6,
+                                    children: badges.map((b) {
+                                      final bg = b == 'Hot'
+                                          ? Colors.orange.withOpacity(0.18)
+                                          : b == 'Trending'
+                                              ? Colors.blue.withOpacity(0.18)
+                                              : Colors.purple.withOpacity(0.18);
+                                      final fg = b == 'Hot'
+                                          ? Colors.orange
+                                          : b == 'Trending'
+                                              ? Colors.blue
+                                              : Colors.purple;
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: bg,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: Text(b,
+                                            style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                                color: fg)),
+                                      );
+                                    }).toList(),
+                                  ),
+                                );
+                              }),
+
+                              // STOCK STATUS badge
+                              Obx(() {
+                                final variants = controller
+                                    .productDetials['variants'] as List?;
+                                final v =
+                                    (variants != null && variants.isNotEmpty)
+                                        ? variants[controller
+                                            .selectedVariantIndex.value] as Map?
+                                        : null;
+                                final qty = v?['quantity'];
+                                final inStock = qty == null ||
+                                    (qty != 0 &&
+                                        qty != false &&
+                                        qty.toString() != '0');
+                                return Padding(
+                                  padding: EdgeInsets.only(top: height * 0.008),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: inStock
+                                              ? Colors.green.withOpacity(0.15)
+                                              : Colors.red.withOpacity(0.15),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                          border: Border.all(
+                                              color: inStock
+                                                  ? Colors.green.withOpacity(0.5)
+                                                  : Colors.red.withOpacity(0.5)),
+                                        ),
+                                        child: Text(
+                                          inStock ? 'In Stock' : 'Out of Stock',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: inStock
+                                                ? Colors.green
+                                                : Colors.redAccent,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
+
+                              // SKU + BARCODE row
+                              Obx(() {
+                                final variants = controller
+                                    .productDetials['variants'] as List?;
+                                final v =
+                                    (variants != null && variants.isNotEmpty)
+                                        ? variants[controller
+                                            .selectedVariantIndex.value] as Map?
+                                        : null;
+                                final sku = v?['sku']?.toString() ?? '';
+                                final barcode = v?['barcode']?.toString() ?? '';
+                                if (sku.isEmpty && barcode.isEmpty)
+                                  return SizedBox.shrink();
+                                return Padding(
+                                  padding: EdgeInsets.only(top: height * 0.006),
+                                  child: Row(
+                                    children: [
+                                      if (sku.isNotEmpty)
+                                        Text('SKU: $sku',
+                                            style: TextStyle(
+                                                fontSize: 11,
+                                                color: colorScheme.onSurfaceVariant)),
+                                      if (sku.isNotEmpty && barcode.isNotEmpty)
+                                        const SizedBox(width: 16),
+                                      if (barcode.isNotEmpty)
+                                        Text('Barcode: $barcode',
+                                            style: TextStyle(
+                                                fontSize: 11,
+                                                color: colorScheme.onSurfaceVariant)),
+                                    ],
+                                  ),
+                                );
+                              }),
+
+                              // COLOR SELECTOR - Make it reactive
+                              Obx(
+                                () => (controller.colors.isEmpty ||
+                                        controller.productDetials['type'] !=
+                                            'variable')
+                                    ? SizedBox
+                                        .shrink() // Hide if no colors or not variable
+                                    : Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          SizedBox(height: height * 0.01),
+                                          Text(
+                                            'Color',
+                                            style: TextStyle(
+                                              fontFamily: 'Plus Jakarta Sans',
+                                              fontSize: height * 0.018,
+                                              fontWeight: FontWeight.w600,
+                                              color: colorScheme.onSurface,
                                             ),
                                           ),
-                                        )
-                                      ],
-                                    );
-                                  },
-                                  separatorBuilder: (context, index) {
-                                    return const SizedBox(
-                                      height: 10,
-                                    );
-                                  },
-                                  itemCount: controller.labels.length)
-                            ],
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      Text("Quantity:",
-                          style: txtTheme()
-                              .titleLarge!
-                              .copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 10),
-                      Container(
-                        width: Get.width * 0.32,
-                        height: 40,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5)),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                                onPressed: () {
-                                  controller.decrement();
-                                },
-                                icon: Container(
-                                  padding: const EdgeInsets.all(0.01),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(02),
-                                      border: Border.all(
-                                          width: 1.2,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .outline)),
-                                  child: const Icon(Icons.remove, size: 14),
-                                )),
-                            Obx(() {
-                              return Text(controller.count.toString());
-                            }),
-                            IconButton(
-                                onPressed: () {
-                                  controller.increment();
-                                },
-                                icon: Container(
-                                    padding: const EdgeInsets.all(0.01),
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(02),
-                                        border: Border.all(
-                                            width: 1.2,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .outline)),
-                                    child: const Icon(Icons.add, size: 14))),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.zero,
-                        child: Obx(() {
-                          return Html(
-                            data:
-                                controller.productDetials['long_content'] ?? "",
-                            style: {
-                              "body": Style(
-                                fontFamily: "Lato",
+                                          SizedBox(height: height * 0.01),
+                                          Container(
+                                            width: width * 0.90,
+                                            height: height * 0.045,
+                                            child: Row(
+                                              children: List.generate(
+                                                  controller.colors.length,
+                                                  (index) {
+                                                final bool isActive = index ==
+                                                    controller
+                                                        .selectedColorIndex
+                                                        .value;
+                                                return Padding(
+                                                  padding: EdgeInsets.only(
+                                                    right: index !=
+                                                            controller.colors
+                                                                    .length -
+                                                                1
+                                                        ? width * 0.02
+                                                        : 0,
+                                                  ),
+                                                  child: GestureDetector(
+                                                    onTap: () {
+                                                      controller
+                                                          .selectedColorIndex
+                                                          .value = index;
+                                                      controller
+                                                          .updateSelectedVariant();
+                                                    },
+                                                    child: Container(
+                                                      width: width * 0.162,
+                                                      height: height * 0.045,
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                        horizontal:
+                                                            width * 0.032,
+                                                        vertical:
+                                                            height * 0.0075,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        color: isActive
+                                                            ? colorScheme
+                                                                .primary
+                                                            : colorScheme
+                                                                .surface,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(
+                                                                    height * 2),
+                                                        border: Border.all(
+                                                          color: isActive
+                                                              ? colorScheme
+                                                                  .primary
+                                                              : colorScheme
+                                                                  .outline,
+                                                          width: 1,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: Text(
+                                                          controller
+                                                              .colors[index],
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: TextStyle(
+                                                            fontFamily:
+                                                                'Plus Jakarta Sans',
+                                                            fontSize:
+                                                                height * 0.015,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                            color: isActive
+                                                                ? colorScheme
+                                                                    .onPrimary
+                                                                : colorScheme
+                                                                    .onSurface,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              }),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                               ),
-                            },
-                          );
-                        }),
-                      ),
-                    ],
-                  ),
+
+                              // SIZE SELECTOR - Make it reactive
+                              Obx(
+                                () => (controller.sizes.isEmpty ||
+                                        controller.productDetials['type'] !=
+                                            'variable')
+                                    ? SizedBox
+                                        .shrink() // Hide if no sizes or not variable
+                                    : Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          SizedBox(height: height * 0.01),
+                                          Text(
+                                            'Size',
+                                            style: TextStyle(
+                                              fontFamily: 'Plus Jakarta Sans',
+                                              fontSize: height * 0.018,
+                                              fontWeight: FontWeight.w600,
+                                              color: colorScheme.onSurface,
+                                            ),
+                                          ),
+                                          SizedBox(height: height * 0.01),
+                                          Container(
+                                            width: width * 0.90,
+                                            height: height * 0.045,
+                                            child: Row(
+                                              children: List.generate(
+                                                  controller.sizes.length,
+                                                  (index) {
+                                                final bool isActive = index ==
+                                                    controller.selectedSizeIndex
+                                                        .value;
+                                                return Padding(
+                                                  padding: EdgeInsets.only(
+                                                    right: index !=
+                                                            controller.sizes
+                                                                    .length -
+                                                                1
+                                                        ? width * 0.02
+                                                        : 0,
+                                                  ),
+                                                  child: GestureDetector(
+                                                    onTap: () {
+                                                      controller
+                                                          .selectedSizeIndex
+                                                          .value = index;
+                                                      controller
+                                                          .updateSelectedVariant();
+                                                    },
+                                                    child: Container(
+                                                      width: width * 0.162,
+                                                      height: height * 0.045,
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                        horizontal:
+                                                            width * 0.032,
+                                                        vertical:
+                                                            height * 0.0075,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        color: isActive
+                                                            ? colorScheme
+                                                                .primary
+                                                            : colorScheme
+                                                                .surface,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(
+                                                                    height * 2),
+                                                        border: Border.all(
+                                                          color: isActive
+                                                              ? colorScheme
+                                                                  .primary
+                                                              : colorScheme
+                                                                  .outline,
+                                                          width: 1,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: Text(
+                                                          controller
+                                                              .sizes[index],
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: TextStyle(
+                                                            fontFamily:
+                                                                'Plus Jakarta Sans',
+                                                            fontSize:
+                                                                height * 0.015,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                            color: isActive
+                                                                ? colorScheme
+                                                                    .onPrimary
+                                                                : colorScheme
+                                                                    .onSurface,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              }),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+
+                              SizedBox(height: height * 0.01),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  SizedBox(
+                                    width: width * 0.535, // ≈ 200.15
+                                    child: Text(
+                                      "Description",
+                                      style: TextStyle(
+                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontSize: 14, // ≈ 16
+                                        fontWeight: FontWeight.w700, // Bold
+                                        height: 1.75, // ≈ 28
+                                      ),
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        side: BorderSide(
+                                            color: colorScheme.outlineVariant),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8)),
+                                        elevation: 0,
+                                        backgroundColor: Colors.transparent,
+                                      ),
+                                      onPressed: () {
+                                        reviewModal(controller);
+                                      },
+                                      child: Text('Add Review',
+                                          style: textTheme.titleMedium!
+                                              .copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  color:
+                                                      colorScheme.onSurface))),
+                                ],
+                              ),
+
+                              SizedBox(height: height * 0.004), // ≈ gap 10.46
+
+                              // Remove the Expanded widget
+                              Container(
+                                width: width * 0.92,
+                                child: Obx(() {
+                                  String description = controller
+                                          .productDetials['long_content'] ??
+                                      controller.productDetials['content'] ??
+                                      "";
+                                  // Workaround for flutter_html parsing error with invalid font feature settings
+                                  description = description.replaceAll(
+                                      'font-feature-settings',
+                                      'disabled-font-feature-settings');
+
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min, // Add this
+                                    children: [
+                                      Html(
+                                        data: description,
+                                        style: {
+                                          "body": Style(
+                                            fontSize: FontSize(12),
+                                            fontWeight: FontWeight.w700,
+                                            color: colorScheme.onSurfaceVariant,
+                                            maxLines: controller
+                                                    .isDescriptionExpanded.value
+                                                ? 100
+                                                : 2,
+                                            textOverflow: TextOverflow.ellipsis,
+                                          ),
+                                          "span": Style(
+                                            color: colorScheme.onSurfaceVariant,
+                                          ),
+                                          "font": Style(
+                                            color: colorScheme.onSurfaceVariant,
+                                          ),
+                                        },
+                                      ),
+                                      if (description.length > 150)
+                                        GestureDetector(
+                                          onTap: () =>
+                                              controller.toggleDescription(),
+                                          child: Padding(
+                                            padding: EdgeInsets.only(
+                                                top: height * 0.01),
+                                            child: Text(
+                                              controller.isDescriptionExpanded
+                                                      .value
+                                                  ? 'Read less'
+                                                  : 'Read more',
+                                              style: TextStyle(
+                                                fontSize: height * 0.016,
+                                                fontWeight: FontWeight.w700,
+                                                color: colorScheme.primary,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  );
+                                }),
+                              ),
+                              // TAGS section
+                              Obx(() {
+                                final tags =
+                                    controller.productDetials['tags'] as List?;
+                                if (tags == null || tags.isEmpty) {
+                                  return SizedBox.shrink();
+                                }
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(height: height * 0.015),
+                                    Text(
+                                      'Tags',
+                                      style: TextStyle(
+                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    SizedBox(height: height * 0.008),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 4,
+                                      children: tags.map((tag) {
+                                        final name = (tag is Map)
+                                            ? tag['name']?.toString() ?? ''
+                                            : tag.toString();
+                                        if (name.isEmpty) {
+                                          return SizedBox.shrink();
+                                        }
+                                        return Chip(
+                                          label: Text(
+                                            name,
+                                            style: TextStyle(
+                                                fontSize: 12,
+                                                color: colorScheme.onSurfaceVariant),
+                                          ),
+                                          backgroundColor: colorScheme.surfaceVariant,
+                                          side: BorderSide(
+                                              color: colorScheme.outlineVariant),
+                                          padding: EdgeInsets.zero,
+                                          materialTapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
+                                );
+                              }),
+
+                              const SizedBox(height: 50),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                const Divider(),
-                const SizedBox(height: 50)
-              ],
+              ),
             ),
           ],
         ),
+        bottomNavigationBar: _addToCartFooter(width: width, height: height),
       ),
-      bottomNavigationBar: OrderButton(
-        btntext: 'Add to Bag',
-        controller: controller,
-        wishListTap: () async {
-          final productDetails = controller.productDetials;
-          String variantSlug = '';
-          String? variantId;
-          if (productDetails['variants'] != null &&
-              (productDetails['variants'] as List).isNotEmpty) {
-            final variants = productDetails['variants'] as List;
-            final selectedIndex = controller.selectedVariantIndex.value;
-            if (selectedIndex < variants.length) {
-              variantSlug = variants[selectedIndex]['slug'] ?? '';
-              variantId = (variants[selectedIndex]['_id'] ??
-                      variants[selectedIndex]['id'])
-                  ?.toString();
-            }
-          } else {
-            variantSlug = productDetails['variant_slug'] ?? '';
-            variantId =
-                (productDetails['_id'] ?? productDetails['id'])?.toString();
-          }
-
-          await WishListService.to.toggleWishlist(
-            productId: controller.productId,
-            variantSlug: variantSlug,
-            variantId: variantId,
-          );
-        },
-        addToCartTap: () async {
-          HelperFunctions().showOverlayLoader();
-
-          await controller.addToCart().then((value) {
-            Get.until((route) => !Get.isDialogOpen!);
-            return Get.toNamed(Routes.CART);
-          });
-        },
-      ),
-    ));
+    );
   }
+
+  Widget _addToCartFooter({
+    required final width,
+    required final height,
+  }) {
+    return Container(
+      width: width, // ≈ 393
+      height: height * 0.10, // ≈ 80
+      padding: EdgeInsets.symmetric(
+        horizontal: width * 0.06, // ≈ 24
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: width * 0.30, // ≈ 118
+            height: height * 0.06, // ≈ 48
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: height * 0.05, // ≈ 40
+                  height: height * 0.05, // ≈ 40
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Theme.of(Get.context!).colorScheme.outline,
+                      width: 1,
+                    ),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.remove,
+                      size: height * 0.025, // ≈ 20
+                    ),
+                    onPressed: () {
+                      controller.decrement();
+                    },
+                  ),
+                ),
+                SizedBox(
+                  width: width * 0.075, // ≈ 30
+                  height: height * 0.06, // ≈ 48
+                  child: Center(
+                    child: Obx(() {
+                      return Text(
+                        controller.count.toString(),
+                        style: txtTheme().displayMedium!.copyWith(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: height * 0.02, // ≈ 16
+                              height: 1.75,
+                            ),
+                      );
+                    }),
+                  ),
+                ),
+                Container(
+                  width: height * 0.05, // ≈ 40
+                  height: height * 0.05, // ≈ 40
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Theme.of(Get.context!).colorScheme.outline,
+                      width: 1,
+                    ),
+                  ),
+                  child: IconButton(
+                    onPressed: () {
+                      controller.increment();
+                    },
+                    icon: Icon(
+                      Icons.add,
+                      size: height * 0.025, // ≈ 20
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: height * 0.06, // ≈ 48
+            width: width * 0.45,
+            child: Obx(() => PrimaryActionButton(
+                  text: "Add Cart",
+                  isLoading: controller.isLoading.value,
+                  onPressed: () async {
+                    HelperFunctions().showOverlayLoader();
+                    try {
+                      await controller.addToCart();
+                      HelperFunctions().hideOverlayLoader();
+                      _showAddedToCartBottomSheet(Get.context!, controller);
+                    } catch (e) {
+                      HelperFunctions().hideOverlayLoader();
+                      HelperFunctions().showSnackBarError(
+                          'Failed to add to cart. Please try again.');
+                    }
+                  },
+                )),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddedToCartBottomSheet(
+      BuildContext context, ProductController controller) {
+    final colorScheme = Theme.of(context).colorScheme;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Drag Handle
+                Center(
+                  child: Container(
+                    width: 45,
+                    height: 5,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: colorScheme.outline.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+
+                // Header Row: "Added to Cart" on left, "Checkout" on right
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          size: 20,
+                          color: Colors.green.shade600,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "Added to Cart",
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Get.back();
+                        Get.toNamed(Routes.CART);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "Checkout",
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              color: colorScheme.onPrimary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(Icons.arrow_forward_ios,
+                              size: 12, color: colorScheme.onPrimary),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Added product summary tile
+                Obx(() {
+                  final productDetails = controller.productDetials;
+                  if (productDetails.isEmpty) return const SizedBox.shrink();
+                  final details = Map<String, dynamic>.from(productDetails);
+                  final imgUrl = ProductHelper.getProductImage(
+                    details,
+                    variantIndex: controller.selectedVariantIndex.value,
+                  );
+                  final name = details['name']?.toString() ?? '';
+                  final priceInfo = ProductHelper.calculatePriceInfo(
+                    details,
+                    variantIndex: controller.selectedVariantIndex.value,
+                  );
+                  final displayPrice = priceInfo['productPrice'] ?? '0';
+
+                  return Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: (imgUrl.isNotEmpty &&
+                                  imgUrl != HelperFunctions.getNoImage())
+                              ? CachedNetworkImage(
+                                  imageUrl: imgUrl,
+                                  width: 48,
+                                  height: 48,
+                                  fit: BoxFit.cover,
+                                  errorWidget: (context, url, error) =>
+                                      const AppImagePlaceholder(
+                                    width: 48,
+                                    height: 48,
+                                    radius: 8,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : const AppImagePlaceholder(
+                                  width: 48,
+                                  height: 48,
+                                  radius: 8,
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "₹$displayPrice",
+                                style: TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+
+                const SizedBox(height: 16),
+
+                // Footer Button: Continue Shopping
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Get.back();
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: colorScheme.outline),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      "Continue Shopping",
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+reviewModal(ProductController controller) {
+  TextEditingController reviewController = TextEditingController();
+  int rating = 3;
+  final colorScheme = Theme.of(Get.context!).colorScheme;
+  return Get.dialog(AlertDialog(
+      backgroundColor: colorScheme.surface,
+      content: SizedBox(
+        // width: MediaQuery.of(context).size.width * 80,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Write Review',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                RatingBar.builder(
+                  initialRating: 3,
+                  minRating: 1,
+                  direction: Axis.horizontal,
+                  allowHalfRating: false,
+                  itemCount: 5,
+                  itemPadding: EdgeInsets.zero,
+                  itemBuilder: (context, _) => Transform.scale(
+                    scale: 0.6,
+                    child: const Icon(
+                      Icons.star,
+                      color: Colors.amber,
+                    ),
+                  ),
+                  onRatingUpdate: (value) {
+                    rating = value.toInt();
+                  },
+                ),
+                const SizedBox(height: 10),
+                Text("Review:",
+                    style: TextStyle(
+                        fontSize: 14, color: colorScheme.onSurfaceVariant)),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: reviewController,
+                  maxLength: 300,
+                  scrollPhysics: const AlwaysScrollableScrollPhysics(),
+                  onChanged: (value) {
+                    // .text = value;
+                  },
+                  decoration: InputDecoration(
+                    contentPadding:
+                        const EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: Theme.of(Get.context!).colorScheme.primary,
+                            width: 1)),
+                    enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: Theme.of(Get.context!).colorScheme.outline,
+                            width: 1)),
+                  ),
+                  minLines: 1,
+                  keyboardType: TextInputType.multiline,
+                  maxLines: 6,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        Row(
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: () {
+                  Get.back();
+                },
+                child: SizedBox(
+                    height: 45,
+                    child: Center(
+                      child: Text('Back'.toUpperCase(),
+                          style: Theme.of(Get.context!)
+                              .textTheme
+                              .titleLarge!
+                              .copyWith(
+                                color: Theme.of(Get.context!)
+                                    .colorScheme
+                                    .onSurface,
+                              )),
+                    )),
+              ),
+            ),
+            Expanded(
+              child: SizedBox(
+                height: 45,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (reviewController.text.isNotEmpty) {
+                      // print('23234554');
+                      controller.postReview(
+                          summary: reviewController.text, rating: rating);
+                      Get.back();
+                    } else {
+                      // Get.showSnackbar(const GetSnackBar(
+                      //   message: 'Enter review',
+                      // ));
+                      HelperFunctions().showSnackBarError('Enter review');
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(Get.context!).colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text('Submit'.toUpperCase(),
+                      style: TextStyle(
+                        color: Theme.of(Get.context!).colorScheme.onPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      )),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ]));
 }
 
 class OrderButton extends StatefulWidget {
@@ -445,84 +1490,332 @@ class _OrderButtonState extends State<OrderButton>
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: Get.width,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: Theme.of(context).colorScheme.outline,
-            width: 1.2,
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+                color:
+                    Theme.of(Get.context!).colorScheme.outline.withOpacity(0.3),
+                spreadRadius: 0,
+                blurRadius: 2),
+          ],
+        ),
+        width: Get.width,
+        height: 50,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  widget.wishListTap();
+                  _controller
+                      .forward(
+                        from: 0.0,
+                      )
+                      .then((value) => _controller.reverse());
+                },
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) {
+                    return Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Transform.scale(
+                          scale: _scaleAnimation.value,
+                          child: Obx(
+                            () {
+                              final wishlistService =
+                                  Get.find<WishListService>();
+                              final isInWishlist = wishlistService
+                                  .isInWishlist(widget.controller.productId);
+                              return isInWishlist
+                                  ? SvgPicture.asset(
+                                      'assets/icon/like.svg',
+                                      width: 18,
+                                    )
+                                  : SvgPicture.asset(
+                                      'assets/icon/unlike.svg',
+                                      width: 18,
+                                      colorFilter: ColorFilter.mode(
+                                        Theme.of(Get.context!)
+                                            .colorScheme
+                                            .onSurface,
+                                        BlendMode.srcIn,
+                                      ),
+                                    );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text("WISHLIST",
+                            style: Theme.of(Get.context!)
+                                .textTheme
+                                .headlineSmall!
+                                .copyWith(
+                                  fontSize: 16,
+                                  color: Theme.of(Get.context!)
+                                      .colorScheme
+                                      .onSurface,
+                                ))
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+            const VerticalDivider(
+              width: 20,
+              thickness: 1.5,
+              indent: 10,
+              endIndent: 10,
+            ),
+            Expanded(
+              child: GestureDetector(
+                onTap: widget.addToCartTap,
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/icon/addtobag.svg',
+                      width: 18,
+                      colorFilter: ColorFilter.mode(
+                        Theme.of(Get.context!).colorScheme.primary,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(widget.btntext,
+                        style: Theme.of(Get.context!)
+                            .textTheme
+                            .headlineSmall!
+                            .copyWith(
+                              fontSize: 16,
+                              color:
+                                  Theme.of(Get.context!).colorScheme.onSurface,
+                            )),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ));
+  }
+}
+
+class ProductGallery extends StatelessWidget {
+  final ProductController controller;
+  final List productGallery;
+
+  ColorScheme get colorScheme => Theme.of(Get.context!).colorScheme;
+
+  const ProductGallery({
+    super.key,
+    required this.controller,
+    required this.productGallery,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
+    final width = MediaQuery.of(context).size.width;
+
+    return Obx(() {
+      // Touch an observable to satisfy GetX requirement that at least one observable is used,
+      // even if productGallery is initially empty.
+      controller.selectedImageIndex.value;
+
+      print("Gallery rebuilding with ${productGallery.length} images");
+
+      if (productGallery.isEmpty) {
+        return _buildShimmerLoading(height, width);
+      } else {
+        return _buildGalleryWithThumbnails(context, height, width);
+      }
+    });
+  }
+
+  Widget _buildShimmerLoading(double height, double width) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Shimmer.fromColors(
+        enabled: true,
+        direction: ShimmerDirection.ltr,
+        loop: 0,
+        period: const Duration(seconds: 1),
+        baseColor: colorScheme.surfaceVariant,
+        highlightColor: colorScheme.onSurfaceVariant.withOpacity(0.1),
+        child: SizedBox(
+          height: height * 0.47,
+          width: width * 0.92,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(height * 0.028),
+              color: Colors.red,
+            ),
           ),
         ),
       ),
-      height: 50,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                widget.wishListTap();
-                _controller
-                    .forward(
-                      from: 0.0,
-                    )
-                    .then((value) => _controller.reverse());
-              },
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return Wrap(
-                    alignment: WrapAlignment.center,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Transform.scale(
-                        scale: _scaleAnimation.value,
-                        child: Obx(() {
-                          final isInWishlist = WishListService.to
-                              .isInWishlist(widget.controller.productId);
-                          return SvgPicture.asset(
-                            isInWishlist
-                                ? 'assets/icon/like.svg'
-                                : 'assets/icon/unlike.svg',
-                          );
-                        }),
-                      ),
-                      const SizedBox(width: 10),
-                      Text("WISHLIST",
-                          style: Theme.of(context).textTheme.bodyMedium)
-                    ],
-                  );
-                },
-              ),
-            ),
-          ),
-          const VerticalDivider(
-            width: 20,
-            thickness: 1.5,
-            indent: 10,
-            endIndent: 10,
-          ),
-          Expanded(
-            child: GestureDetector(
-              onTap: widget.addToCartTap,
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  SvgPicture.asset(
-                    'assets/icon/addtobag.svg',
-                    width: 16,
-                  ),
-                  const SizedBox(width: 10),
-                  Text(widget.btntext,
-                      style: Theme.of(context).textTheme.bodyMedium),
-                ],
-              ),
-            ),
-          ),
-        ],
+    );
+  }
+
+  Widget _buildGalleryWithThumbnails(
+      BuildContext context, double height, double width) {
+    // Extract image paths safely with null checks
+    List<String> imagePaths = [];
+
+    try {
+      imagePaths = productGallery.map<String>((item) {
+        String imagePath = '';
+
+        // Handle different image structures
+        if (item is String) {
+          // If it's directly a string URL
+          imagePath = item;
+        } else if (item is Map) {
+          // If it's a map with filepath or filename
+          imagePath = item['filepath'] ??
+              item['filename'] ??
+              item['image'] ??
+              item['url'] ??
+              '';
+        }
+
+        // Add base URL if needed and not already a full URL
+        if (imagePath.isNotEmpty && !imagePath.startsWith('http')) {
+          return assetURL + imagePath;
+        }
+
+        return imagePath;
+      }).toList();
+    } catch (e) {
+      print("Error parsing gallery images: $e");
+      return SizedBox.shrink();
+    }
+
+    // Ensure selectedImageIndex is valid
+    if (controller.selectedImageIndex.value >= imagePaths.length) {
+      controller.selectedImageIndex.value = 0;
+    }
+
+    return Container(
+      width: width * 0.92,
+      height: height * 0.47,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(height * 0.028),
+        image: imagePaths.isNotEmpty
+            ? DecorationImage(
+                image: CachedNetworkImageProvider(
+                  imagePaths[controller.selectedImageIndex.value],
+                ),
+                fit: BoxFit.cover,
+              )
+            : null,
+        color: Colors.grey.shade200, // Fallback color
       ),
+      child: imagePaths.isEmpty
+          ? Center(child: Text('No images available'))
+          : Stack(
+              children: [
+                // Full screen tap (Move this BEFORE thumbnails so thumbnails are clickable)
+                Positioned.fill(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Get.to(
+                          () => ImageSlider(),
+                          arguments: {"images": productGallery},
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(height * 0.028),
+                    ),
+                  ),
+                ),
+
+                // Thumbnails
+                Positioned(
+                  left: width * 0.037,
+                  bottom: height * 0.02,
+                  child: Container(
+                    width: width * 0.845,
+                    height: height * 0.085,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: width * 0.02,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(height * 0.02),
+                    ),
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: imagePaths.length,
+                      separatorBuilder: (_, __) =>
+                          SizedBox(width: width * 0.02),
+                      itemBuilder: (context, index) {
+                        final isActive =
+                            controller.selectedImageIndex.value == index;
+
+                        return GestureDetector(
+                          onTap: () {
+                            controller.selectedImageIndex.value = index;
+                          },
+                          child: Container(
+                            width: height * 0.085,
+                            height: height * 0.085,
+                            decoration: BoxDecoration(
+                              borderRadius:
+                                  BorderRadius.circular(height * 0.02),
+                              border: isActive
+                                  ? Border.all(
+                                      color: colorScheme.primary,
+                                      width: 2,
+                                    )
+                                  : null,
+                              image: DecorationImage(
+                                image: CachedNetworkImageProvider(
+                                  imagePaths[index],
+                                ),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class dileveryOption extends StatelessWidget {
+  dileveryOption({Key? key, required this.icon, required this.services})
+      : super(key: key);
+  String icon;
+  String services;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SvgPicture.asset(
+          icon,
+          colorFilter: ColorFilter.mode(
+            Theme.of(context).colorScheme.primary,
+            BlendMode.srcIn,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(services,
+            style: TextStyle(
+              fontSize: 14,
+              color: Theme.of(Get.context!).colorScheme.onSurface,
+            ))
+      ],
     );
   }
 }

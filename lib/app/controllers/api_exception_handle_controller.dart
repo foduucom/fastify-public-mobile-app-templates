@@ -1,12 +1,14 @@
-import '/app/routes/app_pages.dart';
+import '/app/data/services/session_service.dart';
 import '/constants/app_exceptions.dart';
-import '/constants/constants.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 mixin BaseController {
   var getbox = GetStorage();
+  final RxBool hasError = false.obs;
+  final RxString errorMessage = ''.obs;
+
   Future<void> handleError(error) async {
     // hideLoading();
     if (error is BadRequestException) {
@@ -16,16 +18,9 @@ mixin BaseController {
       var message = error.message;
       HelperFunctions().showSnackBarError(message.toString());
     } else if (error is UnAuthorizedException) {
-      var message = error.message;
-      // if (await FirebaseHelpers().unsubscribeFromAllTopics()) {
-      getbox.erase();
-      isOtpLogin
-          ? Get.offAllNamed(Routes.MOBILELOGIN)
-          : Get.offAllNamed(Routes.CREATE_ACCOUNT);
-      // }
-      // Get.find<BottomnavController>().logout();
-      HelperFunctions()
-          .showSnackBarError("$message Your session seems to be expired!");
+      // A 401 only expires an active authenticated session. SessionService
+      // owns cleanup and navigation so simultaneous requests cannot race.
+      await SessionService.expire(message: error.message);
     } else if (error is ApiNotRespondingException) {
       // print("------------------");
       // print("------------------");

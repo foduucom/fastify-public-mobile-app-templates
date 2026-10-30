@@ -12,19 +12,26 @@ const appMode = "test";
 // var ACCESS_KEY =
 //     isWeb ? 'c4144f5a5223976f79ac555d0a95e35f6dd9e34a69e0f935' : 'Not Provided';
 
-var websiteDomain = "shoponline.vbought.com";
-var url = "https://${websiteDomain}/";
-var socketUrl = "https://studio.vbought.com/";
-
-var ACCESS_KEY = '6e7b1cf24b9c920e21be204f3475978abc7067f0c176f1e8';
-// var websiteDomain = "Not Provided";
+// var websiteDomain = "mywatch.vbought.com";
 // var url = "https://${websiteDomain}/";
 // var socketUrl = "https://studio.vbought.com/";
 
+// ZOOHI websiteDomain
+var websiteDomain = "daksh-store.foduu.store";
+var url = "https://${websiteDomain}/";
+var socketUrl = "https://studio.foduu.store/";
 
+// var ACCESS_KEY = '72a5a13ab02a20737217279980c33374f41554ec60742815';
+
+// ZOOHI ACCESS Key
+var ACCESS_KEY = 'da0cd913cd4165687dd5b7c56fbb18048e38a477872e66b1';
 
 var assetURL = "${url}images/";
 var apiURL = "${url}api/";
+
+const String appName = "Store";
+String supportEmail = "support@vbought.com";
+String supportContact = "1-800-570-7777";
 
 bool isOtpLogin = false;
 

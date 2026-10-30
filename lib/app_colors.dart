@@ -34,7 +34,7 @@ class AppColors {
       Theme.of(context).colorScheme.secondary;
 
   static Color background(BuildContext context) =>
-      Theme.of(context).colorScheme.background;
+      Theme.of(context).colorScheme.surface;
 
   static Color surface(BuildContext context) =>
       Theme.of(context).colorScheme.surface;

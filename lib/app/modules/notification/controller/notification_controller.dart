@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
-import '/app/controllers/api_exception_handle_controller.dart';
-import '/app/data/basic_provider.dart';
+import 'package:foddu/app/controllers/api_exception_handle_controller.dart';
+import 'package:foddu/app/data/basic_provider.dart';
 import 'package:get/get.dart';
 
 class NotificationsController extends GetxController with BaseController {
@@ -18,35 +18,35 @@ class NotificationsController extends GetxController with BaseController {
     // await fetchMoreDataOnScroll();
   }
 
-  Future<void> fetchallnotificationlist() async {
-    isLoading.value = true;
-    var response = await BasicProvider(
-            "frontend/notifications?count=10&page=${currentPage.value}")
-        .getRequest()
-        .catchError(handleError);
-    if (response == null) return;
-    allnotificationList.addAll(response["data"]);
-    maxPage(response["last_page"]);
-    isLoading.value = false;
-  }
+  // Future<void> fetchallnotificationlist() async {
+  //   isLoading.value = true;
+  //   var response = await BasicProvider(
+  //           "frontend/notifications/show/65f1a6b0d69a713e76c17af5?count=10&page=${currentPage.value}")
+  //       .getRequest()
+  //       .catchError(handleError);
+  //   if (response == null) return;
+  //   allnotificationList.addAll(response["data"]);
+  //   maxPage(response["last_page"]);
+  //   isLoading.value = false;
+  // }
 
-  Future<void> fetchMoreDataOnScroll() async {
-    scrollController.addListener(() async {
-      if (scrollController.position.pixels >=
-          scrollController.position.maxScrollExtent - 50.0) {
-        if (!isLoading.value && currentPage.value < maxPage.value) {
-          currentPage(currentPage.value + 1);
-          await fetchallnotificationlist();
-        }
-      }
-    });
-  }
+  // Future<void> fetchMoreDataOnScroll() async {
+  //   scrollController.addListener(() async {
+  //     if (scrollController.position.pixels >=
+  //         scrollController.position.maxScrollExtent - 50.0) {
+  //       if (!isLoading.value && currentPage.value < maxPage.value) {
+  //         currentPage(currentPage.value + 1);
+  //         await fetchallnotificationlist();
+  //       }
+  //     }
+  //   });
+  // }
 
   Future<void> onPullToRefresh() async {
     currentPage.value = 1;
     maxPage.value = 1;
     allnotificationList.clear();
-    await fetchallnotificationlist();
+    // await fetchallnotificationlist();
   }
 
   @override

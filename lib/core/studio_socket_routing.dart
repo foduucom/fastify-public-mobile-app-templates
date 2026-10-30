@@ -1,9 +1,10 @@
 import 'dart:convert';
-
-import '/app/routes/app_pages.dart';
-import '/constants/constants.dart';
-import '/helpers/socket_helper.dart';
+import 'package:foddu/app/modules/bottomar/controllers/bottombar_controller.dart';
+import 'package:foddu/app/routes/app_pages.dart';
+import 'package:foddu/constants/constants.dart';
+import 'package:foddu/helpers/socket_helper.dart';
 import 'package:get/get.dart';
+import 'package:foddu/app/modules/shop/shop_navigation.dart';
 
 class StudioSocketRouting extends GetxController {
   final String? initialSlug;
@@ -12,13 +13,15 @@ class StudioSocketRouting extends GetxController {
   final SocketHelper _socketHelper = SocketHelper();
 
   // Map of bottom bar slugs to their tab indices
-  // Index 0=Home, 1=Category, 2=Cart, 3=Wishlist, 4=Profile
+  // Index 0=Home, 1=Account/Profile, 2=Shop/Category, 3=Wishlist, 4=Cart
   static const Map<String, int> _bottomBarTabs = {
     'home': 0,
-    'category': 1,
-    'cart': 2,
+    'account': 1,
+    'profile': 1,
+    'shop': 2,
+    'category': 2,
     'wishlist': 3,
-    'profile': 4,
+    'cart': 4,
   };
 
   @override
@@ -79,24 +82,24 @@ class StudioSocketRouting extends GetxController {
   /// Handles two scenarios:
   /// 1. Already on the bottom bar screen → just switch the tab.
   /// 2. On a different screen → navigate to bottom bar first, then switch tab.
-  // void _navigateToBottomBarTab(int tabIndex) {
-  //   // Check if BottombarController is already registered (we're on the bottom bar screen)
-  //   if (Get.isRegistered<BottombarController>()) {
-  //     final controller = Get.find<BottombarController>();
-  //     controller.onTabChange(tabIndex);
-  //     // Pop any screens stacked on top of the bottom bar
-  //     Get.until((route) => route.settings.name == Routes.BOTTOMBAR);
-  //   } else {
-  //     // Navigate to bottom bar first, then switch tab after it's ready
-  //     Get.offAllNamed(Routes.BOTTOMBAR);
-  //     // Use a slight delay to ensure the controller is initialized
-  //     Future.delayed(const Duration(milliseconds: 300), () {
-  //       if (Get.isRegistered<BottombarController>()) {
-  //         Get.find<BottombarController>().onTabChange(tabIndex);
-  //       }
-  //     });
-  //   }
-  // }
+  void _navigateToBottomBarTab(int tabIndex) {
+    // Check if BottombarController is already registered (we're on the bottom bar screen)
+    if (Get.isRegistered<BottombarController>()) {
+      final controller = Get.find<BottombarController>();
+      controller.onTabChange(tabIndex);
+      // Pop any screens stacked on top of the bottom bar
+      Get.until((route) => route.settings.name == Routes.BOTTOMBAR);
+    } else {
+      // Navigate to bottom bar first, then switch tab after it's ready
+      Get.offAllNamed(Routes.BOTTOMBAR);
+      // Use a slight delay to ensure the controller is initialized
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (Get.isRegistered<BottombarController>()) {
+          Get.find<BottombarController>().onTabChange(tabIndex);
+        }
+      });
+    }
+  }
 
   void navigateToSlug(String slug) {
     // Normalize: lowercase and strip leading slash so both "home" and "/home" work
@@ -107,7 +110,7 @@ class StudioSocketRouting extends GetxController {
     if (tabIndex != null) {
       print(
           '🔄 StudioSocketRouting: Switching to bottom bar tab $tabIndex for slug: $slug');
-
+      _navigateToBottomBarTab(tabIndex);
       return;
     }
 
@@ -120,11 +123,11 @@ class StudioSocketRouting extends GetxController {
         Get.toNamed(Routes.SEARCH);
         break;
       case 'product-listing':
-        Get.toNamed(Routes.SHOPPRODUCTLISTVIEW);
+        openShop();
         break;
       default:
-        // // Get.toNamed(Routes.,
-        //     arguments: {'slug': slug, 'label': 'No lable'});
+      // Get.toNamed(Routes.CUSTOMPAGE,
+      //     arguments: {'slug': slug, 'label': 'No lable'});
       // print(
       //     'ℹ️ StudioSocketRouting: Attempting direct navigation for: $slug');
       // if (slug.startsWith('/')) {

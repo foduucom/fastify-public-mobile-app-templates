@@ -12,6 +12,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class HelperFunctions {
+  static double parseAmount(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? 0.0;
+  }
+
   static String getNoImage() {
     // return 'https://st4.depositphotos.com/14953852/24787/v/450/depositphotos_247872612-stock-illustration-no-image-available-icon-vector.jpg';
     return 'https://static.vecteezy.com/system/resources/thumbnails/004/141/669/small/no-photo-or-blank-image-icon-loading-images-or-missing-image-mark-image-not-available-or-image-coming-soon-sign-simple-nature-silhouette-in-frame-isolated-illustration-vector.jpg';
@@ -52,46 +58,54 @@ class HelperFunctions {
   }
 
   void showOverlayLoader({barrierDismissible = false}) {
-    bool isKeyboardOpen() {
-      return WidgetsBinding.instance.focusManager.primaryFocus?.hasFocus ??
-          false;
-    }
-
-    if (isKeyboardOpen()) {
-      Get.dialog(
-        Center(
-          child: Container(
-            height: 130,
-            width: 110,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 30,
-                      width: 30,
-                      child: HelperFunctions().loadingIndicator(),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      "Loading...",
-                      style: TextStyle(fontSize: 14, color: Colors.black),
-                    ),
-                  ],
-                ),
+    Get.dialog(
+      Center(
+        child: Container(
+          height: 130,
+          width: 100,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.8),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Center(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    height: 30,
+                    width: 30,
+                    child: HelperFunctions().loadingIndicator(),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Loading...",
+                    style: TextStyle(fontSize: 14, color: Colors.black),
+                  ),
+                ],
               ),
             ),
           ),
         ),
-        barrierDismissible: barrierDismissible,
-      );
+      ),
+      barrierDismissible: barrierDismissible,
+    );
+  }
+
+  void hideOverlayLoader() {
+    if (Get.isDialogOpen == true) {
+      try {
+        final ctx = Get.overlayContext ?? Get.context;
+        if (ctx != null && Navigator.of(ctx, rootNavigator: true).canPop()) {
+          Navigator.of(ctx, rootNavigator: true).pop();
+        } else {
+          Get.back();
+        }
+      } catch (_) {
+        Get.back();
+      }
     }
   }
 
@@ -281,21 +295,26 @@ class HelperFunctions {
     return formattedDate;
   }
 
-  static int lowestPrice(List<dynamic> variantIds) {
-    int minPrice = variantIds.isEmpty ? null : variantIds.first['sale_price'];
+  static double lowestPrice(List<dynamic> variantIds) {
+    if (variantIds.isEmpty) return 0.0;
+    double? minPrice;
     for (var variant in variantIds) {
-      if (variant['sale_price'] < minPrice) {
-        minPrice = variant['sale_price'];
+      double currentPrice =
+          parseAmount(variant['sale_price'] ?? variant['price']);
+      if (minPrice == null || currentPrice < minPrice) {
+        minPrice = currentPrice;
       }
     }
-    return minPrice;
+    return minPrice ?? 0.0;
   }
 
-  static int highestPrice(List<dynamic> variantIds) {
-    int maxPrice = 0;
+  static double highestPrice(List<dynamic> variantIds) {
+    double maxPrice = 0;
     for (var variant in variantIds) {
-      if (variant['sale_price'] > maxPrice) {
-        maxPrice = variant['sale_price'];
+      double currentPrice =
+          parseAmount(variant['sale_price'] ?? variant['price']);
+      if (currentPrice > maxPrice) {
+        maxPrice = currentPrice;
       }
     }
     return maxPrice;
@@ -342,6 +361,17 @@ class HelperFunctions {
 
     // Case 1: featuredImage is a Map
     if (featuredImage is Map) {
+      // First try to use download_url if present (e.g. for customer avatars)
+      final downloadUrl =
+          featuredImage['download_url'] ?? featuredImage['downloadUrl'];
+      if (downloadUrl != null && downloadUrl.toString().isNotEmpty) {
+        final fixedUrl = _fixImageUrl(downloadUrl.toString());
+        if (isLog == true) {
+          print('Resolved image from download_url $moduleName => $fixedUrl');
+        }
+        return fixedUrl;
+      }
+
       final path = featuredImage['filePath'] ??
           featuredImage['filepath'] ??
           featuredImage['filename'];
@@ -351,13 +381,23 @@ class HelperFunctions {
 
         if (isLog == true) {
           print('swapnil path $moduleName => $imageUrl');
+          print("Path image from module $moduleName => ${path}");
         }
-
         return imageUrl;
       }
     }
 
     if (featuredImage is String && featuredImage.isNotEmpty) {
+      if (featuredImage.startsWith('http://') ||
+          featuredImage.startsWith('https://')) {
+        return _fixImageUrl(featuredImage);
+      }
+
+      // A bare MongoDB ObjectId (24 hex chars, no path separators) is not a
+      // valid image path — guard against the cart/manage response inconsistency.
+      final isRawId = RegExp(r'^[a-f0-9]{24}$').hasMatch(featuredImage);
+      if (isRawId) return HelperFunctions.getNoImage();
+
       final imageUrl = '${url}images/$featuredImage';
 
       if (isLog == true) {
@@ -369,5 +409,60 @@ class HelperFunctions {
 
     // Fallback
     return HelperFunctions.getNoImage();
+  }
+
+  String _fixImageUrl(String imageUrl) {
+    if (imageUrl.isEmpty) return imageUrl;
+    final uri = Uri.tryParse(imageUrl);
+    if (uri == null) return imageUrl;
+
+    // If it's a vbought.com domain, replace host with websiteDomain to match constants.dart setup
+    if (uri.host.endsWith('.vbought.com') && uri.host != websiteDomain) {
+      return imageUrl.replaceFirst(uri.host, websiteDomain);
+    }
+    return imageUrl;
+  }
+
+  /// Resolves a product's display image from any of the shapes the API
+  /// returns a product in: a nested `product_id` object (order line items),
+  /// a plain product object (reviews), a `featured_image`/`gallery` pair,
+  /// or a direct `image` field. Falls back through each in turn, then to
+  /// [getNoImage].
+  static String resolveProductImage(dynamic product) {
+    try {
+      if (product is Map) {
+        final productObj = product['product_id'] is Map ? product['product_id'] : product;
+
+        final featuredImage = productObj['featured_image'];
+        if (featuredImage is Map) {
+          final resolved = HelperFunctions().getImage(featuredImage);
+          if (resolved.isNotEmpty && resolved != getNoImage()) return resolved;
+        }
+
+        final frontImageId = productObj['front_image']?.toString() ?? '';
+        final gallery = productObj['gallery'];
+        if (gallery is List && frontImageId.isNotEmpty) {
+          final match = gallery.firstWhere(
+            (g) => g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
+            orElse: () => null,
+          );
+          if (match is Map) {
+            final resolved = HelperFunctions().getImage(match);
+            if (resolved.isNotEmpty && resolved != getNoImage()) return resolved;
+          }
+        }
+
+        final directImage = product['image'] ?? productObj['image'] ?? product['featured_image'];
+        if (directImage != null) {
+          final resolved = HelperFunctions().getImage(directImage);
+          if (resolved.isNotEmpty && resolved != getNoImage()) return resolved;
+        }
+      } else if (product is String) {
+        return HelperFunctions().getImage(product);
+      }
+    } catch (e) {
+      debugPrint('resolveProductImage error: $e');
+    }
+    return getNoImage();
   }
 }

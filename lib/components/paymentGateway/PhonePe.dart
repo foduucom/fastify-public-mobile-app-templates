@@ -1,20 +1,33 @@
 import 'package:flutter/material.dart';
 
 class PhonePePayment {
-  final String merchantId;
+  final String clientId;
+  final String clientSecret;
+  final String clientVersion;
+  final String environment;
+  final String appScheme;
 
-  PhonePePayment({required this.merchantId});
+  PhonePePayment({
+    required this.clientId,
+    required this.clientSecret,
+    required this.clientVersion,
+    required this.environment,
+    required this.appScheme,
+  });
 
-  Future<void> processPayment({
+  Future<Map<String, dynamic>> processPayment({
     required double amount,
     Map<String, dynamic>? metadata,
   }) async {
-    // TODO: Implement PhonePe payment logic using the provided merchantId
-    print(
-        'Processing PhonePe payment of $amount with merchant ID: $merchantId');
-
-    // Simulating a delay and success
-    await Future.delayed(Duration(seconds: 2));
-    return;
+    // The server must provide the signed PhonePe transaction payload before
+    // the mobile SDK can be invoked. Keep the adapter's result typed while
+    // that backend flow is configured.
+    debugPrint(
+      'PhonePe payment is not configured for client $clientId '
+      '(version $clientVersion, environment $environment, scheme $appScheme).',
+    );
+    throw StateError(
+      'PhonePe payment requires a signed transaction payload from the server.',
+    );
   }
 }

@@ -1,44 +1,85 @@
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import '../controller/splash_controller.dart';
+// ignore_for_file: prefer_const_constructors, sort_child_properties_last
 
-// ✅ StatelessWidget — NOT GetView
-class SplashView extends StatelessWidget {
-  const SplashView({super.key});
+import 'dart:async';
+import 'dart:isolate';
+
+import 'package:flutter/material.dart';
+import 'package:foddu/app/controllers/api_exception_handle_controller.dart';
+import 'package:foddu/app/data/basic_provider.dart';
+import 'package:foddu/app/modules/splashscreen/controller/splash_screen_controller.dart';
+import 'package:foddu/app/modules/splashscreen/view/circular_loading_indicator.dart';
+import 'package:foddu/app/routes/app_pages.dart';
+import 'package:foddu/constants/constants.dart';
+import 'package:foddu/constants/dynamic_theme.dart';
+
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+
+class SplashscreenView extends GetView<SplashScreenController> {
+  SplashscreenView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // ✅ Directly puts and creates controller immediately
-    Get.put(SplashController());
+    var height = Get.height;
+    var width = Get.width;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFECE8E5),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // ── Logo ────────────────────────────────────────────
-            Image.asset(
-              'assets/images/splash_logo.png',
-              width: 134.16,
-              height: 135,
-              fit: BoxFit.contain,
+      body: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          Positioned(
+            top: height * 0.04,
+            right: 0,
+            left: 0,
+            bottom: height * 0.18,
+            child: Image.asset(
+              'assets/images/splash.png',
+              fit: BoxFit.fill,
             ),
-            const SizedBox(height: 24),
-
-            // ── App Name ────────────────────────────────────────
-            const Text(
-              'ROOMORA',
-              style: TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF000000),
-                letterSpacing: -2,
-              ),
+          ),
+          Positioned(
+            top: height * 0.80,
+            right: 0,
+            left: 0,
+            bottom: height * 0.03,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircularLoadingIndicator(
+                  progress: controller.progressValue.value,
+                  size: height * 0.10,
+                ),
+                Text(
+                  '©2023 OCTAGON - All Right Reserved ',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
+
+// class _CustomClipper extends CustomClipper<Path> {
+//   @override
+//   Path getClip(Size size) {
+//     Path path = Path();
+//     path.lineTo(0, size.height - 150);
+//     path.quadraticBezierTo(
+//         size.width / 2, size.height - 40, size.width, size.height - 150);
+//     path.lineTo(size.width, 0);
+//     path.close();
+
+//     return path;
+//   }
+
+//   @override
+//   bool shouldReclip(CustomClipper<Path> oldClipper) => true;
+// }

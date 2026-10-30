@@ -1,266 +1,508 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../../../../components/app_bar/custom_app_bar.dart';
-import '../../../../components/shimmer1/app_shimmer.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:foddu/constants/constants.dart';
+import 'package:foddu/components/support_call_sheet.dart';
+import 'package:foddu/components/commonWidgets/secondary_app_header.dart';
+import 'package:foddu/app/routes/app_pages.dart';
 import '../controllers/helpandsupport_controller.dart';
 
-class HelpSupportView extends StatelessWidget {
-  const HelpSupportView({super.key});
+class HelpandsupportView extends GetView<HelpandsupportController> {
+  const HelpandsupportView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(HelpSupportController());
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFEEECE8),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
-            AppTopBar(title: 'Help & Support',),
-            const SizedBox(height: 20),
-
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _SearchBar(controller: controller),
-            ),
-            const SizedBox(height: 24),
-
-            Expanded(
-              child: Obx(() {
-                // ✅ NEW
-                if (controller.isLoading.value) {
-                  return const _HelpShimmer();
-                }
-
-
-                final faqs = controller.filteredFaqs;
-                if (faqs.isEmpty) {
-                  return const Center(
-                    child: Text('No results found',
-                        style: TextStyle(
-                            fontSize: 15,
-                            color: Color(0xFF9E9E9E))),
-                  );
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: faqs.length,
-                  itemBuilder: (_, i) => Obx(() {
-                    final isOpen = controller.expandedIndex.value == i;
-                    return _FaqItem(
-                      title:    faqs[i]['title']  ?? '',
-                      answer:   faqs[i]['answer'] ?? '',
-                      isOpen:   isOpen,
-                      isLast:   i == faqs.length - 1,
-                      onTap:    () => controller.toggleExpand(i),
-                    );
-                  }),
-                );
-              }),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-}
-
-// ── Search Bar ────────────────────────────────────────────────────
-class _SearchBar extends StatelessWidget {
-  final HelpSupportController controller;
-  const _SearchBar({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 54,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(50),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 18),
-      child: Row(
-        children: [
-          const Icon(Icons.search_rounded,
-              size: 22, color: Color(0xFFB0AEAB)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: TextField(
-              onChanged: controller.onSearch,
-              style: const TextStyle(
-                  fontSize: 15, color: Color(0xFF1A1A1A)),
-              decoration: const InputDecoration(
-                hintText: 'Search language',
-                hintStyle: TextStyle(
-                    fontSize: 15, color: Color(0xFFB0AEAB)),
-                border:        InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                isDense: true,
-              ),
-            ),
+    return SafeArea(
+      child: Scaffold(
+        appBar: const PreferredSize(
+          preferredSize: Size.fromHeight(kToolbarHeight),
+          child: SecondaryAppHeader(
+            title: 'Help & Support',
+            showRight: false,
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FaqItem extends StatelessWidget {
-  final String title;
-  final String answer;
-  final bool isOpen;
-  final bool isLast;
-  final VoidCallback onTap;
-
-  const _FaqItem({
-    required this.title,
-    required this.answer,
-    required this.isOpen,
-    required this.isLast,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          behavior: HitTestBehavior.opaque,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Row(
+        ),
+        body: RefreshIndicator(
+          onRefresh: () async {
+            await controller.getFaqs();
+          },
+          color: colorScheme.primary,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1A1A1A),
+                // Modern Hero Card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        colorScheme.primary,
+                        colorScheme.primary.withOpacity(0.82),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withOpacity(0.25),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.headset_mic_rounded,
+                          color: Colors.white,
+                          size: 32,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'How can we help you?',
+                              style: TextStyle(
+                                fontFamily: 'Plus Jakarta Sans',
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'We are ready to assist with orders, accounts, and questions.',
+                              style: TextStyle(
+                                fontFamily: 'Plus Jakarta Sans',
+                                fontSize: 12.5,
+                                color: Colors.white.withOpacity(0.85),
+                                height: 1.35,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Reach Us Directly
+                Text(
+                  'Reach Us Directly',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildContactCard(
+                        context: context,
+                        icon: Icons.email_outlined,
+                        title: 'Email Support',
+                        subtitle: supportEmail,
+                        onTap: () {
+                          final Uri emailUri = Uri(
+                            scheme: 'mailto',
+                            path: supportEmail,
+                            query: 'subject=Support Inquiry - ',
+                          );
+                          launchUrl(emailUri);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildContactCard(
+                        context: context,
+                        icon: Icons.phone_outlined,
+                        title: 'Call Us',
+                        subtitle: supportContact,
+                        onTap: () => handleSupportCall(context),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 14),
+
+                // Support Tickets Tile
+                Material(
+                  color: colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(color: colorScheme.outline.withOpacity(0.2)),
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => Get.toNamed(Routes.SUPPORT_TICKET),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.confirmation_number_outlined,
+                              color: colorScheme.primary,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Support Tickets',
+                                  style: TextStyle(
+                                    fontFamily: 'Plus Jakarta Sans',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14.5,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Open or check the status of support tickets',
+                                  style: TextStyle(
+                                    fontFamily: 'Plus Jakarta Sans',
+                                    fontSize: 12,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 14,
+                            color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                AnimatedRotation(
-                  turns:    isOpen ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 250),
-                  child: const Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    size: 22,
-                    color: Color(0xFF1A1A1A),
+
+                const SizedBox(height: 24),
+
+                // Frequently Asked Questions
+                Text(
+                  'Frequently Asked Questions',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
+                const SizedBox(height: 12),
+                Obx(() {
+                  if (controller.isLoading.value) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  if (controller.faqs.isEmpty) {
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'No FAQs currently available.',
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 13,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: controller.faqs.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final item = controller.faqs[index];
+                      final question = (item['question'] ??
+                              item['name'] ??
+                              item['title'] ??
+                              'Inquiry')
+                          .toString();
+
+                      final answer = (item['answer'] ??
+                              item['description'] ??
+                              item['details'] ??
+                              '')
+                          .toString();
+
+                      final subFaqs = item['faqs_detail'] is List
+                          ? (item['faqs_detail'] as List)
+                          : [];
+
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: colorScheme.surface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: ExpansionTile(
+                          shape: const Border(),
+                          collapsedShape: const Border(),
+                          tilePadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 4),
+                          childrenPadding:
+                              const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          title: Text(
+                            question,
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          children: [
+                            if (answer.isNotEmpty)
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  answer,
+                                  style: TextStyle(
+                                    fontFamily: 'Plus Jakarta Sans',
+                                    fontSize: 13,
+                                    color: colorScheme.onSurfaceVariant,
+                                    height: 1.45,
+                                  ),
+                                ),
+                              ),
+                            if (subFaqs.isNotEmpty) ...[
+                              if (answer.isNotEmpty) const SizedBox(height: 10),
+                              ...subFaqs.map((sub) {
+                                final subQ = (sub['name'] ??
+                                        sub['question'] ??
+                                        'Detail')
+                                    .toString();
+                                final subA = (sub['answer'] ??
+                                        sub['description'] ??
+                                        '')
+                                    .toString();
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '• ',
+                                        style: TextStyle(
+                                          fontFamily: 'Plus Jakarta Sans',
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
+                                          color: colorScheme.onSurface,
+                                        ),
+                                      ),
+                                      if (subA.isNotEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              left: 12, top: 2),
+                                          child: Text(
+                                            subA,
+                                            style: TextStyle(
+                                              fontFamily: 'Plus Jakarta Sans',
+                                              fontSize: 12.5,
+                                              color: colorScheme.onSurfaceVariant,
+                                              height: 1.4,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              }),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                }),
+
+                const SizedBox(height: 24),
+
+                // Helpful Links & Policies
+                Text(
+                  'Helpful Links',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildLinkTile(
+                        icon: Icons.privacy_tip_outlined,
+                        title: 'Privacy Policy',
+                        onTap: () => Get.toNamed(Routes.PRIVACY_POLICY),
+                        colorScheme: colorScheme,
+                      ),
+                      Divider(
+                        height: 1,
+                        color: colorScheme.outline.withOpacity(0.15),
+                        indent: 56,
+                      ),
+                      _buildLinkTile(
+                        icon: Icons.gavel_outlined,
+                        title: 'Terms & Conditions',
+                        onTap: () => Get.toNamed(Routes.TERMSANDCONDITION),
+                        colorScheme: colorScheme,
+                      ),
+                      Divider(
+                        height: 1,
+                        color: colorScheme.outline.withOpacity(0.15),
+                        indent: 56,
+                      ),
+                      _buildLinkTile(
+                        icon: Icons.info_outline,
+                        title: 'About Us',
+                        onTap: () => Get.toNamed(Routes.ABOUTUS),
+                        colorScheme: colorScheme,
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 28),
               ],
             ),
           ),
         ),
-
-        // ── Answer (animated expand) ─────────────────────────
-        AnimatedCrossFade(
-          duration: const Duration(milliseconds: 250),
-          firstCurve:  Curves.easeOut,
-          secondCurve: Curves.easeIn,
-          crossFadeState: isOpen
-              ? CrossFadeState.showFirst
-              : CrossFadeState.showSecond,
-          firstChild: Padding(
-            padding: const EdgeInsets.only(bottom: 20),
-            child: Text(
-              answer,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF9E9E9E),
-                height: 1.6,
-              ),
-            ),
-          ),
-          secondChild: const SizedBox.shrink(),
-        ),
-
-        // ── Divider ───────────────────────────────────────────
-        if (!isLast)
-          Container(height: 1, color: const Color(0xFFDEDCDA)),
-      ],
-    );
-  }
-}
-// ── Help & Support Shimmer ────────────────────────────────────────
-class _HelpShimmer extends StatelessWidget {
-  const _HelpShimmer();
-
-  @override
-  Widget build(BuildContext context) {
-    return AppShimmer(
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: 7,
-        separatorBuilder: (_, __) => Container(
-          height: 1,
-          color: const Color(0xFFDEDCDA),
-        ),
-        itemBuilder: (_, i) => _FaqRowShimmer(
-          // every 3rd item show an expanded answer block
-          expanded: i == 1,
-        ),
       ),
     );
   }
-}
 
-class _FaqRowShimmer extends StatelessWidget {
-  final bool expanded;
-  const _FaqRowShimmer({this.expanded = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Question row
-          Row(
+  Widget _buildContactCard({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Material(
+      color: colorScheme.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: colorScheme.outline.withOpacity(0.2)),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ShimmerBox.full(height: 13, radius: 6),
-                    if (expanded) ...[
-                      const SizedBox(height: 6),
-                      ShimmerBox(width: 200, height: 13, radius: 6),
-                    ],
-                  ],
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: colorScheme.primary, size: 20),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: colorScheme.onSurface,
                 ),
               ),
-              const SizedBox(width: 12),
-              // Arrow icon placeholder
-              const ShimmerCircle(size: 22),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 11.5,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ],
           ),
-
-          // Expanded answer block
-          if (expanded) ...[
-            const SizedBox(height: 16),
-            ShimmerBox.full(height: 11, radius: 6),
-            const SizedBox(height: 6),
-            ShimmerBox.full(height: 11, radius: 6),
-            const SizedBox(height: 6),
-            ShimmerBox(width: 220, height: 11, radius: 6),
-            const SizedBox(height: 6),
-            ShimmerBox(width: 180, height: 11, radius: 6),
-          ],
-        ],
+        ),
       ),
     );
   }
-}
 
+  Widget _buildLinkTile({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    required ColorScheme colorScheme,
+  }) {
+    return ListTile(
+      leading: Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontFamily: 'Plus Jakarta Sans',
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+          color: colorScheme.onSurface,
+        ),
+      ),
+      trailing: Icon(
+        Icons.arrow_forward_ios_rounded,
+        size: 13,
+        color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+      ),
+      onTap: onTap,
+      dense: true,
+    );
+  }
+}

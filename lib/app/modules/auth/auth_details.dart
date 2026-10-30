@@ -8,16 +8,17 @@ import '/app/routes/app_pages.dart';
 
 class AuthDetails with BaseController {
   static final box = GetStorage();
+  static final RxBool loggedIn = false.obs;
 
   // ─────────────────────────────────────────────────────────────
   //  KEYS
   // ─────────────────────────────────────────────────────────────
-  static const _kUserData    = 'userData';
-  static const _kIsLogin     = 'isLogin';
-  static const _kToken       = 'token';
+  static const _kUserData = 'userData';
+  static const _kIsLogin = 'isLogin';
+  static const _kToken = 'token';
   static const _kTokenExpiry = 'tokenExpiry';
   static const _kIntroViewed = 'isIntroViewed';
-  static const _kOtpEmail    = 'otpEmail';
+  static const _kOtpEmail = 'otpEmail';
 
   // ─────────────────────────────────────────────────────────────
   //  AUTH CHECKS
@@ -38,7 +39,9 @@ class AuthDetails with BaseController {
     try {
       final isLogin = box.read(_kIsLogin);
       final hasToken = getToken() != null;
-      return (isLogin == true || isLogin == 'true') && hasToken;
+      final authenticated = (isLogin == true || isLogin == 'true') && hasToken;
+      loggedIn.value = authenticated;
+      return authenticated;
     } catch (e) {
       debugPrint('isUserLogin error: $e');
       return false;
@@ -141,6 +144,7 @@ class AuthDetails with BaseController {
 
       // Clear temp OTP email after successful login
       clearOtpEmail();
+      loggedIn.value = isUserLogin();
 
       debugPrint('✅ Login response saved. Token: ${getToken()}');
     } catch (e) {
@@ -166,19 +170,25 @@ class AuthDetails with BaseController {
   static String get userName {
     try {
       return getUserDetails()?['name'] ?? '';
-    } catch (_) { return ''; }
+    } catch (_) {
+      return '';
+    }
   }
 
   static String get userEmail {
     try {
       return getUserDetails()?['email'] ?? getOtpEmail() ?? '';
-    } catch (_) { return ''; }
+    } catch (_) {
+      return '';
+    }
   }
 
   static String get userAvatar {
     try {
       return getUserDetails()?['avatar'] ?? '';
-    } catch (_) { return ''; }
+    } catch (_) {
+      return '';
+    }
   }
 
   /// Fetch latest profile from server and update local storage
@@ -218,6 +228,7 @@ class AuthDetails with BaseController {
     box.remove(_kToken);
     box.remove(_kTokenExpiry);
     box.remove(_kOtpEmail);
+    loggedIn.value = false;
 
     debugPrint('✅ Logged out — storage cleared');
     Get.offAllNamed(Routes.CREATE_ACCOUNT);

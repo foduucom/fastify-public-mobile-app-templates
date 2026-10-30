@@ -33,7 +33,15 @@ class DefaultThemeColors {
   static const Color darkOutline = Color(0xFF444444);
   static const Color darkSurfaceVariant = Color(0xFF2C2C2C);
   static const Color darkOnSurfaceVariant = Color(0xFFAAAAAA);
+  // ============ SEMANTIC / ALERT COLORS ============
+  static const Color alertWarninglight = Color(0xFFFFF8E1); // Amber 50
+  static const Color alertWarning = Color(0xFFF9A825);      // Amber 800
+  static const Color alertSuccessLight = Color(0xFFE8F5E9); // Green 50
+  static const Color alertSuccess = Color(0xFF388E3C);      // Green 700
+  static const Color alertInfoLight = Color(0xFFE3F2FD);    // Blue 50
+  static const Color alertInfo = Color(0xFF1976D2);         // Blue 700
 }
+
 
 class AppThemeColors {
   final Color primary;
@@ -601,6 +609,10 @@ class ThemeController extends GetxController {
     }
   }
 
+  Future<void> initThemeManager() async {
+    _loadThemeMode();
+  }
+
   /// Get current light theme
   ThemeData get lightTheme => DynamicThemeManager().buildLightTheme();
 
@@ -634,7 +646,7 @@ class ThemeController extends GetxController {
 
 /// Extension to easily access theme colors anywhere
 extension ThemeColorExtension on BuildContext {
-  /// Get current ColorSchemeP
+  /// Get current ColorScheme
   ColorScheme get colorScheme => Theme.of(this).colorScheme;
 
   /// Get current TextTheme
@@ -644,12 +656,16 @@ extension ThemeColorExtension on BuildContext {
   Color get primaryColor => colorScheme.primary;
   Color get onPrimaryColor => colorScheme.onPrimary;
   Color get secondaryColor => colorScheme.secondary;
-  Color get backgroundColor => colorScheme.background;
-  Color get onBackgroundColor => colorScheme.onBackground;
+  Color get backgroundColor => colorScheme.surface;
+  Color get onBackgroundColor => colorScheme.onSurface;
   Color get surfaceColor => colorScheme.surface;
   Color get onSurfaceColor => colorScheme.onSurface;
   Color get errorColor => colorScheme.error;
   Color get outlineColor => colorScheme.outline;
+
+  // SurfaceVariant extensions (used by ported components)
+  Color get surfaceVariantColor => colorScheme.surfaceContainerHighest;
+  Color get onSurfaceVariantColor => colorScheme.onSurfaceVariant;
 
   /// Check if current theme is dark
   bool get isDarkMode => Theme.of(this).brightness == Brightness.dark;

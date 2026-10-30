@@ -40,6 +40,31 @@ mixin FoduuStudioLayoutMixin on GetxController {
   // ─── Internal state ──────────────────────────────────────────
   List _initialComponents = [];
   List _lastSocketSections = [];
+  List<String> _excludedSectionTypes = const [];
+
+  /// Section types present in the last fetched CMS layout.
+  List<String> get sectionTypes => _initialComponents
+      .whereType<Map>()
+      .map((section) => section['type']?.toString() ?? '')
+      .where((type) => type.isNotEmpty)
+      .toList(growable: false);
+
+  /// Excludes locally rendered sections from the widget tree.
+  set excludeSectionTypes(List<String> types) {
+    _excludedSectionTypes = List.unmodifiable(types);
+    buildLayout(_initialComponents);
+  }
+
+  /// Returns a section's CMS content JSON by its type.
+  Map<String, dynamic>? contentJsonFor(String type) {
+    for (final section in _initialComponents.whereType<Map>()) {
+      if (section['type'] != type) continue;
+      final content = section['content_json'] ?? section['contentJson'];
+      if (content is Map) return Map<String, dynamic>.from(content);
+      return Map<String, dynamic>.from(section);
+    }
+    return null;
+  }
 
   final SocketHelper _layoutSocketHelper = SocketHelper();
   final WidgetRegistry _registry = WidgetRegistry();
@@ -68,13 +93,28 @@ mixin FoduuStudioLayoutMixin on GetxController {
 
   /// Build the [widgetList] from a raw list of section maps.
   void buildLayout(List sections) {
+    _initialComponents = sections;
     widgetList.clear();
     for (var section in sections) {
       if (section is Map<String, dynamic>) {
+        if (_excludedSectionTypes.contains(section['type']?.toString())) {
+          continue;
+        }
         final widget = _registry.build(section);
         if (widget != null) widgetList.add(widget);
       }
     }
+  }
+
+  /// Builds CMS sections except those rendered by the host view itself.
+  List<Widget> buildWidgetsExcluding(Iterable<String> excludedTypes) {
+    final excluded = excludedTypes.toSet();
+    return _initialComponents
+        .whereType<Map<String, dynamic>>()
+        .where((section) => !excluded.contains(section['type']?.toString()))
+        .map(_registry.build)
+        .whereType<Widget>()
+        .toList(growable: false);
   }
 
   /// Fetch layout JSON from the API and build widgets.

@@ -5,6 +5,22 @@ import '/constants/helper_functions.dart';
 
 /// Helper class for product-related calculations and utilities
 class ProductHelper {
+  static double _number(dynamic value) => HelperFunctions.parseAmount(value);
+
+  /// Formats a price value as a string with optional currency symbol.
+  /// Used by product cards, quick view modals, and shop views.
+  static String formatPrice(dynamic price, {String symbol = '₹'}) {
+    if (price == null) return '${symbol}0';
+    final double value = (price is String)
+        ? double.tryParse(price) ?? 0.0
+        : (price as num).toDouble();
+    // Remove trailing zeros for whole numbers
+    if (value == value.truncate()) {
+      return '$symbol${value.toInt()}';
+    }
+    return '$symbol${value.toStringAsFixed(2)}';
+  }
+
   /// Calculate price information for a product
   /// Returns a map with productPrice, discountPrice, discountRate, lowestPrice, highestPrice
   static Map<String, dynamic> calculatePriceInfo(Map<String, dynamic> product,
@@ -30,8 +46,8 @@ class ProductHelper {
     }
 
     final variant = variants[variantIndex];
-    final salePrice = variant['sale_price'] ?? variant['price'] ?? 0;
-    final regularPrice = variant['price'] ?? 0;
+    final salePrice = _number(variant['sale_price'] ?? variant['price']);
+    final regularPrice = _number(variant['price']);
 
     String productPrice = salePrice.toString();
     String discountPrice = regularPrice.toString();
@@ -75,8 +91,8 @@ class ProductHelper {
     double minOriginalPrice = double.infinity;
 
     for (var variant in variants) {
-      double price = (variant['price'] ?? 0).toDouble();
-      double salePrice = (variant['sale_price'] ?? 0).toDouble();
+      final price = _number(variant['price']);
+      final salePrice = _number(variant['sale_price']);
 
       // Use sale price only if > 0
       double effectivePrice =
@@ -130,8 +146,8 @@ class ProductHelper {
       source = product['variants'][0];
     }
 
-    final salePrice = source['sale_price'] ?? 0;
-    final regularPrice = source['price'] ?? 0;
+    final salePrice = _number(source['sale_price']);
+    final regularPrice = _number(source['price']);
 
     String productPrice = (salePrice > 0 && salePrice < regularPrice)
         ? salePrice.toString()
@@ -224,15 +240,15 @@ class ProductHelper {
     if (productType == 'variable') {
       final variants = product['variants'] ?? [];
       if (variantIndex != null && variantIndex < variants.length) {
-        return (variants[variantIndex]['quantity'] ?? 0) > 0;
+        return _number(variants[variantIndex]['quantity']) > 0;
       }
       for (var variant in variants) {
-        final quantity = variant['quantity'] ?? 0;
+        final quantity = _number(variant['quantity']);
         if (quantity > 0) return true;
       }
       return false;
     } else {
-      final quantity = product['quantity'] ?? 0;
+      final quantity = _number(product['quantity']);
       return quantity > 0;
     }
   }

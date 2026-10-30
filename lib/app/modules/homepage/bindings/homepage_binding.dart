@@ -5,6 +5,6 @@ class HomepageBinding extends Bindings {
   @override
   void dependencies() {
     // ✅ Use Put not lazyPut — guarantees controller exists immediately
-    Get.put<HomeController>(HomeController());
+    Get.put<HomepageController>(HomepageController());
   }
 }

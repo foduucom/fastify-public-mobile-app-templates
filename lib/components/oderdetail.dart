@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '/app/modules/auth/auth_details.dart';
-
-import '/constants/constants.dart';
+import 'package:foddu/app/modules/auth/auth_details.dart';
+import 'package:foddu/app/modules/cart/controllers/cart_controller.dart';
+import 'package:foddu/constants/constants.dart';
 import 'package:shimmer/shimmer.dart';
 
 class orderDetial extends StatelessWidget {
@@ -50,7 +50,7 @@ class orderDetial extends StatelessWidget {
             ? Row(
                 children: [
                   const Expanded(
-                      child: Text('Bag savings',
+                      child: Text('You Save',
                           style: TextStyle(
                             fontFamily: 'lato',
                           ))),
@@ -59,12 +59,13 @@ class orderDetial extends StatelessWidget {
                       : Text("-\u{20B9}$savedPrice",
                           style: const TextStyle(
                             fontFamily: 'lato',
+                            color: Colors.green,
                           ))
                 ],
               )
             : Container(),
         const SizedBox(height: 06),
-        // // !AuthDetails.isUserLogin()
+        // !AuthDetails.isUserLogin()
         //     ? Container()
         //     : Row(
         //         children: [
@@ -81,23 +82,23 @@ class orderDetial extends StatelessWidget {
         //                   ))
         //         ],
         //       ),
-        const SizedBox(height: 06),
-        Row(
-          children: [
-            const Expanded(
-                child: Text('Delivery',
-                    style: TextStyle(
-                      fontFamily: 'lato',
-                    ))),
-            isLoading
-                ? TextShimmer()
-                : Text('$deliveryStatus',
-                    style: const TextStyle(
-                      fontFamily: 'lato',
-                    ))
-          ],
-        ),
-        const SizedBox(height: 5.0),
+        // const SizedBox(height: 06),
+        // Row(
+        //   children: [
+        //     const Expanded(
+        //         child: Text('Delivery',
+        //             style: TextStyle(
+        //               fontFamily: 'lato',
+        //             ))),
+        //     isLoading
+        //         ? TextShimmer()
+        //         : Text('$deliveryStatus',
+        //             style: const TextStyle(
+        //               fontFamily: 'lato',
+        //             ))
+        //   ],
+        // ),
+        // const SizedBox(height: 5.0),
         const Divider(
           thickness: 0.7,
         ),

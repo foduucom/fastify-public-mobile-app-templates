@@ -11,21 +11,19 @@ class FoduuFormTextField extends StatelessWidget {
     this.validCheck,
     this.suffixIcon,
     this.readOnly = false,
-    this.fillcolor = Colors.white,
+    this.fillcolor,
     this.keyType = TextInputType.text,
     this.obsecure = false,
     this.maxLine = 1,
     this.inputFormatters,
-    this.isRequired = true,       // ← NEW: toggle the red * star
-    this.onTap,                   // ← NEW: for readOnly tap handling
-    this.onChanged,               // ← NEW: listen to value changes
+    this.showAsterisk = true,
   }) : super(key: key);
 
   final String fieldHintText;
   final String title;
   final bool readOnly;
   final String validationmsg;
-  final Color fillcolor;
+  final Color? fillcolor;
   final TextEditingController controller;
   final String? Function(String?)? validCheck;
   final bool obsecure;
@@ -33,120 +31,91 @@ class FoduuFormTextField extends StatelessWidget {
   final int maxLine;
   final List<TextInputFormatter>? inputFormatters;
   final Widget? suffixIcon;
-  final bool isRequired;
-  final VoidCallback? onTap;
-  final ValueChanged<String>? onChanged;
+  final bool showAsterisk;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final Color effectiveFillColor = fillcolor ?? colorScheme.surfaceVariant;
+    final Color effectiveTextColor = colorScheme.onSurface;
+    final Color effectiveHintColor = colorScheme.onSurfaceVariant;
+    final Color effectiveBorderColor = colorScheme.outline;
+    final Color effectiveLabelColor = colorScheme.onSurface;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
       children: [
-        // ── Field Label ──────────────────────────────────────────
-        RichText(
-          text: TextSpan(
-            text: title,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: theme.colorScheme.onSurface,
-              fontSize: 15,
+        // Separate label widget for better control
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: RichText(
+            text: TextSpan(
+              text: title,
+              style: TextStyle(
+                color: effectiveLabelColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              children: showAsterisk
+                  ? [
+                      TextSpan(
+                        text: ' *',
+                        style: TextStyle(color: colorScheme.error, fontSize: 16),
+                      ),
+                    ]
+                  : [],
             ),
-            children: isRequired
-                ? [
-              // TextSpan(
-              //   text: ' *',
-              //   style: TextStyle(
-              //     color: theme.colorScheme.error,
-              //     fontSize: 16,
-              //     fontWeight: FontWeight.w700,
-              //   ),
-              // ),
-            ]
-                : [],
           ),
         ),
-
-        const SizedBox(height: 10),
-
-        // ── Text Field ───────────────────────────────────────────
-        TextFormField(
-          controller: controller,
-          readOnly: readOnly,
-          keyboardType: keyType,
-          obscureText: obsecure,
-          maxLines: obsecure ? 1 : (maxLine == 0 ? null : maxLine),
-          inputFormatters: inputFormatters,
-          onTap: onTap,
-          onChanged: onChanged,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface,
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
+        // TextField with proper background color
+        Container(
+          decoration: BoxDecoration(
+            color: effectiveFillColor,
+            borderRadius: BorderRadius.circular(10),
           ),
-          decoration: InputDecoration(
-            hintText: fieldHintText,
-            hintStyle: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
-              fontSize: 14,
+          child: TextFormField(
+            maxLines: maxLine == 0 ? null : maxLine,
+            inputFormatters: inputFormatters,
+            controller: controller,
+            readOnly: readOnly,
+            keyboardType: keyType,
+            obscureText: obsecure,
+            style: TextStyle(
+              fontSize: 15,
+              color: effectiveTextColor,
             ),
-            suffixIcon: suffixIcon,
-
-            // ── Fill ─────────────────────────────────────────────
-            filled: true,
-            fillColor: readOnly
-                ? theme.colorScheme.surfaceVariant.withOpacity(0.4)
-                : fillcolor,
-
-            // ── Padding ───────────────────────────────────────────
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 16,
-            ),
-
-            // ── Borders ───────────────────────────────────────────
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(50),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(50),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(50),
-              borderSide: BorderSide(
-                color: theme.colorScheme.primary,
-                width: 1.5,
+            decoration: InputDecoration(
+              hintText: fieldHintText,
+              hintStyle: TextStyle(
+                fontSize: 15,
+                color: effectiveHintColor,
+              ),
+              suffixIcon: suffixIcon,
+              filled: true,
+              fillColor: effectiveFillColor,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: effectiveBorderColor, width: 1),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: colorScheme.error, width: 1),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: colorScheme.error, width: 1.5),
               ),
             ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(50),
-              borderSide: BorderSide(
-                color: theme.colorScheme.error,
-                width: 1.5,
-              ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(50),
-              borderSide: BorderSide(
-                color: theme.colorScheme.error,
-                width: 1.5,
-              ),
-            ),
-
-            // ── No floating label (label is above via Column) ─────
-            floatingLabelBehavior: FloatingLabelBehavior.never,
+            validator: validCheck,
           ),
-          validator: validCheck ??
-                  (val) {
-                if (isRequired && (val == null || val.trim().isEmpty)) {
-                  return validationmsg;
-                }
-                return null;
-              },
         ),
       ],
     );

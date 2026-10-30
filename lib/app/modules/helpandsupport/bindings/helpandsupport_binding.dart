@@ -5,8 +5,8 @@ import '../controllers/helpandsupport_controller.dart';
 class HelpandsupportBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<HelpSupportController>(
-      () => HelpSupportController(),
+    Get.lazyPut<HelpandsupportController>(
+      () => HelpandsupportController(),
     );
   }
 }

@@ -1,325 +1,445 @@
-// import 'dart:io';
+import 'dart:io';
 
-// import 'package:awesome_notifications/awesome_notifications.dart';
-// import 'package:firebase_messaging/firebase_messaging.dart';
-// import 'package:flutter/cupertino.dart';
-// import 'package:flutter/material.dart';
-// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-// import '/app/modules/auth/auth_details.dart';
-// import '/app/routes/app_pages.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:foddu/app/data/basic_provider.dart';
+import 'package:foddu/app/modules/auth/auth_details.dart';
+import 'package:foddu/app/routes/app_pages.dart';
+import 'package:foddu/constants/dynamic_theme.dart';
+import 'package:foddu/models/local_notification.dart';
+import 'package:foddu/services/local_storage_notification_service.dart';
+import 'package:foddu/services/notification_sync_service.dart';
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
-// import '/constants/constants.dart';
-// import '/constants/helper_functions.dart';
-// import 'package:get/get.dart';
-// import 'package:get_storage/get_storage.dart';
+// Must be a top-level function — FCM requirement
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  final notification = message.notification;
+  if (notification != null) {
+    await GetStorage.init();
+    await FirebaseHelpers.saveNotificationLocally(message);
+    await AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+        channelKey: 'alerts',
+        title: notification.title,
+        body: notification.body,
+        notificationLayout: NotificationLayout.BigText,
+        payload: Map<String, String?>.from(
+          message.data.map((k, v) => MapEntry(k, v?.toString())),
+        ),
+      ),
+    );
+  }
+}
 
-// class FirebaseHelpers {
-//   static var box = GetStorage();
-//   static var userType;
-//   static List<String> customerSubscribeList = [];
-//   static final List<String> _vendorSubscribeList = [];
+class FirebaseHelpers {
+  static final box = GetStorage();
+  static List<String> customerSubscribeList = [];
+  static const String notificationKey = 'local_notifications';
+  static final RxList<dynamic> localNotifications = <dynamic>[].obs;
 
-//   static late BuildContext myContext;
-//   static Future<void> initializeLocalNotifications() async {
-//     setNotificationListeners();
-//     checkInitialNotificationAction();
-//     await AwesomeNotifications().initialize(
-//         null, //'resource://drawable/res_app_icon',//
-//         [
-//           NotificationChannel(
-//               channelKey: 'alerts',
-//               channelName: 'alerts',
-//               channelDescription: 'Notification tests as alerts',
-//               playSound: true,
-//               onlyAlertOnce: true,
-//               criticalAlerts: true,
-//               enableVibration: true,
-//               locked: true,
-//               enableLights: true,
-//               importance: NotificationImportance.High,
-//               defaultPrivacy: NotificationPrivacy.Private,
-//               defaultColor: Colors.deepPurple,
-//               ledColor: Colors.deepPurple)
-//         ],
-//         debug: true);
+  static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
+    'high_importance_channel',
+    'foduu_ecommerce_notifications',
+    importance: Importance.high,
+    playSound: true,
+    showBadge: true,
+    enableLights: true,
+    enableVibration: true,
+  );
 
-//     // Get initial notification action is optional
-//     // initialAction = await AwesomeNotifications()
-//     //     .getInitialNotificationAction(removeFromActionEvents: false);
-//   }
+  static final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
 
-//   static const AndroidNotificationChannel blgosChannel =
-//       AndroidNotificationChannel(
-//           'high_importance_channel', 'foduu_ecommerce_blog',
-//           importance: Importance.high,
-//           playSound: true,
-//           showBadge: true,
-//           enableLights: true,
-//           enableVibration: true);
+  // ─── Initialisation ───────────────────────────────────────────────────────
 
-//   static FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-//       FlutterLocalNotificationsPlugin();
+  static Future<void> _initLocalNotifications() async {
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+    await _localNotifications.initialize(
+      const InitializationSettings(
+          android: androidSettings, iOS: iosSettings),
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        if (response.payload != null) {
+          navigateOnNotificationClick({'type': response.payload});
+        }
+      },
+    );
+  }
 
-//   static void initialize() {
-//     // final InitializationSettings initializationSettings =
-//     //     InitializationSettings();
+  static Future<void> _initAwesomeNotifications() async {
+    _setAwesomeNotificationListeners();
+    await AwesomeNotifications().initialize(
+      null,
+      [
+        NotificationChannel(
+          channelKey: 'alerts',
+          channelName: 'Alerts',
+          channelDescription: 'App push notifications',
+          playSound: true,
+          onlyAlertOnce: true,
+          criticalAlerts: true,
+          enableVibration: true,
+          enableLights: true,
+          importance: NotificationImportance.High,
+          defaultPrivacy: NotificationPrivacy.Private,
+          defaultColor: DynamicThemeManager().lightColors.primary,
+          ledColor: DynamicThemeManager().lightColors.primary,
+        ),
+      ],
+      debug: false,
+    );
+  }
 
-//     DarwinInitializationSettings initIOS = const DarwinInitializationSettings(
-//       requestAlertPermission: true,
-//       requestBadgePermission: true,
-//       requestSoundPermission: true,
-//       requestCriticalPermission: true,
-//     );
+  @pragma('vm:entry-point')
+  static Future<void> onActionReceivedMethod(
+      ReceivedAction receivedAction) async {
+    final payload = receivedAction.payload ?? {};
+    navigateOnNotificationClick(payload);
+  }
 
-//     final InitializationSettings initializationSettings =
-//         InitializationSettings(
-//             android: const AndroidInitializationSettings("@mipmap/ic_launcher"),
-//             iOS: initIOS);
+  static void _setAwesomeNotificationListeners() {
+    AwesomeNotifications().setListeners(
+      onActionReceivedMethod: onActionReceivedMethod,
+    );
+  }
 
-//     flutterLocalNotificationsPlugin.initialize(initializationSettings);
-//   }
+  static Future<void> firebaseInitialise() async {
+    if (kIsWeb) return;
 
-//   static Future onDidReceiveLocalNotification(
-//       int? id, String? title, String? body, String? payload) async {
-//     print("------------------");
-//     print("On did receive local noatification");
-//     print("------------------");
-//     showDialog(
-//         context: myContext,
-//         builder: (context) => CupertinoAlertDialog(
-//               title: Text(title!),
-//               content: Text(body!),
-//               actions: [
-//                 CupertinoDialogAction(
-//                   isDefaultAction: true,
-//                   child: const Text("OK"),
-//                   onPressed: () =>
-//                       Navigator.of(context, rootNavigator: true).pop(),
-//                 )
-//               ],
-//             ));
-//   }
+    await _initAwesomeNotifications();
+    await _initLocalNotifications();
 
-//   static Future<void> firebaseMessagingBackgroundHandler(
-//       RemoteMessage message) async {
-//     print("-----------------This is a background -----------------");
-//     print(message.notification);
-//     print("----------------------------------");
+    // Create Android high-importance channel
+    if (Platform.isAndroid) {
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(_channel);
+    }
 
-//     print(
-//         '<<<<<<<<<<<<<<<<<<<<<<<<${message.notification}>>>>>>>>>>>>>>>>>>>>>>>>');
-//     await AwesomeNotifications().createNotification(
-//         content: NotificationContent(
-//       id: -1, // -1 is replaced by a random number
-//       channelKey: 'alerts',
-//       title: message.notification!.title,
-//       body: message.notification!.body,
-//       notificationLayout: NotificationLayout.BigText,
-//       //     "A small step for a man, but a giant leap to Flutter's community!",
-//       // bigPicture: 'https://storage.googleapis.com/cms-storage-bucket/d406c736e7c4c57f5f61.png',
-//       // largeIcon: 'https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png',
-//       //'asset://assets/images/balloons-in-sky.jpg',
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-//       // payload: {'notificationId': '1234567890'}),
-//     ));
-//   }
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
 
-//   // static navigateOnNotificationClick(message) {
-//   //   if (message != null) {
-//   //     print('arguments fffffffffffffff');
-//   //     // Get.toNamed(Routes.BLOG, arguments: '6645fd26f0dbfef4515b110a');
-//   //     Get.toNamed(Routes.DELETE_ACCOUNT);
-//   //     //   if (message["type"] != null) {
-//   //     //     if (message['type'] == 'event') {
-//   //     //       // Get.toNamed(Routes.EVENTS_DETAIL,
-//   //     //       //     arguments: {"slug": message["slug"], "type": "pushnotification"});
-//   //     //     }
-//   //     //     if (message["type"] == 'blog') {
-//   //     //       // Get.toNamed(Routes.BLOG_DETAIL,
-//   //     //       //     arguments: {"slug": message["slug"], "type": "pushnotification"});
-//   //     //     }
-//   //     //     if (message["type"] == 'product') {
-//   //     //       // Get.toNamed(Routes.SINGLE_PRODUCT,
-//   //     //       //     arguments: {"slug": message["slug"], "type": "pushnotification"});
-//   //     //     }
-//   //     //     // if (message["type"] == 'video') {
-//   //     //     //   Get.toNamed(Routes.WATCHVEDIO);
-//   //     //     // }
-//   //     //   }
-//   //   }
-//   // }
+    await syncTopics();
 
-//   // this is main function which get executed when app we recieve a notification and app is COMPLETELY CLOSED or TERMINATED!
-//   static openAppFromNotification(RemoteMessage? message) {
-//     if (message != null) {
-//       print("-------------------");
-//       print(message.data.toString());
-//       print("-------------------");
-//       // navigateOnNotificationClick(message.data);
-//     }
-//   }
+    // Handle notification that launched app from terminated state
+    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      Future.delayed(const Duration(seconds: 2), () {
+        openAppFromNotification(initialMessage);
+      });
+    }
 
-//   static Future<void> firebaseInitialise() async {
-//     initialize();
-//     FirebaseMessaging instance = FirebaseMessaging.instance;
-//     var userdetails;
-//     if (AuthDetails.isUserLogin()) {
-//       userdetails = box.read('userData');
-//     }
+    // Handle notification tap when app is in background (resumed)
+    FirebaseMessaging.onMessageOpenedApp.listen(openAppFromNotification);
 
-//     customerSubscribeList.addAll([
-//       // "khedusathi_event",
-//       "foduu_ecommerce_blog",
-//       "foduu_ecommerce_news",
-//       "foduu_ecommerce_order",
-//       // "khedusathi_tutorial",
-//       "foduu_ecommerce_product",
-//       "foduu_ecommerce_marketing",
-//       "foduu_ecommerce_promotion",
-//       // "khedusathi_cropcare",
-//     ]);
-//     if (userdetails != null) {
-//       customerSubscribeList.addAll([
-//         "foduu_ecommerce_${userdetails['_id']}",
-//         "foduu_ecommerce_order_${userdetails['_id']}",
-//       ]);
-//     }
+    // Initialize local notifications from storage
+    final stored = box.read(notificationKey);
+    if (stored != null && stored is List) {
+      localNotifications.assignAll(stored);
+    }
 
-//     customerSubscribeList.forEach((element) async {
-//       print("---------------Subscribe to $element-------------------");
-//       await instance.subscribeToTopic(element);
-//     });
+    firebaseNotificationOnAppOpen();
+  }
 
-//     await FirebaseMessaging.instance
-//         .getInitialMessage()
-//         .then(openAppFromNotification);
+  // ─── Foreground notification display ──────────────────────────────────────
 
-//     // on background notification - When app is not loaded at all!
-//     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-//     firebaseNotificationOnAppOpen();
+  static void firebaseNotificationOnAppOpen() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      final notification = message.notification;
+      if (notification == null) return;
 
-//     if (Platform.isAndroid) {
-//       await flutterLocalNotificationsPlugin
-//           .resolvePlatformSpecificImplementation<
-//               AndroidFlutterLocalNotificationsPlugin>()
-//           ?.createNotificationChannel(blgosChannel);
-//     }
+      saveNotificationLocally(message);
 
-//     if (Platform.isIOS) {
-//       await flutterLocalNotificationsPlugin
-//           .resolvePlatformSpecificImplementation<
-//               IOSFlutterLocalNotificationsPlugin>();
-//     }
+      final myToken = box.read('my_fcm_token');
+      final senderId = message.data['sender_id'];
+      if (senderId != null && myToken != null && senderId == myToken) return;
 
-//     await FirebaseMessaging.instance
-//         .setForegroundNotificationPresentationOptions(
-//             alert: true, badge: true, sound: true);
-//   }
+      final bgColor = message.data['color'] == 'green'
+          ? DynamicThemeManager().lightColors.secondary
+          : DynamicThemeManager().lightColors.primary;
 
-//   static void firebaseNotificationOnAppOpen() async {
-//     // when APP is OPEN and notification is clicked
-//     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-//       RemoteNotification? notification = message.notification;
-//       print("----------------------------------");
-//       print(message.data.toString());
-//       print("----------------------------------");
+      final textColor = message.data['color'] == 'green'
+          ? DynamicThemeManager().lightColors.onSecondary
+          : DynamicThemeManager().lightColors.onPrimary;
 
-//       // AndroidNotification? androidNotification = message.notification?.android;
-//       if (notification != null) {
-//         if (message.data["color"] != null) {
-//           Get.snackbar(notification.title!, notification.body!,
-//               backgroundColor:
-//                   message.data['color'] == 'green' ? Colors.green : Colors.red,
-//               colorText: Colors.white,
-//               duration: const Duration(seconds: 30),
-//               dismissDirection: DismissDirection.horizontal, onTap: (value) {
-//             // navigateOnNotificationClick(message.data);
-//           });
-//         } else {
-//           Get.snackbar(notification.title!, notification.body!,
-//               backgroundColor: themePrimaryColor,
-//               colorText: Colors.white,
-//               dismissDirection: DismissDirection.horizontal,
-//               duration: const Duration(seconds: 30), onTap: (value) {
-//             // navigateOnNotificationClick(message.data);
-//           });
-//         }
-//       }
-//     });
+      Get.snackbar(
+        notification.title ?? '',
+        notification.body ?? '',
+        backgroundColor: bgColor,
+        colorText: textColor,
+        duration: const Duration(seconds: 10),
+        dismissDirection: DismissDirection.horizontal,
+        onTap: (_) => navigateOnNotificationClick(message.data),
+      );
+    });
+  }
 
-//     Future<String> getFirebaseDeviceToken() async {
-//       var deviceFcmToken;
-//       FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
-//       deviceFcmToken = await firebaseMessaging.getToken();
+  // ─── Navigation ───────────────────────────────────────────────────────────
 
-//       return deviceFcmToken;
-//     }
+  static void navigateOnNotificationClick(Map data) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    try {
+      final type = data['type']?.toString();
+      if (type == 'product') {
+        final id = data['product_id'] ?? data['id'];
+        if (id != null) {
+          Get.toNamed(Routes.PRODUCTDETAILS, arguments: {'productId': id});
+          return;
+        }
+      }
+      if (type == 'blog') {
+        final id = data['blog_id'] ?? data['id'];
+        if (id != null) {
+          Get.toNamed(Routes.BLOG_DETAILS, arguments: {'id': id});
+          return;
+        }
+      }
+      if (type == 'order') {
+        final id = data['order_id'] ?? data['id'];
+        if (id != null) {
+          Get.toNamed(Routes.ORDER_DETAILS, arguments: {'id': id});
+          return;
+        }
+      }
+      Get.toNamed(Routes.BOTTOMBAR);
+    } catch (e) {
+      print('Notification navigation error: $e');
+    }
+  }
 
-//     Future<bool> unsubscribeFromAllTopics() async {
-//       // if (userType == "customer") {
-//       customerSubscribeList.forEach((topic) async {
-//         print(
-//             "---------------- On Logout unsusbcribing to $topic -------------------");
-//         await FirebaseMessaging.instance.unsubscribeFromTopic(topic);
-//       });
+  static void openAppFromNotification(RemoteMessage? message) {
+    if (message == null) return;
+    saveNotificationLocally(message);
+    navigateOnNotificationClick(message.data);
+  }
 
-//       return true;
-//     }
+  static Future<void> saveNotificationLocally(RemoteMessage message) async {
+    final notification = message.notification;
+    if (notification == null) return;
 
-//     Future<void> unsubscribeToTopic() async {
-//       // var userdetails = box.read("token");
-//       //
-//       // FirebaseMessaging instance = FirebaseMessaging.instance;
-//     }
+    final id =
+        message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString();
+    final localNotif = LocalNotification(
+      id: id,
+      title: notification.title ?? '',
+      body: notification.body ?? '',
+      type: message.data['type']?.toString() ?? 'general',
+      timestamp: message.sentTime ?? DateTime.now(),
+      isRead: false,
+      isSynced: false,
+      metadata: Map<String, dynamic>.from(message.data),
+    );
 
-//     Future<void> unSubscribeToSpecificTopic(String topic) async {
-//       await FirebaseMessaging.instance.unsubscribeFromTopic(topic);
-//     }
+    LocalStorageNotificationService storageService;
+    if (Get.isRegistered<LocalStorageNotificationService>()) {
+      storageService = Get.find<LocalStorageNotificationService>();
+    } else {
+      storageService = Get.put(LocalStorageNotificationService());
+    }
+    await storageService.saveNotification(localNotif);
 
-//     Future<void> subscribeToSpecificTopic(String topic) async {
-//       await FirebaseMessaging.instance.subscribeToTopic(topic);
-//     }
+    // Update legacy list for compatibility
+    final legacyNotif = {
+      'title': localNotif.title,
+      'body': localNotif.body,
+      'data': localNotif.metadata,
+      'created_at': localNotif.timestamp.toIso8601String(),
+      'is_local': true,
+      'id': localNotif.id,
+      'is_read': localNotif.isRead,
+      'is_synced': localNotif.isSynced,
+    };
 
-//     void afterLoginSubscribe() {
-//       var userdetails = box.read('userData');
+    final existingIndex =
+        localNotifications.indexWhere((n) => n['id'] == localNotif.id);
+    if (existingIndex != -1) {
+      localNotifications[existingIndex] = legacyNotif;
+    } else {
+      localNotifications.insert(0, legacyNotif);
+    }
 
-//       if (userdetails != null) {
-//         customerSubscribeList.addAll([
-//           "foduu_ecommerce_${userdetails['_id']}",
-//         ]);
-//       }
-//       customerSubscribeList.forEach((element) async {
-//         await subscribeToSpecificTopic(element);
-//       });
-//     }
+    if (localNotifications.length > 50) {
+      localNotifications.removeLast();
+    }
 
-//     Future<void> afterLogoutUnsubscribe() async {
-//       var userdetails = box.read('userData');
+    box.write(notificationKey, localNotifications.toList());
 
-//       if (userdetails != null) {
-//         await unSubscribeToSpecificTopic(
-//           "foduu_ecommerce_${userdetails['_id']}",
-//         );
-//       }
-//     }
-//   }
-// }
+    // Trigger sync
+    NotificationSyncService syncService;
+    if (Get.isRegistered<NotificationSyncService>()) {
+      syncService = Get.find<NotificationSyncService>();
+    } else {
+      syncService = Get.put(NotificationSyncService());
+    }
+    syncService.syncPendingNotifications();
+  }
 
-// void setNotificationListeners() {
-//   AwesomeNotifications().setListeners(
-//     onActionReceivedMethod: (receivedAction) async {
-//       print('TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT');
-//       Get.toNamed(Routes.DELETE_ACCOUNT);
-//     },
-//   );
-// }
+  static void clearLocalNotifications() {
+    localNotifications.clear();
+    box.remove(notificationKey);
+    if (Get.isRegistered<LocalStorageNotificationService>()) {
+      LocalStorageNotificationService.to.clearAll();
+    }
+  }
 
-// void checkInitialNotificationAction() {
-//   print('QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ');
-//   AwesomeNotifications()
-//       .getInitialNotificationAction(removeFromActionEvents: false)
-//       .then((receivedAction) {
-//     print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
-//     Get.toNamed(Routes.DELETE_ACCOUNT);
-//   });
-// }
+  // ─── FCM Token ────────────────────────────────────────────────────────────
+
+  static Future<String?> getFCMToken() async {
+    if (kIsWeb) return null;
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null) {
+        box.write('my_fcm_token', token);
+        debugPrint('====================================');
+        debugPrint('FCM TOKEN: $token');
+        debugPrint('====================================');
+        // Send token to backend if user is logged in
+        if (AuthDetails.isUserLogin()) {
+          try {
+            await BasicProvider('public/customer/fcm-token')
+                .postRequest({'fcm_token': token});
+          } catch (_) {}
+        }
+      }
+      // Listen for token refresh
+      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+        box.write('my_fcm_token', newToken);
+        if (AuthDetails.isUserLogin()) {
+          BasicProvider('public/customer/fcm-token')
+              .postRequest({'fcm_token': newToken}).catchError((_) {});
+        }
+      });
+      return token;
+    } catch (e) {
+      print('FCM token error: $e');
+      return null;
+    }
+  }
+
+  // ─── Topic subscriptions ──────────────────────────────────────────────────
+
+  static const List<String> defaultTopics = [
+    'promotions',
+    'news',
+    'general',
+    'newrelease',
+    'deals'
+  ];
+
+  static Future<void> syncTopics() async {
+    await _subscribeToDefaultTopics();
+    if (AuthDetails.isUserLogin()) {
+      await _subscribeToUserTopics();
+    }
+  }
+
+  static Future<void> _subscribeToDefaultTopics() async {
+    if (kIsWeb) return;
+    if (!(Platform.isAndroid || Platform.isIOS)) return;
+
+    // We keep the prefix if preferred by user, but plan said raw strings for backend alignment.
+    // Based on question 3 in the plan, I will use raw strings for backend topics but keep prefix for user topics as suggested in Phase 2.
+    final topics = defaultTopics;
+
+    customerSubscribeList = [...topics];
+    for (final topic in topics) {
+      debugPrint(
+          "---------------Subscribing to topic: $topic-------------------");
+      try {
+        await FirebaseMessaging.instance.subscribeToTopic(topic);
+      } catch (e) {
+        debugPrint("Error subscribing to topic $topic: $e");
+      }
+    }
+  }
+
+  static Future<void> _subscribeToUserTopics() async {
+    if (kIsWeb) return;
+    final userDetails = box.read('userData');
+    if (userDetails == null) return;
+    final userId = userDetails['_id']?.toString();
+    if (userId == null) return;
+
+    final userTopics = [
+      'foduu_ecommerce_user_$userId',
+      'foduu_ecommerce_orders_$userId',
+    ];
+
+    for (final topic in userTopics) {
+      if (!customerSubscribeList.contains(topic)) {
+        customerSubscribeList.add(topic);
+        debugPrint(
+            "---------------Subscribing to user topic: $topic-------------------");
+        if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+          try {
+            await FirebaseMessaging.instance.subscribeToTopic(topic);
+          } catch (e) {
+            debugPrint("Error subscribing to user topic $topic: $e");
+          }
+        }
+      }
+    }
+  }
+
+  static Future<void> afterLoginSubscribe() async {
+    await _subscribeToUserTopics();
+  }
+
+  /// Best-effort topic cleanup. Each call is time-limited so an unreachable
+  /// Firebase can never hang a caller; pass [userId] when local storage has
+  /// already been cleared.
+  static Future<void> afterLogoutUnsubscribe({String? userId}) async {
+    if (kIsWeb) return;
+    if (userId == null) {
+      final userDetails = box.read('userData');
+      if (userDetails is Map) userId = userDetails['_id']?.toString();
+    }
+    if (userId == null) return;
+    debugPrint(
+        "---------------Unsubscribing from user topics for: $userId-------------------");
+    for (final topic in [
+      'foduu_ecommerce_user_$userId',
+      'foduu_ecommerce_orders_$userId',
+    ]) {
+      try {
+        await FirebaseMessaging.instance
+            .unsubscribeFromTopic(topic)
+            .timeout(const Duration(seconds: 5));
+      } catch (e) {
+        debugPrint("Error unsubscribing from $topic: $e");
+      }
+    }
+  }
+
+  static Future<bool> unsubscribeFromAllTopics() async {
+    for (final topic in customerSubscribeList) {
+      try {
+        await FirebaseMessaging.instance.unsubscribeFromTopic(topic);
+      } catch (e) {
+        debugPrint("Error unsubscribing from topic $topic: $e");
+      }
+    }
+    customerSubscribeList.clear();
+    return true;
+  }
+}

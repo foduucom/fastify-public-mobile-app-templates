@@ -1,209 +1,413 @@
+import 'package:foddu/app/modules/support_ticket/bindings/support_ticket_binding.dart';
+import 'package:foddu/app/modules/support_ticket/views/support_ticket_view.dart';
+import 'package:foddu/app/modules/support_ticket_details/bindings/support_ticket_details_binding.dart';
+import 'package:foddu/app/modules/support_ticket_details/views/support_ticket_details_view.dart';
+import 'package:foddu/app/modules/reviews/bindings/my_reviews_binding.dart';
+import 'package:foddu/app/modules/reviews/views/my_reviews_view.dart';
+import 'package:foddu/app/modules/blog/binding.dart/blog_binding.dart';
+import 'package:foddu/app/modules/blog/views/blog_view.dart';
+import 'package:foddu/app/modules/blog/views/blog_details_view.dart';
+import 'package:foddu/app/modules/Profie/contact/view/contact_us_view.dart';
+import 'package:foddu/app/modules/category_search/bindings/category_search_binding.dart';
+import 'package:foddu/app/modules/category_search/views/category_search_view.dart';
+import 'package:foddu/app/modules/Profie/orders/binding/order_binding.dart';
+import 'package:foddu/app/modules/Profie/orders/order_products/binding/order_products_binding.dart';
+import 'package:foddu/app/modules/Profie/orders/order_products/view/order_view.dart';
+import 'package:foddu/app/modules/Profie/orders/orders_details/binding/orderdetails_binding.dart';
+import 'package:foddu/app/modules/Profie/orders/orders_details/view/orderdetails_view.dart';
+import 'package:foddu/app/modules/Profie/orders/view/order_view.dart';
+import 'package:foddu/app/modules/Profie/privacy_policy/view/privacy_policy_view.dart';
+import 'package:foddu/app/modules/Profie/terms&condition/view/terms_conditions_view.dart';
+import 'package:foddu/app/modules/add_profile/bindings/add_profile_binding.dart';
+import 'package:foddu/app/modules/add_profile/views/add_profile_view.dart';
+import 'package:foddu/app/modules/address/bindings/address_form_binding.dart';
+import 'package:foddu/app/modules/address/bindings/address_list_binding.dart';
+import 'package:foddu/app/modules/address/views/address_form_view.dart';
+import 'package:foddu/app/modules/address/views/address_list_view.dart';
+import 'package:foddu/app/modules/addtocart/bindings/add_to_cart_bindings.dart';
+import 'package:foddu/app/modules/addtocart/views/add_to_cart_views.dart';
+import 'package:foddu/app/modules/auth/createnewpassword/bindings/create_new_password__bindings.dart';
+import 'package:foddu/app/modules/auth/createnewpassword/views/create_new_password_view.dart';
+import 'package:foddu/app/modules/auth/forgotepassword/bindings/forgotepassword_binding.dart';
+import 'package:foddu/app/modules/auth/forgotepassword/views/forgotepassword_view.dart';
+import 'package:foddu/app/modules/auth/login/bindings/login_binding.dart';
+
+import 'package:foddu/app/modules/auth/login/views/login_view.dart';
+import 'package:foddu/app/modules/auth/otp/binding/otp_binding.dart';
+import 'package:foddu/app/modules/auth/otp/view/otp_view.dart';
+import 'package:foddu/app/modules/auth/register/bindings/register_binding.dart';
+import 'package:foddu/app/modules/auth/register/views/register_view.dart';
+import 'package:foddu/app/modules/bottomar/bindings/bottombar_binding.dart';
+import 'package:foddu/app/modules/bottomar/views/bottombar_view.dart';
+import 'package:foddu/app/modules/cart/bindings/cart_binding.dart';
+import 'package:foddu/app/modules/cart/views/cart_view.dart';
+import 'package:foddu/app/modules/category/bindings/category_binding.dart';
+import 'package:foddu/app/modules/category/views/categorydetail_view.dart';
+import 'package:foddu/app/modules/checkout/bindings/checkout_bindings.dart';
+import 'package:foddu/app/modules/checkout/views/checkout_views.dart';
+import 'package:foddu/app/modules/choose_category/bindings/choose_category_binding.dart';
+import 'package:foddu/app/modules/choose_category/views/choose_category_view.dart';
+import 'package:foddu/app/modules/helpandsupport/bindings/helpandsupport_binding.dart';
+import 'package:foddu/app/modules/helpandsupport/views/helpandsupport_view.dart';
+import 'package:foddu/app/modules/homepage/bindings/homepage_binding.dart';
+import 'package:foddu/app/modules/homepage/views/home_page_view.dart';
+import 'package:foddu/app/modules/intro/bindings/intro_binding.dart';
+import 'package:foddu/app/modules/intro/views/intro_view.dart';
+import 'package:foddu/app/modules/notification/binding/notificatin_binding.dart';
+import 'package:foddu/app/modules/notification/views/notification_view.dart';
+import 'package:foddu/app/modules/onboarding/bindings/onboarding_binding.dart';
+import 'package:foddu/app/modules/onboarding/views/onboarding_view.dart';
+import 'package:foddu/app/modules/orderResponse/bindings/checkout_binding.dart';
+import 'package:foddu/app/modules/orderResponse/views/ordersucess_view.dart';
+import 'package:foddu/app/modules/product/bindings/product_binding.dart';
+import 'package:foddu/app/modules/product/views/product_view.dart';
+import 'package:foddu/app/modules/search/bindings/search_binding.dart';
+import 'package:foddu/app/modules/search/views/search_view.dart';
+import 'package:foddu/app/modules/shop/bindings/shop_binding.dart';
+import 'package:foddu/app/modules/shop/views/shop_view.dart';
+import 'package:foddu/app/modules/splashscreen/bindings/splashscreen_binding.dart';
+import 'package:foddu/app/modules/splashscreen/view/splashscreen_view.dart';
+import 'package:foddu/app/modules/termsandcondition/bindings/termsandcondition_binding.dart';
+import 'package:foddu/app/modules/termsandcondition/views/termsandcondition_view.dart';
+import 'package:foddu/app/modules/wishlist/bindings/wishlist_binding.dart';
+import 'package:foddu/app/modules/wishlist/views/wishlist_view.dart';
 import 'package:get/get.dart';
-
-import '../../components/custom_bottom_navigator_bar/controller/bottom_nav_controller.dart';
-import '../../components/custom_bottom_navigator_bar/view/bottom_nav_view.dart';
-import '../modules/ai/ai_chat/controller/ai_chat_controller.dart';
-import '../modules/ai/ai_chat/view/ai_chat_view.dart';
-import '../modules/ai/view/ai_view.dart';
-import '../modules/auth/login/views/create_account_view.dart';
-import '../modules/auth/login/views/widgets/controller.dart';
-import '../modules/auth/otp/bindings/otp_binding.dart';
-import '../modules/auth/otp/view/otp_view.dart';
-import '../modules/cart/bindings/cart_binding.dart';
-import '../modules/cart/view/cart_view.dart';
-import '../modules/checkout/controller/checkout_controller.dart';
-import '../modules/checkout/view/checkout_view.dart';
-import '../modules/helpandsupport/controllers/helpandsupport_controller.dart';
-import '../modules/helpandsupport/views/helpandsupport_view.dart';
-import '../modules/homepage/products/bindings/product_details_binding.dart';
-import '../modules/homepage/products/view/products_details_view.dart';
-import '../modules/homepage/views/home_view.dart';
-import '../modules/onboarding_controller/bindings/profile_bindings.dart';
-import '../modules/onboarding_controller/controller/onboarding_controller.dart';
-import '../modules/onboarding_controller/view/onboarding_view.dart';
-import '../modules/ordre_history/binding/order_detail_binding.dart';
-import '../modules/ordre_history/order_detils/view/order_details_view.dart';
-import '../modules/ordre_history/ordrer_binding.dart';
-import '../modules/ordre_history/view/order_history_view.dart';
-import '../modules/payment/controller/payment_controller.dart';
-import '../modules/payment/view/payment_view.dart';
-import '../modules/profile/change_password/view/change_password_view.dart';
-import '../modules/profile/controller/profile_controller.dart';
-import '../modules/profile/profile_updates/personal_info.dart';
-import '../modules/profile/view/profile_view.dart';
-import '../modules/splashscreen/controller/splash_controller.dart';
-import '../modules/splashscreen/view/splashscreen_view.dart';
-import '../modules/success/view/success_view.dart';
-import '../modules/termsandcondition/controllers/termsandcondition_controller.dart';
-import '../modules/termsandcondition/views/termsandcondition_view.dart';
-import '../modules/wishlist/view/wishlist_view.dart';
-import '/app/modules/homepage/bindings/homepage_binding.dart';
-import '/app/modules/intro/bindings/intro_binding.dart';
-import '/app/modules/intro/views/intro_view.dart';
-import '/app/modules/notification/binding/notificatin_binding.dart';
-import '/app/modules/notification/views/notification_view.dart';
-import '/app/modules/product/bindings/product_binding.dart';
-import '/app/modules/product/views/product_view.dart';
-
-
-
 part 'app_routes.dart';
 
 class AppPages {
   AppPages._();
 
-  static const INITIAL = Routes.SPLASH;  // ← FIXED: was LOGIN
+  static const INITIAL = Routes.SPLASH;
 
-  static final pages = [                 // ← FIXED: was 'routes'
+  static List<GetPage<dynamic>> get pages => routes;
 
-    // ── Splash ────────────────────────────────────────────────
+  static final routes = [
+    GetPage(
+        name: _Paths.INTRO,
+        page: () => const IntroView(),
+        binding: IntroBinding()),
     GetPage(
       name: _Paths.SPLASH,
-      page: () => const SplashView(),
+      page: () => SplashscreenView(),
+      binding: SplashscreenBinding(),
     ),
     GetPage(
-      name: '/aichat',
-      page: () => const AiChatView(),
-      binding: BindingsBuilder(() => Get.put(AiChatController())),
+      name: _Paths.ONBOARDING,
+      page: () => OnboardingView(),
+      binding: OnboardingBinding(),
     ),
 
     GetPage(
-      name: _Paths.AI,
-      page: () => const AiRoomoaView(),
-      // ✅ No binding needed — AI view is StatefulWidget
+      name: _Paths.REGISTER,
+      page: () => RegisterView(),
+      binding: RegisterBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.ADDRESS_LIST,
+      page: () => AddressListView(),
+      binding: AddressListBinding(),
     ),
     GetPage(
-      name: Routes.OTP,
+      name: _Paths.ADDRESS_FORM,
+      page: () => AddressFormView(),
+      binding: AddressFormBinding(),
+    ),
+
+    // GetPage(
+    //   name: _Paths.SIGNIN,
+    //   page: () => const SigninView(),
+    //   binding: SigninBindings(),
+    // ),
+
+    GetPage(
+      name: _Paths.LOGIN,
+      page: () => LoginView(),
+      binding: LoginBinding(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+
+    // GetPage(
+    //   name: _Paths.SIGNUP,
+    //   page: () => const SignupView(),
+    //   binding: SignupBinding(),
+    // ),
+
+    GetPage(
+      name: _Paths.SEARCH,
+      page: () => SearchView(),
+      binding: SearchBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.FOREGETPASSWORD,
+      page: () => const ForgotepasswordView(),
+      binding: ForgotepasswordBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.OTP,
       page: () => const OtpView(),
       binding: OtpBinding(),
     ),
-    GetPage(
-      name: '/profile',
-      page: () => ProfileView(),
-      binding: ProfileBinding(), // if you have one
-    ),
-    // ── Onboarding ────────────────────────────────────────────
-    GetPage(
-      name: _Paths.ONBOARDING,
-      page: () => const OnboardingView(),
-      binding: BindingsBuilder(() {
-        Get.put<OnboardingController>(OnboardingController());
-      }),
-    ),
 
-    // ── Bottom Nav ────────────────────────────────────────────
-    // FIXED: Only ONE entry for BOTTOMBAR
-    GetPage(
-      name: _Paths.BOTTOMBAR,
-      page: () => const BottomNavView(),
-      binding: BindingsBuilder(() {
-        Get.lazyPut<BottomNavController>(() => BottomNavController());
-      }),
-    ),
-    GetPage(
-      name: '/productdetails',
-      page: () => const ProductDetailsView(),   // ← new view
-      binding: ProductDetailsBinding(),          // ← new binding
-    ),
-    GetPage(
-      name: '/payment',
-      page: () => const PaymentView(),
-      binding: BindingsBuilder(() => Get.put(PaymentController())),
-    ),
-    GetPage(
-      name: '/help-support',
-      page: () => const HelpSupportView(),
-      binding: BindingsBuilder(() => Get.put(HelpSupportController())),
-    ),
-
-
-    // ── Intro ─────────────────────────────────────────────────
-    GetPage(
-      name: _Paths.INTRO,
-      page: () => const IntroView(),
-      binding: IntroBinding(),
-    ),
-
-    // ── Login ─────────────────────────────────────────────────
-    GetPage(
-      name: _Paths.CREATE_ACCOUNT,
-      page: () => const CreateAccountView(),
-      binding: BindingsBuilder(() {
-        Get.lazyPut<CreateAccountController>(
-              () => CreateAccountController(),
-        );
-      }),
-    ),
     GetPage(
       name: _Paths.HOME,
-      page: () => HomeView(),
-      binding: HomepageBinding(),   // ← this calls the binding above ✅
-    ),
-    GetPage(
-      name: _Paths.PROFILE,
-      page: () => ProfileView(),
-      binding: BindingsBuilder(() {
-        Get.put<ProfileController>(ProfileController());
-      }),
-    ),
-    GetPage(
-      name: '/password',
-      page: () => const ChangePasswordView(),
-    ),
-    GetPage(
-      name: '/personal-info',
-      page: () => const PersonalInfoView(),
+      page: () => HomePageView(),
+      binding: HomepageBinding(),
     ),
 
     GetPage(
-      name: '/wishlist',
-      page: () => const WishlistView(),
+      name: _Paths.CREATENEWPASSWORD,
+      page: () => const CreateNewPasswordView(),
+      binding: CreateNewPasswordBinding(),
     ),
+
+    GetPage(
+      name: _Paths.ADDPROFILE,
+      page: () => const AddProfileView(),
+      binding: AddProfileBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.CHOOSECATEGORY,
+      page: () => const ChooseCategoryView(),
+      binding: ChooseCategoryBinding(),
+    ),
+
+    // GetPage(
+    //   name: _Paths.PRODUCTDETAILS,
+    //   page: () => const ProductDetailViews(),
+    //   binding: ProductDetailsBinding(),
+    // ),
+
+    GetPage(
+      name: _Paths.ADDTOCART,
+      page: () => const AddToCartViews(),
+      binding: AddToCartBindings(),
+    ),
+
+    GetPage(
+        name: _Paths.CART,
+        page: () => CartView(),
+        binding: CartBinding(),
+        children: [
+          GetPage(
+            name: _Paths.PAYMENT,
+            page: () => CheckoutViews(),
+            binding: CheckOutBinding(),
+          ),
+          GetPage(
+            name: _Paths.ORDERSUCCESS,
+            page: () => OrdersucessView(),
+            binding: OrderResponseBinding(),
+          ),
+        ]),
+
     GetPage(
       name: _Paths.PRODUCTDETAILS,
       page: () => ProductView(),
       binding: ProductBinding(),
-      preventDuplicates: false,
     ),
+
+    GetPage(
+      name: _Paths.CHECKOUT,
+      page: () => CheckoutViews(),
+      binding: CheckOutBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.DETAILCATEGORY,
+      page: () => CategeorydetailView(),
+      binding: CategoryBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.SHOPPRODUCTLISTVIEW,
+      page: () => ShopView(),
+      binding: ShopBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.WISHLIST,
+      page: () => WishlistView(),
+      binding: WishlistBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.ORDERS,
+      page: () => OrdersView(),
+      binding: OrdersBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.ORDER_DETAILS,
+      page: () => OrderdetailView(),
+      binding: OrderdetailBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.ORDER_PRODUCTS,
+      page: () => const OrderProductsView(),
+      binding: OrderProductsBinding(),
+    ),
+    // GetPage(
+    //   name: _Paths.LOGIN,
+    //   page: () => LoginView(),
+    //   binding: LoginBinding(),
+    // ),
+
+    // GetPage(
+    //   name: _Paths.MOBILELOGINOTP,
+    //   page: () => LoginOtpView(),
+    //   binding: MobileNoLoginBinding(),
+    // ),
+    // GetPage(
+    //   name: _Paths.MOBILEREGISTER,
+    //   page: () => MobileNoRegisterView(),
+    //   binding: MobileNoLoginBinding(),
+    // ),
+    // GetPage(
+    //   name: _Paths.REGISTER,
+    //   page: () => const RegisterView(),
+    //   binding: RegisterBinding(),
+    // ),
+    // GetPage(
+    //   name: _Paths.HOME,
+    //   page: () => Testinghome(),
+    //   binding: HomepageBinding(),
+    // ),
+
+    GetPage(
+      name: _Paths.PAYMENT,
+      page: () => CheckoutViews(),
+      binding: CheckOutBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.ADDRESS_FORM,
+      page: () => AddressListView(),
+      binding: AddressListBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.BOTTOMBAR,
+      page: () => BottombarView(),
+      binding: BottombarBinding(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    // GetPage(
+    //   name: _Paths.CATEGORY,
+    //   page: () => CategoryView(),
+    //   binding: CategoryBinding(),
+    // ),
     GetPage(
       name: _Paths.NOTIFICATION,
       page: () => NotificationsView(),
       binding: NotificationsBinding(),
     ),
+
     GetPage(
-      name: '/cart',
-      page: () => const CartView(),
-      binding: CartBinding(),   // ✅ this was missing
+      name: _Paths.ORDER_PRODUCTS,
+      page: () => const OrderProductsView(),
+      binding: OrderProductsBinding(),
     ),
 
     GetPage(
-      name: _Paths.ORDERS,                                 // ✅ ONLY ONE (removed duplicate)
-      page: () => const OrderHistoryView(),
-      binding: OrderHistoryBinding(),
+      name: _Paths.HELPANDSUPPORT,
+      page: () => const HelpandsupportView(),
+      binding: HelpandsupportBinding(),
     ),
     GetPage(
-      name: '/checkout',
-      page: () => const CheckoutView(),
-      binding: BindingsBuilder(() => Get.put(CheckoutController())),
+      name: _Paths.TERMSANDCONDITION,
+      page: () => const TermsandconditionView(),
+      binding: TermsandconditionBinding(),
+    ),
+    // GetPage(
+    //   name: _Paths.CUSTOMPAGE,
+    //   page: () => CustomPageView(),
+    //   binding: CustomPageBinding(),
+    // ),
+
+    GetPage(
+      name: _Paths.CONTACTUS,
+      page: () => ContactUsView(),
     ),
 
     GetPage(
-      name: '/terms-conditions',
+      name: _Paths.PRIVACY_POLICY,
+      page: () => const PrivacyPolicyView(),
+    ),
+    GetPage(
+      name: _Paths.TERMS_CONDITIONS,
       page: () => const TermsConditionsView(),
-      binding: BindingsBuilder(
-            () => Get.put(TermsConditionsController()),
-      ),
     ),
     GetPage(
-      name:  '/order-success',
-      page:  () => const OrderSuccessView(),
-      // No controller binding needed — fully self-contained
+      name: _Paths.CATEGORY_SEARCH,
+      page: () => const CategorySearchView(),
+      binding: CategorySearchBinding(),
     ),
     GetPage(
-      name:    '/order-detail',         // ← THIS is missing from your file
-      page:    () => const OrderDetailView(),
-      binding: OrderDetailBinding(),
+      name: _Paths.SUPPORT_TICKET,
+      page: () => const SupportTicketView(),
+      binding: SupportTicketBinding(),
     ),
-
+    GetPage(
+      name: _Paths.SUPPORT_TICKET_DETAILS,
+      page: () => const SupportTicketDetailsView(),
+      binding: SupportTicketDetailsBinding(),
+    ),
+    GetPage(
+      name: _Paths.MY_REVIEWS,
+      page: () => const MyReviewsView(),
+      binding: MyReviewsBinding(),
+    ),
+    GetPage(
+      name: _Paths.BLOG,
+      page: () => BlogView(),
+      binding: BlogBinding(),
+    ),
+    GetPage(
+      name: _Paths.BLOG_DETAILS,
+      page: () => BlogDetailsView(),
+      binding: BlogBinding(),
+    ),
   ];
+
+  // GetPage(
+  //   name: _Paths.PAYMENT,
+  //   page: () =>
+  // ),
+  // GetPage(
+  //   name: _Paths.BLOG,
+  //   page: () => BlogView(),
+  //   binding: BlogBinding(),
+  // ),
+  // GetPage(
+  //   name: _Paths.BLOG_DETAILS,
+  //   page: () => BlogDetailsView(),
+  //   binding: BlogBinding(),
+  // ),
+  // GetPage(
+  //   name: _Paths.CONTACT,
+  //   page: () => ContactView(),
+  //   binding: ContactBinding(),
+  // ),
+  // GetPage(
+  //   name: _Paths.PROFILE,
+  //   page: () => ProfileView(),
+  //   binding: ProfileBinding(),
+  // ),
+  // GetPage(
+  //   name: _Paths.DELETE_ACCOUNT,
+  //   page: () => DeleteAccountView(),
+  //   binding: DeleteAccountBinding(),
+  // ),
+  // GetPage(
+  //   name: _Paths.ORDERS,
+  //   page: () => OrdersView(),
+  //   binding: OrdersBindi
+  //];
 }

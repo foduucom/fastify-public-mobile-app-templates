@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '/constants/theme.dart';
+import 'package:foddu/constants/theme.dart';
 import 'package:get/get.dart';
+import '../../constants/constants.dart';
 
 class outLineButton extends StatelessWidget {
   outLineButton(

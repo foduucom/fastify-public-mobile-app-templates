@@ -11,12 +11,14 @@ class WishListService extends GetxService with BaseController {
   var wishListItems = <Map<String, dynamic>>[].obs;
   var subTotal = 0.0.obs;
   var total = 0.0.obs;
+  final loadError = false.obs;
 
   /// Number of distinct line-items in the cart
   int get wishListItemCount => wishListItems.length;
 
   // ── Fetch full cart ──────────────────────────────────────
   Future<void> fetchWishList() async {
+    loadError.value = false;
     try {
       var response = await BasicProvider("wishlist/list")
           .getRequest()
@@ -29,6 +31,7 @@ class WishListService extends GetxService with BaseController {
 
       parseWishListResponse(response);
     } catch (e, stackTrack) {
+      loadError.value = true;
       debugPrint('WishlistService.fetchWishList error: $e');
     }
   }
@@ -88,6 +91,7 @@ class WishListService extends GetxService with BaseController {
     required String productId,
     required String variantSlug,
     String? variantId,
+    Map<String, dynamic>? productData,
   }) async {
     if (isInWishlist(productId)) {
       await removeFromWishlist(

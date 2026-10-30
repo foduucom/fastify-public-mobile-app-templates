@@ -1,0 +1,233 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import '/components/app_image_placeholder.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:foddu/app/data/basic_provider.dart';
+import 'package:foddu/app/routes/app_pages.dart';
+import 'package:foddu/components/home_component/home_common_widgets.dart';
+import 'package:foddu/constants/constants.dart';
+import 'package:foddu/constants/helper_functions.dart';
+import 'package:foddu/components/home_component/all_blogs_section.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_navigation/src/extension_navigation.dart';
+
+class BlogSection extends StatefulWidget {
+  final dynamic blogData;
+
+  const BlogSection({Key? key, required this.blogData}) : super(key: key);
+
+  @override
+  State<BlogSection> createState() => _BlogSectionState();
+}
+
+class _BlogSectionState extends State<BlogSection>
+    with AutomaticKeepAliveClientMixin {
+  List _fallbackBlogs = [];
+  bool _fallbackLoading = false;
+  bool _fallbackFetched = false;
+
+  bool get _cmsHasBlogs {
+    final blogData = widget.blogData;
+    if (blogData == null) return false;
+    final blogs = blogData['blogs'];
+    return blogs != null && blogs.isNotEmpty;
+  }
+
+  @override
+  void didUpdateWidget(covariant BlogSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.blogData != widget.blogData) {
+      _fallbackFetched = false;
+      _fallbackBlogs = [];
+    }
+  }
+
+  Future<void> _fetchFallbackBlogs() async {
+    if (_fallbackFetched || _fallbackLoading || _cmsHasBlogs) return;
+    _fallbackFetched = true;
+    setState(() => _fallbackLoading = true);
+    try {
+      var response = await BasicProvider("blogs?count=2&page=1").getRequest();
+      final data = response is Map ? response['data'] ?? response : response;
+      if (mounted && data is List) {
+        setState(() => _fallbackBlogs = data);
+      }
+    } catch (e) {
+      // Silently ignore — section stays hidden, same as when CMS has no data.
+    } finally {
+      if (mounted) setState(() => _fallbackLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+
+    if (_cmsHasBlogs) {
+      var blogs = widget.blogData['blogs'];
+      return _buildSection(
+        blogs: blogs,
+        title: (widget.blogData['heading'] ?? '').toString().isEmpty
+            ? 'Blog'
+            : widget.blogData['heading'].toString(),
+        subtitle: widget.blogData['subheading'] ?? '',
+        onSeeAll: () {
+          Get.to(() => AllBlogsSection(blogData: widget.blogData));
+        },
+      );
+    }
+
+    if (!_fallbackFetched) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _fetchFallbackBlogs();
+      });
+    }
+
+    if (_fallbackBlogs.isEmpty) return const SizedBox();
+
+    return _buildSection(
+      blogs: _fallbackBlogs,
+      title: 'Blog',
+      subtitle: '',
+      onSeeAll: () {
+        Get.toNamed(Routes.BLOG);
+      },
+    );
+  }
+
+  Widget _buildSection({
+    required List blogs,
+    required String title,
+    required String subtitle,
+    required VoidCallback onSeeAll,
+  }) {
+    var displayedBlogs = blogs.take(2).toList();
+
+    return Padding(
+      padding: pageSurroundingPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 10),
+          StudioSectionHeader(
+            title: title,
+            subtitle: subtitle,
+            onSeeAll: onSeeAll,
+          ),
+          const SizedBox(height: 15),
+          Container(
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                mainAxisExtent: 240, // Slightly increased to fit description
+              ),
+              itemCount: displayedBlogs.length,
+              itemBuilder: ((context, index) {
+                var blog = displayedBlogs[index];
+                return InkWell(
+                  onTap: () {
+                    final blogId = blog['_id'] ?? blog['id'];
+                    if (blogId != null) {
+                      Get.toNamed(Routes.BLOG_DETAILS,
+                          arguments: {'id': blogId});
+                    }
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          BorderRadius.vertical(bottom: Radius.circular(10)),
+                      color: Theme.of(context).colorScheme.surface,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(10)),
+                          child: (HelperFunctions().getImage(blog['featured_image']).isNotEmpty &&
+                                  HelperFunctions().getImage(blog['featured_image']) != HelperFunctions.getNoImage())
+                              ? CachedNetworkImage(
+                                  imageUrl: HelperFunctions()
+                                      .getImage(blog['featured_image']),
+                                  height: 160,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorWidget: (context, url, error) =>
+                                      const AppImagePlaceholder(
+                                    radius: 0,
+                                    height: 160,
+                                    width: double.infinity,
+                                  ),
+                                  progressIndicatorBuilder:
+                                      (context, url, progress) =>
+                                          HelperFunctions().loadingIndicator(),
+                                )
+                              : const AppImagePlaceholder(
+                                  radius: 0,
+                                  height: 160,
+                                  width: double.infinity,
+                                ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                blog['name'] ?? '',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    fontFamily: 'Lato',
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant),
+                              ),
+                              const SizedBox(height: 4),
+                              _buildDescription(blog),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDescription(dynamic blog) {
+    String content = blog['excerpt'] ?? blog['content'] ?? '';
+
+    return SizedBox(
+      // height: 35, // Approximate height for 2 lines
+      child: HtmlWidget(
+        content.length > 60 ? content.substring(0, 50) + '...' : content,
+        textStyle: TextStyle(
+            fontSize: 12,
+            fontFamily: 'Lato',
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            overflow: TextOverflow
+                .ellipsis // Helper for text overflow if supported by HtmlWidget context
+            ),
+      ),
+    );
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+}

@@ -26,7 +26,7 @@ class AppButton extends StatelessWidget {
         onPressed: keypressEvent,
         child: Text(itemText.toUpperCase(),
             style: const TextStyle(
-                // color: Colors.white,
+                color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 fontFamily: 'Lato')),

@@ -4,14 +4,16 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 import 'app/routes/app_pages.dart';
-      // ✅ theme controller
+import 'core/services/cartServcie.dart';
+import 'core/services/wishlistService.dart';
+// ✅ theme controller
 import 'constants/dynamic_theme.dart';
-import 'helpers/socket_helper.dart';               // ✅ socket
+import 'helpers/socket_helper.dart'; // ✅ socket
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await GetStorage.init();                           // ✅ storage first
+  await GetStorage.init(); // ✅ storage first
 
   // ✅ Init theme manager — loads cached colors
   await DynamicThemeManager().init();
@@ -41,20 +43,27 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeCtrl = Get.find<ThemeController>(); // ✅ finds registered controller
+    final themeCtrl =
+        Get.find<ThemeController>(); // ✅ finds registered controller
 
     return GetMaterialApp(
       title: 'Your App',
       debugShowCheckedModeBanner: false,
 
       // ── Dynamic Themes ─────────────────────────────────────────
-      themeMode:  themeCtrl.themeMode,           // ✅ reactive
-      theme:      themeCtrl.lightTheme,          // ✅ dynamic light
-      darkTheme:  themeCtrl.darkTheme,           // ✅ dynamic dark
+      themeMode: themeCtrl.themeMode, // ✅ reactive
+      theme: themeCtrl.lightTheme, // ✅ dynamic light
+      darkTheme: themeCtrl.darkTheme, // ✅ dynamic dark
 
       // ── Routing ────────────────────────────────────────────────
       initialRoute: Routes.SPLASH,
       getPages: AppPages.pages,
+      // Register services before the initial route (and its controllers) are
+      // constructed. Route widget fields can resolve these during creation.
+      initialBinding: BindingsBuilder(() {
+        Get.put(CartService(), permanent: true);
+        Get.put(WishListService(), permanent: true);
+      }),
 
       // ── Transitions ────────────────────────────────────────────
       defaultTransition: Transition.fadeIn,

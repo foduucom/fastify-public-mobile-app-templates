@@ -16,6 +16,7 @@ class CartService extends GetxService with BaseController {
   var cartItems = <Map<String, dynamic>>[].obs;
   var subTotal = 0.0.obs;
   var total = 0.0.obs;
+  final loadError = false.obs;
 
   /// Number of distinct line-items in the cart
   int get cartItemCount => cartItems.length;
@@ -26,6 +27,7 @@ class CartService extends GetxService with BaseController {
   //  FETCH CART
   // ══════════════════════════════════════════════════════════
   Future<void> fetchCart() async {
+    loadError.value = false;
     if (_isGuest) {
       _loadLocalCart();
       return;
@@ -44,6 +46,7 @@ class CartService extends GetxService with BaseController {
 
       parseCartResponse(response);
     } catch (e) {
+      loadError.value = true;
       debugPrint('CartService.fetchCart error: $e');
     }
   }
