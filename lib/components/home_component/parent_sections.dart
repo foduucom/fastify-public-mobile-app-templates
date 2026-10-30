@@ -85,13 +85,23 @@ class FeatureStrip extends StatelessWidget {
     if (k.contains('truck') || k.contains('shipping') || index == 0) {
       return Icons.local_shipping_outlined;
     }
-    if (k.contains('bag') || k.contains('payment') || k.contains('lock') || index == 1) {
+    if (k.contains('bag') ||
+        k.contains('payment') ||
+        k.contains('lock') ||
+        index == 1) {
       return Icons.lock_outline;
     }
-    if (k.contains('money') || k.contains('quality') || k.contains('assured') || index == 2) {
+    if (k.contains('money') ||
+        k.contains('quality') ||
+        k.contains('assured') ||
+        index == 2) {
       return Icons.verified_outlined;
     }
-    if (k.contains('chat') || k.contains('call') || k.contains('support') || k.contains('email') || index == 3) {
+    if (k.contains('chat') ||
+        k.contains('call') ||
+        k.contains('support') ||
+        k.contains('email') ||
+        index == 3) {
       return Icons.support_agent_outlined;
     }
     return Icons.check_circle_outline;
@@ -356,7 +366,8 @@ class SpecialOffersSection extends StatelessWidget {
 
     // Extract title (e.g. "Special Offers!") and discount (e.g. "Up to 50% OFF")
     String title = 'Special Offers!';
-    String discount = data?.discount.isNotEmpty == true ? data!.discount : '50% OFF';
+    String discount =
+        data?.discount.isNotEmpty == true ? data!.discount : '50% OFF';
     String prefix = 'Up to ';
 
     if (rawHeading.contains('!')) {
@@ -828,7 +839,8 @@ class _ProductRailState extends State<ProductRail> {
   void didUpdateWidget(covariant ProductRail oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.products.length != oldWidget.products.length) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _updateScrollArrows());
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _updateScrollArrows());
     }
   }
 
@@ -855,8 +867,9 @@ class _ProductRailState extends State<ProductRail> {
   void _scrollLeft() {
     if (!_scrollController.hasClients) return;
     HapticFeedback.lightImpact();
-    final target = (_scrollController.offset - (_cardWidth * 2 + _cardSpacing * 2))
-        .clamp(0.0, _scrollController.position.maxScrollExtent);
+    final target =
+        (_scrollController.offset - (_cardWidth * 2 + _cardSpacing * 2))
+            .clamp(0.0, _scrollController.position.maxScrollExtent);
     _scrollController.animateTo(
       target,
       duration: const Duration(milliseconds: 350),
@@ -867,8 +880,9 @@ class _ProductRailState extends State<ProductRail> {
   void _scrollRight() {
     if (!_scrollController.hasClients) return;
     HapticFeedback.lightImpact();
-    final target = (_scrollController.offset + (_cardWidth * 2 + _cardSpacing * 2))
-        .clamp(0.0, _scrollController.position.maxScrollExtent);
+    final target =
+        (_scrollController.offset + (_cardWidth * 2 + _cardSpacing * 2))
+            .clamp(0.0, _scrollController.position.maxScrollExtent);
     _scrollController.animateTo(
       target,
       duration: const Duration(milliseconds: 350),
@@ -959,7 +973,8 @@ class _ProductRailState extends State<ProductRail> {
             separatorBuilder: (_, __) => const SizedBox(width: _cardSpacing),
             itemBuilder: (_, i) => SizedBox(
                 width: _cardWidth,
-                child: CategoryProductCard(product: widget.products[i], index: i)),
+                child:
+                    CategoryProductCard(product: widget.products[i], index: i)),
           ),
           // Left dynamic floating action arrow button
           Positioned(
@@ -999,7 +1014,8 @@ class BestSellerSection extends StatelessWidget {
   final HomeComponent? component;
   final HomeBestSellersData? data;
   final HomeBannerItem? bannerItem;
-  const BestSellerSection({super.key, this.component, this.data, this.bannerItem});
+  const BestSellerSection(
+      {super.key, this.component, this.data, this.bannerItem});
 
   @override
   Widget build(BuildContext context) {
@@ -1310,4 +1326,3 @@ class OurClientsSection extends StatelessWidget {
     });
   }
 }
-
