@@ -12,6 +12,7 @@ class FoduuCachedNetworkImage extends StatelessWidget {
     this.radius = 20,
     this.onTap,
     this.fit = BoxFit.fill,
+    this.colorFilter,
   }) : super(key: key);
 
   final String? image;
@@ -20,16 +21,32 @@ class FoduuCachedNetworkImage extends StatelessWidget {
   final double radius;
   final VoidCallback? onTap;
   final BoxFit fit;
+  final ColorFilter? colorFilter;
 
   @override
   Widget build(BuildContext context) {
+    Widget imageWidget;
     if (image != null && image != "" && image!.contains(".svg")) {
-      return SvgPicture.network(image!, height: height, width: width, fit: fit);
+      imageWidget = SvgPicture.network(
+        image!,
+        height: height,
+        width: width,
+        fit: fit,
+        colorFilter: colorFilter,
+      );
     } else if (image == null || image == "" || !image!.contains("http")) {
-      return Image.asset("assets/images/noImage.png",
-          height: height, width: width, fit: fit);
+      imageWidget = Image.asset(
+        "assets/images/noImage.png",
+        height: height,
+        width: width,
+        fit: fit,
+      );
+      if (colorFilter != null) {
+        imageWidget =
+            ColorFiltered(colorFilter: colorFilter!, child: imageWidget);
+      }
     } else {
-      return GestureDetector(
+      imageWidget = GestureDetector(
         onTap: onTap,
         child: CachedNetworkImage(
           alignment: Alignment.center,
@@ -61,6 +78,11 @@ class FoduuCachedNetworkImage extends StatelessWidget {
           ),
         ),
       );
+      if (colorFilter != null) {
+        imageWidget =
+            ColorFiltered(colorFilter: colorFilter!, child: imageWidget);
+      }
     }
+    return imageWidget;
   }
 }

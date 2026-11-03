@@ -1,7 +1,6 @@
 // ignore_for_file: prefer_typing_uninitialized_variables
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '/app/modules/homepage/controllers/homepage_controller.dart';
 import '/app/routes/app_pages.dart';
 import '/constants/constants.dart';
 import '/constants/helper_functions.dart';
@@ -19,7 +18,6 @@ class HomeBanner extends StatefulWidget {
 
 class _HomeBannerState extends State<HomeBanner>
     with AutomaticKeepAliveClientMixin {
-  late var homeController;
   List banners = [];
 
   String getImage(Map<String, dynamic> bannerItem) {
@@ -29,7 +27,6 @@ class _HomeBannerState extends State<HomeBanner>
 
   @override
   void initState() {
-    homeController = Get.find<HomeController>();
     if (widget.bannerContent['banners'] != null) {
       banners = widget.bannerContent['banners'];
     }

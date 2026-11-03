@@ -75,8 +75,12 @@ class BottombarView extends GetView<BottombarController> {
                     height: height,
                     onSearchTap: () => Get.toNamed(Routes.SEARCH),
                     onCartTap: () => controller.onTabChange(4),
+                    onWishlistTap: () => controller.onTabChange(3),
                     onMessageTap: () =>
                         Scaffold.of(scaffoldContext).openDrawer(),
+                    cartItemCount: cartController.cartItems.length,
+                    wishlistItemCount: wishListController.wishlistItems.length,
+                    brandTitle: 'Kharido',
                     //onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),
                   );
                 }

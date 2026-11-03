@@ -63,10 +63,11 @@ class _FoduuSliderState extends State<FoduuSlider>
   }
 
   List<Widget> _buildPageIndicator() {
+    final content = widget.sliderData['slider']?['content'];
+    if (content is! List || content.length <= 1) return const [];
     List<Widget> list = [];
-    //print("Slide Data : ${widget.sliderData['slider']['content']}");
-    for (int i = 0; i < widget.sliderData['slider']['content'].length; i++) {
-      list.add(i == _currentPage ? _indicator(true) : _indicator(false));
+    for (int i = 0; i < content.length; i++) {
+      list.add(_indicator(i == _currentPage));
     }
     return list;
   }
@@ -117,15 +118,17 @@ class _FoduuSliderState extends State<FoduuSlider>
         context); // Call to the super method for AutomaticKeepAliveClientMixin
     final double sliderHeight = _getSliderHeight();
 
-    return Stack(
-      alignment: Alignment.bottomCenter,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: Colors.transparent,
-          ),
-          height: sliderHeight,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.transparent,
+            ),
+            height: sliderHeight,
           child: widget.sliderData['slider']['content'].isEmpty
               ? Shimmer.fromColors(
                   child: Padding(
@@ -165,18 +168,17 @@ class _FoduuSliderState extends State<FoduuSlider>
 
                         // Extract title and content
                         final String title = sliderItem['heading'] ?? '';
+                        final String subHeading =
+                            sliderItem['sub_heading'] ?? sliderItem['subheading'] ?? '';
                         final String description =
                             sliderItem['description'] ?? '';
-                        // final String buttonText =
-                        //     sliderItem['button_text'] ?? 'Shop Now';
+                        final String buttonText =
+                            sliderItem['button_text'] ?? (title.isNotEmpty ? 'Shop Now' : '');
                         final String? link = sliderItem['link'];
                         final String? sliderType = sliderItem['sliderType'];
 
-                        // Determine text color based on background (you can customize this)
-                        final bool isDarkBackground =
-                            sliderItem['dark_background'] ?? false;
-                        final Color textColor =
-                            isDarkBackground ? Colors.white : Colors.black;
+                        // High-contrast text over dark gradient overlay
+                        const Color textColor = Colors.white;
                         final Color buttonColor =
                             Theme.of(context).primaryColor;
 
@@ -262,78 +264,140 @@ class _FoduuSliderState extends State<FoduuSlider>
                                   ),
                                 ),
 
-                                // Gradient Overlay for better text visibility
+                                // Gradient Overlay for subtle text contrast without darkening full photo
                                 Positioned.fill(
-                                  child: Container(
-                                    decoration: BoxDecoration(
+                                  child: Padding(
+                                    padding: pageSurroundingPadding,
+                                    child: ClipRRect(
                                       borderRadius: BorderRadius.circular(12.0),
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          Colors.transparent,
-                                          Colors.black.withOpacity(0.5),
-                                          Colors.black.withOpacity(0.8),
-                                        ],
-                                        stops: [0.3, 0.6, 1.0],
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Colors.transparent,
+                                              Colors.black.withOpacity(0.12),
+                                              Colors.black.withOpacity(0.65),
+                                            ],
+                                            stops: const [0.45, 0.72, 1.0],
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
 
-                                // Title and Content
+                                // Title, Subheading, Content, and CTA Button
                                 Positioned(
                                   left: 20,
                                   right: 20,
-                                  bottom: sliderHeight *
-                                      0.25, // Position from bottom
+                                  bottom: 24,
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
+                                      if (subHeading.isNotEmpty) ...[
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withOpacity(0.2),
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            subHeading.toUpperCase(),
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white,
+                                              letterSpacing: 1.2,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                      ],
                                       if (title.isNotEmpty)
                                         Text(
                                           title,
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontFamily: 'Lato',
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.w700,
-                                            color: textColor,
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.white,
                                             height: 1.2,
                                             shadows: [
                                               Shadow(
-                                                blurRadius: 4.0,
-                                                color: Colors.black
-                                                    .withOpacity(0.5),
-                                                offset: Offset(1.0, 1.0),
+                                                blurRadius: 8.0,
+                                                color: Colors.black87,
+                                                offset: Offset(0, 2),
                                               ),
                                             ],
                                           ),
                                         ),
-                                      if (title.isNotEmpty &&
-                                          description.isNotEmpty)
-                                        SizedBox(height: 8),
-                                      if (description.isNotEmpty)
+                                      if (description.isNotEmpty) ...[
+                                        const SizedBox(height: 6),
                                         Text(
                                           description,
                                           style: TextStyle(
                                             fontFamily: 'Lato',
-                                            fontSize: 14,
+                                            fontSize: 13,
                                             fontWeight: FontWeight.w400,
-                                            color: textColor,
-                                            shadows: [
+                                            color: Colors.white.withOpacity(0.9),
+                                            shadows: const [
                                               Shadow(
-                                                blurRadius: 3.0,
-                                                color: Colors.black
-                                                    .withOpacity(0.5),
-                                                offset: Offset(1.0, 1.0),
+                                                blurRadius: 6.0,
+                                                color: Colors.black54,
+                                                offset: Offset(0, 1),
                                               ),
                                             ],
                                           ),
-                                          maxLines: 3,
+                                          maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
                                         ),
+                                      ],
+                                      if (buttonText.isNotEmpty) ...[
+                                        const SizedBox(height: 12),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                                BorderRadius.circular(24),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withOpacity(0.2),
+                                                blurRadius: 6,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                buttonText,
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.black,
+                                                  letterSpacing: 0.5,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              const Icon(
+                                                Icons.arrow_forward_rounded,
+                                                size: 14,
+                                                color: Colors.black,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 ),
@@ -344,14 +408,15 @@ class _FoduuSliderState extends State<FoduuSlider>
                       }),
                 ),
         ),
-        Positioned(
-          bottom: 10,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [..._buildPageIndicator()],
-          ),
-        )
-      ],
+          Positioned(
+            bottom: 10,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [..._buildPageIndicator()],
+            ),
+          )
+        ],
+      ),
     );
   }
 
@@ -361,15 +426,20 @@ class _FoduuSliderState extends State<FoduuSlider>
 
 Widget _indicator(bool isActive) {
   return AnimatedContainer(
-    duration: Duration(milliseconds: 300),
-    height: 8,
-    width: isActive ? 24 : 8,
-    margin: const EdgeInsets.symmetric(horizontal: 4.0),
+    duration: const Duration(milliseconds: 300),
+    height: 5,
+    width: isActive ? 20 : 6,
+    margin: const EdgeInsets.symmetric(horizontal: 3.0),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(50),
-      color: isActive
-          ? Theme.of(Get.context!).primaryColor
-          : Colors.white.withOpacity(0.6),
+      color: isActive ? Colors.white : Colors.white.withOpacity(0.4),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.25),
+          blurRadius: 3,
+          offset: const Offset(0, 1),
+        ),
+      ],
     ),
   );
 }

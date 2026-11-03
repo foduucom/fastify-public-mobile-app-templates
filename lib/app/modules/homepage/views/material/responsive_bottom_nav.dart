@@ -38,6 +38,15 @@ class ResponsiveBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isThemeLight = Theme.of(context).brightness == Brightness.light;
+    final isAccentLight =
+        ThemeData.estimateBrightnessForColor(activeColor) == Brightness.light;
+    final resolvedActiveColor =
+        (isThemeLight && isAccentLight) ? Colors.black87 : activeColor;
+    final pillColor = isAccentLight
+        ? (isThemeLight ? const Color(0xFFF0F0F2) : const Color(0xFF2C2C2E))
+        : activeColor.withValues(alpha: 0.15);
+
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor,
@@ -65,48 +74,71 @@ class ResponsiveBottomNav extends StatelessWidget {
               return Expanded(
                 child: InkWell(
                   onTap: () => onTap(index),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            Icon(
-                              isSelected ? item.activeIcon : item.inactiveIcon,
-                              color: isSelected ? activeColor : inactiveColor,
-                              size: 24,
-                            ),
-                            if (item.badgeCount > 0)
-                              Positioned(
-                                right: -8,
-                                top: -4,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: activeColor,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  constraints: const BoxConstraints(
-                                    minWidth: 16,
-                                    minHeight: 16,
-                                  ),
-                                  child: Text(
-                                    item.badgeCount > 99
-                                        ? '99+'
-                                        : item.badgeCount.toString(),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.bold,
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeInOut,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isSelected ? 14 : 6,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected ? pillColor : Colors.transparent,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Icon(
+                                isSelected ? item.activeIcon : item.inactiveIcon,
+                                color: isSelected
+                                    ? resolvedActiveColor
+                                    : inactiveColor,
+                                size: 24,
+                              ),
+                              if (item.badgeCount > 0)
+                                Positioned(
+                                  right: -8,
+                                  top: -4,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: activeColor,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: backgroundColor,
+                                        width: 1.5,
+                                      ),
                                     ),
-                                    textAlign: TextAlign.center,
+                                    constraints: const BoxConstraints(
+                                      minWidth: 16,
+                                      minHeight: 16,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        item.badgeCount > 99
+                                            ? '99+'
+                                            : item.badgeCount.toString(),
+                                        style: TextStyle(
+                                          color: isAccentLight
+                                              ? Colors.black
+                                              : Colors.white,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                          height: 1.0,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                          ],
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 3),
                         Text(
@@ -114,9 +146,11 @@ class ResponsiveBottomNav extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: isSelected
-                                ? FontWeight.w600
+                                ? FontWeight.w700
                                 : FontWeight.normal,
-                            color: isSelected ? activeColor : inactiveColor,
+                            color: isSelected
+                                ? resolvedActiveColor
+                                : inactiveColor,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

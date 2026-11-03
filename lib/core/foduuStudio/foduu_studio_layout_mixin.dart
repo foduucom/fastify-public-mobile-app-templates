@@ -2,7 +2,6 @@
 
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '/constants/constants.dart';
 import '/constants/dynamic_theme.dart';
@@ -33,9 +32,13 @@ import 'widget_registry.dart';
 /// - [buildLayout] — converts a raw `List<Map>` of sections into widgets.
 /// - [enableSocketUpdates] / [disableSocketUpdates] — live layout updates.
 mixin FoduuStudioLayoutMixin on GetxController {
+  // ─── Static category lookup: id → name ──────────────────────
+  static final Map<String, String> categoryNameMap = {};
+
   // ─── Observable state ────────────────────────────────────────
   final widgetList = <Widget>[].obs;
   final isLayoutLoading = true.obs;
+  final layoutError = ''.obs;
 
   // ─── Internal state ──────────────────────────────────────────
   List _initialComponents = [];
@@ -93,15 +96,54 @@ mixin FoduuStudioLayoutMixin on GetxController {
 
   /// Build the [widgetList] from a raw list of section maps.
   void buildLayout(List sections) {
+    _updateCategoryNameMap(sections);
     _initialComponents = sections;
     widgetList.clear();
-    for (var section in sections) {
-      if (section is Map<String, dynamic>) {
-        if (_excludedSectionTypes.contains(section['type']?.toString())) {
-          continue;
-        }
+    for (var index = 0; index < sections.length; index++) {
+      final rawSection = sections[index];
+      if (rawSection is! Map) {
+        print('⚠️ DynamicLayout: Skipping invalid section at index $index');
+        continue;
+      }
+      try {
+        final section = Map<String, dynamic>.from(rawSection);
+        final type = section['type']?.toString() ?? '';
+        if (_excludedSectionTypes.contains(type)) continue;
         final widget = _registry.build(section);
-        if (widget != null) widgetList.add(widget);
+        if (widget != null) {
+          widgetList.add(widget);
+        } else {
+          print('ℹ️ DynamicLayout: No visible widget built for "$type"');
+        }
+      } catch (e) {
+        print('⚠️ DynamicLayout: Failed building section $index: $e');
+      }
+    }
+    print(
+        '🧱 DynamicLayout: Built ${widgetList.length}/${sections.length} sections; registered=${_registry.registeredTypes}');
+  }
+
+  void _updateCategoryNameMap(List sections) {
+    for (final rawSection in sections) {
+      if (rawSection is! Map || rawSection['type'] != 'categories') continue;
+      final rawContent =
+          rawSection['content_json'] ?? rawSection['contentJson'] ?? rawSection;
+      if (rawContent is Map && rawContent['categories'] is List) {
+        _populateCategoryMap(rawContent['categories'] as List);
+      }
+    }
+  }
+
+  void _populateCategoryMap(List categories) {
+    for (final cat in categories) {
+      if (cat is! Map) continue;
+      final id = (cat['_id'] ?? cat['id'])?.toString();
+      final name = (cat['name'] ?? cat['title'])?.toString();
+      if (id != null && id.isNotEmpty && name != null && name.isNotEmpty) {
+        categoryNameMap[id] = name;
+      }
+      if (cat['children'] is List) {
+        _populateCategoryMap(cat['children'] as List);
       }
     }
   }
@@ -124,15 +166,16 @@ mixin FoduuStudioLayoutMixin on GetxController {
   Future<dynamic> fetchLayout(String slug, {dynamic requestBody}) async {
     try {
       isLayoutLoading.value = true;
+      layoutError.value = '';
       dynamic response;
 
-      // Ensure socket is connected and listener is enabled on web
-      if (kIsWeb) {
-        if (!_layoutSocketHelper.isConnected) {
-          _layoutSocketHelper.connect();
-        }
-        enableSocketUpdates(domain: websiteDomain, slug: slug);
+      // CMS changes are broadcast to the mobile app as well as the web app.
+      // Register before the HTTP request so an update arriving during the
+      // initial fetch is not missed.
+      if (!_layoutSocketHelper.isConnected) {
+        _layoutSocketHelper.connect();
       }
+      enableSocketUpdates(domain: websiteDomain, slug: slug);
 
       if (requestBody != null) {
         response = await BasicProvider("mobile-app/by-json")
@@ -144,20 +187,48 @@ mixin FoduuStudioLayoutMixin on GetxController {
             .catchError((e, stackTrace) => _handleApiError(e, stackTrace));
       }
 
-      if (response != null) {
-        var list = response['sections'];
-        if (list != null && list is List) {
-          _initialComponents = list;
-          buildLayout(list);
+      final sections = _extractSections(response);
+      if (sections == null) {
+        widgetList.clear();
+        layoutError.value = response == null
+            ? 'Could not load home content. Check your connection and try again.'
+            : 'The home response did not contain a valid sections list.';
+        print('⚠️ DynamicLayout: No valid sections found for "$slug"');
+      } else {
+        print(
+            '📄 DynamicLayout: Received ${sections.length} sections for "$slug"');
+        buildLayout(sections);
+        if (sections.isEmpty) {
+          layoutError.value = 'No home sections are configured yet.';
+        } else if (widgetList.isEmpty) {
+          layoutError.value =
+              'Home sections were received, but none could be displayed.';
         }
       }
 
       return response;
     } catch (e) {
       print('DynamicLayoutMixin fetchLayout error: $e');
+      layoutError.value = 'Could not display home content. Please try again.';
     } finally {
       isLayoutLoading.value = false;
     }
+  }
+
+  /// Accept the API's direct sections response and common `data` envelopes.
+  List? _extractSections(dynamic response) {
+    if (response is List) return response;
+    if (response is! Map) return null;
+
+    final sections = response['sections'];
+    if (sections is List) return sections;
+
+    final data = response['data'];
+    if (data is List) return data;
+    if (data is Map && data['sections'] is List) {
+      return data['sections'] as List;
+    }
+    return null;
   }
 
   /// Enable real-time socket-driven layout updates.
@@ -205,7 +276,11 @@ mixin FoduuStudioLayoutMixin on GetxController {
 
   /// Stop listening for socket updates for this controller's slug.
   void disableSocketUpdates(String domain, String slug) {
-    _slugHandlers.remove(slug);
+    // A second controller can take over the same slug while the first route
+    // is being disposed. Do not remove the newer controller's registration.
+    if (identical(_slugHandlers[slug], this)) {
+      _slugHandlers.remove(slug);
+    }
     print(
         '🔴 DynamicLayout: Unregistered slug "$slug" (${_slugHandlers.length} remaining)');
 
@@ -364,5 +439,14 @@ mixin FoduuStudioLayoutMixin on GetxController {
   dynamic _handleApiError(dynamic error, StackTrace stackTrace) {
     print('DynamicLayoutMixin API error: $error');
     print('DynamicLayoutMixin API stackTrace: $stackTrace');
+  }
+
+  @override
+  void onClose() {
+    final slug = _currentSlug;
+    if (slug != null) {
+      disableSocketUpdates(_currentDomain ?? websiteDomain, slug);
+    }
+    super.onClose();
   }
 }

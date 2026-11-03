@@ -6,7 +6,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
-import '/app/modules/homepage/controllers/homepage_controller.dart';
 import '/app/routes/app_pages.dart';
 import '/constants/constants.dart';
 import '/constants/helper_functions.dart';
@@ -23,7 +22,6 @@ class FoduuSlider extends StatefulWidget {
 
 class _FoduuSliderState extends State<FoduuSlider>
     with AutomaticKeepAliveClientMixin, BaseController {
-  late HomeController homeController;
   // var sliderImage = [];
 
   int _currentPage = 0;
@@ -55,7 +53,6 @@ class _FoduuSliderState extends State<FoduuSlider>
   @override
   void initState() {
     super.initState();
-    homeController = Get.find<HomeController>();
     // sliderImage.clear();
     // initFetchSliderImage(widget.id);
 

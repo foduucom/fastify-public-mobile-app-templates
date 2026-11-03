@@ -6,7 +6,7 @@ import '/components/drawerList.dart';
 import '/constants/dynamic_theme.dart';
 import 'package:get/get.dart';
 
-class CustomDrawer extends GetView<HomeController>{
+class CustomDrawer extends GetView<HomepageController>{
   const CustomDrawer({super.key});
 
   @override

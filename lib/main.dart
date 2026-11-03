@@ -9,11 +9,16 @@ import 'core/services/wishlistService.dart';
 // ✅ theme controller
 import 'constants/dynamic_theme.dart';
 import 'helpers/socket_helper.dart'; // ✅ socket
+import 'core/foduuStudio/register_default_widgets.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await GetStorage.init(); // ✅ storage first
+
+  // Dynamic CMS sections must be registered before the homepage fetches its
+  // layout, otherwise the API data arrives but no section widgets are built.
+  registerDefaultWidgets();
 
   // ✅ Init theme manager — loads cached colors
   await DynamicThemeManager().init();

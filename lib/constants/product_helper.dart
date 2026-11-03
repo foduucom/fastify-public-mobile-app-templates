@@ -11,8 +11,25 @@ class ProductHelper {
   /// Used by product cards, quick view modals, and shop views.
   static String formatPrice(dynamic price, {String symbol = '₹'}) {
     if (price == null) return '${symbol}0';
+    if (price is String) {
+      final trimmed = price.trim();
+      if (trimmed.isEmpty) return '${symbol}0';
+      if (trimmed.contains('-')) {
+        final parts = trimmed.split('-');
+        if (parts.length == 2) {
+          final p1 = double.tryParse(parts[0].replaceAll(RegExp(r'[^\d.]'), '').trim());
+          final p2 = double.tryParse(parts[1].replaceAll(RegExp(r'[^\d.]'), '').trim());
+          if (p1 != null && p2 != null) {
+            if (p1 == p2) {
+              return formatPrice(p1, symbol: symbol);
+            }
+            return '${formatPrice(p1, symbol: symbol)} - ${formatPrice(p2, symbol: symbol)}';
+          }
+        }
+      }
+    }
     final double value = (price is String)
-        ? double.tryParse(price) ?? 0.0
+        ? double.tryParse(price.toString().replaceAll(RegExp(r'[^\d.]'), '')) ?? 0.0
         : (price as num).toDouble();
     // Remove trailing zeros for whole numbers
     if (value == value.truncate()) {
@@ -194,10 +211,14 @@ class ProductHelper {
       return gallery;
     }
 
-    // Fallback to featured_image
+    // Fallback to featured_image or front_image
     final featuredImage = product['featured_image'];
     if (featuredImage != null && featuredImage.toString().isNotEmpty) {
       return [featuredImage]; // return as list
+    }
+    final frontImage = product['front_image'];
+    if (frontImage != null && frontImage.toString().isNotEmpty) {
+      return [frontImage];
     }
 
     return [];
@@ -212,22 +233,46 @@ class ProductHelper {
       if (gallery.isNotEmpty) {
         final firstImage = gallery.first;
         if (firstImage is Map) {
-          return HelperFunctions().getImage(
+          final img = HelperFunctions().getImage(
             firstImage,
             isLog: false,
             moduleName: 'ProductHelper',
           );
+          if (img.isNotEmpty && img != HelperFunctions.getNoImage()) {
+            return img;
+          }
         }
       }
     }
 
     final featuredImage = product['featured_image'];
-    if (featuredImage != null) {
-      return HelperFunctions().getImage(
+    if (featuredImage != null && featuredImage.toString().isNotEmpty) {
+      final img = HelperFunctions().getImage(
         featuredImage,
         isLog: false,
         moduleName: 'ProductHelper',
       );
+      if (img.isNotEmpty && img != HelperFunctions.getNoImage()) {
+        return img;
+      }
+    }
+
+    final frontImage = product['front_image'];
+    if (frontImage != null && frontImage.toString().isNotEmpty) {
+      final img = HelperFunctions().getImage(
+        frontImage,
+        isLog: false,
+        moduleName: 'ProductHelper',
+      );
+      if (img.isNotEmpty && img != HelperFunctions.getNoImage()) {
+        return img;
+      }
+    }
+
+    // Comprehensive fallback via resolveProductImage
+    final resolved = HelperFunctions.resolveProductImage(product);
+    if (resolved.isNotEmpty) {
+      return resolved;
     }
 
     return HelperFunctions.getNoImage();

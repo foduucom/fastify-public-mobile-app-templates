@@ -2,10 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '/components/app_image_placeholder.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:foddu/core/services/wishlistService.dart'
-    show WishListService;
-import 'package:foddu/core/services/cartServcie.dart'
-    show CartService;
+import 'package:foddu/core/services/wishlistService.dart' show WishListService;
+import 'package:foddu/core/services/cartServcie.dart' show CartService;
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
 import '/app/routes/app_pages.dart';
@@ -17,6 +15,7 @@ import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 import 'home_common_widgets.dart';
 import 'package:foddu/constants/dynamic_theme.dart';
+import 'package:foddu/core/foduuStudio/foduu_studio_layout_mixin.dart';
 import 'package:foddu/components/product_quick_view_modal.dart';
 import 'package:foddu/components/parent_web_product_card.dart';
 import 'package:foddu/app/modules/shop/shop_navigation.dart';
@@ -76,6 +75,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // ─── Category tabs (built in-app from the page's categories section) ───
   List<Map<String, dynamic>> _tabs = [];
   final _selectedTab = 0.obs;
+  final _selectedFeaturedProduct = 0.obs;
+  final PageController _featuredPageController =
+      PageController(viewportFraction: 0.94);
   bool get _tabsEnabled => _tabs.isNotEmpty;
   final _childCategoriesCache = <String, List<dynamic>>{}.obs;
 
@@ -150,7 +152,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     }
 
     _infiniteScroll = widget.contentJson?['infinite_scroll'] == true;
-    _countPerPage = widget.contentJson?['count'] ?? 10;
+    final rawCount = widget.contentJson?['count'];
+    _countPerPage = (rawCount is int && rawCount > 0)
+        ? rawCount
+        : int.tryParse(rawCount?.toString() ?? '') ?? 10;
+    if (_countPerPage <= 0) _countPerPage = 10;
     _initTabs();
 
     // Handle products and pagination from contentJson
@@ -230,6 +236,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   @override
   void dispose() {
+    _featuredPageController.dispose();
     _scrollController?.removeListener(_onScroll);
     _scrollController?.dispose();
     _parentScrollPosition?.removeListener(_onParentScroll);
@@ -240,7 +247,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   void _onScroll() {
     if (_scrollController == null || !_scrollController!.hasClients) return;
     final pos = _scrollController!.position;
-    if (pos.pixels >= pos.maxScrollExtent - 100) {
+    if (pos.maxScrollExtent > 150 &&
+        pos.pixels > 50 &&
+        pos.pixels >= pos.maxScrollExtent - 150) {
       _triggerLoadMore();
     }
   }
@@ -250,7 +259,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     if (_parentScrollPosition == null || !_parentScrollPosition!.hasPixels)
       return;
     final pos = _parentScrollPosition!;
-    if (pos.pixels >= pos.maxScrollExtent - 200) {
+    if (pos.maxScrollExtent > 300 &&
+        pos.pixels > 100 &&
+        pos.pixels >= pos.maxScrollExtent - 250) {
       _triggerLoadMore();
     }
   }
@@ -261,9 +272,16 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     _isLoadingMore.value = true;
 
     try {
-      final categoryType =
-          widget.contentJson?['category_type'] ?? 'random_category';
-      final categoryIds = widget.contentJson?['category_ids'];
+      final heroCategoryIds = _configuredHeroCategories()
+          .expand(_categoryRecordIds)
+          .toSet()
+          .toList(growable: false);
+      final categoryType = heroCategoryIds.isNotEmpty
+          ? 'specific_category'
+          : widget.contentJson?['category_type'] ?? 'random_category';
+      final configuredCategoryIds = widget.contentJson?['category_ids'];
+      final categoryIds =
+          heroCategoryIds.isNotEmpty ? heroCategoryIds : configuredCategoryIds;
 
       // Build query parameters
       final Map<String, dynamic> queryParams = {
@@ -366,8 +384,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     // ─── Layout Configuration ───
     String style = widget.contentJson?['layout'] ?? 'standard';
 
-    debugPrint(
-        'DEBUG PRODUCTS SECTION: heading=$heading, layout=$style, infiniteScroll=$_infiniteScroll, contentJson=${widget.contentJson}');
+    debugPrint('Products section: heading="$heading", layout=$style, '
+        'infiniteScroll=$_infiniteScroll, count=${trendingList.length}');
 
     return Obx(() => Stack(
           children: [
@@ -376,6 +394,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
               children: [
                 // ─── Section Header ───
                 if (!widget.hideHeader &&
+                    style != 'parent_web' &&
                     (heading.isNotEmpty || subheading.isNotEmpty)) ...[
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -478,7 +497,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         .toDouble();
     const imageAspectRatio = 0.75;
     final imageHeight = cardWidth / imageAspectRatio;
-    const textSectionHeight = 88.0;
+    const textSectionHeight = 98.0;
     final totalCardHeight = imageHeight + textSectionHeight;
 
     return SizedBox(
@@ -559,103 +578,66 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                         ),
                       ),
                     ),
-                  // Floating 4-action vertical button stack (top right)
+                  // Floating Wishlist Heart (top right)
                   Positioned(
                     right: 8,
                     top: 8,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // 1. Add to cart
-                        _actionCircleBtn(
-                          icon: Icons.shopping_bag_outlined,
-                          tooltip: 'Add to Cart',
-                          onTap: () async {
-                            if (ProductHelper.isInStock(product) &&
-                                variantId.isNotEmpty) {
-                              await _handleAddToCart(
-                                  product, productId, variantId, 1);
-                              Get.snackbar(
-                                'Added to Cart',
-                                '${ProductHelper.getProductName(product)} added to your cart',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: colorScheme.primary,
-                                colorText: colorScheme.onPrimary,
-                                duration: const Duration(seconds: 3),
-                                margin: const EdgeInsets.all(16),
-                                mainButton: TextButton(
-                                  onPressed: () {
-                                    if (Get.isRegistered<
-                                        BottombarController>()) {
-                                      Get.find<BottombarController>()
-                                          .currentPageIndex
-                                          .value = 4;
-                                      Get.find<BottombarController>()
-                                          .pageController
-                                          .jumpToPage(4);
-                                    }
-                                  },
-                                  child: Text(
-                                    'VIEW CART',
-                                    style: TextStyle(
-                                      color: colorScheme.onPrimary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            } else {
-                              Get.snackbar(
-                                'Out of Stock',
-                                'This product is out of stock',
-                                snackPosition: SnackPosition.BOTTOM,
-                                margin: const EdgeInsets.all(16),
-                              );
-                            }
-                          },
-                        ),
-                        const SizedBox(height: 5),
-                        // 2. Quick view
-                        _actionCircleBtn(
-                          icon: Icons.remove_red_eye_outlined,
-                          tooltip: 'Quick View',
-                          onTap: () =>
-                              ProductQuickViewModal.show(context, product),
-                        ),
-                        const SizedBox(height: 5),
-                        // 3. Wishlist
-                        Obx(() {
-                          final isFav =
-                              WishListService.to.isInWishlist(productId);
-                          return _actionCircleBtn(
-                            icon: isFav
-                                ? Icons.favorite_rounded
-                                : Icons.favorite_border_rounded,
-                            iconColor: isFav ? colorScheme.error : null,
-                            tooltip: 'Wishlist',
-                            onTap: () => _handleWishlistTap(product),
-                          );
-                        }),
-                        //const SizedBox(height: 5),
-                        // 4. Compare
-                        // _actionCircleBtn(
-                        //   icon: Icons.swap_horiz_rounded,
-                        //   tooltip: 'Compare',
-                        //   onTap: () {
-                        //     Get.snackbar(
-                        //       'Compare',
-                        //       '${ProductHelper.getProductName(product)} added to comparison',
-                        //       snackPosition: SnackPosition.BOTTOM,
-                        //       backgroundColor: colorScheme.secondary,
-                        //       colorText: colorScheme.onSecondary,
-                        //       duration: const Duration(seconds: 2),
-                        //       margin: const EdgeInsets.all(16),
-                        //     );
-                        //   },
-                        // ),
-                      ],
-                    ),
+                    child: Obx(() {
+                      final isFav =
+                          WishListService.to.isInWishlist(productId);
+                      return _actionCircleBtn(
+                        icon: isFav
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        iconColor: isFav ? colorScheme.error : null,
+                        tooltip: 'Wishlist',
+                        onTap: () => _handleWishlistTap(product),
+                      );
+                    }),
                   ),
+                  // Floating Quick Add to Bag (bottom right)
+                  if (ProductHelper.isInStock(product) && variantId.isNotEmpty)
+                    Positioned(
+                      right: 8,
+                      bottom: 8,
+                      child: _actionCircleBtn(
+                        icon: Icons.shopping_bag_outlined,
+                        tooltip: 'Add to Cart',
+                        onTap: () async {
+                          await _handleAddToCart(
+                              product, productId, variantId, 1);
+                          Get.snackbar(
+                            'Added to Cart',
+                            '${ProductHelper.getProductName(product)} added to your cart',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: colorScheme.primary,
+                            colorText: colorScheme.onPrimary,
+                            duration: const Duration(seconds: 3),
+                            margin: const EdgeInsets.all(16),
+                            mainButton: TextButton(
+                              onPressed: () {
+                                if (Get.isRegistered<
+                                    BottombarController>()) {
+                                  Get.find<BottombarController>()
+                                      .currentPageIndex
+                                      .value = 4;
+                                  Get.find<BottombarController>()
+                                      .pageController
+                                      .jumpToPage(4);
+                                }
+                              },
+                              child: Text(
+                                'VIEW CART',
+                                style: TextStyle(
+                                  color: colorScheme.onPrimary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -669,7 +651,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
               (index) => const Icon(
                 Icons.star_rounded,
                 size: 13,
-                color: DefaultThemeColors.alertWarninglight,
+                color: Color(0xFFFFB800),
               ),
             ),
           ),
@@ -707,7 +689,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                           priceInfo['productPrice']?.toString() ?? '0'),
                       style: textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
+                        color: colorScheme.onSurface,
                       ),
                       maxLines: 1,
                     ),
@@ -1210,49 +1192,485 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // STYLE 0 — PARENT WEB (Clean portrait cards with 4 action buttons)
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildParentWebHorizontalList() {
-    final itemCount = _infiniteScroll
-        ? displayedProducts.length + 1
-        : displayedProducts.length;
+    final loadedProducts = displayedProducts
+        .whereType<Map>()
+        .map((product) => Map<String, dynamic>.from(product))
+        .where(
+          (product) =>
+              ProductHelper.calculatePriceInfo(product)['hasValidVariants'] ==
+              true,
+        )
+        .toList();
+    if (loadedProducts.isEmpty) return const SizedBox.shrink();
 
-    final cardWidth = (MediaQuery.of(context).size.width * 0.40)
-        .clamp(145.0, 175.0)
-        .toDouble();
-    const totalCardHeight = 270.0;
+    final bool isHeroCarousel = widget.contentJson?['category_type'] == 'parent_category' &&
+        (widget.contentJson?['hero_categories'] != null || (widget.contentJson?['count'] ?? 0) == 0);
 
-    return SizedBox(
-      height: totalCardHeight,
-      child: ScrollConfiguration(
-        behavior: ScrollConfiguration.of(context).copyWith(
-          dragDevices: {
-            PointerDeviceKind.touch,
-            PointerDeviceKind.mouse,
-            PointerDeviceKind.trackpad,
-          },
-        ),
+    // If not the top hero section, render as clean boutique portrait cards
+    if (!isHeroCarousel) {
+      const double cardWidth = 155.0;
+      const double cardHeight = 265.0;
+      return SizedBox(
+        height: cardHeight,
         child: ListView.separated(
-          controller: _scrollController,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          separatorBuilder: (context, index) => const SizedBox(width: 12),
-          shrinkWrap: false,
-          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           scrollDirection: Axis.horizontal,
-          itemCount: itemCount,
+          itemCount: loadedProducts.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 12),
           itemBuilder: (context, index) {
-            if (index >= displayedProducts.length) {
-              return _buildLoadingIndicator();
-            }
-            final product = displayedProducts[index] as Map<String, dynamic>;
-            final priceInfo = ProductHelper.calculatePriceInfo(product);
-            if (!priceInfo['hasValidVariants']) {
-              return const SizedBox.shrink();
-            }
             return SizedBox(
               width: cardWidth,
-              child: ParentWebProductCard(product: product, isList: false),
+              child: ParentWebProductCard(
+                product: loadedProducts[index],
+                isList: false,
+              ),
             );
           },
         ),
-      ),
+      );
+    }
+
+    final categoryRecords = _configuredHeroCategories();
+    final slides = <({Map<String, dynamic> product, String categoryName})>[];
+
+    // Preserve the configured category order, while giving every matching
+    // product its own hero slide instead of promoting only the first product.
+    for (final category in categoryRecords) {
+      final ids = _categoryRecordIds(category);
+      if (ids.isEmpty) continue;
+      for (final product in loadedProducts) {
+        final productId = ProductHelper.getProductId(product);
+        final alreadyAdded = productId.isNotEmpty &&
+            slides.any((slide) =>
+                ProductHelper.getProductId(slide.product) == productId);
+        if (_productCategoryIds(product).intersection(ids).isNotEmpty &&
+            !alreadyAdded) {
+          slides.add((
+            product: product,
+            categoryName: _categoryRecordName(category),
+          ));
+        }
+      }
+    }
+
+    // Without configured hero categories, honor the section's explicit
+    // category scope when product category metadata is available.
+    if (categoryRecords.isEmpty) {
+      final configuredIds = _configuredProductCategoryIds();
+      final hasProductCategoryData = loadedProducts.any(
+        (product) => _productCategoryIds(product).isNotEmpty,
+      );
+      final categoryProducts = configuredIds.isEmpty
+          ? loadedProducts
+          : loadedProducts
+              .where((product) => _productCategoryIds(product)
+                  .intersection(configuredIds)
+                  .isNotEmpty)
+              .toList();
+      final products = configuredIds.isNotEmpty &&
+              hasProductCategoryData &&
+              categoryProducts.isEmpty
+          ? <Map<String, dynamic>>[]
+          : categoryProducts.isEmpty
+              ? loadedProducts
+              : categoryProducts;
+      for (final product in products) {
+        slides.add((
+          product: product,
+          categoryName: _featuredCategoryName(product),
+        ));
+      }
+    }
+    if (slides.isEmpty) return const SizedBox.shrink();
+
+    final selected =
+        _selectedFeaturedProduct.value.clamp(0, slides.length - 1).toInt();
+    final hasLoadMoreSlide = _infiniteScroll && _hasMoreValue;
+    final itemCount = slides.length + (hasLoadMoreSlide ? 1 : 0);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: _featuredHeroHeight(context),
+          child: PageView.builder(
+            controller: _featuredPageController,
+            itemCount: itemCount,
+            onPageChanged: (index) {
+              if (index < slides.length) {
+                _selectedFeaturedProduct.value = index;
+                if (hasLoadMoreSlide && index >= slides.length - 2) {
+                  _triggerLoadMore();
+                }
+              } else {
+                _triggerLoadMore();
+              }
+            },
+            itemBuilder: (context, index) {
+              if (index >= slides.length) {
+                return Center(child: _buildLoadingIndicator());
+              }
+              final slide = slides[index];
+              return Padding(
+                padding: const EdgeInsets.only(left: 16, right: 8),
+                child: _buildParentWebFeaturedProduct(
+                  slide.product,
+                  categoryNameOverride: slide.categoryName,
+                ),
+              );
+            },
+          ),
+        ),
+        if (slides.length > 1) ...[
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Semantics(
+                    label: 'Product ${selected + 1} of ${slides.length}',
+                    child: LinearProgressIndicator(
+                      value: (selected + 1) / slides.length,
+                      minHeight: 3,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text('${selected + 1} / ${slides.length}'),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  double _featuredHeroHeight(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return width >= 620 ? 430 : (width * 1.12).clamp(390.0, 500.0).toDouble();
+  }
+
+  List<Map<String, dynamic>> _configuredHeroCategories() {
+    final raw = widget.contentJson?['hero_categories'];
+    if (raw is! List) return const [];
+    return raw
+        .whereType<Map>()
+        .map((category) => Map<String, dynamic>.from(category))
+        .toList(growable: false);
+  }
+
+  String _categoryRecordName(Map<String, dynamic> category) =>
+      (category['name'] ?? category['title'] ?? '').toString().trim();
+
+  Set<String> _categoryRecordIds(Map<String, dynamic> category) {
+    final ids = <String>{};
+    final id = category['_id'] ?? category['id'];
+    if (id != null && id.toString().isNotEmpty) ids.add(id.toString());
+    final children = category['children'];
+    if (children is List) {
+      for (final child in children) {
+        if (child is! Map) continue;
+        final childId = child['_id'] ?? child['id'];
+        if (childId != null && childId.toString().isNotEmpty) {
+          ids.add(childId.toString());
+        }
+      }
+    }
+    return ids;
+  }
+
+  Set<String> _configuredProductCategoryIds() {
+    final raw = widget.contentJson?['category_ids'] ??
+        widget.contentJson?['category_id'] ??
+        widget.contentJson?['category'];
+    final values = raw is List
+        ? raw
+        : raw == null
+            ? const []
+            : [raw];
+    return values
+        .map((value) {
+          if (value is Map)
+            return (value['_id'] ?? value['id'] ?? '').toString();
+          return value.toString();
+        })
+        .where((id) => id.isNotEmpty)
+        .toSet();
+  }
+
+  String _featuredCategoryName(Map<String, dynamic> product) {
+    if (product['category_name'] != null &&
+        product['category_name'].toString().trim().isNotEmpty) {
+      return product['category_name'].toString().trim();
+    }
+    final raw = product['categories'] ?? product['category'];
+    final categories = raw is List
+        ? raw
+        : raw == null
+            ? const []
+            : [raw];
+    final configuredIds = _configuredProductCategoryIds();
+    dynamic category;
+    for (final item in categories) {
+      if (item is Map &&
+          configuredIds.contains(
+            (item['_id'] ?? item['id'] ?? '').toString(),
+          )) {
+        category = item;
+        break;
+      }
+    }
+    if (configuredIds.isEmpty && categories.isNotEmpty) {
+      category = categories.first;
+    }
+    if (category is Map) {
+      final name = (category['name'] ?? category['title'])?.toString();
+      if (name != null && name.trim().isNotEmpty) return name.trim();
+    }
+    if (category != null) {
+      final id = category.toString();
+      final mapped = FoduuStudioLayoutMixin.categoryNameMap[id];
+      if (mapped != null && mapped.trim().isNotEmpty) return mapped.trim();
+    }
+    for (final item in categories) {
+      final id =
+          (item is Map ? (item['_id'] ?? item['id']) : item)?.toString();
+      if (id != null) {
+        final mapped = FoduuStudioLayoutMixin.categoryNameMap[id];
+        if (mapped != null && mapped.trim().isNotEmpty) return mapped.trim();
+      }
+    }
+    return '';
+  }
+
+  Set<String> _productCategoryIds(Map<String, dynamic> product) {
+    final raw = product['categories'] ?? product['category'];
+    final categories = raw is List
+        ? raw
+        : raw == null
+            ? const []
+            : [raw];
+    return categories
+        .map((category) {
+          if (category is Map) {
+            return (category['_id'] ?? category['id'] ?? '').toString();
+          }
+          return category.toString();
+        })
+        .where((id) => id.isNotEmpty)
+        .toSet();
+  }
+
+  Widget _buildParentWebFeaturedProduct(
+    Map<String, dynamic> product, {
+    String? categoryNameOverride,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    final priceInfo = ProductHelper.calculatePriceInfo(product);
+    final imageUrl = ProductHelper.getProductImage(product);
+    final name = ProductHelper.getProductName(product);
+    final categoryName = categoryNameOverride ?? _featuredCategoryName(product);
+    final productId = ProductHelper.getProductId(product);
+    final variantId = _resolveDefaultVariantId(product);
+    final hasDiscount =
+        priceInfo['discountRate']?.toString().trim().isNotEmpty ?? false;
+    final mediaHeight = (MediaQuery.of(context).size.width * 1.12)
+        .clamp(390.0, 500.0)
+        .toDouble();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 620;
+        final detailColor = wide ? colors.onSurface : Colors.white;
+        late final Widget details;
+        final image = ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: SizedBox(
+            height: wide ? 380 : mediaHeight,
+            width: double.infinity,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                imageUrl.isNotEmpty && imageUrl != HelperFunctions.getNoImage()
+                    ? CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.cover,
+                        progressIndicatorBuilder: (_, __, ___) =>
+                            HelperFunctions().loadingIndicator(),
+                        errorWidget: (_, __, ___) =>
+                            const AppImagePlaceholder(radius: 20),
+                      )
+                    : const AppImagePlaceholder(radius: 20),
+                if (!wide)
+                  const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: [0.42, 1],
+                        colors: [Colors.transparent, Color(0xD9000000)],
+                      ),
+                    ),
+                  ),
+                if (hasDiscount)
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colors.error,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        priceInfo['discountRate'].toString().trim(),
+                        style: text.labelSmall?.copyWith(
+                          color: colors.onError,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                if (!wide)
+                  Positioned(
+                    left: 20,
+                    right: 20,
+                    bottom: 20,
+                    child: Builder(builder: (_) => details),
+                  ),
+              ],
+            ),
+          ),
+        );
+
+        details = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (categoryName.isNotEmpty) ...[
+              Text(
+                categoryName.toUpperCase(),
+                style: text.labelMedium?.copyWith(
+                  letterSpacing: 1.8,
+                  fontWeight: FontWeight.w700,
+                  color: wide ? colors.primary : Colors.white70,
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+            Text(
+              name,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: (wide ? text.displaySmall : text.headlineMedium)?.copyWith(
+                fontWeight: FontWeight.w800,
+                height: 1.0,
+                letterSpacing: -0.8,
+                color: detailColor,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              alignment: WrapAlignment.start,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 10,
+              children: [
+                Text(
+                  ProductHelper.formatPrice(priceInfo['productPrice']),
+                  style: text.titleLarge?.copyWith(
+                    color: detailColor,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if (hasDiscount)
+                  Text(
+                    ProductHelper.formatPrice(priceInfo['salePrice']),
+                    style: text.bodyMedium?.copyWith(
+                      decoration: TextDecoration.lineThrough,
+                      color: wide ? colors.onSurfaceVariant : Colors.white70,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Wrap(
+              alignment: WrapAlignment.start,
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                FilledButton.icon(
+                  onPressed: () async {
+                    if (!ProductHelper.isInStock(product) ||
+                        variantId.isEmpty) {
+                      Get.snackbar(
+                        'Out of Stock',
+                        'This product is currently out of stock',
+                        snackPosition: SnackPosition.BOTTOM,
+                        margin: const EdgeInsets.all(16),
+                      );
+                      return;
+                    }
+                    await _handleAddToCart(product, productId, variantId, 1);
+                    Get.snackbar(
+                      'Added to Cart',
+                      '$name added to your cart',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: colors.primary,
+                      colorText: colors.onPrimary,
+                      margin: const EdgeInsets.all(16),
+                    );
+                  },
+                  icon: const Icon(Icons.shopping_bag_outlined),
+                  label: const Text('Add to Cart'),
+                  style: wide
+                      ? null
+                      : FilledButton.styleFrom(
+                          backgroundColor: colors.surface,
+                          foregroundColor: colors.onSurface,
+                          minimumSize: const Size(148, 48),
+                        ),
+                ),
+                TextButton(
+                  onPressed: () => _navigateToProduct(product),
+                  style: TextButton.styleFrom(
+                    foregroundColor: wide ? colors.primary : Colors.white,
+                    minimumSize: const Size(112, 48),
+                  ),
+                  child: const Text('View Detail'),
+                ),
+              ],
+            ),
+          ],
+        );
+
+        return Container(
+          padding: EdgeInsets.all(wide ? 24 : 0),
+          decoration: BoxDecoration(
+            color: wide ? colors.surfaceContainerLow : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: wide
+              ? Row(
+                  children: [
+                    Expanded(
+                      flex: 5,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 20),
+                        child: details,
+                      ),
+                    ),
+                    Expanded(flex: 6, child: image),
+                  ],
+                )
+              : image,
+        );
+      },
     );
   }
 
@@ -1269,7 +1687,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         .toDouble();
     const imageAspectRatio = 0.75;
     final imageHeight = cardWidth / imageAspectRatio;
-    const textSectionHeight = 88.0;
+    const textSectionHeight = 98.0;
     final totalCardHeight = imageHeight + textSectionHeight;
 
     return SizedBox(
@@ -1359,7 +1777,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 return const SizedBox.shrink();
               }
               return SizedBox(
-                width: 300,
+                width: 280,
                 child: _buildHorizontalItem(product, priceInfo),
               );
             },
@@ -1376,7 +1794,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final productName = ProductHelper.getProductName(product);
     final imageUrl = ProductHelper.getProductImage(product);
     final productType = priceInfo['productType'];
-    final storeName = product['storeName'] ?? 'Store Name';
+    final rawStore = (product['storeName'] ?? product['brand']?['name'] ?? '').toString().trim();
+    final bool showStore = rawStore.isNotEmpty && rawStore.toLowerCase() != 'store name';
 
     return GestureDetector(
       onTap: () => _navigateToProduct(product),
@@ -1386,8 +1805,15 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: colorScheme.outline.withOpacity(0.15),
+            color: colorScheme.outline.withOpacity(0.12),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
@@ -1402,7 +1828,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                           imageUrl != HelperFunctions.getNoImage())
                       ? CachedNetworkImage(
                           imageUrl: imageUrl,
-                          width: 120,
+                          width: 100,
                           height: 120,
                           fit: BoxFit.cover,
                           progressIndicatorBuilder: (_, __, ___) =>
@@ -1411,7 +1837,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                               const AppImagePlaceholder(radius: 0),
                         )
                       : const AppImagePlaceholder(
-                          radius: 0, width: 120, height: 120),
+                          radius: 0, width: 100, height: 120),
                 ),
                 // Discount Badge
                 if (priceInfo['discountRate'] != null &&
@@ -1421,7 +1847,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                     top: 0,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                          horizontal: 7, vertical: 3),
                       decoration: BoxDecoration(
                         color: colorScheme.error,
                         borderRadius: const BorderRadius.only(
@@ -1433,7 +1859,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                         priceInfo['discountRate'],
                         style: textTheme.labelSmall?.copyWith(
                           color: colorScheme.onError,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 9.5,
                         ),
                       ),
                     ),
@@ -1444,53 +1871,58 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             Expanded(
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      productName,
-                      style: textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (showStore) ...[
+                          Text(
+                            rawStore.toUpperCase(),
+                            style: textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 9.5,
+                              letterSpacing: 0.8,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                        ],
+                        Text(
+                          productName,
+                          style: textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            height: 1.2,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      storeName,
-                      style: textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 12,
-                        color: colorScheme.onSurfaceVariant,
+                    // Rating Stars
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(
+                        5,
+                        (index) => const Icon(
+                          Icons.star_rounded,
+                          size: 11,
+                          color: Color(0xFFFFB800),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    // Price
                     if (productType == 'variable')
                       _buildVariablePrice(priceInfo)
                     else
                       _buildSimplePrice(priceInfo),
-                    const Spacer(),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.shopping_bag_outlined,
-                          size: 14,
-                          color: colorScheme.primary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'View Product',
-                          style: textTheme.labelSmall?.copyWith(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
@@ -1567,7 +1999,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final productName = ProductHelper.getProductName(product);
     final imageUrl = ProductHelper.getProductImage(product);
     final productType = priceInfo['productType'];
-    final storeName = product['storeName'] ?? 'Store Name';
+    final rawStore = (product['storeName'] ?? product['brand']?['name'] ?? '').toString().trim();
+    final bool showStore = rawStore.isNotEmpty && rawStore.toLowerCase() != 'store name';
 
     return GestureDetector(
       onTap: () => _navigateToProduct(product),
@@ -1633,15 +2066,17 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        storeName,
-                        style: textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 12,
-                          color: colorScheme.onSurfaceVariant,
+                      if (showStore) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          rawStore,
+                          style: textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 12,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
-                      ),
+                      ],
                       const SizedBox(height: 4),
                       if (productType == 'variable')
                         _buildVariablePrice(priceInfo)
@@ -1674,13 +2109,13 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: colorScheme.primary,
+                      color: const Color(0xFFE53935),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       priceInfo['discountRate'],
                       style: textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onPrimary,
+                        color: Colors.white,
                         fontWeight: FontWeight.w700,
                         fontSize: 12,
                       ),
@@ -1840,35 +2275,48 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           child: Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: colorScheme.primary,
+              color: const Color(0xFF111111),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.18),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            padding: const EdgeInsets.all(6.0),
-            child: Icon(Icons.add, size: 16, color: colorScheme.onPrimary),
+            padding: const EdgeInsets.all(7.0),
+            child: const Icon(Icons.add, size: 16, color: Colors.white),
           ),
         );
       }
 
-      final qty = cartItem['quantity'] ?? 1;
-      return Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: colorScheme.primary),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _cartStepperButton(Icons.remove, colorScheme,
-                () => _handleAddToCart(product, productId, variantId, -1)),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child:
-                  Text('$qty', style: Theme.of(context).textTheme.labelMedium),
-            ),
-            _cartStepperButton(Icons.add, colorScheme,
-                () => _handleAddToCart(product, productId, variantId, 1)),
-          ],
+      // When in cart: sleek boutique checkmark in onyx circle
+      return GestureDetector(
+        onTap: () {
+          Get.snackbar(
+            'In Your Bag',
+            '${ProductHelper.getProductName(product)} is in your shopping bag',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: const Color(0xFF111111),
+            colorText: Colors.white,
+            duration: const Duration(seconds: 2),
+            margin: const EdgeInsets.all(16),
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: const Color(0xFF111111),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.18),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(7.0),
+          child: const Icon(Icons.check_rounded, size: 16, color: Color(0xFFD4AF37)),
         ),
       );
     });
@@ -1939,13 +2387,18 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   Widget _buildVariablePrice(Map<String, dynamic> priceInfo) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final low = _formatPrice(priceInfo['lowestPrice']);
+    final high = _formatPrice(priceInfo['highestPrice']);
+    final priceText = (low == high || high.isEmpty || high == '0')
+        ? '₹$low'
+        : '₹$low - ₹$high';
 
     return Text(
-      '₹${_formatPrice(priceInfo['lowestPrice'])} - ₹${_formatPrice(priceInfo['highestPrice'])}',
+      priceText,
       style: textTheme.bodyMedium?.copyWith(
         fontWeight: FontWeight.w600,
-        fontSize: 11, // Reduced from 12
-        color: colorScheme.primary,
+        fontSize: 12,
+        color: colorScheme.onSurface,
       ),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
@@ -1956,35 +2409,41 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   Widget _buildSimplePrice(Map<String, dynamic> priceInfo) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final productPrice = _formatPrice(priceInfo['productPrice']);
+    final discountPrice = _formatPrice(priceInfo['discountPrice'] ?? priceInfo['salePrice']);
+    final discountRate = (priceInfo['discountRate'] ?? '').toString().trim();
 
     return RichText(
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       text: TextSpan(
-        text: '₹${priceInfo['productPrice']}',
+        text: '₹$productPrice',
         style: textTheme.bodyMedium?.copyWith(
           fontWeight: FontWeight.w600,
-          fontSize: 11, // Reduced from 12
-          color: colorScheme.primary,
+          fontSize: 12,
+          color: colorScheme.onSurface,
         ),
         children: [
-          if (priceInfo['discountRate'] != null &&
-              priceInfo['discountRate'].toString().isNotEmpty) ...[
+          if (discountRate.isNotEmpty &&
+              discountPrice.isNotEmpty &&
+              discountPrice != productPrice &&
+              discountPrice != '0') ...[
             const TextSpan(text: '  '),
             TextSpan(
-              text: '₹${priceInfo['discountPrice'] ?? priceInfo['salePrice']}',
+              text: '₹$discountPrice',
               style: textTheme.bodySmall?.copyWith(
-                fontSize: 9, // Reduced from 10
+                fontSize: 10,
                 decoration: TextDecoration.lineThrough,
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
             const TextSpan(text: ' '),
             TextSpan(
-              text: priceInfo['discountRate'],
-              style: textTheme.bodySmall?.copyWith(
-                fontSize: 9, // Reduced from 10
-                color: colorScheme.error,
+              text: discountRate,
+              style: textTheme.labelSmall?.copyWith(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFFE53935),
               ),
             ),
           ],

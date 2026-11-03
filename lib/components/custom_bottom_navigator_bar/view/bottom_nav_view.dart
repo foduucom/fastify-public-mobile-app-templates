@@ -32,9 +32,9 @@ class BottomNavView extends GetView<BottomNavController> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ Register HomeController before HomeView builds
-    if (!Get.isRegistered<HomeController>()) {
-      Get.put(HomeController());
+    // Register the shared CMS home controller before HomeView builds.
+    if (!Get.isRegistered<HomepageController>()) {
+      Get.put(HomepageController());
     }
     if (!Get.isRegistered<ProfileController>()) {
       Get.put(ProfileController());

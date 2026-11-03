@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:foddu/app/modules/homepage/views/material/responsive_circle_icon.dart';
+export 'package:foddu/components/search_bar_rounded.dart';
 
 // ── CUSTOM HEADER WIDGET ──
 class SearchViewHeader extends StatelessWidget {

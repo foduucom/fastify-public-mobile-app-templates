@@ -8,6 +8,7 @@ class ResponsiveCircleIcon extends StatelessWidget {
   final Color? iconColor;
   final Color? backgroundColor;
   final double? size;
+  final int badgeCount;
 
   const ResponsiveCircleIcon({
     super.key,
@@ -18,6 +19,7 @@ class ResponsiveCircleIcon extends StatelessWidget {
     this.iconColor,
     this.backgroundColor,
     this.size,
+    this.badgeCount = 0,
   });
 
   @override
@@ -29,23 +31,60 @@ class ResponsiveCircleIcon extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(circleSize / 2),
-      child: Container(
-        width: circleSize,
-        height: circleSize,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: backgroundColor ?? theme.colorScheme.surface,
-          border: Border.all(
-            color: theme.colorScheme.outline.withValues(alpha: 0.15),
-            width: 1,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: circleSize,
+            height: circleSize,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: backgroundColor ?? theme.colorScheme.surface,
+              border: Border.all(
+                color: theme.colorScheme.outline.withValues(alpha: 0.15),
+                width: 1,
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Icon(
+              icon,
+              size: iconSize,
+              color: iconColor ?? theme.colorScheme.onSurface,
+            ),
           ),
-        ),
-        alignment: Alignment.center,
-        child: Icon(
-          icon,
-          size: iconSize,
-          color: iconColor ?? theme.colorScheme.onSurface,
-        ),
+          if (badgeCount > 0)
+            Positioned(
+              right: -2,
+              top: -2,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: theme.colorScheme.surface,
+                    width: 1.5,
+                  ),
+                ),
+                constraints: const BoxConstraints(
+                  minWidth: 18,
+                  minHeight: 18,
+                ),
+                child: Center(
+                  child: Text(
+                    badgeCount > 99 ? '99+' : badgeCount.toString(),
+                    style: TextStyle(
+                      color: theme.colorScheme.onPrimary,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      height: 1.0,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

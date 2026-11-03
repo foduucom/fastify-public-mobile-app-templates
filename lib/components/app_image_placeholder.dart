@@ -50,8 +50,8 @@ class AppImagePlaceholder extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     final Color defaultBg = isDark
-        ? colorScheme.surfaceVariant.withOpacity(0.35)
-        : colorScheme.surfaceVariant;
+        ? const Color(0xFF1E1E22)
+        : const Color(0xFFF6F5F2);
     final Color tileColor = backgroundColor ?? defaultBg;
 
     return Container(
@@ -60,8 +60,21 @@ class AppImagePlaceholder extends StatelessWidget {
       decoration: BoxDecoration(
         color: tileColor,
         shape: shape,
+        gradient: shape == BoxShape.circle
+            ? null
+            : LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark
+                    ? [const Color(0xFF242429), const Color(0xFF1A1A1D)]
+                    : [const Color(0xFFF9F9F8), const Color(0xFFEFECE6)],
+              ),
         borderRadius:
             shape == BoxShape.circle ? null : BorderRadius.circular(radius),
+        border: Border.all(
+          color: (isDark ? Colors.white : Colors.black).withOpacity(0.04),
+          width: 0.8,
+        ),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -80,14 +93,30 @@ class AppImagePlaceholder extends StatelessWidget {
                           : const EdgeInsets.all(16.0));
 
           return Center(
-            child: Opacity(
-              opacity: opacity,
-              child: Padding(
-                padding: effectivePadding,
-                child: Image.asset(
-                  'assets/images/app_logo.png',
-                  fit: fit,
-                ),
+            child: Padding(
+              padding: effectivePadding,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.checkroom_outlined,
+                    size: math.min(minDimension * 0.35, 34),
+                    color: const Color(0xFFD4AF37).withOpacity(0.65),
+                  ),
+                  if (minDimension >= 90) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      'BOUTIQUE',
+                      style: TextStyle(
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.8,
+                        color: (isDark ? Colors.white70 : Colors.black45),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           );

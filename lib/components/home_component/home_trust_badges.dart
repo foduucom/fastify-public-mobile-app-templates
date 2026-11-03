@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:foddu/constants/constants.dart';
 import 'package:foddu/constants/foduuCachedImageNetwork.dart';
 import 'package:foddu/constants/helper_functions.dart';
+import 'package:foddu/app/modules/shop/shop_navigation.dart';
 
 /// Renders the `trust_badges` studio section.
 ///
@@ -180,16 +181,23 @@ class _TestimonialCarouselState extends State<_TestimonialCarousel> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         iconUrl != null
-            ? FoduuCachedNetworkImage(
-                image: iconUrl,
-                height: 32,
-                width: 32,
-                fit: BoxFit.contain,
-                colorFilter: isDark
-                    ? ColorFilter.mode(
-                        theme.colorScheme.onSurface, BlendMode.srcIn)
-                    : null,
-              )
+            ? (isDark
+                ? ColorFiltered(
+                    colorFilter: ColorFilter.mode(
+                        theme.colorScheme.onSurface, BlendMode.srcIn),
+                    child: FoduuCachedNetworkImage(
+                      image: iconUrl,
+                      height: 32,
+                      width: 32,
+                      fit: BoxFit.contain,
+                    ),
+                  )
+                : FoduuCachedNetworkImage(
+                    image: iconUrl,
+                    height: 32,
+                    width: 32,
+                    fit: BoxFit.contain,
+                  ))
             : Icon(Icons.format_quote_rounded,
                 size: 32,
                 color: theme.colorScheme.primary.withOpacity(0.75)),
@@ -358,23 +366,216 @@ class _BadgeList extends StatelessWidget {
 
   const _BadgeList({required this.contentJson, required this.cards});
 
+  Widget _buildCardImage(String imgPath,
+      {double height = 220, double width = 170, BoxFit fit = BoxFit.cover}) {
+    if (imgPath.startsWith('assets/')) {
+      return Image.asset(
+        imgPath,
+        height: height,
+        width: width,
+        fit: fit,
+        errorBuilder: (_, __, ___) => FoduuCachedNetworkImage(
+          image: '${url}$imgPath',
+          height: height,
+          width: width,
+          fit: fit,
+        ),
+      );
+    }
+    return FoduuCachedNetworkImage(
+      image: HelperFunctions().getImage(imgPath),
+      height: height,
+      width: width,
+      fit: fit,
+    );
+  }
+
+  void _onCardTap(Map card) {
+    final link = (card['link'] ?? '').toString();
+    final title = (card['title'] ?? card['heading'] ?? '').toString();
+    if (link.contains('category=')) {
+      final slug = link.split('category=').last;
+      openShop({'categorySlug': slug, 'name': title, 'source': 'trust_badges'});
+    } else {
+      openShop({'name': title, 'source': 'trust_badges'});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final title = _str(contentJson['title'] ?? contentJson['heading']);
+    final isCollectionCards = cards.any((c) {
+      final t = _str(c['title'] ?? c['heading']).toLowerCase();
+      final img = _str(c['image'] ?? c['icon']);
+      return t.contains('collection') ||
+          t.contains('fashion') ||
+          img.contains('women') ||
+          img.contains('child') ||
+          img.contains('kids') ||
+          _str(c['text']).isEmpty;
+    });
+
+    if (isCollectionCards) {
+      return _buildCollectionCards(context, title);
+    }
+    return _buildStandardBadges(context, title);
+  }
+
+  Widget _buildCollectionCards(BuildContext context, String title) {
+    final theme = Theme.of(context);
     return Padding(
       padding: pageSurroundingPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (title.isNotEmpty) ...[
-            Text(title,
-                style: theme.textTheme.titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              title,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
+          Builder(builder: (context) {
+            final cardWidth = (MediaQuery.of(context).size.width * 0.43)
+                .clamp(145.0, 160.0)
+                .toDouble();
+            return SizedBox(
+              height: 220,
+              child: ListView.separated(
+                physics: const BouncingScrollPhysics(),
+                scrollDirection: Axis.horizontal,
+                itemCount: cards.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, i) {
+                  final c = cards[i];
+                  final image = _str(c['image'] ?? c['icon']);
+                  final cardTitle = _str(c['title'] ?? c['heading']);
+
+                  return GestureDetector(
+                    onTap: () => _onCardTap(c),
+                    child: Container(
+                      width: cardWidth,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            if (image.isNotEmpty)
+                              _buildCardImage(
+                                image,
+                                height: 220,
+                                width: cardWidth,
+                                fit: BoxFit.cover,
+                              )
+                            else
+                              Container(color: theme.colorScheme.surfaceVariant),
+                          // Subtle dark gradient for text legibility
+                          Positioned.fill(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  stops: const [0.5, 1.0],
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.black.withOpacity(0.75),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Floating boutique pill label at bottom
+                          Positioned(
+                            left: 12,
+                            right: 12,
+                            bottom: 12,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.15),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      cardTitle,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                  const Icon(
+                                    Icons.arrow_forward_ios_rounded,
+                                    size: 11,
+                                    color: Colors.black,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStandardBadges(BuildContext context, String title) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: pageSurroundingPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title.isNotEmpty) ...[
+            Text(
+              title,
+              style: theme.textTheme.titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 14),
           ],
           SizedBox(
-            height: 150,
+            height: 120,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: cards.length,
@@ -383,42 +584,57 @@ class _BadgeList extends StatelessWidget {
                 final c = cards[i];
                 final image = c['image'] ?? c['icon'];
                 return Container(
-                  width: 190,
-                  padding: const EdgeInsets.all(14),
+                  width: 140,
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                        color:
-                            theme.colorScheme.outlineVariant.withOpacity(0.4)),
+                      color: theme.colorScheme.outlineVariant.withOpacity(0.4),
+                    ),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if (image != null && _str(image).isNotEmpty)
-                        FoduuCachedNetworkImage(
-                            image: HelperFunctions().getImage(image),
-                            height: 32,
-                            width: 32,
-                            fit: BoxFit.contain,
-                            colorFilter: theme.brightness == Brightness.dark
-                                ? ColorFilter.mode(
-                                    theme.colorScheme.onSurface,
-                                    BlendMode.srcIn)
-                                : null),
-                      const SizedBox(height: 10),
-                      Text(_str(c['heading'] ?? c['title']),
+                        theme.brightness == Brightness.dark
+                            ? ColorFiltered(
+                                colorFilter: ColorFilter.mode(
+                                  theme.colorScheme.onSurface,
+                                  BlendMode.srcIn,
+                                ),
+                                child: FoduuCachedNetworkImage(
+                                  image: HelperFunctions().getImage(image),
+                                  height: 36,
+                                  width: 36,
+                                  fit: BoxFit.contain,
+                                ),
+                              )
+                            : FoduuCachedNetworkImage(
+                                image: HelperFunctions().getImage(image),
+                                height: 36,
+                                width: 36,
+                                fit: BoxFit.contain,
+                              ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _str(c['heading'] ?? c['title']),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall
+                            ?.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
+                      ),
+                      if (_str(c['text'] ?? c['description']).isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          _str(c['text'] ?? c['description']),
                           textAlign: TextAlign.center,
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 6),
-                      Text(_str(c['text'] ?? c['description']),
-                          textAlign: TextAlign.center,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall),
+                          style: theme.textTheme.bodySmall?.copyWith(fontSize: 10),
+                        ),
+                      ],
                     ],
                   ),
                 );

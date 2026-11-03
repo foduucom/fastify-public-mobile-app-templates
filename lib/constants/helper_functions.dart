@@ -416,8 +416,9 @@ class HelperFunctions {
     final uri = Uri.tryParse(imageUrl);
     if (uri == null) return imageUrl;
 
-    // If it's a vbought.com domain, replace host with websiteDomain to match constants.dart setup
-    if (uri.host.endsWith('.vbought.com') && uri.host != websiteDomain) {
+    // If it's a vbought.com or foduu.store domain, replace host with websiteDomain to match constants.dart setup
+    if ((uri.host.endsWith('.vbought.com') || uri.host.endsWith('.foduu.store')) &&
+        uri.host != websiteDomain) {
       return imageUrl.replaceFirst(uri.host, websiteDomain);
     }
     return imageUrl;

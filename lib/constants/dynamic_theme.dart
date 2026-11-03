@@ -5,33 +5,33 @@ import 'package:get_storage/get_storage.dart';
 
 class DefaultThemeColors {
   DefaultThemeColors._(); // Private constructor - prevents instantiation
-  // ============ LIGHT THEME DEFAULTS ============
-  static const Color lightPrimary = Color(0xFF6200EE);
+  // ============ LIGHT THEME DEFAULTS (Modern Luxury Boutique) ============
+  static const Color lightPrimary = Color(0xFF111111);
   static const Color lightOnPrimary = Color(0xFFFFFFFF);
-  static const Color lightSecondary = Color(0xFF03DAC6);
-  static const Color lightOnSecondary = Color(0xFF000000);
+  static const Color lightSecondary = Color(0xFFD4AF37);
+  static const Color lightOnSecondary = Color(0xFF111111);
   static const Color lightBackground = Color(0xFFFFFFFF);
-  static const Color lightOnBackground = Color(0xFF000000);
-  static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightOnSurface = Color(0xFF000000);
-  static const Color lightError = Color(0xFFB00020);
+  static const Color lightOnBackground = Color(0xFF111111);
+  static const Color lightSurface = Color(0xFFFAFAFB);
+  static const Color lightOnSurface = Color(0xFF111111);
+  static const Color lightError = Color(0xFFE53935);
   static const Color lightOnError = Color(0xFFFFFFFF);
-  static const Color lightOutline = Color(0xFFDDDDDD);
-  static const Color lightSurfaceVariant = Color(0xFFF5F5F5);
+  static const Color lightOutline = Color(0xFFEAEAEA);
+  static const Color lightSurfaceVariant = Color(0xFFF3F3F5);
   static const Color lightOnSurfaceVariant = Color(0xFF666666);
   // ============ DARK THEME DEFAULTS ============
-  static const Color darkPrimary = Color(0xFFBB86FC);
-  static const Color darkOnPrimary = Color(0xFF000000);
-  static const Color darkSecondary = Color(0xFF03DAC6);
-  static const Color darkOnSecondary = Color(0xFF000000);
+  static const Color darkPrimary = Color(0xFFE5C07B);
+  static const Color darkOnPrimary = Color(0xFF111111);
+  static const Color darkSecondary = Color(0xFFFFFFFF);
+  static const Color darkOnSecondary = Color(0xFF111111);
   static const Color darkBackground = Color(0xFF121212);
   static const Color darkOnBackground = Color(0xFFFFFFFF);
   static const Color darkSurface = Color(0xFF1E1E1E);
   static const Color darkOnSurface = Color(0xFFFFFFFF);
-  static const Color darkError = Color(0xFFCF6679);
+  static const Color darkError = Color(0xFFEF5350);
   static const Color darkOnError = Color(0xFF000000);
-  static const Color darkOutline = Color(0xFF444444);
-  static const Color darkSurfaceVariant = Color(0xFF2C2C2C);
+  static const Color darkOutline = Color(0xFF333333);
+  static const Color darkSurfaceVariant = Color(0xFF2A2A2A);
   static const Color darkOnSurfaceVariant = Color(0xFFAAAAAA);
   // ============ SEMANTIC / ALERT COLORS ============
   static const Color alertWarninglight = Color(0xFFFFF8E1); // Amber 50
@@ -178,17 +178,34 @@ class AppThemeColors {
       brightness: isDark ? Brightness.dark : Brightness.light,
     );
 
-    // 3️⃣ Override generated colors with API if available
+    // 3️⃣ Override generated colors with API if available (with luminance contrast guard)
+    final rawOnPrimary = _hexToColor(themeMap['onPrimary']);
+    final Color onPrimary;
+    if (primary.computeLuminance() > 0.55) {
+      // Primary is pale/light (e.g. #feeb9d with ~0.80 luminance).
+      // White text on it fails WCAG AA with a 1.16:1 contrast ratio.
+      // Force high-contrast onyx text (#111111) for perfect legibility.
+      onPrimary = const Color(0xFF111111);
+    } else {
+      onPrimary = rawOnPrimary ?? generatedScheme.onPrimary;
+    }
+
+    final rawOnSecondary = _hexToColor(themeMap['onSecondary']);
+    final Color onSecondary;
+    if (secondary.computeLuminance() > 0.55) {
+      onSecondary = const Color(0xFF111111);
+    } else {
+      onSecondary = rawOnSecondary ?? generatedScheme.onSecondary;
+    }
+
     return AppThemeColors._(
       primary: primary,
       secondary: secondary,
       background: background,
       surface: surface,
       error: error,
-      onPrimary:
-          _hexToColor(themeMap['onPrimary']) ?? generatedScheme.onPrimary,
-      onSecondary:
-          _hexToColor(themeMap['onSecondary']) ?? generatedScheme.onSecondary,
+      onPrimary: onPrimary,
+      onSecondary: onSecondary,
       onBackground:
           _hexToColor(themeMap['onBackground']) ?? generatedScheme.onBackground,
       onSurface:

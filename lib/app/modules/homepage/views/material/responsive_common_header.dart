@@ -7,8 +7,12 @@ class ResponsiveCommonHeader extends StatelessWidget {
   final double height;
   final VoidCallback? onSearchTap;
   final VoidCallback? onCartTap;
+  final VoidCallback? onWishlistTap;
   final VoidCallback? onMessageTap;
   final VoidCallback? onNotificationTap;
+  final int cartItemCount;
+  final int wishlistItemCount;
+  final String brandTitle;
 
   const ResponsiveCommonHeader({
     super.key,
@@ -16,8 +20,12 @@ class ResponsiveCommonHeader extends StatelessWidget {
     required this.height,
     this.onSearchTap,
     this.onCartTap,
+    this.onWishlistTap,
     this.onMessageTap,
     this.onNotificationTap,
+    this.cartItemCount = 0,
+    this.wishlistItemCount = 0,
+    this.brandTitle = 'Kharido',
   });
 
   @override
@@ -26,7 +34,16 @@ class ResponsiveCommonHeader extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      color: colorScheme.surface,
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: SafeArea(
         bottom: false,
         child: Padding(
@@ -34,76 +51,111 @@ class ResponsiveCommonHeader extends StatelessWidget {
             horizontal: width * 0.04,
             vertical: 8,
           ),
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Drawer / Menu icon
-              if (onMessageTap != null) ...[
-                ResponsiveCircleIcon(
-                  icon: Icons.menu_rounded,
-                  height: height,
-                  width: width,
-                  onTap: onMessageTap,
-                ),
-                SizedBox(width: width * 0.025),
-              ],
+              // ── Top Brand Bar ──
+              Row(
+                children: [
+                  // Drawer / Menu icon
+                  if (onMessageTap != null) ...[
+                    ResponsiveCircleIcon(
+                      icon: Icons.menu_rounded,
+                      height: height,
+                      width: width,
+                      onTap: onMessageTap,
+                    ),
+                    const SizedBox(width: 12),
+                  ],
 
-              // Search bar placeholder
-              Expanded(
-                child: GestureDetector(
-                  onTap: onSearchTap,
-                  child: Container(
-                    height: 42,
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: colorScheme.outline.withValues(alpha: 0.2),
+                  // Brand Title
+                  Expanded(
+                    child: Text(
+                      brandTitle,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 22,
+                        letterSpacing: -0.6,
+                        color: colorScheme.onSurface,
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.search_rounded,
-                          size: 20,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            "Search products...",
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                            ),
-                          ),
-                        ),
-                      ],
+                  ),
+
+                  // Wishlist Icon with reactive badge
+                  if (onWishlistTap != null) ...[
+                    ResponsiveCircleIcon(
+                      icon: Icons.favorite_border_rounded,
+                      height: height,
+                      width: width,
+                      onTap: onWishlistTap,
+                      badgeCount: wishlistItemCount,
                     ),
+                    const SizedBox(width: 8),
+                  ],
+
+                  // Notification icon
+                  if (onNotificationTap != null) ...[
+                    ResponsiveCircleIcon(
+                      icon: Icons.notifications_none_rounded,
+                      height: height,
+                      width: width,
+                      onTap: onNotificationTap,
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+
+                  // Cart icon with reactive badge
+                  if (onCartTap != null) ...[
+                    ResponsiveCircleIcon(
+                      icon: Icons.shopping_bag_outlined,
+                      height: height,
+                      width: width,
+                      onTap: onCartTap,
+                      badgeCount: cartItemCount,
+                    ),
+                  ],
+                ],
+              ),
+
+              const SizedBox(height: 10),
+
+              // ── Search Pill Bar ──
+              GestureDetector(
+                onTap: onSearchTap,
+                child: Container(
+                  height: 44,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: colorScheme.outline.withValues(alpha: 0.18),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.search_rounded,
+                        size: 20,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          "Search for products, collections...",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-
-              // Notification / Cart icons
-              if (onNotificationTap != null) ...[
-                SizedBox(width: width * 0.02),
-                ResponsiveCircleIcon(
-                  icon: Icons.notifications_none_rounded,
-                  height: height,
-                  width: width,
-                  onTap: onNotificationTap,
-                ),
-              ],
-
-              if (onCartTap != null) ...[
-                SizedBox(width: width * 0.02),
-                ResponsiveCircleIcon(
-                  icon: Icons.shopping_bag_outlined,
-                  height: height,
-                  width: width,
-                  onTap: onCartTap,
-                ),
-              ],
+              const SizedBox(height: 4),
             ],
           ),
         ),

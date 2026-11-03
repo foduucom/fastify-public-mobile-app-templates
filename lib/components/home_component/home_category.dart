@@ -91,7 +91,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
       final isOverlay = style == 'overlay';
       final listHeight = isOverlay
           ? _overlayCardHeight
-          : (style == 'circular' ? 120.0 : 140.0);
+          : (style == 'circular' ? 128.0 : 140.0);
       return SizedBox(
         height: listHeight,
         child: ScrollConfiguration(
@@ -106,7 +106,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             scrollDirection: Axis.horizontal,
             itemCount: categories.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            separatorBuilder: (_, __) => const SizedBox(width: 14),
             itemBuilder: (context, index) =>
                 _buildCategoryItem(categories[index], style),
           ),
@@ -256,19 +256,34 @@ class _TopCategoryHomeState extends State<CategoryHome>
     return isGrid ? card : SizedBox(width: _overlayCardWidth, child: card);
   }
 
+  static String cleanCategoryTitle(dynamic name) {
+    if (name == null) return '';
+    final str = name.toString().trim();
+    if (str.contains('>')) {
+      final parts = str.split('>');
+      return parts.last.trim();
+    }
+    if (str.contains('/')) {
+      final parts = str.split('/');
+      return parts.last.trim();
+    }
+    return str;
+  }
+
   Widget _buildCircularItem(dynamic category, bool isGrid) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final displayName = cleanCategoryTitle(category['name']);
 
     return Container(
-      constraints: BoxConstraints(maxWidth: isGrid ? double.infinity : 80),
+      constraints: BoxConstraints(maxWidth: isGrid ? double.infinity : 76),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 70,
-            height: 70,
+            width: 68,
+            height: 68,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: colorScheme.surfaceVariant,
@@ -276,30 +291,27 @@ class _TopCategoryHomeState extends State<CategoryHome>
                 color: colorScheme.outline.withOpacity(0.15),
                 width: 1,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: ClipOval(
-              child: (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
-                      HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
-                  ? CachedNetworkImage(
-                      fit: BoxFit.cover,
-                      imageUrl: HelperFunctions().getImage(
-                        category['featured_image'],
-                      ),
-                      errorWidget: (_, __, ___) =>
-                          const AppImagePlaceholder.circular(),
-                      progressIndicatorBuilder: (_, __, ___) =>
-                          HelperFunctions().loadingIndicator(),
-                    )
-                  : const AppImagePlaceholder.circular(),
+              child: _buildCategoryAvatar(context, category),
             ),
           ),
           const SizedBox(height: 6),
           Flexible(
             child: Text(
-              category['name'].toString(),
+              displayName,
               style: textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurface,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
+                fontSize: 11.5,
+                height: 1.2,
               ),
               textAlign: TextAlign.center,
               maxLines: 2,
@@ -307,6 +319,90 @@ class _TopCategoryHomeState extends State<CategoryHome>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryAvatar(BuildContext context, dynamic category) {
+    final imgUrl = HelperFunctions().getImage(category['featured_image']);
+    final hasImage =
+        imgUrl.isNotEmpty && imgUrl != HelperFunctions.getNoImage();
+
+    if (hasImage) {
+      return CachedNetworkImage(
+        fit: BoxFit.cover,
+        imageUrl: imgUrl,
+        errorWidget: (_, __, ___) => _buildBoutiqueAvatar(context, category),
+        progressIndicatorBuilder: (_, __, ___) =>
+            HelperFunctions().loadingIndicator(),
+      );
+    }
+    return _buildBoutiqueAvatar(context, category);
+  }
+
+  Widget _buildBoutiqueAvatar(BuildContext context, dynamic category) {
+    final name = cleanCategoryTitle(category['name']).toLowerCase();
+    final slug = (category['slug'] ?? '').toString().toLowerCase();
+    final combined = '$name $slug';
+
+    // Map common fashion categories to high-resolution local boutique photography
+    String? localAsset;
+    if (combined.contains('women') || combined.contains('female') || combined.contains('girl')) {
+      localAsset = 'assets/images/women.png';
+    } else if (combined.contains('men') || combined.contains('male') || combined.contains('boy') || combined.contains('festival')) {
+      localAsset = 'assets/images/men.png';
+    } else if (combined.contains('kid') || combined.contains('child') || combined.contains('romper') || combined.contains('baby')) {
+      localAsset = 'assets/images/kids.png';
+    } else if (combined.contains('cushion') || combined.contains('pillow') || combined.contains('decor') || combined.contains('home')) {
+      localAsset = 'assets/images/categoryimgfive.png';
+    } else if (combined.contains('beauty') || combined.contains('cosmetic')) {
+      localAsset = 'assets/images/beauty.png';
+    } else if (combined.contains('shoe') || combined.contains('footwear')) {
+      localAsset = 'assets/images/shoes.png';
+    } else if (combined.contains('jewel') || combined.contains('access') || combined.contains('watch')) {
+      localAsset = 'assets/images/accessories.png';
+    } else if (combined.contains('skirt') || combined.contains('fashion')) {
+      localAsset = 'assets/images/skirts.png';
+    } else if (combined.contains('sale') || combined.contains('deal') || combined.contains('discount')) {
+      localAsset = 'assets/images/sale.png';
+    }
+
+    if (localAsset != null) {
+      return Image.asset(
+        localAsset,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildIconAvatar(context, category),
+      );
+    }
+
+    return _buildIconAvatar(context, category);
+  }
+
+  Widget _buildIconAvatar(BuildContext context, dynamic category) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final cleanName = cleanCategoryTitle(category['name']);
+    final initial = cleanName.isNotEmpty ? cleanName[0].toUpperCase() : '✦';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceVariant.withOpacity(0.5),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: const Color(0xFFD4AF37).withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          initial,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: colorScheme.onSurface,
+            fontFamily: 'Lato',
+            letterSpacing: 0.5,
+          ),
+        ),
       ),
     );
   }

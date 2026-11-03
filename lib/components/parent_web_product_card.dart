@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foddu/app/routes/app_pages.dart';
+import 'package:foddu/components/app_image_placeholder.dart';
 import 'package:foddu/constants/dynamic_theme.dart';
 import 'package:foddu/constants/helper_functions.dart';
 import 'package:foddu/constants/product_helper.dart';
@@ -156,17 +157,15 @@ class ParentWebProductCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    fit: BoxFit.cover,
-                    progressIndicatorBuilder: (_, __, ___) =>
-                        HelperFunctions().loadingIndicator(),
-                    errorWidget: (_, __, ___) => Container(
-                      color: context.surfaceVariantColor,
-                      child: Icon(Icons.image_outlined,
-                          color: context.onSurfaceVariantColor),
-                    ),
-                  ),
+                  imageUrl.isNotEmpty && imageUrl != HelperFunctions.getNoImage()
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                          progressIndicatorBuilder: (_, __, ___) =>
+                              HelperFunctions().loadingIndicator(),
+                          errorWidget: (_, __, ___) => const AppImagePlaceholder(radius: 12),
+                        )
+                      : const AppImagePlaceholder(radius: 12),
 
                   // Sale badge (top-left)
                   if (hasDiscount)
@@ -240,23 +239,23 @@ class ParentWebProductCard extends StatelessWidget {
                     child: GestureDetector(
                       onTap: () => _handleAddToCart(context),
                       child: Container(
-                        width: 34,
-                        height: 34,
+                        width: 32,
+                        height: 32,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: colorScheme.primary,
+                          color: const Color(0xFF111111),
                           boxShadow: [
                             BoxShadow(
-                              color: colorScheme.primary.withValues(alpha: 0.35),
-                              blurRadius: 6,
+                              color: Colors.black.withOpacity(0.18),
+                              blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
                           ],
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.shopping_bag_outlined,
-                          size: 17,
-                          color: colorScheme.onPrimary,
+                          size: 15,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -275,7 +274,7 @@ class ParentWebProductCard extends StatelessWidget {
               (index) => const Icon(
                 Icons.star_rounded,
                 size: 13,
-                color: DefaultThemeColors.alertWarninglight,
+                color: Color(0xFFFFB800),
               ),
             ),
           ),
@@ -311,7 +310,7 @@ class ParentWebProductCard extends StatelessWidget {
                     ProductHelper.formatPrice(priceStr),
                     style: textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: colorScheme.primary,
+                      color: context.onSurfaceColor,
                     ),
                     maxLines: 1,
                   ),
@@ -383,17 +382,17 @@ class ParentWebProductCard extends StatelessWidget {
                   SizedBox(
                     width: 112,
                     height: 145,
-                    child: CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      progressIndicatorBuilder: (_, __, ___) =>
-                          HelperFunctions().loadingIndicator(),
-                      errorWidget: (_, __, ___) => Container(
-                        color: context.surfaceVariantColor,
-                        child: Icon(Icons.image_outlined,
-                            color: context.onSurfaceVariantColor, size: 28),
-                      ),
-                    ),
+                    child: imageUrl.isNotEmpty &&
+                            imageUrl != HelperFunctions.getNoImage()
+                        ? CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.cover,
+                            progressIndicatorBuilder: (_, __, ___) =>
+                                HelperFunctions().loadingIndicator(),
+                            errorWidget: (_, __, ___) =>
+                                const AppImagePlaceholder(radius: 12),
+                          )
+                        : const AppImagePlaceholder(radius: 12),
                   ),
                   if (hasDiscount)
                     Positioned(
@@ -493,7 +492,7 @@ class ParentWebProductCard extends StatelessWidget {
                         (index) => const Icon(
                           Icons.star_rounded,
                           size: 13,
-                          color: DefaultThemeColors.alertWarninglight,
+                          color: Color(0xFFFFB800),
                         ),
                       ),
                       const SizedBox(width: 4),
@@ -520,7 +519,7 @@ class ParentWebProductCard extends StatelessWidget {
                         style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
-                          color: colorScheme.primary,
+                          color: context.onSurfaceColor,
                         ),
                       ),
                       if (hasDiscount && regularPriceStr.isNotEmpty)

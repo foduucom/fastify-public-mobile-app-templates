@@ -93,6 +93,11 @@ dev_dependencies:
   flutter_lints: ^2.0.1
   lints: ^2.0.0
 
+# flutter_html 3.0.0 calls html's query_selector.matches API, which was
+# removed in html 0.15.7. Keep the compatible 0.15.6 release selected.
+dependency_overrides:
+  html: 0.15.6
+
 flutter_icons:
   android: "launcher_icon"
   ios: true

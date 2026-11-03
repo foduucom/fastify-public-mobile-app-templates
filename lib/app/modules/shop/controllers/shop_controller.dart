@@ -200,8 +200,11 @@ class ShopController extends GetxController
   }
 
   void _scrollListener() {
-    if (scrollController.position.pixels >=
-        scrollController.position.maxScrollExtent - 200) {
+    if (!scrollController.hasClients) return;
+    final pos = scrollController.position;
+    if (pos.maxScrollExtent > 200 &&
+        pos.pixels > 80 &&
+        pos.pixels >= pos.maxScrollExtent - 250) {
       if (!isFetchingMore.value && hasNextPage && !isLoading.value) {
         fetchProducts(isRefresh: false);
       }

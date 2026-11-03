@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import '/components/studio_widget/studio_icon_button_section.dart';
 import '/app/routes/app_pages.dart';
-import '../../components/studio_widget/studio_products.dart';
-import '../../components/studio_widget/studio_rich_text_component.dart';
-import '../../components/studio_widget/studio_slider.dart';
-import '../../components/studio_widget/studio_banner.dart';
-import '../../components/studio_widget/studio_blogs.dart';
-import '../../components/studio_widget/studio_category.dart';
-import '../../components/studio_widget/studio_common_widgets.dart';
-import '../../components/studio_widget/studio_price_filter.dart';
-import '../../components/studio_widget/studio_search_bar_rounded.dart';
+import '../../components/home_component/home_products.dart';
+import '../../components/home_component/home_category.dart';
+import '../../components/home_component/home_trust_badges.dart';
+import '../../components/home_component/home_slider.dart';
+import '../../components/home_component/home_banner.dart';
+import '../../components/home_component/home_blogs.dart';
+import '../../components/home_component/home_price_filter.dart';
+import '../../components/home_component/home_common_widgets.dart';
+import '../../components/home_component/home_rich_text_component.dart';
+import '/components/search_bar_rounded.dart';
 import '/constants/constants.dart';
 import 'package:get/get.dart';
 
@@ -88,6 +89,11 @@ void registerDefaultWidgets() {
     return TrendingProductSection(contentJson: json);
   });
 
+  // ─── Trust Badges ───────────────────────────────────────────
+  r.register('trust_badges', (json) {
+    return TrustBadgesComponent(contentJson: json ?? {});
+  });
+
   // ─── Rich Text ──────────────────────────────────────────────
   r.register('rich_text', (json) {
     return RichTextComponent(contentJson: json ?? {});
@@ -100,5 +106,4 @@ void registerDefaultWidgets() {
   // r.register('icon_button', (json) {
   //   return IconButtonComponent(contentJson: json ?? {});
   // }
-
 }

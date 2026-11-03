@@ -29,10 +29,16 @@ class WidgetRegistry {
   /// Build a widget from a raw section map `{ "type": "...", "content_json": {...} }`.
   /// Returns `null` if the type is unknown.
   Widget? build(Map<String, dynamic> section) {
-    final type = section['type'] as String?;
-    final visible = section['visible'] as bool;
-    if (type == null || !_builders.containsKey(type) || !visible) return null;
-    return _builders[type]!(section['content_json'] as Map<String, dynamic>?);
+    final type = section['type']?.toString();
+    final visible = section['visible'] != false;
+    final builder = type == null ? null : _builders[type];
+    if (builder == null || !visible) return null;
+
+    final rawContent = section['content_json'] ?? section['contentJson'];
+    final content = rawContent is Map
+        ? Map<String, dynamic>.from(rawContent)
+        : null;
+    return builder(content);
   }
 
   /// Check whether a builder exists for [type].
