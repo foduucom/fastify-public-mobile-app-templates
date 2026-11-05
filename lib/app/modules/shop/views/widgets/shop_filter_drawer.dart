@@ -21,8 +21,8 @@ class ShopFilterDrawer extends StatefulWidget {
 
 class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
   late Set<String> _tempCategories;
-  late Set<String> _tempMaterials;
-  late Set<String> _tempStyles;
+  // late Set<String> _tempMaterials;
+  // late Set<String> _tempStyles;
   late Set<String> _tempBrands;
   late RangeValues _tempPriceRange;
 
@@ -41,16 +41,16 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
 
   void _seedTempStateFromController() {
     _tempCategories = Set.from(controller.selectedCategories);
-    _tempMaterials = Set.from(controller.selectedAttributes['material'] ?? {});
-    _tempStyles = Set.from(controller.selectedAttributes['style'] ?? {});
+    // _tempMaterials = Set.from(controller.selectedAttributes['material'] ?? {});
+    // _tempStyles = Set.from(controller.selectedAttributes['style'] ?? {});
     _tempBrands = Set.from(controller.selectedBrands);
     _tempPriceRange = controller.currentPriceRange.value;
   }
 
   int get _totalSelectedCount {
     int count = _tempCategories.length +
-        _tempMaterials.length +
-        _tempStyles.length +
+        // _tempMaterials.length +
+        // _tempStyles.length +
         _tempBrands.length;
     if (_tempPriceRange.start > 0 || _tempPriceRange.end < 10000) {
       count++;
@@ -61,8 +61,8 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
   void _clearAll() {
     setState(() {
       _tempCategories = {};
-      _tempMaterials = {};
-      _tempStyles = {};
+      // _tempMaterials = {};
+      // _tempStyles = {};
       _tempBrands = {};
       _tempPriceRange = const RangeValues(0, 10000);
     });
@@ -73,8 +73,8 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
     controller.selectedCategories
       ..clear()
       ..addAll(_tempCategories);
-    controller.selectedAttributes['material'] = _tempMaterials;
-    controller.selectedAttributes['style'] = _tempStyles;
+    // controller.selectedAttributes['material'] = _tempMaterials;
+    // controller.selectedAttributes['style'] = _tempStyles;
     controller.selectedAttributes.refresh();
     controller.selectedBrands
       ..clear()
@@ -116,23 +116,23 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
                     const SizedBox(height: 12),
                     _buildPriceSectionCard(colorScheme, textTheme),
                     const SizedBox(height: 12),
-                    _buildTreeFilterSection(
-                      label: "Material",
-                      attributeKey: "material",
-                      tempSet: _tempMaterials,
-                      icon: Icons.layers_outlined,
-                      colorScheme: colorScheme,
-                      textTheme: textTheme,
-                    ),
+                    // _buildTreeFilterSection(
+                    //   label: "Material",
+                    //   attributeKey: "material",
+                    //   tempSet: _tempMaterials,
+                    //   icon: Icons.layers_outlined,
+                    //   colorScheme: colorScheme,
+                    //   textTheme: textTheme,
+                    // ),
                     const SizedBox(height: 12),
-                    _buildTreeFilterSection(
-                      label: "Style",
-                      attributeKey: "style",
-                      tempSet: _tempStyles,
-                      icon: Icons.style_outlined,
-                      colorScheme: colorScheme,
-                      textTheme: textTheme,
-                    ),
+                    // _buildTreeFilterSection(
+                    //   label: "Style",
+                    //   attributeKey: "style",
+                    //   tempSet: _tempStyles,
+                    //   icon: Icons.style_outlined,
+                    //   colorScheme: colorScheme,
+                    //   textTheme: textTheme,
+                    // ),
                     const SizedBox(height: 12),
                     _buildBrandsSectionCard(colorScheme, textTheme),
                     const SizedBox(height: 20),
@@ -233,8 +233,7 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
   }) {
     return Obx(() {
       final loading = controller.isCategoryTreeLoading.value;
-      final hasError =
-          controller.categoryTreeErrorByType[attributeKey] == true;
+      final hasError = controller.categoryTreeErrorByType[attributeKey] == true;
       final nodes = controller.categoryTreeByType[attributeKey] ?? [];
 
       final selectedCount = tempSet.length;
@@ -786,4 +785,3 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
     );
   }
 }
-

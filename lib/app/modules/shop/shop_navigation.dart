@@ -3,8 +3,12 @@ import 'package:foddu/app/modules/shop/controllers/shop_controller.dart';
 import 'package:foddu/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 
-/// Index of the Shop tab in the bottom bar (Home=0, Account=1, Shop=2, Wishlist=3, Cart=4).
-const int shopTabIndex = 2;
+/// Parent-aligned bottom bar order: Home, Shop, Wishlist, Cart, Account/Login.
+const int homeTabIndex = 0;
+const int shopTabIndex = 1;
+const int wishlistTabIndex = 2;
+const int cartTabIndex = 3;
+const int accountTabIndex = 4;
 
 /// Opens the Shop tab, optionally pre-filtered by [args] (same map shape that
 /// `ShopController.applyArguments` accepts). Falls back to pushing the

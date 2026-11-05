@@ -73,4 +73,31 @@ The home API (`https://daksh-store.foduu.store/api/mobile-app/home`) delivers **
 | `lib/components/home_component/home_slider.dart` | Lightened banner gradient scrim to keep lifestyle photography vibrant; added expanding white pill pagination indicators. |
 | `lib/components/home_component/home_common_widgets.dart` | Guarded `StudioSectionHeader` so long titles never push `"See all >"` off-screen. |
 | `lib/components/home_component/home_rich_text_component.dart` | Transformed raw text into an editorial luxury ticker ribbon with champagne gold stars (`✦`). |
-| `lib/app/modules/homepage/views/material/responsive_bottom_nav.dart` | Polished bottom navigation active capsule to clean boutique neutral pill (`#F0F0F2`). |
+| `lib/app/modules/homepage/views/material/responsive_bottom_nav.dart` | Uses a simple icon-and-label bottom bar aligned with the parent website; selected items no longer use an active capsule. |
+
+---
+
+## 5. Mobile Screenshot Follow-up (November 4, 2026)
+
+The mobile screenshot review found that the perceived gaps were caused by several spacing sources adding together: the category carousel's fixed height, per-widget margins, and CMS-authored `spacer` sections. Earlier reductions to individual widget margins did not fully address that combined rhythm.
+
+### Home Feed Spacing and Hierarchy
+
+- `lib/core/foduuStudio/foduu_studio_layout_mixin.dart` caps CMS spacer sections on the `home` layout at 12 px. Other CMS pages retain their configured spacer sizes.
+- `lib/core/foduuStudio/register_default_widgets.dart` opts the home category section into compact spacing. The compact circular category row is 104 px high with an 8 px section ending gap; category instances outside this home layout keep the existing dimensions.
+- `lib/components/home_component/home_trust_badges.dart` reduces the wardrobe collection cards to 184 px high and tightens the heading, top, and bottom spacing.
+- `lib/components/home_component/home_rich_text_component.dart` reduces the department ribbon's vertical margins so it reads as a transition into the product carousel.
+- `lib/components/home_component/home_slider.dart` uses a home-only compact spacing marker to bring consecutive campaign banners closer. Other slider layouts keep their previous vertical spacing.
+- `lib/components/home_component/home_products.dart` aligns horizontal and overlay product rows to consistent 16 px side gutters. Overlay product cards use a solid caption panel beneath the photo, with the cart control clear of the product details.
+
+### Parent-Aligned Bottom Navigation
+
+The app tab order now matches the parent website: **Home, Shop, Wishlist, Cart, Login/Account**. Guest users see “Login”; authenticated users see “Account”. The selected item uses a simple icon-and-label treatment rather than the previous capsule.
+
+The `PageView` order, header shortcuts, shop navigation constant, wishlist shortcut, cart shortcut, drawer profile shortcut, and studio route mapping were updated to use the new indices. Existing destinations and cart/wishlist badges are preserved.
+
+### Verification
+
+- Android profile APK build completed successfully with `flutter build apk --profile`.
+- `git diff --check` passed.
+- No automated tests were run for this follow-up.

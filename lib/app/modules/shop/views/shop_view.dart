@@ -71,16 +71,6 @@ class ShopView extends GetView<ShopController> {
           controller.goUpFilterCategory();
         },
         child: Obx(() {
-          if (controller.isPlainShopEntry.value) {
-            return FoduuStudioLayoutView(
-              onRefresh: () => controller.fetchLayout(ShopController.pageSlug),
-              widgetList: controller.widgetList,
-              isLoading: controller.isLayoutLoading,
-              hasError: controller.hasError,
-              errorMessage: controller.errorMessage,
-            );
-          }
-          // ── FILTERED / DASHBOARD ENTRY ──
           return Column(
             children: [
               // ── CMS FREE-WILL SECTIONS (banner, rich_text, etc.) ──
@@ -97,8 +87,12 @@ class ShopView extends GetView<ShopController> {
                 child: controller.isLoading.value
                     ? _buildGridShimmer()
                     : RefreshIndicator(
-                        onRefresh: () =>
+                        onRefresh: () async {
+                          await Future.wait([
                             controller.fetchProducts(isRefresh: true),
+                            controller.fetchLayout(ShopController.pageSlug),
+                          ]);
+                        },
                         child: _buildProductGrid(colorScheme, textTheme),
                       ),
               ),

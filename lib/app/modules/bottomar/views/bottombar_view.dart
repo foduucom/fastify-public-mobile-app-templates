@@ -4,6 +4,7 @@ import 'package:foddu/app/modules/auth/auth_details.dart';
 import 'package:foddu/app/modules/cart/controllers/cart_controller.dart';
 import 'package:foddu/app/modules/cart/views/cart_view.dart';
 import 'package:foddu/app/modules/shop/views/shop_view.dart';
+import 'package:foddu/app/modules/shop/shop_navigation.dart';
 import 'package:foddu/app/modules/homepage/views/home_page_view.dart';
 import 'package:foddu/app/modules/homepage/views/material/responsive_bottom_nav.dart';
 import 'package:foddu/app/modules/homepage/views/material/responsive_common_header.dart';
@@ -67,15 +68,16 @@ class BottombarView extends GetView<BottombarController> {
             children: [
               // ONE COMMON HEADER FOR HOME PAGE
               Obx(() {
-                // Header for Home (0); other pages provide their own dedicated AppBars
+                // Header for Home; other pages provide their own dedicated AppBars.
                 final index = controller.currentPageIndex.value;
-                if (index == 0) {
+                if (index == homeTabIndex) {
                   return ResponsiveCommonHeader(
                     width: width,
                     height: height,
                     onSearchTap: () => Get.toNamed(Routes.SEARCH),
-                    onCartTap: () => controller.onTabChange(4),
-                    onWishlistTap: () => controller.onTabChange(3),
+                    onCartTap: () => controller.onTabChange(cartTabIndex),
+                    onWishlistTap: () =>
+                        controller.onTabChange(wishlistTabIndex),
                     onMessageTap: () =>
                         Scaffold.of(scaffoldContext).openDrawer(),
                     cartItemCount: cartController.cartItems.length,
@@ -84,7 +86,7 @@ class BottombarView extends GetView<BottombarController> {
                     //onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),
                   );
                 }
-                // Hide common header for Account (1), Shop (2), Wishlist (3), Cart (4)
+                // Hide common header outside Home.
                 return const SizedBox.shrink();
               }),
 
@@ -95,10 +97,10 @@ class BottombarView extends GetView<BottombarController> {
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
                     HomePageView(),
-                    ProfileView(),
                     const ShopView(),
                     WishlistView(),
                     CartView(),
+                    ProfileView(),
                   ],
                 ),
               ),
@@ -127,11 +129,6 @@ class BottombarView extends GetView<BottombarController> {
             label: 'Home',
           ),
           const BottomNavItem(
-            activeIcon: Icons.person_rounded,
-            inactiveIcon: Icons.person_outline_rounded,
-            label: 'Account',
-          ),
-          const BottomNavItem(
             activeIcon: Icons.storefront_rounded,
             inactiveIcon: Icons.storefront_outlined,
             label: 'Shop',
@@ -147,6 +144,11 @@ class BottombarView extends GetView<BottombarController> {
             inactiveIcon: Icons.shopping_bag_outlined,
             label: 'Cart',
             badgeCount: cartController.cartItems.length,
+          ),
+          BottomNavItem(
+            activeIcon: Icons.person_rounded,
+            inactiveIcon: Icons.person_outline_rounded,
+            label: AuthDetails.isUserLogin() ? 'Account' : 'Login',
           ),
         ],
       );

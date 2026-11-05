@@ -119,7 +119,9 @@ class _FoduuSliderState extends State<FoduuSlider>
     final double sliderHeight = _getSliderHeight();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: EdgeInsets.symmetric(
+        vertical: widget.sliderData['_compact_home_spacing'] == true ? 2 : 4,
+      ),
       child: Stack(
         alignment: Alignment.bottomCenter,
         children: [
@@ -129,285 +131,296 @@ class _FoduuSliderState extends State<FoduuSlider>
               color: Colors.transparent,
             ),
             height: sliderHeight,
-          child: widget.sliderData['slider']['content'].isEmpty
-              ? Shimmer.fromColors(
-                  child: Padding(
-                    padding: pageSurroundingPadding,
-                    child: Container(
+            child: widget.sliderData['slider']['content'].isEmpty
+                ? Shimmer.fromColors(
+                    child: Padding(
                       padding: pageSurroundingPadding,
-                      width: Get.width,
-                      height: sliderHeight,
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12)),
+                      child: Container(
+                        padding: pageSurroundingPadding,
+                        width: Get.width,
+                        height: sliderHeight,
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
                     ),
-                  ),
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                )
-              : ScrollConfiguration(
-                  behavior: ScrollConfiguration.of(context).copyWith(
-                    dragDevices: {
-                      PointerDeviceKind.touch,
-                      PointerDeviceKind.mouse,
-                      PointerDeviceKind.trackpad,
-                    },
-                  ),
-                  child: PageView.builder(
-                      physics: const ClampingScrollPhysics(),
-                      controller: _pageController,
-                      onPageChanged: (int page) {
-                        setState(() {
-                          _currentPage = page;
-                        });
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                  )
+                : ScrollConfiguration(
+                    behavior: ScrollConfiguration.of(context).copyWith(
+                      dragDevices: {
+                        PointerDeviceKind.touch,
+                        PointerDeviceKind.mouse,
+                        PointerDeviceKind.trackpad,
                       },
-                      itemCount: widget.sliderData['slider']['content'].length,
-                      itemBuilder: (context, index) {
-                        final sliderItem =
-                            widget.sliderData['slider']['content'][index];
+                    ),
+                    child: PageView.builder(
+                        physics: const ClampingScrollPhysics(),
+                        controller: _pageController,
+                        onPageChanged: (int page) {
+                          setState(() {
+                            _currentPage = page;
+                          });
+                        },
+                        itemCount:
+                            widget.sliderData['slider']['content'].length,
+                        itemBuilder: (context, index) {
+                          final sliderItem =
+                              widget.sliderData['slider']['content'][index];
 
-                        // Extract title and content
-                        final String title = sliderItem['heading'] ?? '';
-                        final String subHeading =
-                            sliderItem['sub_heading'] ?? sliderItem['subheading'] ?? '';
-                        final String description =
-                            sliderItem['description'] ?? '';
-                        final String buttonText =
-                            sliderItem['button_text'] ?? (title.isNotEmpty ? 'Shop Now' : '');
-                        final String? link = sliderItem['link'];
-                        final String? sliderType = sliderItem['sliderType'];
+                          // Extract title and content
+                          final String title = sliderItem['heading'] ?? '';
+                          final String subHeading = sliderItem['sub_heading'] ??
+                              sliderItem['subheading'] ??
+                              '';
+                          final String description =
+                              sliderItem['description'] ?? '';
+                          final String buttonText = sliderItem['button_text'] ??
+                              (title.isNotEmpty ? 'Shop Now' : '');
+                          final String? link = sliderItem['link'];
+                          final String? sliderType = sliderItem['sliderType'];
 
-                        // High-contrast text over dark gradient overlay
-                        const Color textColor = Colors.white;
-                        final Color buttonColor =
-                            Theme.of(context).primaryColor;
+                          // High-contrast text over dark gradient overlay
+                          const Color textColor = Colors.white;
+                          final Color buttonColor =
+                              Theme.of(context).primaryColor;
 
-                        return GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () async {
-                            if (sliderType == 'categories') {
-                              openShop({
-                                    'source': 'category',
-                                    'productId': link,
-                                    'name': title
-                                  });
-                            } else if (sliderType == 'blog') {
-                              Get.toNamed(Routes.BLOG_DETAILS, arguments: {
-                                'id': link,
-                              });
-                            } else if (link != null && link.isNotEmpty) {
-                              if (link.startsWith('http')) {
-                                final Uri url = Uri.parse(link);
-                                if (await canLaunchUrl(url)) {
-                                  await launchUrl(url,
-                                      mode: LaunchMode.externalApplication);
+                          return GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () async {
+                              if (sliderType == 'categories') {
+                                openShop({
+                                  'source': 'category',
+                                  'productId': link,
+                                  'name': title
+                                });
+                              } else if (sliderType == 'blog') {
+                                Get.toNamed(Routes.BLOG_DETAILS, arguments: {
+                                  'id': link,
+                                });
+                              } else if (link != null && link.isNotEmpty) {
+                                if (link.startsWith('http')) {
+                                  final Uri url = Uri.parse(link);
+                                  if (await canLaunchUrl(url)) {
+                                    await launchUrl(url,
+                                        mode: LaunchMode.externalApplication);
+                                  } else {
+                                    HelperFunctions().showSnackBarError(
+                                        "Could not launch the link.");
+                                  }
                                 } else {
+                                  // If it's not a URL, it might be an internal page or invalid
                                   HelperFunctions().showSnackBarError(
-                                      "Could not launch the link.");
+                                      "Invalid link or unsupported slider type.");
                                 }
                               } else {
-                                // If it's not a URL, it might be an internal page or invalid
                                 HelperFunctions().showSnackBarError(
-                                    "Invalid link or unsupported slider type.");
+                                    "No link associated with this slide.");
                               }
-                            } else {
-                              HelperFunctions().showSnackBarError(
-                                  "No link associated with this slide.");
-                            }
-                          },
-                          child: Container(
-                            child: Stack(
-                              children: [
-                                // Background Image
-                                Padding(
-                                  padding: pageSurroundingPadding,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(12.0),
-                                    child: (index < _imageUrls.length &&
-                                            _imageUrls[index].isNotEmpty &&
-                                            _imageUrls[index] != HelperFunctions.getNoImage())
-                                        ? CachedNetworkImage(
-                                            height: sliderHeight,
-                                            imageUrl: _imageUrls[index],
-                                            fit: BoxFit.cover,
-                                            width: Get.width,
-                                            errorWidget: ((context, url, error) =>
-                                                AppImagePlaceholder(
-                                                  radius: 12,
-                                                  height: sliderHeight,
-                                                  width: double.infinity,
-                                                  fit: BoxFit.cover,
-                                                )),
-                                            progressIndicatorBuilder:
-                                                ((context, url, progress) =>
-                                                    Container(
-                                                      width: MediaQuery.of(context)
-                                                          .size
-                                                          .width,
-                                                      height: sliderHeight,
-                                                      decoration: BoxDecoration(
-                                                          color: Theme.of(context)
-                                                              .colorScheme
-                                                              .surfaceContainerHighest),
-                                                      child: Center(
-                                                        child: HelperFunctions()
-                                                            .loadingIndicator(),
-                                                      ),
-                                                    )),
-                                          )
-                                        : AppImagePlaceholder(
-                                            radius: 12,
-                                            height: sliderHeight,
-                                            width: double.infinity,
-                                            fit: BoxFit.cover,
-                                          ),
-                                  ),
-                                ),
-
-                                // Gradient Overlay for subtle text contrast without darkening full photo
-                                Positioned.fill(
-                                  child: Padding(
-                                    padding: pageSurroundingPadding,
+                            },
+                            child: Container(
+                              child: Stack(
+                                children: [
+                                  // Background Image
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0),
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(12.0),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: [
-                                              Colors.transparent,
-                                              Colors.black.withOpacity(0.12),
-                                              Colors.black.withOpacity(0.65),
-                                            ],
-                                            stops: const [0.45, 0.72, 1.0],
+                                      child: (index < _imageUrls.length &&
+                                              _imageUrls[index].isNotEmpty &&
+                                              _imageUrls[index] !=
+                                                  HelperFunctions.getNoImage())
+                                          ? CachedNetworkImage(
+                                              height: sliderHeight,
+                                              imageUrl: _imageUrls[index],
+                                              fit: BoxFit.cover,
+                                              width: Get.width,
+                                              errorWidget:
+                                                  ((context, url, error) =>
+                                                      AppImagePlaceholder(
+                                                        radius: 12,
+                                                        height: sliderHeight,
+                                                        width: double.infinity,
+                                                        fit: BoxFit.cover,
+                                                      )),
+                                              progressIndicatorBuilder:
+                                                  ((context, url, progress) =>
+                                                      Container(
+                                                        width: MediaQuery.of(
+                                                                context)
+                                                            .size
+                                                            .width,
+                                                        height: sliderHeight,
+                                                        decoration: BoxDecoration(
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .colorScheme
+                                                                .surfaceContainerHighest),
+                                                        child: Center(
+                                                          child: HelperFunctions()
+                                                              .loadingIndicator(),
+                                                        ),
+                                                      )),
+                                            )
+                                          : AppImagePlaceholder(
+                                              radius: 12,
+                                              height: sliderHeight,
+                                              width: double.infinity,
+                                              fit: BoxFit.cover,
+                                            ),
+                                    ),
+                                  ),
+
+                                  // Gradient Overlay for subtle text contrast without darkening full photo
+                                  Positioned.fill(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16.0),
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              begin: Alignment.topCenter,
+                                              end: Alignment.bottomCenter,
+                                              colors: [
+                                                Colors.transparent,
+                                                Colors.black.withOpacity(0.12),
+                                                Colors.black.withOpacity(0.65),
+                                              ],
+                                              stops: const [0.45, 0.72, 1.0],
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
 
-                                // Title, Subheading, Content, and CTA Button
-                                Positioned(
-                                  left: 20,
-                                  right: 20,
-                                  bottom: 24,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      if (subHeading.isNotEmpty) ...[
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 3),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(0.2),
-                                            borderRadius:
-                                                BorderRadius.circular(6),
-                                          ),
-                                          child: Text(
-                                            subHeading.toUpperCase(),
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.white,
-                                              letterSpacing: 1.2,
+                                  // Title, Subheading, Content, and CTA Button
+                                  Positioned(
+                                    left: 20,
+                                    right: 20,
+                                    bottom: 24,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (subHeading.isNotEmpty) ...[
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 3),
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Colors.white.withOpacity(0.2),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              subHeading.toUpperCase(),
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.white,
+                                                letterSpacing: 1.2,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        const SizedBox(height: 6),
-                                      ],
-                                      if (title.isNotEmpty)
-                                        Text(
-                                          title,
-                                          style: const TextStyle(
-                                            fontFamily: 'Lato',
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.w800,
-                                            color: Colors.white,
-                                            height: 1.2,
-                                            shadows: [
-                                              Shadow(
-                                                blurRadius: 8.0,
-                                                color: Colors.black87,
-                                                offset: Offset(0, 2),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      if (description.isNotEmpty) ...[
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          description,
-                                          style: TextStyle(
-                                            fontFamily: 'Lato',
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w400,
-                                            color: Colors.white.withOpacity(0.9),
-                                            shadows: const [
-                                              Shadow(
-                                                blurRadius: 6.0,
-                                                color: Colors.black54,
-                                                offset: Offset(0, 1),
-                                              ),
-                                            ],
-                                          ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                      if (buttonText.isNotEmpty) ...[
-                                        const SizedBox(height: 12),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 8),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                BorderRadius.circular(24),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black
-                                                    .withOpacity(0.2),
-                                                blurRadius: 6,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ],
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                buttonText,
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: Colors.black,
-                                                  letterSpacing: 0.5,
+                                          const SizedBox(height: 6),
+                                        ],
+                                        if (title.isNotEmpty)
+                                          Text(
+                                            title,
+                                            style: const TextStyle(
+                                              fontFamily: 'Lato',
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.w800,
+                                              color: Colors.white,
+                                              height: 1.2,
+                                              shadows: [
+                                                Shadow(
+                                                  blurRadius: 8.0,
+                                                  color: Colors.black87,
+                                                  offset: Offset(0, 2),
                                                 ),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              const Icon(
-                                                Icons.arrow_forward_rounded,
-                                                size: 14,
-                                                color: Colors.black,
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
-                                        ),
+                                        if (description.isNotEmpty) ...[
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            description,
+                                            style: TextStyle(
+                                              fontFamily: 'Lato',
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w400,
+                                              color:
+                                                  Colors.white.withOpacity(0.9),
+                                              shadows: const [
+                                                Shadow(
+                                                  blurRadius: 6.0,
+                                                  color: Colors.black54,
+                                                  offset: Offset(0, 1),
+                                                ),
+                                              ],
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                        if (buttonText.isNotEmpty) ...[
+                                          const SizedBox(height: 12),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 16, vertical: 8),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(24),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withOpacity(0.2),
+                                                  blurRadius: 6,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  buttonText,
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: Colors.black,
+                                                    letterSpacing: 0.5,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                const Icon(
+                                                  Icons.arrow_forward_rounded,
+                                                  size: 14,
+                                                  color: Colors.black,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ],
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      }),
-                ),
-        ),
+                          );
+                        }),
+                  ),
+          ),
           Positioned(
             bottom: 10,
             child: Row(

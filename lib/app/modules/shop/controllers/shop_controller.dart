@@ -98,13 +98,13 @@ class ShopController extends GetxController
       maxPrice.value = values.end;
     });
 
-    if (isPlainShopEntry.value) {
-      fetchLayout(pageSlug);
-    } else {
-      fetchBrands();
-      fetchCategories();
-      fetchProducts(isRefresh: true);
-    }
+    // Load CMS layout sections (banners, sliders, etc.)
+    fetchLayout(pageSlug);
+
+    // Load catalog filters & products
+    fetchBrands();
+    fetchCategories();
+    fetchProducts(isRefresh: true);
   }
 
   void ensureFilterDataLoaded() {
@@ -259,14 +259,14 @@ class ShopController extends GetxController
         queryParams['brand'] = selectedBrands.toList();
       }
 
-      final material = selectedAttributes['material'];
-      if (material != null && material.isNotEmpty) {
-        queryParams['material'] = material.toList();
-      }
-      final style = selectedAttributes['style'];
-      if (style != null && style.isNotEmpty) {
-        queryParams['style'] = style.toList();
-      }
+      // final material = selectedAttributes['material'];
+      // if (material != null && material.isNotEmpty) {
+      //   queryParams['material'] = material.toList();
+      // }
+      // final style = selectedAttributes['style'];
+      // if (style != null && style.isNotEmpty) {
+      //   queryParams['style'] = style.toList();
+      // }
 
       debugPrint('📡 Fetching products with params: $queryParams');
 
@@ -390,15 +390,11 @@ class ShopController extends GetxController
 
   // ─── VIEW MODE CONTROLS ───────────────────────────────────────
   void setViewMode(bool isList) {
-    if (isListView.value == isList && !isPlainShopEntry.value) return;
+    if (isListView.value == isList) return;
 
     isListView.value = isList;
 
-    if (isPlainShopEntry.value) {
-      isPlainShopEntry.value = false;
-      ensureFilterDataLoaded();
-      fetchProducts(isRefresh: true);
-    } else if (products.isEmpty && !isLoading.value) {
+    if (products.isEmpty && !isLoading.value) {
       fetchProducts(isRefresh: true);
     }
   }

@@ -109,6 +109,30 @@ mixin FoduuStudioLayoutMixin on GetxController {
         final section = Map<String, dynamic>.from(rawSection);
         final type = section['type']?.toString() ?? '';
         if (_excludedSectionTypes.contains(type)) continue;
+
+        // Home spacing is intentionally compact and consistent. CMS spacer
+        // values are still honored up to 12 px, but cannot create large gaps
+        // between adjacent editorial sections.
+        if (_currentSlug == 'home' && type == 'spacer') {
+          final rawContent =
+              section['content_json'] ?? section['contentJson'] ?? section;
+          final content = rawContent is Map
+              ? Map<String, dynamic>.from(rawContent)
+              : <String, dynamic>{};
+          final requestedHeight =
+              double.tryParse('${content['height']}') ?? 10.0;
+          content['height'] = requestedHeight.clamp(0.0, 12.0);
+          section['content_json'] = content;
+        }
+        if (_currentSlug == 'home' && type == 'slider') {
+          final rawContent = section['content_json'] ?? section['contentJson'];
+          if (rawContent is Map) {
+            final content = Map<String, dynamic>.from(rawContent);
+            content['_compact_home_spacing'] = true;
+            section['content_json'] = content;
+          }
+        }
+
         final widget = _registry.build(section);
         if (widget != null) {
           widgetList.add(widget);

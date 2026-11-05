@@ -48,7 +48,7 @@ void registerDefaultWidgets() {
 
   // ─── Categories ─────────────────────────────────────────────
   r.register('categories', (json) {
-    return CategoryHome(categoryData: json ?? {});
+    return CategoryHome(categoryData: json ?? {}, compactSpacing: true);
   });
 
   // ─── Blog Section ───────────────────────────────────────────

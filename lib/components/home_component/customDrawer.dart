@@ -180,7 +180,7 @@ class CustomDrawer extends GetView<HomepageController> {
       onTap: () {
         Get.back();
         if (isLoggedIn) {
-          _navigateToBottomBarPage(1); // Profile tab
+          _navigateToBottomBarPage(accountTabIndex); // Profile tab
         } else {
           isOtpLogin
               ? Get.toNamed(Routes.MOBILELOGIN)
@@ -215,7 +215,9 @@ class CustomDrawer extends GetView<HomepageController> {
                       userData['featured_image'] != null)
                   ? HelperFunctions().getImage(userData['featured_image'])
                   : null,
-              name: isLoggedIn && userData != null ? userData['name']?.toString() : null,
+              name: isLoggedIn && userData != null
+                  ? userData['name']?.toString()
+                  : null,
               radius: 28,
               borderWidth: 2,
               borderColor: Colors.white.withOpacity(0.4),
@@ -320,7 +322,8 @@ class CustomDrawer extends GetView<HomepageController> {
                     await Get.find<BottombarController>().logout();
                   },
                   icon: const Icon(Icons.logout, color: Colors.red),
-                  label: const Text('Logout', style: TextStyle(color: Colors.red)),
+                  label:
+                      const Text('Logout', style: TextStyle(color: Colors.red)),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.red),
                     padding: const EdgeInsets.symmetric(vertical: 12),

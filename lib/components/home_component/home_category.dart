@@ -19,7 +19,13 @@ class CategoryHome extends StatefulWidget {
 
   /// Overrides the default tap behavior (dialog / shop navigation) when set.
   final void Function(dynamic category)? onCategoryTap;
-  CategoryHome({super.key, required this.categoryData, this.onCategoryTap});
+  final bool compactSpacing;
+  CategoryHome({
+    super.key,
+    required this.categoryData,
+    this.onCategoryTap,
+    this.compactSpacing = false,
+  });
 
   @override
   State<CategoryHome> createState() => _TopCategoryHomeState();
@@ -69,7 +75,9 @@ class _TopCategoryHomeState extends State<CategoryHome>
                 child: _buildGridView(categories, style, columns),
               )
             : _buildListView(categories, style, orientation),
-        const SizedBox(height: 26),
+        // Keep CMS sections visually connected; the layout itself does not
+        // add spacing between arbitrary widgets.
+          SizedBox(height: widget.compactSpacing ? 8 : 16),
       ],
     );
   }
@@ -83,15 +91,18 @@ class _TopCategoryHomeState extends State<CategoryHome>
           physics: const NeverScrollableScrollPhysics(),
           itemCount: categories.length,
           separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) =>
-              _buildCategoryItem(categories[index], style, isVerticalList: true),
+          itemBuilder: (context, index) => _buildCategoryItem(
+              categories[index], style,
+              isVerticalList: true),
         ),
       );
     } else {
       final isOverlay = style == 'overlay';
       final listHeight = isOverlay
           ? _overlayCardHeight
-          : (style == 'circular' ? 128.0 : 140.0);
+          : (style == 'circular'
+              ? (widget.compactSpacing ? 104.0 : 128.0)
+              : 140.0);
       return SizedBox(
         height: listHeight,
         child: ScrollConfiguration(
@@ -156,7 +167,8 @@ class _TopCategoryHomeState extends State<CategoryHome>
             _showCategoryDialog(Get.context!, category);
           } else {
             // If no children, navigate directly to product list
-            openShop({
+            openShop(
+              {
                 'productId': category['_id'],
                 'categorySlug': category['slug'],
                 'name': category['name'],
@@ -190,11 +202,14 @@ class _TopCategoryHomeState extends State<CategoryHome>
         fit: StackFit.expand,
         children: [
           (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
-                  HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
+                  HelperFunctions().getImage(category['featured_image']) !=
+                      HelperFunctions.getNoImage())
               ? CachedNetworkImage(
                   fit: BoxFit.cover,
-                  imageUrl: HelperFunctions().getImage(category['featured_image']),
-                  errorWidget: (_, __, ___) => const AppImagePlaceholder(radius: 10),
+                  imageUrl:
+                      HelperFunctions().getImage(category['featured_image']),
+                  errorWidget: (_, __, ___) =>
+                      const AppImagePlaceholder(radius: 10),
                   progressIndicatorBuilder: (_, __, ___) =>
                       HelperFunctions().loadingIndicator(),
                 )
@@ -347,23 +362,38 @@ class _TopCategoryHomeState extends State<CategoryHome>
 
     // Map common fashion categories to high-resolution local boutique photography
     String? localAsset;
-    if (combined.contains('women') || combined.contains('female') || combined.contains('girl')) {
+    if (combined.contains('women') ||
+        combined.contains('female') ||
+        combined.contains('girl')) {
       localAsset = 'assets/images/women.png';
-    } else if (combined.contains('men') || combined.contains('male') || combined.contains('boy') || combined.contains('festival')) {
+    } else if (combined.contains('men') ||
+        combined.contains('male') ||
+        combined.contains('boy') ||
+        combined.contains('festival')) {
       localAsset = 'assets/images/men.png';
-    } else if (combined.contains('kid') || combined.contains('child') || combined.contains('romper') || combined.contains('baby')) {
+    } else if (combined.contains('kid') ||
+        combined.contains('child') ||
+        combined.contains('romper') ||
+        combined.contains('baby')) {
       localAsset = 'assets/images/kids.png';
-    } else if (combined.contains('cushion') || combined.contains('pillow') || combined.contains('decor') || combined.contains('home')) {
+    } else if (combined.contains('cushion') ||
+        combined.contains('pillow') ||
+        combined.contains('decor') ||
+        combined.contains('home')) {
       localAsset = 'assets/images/categoryimgfive.png';
     } else if (combined.contains('beauty') || combined.contains('cosmetic')) {
       localAsset = 'assets/images/beauty.png';
     } else if (combined.contains('shoe') || combined.contains('footwear')) {
       localAsset = 'assets/images/shoes.png';
-    } else if (combined.contains('jewel') || combined.contains('access') || combined.contains('watch')) {
+    } else if (combined.contains('jewel') ||
+        combined.contains('access') ||
+        combined.contains('watch')) {
       localAsset = 'assets/images/accessories.png';
     } else if (combined.contains('skirt') || combined.contains('fashion')) {
       localAsset = 'assets/images/skirts.png';
-    } else if (combined.contains('sale') || combined.contains('deal') || combined.contains('discount')) {
+    } else if (combined.contains('sale') ||
+        combined.contains('deal') ||
+        combined.contains('discount')) {
       localAsset = 'assets/images/sale.png';
     }
 
@@ -432,15 +462,16 @@ class _TopCategoryHomeState extends State<CategoryHome>
             onTap: () => widget.onCategoryTap != null
                 ? widget.onCategoryTap!(category)
                 : category['children'] != null &&
-                    (category['children'] as List).isNotEmpty
-                ? _showCategoryDialog(context, category)
-                : openShop({
-                      'productId': category['_id'],
-                      'categorySlug': category['slug'],
-                      'name': category['name'],
-                      'source': 'category',
-                    },
-                  ),
+                        (category['children'] as List).isNotEmpty
+                    ? _showCategoryDialog(context, category)
+                    : openShop(
+                        {
+                          'productId': category['_id'],
+                          'categorySlug': category['slug'],
+                          'name': category['name'],
+                          'source': 'category',
+                        },
+                      ),
             borderRadius: BorderRadius.circular(Get.height * 0.015),
             splashColor: colorScheme.primary.withOpacity(0.25),
             highlightColor: colorScheme.primary.withOpacity(0.1),

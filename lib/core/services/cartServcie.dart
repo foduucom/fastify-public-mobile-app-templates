@@ -148,10 +148,69 @@ class CartService extends GetxService with BaseController {
   //  PARSE API RESPONSE
   // ══════════════════════════════════════════════════════════
   void parseCartResponse(Map<String, dynamic> data) {
-    final items = data['items'] as List? ?? [];
-    cartItems.value = items.map((e) => Map<String, dynamic>.from(e)).toList();
-    subTotal.value = (data['sub_total'] ?? 0).toDouble();
-    total.value = (data['total'] ?? 0).toDouble();
+    // Some API responses wrap the cart in `data`, while others return it at
+    // the top level. Accept both formats before reading the line items/totals.
+    final payload = data['data'] is Map
+        ? Map<String, dynamic>.from(data['data'] as Map)
+        : data;
+    final rawItems = payload['items'] ?? payload['cart_items'];
+    cartItems.value = rawItems is List
+        ? rawItems
+            .whereType<Map>()
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList()
+        : <Map<String, dynamic>>[];
+
+    final calculated = _calculateTotals(cartItems);
+    final apiSubtotal = _parsePrice(
+      payload['sub_total'] ?? payload['subtotal'] ?? payload['subTotal'],
+    );
+    final apiTotal = _parsePrice(payload['total'] ?? payload['grand_total']);
+
+    // A zero/missing total is common in incomplete cart responses. Derive it
+    // from the same variant prices used to render each cart line instead.
+    subTotal.value = apiSubtotal > 0 ? apiSubtotal : calculated.$1;
+    total.value = apiTotal > 0 ? apiTotal : calculated.$2;
+  }
+
+  double _parsePrice(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value == null) return 0;
+    // Handles formatted API values such as "₹1,200.00" as well as numbers
+    // serialized as strings.
+    final normalized = value
+        .toString()
+        .replaceAll(',', '')
+        .replaceAll('₹', '')
+        .trim();
+    return double.tryParse(normalized) ?? 0;
+  }
+
+  (double, double) _calculateTotals(Iterable<Map<String, dynamic>> items) {
+    var subtotal = 0.0;
+    var total = 0.0;
+
+    for (final item in items) {
+      final quantity = _parsePrice(item['quantity']);
+      final qty = quantity > 0 ? quantity : 1;
+      final variantValue = item['variant'] ?? item['variant_id'];
+      final variant =
+          variantValue is Map ? variantValue : const <String, dynamic>{};
+      final regularPrice = _parsePrice(
+        variant['price'] ??
+            item['regular_price'] ??
+            item['unit_price'] ??
+            item['price'],
+      );
+      final salePrice = _parsePrice(
+        variant['sale_price'] ?? item['sale_price'] ?? item['unit_price'],
+      );
+      final effectivePrice = salePrice > 0 ? salePrice : regularPrice;
+
+      subtotal += (regularPrice > 0 ? regularPrice : effectivePrice) * qty;
+      total += effectivePrice * qty;
+    }
+    return (subtotal, total);
   }
 
   // ══════════════════════════════════════════════════════════
@@ -183,30 +242,9 @@ class CartService extends GetxService with BaseController {
 
   /// Recalculate subtotal / total from local items
   void _recalculateLocalTotals() {
-    double sub = 0;
-    double tot = 0;
-
-    for (var item in cartItems) {
-      final qty = (item['quantity'] ?? 1) as int;
-      final variant = item['variant'];
-      if (variant is Map) {
-        final salePrice = variant['sale_price'];
-        final price = variant['price'] ?? 0;
-        final regularPrice = (price is num) ? price.toDouble() : 0.0;
-
-        // total uses sale_price if available, otherwise regular price
-        final effectivePrice =
-            (salePrice != null && salePrice is num && salePrice > 0)
-                ? salePrice.toDouble()
-                : regularPrice;
-
-        sub += regularPrice * qty;
-        tot += effectivePrice * qty;
-      }
-    }
-
-    subTotal.value = sub;
-    total.value = tot;
+    final (subtotal, calculatedTotal) = _calculateTotals(cartItems);
+    subTotal.value = subtotal;
+    total.value = calculatedTotal;
   }
 
   /// Add / increment / decrement in local cart

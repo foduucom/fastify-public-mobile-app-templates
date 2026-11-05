@@ -73,8 +73,8 @@ class CategeorydetailView extends GetView<CategeorydetaiController> {
 
             return bottomBarController.cartbadge(
               onTap: () {
-                bottomBarController.currentPageIndex.value = 3;
-                bottomBarController.pageController.jumpToPage(3);
+                bottomBarController.currentPageIndex.value = wishlistTabIndex;
+                bottomBarController.pageController.jumpToPage(wishlistTabIndex);
               },
               child: HeartIcon(() {
                 Get.toNamed(Routes.WISHLIST);
@@ -210,14 +210,13 @@ class CategeorydetailView extends GetView<CategeorydetaiController> {
                                                   ['name'] !=
                                               'no further category') {
                                             openShop({
-                                                  'productId': controller
-                                                          .subcategory[subindex]
-                                                      ['_id'],
-                                                  'name': controller
-                                                          .subcategory[subindex]
-                                                      ['name'],
-                                                  'source': 'category'
-                                                });
+                                              'productId': controller
+                                                  .subcategory[subindex]['_id'],
+                                              'name': controller
+                                                      .subcategory[subindex]
+                                                  ['name'],
+                                              'source': 'category'
+                                            });
                                           }
                                         },
                                         child: Row(

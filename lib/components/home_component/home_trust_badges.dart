@@ -173,8 +173,7 @@ class _TestimonialCarouselState extends State<_TestimonialCarousel> {
     );
   }
 
-  Widget _buildCardContent(
-      _Testimonial s, ThemeData theme, String? iconUrl) {
+  Widget _buildCardContent(_Testimonial s, ThemeData theme, String? iconUrl) {
     final isDark = theme.brightness == Brightness.dark;
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -199,8 +198,7 @@ class _TestimonialCarouselState extends State<_TestimonialCarousel> {
                     fit: BoxFit.contain,
                   ))
             : Icon(Icons.format_quote_rounded,
-                size: 32,
-                color: theme.colorScheme.primary.withOpacity(0.75)),
+                size: 32, color: theme.colorScheme.primary.withOpacity(0.75)),
         const SizedBox(height: 12),
         Text(
           '"${s.quote}"',
@@ -220,8 +218,8 @@ class _TestimonialCarouselState extends State<_TestimonialCarousel> {
             s.rating,
             (_) => const Padding(
               padding: EdgeInsets.symmetric(horizontal: 1.5),
-              child: Icon(Icons.star_rounded,
-                  size: 17, color: Color(0xFFFF9800)),
+              child:
+                  Icon(Icons.star_rounded, size: 17, color: Color(0xFFFF9800)),
             ),
           ),
         ),
@@ -327,8 +325,7 @@ class _TestimonialCarouselState extends State<_TestimonialCarousel> {
                   );
                 }),
                 const SizedBox(width: 16),
-                _arrow(
-                    Icons.chevron_right,
+                _arrow(Icons.chevron_right,
                     _page < widget.slides.length - 1 ? () => _go(1) : null),
               ],
             ),
@@ -347,8 +344,8 @@ class _TestimonialCarouselState extends State<_TestimonialCarousel> {
         height: 36,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(
-              color: Theme.of(context).colorScheme.outlineVariant),
+          border:
+              Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         ),
         child: Icon(icon,
             size: 20,
@@ -425,7 +422,7 @@ class _BadgeList extends StatelessWidget {
   Widget _buildCollectionCards(BuildContext context, String title) {
     final theme = Theme.of(context);
     return Padding(
-      padding: pageSurroundingPadding,
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -437,14 +434,14 @@ class _BadgeList extends StatelessWidget {
                 letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 8),
           ],
           Builder(builder: (context) {
             final cardWidth = (MediaQuery.of(context).size.width * 0.43)
                 .clamp(145.0, 160.0)
                 .toDouble();
             return SizedBox(
-              height: 220,
+              height: 184,
               child: ListView.separated(
                 physics: const BouncingScrollPhysics(),
                 scrollDirection: Axis.horizontal,
@@ -477,83 +474,84 @@ class _BadgeList extends StatelessWidget {
                             if (image.isNotEmpty)
                               _buildCardImage(
                                 image,
-                                height: 220,
+                                height: 184,
                                 width: cardWidth,
                                 fit: BoxFit.cover,
                               )
                             else
-                              Container(color: theme.colorScheme.surfaceVariant),
-                          // Subtle dark gradient for text legibility
-                          Positioned.fill(
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  stops: const [0.5, 1.0],
-                                  colors: [
-                                    Colors.transparent,
-                                    Colors.black.withOpacity(0.75),
+                              Container(
+                                  color: theme.colorScheme.surfaceVariant),
+                            // Subtle dark gradient for text legibility
+                            Positioned.fill(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    stops: const [0.5, 1.0],
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.black.withOpacity(0.75),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Floating boutique pill label at bottom
+                            Positioned(
+                              left: 12,
+                              right: 12,
+                              bottom: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.15),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        cardTitle,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                    const Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 11,
+                                      color: Colors.black,
+                                    ),
                                   ],
                                 ),
                               ),
                             ),
-                          ),
-                          // Floating boutique pill label at bottom
-                          Positioned(
-                            left: 12,
-                            right: 12,
-                            bottom: 12,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.15),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      cardTitle,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  const Icon(
-                                    Icons.arrow_forward_ios_rounded,
-                                    size: 11,
-                                    color: Colors.black,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
-          );
-        }),
+                  );
+                },
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -622,8 +620,8 @@ class _BadgeList extends StatelessWidget {
                         textAlign: TextAlign.center,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold, fontSize: 12),
                       ),
                       if (_str(c['text'] ?? c['description']).isNotEmpty) ...[
                         const SizedBox(height: 4),
@@ -632,7 +630,8 @@ class _BadgeList extends StatelessWidget {
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(fontSize: 10),
+                          style:
+                              theme.textTheme.bodySmall?.copyWith(fontSize: 10),
                         ),
                       ],
                     ],

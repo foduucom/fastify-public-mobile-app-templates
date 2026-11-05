@@ -431,7 +431,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                         : (_tabsEnabled
                             ? _buildTabbedList()
                             : _buildProductLayout(style)),
-                const SizedBox(height: 26),
+                const SizedBox(height: 18),
               ],
             )
           ],
@@ -583,8 +583,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                     right: 8,
                     top: 8,
                     child: Obx(() {
-                      final isFav =
-                          WishListService.to.isInWishlist(productId);
+                      final isFav = WishListService.to.isInWishlist(productId);
                       return _actionCircleBtn(
                         icon: isFav
                             ? Icons.favorite_rounded
@@ -616,14 +615,13 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                             margin: const EdgeInsets.all(16),
                             mainButton: TextButton(
                               onPressed: () {
-                                if (Get.isRegistered<
-                                    BottombarController>()) {
+                                if (Get.isRegistered<BottombarController>()) {
                                   Get.find<BottombarController>()
                                       .currentPageIndex
-                                      .value = 4;
+                                      .value = cartTabIndex;
                                   Get.find<BottombarController>()
                                       .pageController
-                                      .jumpToPage(4);
+                                      .jumpToPage(cartTabIndex);
                                 }
                               },
                               child: Text(
@@ -1087,15 +1085,35 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildGridView(String style) {
     final columns =
-        int.tryParse(widget.contentJson?['columns']?.toString() ?? '1') ?? 1;
-    final aspectRatio = double.tryParse(
-            widget.contentJson?['aspect_ratio']?.toString() ?? '2.4') ??
-        2.4;
+        int.tryParse(widget.contentJson?['columns']?.toString() ?? '2') ?? 2;
+
+    // Determine safe aspect ratio:
+    // Vertical portrait cards (parent_web, standard, overlay) require childAspectRatio <= 0.85.
+    // If the CMS passes a squat ratio (like 2.4), clamp to proper vertical ratios:
+    // 2 columns -> ~0.58 (matching boutique portrait card standards)
+    // 3+ columns -> ~0.52
+    // 1 column -> ~0.65
+    double resolvedAspectRatio;
+    if (style == 'horizontal') {
+      resolvedAspectRatio = double.tryParse(
+              widget.contentJson?['aspect_ratio']?.toString() ?? '2.4') ??
+          2.4;
+    } else {
+      final configuredRatio = double.tryParse(
+          widget.contentJson?['aspect_ratio']?.toString() ?? '');
+      if (configuredRatio != null &&
+          configuredRatio > 0 &&
+          configuredRatio <= 0.85) {
+        resolvedAspectRatio = configuredRatio;
+      } else {
+        resolvedAspectRatio =
+            columns >= 3 ? 0.52 : (columns == 1 ? 0.65 : 0.58);
+      }
+    }
+
     final spacing =
-        double.tryParse(widget.contentJson?['spacing']?.toString() ?? '21') ??
-            21;
-    // final itemCount =
-    //     _infiniteScroll ? trendingList.length + 1 : trendingList.length;
+        double.tryParse(widget.contentJson?['spacing']?.toString() ?? '12') ??
+            12;
 
     final itemCount = _infiniteScroll
         ? displayedProducts.length + 1
@@ -1110,7 +1128,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           crossAxisCount: columns,
           crossAxisSpacing: spacing,
           mainAxisSpacing: spacing,
-          childAspectRatio: aspectRatio,
+          childAspectRatio: resolvedAspectRatio,
         ),
         itemCount: itemCount,
         itemBuilder: (context, index) {
@@ -1203,8 +1221,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         .toList();
     if (loadedProducts.isEmpty) return const SizedBox.shrink();
 
-    final bool isHeroCarousel = widget.contentJson?['category_type'] == 'parent_category' &&
-        (widget.contentJson?['hero_categories'] != null || (widget.contentJson?['count'] ?? 0) == 0);
+    final bool isHeroCarousel =
+        widget.contentJson?['category_type'] == 'parent_category' &&
+            (widget.contentJson?['hero_categories'] != null ||
+                (widget.contentJson?['count'] ?? 0) == 0);
 
     // If not the top hero section, render as clean boutique portrait cards
     if (!isHeroCarousel) {
@@ -1435,8 +1455,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       if (mapped != null && mapped.trim().isNotEmpty) return mapped.trim();
     }
     for (final item in categories) {
-      final id =
-          (item is Map ? (item['_id'] ?? item['id']) : item)?.toString();
+      final id = (item is Map ? (item['_id'] ?? item['id']) : item)?.toString();
       if (id != null) {
         final mapped = FoduuStudioLayoutMixin.categoryNameMap[id];
         if (mapped != null && mapped.trim().isNotEmpty) return mapped.trim();
@@ -1729,15 +1748,25 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   Widget _buildStandardItem(
       Map<String, dynamic> product, Map<String, dynamic> priceInfo) {
-    final cardWidth = (MediaQuery.of(context).size.width * 0.38)
-        .clamp(140.0, 160.0)
-        .toDouble();
-    const imageAspectRatio = 0.75;
-    final imageHeight = cardWidth / imageAspectRatio;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+            ? constraints.maxWidth
+            : (MediaQuery.of(context).size.width * 0.38)
+                .clamp(140.0, 160.0)
+                .toDouble();
+        const imageAspectRatio = 0.75;
+        final calculatedImageHeight = cardWidth / imageAspectRatio;
+        // Keep image height within cell bounds leaving room for stars, title, and price
+        final imageHeight = constraints.maxHeight.isFinite && constraints.maxHeight > 120
+            ? (constraints.maxHeight - 90).clamp(60.0, calculatedImageHeight)
+            : calculatedImageHeight;
 
-    return SizedBox(
-      width: cardWidth,
-      child: _buildSiteProductCard(product, priceInfo, imageHeight),
+        return SizedBox(
+          width: cardWidth,
+          child: _buildSiteProductCard(product, priceInfo, imageHeight),
+        );
+      },
     );
   }
 
@@ -1750,7 +1779,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         : displayedProducts.length;
 
     return Padding(
-      padding: const EdgeInsets.only(left: 6.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: SizedBox(
         height: 120,
         child: ScrollConfiguration(
@@ -1794,8 +1823,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final productName = ProductHelper.getProductName(product);
     final imageUrl = ProductHelper.getProductImage(product);
     final productType = priceInfo['productType'];
-    final rawStore = (product['storeName'] ?? product['brand']?['name'] ?? '').toString().trim();
-    final bool showStore = rawStore.isNotEmpty && rawStore.toLowerCase() != 'store name';
+    final brand = product['brand'];
+    final brandName = brand is Map ? brand['name'] : brand;
+    final rawStore = (product['storeName'] ?? brandName ?? '').toString().trim();
+    final bool showStore =
+        rawStore.isNotEmpty && rawStore.toLowerCase() != 'store name';
 
     return GestureDetector(
       onTap: () => _navigateToProduct(product),
@@ -1957,9 +1989,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         : displayedProducts.length;
 
     return Padding(
-      padding: const EdgeInsets.only(left: 6.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: SizedBox(
-        height: 260,
+        height: 276,
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(
             dragDevices: {
@@ -1970,7 +2002,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           ),
           child: ListView.separated(
             controller: _scrollController,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
             shrinkWrap: false,
             cacheExtent: 9999,
             physics: const AlwaysScrollableScrollPhysics(),
@@ -1999,13 +2031,16 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final productName = ProductHelper.getProductName(product);
     final imageUrl = ProductHelper.getProductImage(product);
     final productType = priceInfo['productType'];
-    final rawStore = (product['storeName'] ?? product['brand']?['name'] ?? '').toString().trim();
-    final bool showStore = rawStore.isNotEmpty && rawStore.toLowerCase() != 'store name';
+    final brand = product['brand'];
+    final brandName = brand is Map ? brand['name'] : brand;
+    final rawStore = (product['storeName'] ?? brandName ?? '').toString().trim();
+    final bool showStore =
+        rawStore.isNotEmpty && rawStore.toLowerCase() != 'store name';
 
     return GestureDetector(
       onTap: () => _navigateToProduct(product),
       child: Container(
-        width: 180,
+        width: 164,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
@@ -2032,26 +2067,16 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                           const AppImagePlaceholder(radius: 14),
                     )
                   : const AppImagePlaceholder(radius: 14),
-              // Gradient overlay at bottom
+              // Keep product photography unobstructed and put information on
+              // a predictable surface beneath it.
               Positioned(
                 left: 0,
                 right: 0,
                 bottom: 0,
+                height: 78,
                 child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        colorScheme.surface.withOpacity(0.7),
-                        colorScheme.surface.withOpacity(0.95),
-                      ],
-                      stops: const [0.0, 0.4, 1.0],
-                    ),
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  color: colorScheme.surface.withOpacity(0.97),
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -2060,7 +2085,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                         productName,
                         style: textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w700,
-                          fontSize: 14,
+                          fontSize: 13,
                           color: colorScheme.onSurface,
                         ),
                         maxLines: 1,
@@ -2092,11 +2117,12 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 top: 8,
                 child: _buildWishlistButton(product),
               ),
-              // Add to Cart control at bottom-right, above the text panel
+              // Keep the cart action within the photo area, clear of the
+              // caption and price.
               if (ProductHelper.isInStock(product))
                 Positioned(
                   right: 8,
-                  bottom: 70,
+                  bottom: 86,
                   child: _buildCartControl(product),
                 ),
               // Discount badge at top-right
@@ -2316,7 +2342,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             ],
           ),
           padding: const EdgeInsets.all(7.0),
-          child: const Icon(Icons.check_rounded, size: 16, color: Color(0xFFD4AF37)),
+          child: const Icon(Icons.check_rounded,
+              size: 16, color: Color(0xFFD4AF37)),
         ),
       );
     });
@@ -2410,7 +2437,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final productPrice = _formatPrice(priceInfo['productPrice']);
-    final discountPrice = _formatPrice(priceInfo['discountPrice'] ?? priceInfo['salePrice']);
+    final discountPrice =
+        _formatPrice(priceInfo['discountPrice'] ?? priceInfo['salePrice']);
     final discountRate = (priceInfo['discountRate'] ?? '').toString().trim();
 
     return RichText(

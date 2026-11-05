@@ -11,10 +11,8 @@ class RichTextComponent extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     String raw = contentJson['html_content'] ?? '';
-    final cleanText = raw
-        .replaceAll(RegExp(r'<[^>]*>'), '')
-        .replaceAll('&nbsp;', ' ')
-        .trim();
+    final cleanText =
+        raw.replaceAll(RegExp(r'<[^>]*>'), '').replaceAll('&nbsp;', ' ').trim();
 
     if (cleanText.isEmpty) return const SizedBox.shrink();
 
@@ -27,7 +25,7 @@ class RichTextComponent extends StatelessWidget {
           .toList();
 
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
           decoration: BoxDecoration(
@@ -76,7 +74,7 @@ class RichTextComponent extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
       child: Text(
         cleanText,
         style: textTheme.bodyMedium?.copyWith(
