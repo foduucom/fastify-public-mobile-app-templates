@@ -8,8 +8,6 @@ import 'package:foddu/app/modules/shop/views/widgets/shop_filter_drawer.dart';
 import 'package:foddu/components/home_component/home_category.dart';
 import 'package:foddu/components/home_component/home_products.dart';
 import 'package:foddu/components/parent_web_product_card.dart';
-import 'package:foddu/constants/dynamic_theme.dart';
-import 'package:foddu/core/foduuStudio/foduu_studio_layout_view.dart';
 
 class ShopView extends GetView<ShopController> {
   const ShopView({Key? key}) : super(key: key);
@@ -30,25 +28,26 @@ class ShopView extends GetView<ShopController> {
         elevation: 0,
         centerTitle: true,
         title: Obx(() {
-          if (controller.isPlainShopEntry.value) {
-            return Text(
-              "Shop",
-              style:
-                  textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            );
-          }
+          // Always show collection name + live item count
+          final total = controller.totalProducts.value > 0
+              ? controller.totalProducts.value
+              : controller.products.length;
           return Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                controller.collectionName.value,
+                controller.isPlainShopEntry.value
+                    ? "Shop"
+                    : controller.collectionName.value,
                 style:
                     textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
-              Text(
-                "${controller.totalProducts.value} items",
-                style: textTheme.bodySmall
-                    ?.copyWith(color: colorScheme.onSurfaceVariant),
-              ),
+              if (!controller.isPlainShopEntry.value && total > 0)
+                Text(
+                  "$total items",
+                  style: textTheme.bodySmall
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
             ],
           );
         }),
@@ -73,7 +72,9 @@ class ShopView extends GetView<ShopController> {
         child: Obx(() {
           return Column(
             children: [
-              // ── CMS FREE-WILL SECTIONS (banner, rich_text, etc.) ──
+              // ── CMS PROMOTIONAL SECTIONS (banners, sliders, rich_text, etc.)
+              // Renders CMS blocks that are NOT product/category grids.
+              // Will be empty until fetchLayout completes — no flicker.
               ...controller.buildWidgetsExcluding(['categories', 'products']),
 
               // ── ACTIVE FILTER CHIPS (Horizontal Scroll) ──
@@ -87,12 +88,10 @@ class ShopView extends GetView<ShopController> {
                 child: controller.isLoading.value
                     ? _buildGridShimmer()
                     : RefreshIndicator(
-                        onRefresh: () async {
-                          await Future.wait([
-                            controller.fetchProducts(isRefresh: true),
-                            controller.fetchLayout(ShopController.pageSlug),
-                          ]);
-                        },
+                        onRefresh: () => Future.wait([
+                          controller.fetchProducts(isRefresh: true),
+                          controller.fetchLayout(ShopController.pageSlug),
+                        ]),
                         child: _buildProductGrid(colorScheme, textTheme),
                       ),
               ),

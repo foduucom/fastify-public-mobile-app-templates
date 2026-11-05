@@ -14,7 +14,7 @@ class CreateAccountController extends GetxController with BaseController {
   // ── State ────────────────────────────────────────────────────
   final obscureText = true.obs;
   final isLoading   = false.obs;
-  final isOtpMode   = false.obs;
+  final isOtpMode   = true.obs; // Safe default is OTP
 
   // ── Form ─────────────────────────────────────────────────────
   final formKey = GlobalKey<FormState>();
@@ -29,6 +29,9 @@ class CreateAccountController extends GetxController with BaseController {
     emailController    = TextEditingController();
     passwordController = TextEditingController();
     _loadAuthSettings();
+
+    // Listen for background settings changes
+    box.listenKey('auth_preference', (_) => _loadAuthSettings());
   }
 
   @override
@@ -41,6 +44,7 @@ class CreateAccountController extends GetxController with BaseController {
   // ── Auth Settings ─────────────────────────────────────────────
   void _loadAuthSettings() {
     isOtpMode.value = AuthSettingsHelper.isEmailOtpEnabled();
+    print('CreateAccountController - isOtpMode: ${isOtpMode.value}');
   }
 
   void togglePassword() => obscureText.toggle();
@@ -53,14 +57,18 @@ class CreateAccountController extends GetxController with BaseController {
 
   // ── Validators ────────────────────────────────────────────────
   String? validEmail(String? value) {
-    if (value == null || !GetUtils.isEmail(value)) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Please enter your email';
+    }
+    if (!GetUtils.isEmail(value.trim())) {
       return 'Please provide a valid email!';
     }
     return null;
   }
 
   String? validPassword(String? value) {
-    if (!isOtpMode.value && (value == null || value.length < 6)) {
+    if (isOtpMode.value) return null; // Password not required in OTP mode
+    if (value == null || value.length < 6) {
       return 'Password must be at least 6 characters.';
     }
     return null;
@@ -68,7 +76,9 @@ class CreateAccountController extends GetxController with BaseController {
 
   // ── Submit ────────────────────────────────────────────────────
   Future<void> onSubmit() async {
-    if (!formKey.currentState!.validate()) return;
+    if (formKey.currentState != null && !formKey.currentState!.validate()) {
+      return;
+    }
 
     isLoading(true);
 
@@ -82,12 +92,20 @@ class CreateAccountController extends GetxController with BaseController {
         form['password'] = passwordController.text;
       }
 
+      print('Sending auth/login request with: $form');
+
       final response = await BasicProvider('auth/login')
           .postRequest(form)
           .catchError(handleError);
 
       if (response != null) {
-        HelperFunctions().showSnackBarSuccess(response);
+        String message = 'OTP sent successfully!';
+        if (response is Map) {
+          message = response['message'] ?? response['msg'] ?? response['data'] ?? message;
+        } else if (response is String) {
+          message = response;
+        }
+        HelperFunctions().showSnackBarSuccess(message);
 
         // ✅ Go to OTP — socket connects AFTER OTP success in OTP controller
         Get.toNamed(

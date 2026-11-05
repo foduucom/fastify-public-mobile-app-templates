@@ -101,3 +101,28 @@ The `PageView` order, header shortcuts, shop navigation constant, wishlist short
 - Android profile APK build completed successfully with `flutter build apk --profile`.
 - `git diff --check` passed.
 - No automated tests were run for this follow-up.
+
+---
+
+## 6. Image 1 & Image 2 Parts Alignment with Parent Web (November 5, 2026)
+
+Following in-depth inspection of the parent website (`https://daksh-store.foduu.store/home` — Pixio Design System) and user review of the live screenshots:
+
+### 1. Image 1 Part: Banners (Sections 05 & 06)
+- **Parent Web Alignment**: On the parent site (`adv-area`), "Summer 2024" and "New Summer Collection" form a side-by-side 2-column campaign block (`col-lg-6` + `col-lg-6`) with differentiated CTA treatments: Section 05 uses an **outline CTA button** (`btn-outline-secondary`), while Section 06 uses a **solid CTA button** (`btn-secondary`).
+- **Implementation**:
+  - `lib/components/home_component/home_slider.dart`: Updated `_compact_home_spacing` vertical padding from `2px` to `7px` (yielding `14px` total clean editorial separation between consecutive banners instead of the jammed 4px hairline).
+  - Dynamically renders an outline pill CTA for Section 05 (`Summer 2024` / `home-top-left-slider`) and a solid pill CTA for Section 06 (`New Summer Collection`), directly mirroring the parent boutique design.
+
+### 2. Image 2 Part: Horizontal Products & Action Button (Section 08)
+- **Parent Web Alignment**: Section 07 (`pic3.jpg`) serves as the editorial feature companion for Section 08 ("Users Who Viewed This Also Checked Out These Similar Profiles").
+- **Implementation**:
+  - `lib/components/home_component/home_products.dart`:
+    - Adjusted horizontal card width from `280px` to `235px` with `12px` separator. On standard mobile viewports, Card 2 clearly peeks in showing thumbnail, title, and price, inviting smooth horizontal browsing.
+    - Added `_buildHorizontalActionControl`: Guarantees a persistent high-contrast onyx action button (bag icon for in-stock simple products, arrow icon to navigate to product details for variable items or options), eliminating the awkward empty void under the wishlist heart.
+
+### 3. Image 2 Part: Portrait Cards & Bottom Navigation Clearance (Section 10)
+- **Issue**: Prices in Section 10 cards (`ParentWebProductCard`) were sliced across the middle by the bottom navigation bar due to lack of scroll bottom inset.
+- **Implementation**:
+  - `lib/core/foduuStudio/foduu_studio_layout_view.dart`: Added `padding: const EdgeInsets.only(bottom: 36.0)` to the scroll view, ensuring complete visibility and comfortable scrolling past the bottom navigation bar.
+  - `lib/components/home_component/home_products.dart`: Tuned `cardHeight` from `265px` to `275px` and `cardWidth` to `158px` in `_buildParentWebHorizontalList` to give comfortable vertical breathing room for 2-line titles, 5 gold stars, and formatted prices.

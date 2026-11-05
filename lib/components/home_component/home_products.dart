@@ -1228,8 +1228,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
     // If not the top hero section, render as clean boutique portrait cards
     if (!isHeroCarousel) {
-      const double cardWidth = 155.0;
-      const double cardHeight = 265.0;
+      const double cardWidth = 158.0;
+      const double cardHeight = 275.0;
       return SizedBox(
         height: cardHeight,
         child: ListView.separated(
@@ -1792,7 +1792,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           ),
           child: ListView.separated(
             controller: _scrollController,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
             physics: const AlwaysScrollableScrollPhysics(),
             scrollDirection: Axis.horizontal,
             itemCount: itemCount,
@@ -1806,7 +1806,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 return const SizedBox.shrink();
               }
               return SizedBox(
-                width: 280,
+                width: 235,
                 child: _buildHorizontalItem(product, priceInfo),
               );
             },
@@ -1959,15 +1959,14 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 ),
               ),
             ),
-            // Wishlist + Add to Cart on the right
+            // Wishlist + Action Button on the right
             Padding(
               padding: const EdgeInsets.only(right: 8.0, top: 8.0, bottom: 8.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildWishlistIcon(product),
-                  if (ProductHelper.isInStock(product))
-                    _buildCartControl(product),
+                  _buildHorizontalActionControl(product),
                 ],
               ),
             ),
@@ -2279,11 +2278,42 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     return (chosen?['_id'] ?? chosen?['id'] ?? '').toString();
   }
 
+  Widget _buildHorizontalActionControl(Map<String, dynamic> product) {
+    final variantId = _resolveDefaultVariantId(product);
+    final inStock = ProductHelper.isInStock(product);
+
+    if (inStock && variantId.isNotEmpty) {
+      return _buildCartControl(product);
+    }
+
+    return GestureDetector(
+      onTap: () => _navigateToProduct(product),
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: const Color(0xFF111111),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.18),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(7.0),
+        child: const Icon(
+          Icons.arrow_forward_rounded,
+          size: 16,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
   /// Card-level add-to-cart control — shows a "+" when the product isn't in
   /// the cart, and a quantity stepper once it is. Reacts to CartService's
   /// cartItems for both guest (local) and logged-in (server) carts.
   Widget _buildCartControl(Map<String, dynamic> product) {
-    final colorScheme = Theme.of(context).colorScheme;
     final productId = ProductHelper.getProductId(product);
     final variantId = _resolveDefaultVariantId(product);
     if (variantId.isEmpty) return const SizedBox.shrink();

@@ -19,7 +19,7 @@ class OtpProvider extends BasicProvider {
     };
 
     try {
-      final response = await postRequest('/verify-otp', body);
+      final response = await BasicProvider('auth/verify-otp').postRequest(body);
       if (response != null) {
         if (response is Map<String, dynamic>) {
           return response;
@@ -47,7 +47,7 @@ class OtpProvider extends BasicProvider {
     };
 
     try {
-      final response = await postRequest('/resend-otp', body);
+      final response = await BasicProvider('auth/resend-otp').postRequest(body);
       if (response != null) {
         if (response is Map<String, dynamic>) {
           return response;

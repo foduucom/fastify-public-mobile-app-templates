@@ -76,108 +76,120 @@ class CreateAccountView extends GetView<CreateAccountController> {
 
             const SizedBox(height: 32),
 
-            /// 🔹 Title
-            Text(
-              'Create Account',
-              // ✅ Dynamic title styling
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-                color: context.onSurfaceColor,
+            /// 🔹 Form wrapper
+            Form(
+              key: controller.formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// 🔹 Title
+                  Obx(() => Text(
+                    controller.isOtpMode.value ? 'Welcome' : 'Create Account',
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: context.onSurfaceColor,
+                    ),
+                  )),
+
+                  const SizedBox(height: 8),
+
+                  /// 🔹 Subtitle
+                  Obx(() => Text(
+                    controller.isOtpMode.value
+                        ? 'Sign in or register to get started'
+                        : 'Sign up to get started',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontSize: 15,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  )),
+
+                  const SizedBox(height: 32),
+
+                  /// 🔹 Email
+                  _buildLabel(context, 'Email Address'),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: controller.emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: controller.validEmail,
+                    style: TextStyle(color: context.onSurfaceColor),
+                    decoration: _inputDecoration(context, 'Enter your email'),
+                  ),
+
+                  /// 🔹 Password (only shown if not in OTP mode)
+                  Obx(() {
+                    if (controller.isOtpMode.value) return const SizedBox.shrink();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 24),
+                        _buildLabel(context, 'Password'),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: controller.passwordController,
+                          obscureText: controller.obscureText.value,
+                          validator: controller.validPassword,
+                          style: TextStyle(color: context.onSurfaceColor),
+                          decoration: _inputDecoration(context, 'Enter your password')
+                              .copyWith(
+                            suffixIcon: GestureDetector(
+                              onTap: controller.togglePassword,
+                              child: Icon(
+                                controller.obscureText.value
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                                size: 20,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }),
+
+                  const SizedBox(height: 32),
+
+                  /// 🔹 Submit Button
+                  Obx(() => SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: controller.isLoading.value
+                          ? null
+                          : controller.onSubmit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: context.primaryColor,
+                        foregroundColor: context.onPrimaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: controller.isLoading.value
+                          ? SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: context.onPrimaryColor,
+                              ),
+                            )
+                          : Text(
+                              'Continue',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: context.onPrimaryColor,
+                              ),
+                            ),
+                    ),
+                  )),
+                ],
               ),
             ),
-
-            const SizedBox(height: 8),
-
-            Text(
-              'Sign up to get started',
-              // ✅ Dynamic subtitle
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontSize: 15,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            /// 🔹 Email
-            _buildLabel(context, 'Email Address'),
-            const SizedBox(height: 10),
-            TextFormField(
-              controller: controller.emailController,
-              keyboardType: TextInputType.emailAddress,
-              validator: controller.validEmail,
-              // ✅ Dynamic text color
-              style: TextStyle(color: context.onSurfaceColor),
-              decoration: _inputDecoration(context, 'Enter your email'),
-            ),
-
-            const SizedBox(height: 24),
-
-            /// 🔹 Password
-            _buildLabel(context, 'Password'),
-            const SizedBox(height: 10),
-            Obx(() => TextFormField(
-              controller: controller.passwordController,
-              obscureText: controller.obscureText.value,
-              validator: controller.validPassword,
-              style: TextStyle(color: context.onSurfaceColor),
-              decoration: _inputDecoration(context, 'Enter your password')
-                  .copyWith(
-                suffixIcon: GestureDetector(
-                  onTap: controller.togglePassword,
-                  child: Icon(
-                    controller.obscureText.value
-                        ? Icons.visibility_off
-                        : Icons.visibility,
-                    size: 20,
-                    // ✅ Dynamic icon color
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-            )),
-
-            const SizedBox(height: 32),
-
-            /// 🔹 Submit Button
-            Obx(() => SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: controller.isLoading.value
-                    ? null
-                    : controller.onSubmit,
-                // ✅ Dynamic button styling
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: context.primaryColor,
-                  foregroundColor: context.onPrimaryColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50),
-                  ),
-                  elevation: 0,
-                ),
-                child: controller.isLoading.value
-                    ? SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    // ✅ Dynamic loader color
-                    color: context.onPrimaryColor,
-                  ),
-                )
-                    : Text(
-                  'Continue',
-                  // ✅ Dynamic button text
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: context.onPrimaryColor,
-                  ),
-                ),
-              ),
-            )),
 
             const SizedBox(height: 20),
           ],

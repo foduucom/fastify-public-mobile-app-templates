@@ -120,7 +120,7 @@ class _FoduuSliderState extends State<FoduuSlider>
 
     return Padding(
       padding: EdgeInsets.symmetric(
-        vertical: widget.sliderData['_compact_home_spacing'] == true ? 2 : 4,
+        vertical: widget.sliderData['_compact_home_spacing'] == true ? 7 : 4,
       ),
       child: Stack(
         alignment: Alignment.bottomCenter,
@@ -210,13 +210,12 @@ class _FoduuSliderState extends State<FoduuSlider>
                                         "Could not launch the link.");
                                   }
                                 } else {
-                                  // If it's not a URL, it might be an internal page or invalid
-                                  HelperFunctions().showSnackBarError(
-                                      "Invalid link or unsupported slider type.");
+                                  // Treat non-http links as internal slugs → go to shop
+                                  openShop();
                                 }
                               } else {
-                                HelperFunctions().showSnackBarError(
-                                    "No link associated with this slide.");
+                                // No link configured → default to Shop tab
+                                openShop();
                               }
                             },
                             child: Container(
@@ -373,41 +372,79 @@ class _FoduuSliderState extends State<FoduuSlider>
                                         ],
                                         if (buttonText.isNotEmpty) ...[
                                           const SizedBox(height: 12),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 16, vertical: 8),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(24),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black
-                                                      .withOpacity(0.2),
-                                                  blurRadius: 6,
-                                                  offset: const Offset(0, 2),
-                                                ),
-                                              ],
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(
-                                                  buttonText,
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: Colors.black,
-                                                    letterSpacing: 0.5,
+                                          GestureDetector(
+                                            onTap: () {
+                                              if (sliderType == 'categories' &&
+                                                  link != null &&
+                                                  link.isNotEmpty) {
+                                                openShop({
+                                                  'source': 'category',
+                                                  'productId': link,
+                                                  'name': title,
+                                                });
+                                              } else {
+                                                openShop();
+                                              }
+                                            },
+                                            child: Builder(
+                                              builder: (context) {
+                                                final slug = (widget.sliderData['slider']?['slug'] ??
+                                                        widget.sliderData['slider']?['name'] ??
+                                                        '')
+                                                    .toString()
+                                                    .toLowerCase();
+                                                final isOutline = slug.contains('left') ||
+                                                    title.toLowerCase().contains('summer 2024');
+
+                                                return Container(
+                                                  padding: const EdgeInsets.symmetric(
+                                                      horizontal: 16, vertical: 8),
+                                                  decoration: BoxDecoration(
+                                                    color: isOutline
+                                                        ? Colors.black.withOpacity(0.3)
+                                                        : Colors.white,
+                                                    borderRadius:
+                                                        BorderRadius.circular(24),
+                                                    border: isOutline
+                                                        ? Border.all(
+                                                            color: Colors.white,
+                                                            width: 1.5)
+                                                        : null,
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black
+                                                            .withOpacity(0.2),
+                                                        blurRadius: 6,
+                                                        offset: const Offset(0, 2),
+                                                      ),
+                                                    ],
                                                   ),
-                                                ),
-                                                const SizedBox(width: 4),
-                                                const Icon(
-                                                  Icons.arrow_forward_rounded,
-                                                  size: 14,
-                                                  color: Colors.black,
-                                                ),
-                                              ],
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Text(
+                                                        buttonText,
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          fontWeight: FontWeight.w700,
+                                                          color: isOutline
+                                                              ? Colors.white
+                                                              : Colors.black,
+                                                          letterSpacing: 0.5,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 4),
+                                                      Icon(
+                                                        Icons.arrow_forward_rounded,
+                                                        size: 14,
+                                                        color: isOutline
+                                                            ? Colors.white
+                                                            : Colors.black,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
                                             ),
                                           ),
                                         ],

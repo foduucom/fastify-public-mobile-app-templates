@@ -118,24 +118,27 @@ class StudioSocketRouting extends GetxController {
     // Non-bottom-bar routes: push as standalone screens
     switch (normalizedSlug) {
       case 'detailcategory':
+        if (Get.currentRoute == Routes.DETAILCATEGORY) return;
+        if (Get.currentRoute != Routes.BOTTOMBAR) {
+          Get.until((route) => route.settings.name == Routes.BOTTOMBAR);
+        }
         Get.toNamed(Routes.DETAILCATEGORY);
         break;
       case 'search':
+        if (Get.currentRoute == Routes.SEARCH) return;
+        if (Get.currentRoute != Routes.BOTTOMBAR) {
+          Get.until((route) => route.settings.name == Routes.BOTTOMBAR);
+        }
         Get.toNamed(Routes.SEARCH);
         break;
       case 'product-listing':
+        if (Get.currentRoute != Routes.BOTTOMBAR) {
+          Get.until((route) => route.settings.name == Routes.BOTTOMBAR);
+        }
         openShop();
         break;
       default:
-      // Get.toNamed(Routes.CUSTOMPAGE,
-      //     arguments: {'slug': slug, 'label': 'No lable'});
-      // print(
-      //     'ℹ️ StudioSocketRouting: Attempting direct navigation for: $slug');
-      // if (slug.startsWith('/')) {
-      //   Get.toNamed(slug);
-      // } else {
-      //   print('⚠️ StudioSocketRouting: No specific handler for slug: $slug');
-      // }
+        print('⚠️ StudioSocketRouting: No specific handler for slug: $slug');
     }
   }
 

@@ -17,7 +17,7 @@ class LoginController extends GetxController with BaseController {
 
   final box = GetStorage();
   // Auth type from settings
-  var isOtpMode = false.obs;
+  var isOtpMode = true.obs;
 
   @override
   void onInit() {
@@ -27,6 +27,7 @@ class LoginController extends GetxController with BaseController {
 
     // Load auth settings
     loadAuthSettings();
+    box.listenKey('auth_preference', (_) => loadAuthSettings());
   }
 
   void loadAuthSettings() {

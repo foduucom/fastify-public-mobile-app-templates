@@ -98,10 +98,10 @@ class ShopController extends GetxController
       maxPrice.value = values.end;
     });
 
-    // Load CMS layout sections (banners, sliders, etc.)
+    // Always load the full product catalog from the backend.
+    // CMS layout sections (promo banners, sliders, etc.) are fetched
+    // concurrently and rendered above the catalog grid when available.
     fetchLayout(pageSlug);
-
-    // Load catalog filters & products
     fetchBrands();
     fetchCategories();
     fetchProducts(isRefresh: true);
@@ -401,10 +401,6 @@ class ShopController extends GetxController
 
   // ─── FILTER CONTROLS ───────────────────────────────────────
   void applyFiltersAndRefresh() {
-    // Any filter/sort action means the user wants the filtered product grid,
-    // not the CMS layout — switch entry mode even when triggered from the
-    // plain Shop tab (which never called fetchProducts on init).
-    isPlainShopEntry.value = false;
     fetchProducts(isRefresh: true);
   }
 

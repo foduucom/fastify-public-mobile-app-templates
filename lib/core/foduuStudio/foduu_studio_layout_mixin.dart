@@ -39,6 +39,8 @@ mixin FoduuStudioLayoutMixin on GetxController {
   final widgetList = <Widget>[].obs;
   final isLayoutLoading = true.obs;
   final layoutError = ''.obs;
+  final hasError = false.obs;
+  final errorMessage = ''.obs;
 
   // ─── Internal state ──────────────────────────────────────────
   List _initialComponents = [];
@@ -176,7 +178,8 @@ mixin FoduuStudioLayoutMixin on GetxController {
   List<Widget> buildWidgetsExcluding(Iterable<String> excludedTypes) {
     final excluded = excludedTypes.toSet();
     return _initialComponents
-        .whereType<Map<String, dynamic>>()
+        .whereType<Map>()
+        .map((s) => Map<String, dynamic>.from(s))
         .where((section) => !excluded.contains(section['type']?.toString()))
         .map(_registry.build)
         .whereType<Widget>()
@@ -191,6 +194,8 @@ mixin FoduuStudioLayoutMixin on GetxController {
     try {
       isLayoutLoading.value = true;
       layoutError.value = '';
+      hasError.value = false;
+      errorMessage.value = '';
       dynamic response;
 
       // CMS changes are broadcast to the mobile app as well as the web app.
@@ -217,8 +222,12 @@ mixin FoduuStudioLayoutMixin on GetxController {
         layoutError.value = response == null
             ? 'Could not load home content. Check your connection and try again.'
             : 'The home response did not contain a valid sections list.';
+        hasError.value = true;
+        errorMessage.value = layoutError.value;
         print('⚠️ DynamicLayout: No valid sections found for "$slug"');
       } else {
+        hasError.value = false;
+        errorMessage.value = '';
         print(
             '📄 DynamicLayout: Received ${sections.length} sections for "$slug"');
         buildLayout(sections);
@@ -234,6 +243,8 @@ mixin FoduuStudioLayoutMixin on GetxController {
     } catch (e) {
       print('DynamicLayoutMixin fetchLayout error: $e');
       layoutError.value = 'Could not display home content. Please try again.';
+      hasError.value = true;
+      errorMessage.value = layoutError.value;
     } finally {
       isLayoutLoading.value = false;
     }
@@ -271,8 +282,11 @@ mixin FoduuStudioLayoutMixin on GetxController {
       _currentDomain = domain;
       _currentSlug = slug;
 
-      // Register this controller for the given slug
+      // Register this controller for the given slug (both original and normalized)
+      final normalizedSlug =
+          slug.toLowerCase().replaceFirst(RegExp(r'^/'), '');
       _slugHandlers[slug] = this;
+      _slugHandlers[normalizedSlug] = this;
 
       final eventName = '${domain}:mobileapp';
 
@@ -302,8 +316,13 @@ mixin FoduuStudioLayoutMixin on GetxController {
   void disableSocketUpdates(String domain, String slug) {
     // A second controller can take over the same slug while the first route
     // is being disposed. Do not remove the newer controller's registration.
+    final normalizedSlug =
+        slug.toLowerCase().replaceFirst(RegExp(r'^/'), '');
     if (identical(_slugHandlers[slug], this)) {
       _slugHandlers.remove(slug);
+    }
+    if (identical(_slugHandlers[normalizedSlug], this)) {
+      _slugHandlers.remove(normalizedSlug);
     }
     print(
         '🔴 DynamicLayout: Unregistered slug "$slug" (${_slugHandlers.length} remaining)');
@@ -349,10 +368,12 @@ mixin FoduuStudioLayoutMixin on GetxController {
 
     // ── Extract slug from data ──
     // slug can be at root level or inside content_json
-    final String? dataSlug =
+    final String? rawSlug =
         decodedData['slug']?.toString() ?? contentPayload['slug']?.toString();
+    final String? dataSlug =
+        rawSlug?.toLowerCase().replaceFirst(RegExp(r'^/'), '');
 
-    print('📩 DynamicLayout: Socket event received for slug: "$dataSlug"');
+    print('📩 DynamicLayout: Socket event received for slug: "$dataSlug" (raw: "$rawSlug")');
     print('   Registered slugs: ${_slugHandlers.keys.toList()}');
 
     // ── Handle Theme Update (applies globally) ──
@@ -369,7 +390,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
     // ── Handle Section Update (slug-specific) ──
     var newSections = contentPayload['sections'];
     if (newSections != null && newSections is List && dataSlug != null) {
-      final handler = _slugHandlers[dataSlug];
+      final handler = _slugHandlers[dataSlug] ?? (rawSlug != null ? _slugHandlers[rawSlug] : null);
       if (handler != null) {
         print('   ✅ Dispatching sections to slug: "$dataSlug"');
         handler._handleSectionUpdate(newSections, dataSlug);

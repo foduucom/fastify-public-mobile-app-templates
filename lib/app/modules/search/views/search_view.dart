@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '/components/app_image_placeholder.dart';
 import 'package:foddu/app/modules/auth/auth_details.dart';
@@ -193,7 +194,10 @@ class SearchView extends GetView<SearchsController> {
                           controller.selectedBrandSlug.value.isNotEmpty ||
                           controller.activeFilter.value.hasActiveFilters;
 
-                  if (!isSearchMode && controller.widgetList.isNotEmpty) {
+                  if (!isSearchMode &&
+                      (controller.widgetList.isNotEmpty ||
+                          kIsWeb ||
+                          controller.isLayoutLoading.value)) {
                     return FoduuStudioLayoutView(
                       onRefresh: () =>
                           controller.fetchLayout(SearchsController.pageSlug),
