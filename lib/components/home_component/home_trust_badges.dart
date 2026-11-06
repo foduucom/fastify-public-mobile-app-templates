@@ -25,6 +25,18 @@ class TrustBadgesComponent extends StatelessWidget {
         _str(c['heading'] ?? c['title']).isNotEmpty ||
         _str(c['text'] ?? c['description']).isNotEmpty);
 
+    // ── NEW: Logo-only strip (Sponsored) ─────────────────────
+    final hasImagesOnly = cards.isNotEmpty && !hasCardText && subtitle.isEmpty;
+
+    if (hasImagesOnly) {
+      return _LogoStrip(
+        cards: cards,
+        title: _str(contentJson['title'] ?? contentJson['heading']),
+        noOfColumns:
+            int.tryParse('${contentJson['no_of_columns']}') ?? cards.length,
+      );
+    }
+
     if (!hasCardText && subtitle.isNotEmpty) {
       final slides = [
         _Testimonial(
@@ -81,6 +93,137 @@ int _starCount(String s) {
   if (n > 0) return n.clamp(0, 5);
   final parsed = double.tryParse(s);
   return parsed != null ? parsed.round().clamp(0, 5) : 5;
+}
+
+class _LogoStrip extends StatelessWidget {
+  final List<Map> cards;
+  final String title;
+  final int noOfColumns;
+
+  const _LogoStrip({
+    required this.cards,
+    required this.title,
+    required this.noOfColumns,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Resolve image URLs via HelperFunctions (same as the rest of the app).
+    final logos = cards
+        .map((c) => _str(c['image'] ?? c['icon']))
+        .where((s) => s.isNotEmpty)
+        .map((s) => HelperFunctions().getImage(s))
+        .toList();
+
+    if (logos.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Section header with "See All >" ──────────────────────
+          if (title.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      letterSpacing: 0.2,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => openShop({'source': 'sponsored'}),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'See All',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          size: 18,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+          // ── Horizontal scrolling logo carousel ──────────────────
+          SizedBox(
+            height: 64,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: logos.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, index) =>
+                  _logoCard(logos[index], isDark, theme),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Builds a single logo card matching the parent website's Swiper carousel.
+  ///
+  /// **Light Mode**: Onyx black card (`#111111`) — white CMS logos pop perfectly.
+  /// Mirrors the parent site's `.company-box.style-1 .dz-media:after { background: #000 }`.
+  ///
+  /// **Dark Mode**: Elevated dark surface card (`#1E1E1E`) with hairline outline
+  /// (`#333333`), matching the app's existing dark card language.
+  Widget _logoCard(String url, bool isDark, ThemeData theme) {
+    return Container(
+      width: 104,
+      height: 60,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: isDark
+            ? const Color(0xFF1E1E1E) // Dark surface
+            : const Color(0xFF111111), // Onyx black (parent website match)
+        borderRadius: BorderRadius.circular(14),
+        border: isDark
+            ? Border.all(color: const Color(0xFF333333), width: 0.5)
+            : null,
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.12),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+      ),
+      child: FoduuCachedNetworkImage(
+        image: url,
+        height: 32,
+        width: 72,
+        fit: BoxFit.contain,
+      ),
+    );
+  }
 }
 
 class _Testimonial {

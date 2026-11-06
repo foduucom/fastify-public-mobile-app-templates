@@ -6,9 +6,8 @@ import '../views/widgets/controller.dart';
 class LoginBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<LoginController>(
-      () => LoginController(),
-    );
-    Get.lazyPut<CreateAccountController>(() => CreateAccountController());
+    Get.lazyPut<LoginController>(() => LoginController(), fenix: true);
+    Get.lazyPut<CreateAccountController>(() => CreateAccountController(),
+        fenix: true);
   }
 }

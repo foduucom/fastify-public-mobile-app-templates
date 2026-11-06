@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import '../../../../../app_colors.dart';
-import '../../../../../components/app_bar/custom_app_bar.dart';
+import '../../../../../constants/dynamic_theme.dart' as themeExt;
 import '../controller/otp_controller.dart';
 
 class OtpView extends GetView<OtpController> {
@@ -11,49 +10,88 @@ class OtpView extends GetView<OtpController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true, // ✅ push content up on keyboard
-      backgroundColor: AppColors.scaffoldBackground,
+      // ✅ Dynamic scaffold background — matches login/register
+      backgroundColor: context.backgroundColor,
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 16),
-            AppTopBar(title: 'Verify Email', showCart: false),
-            const SizedBox(height: 40),
+            // ── Top bar (inlined, same pattern as CreateAccountView) ──
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Get.back(),
+                    icon: Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 20,
+                      color: context.onSurfaceColor,
+                    ),
+                    tooltip: 'Back',
+                  ),
+                  const Spacer(),
+                  Text(
+                    'Verify Email',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: context.onSurfaceColor,
+                        ),
+                  ),
+                  const Spacer(),
+                  // Symmetry spacer so the title stays centered
+                  const SizedBox(width: 48),
+                ],
+              ),
+            ),
 
             Expanded(
-              child: SingleChildScrollView( // ✅ KEY FIX
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 keyboardDismissBehavior:
-                ScrollViewKeyboardDismissBehavior.onDrag,
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    const SizedBox(height: 24),
 
                     // ── Icon ─────────────────────────────────
                     Container(
-                      width: 80, height: 80,
-                      decoration: const BoxDecoration(
-                        color: AppColors.scaffoldBackground, shape: BoxShape.circle,
+                      width: 90,
+                      height: 90,
+                      decoration: BoxDecoration(
+                        color: context.primaryColor,
+                        shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.mark_email_unread_outlined,
-                          size: 36, color: Color(0xFF1A1A1A)),
+                      child: Icon(
+                        Icons.mark_email_unread_outlined,
+                        size: 36,
+                        color: context.onPrimaryColor,
+                      ),
                     ),
                     const SizedBox(height: 24),
 
-                    const Text('Check your email',
-                        style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF1A1A1A))),
+                    Text(
+                      'Check your email',
+                      style:
+                          Theme.of(context).textTheme.headlineLarge?.copyWith(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                                color: context.onSurfaceColor,
+                              ),
+                    ),
                     const SizedBox(height: 8),
 
                     Text(
                       'We sent a verification code to\n${controller.email}',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF9E9E9E),
-                          height: 1.5),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontSize: 14,
+                            height: 1.5,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                     ),
                     const SizedBox(height: 36),
 
@@ -66,8 +104,9 @@ class OtpView extends GetView<OtpController> {
                       keyboardType: TextInputType.number,
                       animationType: AnimationType.scale,
 
-                      textStyle: const TextStyle( // ✅ REQUIRED
-                        color: Colors.white,
+                      // ✅ Dynamic digit color (readable on filled active box)
+                      textStyle: TextStyle(
+                        color: context.onPrimaryColor,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -78,83 +117,103 @@ class OtpView extends GetView<OtpController> {
                         fieldHeight: 56,
                         fieldWidth: 48,
 
-                        // ✅ FIX COLORS
-                        activeFillColor: const Color(0xFF1A1A1A),
-                        selectedFillColor: const Color(0xFF1A1A1A),
-                        inactiveFillColor: const Color(0xFFF5F5F5),
+                        // ✅ Dynamic fills
+                        activeFillColor: context.primaryColor,
+                        selectedFillColor: context.primaryColor,
+                        inactiveFillColor: context.surfaceColor,
 
-                        activeColor: const Color(0xFF1A1A1A),
-                        selectedColor: const Color(0xFF1A1A1A),
-                        inactiveColor: Colors.grey.shade300,
+                        // ✅ Dynamic borders
+                        activeColor: context.primaryColor,
+                        selectedColor: context.primaryColor,
+                        inactiveColor: context.onSurfaceColor.withOpacity(0.12),
                       ),
 
                       enableActiveFill: true,
-                      cursorColor: Colors.white,
+                      cursorColor: context.onPrimaryColor,
+                      // ✅ Caret color readable on filled boxes
                     ),
                     const SizedBox(height: 32),
 
                     // ── Verify Button ─────────────────────────
                     Obx(() => SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: controller.isLoading.value
-                            ? null
-                            : controller.verifyOtp,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:  AppColors.scaffoldBackground,
-                          foregroundColor: AppColors.scaffoldBackground,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50)),
-                        ),
-                        child: controller.isLoading.value
-                            ? const SizedBox(
-                            width: 22, height: 22,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                color: AppColors.scaffoldBackground))
-                            : const Text('Verify OTP',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600)),
-                      ),
-                    )),
+                          width: double.infinity,
+                          height: 56,
+                          child: ElevatedButton(
+                            // ✅ () => … — actually invokes the method
+                            onPressed: controller.isLoading.value
+                                ? null
+                                : () => controller.verifyOtp(),
+                            style: ElevatedButton.styleFrom(
+                              // ✅ Match login/register submit button
+                              backgroundColor: context.primaryColor,
+                              foregroundColor: context.onPrimaryColor,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                            ),
+                            child: controller.isLoading.value
+                                ? SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: context.onPrimaryColor,
+                                    ),
+                                  )
+                                : Text(
+                                    'Verify OTP',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: context.onPrimaryColor,
+                                        ),
+                                  ),
+                          ),
+                        )),
                     const SizedBox(height: 20),
 
                     // ── Resend ────────────────────────────────
                     Obx(() => GestureDetector(
-                      onTap: controller.isResending.value
-                          ? null
-                          : controller.resendOtp,
-                      child: controller.isResending.value
-                          ? const SizedBox(
-                          width: 18, height: 18,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Color(0xFF1A1A1A)))
-                          : RichText(
-                        text: const TextSpan(
-                          text: "Didn't receive it? ",
-                          style: TextStyle(
-                              color: Color(0xFF9E9E9E),
-                              fontSize: 14),
-                          children: [
-                            TextSpan(
-                              text: 'Resend',
-                              style: TextStyle(
-                                color: Color(0xFF1A1A1A),
-                                fontWeight: FontWeight.w700,
-                                decoration:
-                                TextDecoration.underline,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )),
+                          onTap: controller.isResending.value
+                              ? null
+                              : controller.resendOtp,
+                          child: controller.isResending.value
+                              ? SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: context.primaryColor,
+                                  ),
+                                )
+                              : RichText(
+                                  text: TextSpan(
+                                    text: "Didn't receive it? ",
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                      fontSize: 14,
+                                    ),
+                                    children: [
+                                      TextSpan(
+                                        text: 'Resend',
+                                        style: TextStyle(
+                                          color: context.primaryColor,
+                                          fontWeight: FontWeight.w700,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                        )),
 
-                    const SizedBox(height: 32), // ✅ bottom breathing room
+                    const SizedBox(height: 32),
                   ],
                 ),
               ),

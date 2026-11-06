@@ -22,7 +22,7 @@ class CategoryView extends GetView<CategoryController> {
           isLoading: controller.isLayoutLoading,
           hasError: controller.hasError,
           errorMessage: controller.errorMessage,
-          loadingWidget: const CategoryPageShimmer(),
+          // loadingWidget: const CategoryPageShimmer(),
         ),
       ),
     );

@@ -4,20 +4,19 @@ import 'package:get_storage/get_storage.dart';
 
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
-          // ✅ added
+// ✅ added
 import '/app/modules/auth/auth_settings_helper.dart';
 import '/app/routes/app_pages.dart';
 import '/constants/helper_functions.dart';
 
 class CreateAccountController extends GetxController with BaseController {
-
   // ── State ────────────────────────────────────────────────────
   final obscureText = true.obs;
-  final isLoading   = false.obs;
-  final isOtpMode   = true.obs; // Safe default is OTP
+  final isLoading = false.obs;
+  final isOtpMode = true.obs; // Safe default is OTP
 
   // ── Form ─────────────────────────────────────────────────────
-  final formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   late TextEditingController emailController;
   late TextEditingController passwordController;
 
@@ -26,7 +25,7 @@ class CreateAccountController extends GetxController with BaseController {
   @override
   void onInit() {
     super.onInit();
-    emailController    = TextEditingController();
+    emailController = TextEditingController();
     passwordController = TextEditingController();
     _loadAuthSettings();
 
@@ -84,7 +83,7 @@ class CreateAccountController extends GetxController with BaseController {
 
     try {
       final form = <String, dynamic>{
-        'email':          emailController.text.trim(),
+        'email': emailController.text.trim(),
         'device_details': await HelperFunctions.getDeviceDetails(),
       };
 
@@ -101,7 +100,10 @@ class CreateAccountController extends GetxController with BaseController {
       if (response != null) {
         String message = 'OTP sent successfully!';
         if (response is Map) {
-          message = response['message'] ?? response['msg'] ?? response['data'] ?? message;
+          message = response['message'] ??
+              response['msg'] ??
+              response['data'] ??
+              message;
         } else if (response is String) {
           message = response;
         }
