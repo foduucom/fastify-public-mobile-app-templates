@@ -8,6 +8,7 @@ import 'package:foddu/app/modules/shop/views/widgets/shop_filter_drawer.dart';
 import 'package:foddu/components/home_component/home_category.dart';
 import 'package:foddu/components/home_component/home_products.dart';
 import 'package:foddu/components/parent_web_product_card.dart';
+import 'package:foddu/core/foduuStudio/foduu_studio_layout_view.dart';
 
 class ShopView extends GetView<ShopController> {
   const ShopView({Key? key}) : super(key: key);
@@ -19,50 +20,52 @@ class ShopView extends GetView<ShopController> {
     final textTheme = Theme.of(context).textTheme;
     final scaffoldKey = GlobalKey<ScaffoldState>();
 
-    return Scaffold(
-      key: scaffoldKey,
-      backgroundColor: colorScheme.surface,
-      drawer: ShopFilterDrawer(controller: controller),
-      appBar: AppBar(
+    return Obx(() {
+      final isPlain = controller.isPlainShopEntry.value;
+
+      return Scaffold(
+        key: scaffoldKey,
         backgroundColor: colorScheme.surface,
-        elevation: 0,
-        centerTitle: true,
-        title: Obx(() {
-          // Always show collection name + live item count
-          final total = controller.totalProducts.value > 0
-              ? controller.totalProducts.value
-              : controller.products.length;
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                controller.isPlainShopEntry.value
-                    ? "Shop"
-                    : controller.collectionName.value,
-                style:
-                    textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              if (!controller.isPlainShopEntry.value && total > 0)
+        drawer: ShopFilterDrawer(controller: controller),
+        appBar: AppBar(
+          backgroundColor: colorScheme.surface,
+          elevation: 0,
+          centerTitle: true,
+          title: Obx(() {
+            final total = controller.totalProducts.value > 0
+                ? controller.totalProducts.value
+                : controller.products.length;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 Text(
-                  "$total items",
-                  style: textTheme.bodySmall
-                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  controller.isPlainShopEntry.value
+                      ? "Shop"
+                      : controller.collectionName.value,
+                  style:
+                      textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
-            ],
-          );
-        }),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56),
-          child: _ShopHeaderToolbar(
-            controller: controller,
-            onFilterTap: () {
-              controller.ensureFilterDataLoaded();
-              controller.ensureCategoryTreeLoaded();
-              scaffoldKey.currentState?.openDrawer();
-            },
+                if (!controller.isPlainShopEntry.value && total > 0)
+                  Text(
+                    "$total items",
+                    style: textTheme.bodySmall
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  ),
+              ],
+            );
+          }),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(56),
+            child: _ShopHeaderToolbar(
+              controller: controller,
+              onFilterTap: () {
+                controller.ensureFilterDataLoaded();
+                controller.ensureCategoryTreeLoaded();
+                scaffoldKey.currentState?.openDrawer();
+              },
+            ),
           ),
         ),
-      ),
       body: PopScope(
         canPop: controller.filterCategoryStack.isEmpty,
         onPopInvokedWithResult: (didPop, _) {
@@ -70,6 +73,21 @@ class ShopView extends GetView<ShopController> {
           controller.goUpFilterCategory();
         },
         child: Obx(() {
+          // ── CMS CANVAS MODE (plain tab entry, no filters, and in grid mode) ──
+          // Renders the full CMS layout from api/mobile-app/shop including
+          // the products section with infinite scroll handled by
+          // TrendingProductSection internally.
+          if (controller.isPlainShopEntry.value && !controller.isListView.value) {
+            return FoduuStudioLayoutView(
+              widgetList: controller.widgetList,
+              isLoading: controller.isLayoutLoading,
+              hasError: controller.hasError,
+              errorMessage: controller.errorMessage,
+              onRefresh: () => controller.fetchLayout(ShopController.pageSlug),
+            );
+          }
+
+          // ── FILTERED CATALOG MODE (category/brand/filter args) ──
           return Column(
             children: [
               // ── CMS PROMOTIONAL SECTIONS (banners, sliders, rich_text, etc.)
@@ -99,7 +117,8 @@ class ShopView extends GetView<ShopController> {
           );
         }),
       ),
-    );
+    );  // end Scaffold
+    });  // end outer Obx
   }
 
   // ─── SUB CATEGORY STRIP + BREADCRUMB ─────────────────────────────────
@@ -281,23 +300,31 @@ class ShopView extends GetView<ShopController> {
     return Obx(() {
       final isList = controller.isListView.value;
       if (isList) {
+        final hasMore = controller.hasNextPage;
+        final totalItemCount = controller.products.length +
+            (hasMore ? 1 : (controller.products.isNotEmpty ? 1 : 0));
+
         return ListView.builder(
           controller: controller.scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(vertical: 8),
-          itemCount:
-              controller.products.length + (controller.hasNextPage ? 1 : 0),
+          itemCount: totalItemCount,
           itemBuilder: (context, index) {
             if (index >= controller.products.length) {
-              if (!controller.isFetchingMore.value) {
-                controller.fetchProducts(isRefresh: false);
+              if (hasMore) {
+                if (!controller.isFetchingMore.value) {
+                  controller.fetchProducts(isRefresh: false);
+                }
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              } else {
+                return _buildEndOfListFooter(
+                    colorScheme, textTheme, controller.products.length);
               }
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(),
-                ),
-              );
             }
             final p = controller.products[index];
             return ParentWebProductCard(
@@ -309,6 +336,12 @@ class ShopView extends GetView<ShopController> {
         );
       }
 
+      final cmsJson = controller.contentJsonFor('products');
+      final cmsColumns = cmsJson?['columns']?.toString() ?? '3';
+      final cmsSpacing = cmsJson?['spacing']?.toString() ?? '10';
+      final cmsAspectRatio = cmsJson?['aspect_ratio']?.toString() ?? '0.52';
+      final cmsLayout = cmsJson?['layout']?.toString() ?? 'standard';
+
       return SingleChildScrollView(
         controller: controller.scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
@@ -318,31 +351,82 @@ class ShopView extends GetView<ShopController> {
           externalIsLoadingMore: controller.isFetchingMore.value,
           onLoadMore: () => controller.fetchProducts(isRefresh: false),
           hideHeader: true,
-          contentJson: const {
+          contentJson: {
             'view': 'grid',
-            'layout': 'parent_web',
-            'columns': '2',
-            'spacing': '12',
-            'aspect_ratio': '0.58',
+            'layout': cmsLayout,
+            'columns': cmsColumns,
+            'spacing': cmsSpacing,
+            'aspect_ratio': cmsAspectRatio,
+            'infinite_scroll': true,
           },
         ),
       );
     });
   }
 
+  Widget _buildEndOfListFooter(
+      ColorScheme colorScheme, TextTheme textTheme, int totalCount) {
+    return Padding(
+      padding:
+          const EdgeInsets.only(top: 24.0, bottom: 28.0, left: 32.0, right: 32.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Divider(
+              color: colorScheme.outline.withValues(alpha: 0.25),
+              thickness: 1,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.check_circle_outline_rounded,
+                  size: 14,
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  "You've viewed all $totalCount items",
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Divider(
+              color: colorScheme.outline.withValues(alpha: 0.25),
+              thickness: 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildGridShimmer() {
+    final cmsJson = controller.contentJsonFor('products');
+    final columns = int.tryParse(cmsJson?['columns']?.toString() ?? '3') ?? 3;
+    final spacing =
+        double.tryParse(cmsJson?['spacing']?.toString() ?? '10') ?? 10;
     return Shimmer.fromColors(
       baseColor: Colors.grey.shade300,
       highlightColor: Colors.grey.shade100,
       child: GridView.builder(
         padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 0.58,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns,
+          crossAxisSpacing: spacing,
+          mainAxisSpacing: spacing,
+          childAspectRatio: columns >= 3 ? 0.52 : 0.58,
         ),
-        itemCount: 6,
+        itemCount: columns * 2,
         itemBuilder: (_, __) => Container(
             decoration: BoxDecoration(
                 color: Colors.white, borderRadius: BorderRadius.circular(16))),

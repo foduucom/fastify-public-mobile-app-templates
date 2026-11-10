@@ -44,7 +44,8 @@ class WishlistView extends GetView<WishlistController> {
               if (count > 0) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: colors.primary.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
@@ -142,7 +143,13 @@ class WishlistView extends GetView<WishlistController> {
                 ],
               ),
               tooltip: 'Cart',
-              onPressed: () => Get.toNamed(Routes.CART),
+              onPressed: () {
+                if (Get.isRegistered<BottombarController>()) {
+                  Get.find<BottombarController>().onTabChange(cartTabIndex);
+                } else {
+                  Get.offAllNamed(Routes.BOTTOMBAR);
+                }
+              },
             );
           }),
           const SizedBox(width: 4),

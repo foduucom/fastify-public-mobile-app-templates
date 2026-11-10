@@ -1,3 +1,4 @@
+import 'package:foddu/constants/constants.dart';
 import 'package:intl/intl.dart';
 
 class CouponProductItem {

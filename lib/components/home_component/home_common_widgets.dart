@@ -321,6 +321,7 @@ class StudioSectionHeader extends StatelessWidget {
       padding: padding,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Expanded(
             child: Column(
@@ -329,9 +330,11 @@ class StudioSectionHeader extends StatelessWidget {
               children: [
                 Text(
                   t,
-                  style: textTheme.titleLarge?.copyWith(
+                  style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
+                    fontSize: 18,
+                    letterSpacing: -0.2,
+                    color: colorScheme.onSurface,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -340,8 +343,9 @@ class StudioSectionHeader extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     s,
-                    style: textTheme.titleSmall?.copyWith(
+                    style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
+                      fontSize: 12,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -361,16 +365,17 @@ class StudioSectionHeader extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'See all',
+                      'See All',
                       style: textTheme.labelLarge?.copyWith(
                         color: colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
+                        fontSize: 13,
                       ),
                     ),
                     const SizedBox(width: 2),
                     Icon(
                       Icons.chevron_right_rounded,
-                      size: 18,
+                      size: 16,
                       color: colorScheme.onSurface,
                     ),
                   ],

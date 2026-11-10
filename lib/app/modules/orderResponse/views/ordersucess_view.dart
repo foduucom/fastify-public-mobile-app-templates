@@ -1,7 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
-import '/app/modules/Profie/orders/controller/orders_controller.dart';
+import '/app/modules/profile_legacy/orders/controller/orders_controller.dart';
 import '../controllers/ordersucess_controller.dart';
 import '/app/routes/app_pages.dart';
 import '/components/buttons/bottombutton.dart';
@@ -14,7 +14,6 @@ import 'package:lottie/lottie.dart';
 
 class OrdersucessView extends GetView<OrderSuccessController> {
   OrdersucessView({Key? key}) : super(key: key);
-  var controller = Get.put(OrderSuccessController());
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +60,8 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                                 fit: BoxFit.cover,
                                                 height: 180)),
                                         Center(
-                                            child: Text('Order successfully!',
+                                            child: Text(
+                                                'Your order is successfully placed',
                                                 style: TextStyle(
                                                     fontWeight: FontWeight.w600,
                                                     fontFamily: 'lato',
@@ -69,7 +69,9 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                                     fontSize: 22))),
                                         SizedBox(height: 20),
                                         Text(
-                                            'Payment is successfully processsed and your Order is on the way.',
+                                            controller.isCashOrder
+                                                ? 'Your order is confirmed. Please pay for it on delivery.'
+                                                : 'Your payment is confirmed and your order is being processed.',
                                             textAlign: TextAlign.center,
                                             style: TextStyle(
                                               fontFamily: 'lato',

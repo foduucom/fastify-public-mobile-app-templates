@@ -11,12 +11,13 @@ import '/app/routes/app_pages.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
 import '/constants/helper_functions.dart';
+import '/constants/constants.dart' show url;
 import '/app/modules/cart/controllers/cart_controller.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
 import '/components/paymentGateway/Stripe.dart';
 import '/components/paymentGateway/PhonePe.dart';
-import '/components/paymentGateway/COD.dart';
 import '/components/paymentGateway/RazorPay.dart';
 import '/app/modules/address/controllers/address_list_controller.dart';
 import '/constants/app_exceptions.dart';
@@ -34,6 +35,9 @@ class CheckOutController extends GetxController with BaseController {
   var deliveryOption = {}.obs;
   RxInt selectedIndex = 0.obs;
   var paymentOptions = [].obs;
+  final RxBool isLoadingPaymentMethods = true.obs;
+  final RxBool isSubmittingOrder = false.obs;
+  final RxBool isChoosingCodPrepayment = false.obs;
   //var selectedAddress = "".obs;
   var savedCards = <String>[].obs;
   var selectedCardIndex = 0.obs;
@@ -216,7 +220,9 @@ class CheckOutController extends GetxController with BaseController {
     paymentOptions.clear();
     for (final entry in _gatewayRegistry) {
       final key = entry['name']!;
-      if (paymentConfig[key]?['enabled'] == true) {
+      final config =
+          paymentConfig[key] ?? (key == 'cod' ? paymentConfig['cash'] : null);
+      if (config is Map && config['enabled'] == true) {
         paymentOptions.add({
           "name": key,
           "method": entry['method'],
@@ -228,34 +234,53 @@ class CheckOutController extends GetxController with BaseController {
 
   /// Fetches payment methods from the API and rebuilds the option list.
   Future<void> getPaymentOption() async {
-    // Build from static defaults first so the UI isn't empty.
-    _buildPaymentOptionsFromConfig();
-
-    var response = await BasicProvider("payment-methods")
-        .getRequest()
-        .catchError(handleError);
-
-    printInfo(info: 'payment-methods response: $response');
-
-    if (response != null && response is Map) {
-      // Merge API data into local config.
-      for (final key in response.keys) {
-        paymentConfig[key] = response[key];
-      }
-      // Rebuild options with the updated config.
+    isLoadingPaymentMethods.value = true;
+    try {
+      // Build from static defaults first so the UI isn't empty.
       _buildPaymentOptionsFromConfig();
-    } else if (response != null && response is List) {
-      for (var opt in response) {
-        if (!paymentOptions.any((e) => e['name'] == opt['name'])) {
-          paymentOptions.add(opt);
-        }
-      }
-    }
 
-    // Select the first option by default.
-    if (paymentOptions.isNotEmpty) {
-      deliveryOption.value = paymentOptions[0];
-      selectedIndex.value = 0;
+      final response = await BasicProvider("payment-methods")
+          .getRequest()
+          .catchError(handleError);
+
+      printInfo(info: 'payment-methods response: $response');
+
+      if (response is Map) {
+        // Some API versions wrap gateway config in a `payment_methods` map.
+        final methods = response['payment_methods'] ??
+            response['paymentMethods'] ??
+            response;
+        if (methods is Map) {
+          for (final key in methods.keys) {
+            paymentConfig[key] = methods[key];
+          }
+          _buildPaymentOptionsFromConfig();
+        } else if (methods is List) {
+          _appendPaymentOptions(methods);
+        }
+      } else if (response is List) {
+        _appendPaymentOptions(response);
+      }
+
+      // Select the first option by default.
+      if (paymentOptions.isNotEmpty) {
+        deliveryOption.value = paymentOptions[0];
+        selectedIndex.value = 0;
+      }
+    } finally {
+      // An empty or unexpected response is a completed load, not an ongoing
+      // request. Let the view show an empty state instead of spinning forever.
+      isLoadingPaymentMethods.value = false;
+    }
+  }
+
+  void _appendPaymentOptions(List options) {
+    for (final opt in options) {
+      if (opt is Map &&
+          opt['name'] != null &&
+          !paymentOptions.any((e) => e['name'] == opt['name'])) {
+        paymentOptions.add(Map<String, dynamic>.from(opt));
+      }
     }
   }
 
@@ -318,11 +343,15 @@ class CheckOutController extends GetxController with BaseController {
         ),
         actions: [
           TextButton(
-            onPressed: () => Get.back(),
+            onPressed: () {
+              isChoosingCodPrepayment.value = false;
+              Get.back();
+            },
             child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
         ],
       ),
+      barrierDismissible: false,
     );
   }
 
@@ -355,26 +384,37 @@ class CheckOutController extends GetxController with BaseController {
       }
 
       // Build the order form.
-      var form = <String, String>{
+      final isCash = methodName == 'cod' || methodName == 'cash';
+      final form = <String, dynamic>{
         "address_id": addressId,
-        "primary_method": methodName,
-        "currency":
-            currency, // ✅ tells backend which currency to use for payment gateway
+        "primary_method": isCash ? 'cash' : methodName,
+        "secondary_method": isCash && secondaryPaymentGateway.value.isNotEmpty
+            ? secondaryPaymentGateway.value
+            : null,
+        "notes": "",
+        "coupon_code": null,
+        "coupon_discount": 0,
       };
 
-      if (methodName == 'cod') {
-        form['cod'] = 'true';
+      if (!isCash) {
+        form['currency'] = currency;
+      }
 
-        // Include the secondary gateway when COD prepayment applies.
-        if (secondaryPaymentGateway.value.isNotEmpty) {
-          form['secondary_method'] = secondaryPaymentGateway.value;
-        }
+      if (cartController.couponDetails.isNotEmpty &&
+          cartController.couponController.text.trim().isNotEmpty) {
+        form['coupon_code'] = cartController.couponController.text.trim();
+        final discount = cartController.couponDetails['discount_amount'];
+        form['coupon_discount'] = num.tryParse(discount?.toString() ?? '') ?? 0;
       }
 
       print("Order Create :$form");
 
-      var response = await BasicProvider("order/create")
-          .postRequest(form)
+      final orderProvider = isCash
+          ? BasicProvider('checkout/place-order', baseUrl: url)
+          : BasicProvider('order/create');
+      final csrfHeaders = isCash ? await _fetchWebCheckoutCsrfHeaders() : null;
+      final response = await orderProvider
+          .postRequest(form, extraHeaders: csrfHeaders)
           .catchError((error) {
         if (_isOutOfStockError(error)) {
           _handleOutOfStockError(error);
@@ -399,6 +439,42 @@ class CheckOutController extends GetxController with BaseController {
       Get.snackbar("Error", "Failed to create order");
     }
     return null;
+  }
+
+  Future<Map<String, String>> _fetchWebCheckoutCsrfHeaders() async {
+    final provider = BasicProvider('', baseUrl: url);
+    final headers = provider.headerType();
+    headers['accept'] = 'text/html';
+
+    final response = await http
+        .get(Uri.parse(url), headers: headers)
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw StateError(
+          'Unable to initialize checkout security (HTTP ${response.statusCode}).');
+    }
+
+    final csrfToken = RegExp(
+      r"""<meta\s+[^>]*name=["']csrf-token["'][^>]*content=["']([^"']+)["']""",
+      caseSensitive: false,
+    ).firstMatch(response.body)?.group(1);
+    final setCookie = response.headers['set-cookie'] ?? '';
+    final csrfCookie = RegExp(
+      r'(?:^|,\s*)_csrf=([^;,\s]+)',
+      caseSensitive: false,
+    ).firstMatch(setCookie)?.group(1);
+
+    if (csrfToken == null ||
+        csrfToken.isEmpty ||
+        csrfCookie == null ||
+        csrfCookie.isEmpty) {
+      throw StateError('The checkout page did not provide its security token.');
+    }
+
+    return {
+      'cookie': '_csrf=$csrfCookie',
+      'x-csrf-token': csrfToken,
+    };
   }
 
   Future<void> addNewCard() async {}
@@ -437,16 +513,19 @@ class CheckOutController extends GetxController with BaseController {
     }
 
     final String methodName = deliveryOption['name'];
+    final bool isCashMethod = methodName == 'cod' || methodName == 'cash';
     final double amount = cartController.total.value;
 
     // ── COD prepayment flow ──
-    if (methodName == 'cod') {
-      final codConfig = paymentConfig['cod'];
+    if (isCashMethod) {
+      final codConfig = paymentConfig['cod'] ?? paymentConfig['cash'] ?? {};
       final bool needsPrepayment = codConfig['cod_prepayment_type'] != null &&
           codConfig['cod_prepayment_ammount'] != null &&
           codConfig['cod_prepayment_ammount'].toString().isNotEmpty;
 
       if (needsPrepayment) {
+        if (isChoosingCodPrepayment.value) return;
+        isChoosingCodPrepayment.value = true;
         final double prepaymentAmount =
             double.tryParse(codConfig['cod_prepayment_ammount'].toString()) ??
                 0.0;
@@ -454,6 +533,9 @@ class CheckOutController extends GetxController with BaseController {
         showCodPrepaymentDialog(
           amount: prepaymentAmount,
           onMethodSelected: (selectedOnlineMethod) async {
+            isChoosingCodPrepayment.value = false;
+            if (isSubmittingOrder.value) return;
+            isSubmittingOrder.value = true;
             secondaryPaymentGateway.value = selectedOnlineMethod;
 
             HelperFunctions().showOverlayLoader();
@@ -470,12 +552,11 @@ class CheckOutController extends GetxController with BaseController {
 
             if (orderResponse == null) {
               secondaryPaymentGateway.value = '';
+              isSubmittingOrder.value = false;
               return;
             }
 
-            final String orderId =
-                orderResponse['order_no'] ?? orderResponse['_id'] ?? "";
-            final String rawOrderId = orderResponse['_id'] ?? "";
+            final String rawOrderId = _orderDocumentId(orderResponse);
 
             try {
               await _processGatewayPayment(
@@ -485,10 +566,8 @@ class CheckOutController extends GetxController with BaseController {
                 rawOrderId: rawOrderId,
               );
 
-              await CODPayment().processPayment(amount: amount);
-
-              // ✅ Show success dialog after successful payment
-              showPaymentSuccessDialog(orderId);
+              await cartController.fetchCart();
+              navigateToOrderSuccess(orderResponse);
             } catch (e) {
               // Show appropriate message
               if (e.toString().contains('cancelled') ||
@@ -501,6 +580,7 @@ class CheckOutController extends GetxController with BaseController {
               }
             } finally {
               secondaryPaymentGateway.value = '';
+              isSubmittingOrder.value = false;
             }
           },
         );
@@ -509,6 +589,8 @@ class CheckOutController extends GetxController with BaseController {
     }
 
     // ── Standard flow ──
+    if (isSubmittingOrder.value) return;
+    isSubmittingOrder.value = true;
     HelperFunctions().showOverlayLoader();
 
     Map<String, dynamic>? orderResponse;
@@ -523,11 +605,21 @@ class CheckOutController extends GetxController with BaseController {
       HelperFunctions().hideOverlayLoader();
     }
 
-    if (orderResponse == null) return;
+    if (orderResponse == null) {
+      isSubmittingOrder.value = false;
+      return;
+    }
+
+    if (isCashMethod) {
+      await cartController.fetchCart();
+      isSubmittingOrder.value = false;
+      navigateToOrderSuccess(orderResponse);
+      return;
+    }
 
     final String orderId =
         orderResponse['order_no'] ?? orderResponse['_id'] ?? "";
-    final String rawOrderId = orderResponse['_id'] ?? "";
+    final String rawOrderId = _orderDocumentId(orderResponse);
 
     // Gateway handles its own UI — no overlay needed here.
     try {
@@ -539,7 +631,7 @@ class CheckOutController extends GetxController with BaseController {
       );
 
       // ✅ Show success dialog after successful payment
-      showPaymentSuccessDialog(orderId);
+      showPaymentSuccessDialog(orderId, orderResponse: orderResponse);
     } catch (e) {
       // Show appropriate error message
       if (e.toString().contains('cancelled') ||
@@ -550,7 +642,18 @@ class CheckOutController extends GetxController with BaseController {
         HelperFunctions()
             .showSnackBarError('Failed to place order: ${e.toString()}');
       }
+    } finally {
+      isSubmittingOrder.value = false;
     }
+  }
+
+  void navigateToOrderSuccess(Map<String, dynamic> orderResponse) {
+    final orderId = (orderResponse['order_no'] ??
+            orderResponse['order_id'] ??
+            orderResponse['_id'] ??
+            '')
+        .toString();
+    _openOrderSuccess(orderResponse, orderId, isCashOrder: true);
   }
 
   Future<void> _processGatewayPayment({
@@ -624,10 +727,6 @@ class CheckOutController extends GetxController with BaseController {
           );
           break;
 
-        case 'cod':
-          await CODPayment().processPayment(amount: amount);
-          break;
-
         default:
           printInfo(info: 'Unknown payment method: $methodName');
           await Future.delayed(const Duration(seconds: 1));
@@ -640,7 +739,10 @@ class CheckOutController extends GetxController with BaseController {
   }
 
   // Add this method to CheckOutController
-  void showPaymentSuccessDialog(String orderId) {
+  void showPaymentSuccessDialog(
+    String orderId, {
+    required Map<String, dynamic> orderResponse,
+  }) {
     DialogHelper.showSuccessDialog(
       title: "Payment Successfully Processed",
       description:
@@ -649,14 +751,42 @@ class CheckOutController extends GetxController with BaseController {
       buttonText: "Continue",
       onPressed: () {
         Get.back();
-        // Navigate to order success page
-        Get.offAllNamed(Routes.ORDERSUCCESS, arguments: orderId);
+        _openOrderSuccess(orderResponse, orderId);
       },
     );
   }
 
+  void _openOrderSuccess(
+    Map<String, dynamic> orderResponse,
+    String orderNo, {
+    bool isCashOrder = false,
+  }) {
+    final internalId = _orderDocumentId(orderResponse);
+    final orderData = Map<String, dynamic>.from(orderResponse);
+    if (isCashOrder) {
+      orderData.putIfAbsent('payment_method', () => 'cash');
+    }
+    Get.offAllNamed(
+      Routes.ORDERSUCCESS,
+      arguments: {
+        'id': internalId,
+        'order_no': orderNo,
+        'order': orderData,
+        'is_cash_order': isCashOrder,
+      },
+    );
+  }
+
+  String _orderDocumentId(Map<String, dynamic> orderResponse) =>
+      (orderResponse['_id'] ??
+              orderResponse['id'] ??
+              orderResponse['order_id'] ??
+              '')
+          .toString();
+
   bool _isOutOfStockError(dynamic err) {
-    final msg = (err is AppException ? (err.message ?? '') : err.toString()).toLowerCase();
+    final msg = (err is AppException ? (err.message ?? '') : err.toString())
+        .toLowerCase();
     return msg.contains('out of stock') ||
         msg.contains('sold out') ||
         msg.contains('insufficient stock');
@@ -665,7 +795,8 @@ class CheckOutController extends GetxController with BaseController {
   Future<void> _handleOutOfStockError(dynamic err) async {
     if (Get.isDialogOpen ?? false) Get.back();
 
-    final rawMessage = err is AppException ? (err.message ?? '') : err.toString();
+    final rawMessage =
+        err is AppException ? (err.message ?? '') : err.toString();
     String detectedName = '';
 
     final match = RegExp(r'"([^"]+)"').firstMatch(rawMessage);
@@ -673,20 +804,33 @@ class CheckOutController extends GetxController with BaseController {
       detectedName = match.group(1)?.trim() ?? '';
     }
 
-    final cartCtrl = Get.isRegistered<CartController>() ? Get.find<CartController>() : null;
+    final cartCtrl =
+        Get.isRegistered<CartController>() ? Get.find<CartController>() : null;
     final found = cartCtrl?.findCartItem(productName: detectedName);
     final cartItem = found?['item'] as Map<String, dynamic>?;
 
     final productObj = cartItem?['product_id'] is Map
         ? cartItem!['product_id'] as Map
         : (cartItem?['product'] is Map ? cartItem!['product'] as Map : null);
-    final productId = (productObj?['_id'] ?? productObj?['id'] ?? cartItem?['product_id'])?.toString() ?? '';
+    final productId =
+        (productObj?['_id'] ?? productObj?['id'] ?? cartItem?['product_id'])
+                ?.toString() ??
+            '';
     final variantObj = cartItem?['variant_id'] is Map
         ? cartItem!['variant_id'] as Map
         : (cartItem?['variant'] is Map ? cartItem!['variant'] as Map : null);
-    final variantSlug = (variantObj?['slug'] ?? variantObj?['name'] ?? cartItem?['variant_slug'] ?? cartItem?['variant_name'] ?? '')?.toString() ?? '';
-    final variantId = (variantObj?['_id'] ?? variantObj?['id'] ?? cartItem?['variant_id'])?.toString();
-    final displayName = productObj?['name']?.toString() ?? (detectedName.isNotEmpty ? detectedName : 'This product');
+    final variantSlug = (variantObj?['slug'] ??
+                variantObj?['name'] ??
+                cartItem?['variant_slug'] ??
+                cartItem?['variant_name'] ??
+                '')
+            ?.toString() ??
+        '';
+    final variantId =
+        (variantObj?['_id'] ?? variantObj?['id'] ?? cartItem?['variant_id'])
+            ?.toString();
+    final displayName = productObj?['name']?.toString() ??
+        (detectedName.isNotEmpty ? detectedName : 'This product');
 
     await showOutOfStockBottomSheet(
       productName: displayName,
@@ -710,7 +854,8 @@ class CheckOutController extends GetxController with BaseController {
         );
       },
       onReturnToCart: () {
-        Get.until((route) => route.settings.name == Routes.CART || route.isFirst);
+        Get.until(
+            (route) => route.settings.name == Routes.CART || route.isFirst);
       },
     );
   }
@@ -760,5 +905,4 @@ class CheckOutController extends GetxController with BaseController {
       );
     }
   }
-
 }

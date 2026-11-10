@@ -101,11 +101,14 @@ class PersonalInfoController extends GetxController {
           fields['address']  = addressController.text.trim();
 
         // ✅ FIX 3: correct endpoint
-        result = await BasicProvider('auth/customer/profile/update')
-            .multipartRequest(
-          'POST',
-          fields: fields,
-          files:  {'featured_image': pickedImage.value!.path},
+        result = await BasicProvider('auth/customer/profile/update').postRequest(
+          FormData({
+            ...fields,
+            'featured_image': MultipartFile(
+              pickedImage.value!.path,
+              filename: pickedImage.value!.path.split('/').last,
+            ),
+          }),
         );
       } else {
         // ── JSON (no image) ───────────────────────────────

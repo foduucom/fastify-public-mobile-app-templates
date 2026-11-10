@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:zouhi/constants/theme_ext.dart';
+import 'package:foddu/constants/dynamic_theme.dart';
 
 class CouponShimmer extends StatelessWidget {
   const CouponShimmer({Key? key}) : super(key: key);
@@ -15,9 +15,9 @@ class CouponShimmer extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 18),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: context.themeWhiteColor,
+            color: context.surfaceColor,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: context.themeBorderColor),
+            border: Border.all(color: context.outlineColor),
           ),
           child: Shimmer.fromColors(
             baseColor: Colors.grey.shade300,

@@ -237,26 +237,37 @@ class CheckoutViews extends GetView<CheckOutController> {
             // Force a rebuild by accessing the observable
             final currentIndex = controller.selectedIndex.value;
 
-            return controller.paymentOptions.isEmpty
-                ? _buildPaymentMethodShimmer(width, height, context)
-                : ListView.separated(
-                    separatorBuilder: (_, __) =>
-                        SizedBox(height: height * 0.012),
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: EdgeInsets.zero,
-                    itemCount: controller.paymentOptions.length,
-                    itemBuilder: (context, index) {
-                      // Pass currentIndex to force comparison
-                      return _buildPaymentTile(
-                        index,
-                        width,
-                        height,
-                        currentIndex, // Pass current index for comparison
-                        context,
-                      );
-                    },
-                  );
+            if (controller.paymentOptions.isEmpty) {
+              return controller.isLoadingPaymentMethods.value
+                  ? _buildPaymentMethodShimmer(width, height, context)
+                  : Padding(
+                      padding: EdgeInsets.symmetric(vertical: height * 0.02),
+                      child: Text(
+                        'No payment methods are available right now.',
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    );
+            }
+            return ListView.separated(
+              separatorBuilder: (_, __) => SizedBox(height: height * 0.012),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              itemCount: controller.paymentOptions.length,
+              itemBuilder: (context, index) {
+                // Pass currentIndex to force comparison
+                return _buildPaymentTile(
+                  index,
+                  width,
+                  height,
+                  currentIndex, // Pass current index for comparison
+                  context,
+                );
+              },
+            );
           }),
         ],
       ),
@@ -691,25 +702,17 @@ class CheckoutViews extends GetView<CheckOutController> {
           SizedBox(
             width: width * 0.90,
             height: height * 0.075,
-            child: PrimaryActionButton(
-              text: "Pay Now",
-              onPressed: () {
-                // Remove the immediate success dialog
-                // The success dialog should only show after payment is successful
-                controller.processOrder();
-
-                // ❌ REMOVE THIS - it's causing the issue
-                // DialogHelper.showSuccessDialog(
-                //   title: "Payment Successfully Processed",
-                //   description:
-                //       "Thank you for your purchase! Your payment has been successfully processed. Sit back, relax, and enjoy your new items.",
-                //   imagePath: "assets/images/success.png",
-                //   buttonText: "Continue",
-                //   onPressed: () {
-                //     Get.back();
-                //   },
-                // );
-              },
+            child: Obx(
+              () => PrimaryActionButton(
+                text: controller.isSubmittingOrder.value ||
+                        controller.isChoosingCodPrepayment.value
+                    ? 'Processing...'
+                    : 'Pay Now',
+                onPressed: controller.isSubmittingOrder.value ||
+                        controller.isChoosingCodPrepayment.value
+                    ? null
+                    : () => controller.processOrder(),
+              ),
             ),
           ),
         ],

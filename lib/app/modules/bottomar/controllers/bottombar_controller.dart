@@ -90,7 +90,7 @@ class BottombarController extends GetxController with BaseController {
         .catchError(handleError);
     print(response);
     if (response == null) return;
-    Get.until((route) => !Get.isDialogOpen!);
+    Get.until((route) => Get.isDialogOpen != true);
     // ShoppingHelper.defaultdialogbox(
     //     'Product Added to Wishlist'.tr, themePrimaryColor);
     Future.delayed(Duration(seconds: 1), (() => Get.back()));

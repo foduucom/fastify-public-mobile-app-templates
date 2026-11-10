@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '/app/data/basic_provider.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
+import '/app/modules/auth/auth_details.dart';
+import '/constants/helper_functions.dart';
 
 class WishListService extends GetxService with BaseController {
   /// Convenience accessor: CartService.to
@@ -19,6 +21,11 @@ class WishListService extends GetxService with BaseController {
   // ── Fetch full cart ──────────────────────────────────────
   Future<void> fetchWishList() async {
     loadError.value = false;
+    if (!AuthDetails.isUserLogin()) {
+      wishListItems.clear();
+      return;
+    }
+
     try {
       var response = await BasicProvider("wishlist/list")
           .getRequest()
@@ -42,6 +49,11 @@ class WishListService extends GetxService with BaseController {
     required String variantSlug,
     String? variantId,
   }) async {
+    if (!AuthDetails.isUserLogin()) {
+      HelperFunctions().showSnackBarError("You are not authorized");
+      return null;
+    }
+
     var form = {
       'product_id': productId,
       'variant_slug': variantSlug,
@@ -62,6 +74,11 @@ class WishListService extends GetxService with BaseController {
     required String variantSlug,
     String? variantId,
   }) async {
+    if (!AuthDetails.isUserLogin()) {
+      HelperFunctions().showSnackBarError("You are not authorized");
+      return null;
+    }
+
     var form = {
       'product_id': productId,
       'variant_slug': variantSlug,
@@ -93,6 +110,11 @@ class WishListService extends GetxService with BaseController {
     String? variantId,
     Map<String, dynamic>? productData,
   }) async {
+    if (!AuthDetails.isUserLogin()) {
+      HelperFunctions().showSnackBarError("You are not authorized");
+      return;
+    }
+
     if (isInWishlist(productId)) {
       await removeFromWishlist(
           productId: productId, variantSlug: variantSlug, variantId: variantId);

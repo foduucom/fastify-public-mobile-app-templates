@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:foddu/components/home_component/home_common_widgets.dart';
 import 'package:foddu/constants/constants.dart';
 import 'package:foddu/constants/foduuCachedImageNetwork.dart';
 import 'package:foddu/constants/helper_functions.dart';
@@ -129,48 +130,16 @@ class _LogoStrip extends StatelessWidget {
           if (title.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                      letterSpacing: 0.2,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => openShop({'source': 'sponsored'}),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'See All',
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 2),
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          size: 18,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              child: StudioSectionHeader(
+                title: title,
+                onSeeAll: () => openShop({'source': 'sponsored'}),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
           ],
           // ── Horizontal scrolling logo carousel ──────────────────
           SizedBox(
-            height: 64,
+            height: 56,
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               scrollDirection: Axis.horizontal,
@@ -188,39 +157,43 @@ class _LogoStrip extends StatelessWidget {
 
   /// Builds a single logo card matching the parent website's Swiper carousel.
   ///
-  /// **Light Mode**: Onyx black card (`#111111`) — white CMS logos pop perfectly.
-  /// Mirrors the parent site's `.company-box.style-1 .dz-media:after { background: #000 }`.
+  /// **Light Mode**: Sleek obsidian card (`#18181B`) with refined border —
+  /// white brand logos pop with high contrast while harmonizing with the feed.
   ///
-  /// **Dark Mode**: Elevated dark surface card (`#1E1E1E`) with hairline outline
-  /// (`#333333`), matching the app's existing dark card language.
+  /// **Dark Mode**: Elevated dark surface card (`#1E1E22`) with subtle outline.
   Widget _logoCard(String url, bool isDark, ThemeData theme) {
     return Container(
       width: 104,
-      height: 60,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: isDark
-            ? const Color(0xFF1E1E1E) // Dark surface
-            : const Color(0xFF111111), // Onyx black (parent website match)
-        borderRadius: BorderRadius.circular(14),
-        border: isDark
-            ? Border.all(color: const Color(0xFF333333), width: 0.5)
-            : null,
+            ? const Color(0xFF1E1E22)
+            : const Color(0xFF18181B),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark
+              ? const Color(0xFF333333)
+              : Colors.black.withOpacity(0.08),
+          width: 0.8,
+        ),
         boxShadow: isDark
             ? null
             : [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.12),
-                  blurRadius: 8,
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
               ],
       ),
-      child: FoduuCachedNetworkImage(
-        image: url,
-        height: 32,
-        width: 72,
-        fit: BoxFit.contain,
+      child: Center(
+        child: FoduuCachedNetworkImage(
+          image: url,
+          height: 28,
+          width: 72,
+          fit: BoxFit.contain,
+        ),
       ),
     );
   }

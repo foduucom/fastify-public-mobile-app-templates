@@ -280,22 +280,36 @@ class ProductHelper {
 
   /// Check if product is in stock
   static bool isInStock(Map<String, dynamic> product, {int? variantIndex}) {
-    final productType = product['type'] ?? 'simple';
+    bool isItemInStock(dynamic item) {
+      if (item is! Map) return true;
 
-    if (productType == 'variable') {
-      final variants = product['variants'] ?? [];
-      if (variantIndex != null && variantIndex < variants.length) {
-        return _number(variants[variantIndex]['quantity']) > 0;
+      final status =
+          (item['stock_status'] ?? '').toString().toLowerCase().trim();
+      if (status == 'out_of_stock' || status == 'outofstock') {
+        return false;
       }
-      for (var variant in variants) {
-        final quantity = _number(variant['quantity']);
-        if (quantity > 0) return true;
+
+      final qty = item['quantity'];
+      if (qty == null) return true;
+      return HelperFunctions.parseAmount(qty) > 0;
+    }
+
+    final productType = product['type'] ?? 'simple';
+    final variants = product['variants'];
+    final hasVariants = variants is List && variants.isNotEmpty;
+
+    if (productType == 'variable' || hasVariants) {
+      final List variantList = hasVariants ? variants : [];
+      if (variantIndex != null && variantIndex < variantList.length) {
+        return isItemInStock(variantList[variantIndex]);
+      }
+      for (var variant in variantList) {
+        if (isItemInStock(variant)) return true;
       }
       return false;
-    } else {
-      final quantity = _number(product['quantity']);
-      return quantity > 0;
     }
+
+    return isItemInStock(product);
   }
 
   /// Get product name

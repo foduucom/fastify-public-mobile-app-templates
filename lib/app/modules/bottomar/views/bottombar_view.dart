@@ -8,7 +8,7 @@ import 'package:foddu/app/modules/shop/shop_navigation.dart';
 import 'package:foddu/app/modules/homepage/views/home_page_view.dart';
 import 'package:foddu/app/modules/homepage/views/material/responsive_bottom_nav.dart';
 import 'package:foddu/app/modules/homepage/views/material/responsive_common_header.dart';
-import 'package:foddu/app/modules/Profie/profile/views/profile_view.dart';
+import 'package:foddu/app/modules/profile_legacy/profile/views/profile_view.dart';
 import 'package:foddu/app/modules/notification/controller/notification_controller.dart';
 import 'package:foddu/app/modules/wishlist/controllers/wishlist_controller.dart';
 import 'package:foddu/app/modules/wishlist/views/wishlist_view.dart';
@@ -26,9 +26,6 @@ import '../controllers/bottombar_controller.dart';
 class BottombarView extends GetView<BottombarController> {
   BottombarView({super.key});
 
-  ColorScheme get colorScheme => Theme.of(Get.context!).colorScheme;
-  TextTheme get textTheme => Theme.of(Get.context!).textTheme;
-
   var cartController = Get.put(CartController());
   var notifcationController = Get.put(NotificationsController());
   var wishListController = Get.put(WishlistController());
@@ -38,29 +35,7 @@ class BottombarView extends GetView<BottombarController> {
     var height = Get.height;
 
     return Scaffold(
-      drawer: Drawer(
-        child: AuthDetails.isUserLogin()
-            ? const CustomDrawer()
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Center(
-                      child: Text(
-                    'Login to View Profile',
-                    style: txtTheme().displayMedium,
-                  )),
-                  const SizedBox(height: 15),
-                  SizedBox(
-                    width: Get.width * 0.6,
-                    child: AppButton(
-                        itemText: 'Login',
-                        keypressEvent: () {
-                          Get.offAllNamed(Routes.LOGIN);
-                        }),
-                  ),
-                ],
-              ),
-      ),
+      drawer: const CustomDrawer(),
       body: SafeArea(
         bottom: false,
         child: Builder(
@@ -119,7 +94,7 @@ class BottombarView extends GetView<BottombarController> {
         currentIndex: controller.currentPageIndex.value,
         onTap: controller.onTabChange,
         backgroundColor: context.surfaceColor,
-        activeColor: colorScheme.primary,
+        activeColor: Theme.of(context).colorScheme.primary,
         inactiveColor: context.onSurfaceVariantColor,
         borderColor: context.outlineColor,
         items: [

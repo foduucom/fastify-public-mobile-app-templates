@@ -43,8 +43,13 @@ class ParentWebProductCard extends StatelessWidget {
         bestOverall = v;
       }
 
-      final stockStatus = (v['stock_status'] ?? '').toString();
-      final inStock = stockStatus.isEmpty || stockStatus == 'in_stock';
+      final stockStatus =
+          (v['stock_status'] ?? '').toString().toLowerCase().trim();
+      final isOutOfStock =
+          stockStatus == 'out_of_stock' || stockStatus == 'outofstock';
+      final qty = v['quantity'];
+      final inStock =
+          !isOutOfStock && (qty == null || HelperFunctions.parseAmount(qty) > 0);
       if (inStock && price < bestInStockPrice) {
         bestInStockPrice = price;
         bestInStock = v;

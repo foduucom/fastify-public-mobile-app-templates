@@ -63,6 +63,15 @@ class CustomDrawer extends GetView<HomepageController> {
                         Get.toNamed(Routes.BLOG);
                       },
                     ),
+                    DrawerTile(
+                      icon: const Icon(Icons.local_offer_outlined),
+                      title: 'Coupons & Offers',
+                      subtitle: 'Save extra on your orders',
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(Routes.COUPONS);
+                      },
+                    ),
                     if (isLoggedIn) ...[
                       DrawerTile(
                         icon: const Icon(Icons.shopping_basket_outlined),
@@ -143,6 +152,15 @@ class CustomDrawer extends GetView<HomepageController> {
                         },
                       ),
                     ],
+                    DrawerTile(
+                      icon: const Icon(Icons.local_offer_outlined),
+                      title: 'Coupons & Offers',
+                      subtitle: 'Save extra on your orders',
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(Routes.COUPONS);
+                      },
+                    ),
                     DrawerTile(
                       icon: const Icon(Icons.headset_mic_outlined),
                       title: 'Help & Customer Care',

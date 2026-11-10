@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foddu/app/modules/cart/controllers/cart_controller.dart';
-import 'package:foddu/app/modules/payment/controllers/ordersucess_controller.dart';
+import 'package:foddu/app/modules/orderResponse/controllers/ordersucess_controller.dart';
 import 'package:foddu/components/oderdetail.dart';
 import 'package:foddu/constants/helper_functions.dart';
 import 'package:get/get.dart';

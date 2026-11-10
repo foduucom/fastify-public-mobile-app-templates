@@ -1,3 +1,5 @@
+import 'package:foddu/app/modules/coupons/bindings/coupons_binding.dart';
+import 'package:foddu/app/modules/coupons/views/coupons_view.dart';
 import 'package:foddu/app/modules/support_ticket/bindings/support_ticket_binding.dart';
 import 'package:foddu/app/modules/support_ticket/views/support_ticket_view.dart';
 import 'package:foddu/app/modules/support_ticket_details/bindings/support_ticket_details_binding.dart';
@@ -7,17 +9,17 @@ import 'package:foddu/app/modules/reviews/views/my_reviews_view.dart';
 import 'package:foddu/app/modules/blog/binding.dart/blog_binding.dart';
 import 'package:foddu/app/modules/blog/views/blog_view.dart';
 import 'package:foddu/app/modules/blog/views/blog_details_view.dart';
-import 'package:foddu/app/modules/Profie/contact/view/contact_us_view.dart';
+import 'package:foddu/app/modules/profile_legacy/contact/view/contact_us_view.dart';
 import 'package:foddu/app/modules/category_search/bindings/category_search_binding.dart';
 import 'package:foddu/app/modules/category_search/views/category_search_view.dart';
-import 'package:foddu/app/modules/Profie/orders/binding/order_binding.dart';
-import 'package:foddu/app/modules/Profie/orders/order_products/binding/order_products_binding.dart';
-import 'package:foddu/app/modules/Profie/orders/order_products/view/order_view.dart';
-import 'package:foddu/app/modules/Profie/orders/orders_details/binding/orderdetails_binding.dart';
-import 'package:foddu/app/modules/Profie/orders/orders_details/view/orderdetails_view.dart';
-import 'package:foddu/app/modules/Profie/orders/view/order_view.dart';
-import 'package:foddu/app/modules/Profie/privacy_policy/view/privacy_policy_view.dart';
-import 'package:foddu/app/modules/Profie/terms&condition/view/terms_conditions_view.dart';
+import 'package:foddu/app/modules/profile_legacy/orders/binding/order_binding.dart';
+import 'package:foddu/app/modules/profile_legacy/orders/order_products/binding/order_products_binding.dart';
+import 'package:foddu/app/modules/profile_legacy/orders/order_products/view/order_view.dart';
+import 'package:foddu/app/modules/profile_legacy/orders/orders_details/binding/orderdetails_binding.dart';
+import 'package:foddu/app/modules/profile_legacy/orders/orders_details/view/orderdetails_view.dart';
+import 'package:foddu/app/modules/profile_legacy/orders/view/order_view.dart';
+import 'package:foddu/app/modules/profile_legacy/privacy_policy/view/privacy_policy_view.dart';
+import 'package:foddu/app/modules/profile_legacy/terms&condition/view/terms_conditions_view.dart';
 import 'package:foddu/app/modules/add_profile/bindings/add_profile_binding.dart';
 import 'package:foddu/app/modules/add_profile/views/add_profile_view.dart';
 import 'package:foddu/app/modules/address/bindings/address_form_binding.dart';
@@ -373,6 +375,11 @@ class AppPages {
       name: _Paths.BLOG_DETAILS,
       page: () => BlogDetailsView(),
       binding: BlogBinding(),
+    ),
+    GetPage(
+      name: _Paths.COUPONS,
+      page: () => const CouponsView(),
+      binding: CouponsBinding(),
     ),
   ];
 

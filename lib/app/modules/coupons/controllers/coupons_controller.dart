@@ -20,29 +20,36 @@ class CouponsController extends GetxController {
   }
 
   Future<void> fetchCoupons({bool isRefresh = false}) async {
-    if (!AuthDetails.isUserLogin()) {
-      isGuestUser.value = true;
+    final bool loggedIn = AuthDetails.isUserLogin();
+    isGuestUser.value = !loggedIn;
+
+    if (!loggedIn) {
       couponsList.clear();
+      errorMessage.value = '';
       isLoading.value = false;
       return;
     }
 
-    isGuestUser.value = false;
     if (!isRefresh) {
       isLoading.value = true;
     }
     errorMessage.value = '';
 
     try {
-      final response =
-          await BasicProvider('coupons', showSnackBar: false).getRequest();
+      final response = await BasicProvider('coupons').getRequest();
 
       List? listData;
       if (response != null) {
         if (response is List) {
           listData = response;
-        } else if (response is Map && response['data'] is List) {
-          listData = response['data'] as List;
+        } else if (response is Map) {
+          if (response['data'] is List) {
+            listData = response['data'] as List;
+          } else if (response['coupons'] is List) {
+            listData = response['coupons'] as List;
+          } else if (response['result'] is List) {
+            listData = response['result'] as List;
+          }
         }
       }
 
@@ -65,7 +72,11 @@ class CouponsController extends GetxController {
       }
     } catch (e) {
       debugPrint("Error fetching coupons: $e");
-      errorMessage.value = "Failed to load coupons. Please try again.";
+      if (!loggedIn) {
+        isGuestUser.value = true;
+      } else {
+        errorMessage.value = "Failed to load coupons. Please try again.";
+      }
     } finally {
       isLoading.value = false;
     }
@@ -78,30 +89,40 @@ class CouponsController extends GetxController {
 
     if (context != null && context.mounted) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      final isDark = Theme.of(context).brightness == Brightness.dark;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.check_circle_rounded,
-                  color: Colors.white, size: 20),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Color(0xFFD4AF37),
+                size: 20,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   'Coupon "$code" copied to clipboard!',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
-                    color: Colors.white,
+                    color: isDark ? Colors.white : Colors.white,
                   ),
                 ),
               ),
             ],
           ),
-          backgroundColor: const Color(0xFF18426D),
+          backgroundColor:
+              isDark ? const Color(0xFF1E1E1E) : const Color(0xFF111111),
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: BorderSide(
+              color: const Color(0xFFD4AF37).withOpacity(0.4),
+              width: 1,
+            ),
+          ),
           duration: const Duration(seconds: 2),
         ),
       );

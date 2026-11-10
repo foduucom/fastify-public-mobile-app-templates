@@ -1,4 +1,5 @@
 import '/app/data/services/session_service.dart';
+import '/app/modules/auth/auth_details.dart';
 import '/constants/app_exceptions.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
@@ -18,9 +19,16 @@ mixin BaseController {
       var message = error.message;
       HelperFunctions().showSnackBarError(message.toString());
     } else if (error is UnAuthorizedException) {
-      // A 401 only expires an active authenticated session. SessionService
-      // owns cleanup and navigation so simultaneous requests cannot race.
-      await SessionService.expire(message: error.message);
+      if (AuthDetails.isUserLogin()) {
+        // A 401 only expires an active authenticated session. SessionService
+        // owns cleanup and navigation so simultaneous requests cannot race.
+        await SessionService.expire(message: error.message);
+      } else {
+        HelperFunctions().showSnackBarError(
+            (error.message != null && error.message!.isNotEmpty)
+                ? error.message!
+                : "You are not authorized");
+      }
     } else if (error is ApiNotRespondingException) {
       // print("------------------");
       // print("------------------");

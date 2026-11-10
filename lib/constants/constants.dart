@@ -1,5 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:foddu/app/controllers/currency_controller.dart';
+import 'package:get/get.dart';
+import 'package:get/route_manager.dart';
 
 const appMode = "test";
 
@@ -25,6 +28,11 @@ var socketUrl = "https://studio.foduu.store/";
 
 // ZOOHI ACCESS Key
 var ACCESS_KEY = 'da0cd913cd4165687dd5b7c56fbb18048e38a477872e66b1';
+
+/// Symbol of the app's single currency (empty until it has loaded).
+String get currency => Get.isRegistered<CurrencyController>()
+    ? Get.find<CurrencyController>().symbol
+    : '';
 
 var assetURL = "${url}images/";
 var apiURL = "${url}api/";

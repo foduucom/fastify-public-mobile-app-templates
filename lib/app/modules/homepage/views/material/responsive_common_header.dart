@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:foddu/helpers/socket_helper.dart';
 import 'package:get/get.dart';
 import 'responsive_circle_icon.dart';
 
@@ -81,6 +83,21 @@ class ResponsiveCommonHeader extends StatelessWidget {
                     ),
                   ),
 
+                  if (kIsWeb)
+                    Obx(
+                      () => Container(
+                        margin: const EdgeInsets.only(right: 4),
+                        height: 10,
+                        width: 10,
+                        decoration: BoxDecoration(
+                          color: SocketHelper().isConnectedObs.value
+                              ? colorScheme.primary
+                              : colorScheme.error,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+
                   // Wishlist Icon with reactive badge
                   if (onWishlistTap != null) ...[
                     ResponsiveCircleIcon(
@@ -126,7 +143,8 @@ class ResponsiveCommonHeader extends StatelessWidget {
                   height: 44,
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+                    color: colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.45),
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
                       color: colorScheme.outline.withValues(alpha: 0.18),
@@ -145,7 +163,8 @@ class ResponsiveCommonHeader extends StatelessWidget {
                           "Search for products, collections...",
                           style: TextStyle(
                             fontSize: 13,
-                            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                            color: colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.7),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -163,4 +182,3 @@ class ResponsiveCommonHeader extends StatelessWidget {
     );
   }
 }
-

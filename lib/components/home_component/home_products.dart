@@ -228,9 +228,31 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       if (scrollable != null) {
         _parentScrollPosition = scrollable.position;
         _parentScrollPosition?.addListener(_onParentScroll);
+        // After layout, check if content is too short to scroll — if so,
+        // pre-fetch more products so the user doesn't see a stuck spinner.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _loadMoreIfViewportNotFull();
+        });
       }
     } catch (e) {
       print('⚠️ Could not attach parent scroll listener: $e');
+    }
+  }
+
+  /// When the content is shorter than the viewport the scroll-based trigger
+  /// will never fire.  This method detects that situation and proactively
+  /// fetches the next page.  It is called once after the parent scroll
+  /// listener is attached and again after every successful fetch.
+  void _loadMoreIfViewportNotFull() {
+    if (!mounted || _isExternal) return;
+    if (!_hasMoreValue || _isLoadingMoreValue) return;
+
+    final pos = _parentScrollPosition;
+    if (pos == null || !pos.hasPixels) return;
+
+    // Content fits inside the viewport — force a fetch.
+    if (pos.maxScrollExtent <= 300) {
+      _fetchProductsFromApi();
     }
   }
 
@@ -352,6 +374,13 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       _hasMore.value = false;
     } finally {
       _isInitialLoading.value = false;
+      // After new products are rendered, re-check whether the viewport is
+      // still not full — if so, keep fetching until scrollable.
+      if (_useParentScroll && _hasMore.value) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _loadMoreIfViewportNotFull();
+        });
+      }
     }
   }
 
@@ -371,18 +400,52 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   @override
   Widget build(BuildContext context) {
-    final heading =
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    final rawHeading =
         (widget.contentJson?['heading'] ?? widget.contentJson?['title'] ?? '')
-            .toString();
-    final subheading = (widget.contentJson?['subheading'] ??
+            .toString()
+            .trim();
+    final rawSubheading = (widget.contentJson?['subheading'] ??
             widget.contentJson?['subtitle'] ??
             '')
-        .toString();
+        .toString()
+        .trim();
     final categoryType =
-        widget.contentJson?['category_type'] ?? 'random_category';
+        (widget.contentJson?['category_type'] ?? 'random_category').toString();
+
+    // Clean placeholder junk like '_' or 'null'
+    String heading = (rawHeading == '_' || rawHeading.toLowerCase() == 'null')
+        ? ''
+        : rawHeading;
+    String subheading = (rawSubheading == '_' ||
+            rawSubheading.toLowerCase() == 'null' ||
+            rawSubheading.toLowerCase().contains('all products -'))
+        ? ''
+        : rawSubheading;
 
     // ─── Layout Configuration ───
     String style = widget.contentJson?['layout'] ?? 'standard';
+
+    // Auto-resolve meaningful fallback title so product carousels never float disconnected
+    if (heading.isEmpty && style != 'parent_web') {
+      if (subheading.isNotEmpty) {
+        heading = subheading;
+        subheading = '';
+      } else {
+        if (categoryType == 'discounted_products') {
+          heading = 'Special Offers';
+        } else if (categoryType == 'most_popular' || categoryType == 'popular') {
+          heading = 'Most Popular Products';
+        } else if (categoryType == 'featured') {
+          heading = 'Featured Collection';
+        } else {
+          heading = 'Trending Products';
+        }
+      }
+    }
 
     debugPrint('Products section: heading="$heading", layout=$style, '
         'infiniteScroll=$_infiniteScroll, count=${trendingList.length}');
@@ -395,19 +458,17 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 // ─── Section Header ───
                 if (!widget.hideHeader &&
                     style != 'parent_web' &&
-                    (heading.isNotEmpty || subheading.isNotEmpty)) ...[
+                    heading.isNotEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: StudioSectionHeader(
-                      title: heading.isNotEmpty ? heading : subheading,
-                      subtitle: heading.isNotEmpty && subheading.isNotEmpty
-                          ? subheading
-                          : null,
+                      title: heading,
+                      subtitle: subheading.isNotEmpty ? subheading : null,
                       onSeeAll: () {
                         openShop({
                           'filterType': categoryType,
                           'filterValue': true,
-                          'name': heading.isNotEmpty ? heading : 'Products',
+                          'name': heading,
                           'source': 'dashboard'
                         });
                       },
@@ -431,11 +492,57 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                         : (_tabsEnabled
                             ? _buildTabbedList()
                             : _buildProductLayout(style)),
+                if (_infiniteScroll && !_hasMoreValue && displayedProducts.isNotEmpty)
+                  _buildEndOfCatalogFooter(colorScheme, textTheme),
                 const SizedBox(height: 18),
               ],
             )
           ],
         ));
+  }
+
+  Widget _buildEndOfCatalogFooter(ColorScheme colorScheme, TextTheme textTheme) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 24.0, bottom: 28.0, left: 32.0, right: 32.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Divider(
+              color: colorScheme.outline.withValues(alpha: 0.25),
+              thickness: 1,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.check_circle_outline_rounded,
+                  size: 14,
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  "You've viewed all ${displayedProducts.length} items",
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Divider(
+              color: colorScheme.outline.withValues(alpha: 0.25),
+              thickness: 1,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -538,10 +645,16 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         mainAxisSize: MainAxisSize.min,
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: SizedBox(
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
               height: imageHeight,
               width: double.infinity,
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF1E1E22)
+                    : const Color(0xFFF7F7F8),
+                borderRadius: BorderRadius.circular(14),
+              ),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -554,9 +667,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                           progressIndicatorBuilder: (_, __, ___) =>
                               HelperFunctions().loadingIndicator(),
                           errorWidget: (_, __, ___) =>
-                              const AppImagePlaceholder(radius: 10),
+                              const AppImagePlaceholder(radius: 14),
                         )
-                      : const AppImagePlaceholder(radius: 10),
+                      : const AppImagePlaceholder(radius: 14),
                   if (hasDiscount)
                     Positioned(
                       left: 8,
@@ -664,7 +777,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
               overflow: TextOverflow.ellipsis,
               style: textTheme.bodyMedium?.copyWith(
                 fontSize: 12.5,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
                 height: 1.25,
                 color: context.onSurfaceColor,
               ),
@@ -1115,7 +1228,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         double.tryParse(widget.contentJson?['spacing']?.toString() ?? '12') ??
             12;
 
-    final itemCount = _infiniteScroll
+    final itemCount = (_infiniteScroll && _hasMoreValue)
         ? displayedProducts.length + 1
         : displayedProducts.length;
 
@@ -1167,7 +1280,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // VERTICAL LIST VIEW
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildVerticalListView(String style) {
-    final itemCount = _infiniteScroll
+    final itemCount = (_infiniteScroll && _hasMoreValue)
         ? displayedProducts.length + 1
         : displayedProducts.length;
 
@@ -1697,16 +1810,16 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // STYLE 1 — STANDARD (Vertical Card, Image on Top)
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildStandardStyleList() {
-    final itemCount = _infiniteScroll
+    final itemCount = (_infiniteScroll && _hasMoreValue)
         ? displayedProducts.length + 1
         : displayedProducts.length;
 
-    final cardWidth = (MediaQuery.of(context).size.width * 0.38)
-        .clamp(140.0, 160.0)
-        .toDouble();
-    const imageAspectRatio = 0.75;
+    // Standard 152dp portrait card with 3:4 fashion ratio.
+    // Provides an optimal ~30% edge peek on standard mobile viewports.
+    const double cardWidth = 152.0;
+    const double imageAspectRatio = 0.76;
     final imageHeight = cardWidth / imageAspectRatio;
-    const textSectionHeight = 98.0;
+    const textSectionHeight = 88.0;
     final totalCardHeight = imageHeight + textSectionHeight;
 
     return SizedBox(
@@ -1774,7 +1887,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // STYLE 2 — HORIZONTAL (Image Left, Info Right Card)
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildHorizontalStyleList() {
-    final itemCount = _infiniteScroll
+    final itemCount = (_infiniteScroll && _hasMoreValue)
         ? displayedProducts.length + 1
         : displayedProducts.length;
 
@@ -1983,7 +2096,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     // final itemCount =
     //     _infiniteScroll ? trendingList.length + 1 : trendingList.length;
 
-    final itemCount = _infiniteScroll
+    final itemCount = (_infiniteScroll && _hasMoreValue)
         ? displayedProducts.length + 1
         : displayedProducts.length;
 
@@ -2266,8 +2379,13 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         bestOverall = v;
       }
 
-      final stockStatus = (v['stock_status'] ?? '').toString();
-      final inStock = stockStatus.isEmpty || stockStatus == 'in_stock';
+      final stockStatus =
+          (v['stock_status'] ?? '').toString().toLowerCase().trim();
+      final isOutOfStock =
+          stockStatus == 'out_of_stock' || stockStatus == 'outofstock';
+      final qty = v['quantity'];
+      final inStock =
+          !isOutOfStock && (qty == null || HelperFunctions.parseAmount(qty) > 0);
       if (inStock && price < bestInStockPrice) {
         bestInStockPrice = price;
         bestInStock = v;

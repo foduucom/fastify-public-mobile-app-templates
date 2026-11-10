@@ -38,29 +38,7 @@ class SearchView extends GetView<SearchsController> {
       child: Scaffold(
         key: scaffoldKey,
         backgroundColor: colorScheme.surface,
-        drawer: Drawer(
-          child: AuthDetails.isUserLogin()
-              ? const CustomDrawer()
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Center(
-                        child: Text(
-                      'Login to View Profile',
-                      style: txtTheme().displayMedium,
-                    )),
-                    const SizedBox(height: 15),
-                    SizedBox(
-                      width: Get.width * 0.6,
-                      child: AppButton(
-                          itemText: 'Login',
-                          keypressEvent: () {
-                            Get.offAllNamed(Routes.LOGIN);
-                          }),
-                    ),
-                  ],
-                ),
-        ),
+        drawer: const CustomDrawer(),
 
         // Remove the default AppBar completely
         appBar: null,
@@ -374,7 +352,8 @@ class SearchView extends GetView<SearchsController> {
           crossAxisCount: 2,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio: 0.70,
+          // Give the product details room below the image on narrow phones.
+          childAspectRatio: 0.60,
         ),
         itemCount: controller.searchProduct.length,
         itemBuilder: (context, index) {

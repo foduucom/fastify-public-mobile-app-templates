@@ -535,11 +535,12 @@ class ProductView extends GetView<ProductController> {
                                         ? variants[controller
                                             .selectedVariantIndex.value] as Map?
                                         : null;
-                                final qty = v?['quantity'];
-                                final inStock = qty == null ||
-                                    (qty != 0 &&
-                                        qty != false &&
-                                        qty.toString() != '0');
+                                final inStock = ProductHelper.isInStock(
+                                  Map<String, dynamic>.from(
+                                      controller.productDetials),
+                                  variantIndex:
+                                      controller.selectedVariantIndex.value,
+                                );
                                 return Padding(
                                   padding: EdgeInsets.only(top: height * 0.008),
                                   child: Row(

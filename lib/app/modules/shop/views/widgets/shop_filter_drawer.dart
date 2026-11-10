@@ -248,9 +248,13 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
                 : colorScheme.outlineVariant.withOpacity(0.5),
           ),
         ),
-        child: Theme(
-          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-          child: ExpansionTile(
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          clipBehavior: Clip.antiAlias,
+          child: Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
             initiallyExpanded: true,
             tilePadding:
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
@@ -377,7 +381,8 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
                     }).toList(),
                   ),
                 ),
-            ],
+              ],
+            ),
           ),
         ),
       );
@@ -400,9 +405,13 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
                 : colorScheme.outlineVariant.withOpacity(0.5),
           ),
         ),
-        child: Theme(
-          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-          child: ExpansionTile(
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          clipBehavior: Clip.antiAlias,
+          child: Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
             initiallyExpanded: true,
             tilePadding:
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
@@ -512,7 +521,8 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
                     }).toList(),
                   ),
                 ),
-            ],
+              ],
+            ),
           ),
         ),
       );
@@ -533,9 +543,13 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
               : colorScheme.outlineVariant.withOpacity(0.5),
         ),
       ),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
           initiallyExpanded: true,
           tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
           childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
@@ -678,7 +692,8 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
                 onChanged: (values) => setState(() => _tempPriceRange = values),
               ),
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );

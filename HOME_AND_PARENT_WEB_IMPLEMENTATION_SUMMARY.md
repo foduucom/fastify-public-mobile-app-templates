@@ -126,3 +126,31 @@ Following in-depth inspection of the parent website (`https://daksh-store.foduu.
 - **Implementation**:
   - `lib/core/foduuStudio/foduu_studio_layout_view.dart`: Added `padding: const EdgeInsets.only(bottom: 36.0)` to the scroll view, ensuring complete visibility and comfortable scrolling past the bottom navigation bar.
   - `lib/components/home_component/home_products.dart`: Tuned `cardHeight` from `265px` to `275px` and `cardWidth` to `158px` in `_buildParentWebHorizontalList` to give comfortable vertical breathing room for 2-line titles, 5 gold stars, and formatted prices.
+
+---
+
+## 7. Industry Standards & Feed Cohesion Alignment (November 10, 2026)
+
+Following user audit of `home_view.dart` where individual sections felt disconnected rather than part of a unified, high-fashion editorial feed:
+
+### 1. Section Header & Hierarchy Normalization
+- **Issue**: Standard product sections whose CMS heading was `"_"` or blank were completely missing a header, causing large product cards to float disconnected below lifestyle banners. Headers also had inconsistent typography sizes (14px vs 22px).
+- **Implementation**:
+  - `lib/components/home_component/home_products.dart`: Added intelligent fallback resolution when heading is `"_"` or blank (e.g. `Special Offers`, `Most Popular Products`, `Featured Collection`, `Trending Products`), ensuring the section is anchored with a proper title.
+  - `lib/components/home_component/home_common_widgets.dart`: Standardized `StudioSectionHeader` across all sections to `fontSize: 18, fontWeight: FontWeight.w700` and uppercase-styled `See All` link at `fontSize: 13`.
+  - `lib/components/home_component/home_trust_badges.dart`: Replaced ad-hoc `Row` in `_LogoStrip` with the standardized `StudioSectionHeader`.
+
+### 2. Standardized Card Scale & 30% Peek Affordance
+- **Implementation**:
+  - `lib/components/home_component/home_products.dart`: Set standard portrait card width to `152.0dp` with a 3:4 aspect ratio (`0.76`). On typical mobile screens (390-393dp), this perfectly reveals Card 1, Card 2, and a ~30% sliver of Card 3, providing immediate affordance for horizontal swiping.
+  - Elevated card corner radius to `14dp` with a subtle neutral foundation (`#F7F7F8` in light mode, `#1E1E22` in dark mode) so product photography blends cleanly.
+
+### 3. Hero Lifestyle Banner Proportions & Typography
+- **Issue**: Short letterbox banners caused title kickers ("Shortlist") to be clipped under the search bar.
+- **Implementation**:
+  - `lib/components/home_component/home_slider.dart`: Updated default banner height calculation on mobile to `(Get.width * 0.58).clamp(225.0, 260.0)`, refined gradient scrim stops (`[0.35, 0.65, 1.0]`), and gave title/content balanced vertical padding so text and CTA pills have comfortable breathing room.
+
+### 4. Sponsor & Partner Logo Refinement
+- **Implementation**:
+  - `lib/components/home_component/home_trust_badges.dart`: Refined `_logoCard` to sleek obsidian tiles (`#18181B`) with delicate `0.8px` borders and compact `56dp` height, harmonizing seamlessly with the editorial feed.
+

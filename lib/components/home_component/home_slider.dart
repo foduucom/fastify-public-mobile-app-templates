@@ -41,11 +41,17 @@ class _FoduuSliderState extends State<FoduuSlider>
     final bool isFullScreen = widget.sliderData['full_screen'] ?? false;
     if (isFullScreen) {
       // For full screen, calculate height based on width with 16:9 aspect ratio
-      return Get.width * 9 / 16;
+      return (Get.width * 9 / 16).clamp(210.0, 250.0);
     } else {
-      // Use the height from content_json, default to 200 if not provided
-      final dynamic height = widget.sliderData['height'];
-      return height != null ? height.toDouble() : 200.0;
+      // Use the height from content_json, default to 230 on mobile so
+      // lifestyle imagery and CTA pills have ample breathing room.
+      final dynamic rawHeight = widget.sliderData['height'];
+      final double? parsedHeight =
+          rawHeight != null ? double.tryParse(rawHeight.toString()) : null;
+      if (parsedHeight != null && parsedHeight >= 220.0) {
+        return parsedHeight;
+      }
+      return (Get.width * 0.58).clamp(225.0, 260.0);
     }
   }
 
@@ -290,7 +296,7 @@ class _FoduuSliderState extends State<FoduuSlider>
                                                 Colors.black.withOpacity(0.12),
                                                 Colors.black.withOpacity(0.65),
                                               ],
-                                              stops: const [0.45, 0.72, 1.0],
+                                              stops: const [0.35, 0.65, 1.0],
                                             ),
                                           ),
                                         ),
@@ -302,7 +308,7 @@ class _FoduuSliderState extends State<FoduuSlider>
                                   Positioned(
                                     left: 20,
                                     right: 20,
-                                    bottom: 24,
+                                    bottom: 18,
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -321,7 +327,7 @@ class _FoduuSliderState extends State<FoduuSlider>
                                             child: Text(
                                               subHeading.toUpperCase(),
                                               style: const TextStyle(
-                                                fontSize: 11,
+                                                fontSize: 10,
                                                 fontWeight: FontWeight.w700,
                                                 color: Colors.white,
                                                 letterSpacing: 1.2,
@@ -333,9 +339,11 @@ class _FoduuSliderState extends State<FoduuSlider>
                                         if (title.isNotEmpty)
                                           Text(
                                             title,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(
                                               fontFamily: 'Lato',
-                                              fontSize: 22,
+                                              fontSize: 20,
                                               fontWeight: FontWeight.w800,
                                               color: Colors.white,
                                               height: 1.2,

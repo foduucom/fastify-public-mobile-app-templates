@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:foddu/app/data/basic_provider.dart';
-import 'package:foddu/app/modules/Profie/profile/controllers/profile_controller.dart';
+import 'package:foddu/app/modules/profile_legacy/profile/controllers/profile_controller.dart';
 import 'package:foddu/app/modules/auth/auth_details.dart';
 import 'package:foddu/app/routes/app_pages.dart';
 import 'package:foddu/constants/app_exceptions.dart';

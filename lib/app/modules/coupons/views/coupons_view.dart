@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:foddu/app/modules/coupons/controllers/coupons_controller.dart';
+import 'package:foddu/app/modules/coupons/views/widgets/coupon_card.dart';
+import 'package:foddu/app/modules/coupons/views/widgets/coupon_shimmer.dart';
 import 'package:foddu/app/routes/app_pages.dart';
+import 'package:foddu/constants/dynamic_theme.dart';
 import 'package:get/get.dart';
 
 class CouponsView extends GetView<CouponsController> {
@@ -9,7 +12,7 @@ class CouponsView extends GetView<CouponsController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.themeBackground,
+      backgroundColor: context.backgroundColor,
       appBar: AppBar(
         title: Text(
           'Available Coupons',
@@ -17,17 +20,17 @@ class CouponsView extends GetView<CouponsController> {
             fontFamily: 'Poppins',
             fontWeight: FontWeight.w700,
             fontSize: 18,
-            color: context.themetitleColor,
+            color: context.onSurfaceColor,
           ),
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: context.themeWhiteColor,
-        iconTheme: IconThemeData(color: context.themeTextColor),
+        backgroundColor: context.surfaceColor,
+        iconTheme: IconThemeData(color: context.onSurfaceColor),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: context.themeBorderColor.withOpacity(0.6),
+            color: context.outlineColor.withOpacity(0.6),
             height: 1,
           ),
         ),
@@ -37,7 +40,7 @@ class CouponsView extends GetView<CouponsController> {
           return const CouponShimmer();
         }
 
-        if (controller.isGuestUser.value) {
+        if (controller.isGuestUser.value && controller.couponsList.isEmpty) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
@@ -48,13 +51,13 @@ class CouponsView extends GetView<CouponsController> {
                     width: 76,
                     height: 76,
                     decoration: BoxDecoration(
-                      color: context.themePrimaryLight,
+                      color: context.primaryColor.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.lock_outline_rounded,
                       size: 38,
-                      color: context.themePrimaryColor,
+                      color: context.primaryColor,
                     ),
                   ),
                   const SizedBox(height: 18),
@@ -64,7 +67,7 @@ class CouponsView extends GetView<CouponsController> {
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.w700,
                       fontSize: 17,
-                      color: context.themetitleColor,
+                      color: context.onSurfaceColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -74,7 +77,7 @@ class CouponsView extends GetView<CouponsController> {
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 13,
-                      color: context.themeSecondrytext,
+                      color: context.onSurfaceVariantColor,
                     ),
                   ),
                   const SizedBox(height: 22),
@@ -84,7 +87,7 @@ class CouponsView extends GetView<CouponsController> {
                       controller.fetchCoupons();
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: context.themePrimaryColor,
+                      backgroundColor: context.primaryColor,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 32, vertical: 12),
@@ -127,14 +130,14 @@ class CouponsView extends GetView<CouponsController> {
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 14,
-                      color: context.themeSecondrytext,
+                      color: context.onSurfaceVariantColor,
                     ),
                   ),
                   const SizedBox(height: 18),
                   ElevatedButton(
                     onPressed: () => controller.fetchCoupons(),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: context.themePrimaryColor,
+                      backgroundColor: context.primaryColor,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 24, vertical: 12),
@@ -172,13 +175,13 @@ class CouponsView extends GetView<CouponsController> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: context.themePrimaryLight,
+                        color: context.primaryColor.withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.confirmation_number_outlined,
                         size: 40,
-                        color: context.themePrimaryColor,
+                        color: context.primaryColor,
                       ),
                     ),
                     const SizedBox(height: 18),
@@ -188,7 +191,7 @@ class CouponsView extends GetView<CouponsController> {
                         fontFamily: 'Poppins',
                         fontWeight: FontWeight.w700,
                         fontSize: 17,
-                        color: context.themetitleColor,
+                        color: context.onSurfaceColor,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -198,7 +201,7 @@ class CouponsView extends GetView<CouponsController> {
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 13,
-                        color: context.themeSecondrytext,
+                        color: context.onSurfaceVariantColor,
                       ),
                     ),
                   ],

@@ -15,7 +15,8 @@ class CartController extends GetxController
     for (int i = 0; i < cartItems.length; i++) {
       final item = cartItems[i];
       final p = item["product_id"] ?? item["product"];
-      final pId = (p is Map ? (p["_id"] ?? p["id"]) : item["product_id"])?.toString();
+      final pId =
+          (p is Map ? (p["_id"] ?? p["id"]) : item["product_id"])?.toString();
       final pName = (p is Map ? p["name"] : item["name"])?.toString();
 
       if (productId != null && productId.isNotEmpty && pId == productId) {
@@ -33,7 +34,6 @@ class CartController extends GetxController
     }
     return null;
   }
-
 
   final _cartService = CartService.to;
   var couponDetails = {}.obs;
@@ -57,14 +57,14 @@ class CartController extends GetxController
   void onInit() {
     super.onInit();
     fetchLayout('cart');
-    fetchCart();
     couponController = TextEditingController();
   }
 
   @override
   void onReady() {
     super.onReady();
-    // Re-fetch on ready to ensure we have the latest state when the view is active
+    // Load after the first frame so cart Rx updates cannot dirty an Obx while
+    // the bottom bar is still building.
     fetchCart();
   }
 

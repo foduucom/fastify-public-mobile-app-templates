@@ -9,23 +9,49 @@ class OrderSuccessController extends GetxController with BaseController {
   var totalAmount = ''.obs;
   var address = {}.obs;
   var isLoading = false.obs;
+  final RxBool wasCashOrder = false.obs;
+
+  bool get isCashOrder {
+    final method = (item['payment_method'] ?? item['primary_method'] ?? '')
+        .toString()
+        .toLowerCase();
+    return wasCashOrder.value || method == 'cash' || method == 'cod';
+  }
 
   @override
   Future<void> onInit() async {
     super.onInit();
-    if (Get.arguments != null) {
-      // If arguments is a String (order_no), use it directly. If it's a Map, look for 'id'.
-      if (Get.arguments is String) {
-        id.value = Get.arguments;
-      } else if (Get.arguments['id'] != null) {
-        id.value = Get.arguments['id'];
+    final arguments = Get.arguments;
+    if (arguments is String) {
+      id.value = arguments;
+    } else if (arguments is Map) {
+      final order = arguments['order'];
+      if (order is Map) {
+        item.assignAll(Map<String, dynamic>.from(order));
+        address.assignAll(order['address'] is Map
+            ? Map<String, dynamic>.from(order['address'])
+            : <String, dynamic>{});
+      }
+      if (arguments['order_no'] != null) {
+        item.putIfAbsent('order_no', () => arguments['order_no']);
+      }
+      if (arguments['is_cash_order'] == true) {
+        wasCashOrder.value = true;
+        item.putIfAbsent('payment_method', () => 'cash');
+      }
+      final orderId = arguments['id'] ??
+          (order is Map
+              ? (order['_id'] ?? order['id'] ?? order['order_id'])
+              : null);
+      if (orderId != null && orderId.toString().isNotEmpty) {
+        id.value = orderId.toString();
       }
     }
     await OrderDetail();
   }
 
   Future<void> OrderDetail() async {
-    if (id.value == '0') return;
+    if (id.value == '0' || id.value.isEmpty) return;
     isLoading.value = true;
     var response = await BasicProvider("order/${id.value}")
         .getRequest()
@@ -42,7 +68,7 @@ class OrderSuccessController extends GetxController with BaseController {
       var data = response;
       item.clear();
       item.value = data;
-      address.value = data['address'];
+      address.value = data['address'] is Map ? data['address'] : {};
     }
     isLoading.value = false;
   }

@@ -96,7 +96,7 @@ class FoduuStudioLayoutView extends StatelessWidget {
         onRefresh: onRefresh!,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.only(bottom: 36.0),
+          padding: const EdgeInsets.only(top: 8.0, bottom: 44.0),
           child: Column(
             children: widgetList.toList(),
           ),

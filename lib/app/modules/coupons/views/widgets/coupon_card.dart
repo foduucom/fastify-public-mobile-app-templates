@@ -1,6 +1,7 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:foddu/app/modules/coupons/models/coupon_model.dart';
+import 'package:foddu/constants/dynamic_theme.dart';
 
 class CouponCard extends StatelessWidget {
   final CouponModel coupon;
@@ -16,8 +17,8 @@ class CouponCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const navyPrimary = Color(0xFF133E6D);
-    const tealInfo = Color(0xFF128CA7);
+    final navyPrimary = context.primaryColor;
+    const tealInfo = Color(0xFFD4AF37);
     const greenSavings = Color(0xFF16A34A);
 
     return Container(
@@ -27,7 +28,7 @@ class CouponCard extends StatelessWidget {
         children: [
           // Dashed border voucher card
           DottedBorder(
-            color: context.themeBorderColor.withOpacity(0.9),
+            color: context.outlineColor.withOpacity(0.9),
             strokeWidth: 1.2,
             dashPattern: const [6, 4],
             borderType: BorderType.RRect,
@@ -36,7 +37,7 @@ class CouponCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
               decoration: BoxDecoration(
-                color: context.themeWhiteColor,
+                color: context.surfaceColor,
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
@@ -66,7 +67,7 @@ class CouponCard extends StatelessWidget {
                         ),
                         child: Text(
                           coupon.code,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Poppins',
                             fontWeight: FontWeight.w700,
                             fontSize: 16,
@@ -158,7 +159,7 @@ class CouponCard extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 12,
-                      color: context.themeSecondrytext,
+                      color: context.onSurfaceVariantColor,
                     ),
                   ),
                   const SizedBox(height: 12),

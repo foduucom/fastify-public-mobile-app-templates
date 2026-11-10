@@ -5,10 +5,10 @@ import '/app/data/basic_provider.dart';
 import '/constants/constants.dart';
 
 class WishlistController extends GetxController with BaseController {
-
   final RxBool isLoading = true.obs;
   final RxList<Map<String, dynamic>> items = <Map<String, dynamic>>[].obs;
-
+  var currentPageIndex = 0.obs;
+  var pageController = PageController();
   // ✅ FIXED: removed 'uploads/'
   static String get _imgBase => assetURL;
 
@@ -18,6 +18,12 @@ class WishlistController extends GetxController with BaseController {
     fetchWishlist();
   }
 
+  void onTabChange(value) {
+    currentPageIndex.value = value;
+    pageController.jumpToPage(value);
+    update();
+  }
+
   // ── GET /api/wishlist/list ────────────────────────────────────
   Future<void> fetchWishlist() async {
     isLoading(true);
@@ -25,9 +31,11 @@ class WishlistController extends GetxController with BaseController {
       final response = await BasicProvider('wishlist/list').getRequest();
       if (response is List) {
         items.assignAll(
-          response.map<Map<String, dynamic>>(
+          response
+              .map<Map<String, dynamic>>(
                 (e) => Map<String, dynamic>.from(e as Map),
-          ).toList(),
+              )
+              .toList(),
         );
       } else {
         items.clear();
@@ -65,7 +73,8 @@ class WishlistController extends GetxController with BaseController {
 
       if (response != null) {
         Get.snackbar(
-          '🗑️ Removed', 'Item removed from wishlist',
+          '🗑️ Removed',
+          'Item removed from wishlist',
           snackPosition: SnackPosition.TOP,
           backgroundColor: const Color(0xFF1A1A1A),
           colorText: Colors.white,
@@ -139,10 +148,9 @@ class WishlistController extends GetxController with BaseController {
   double itemPrice(Map<String, dynamic> item) {
     final variant = item['variant_id'];
     if (variant is Map) {
-      final sale = double.tryParse(
-          variant['sale_price']?.toString() ?? '') ?? 0.0;
-      final orig = double.tryParse(
-          variant['price']?.toString() ?? '') ?? 0.0;
+      final sale =
+          double.tryParse(variant['sale_price']?.toString() ?? '') ?? 0.0;
+      final orig = double.tryParse(variant['price']?.toString() ?? '') ?? 0.0;
       if (sale > 0) return sale;
       if (orig > 0) return orig;
     }
@@ -152,8 +160,7 @@ class WishlistController extends GetxController with BaseController {
   double originalPrice(Map<String, dynamic> item) {
     final variant = item['variant_id'];
     if (variant is Map) {
-      return double.tryParse(
-          variant['price']?.toString() ?? '') ?? 0.0;
+      return double.tryParse(variant['price']?.toString() ?? '') ?? 0.0;
     }
     return 0.0;
   }
@@ -164,8 +171,7 @@ class WishlistController extends GetxController with BaseController {
     return orig > sale && sale > 0;
   }
 
-  String wishlistId(Map<String, dynamic> item) =>
-      item['_id']?.toString() ?? '';
+  String wishlistId(Map<String, dynamic> item) => item['_id']?.toString() ?? '';
 
   String productId(Map<String, dynamic> item) {
     final product = item['product_id'];
@@ -178,5 +184,4 @@ class WishlistController extends GetxController with BaseController {
     if (variant is Map) return variant['_id']?.toString() ?? '';
     return variant?.toString() ?? '';
   }
-
 }

@@ -1,341 +1,481 @@
-flutterdev@Flutters-Mac-mini-11 fastify-public-mobile-app-templates % flutter run
-Launching lib/main.dart on sdk gphone64
-arm64 in debug mode...
-Running Gradle task 'assembleDebug'...     
-Warning: Flutter support for your project's Gradle version (8.14.0) will soon be dropped. Please upgrade your Gradle version to a version of at least 9.1.0 soon.
-Running Gradle task 'assembleDebug'...     
-Alternatively, use the flag "--android-skip-build-dependency-validation" to bypass this check.
-Running Gradle task 'assembleDebug'...     
+=I/flutter (17384): Address list length: 1
+I/flutter (17384): Address data type: _Map<String, dynamic>
+I/flutter (17384): Address data: {name: Tirupati, email: aniketflutter@foduu.com, mobile: 9876543210, type: both, street: TBS WORKSPACE  Floor - 02, landmark: hi, city: Bhubaneswar, state: {_id: 68f9ccb3281ec9e0cd95e40d, name: Madhya Pradesh, slug: madhya-pradesh, type: state, featured_image: null, is_featured: false, parentRegion: 68e63df6038f495b64eca490, children: [68f9cccc281ec9e0cd95e422, 68f9cce7281ec9e0cd95e449, 68f9ccfa281ec9e0cd95e482, 68f9cd19281ec9e0cd95e4a8, 68f9cd45281ec9e0cd95e4d7, 69ea2042f56476c922e5becd], currency: 68c51736f1f847cf76d205b8, created_at: 2025-10-23T06:35:31.305Z, updated_at: 2026-04-23T13:36:02.542Z, path: #68e63df6038f495b64eca490#68f9ccb3281ec9e0cd95e40d, __v: 0, id: 68f9ccb3281ec9e0cd95e40d}, country: {_id: 68e63df6038f495b64eca490, name: India, slug: india, type: country, featured_image: null, is_featured: false, parentRegion: null, children: [68f88bb729ef8cbaa7fcdfbe, 68f88d67066388d0ed8827ec, 68f88dbca7d36caf89372a58, 68f8a988e4da0b00d9ece447, 68f8a988e4da0b00d9ece446, 68f9ccb3281ec9e0cd95
+I/flutter (17384): Full address string: Tirupati, TBS WORKSPACE  Floor - 02, hi, Madhya Pradesh, India - 213424
+I/flutter (17384): Order Create :{address_id: 6af2cc71596b4b9118455999, primary_method: cash, secondary_method: null, notes: , coupon_code: null, coupon_discount: 0, items: [{product_id: {_id: 6aead17cec7280c252cdddac, name: Hiking Outdoor Gear Collection, slug: hiking-outdoor-gear-collection, type: simple, featured_image: {metadata: {processed: true, original_size: 105559, compression_status: compressed, compression_ratio: 0.20579960022357166}, _id: 6aeacd3f8ec5fea36340ceae, filename: 12-d770e534.webp, originalname: 12.png, filepath: 2026/11/04/12-d770e534.webp, mimetype: image/webp, size: 21724, file_type: image, reseller_id: null, uploaded_by: 6ad065ddaa6d814cecd26f4f, is_public: true, download_count: 0, tags: [], variants: [], alt_text: 12, file_extension: webp, is_processed: true, compression_percentage: 79, download_url: https://6ad06619aa6d814cecd2741f.foduu.store/images/2026/11/04/12-d770e534.webp}, categories: [6ad1f06fbda11e60ab55854e, 6ad0661eaa6d814cecd27751, 6ad0661eaa6d814cecd278c8, 6ad0661eaa6d814cecd278c4, 6ad0
+I/flutter (17384): url === https://daksh-store.foduu.store/api/order/create 500
+I/flutter (17384): POST request failed with error: Instance of 'FetchDataException'
+I/flutter (17384): Order Create :{address_id: 6af2cc71596b4b9118455999, primary_method: cash, secondary_method: null, notes: , coupon_code: null, coupon_discount: 0, items: [{product_id: {_id: 6aead17cec7280c252cdddac, name: Hiking Outdoor Gear Collection, slug: hiking-outdoor-gear-collection, type: simple, featured_image: {metadata: {processed: true, original_size: 105559, compression_status: compressed, compression_ratio: 0.20579960022357166}, _id: 6aeacd3f8ec5fea36340ceae, filename: 12-d770e534.webp, originalname: 12.png, filepath: 2026/11/04/12-d770e534.webp, mimetype: image/webp, size: 21724, file_type: image, reseller_id: null, uploaded_by: 6ad065ddaa6d814cecd26f4f, is_public: true, download_count: 0, tags: [], variants: [], alt_text: 12, file_extension: webp, is_processed: true, compression_percentage: 79, download_url: https://6ad06619aa6d814cecd2741f.foduu.store/images/2026/11/04/12-d770e534.webp}, categories: [6ad1f06fbda11e60ab55854e, 6ad0661eaa6d814cecd27751, 6ad0661eaa6d814cecd278c8, 6ad0661eaa6d814cecd278c4, 6ad0
+I/flutter (17384): url === https://daksh-store.foduu.store/api/order/create 500
+I/flutter (17384): POST request failed with error: Instance of 'FetchDataException'
+I/flutter (17384): Order Create :{address_id: 6af2cc71596b4b9118455999, primary_method: cash, secondary_method: null, notes: , coupon_code: null, coupon_discount: 0, items: [{product_id: {_id: 6aead17cec7280c252cdddac, name: Hiking Outdoor Gear Collection, slug: hiking-outdoor-gear-collection, type: simple, featured_image: {metadata: {processed: true, original_size: 105559, compression_status: compressed, compression_ratio: 0.20579960022357166}, _id: 6aeacd3f8ec5fea36340ceae, filename: 12-d770e534.webp, originalname: 12.png, filepath: 2026/11/04/12-d770e534.webp, mimetype: image/webp, size: 21724, file_type: image, reseller_id: null, uploaded_by: 6ad065ddaa6d814cecd26f4f, is_public: true, download_count: 0, tags: [], variants: [], alt_text: 12, file_extension: webp, is_processed: true, compression_percentage: 79, download_url: https://6ad06619aa6d814cecd2741f.foduu.store/images/2026/11/04/12-d770e534.webp}, categories: [6ad1f06fbda11e60ab55854e, 6ad0661eaa6d814cecd27751, 6ad0661eaa6d814cecd278c8, 6ad0661eaa6d814cecd278c4, 6ad0
+I/flutter (17384): url === https://daksh-store.foduu.store/api/order/create 500
+I/flutter (17384): POST request failed with error: Instance of 'FetchDataException'
 
-Running Gradle task 'assembleDebug'...     
-Potential fix: Your project's gradle version is typically defined in the gradle wrapper file. By default, this can be found at /Users/flutterdev/Desktop/fastify-public-mobile-app-templates/android/gradle/wrapper/gradle-wrapper.properties. 
-Running Gradle task 'assembleDebug'...     
-For more information, see https://docs.gradle.org/current/userguide/gradle_wrapper.html.
-Running Gradle task 'assembleDebug'...     
+Performing hot restart...                                               
+Restarted application in 8,519ms.
+I/flutter (17384): 🎨 Using default LIGHT theme colors
+I/flutter (17384): 🎨 Using default DARK theme colors
+I/flutter (17384): 📦 Initializing DynamicThemeManager
+I/flutter (17384): 💾 Light theme found in storage, loading...
+I/flutter (17384): 🌐 Generating LIGHT theme from API
+I/flutter (17384): 🎨 Parsed color: #FF111111
+I/flutter (17384): 🎨 Parsed color: #FFD4AF37
+I/flutter (17384): 🎨 Parsed color: #FFFFFFFF
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): 🎨 Parsed color: #FFE53935
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): 💾 Dark theme found in storage, loading...
+I/flutter (17384): 🌐 Generating DARK theme from API
+I/flutter (17384): 🎨 Parsed color: #FFE5C07B
+I/flutter (17384): 🎨 Parsed color: #FFFFFFFF
+I/flutter (17384): 🎨 Parsed color: #FF121212
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): 🎨 Parsed color: #FFEF5350
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): 🎭 Building LIGHT ThemeData
+I/flutter (17384): 🎭 Building DARK ThemeData
+I/flutter (17384): 🟢 DynamicLayout: Setting up SHARED socket listener for: daksh-store.foduu.store:mobileapp
+I/flutter (17384): 🔄 Socket already initialized, reconnecting...
+I/flutter (17384): 🔗 Socket URL: https://studio.foduu.store/
+I/flutter (17384): 🟢 DynamicLayout: Registered slug "wishlist" on existing listener (daksh-store.foduu.store:mobileapp)
+I/flutter (17384): 🔄 Socket already initialized, reconnecting...
+I/flutter (17384): 🔗 Socket URL: https://studio.foduu.store/
+I/flutter (17384): 🟢 DynamicLayout: Registered slug "home" on existing listener (daksh-store.foduu.store:mobileapp)
+D/WindowOnBackDispatcher(17384): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@7a17247
+I/flutter (17384): url === https://daksh-store.foduu.store/api/wishlist/list 200
+I/flutter (17384): url === https://daksh-store.foduu.store/api/public/customer/profile 404
+I/flutter (17384): Instance of 'BadRequestException'
+I/flutter (17384): url === https://daksh-store.foduu.store/api/mobile-app/cart 200
+I/flutter (17384): ⚠️ DynamicLayout: No valid sections found for "cart"
+I/flutter (17384): url === https://daksh-store.foduu.store/api/mobile-app/wishlist 200
+I/flutter (17384): ⚠️ DynamicLayout: No valid sections found for "wishlist"
+I/flutter (17384): url === https://daksh-store.foduu.store/api/navigation/sidebar 200
+I/flutter (17384): url === https://daksh-store.foduu.store/api/cart 200
+I/flutter (17384): url === https://daksh-store.foduu.store/api/auth/customer/profile 200
+I/flutter (17384): Profile data successfully fetched and parsed: {otp: null, otp_created_at: null, _id: 6aedc067c8352103b70760c6, name: aniket, email: aniketflutter@foduu.com, alt_email: null, alt_country_code: null, alt_mobile: null, password: null, status: active, refresh_token: null, timezone: null, last_login_at: null, email_verified_at: 2026-11-06T12:03:56.263Z, login_attempt: 0, twofactor_enabled: false, wallet_balance: 0, featured_image: null, date_of_birth: null, otp_attempts: 0, otp_locked_until: null, is_test_user: false, test_otp: null, password_reset_token: null, password_reset_token_expires_at: null, wishlist: [], email_opt_in: true, sms_opt_in: true, whatsapp_opt_in: false, marketing_unsubscribed_at: null, tags: [], gstin: null, business_name: null, gst_address: null, is_nc: false, fixed_discount_percent: 0, owner_id: 6ad065ddaa6d814cecd26f4f, reseller_id: null, website_id: 6ad06619aa6d814cecd2741f, deleted_at: null, addresses: [{name: Tirupati, email: aniketflutter@foduu.com, mobile: 9876543210, type: both, stre
+I/flutter (17384): ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+I/flutter (17384): ✅ Socket CONNECTED successfully!
+I/flutter (17384): 🔗 Connected to: https://studio.foduu.store/
+I/flutter (17384): 🆔 Socket ID: OP--_lXAhsXeQNNlAABX
+I/flutter (17384): 📡 Connection Status: CONNECTED
+I/flutter (17384): 👂 Active Listeners (1):
+I/flutter (17384):    - daksh-store.foduu.store:mobileapp
+I/flutter (17384): ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+I/flutter (17384): url === https://daksh-store.foduu.store/api/mobile-app/home 200
+I/flutter (17384): 📄 DynamicLayout: Received 16 sections for "home"
+I/flutter (17384): 🧱 DynamicLayout: Built 16/16 sections; registered=[search, slider, categories, blog, banner, price_filter, spacer, divider, text_block, products, trust_badges, rich_text, countdown]
+I/flutter (17384): Products section: heading="", layout=parent_web, infiniteScroll=true, count=10
+I/flutter (17384): Products section: heading="Most popular products", layout=standard, infiniteScroll=true, count=10
+I/flutter (17384): Products section: heading="Users Who Viewed This Also Checked Out These Similar Profiles", layout=horizontal, infiniteScroll=false, count=3
+I/flutter (17384): Products section: heading="", layout=parent_web, infiniteScroll=true, count=4
+I/flutter (17384): Products section: heading="Discovering the Hottest Nearby Destinations in Your Area", layout=overlay, infiniteScroll=false, count=6
+I/flutter (17384): Products section: heading="Featured now", layout=horizontal, infiniteScroll=false, count=6
+I/flutter (17384): Products section: heading="Trending Products", layout=standard, infiniteScroll=true, count=10
+I/flutter (17384): url === https://daksh-store.foduu.store/api/coupons 200
+I/flutter (17384): url === https://daksh-store.foduu.store/api/order 200
+I/flutter (17384): isLogin true
+D/WindowOnBackDispatcher(17384): setTopOnBackInvokedCallback (unwrapped): androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@7b0e117
+I/flutter (17384): url === https://daksh-store.foduu.store/api/customer/addresses 200
+I/flutter (17384): respsen addressssssssss--- --- -- - - -[{name: Tirupati, email: aniketflutter@foduu.com, mobile: 9876543210, type: both, street: TBS WORKSPACE  Floor - 02, landmark: hi, city: Bhubaneswar, state: {_id: 68f9ccb3281ec9e0cd95e40d, name: Madhya Pradesh, slug: madhya-pradesh, type: state, featured_image: null, is_featured: false, parentRegion: 68e63df6038f495b64eca490, children: [68f9cccc281ec9e0cd95e422, 68f9cce7281ec9e0cd95e449, 68f9ccfa281ec9e0cd95e482, 68f9cd19281ec9e0cd95e4a8, 68f9cd45281ec9e0cd95e4d7, 69ea2042f56476c922e5becd], currency: 68c51736f1f847cf76d205b8, created_at: 2025-10-23T06:35:31.305Z, updated_at: 2026-04-23T13:36:02.542Z, path: #68e63df6038f495b64eca490#68f9ccb3281ec9e0cd95e40d, __v: 0, id: 68f9ccb3281ec9e0cd95e40d}, country: {_id: 68e63df6038f495b64eca490, name: India, slug: india, type: country, featured_image: null, is_featured: false, parentRegion: null, children: [68f88bb729ef8cbaa7fcdfbe, 68f88d67066388d0ed8827ec, 68f88dbca7d36caf89372a58, 68f8a988e4da0b00d9ece447, 68f8a988e4da0b00d9ec
+I/flutter (17384): url === https://daksh-store.foduu.store/api/payment-methods 200
+I/flutter (17384): Loading selected address...
+I/flutter (17384): Selected index: 0
+I/flutter (17384): Address list length: 1
+I/flutter (17384): Address data type: _Map<String, dynamic>
+I/flutter (17384): Address data: {name: Tirupati, email: aniketflutter@foduu.com, mobile: 9876543210, type: both, street: TBS WORKSPACE  Floor - 02, landmark: hi, city: Bhubaneswar, state: {_id: 68f9ccb3281ec9e0cd95e40d, name: Madhya Pradesh, slug: madhya-pradesh, type: state, featured_image: null, is_featured: false, parentRegion: 68e63df6038f495b64eca490, children: [68f9cccc281ec9e0cd95e422, 68f9cce7281ec9e0cd95e449, 68f9ccfa281ec9e0cd95e482, 68f9cd19281ec9e0cd95e4a8, 68f9cd45281ec9e0cd95e4d7, 69ea2042f56476c922e5becd], currency: 68c51736f1f847cf76d205b8, created_at: 2025-10-23T06:35:31.305Z, updated_at: 2026-04-23T13:36:02.542Z, path: #68e63df6038f495b64eca490#68f9ccb3281ec9e0cd95e40d, __v: 0, id: 68f9ccb3281ec9e0cd95e40d}, country: {_id: 68e63df6038f495b64eca490, name: India, slug: india, type: country, featured_image: null, is_featured: false, parentRegion: null, children: [68f88bb729ef8cbaa7fcdfbe, 68f88d67066388d0ed8827ec, 68f88dbca7d36caf89372a58, 68f8a988e4da0b00d9ece447, 68f8a988e4da0b00d9ece446, 68f9ccb3281ec9e0cd95
+I/flutter (17384): Full address string: Tirupati, TBS WORKSPACE  Floor - 02, hi, Madhya Pradesh, India - 213424
+I/flutter (17384): Order Create :{address_id: 6af2cc71596b4b9118455999, primary_method: cash, secondary_method: null, notes: , coupon_code: null, coupon_discount: 0}
+I/flutter (17384): url === https://daksh-store.foduu.store/checkout/place-order 500
+I/flutter (17384): POST request failed with error: Instance of 'FetchDataException'
 
-Running Gradle task 'assembleDebug'...     
-Warning: Flutter support for your project's Android Gradle Plugin version (Android Gradle Plugin version 8.11.1) will soon be dropped. Please upgrade your Android Gradle Plugin version to a version of at least Android Gradle Plugin version 9.0.1 soon.
-Running Gradle task 'assembleDebug'...     
-Alternatively, use the flag "--android-skip-build-dependency-validation" to bypass this check.
-Running Gradle task 'assembleDebug'...     
+Performing hot restart...                                               
+Restarted application in 2,830ms.
+I/flutter (17384): 🎨 Using default LIGHT theme colors
+I/flutter (17384): 🎨 Using default DARK theme colors
+I/flutter (17384): 📦 Initializing DynamicThemeManager
+I/flutter (17384): 💾 Light theme found in storage, loading...
+I/flutter (17384): 🌐 Generating LIGHT theme from API
+I/flutter (17384): 🎨 Parsed color: #FF111111
+I/flutter (17384): 🎨 Parsed color: #FFD4AF37
+I/flutter (17384): 🎨 Parsed color: #FFFFFFFF
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): 🎨 Parsed color: #FFE53935
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): 💾 Dark theme found in storage, loading...
+I/flutter (17384): 🌐 Generating DARK theme from API
+I/flutter (17384): 🎨 Parsed color: #FFE5C07B
+I/flutter (17384): 🎨 Parsed color: #FFFFFFFF
+I/flutter (17384): 🎨 Parsed color: #FF121212
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): 🎨 Parsed color: #FFEF5350
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): 🎭 Building LIGHT ThemeData
+I/flutter (17384): 🎭 Building DARK ThemeData
+I/flutter (17384): 🟢 DynamicLayout: Setting up SHARED socket listener for: daksh-store.foduu.store:mobileapp
+I/flutter (17384): 🔄 Socket already initialized, reconnecting...
+I/flutter (17384): 🔗 Socket URL: https://studio.foduu.store/
+I/flutter (17384): 🟢 DynamicLayout: Registered slug "wishlist" on existing listener (daksh-store.foduu.store:mobileapp)
+I/flutter (17384): 🔄 Socket already initialized, reconnecting...
+I/flutter (17384): 🔗 Socket URL: https://studio.foduu.store/
+I/flutter (17384): 🟢 DynamicLayout: Registered slug "home" on existing listener (daksh-store.foduu.store:mobileapp)
+D/WindowOnBackDispatcher(17384): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@7a17247
+I/flutter (17384): url === https://daksh-store.foduu.store/api/public/customer/profile 404
+I/flutter (17384): Instance of 'BadRequestException'
+I/flutter (17384): url === https://daksh-store.foduu.store/api/mobile-app/cart 200
+I/flutter (17384): ⚠️ DynamicLayout: No valid sections found for "cart"
+I/flutter (17384): url === https://daksh-store.foduu.store/api/mobile-app/wishlist 200
+I/flutter (17384): ⚠️ DynamicLayout: No valid sections found for "wishlist"
+I/flutter (17384): url === https://daksh-store.foduu.store/api/wishlist/list 200
+I/flutter (17384): url === https://daksh-store.foduu.store/api/cart 200
+I/flutter (17384): url === https://daksh-store.foduu.store/api/auth/customer/profile 200
+I/flutter (17384): Profile data successfully fetched and parsed: {otp: null, otp_created_at: null, _id: 6aedc067c8352103b70760c6, name: aniket, email: aniketflutter@foduu.com, alt_email: null, alt_country_code: null, alt_mobile: null, password: null, status: active, refresh_token: null, timezone: null, last_login_at: null, email_verified_at: 2026-11-06T12:03:56.263Z, login_attempt: 0, twofactor_enabled: false, wallet_balance: 0, featured_image: null, date_of_birth: null, otp_attempts: 0, otp_locked_until: null, is_test_user: false, test_otp: null, password_reset_token: null, password_reset_token_expires_at: null, wishlist: [], email_opt_in: true, sms_opt_in: true, whatsapp_opt_in: false, marketing_unsubscribed_at: null, tags: [], gstin: null, business_name: null, gst_address: null, is_nc: false, fixed_discount_percent: 0, owner_id: 6ad065ddaa6d814cecd26f4f, reseller_id: null, website_id: 6ad06619aa6d814cecd2741f, deleted_at: null, addresses: [{name: Tirupati, email: aniketflutter@foduu.com, mobile: 9876543210, type: both, stre
+I/flutter (17384): ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+I/flutter (17384): ✅ Socket CONNECTED successfully!
+I/flutter (17384): 🔗 Connected to: https://studio.foduu.store/
+I/flutter (17384): 🆔 Socket ID: vbEUpyHDalPWCHULAABf
+I/flutter (17384): 📡 Connection Status: CONNECTED
+I/flutter (17384): 👂 Active Listeners (1):
+I/flutter (17384):    - daksh-store.foduu.store:mobileapp
+I/flutter (17384): ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+I/flutter (17384): url === https://daksh-store.foduu.store/api/navigation/sidebar 200
+I/flutter (17384): url === https://daksh-store.foduu.store/api/mobile-app/home 200
+I/flutter (17384): 📄 DynamicLayout: Received 16 sections for "home"
+I/flutter (17384): 🧱 DynamicLayout: Built 16/16 sections; registered=[search, slider, categories, blog, banner, price_filter, spacer, divider, text_block, products, trust_badges, rich_text, countdown]
+I/flutter (17384): Products section: heading="", layout=parent_web, infiniteScroll=true, count=10
+I/flutter (17384): Products section: heading="Most popular products", layout=standard, infiniteScroll=true, count=10
+I/flutter (17384): Products section: heading="Users Who Viewed This Also Checked Out These Similar Profiles", layout=horizontal, infiniteScroll=false, count=3
+I/flutter (17384): Products section: heading="", layout=parent_web, infiniteScroll=true, count=4
+I/flutter (17384): Products section: heading="Discovering the Hottest Nearby Destinations in Your Area", layout=overlay, infiniteScroll=false, count=6
+I/flutter (17384): Products section: heading="Featured now", layout=horizontal, infiniteScroll=false, count=6
+I/flutter (17384): Products section: heading="Trending Products", layout=standard, infiniteScroll=true, count=10
+I/flutter (17384): url === https://daksh-store.foduu.store/api/coupons 200
+I/flutter (17384): url === https://daksh-store.foduu.store/api/order 200
+I/flutter (17384): isLogin true
+D/WindowOnBackDispatcher(17384): setTopOnBackInvokedCallback (unwrapped): androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@7b0e117
+I/flutter (17384): url === https://daksh-store.foduu.store/api/customer/addresses 200
+I/flutter (17384): respsen addressssssssss--- --- -- - - -[{name: Tirupati, email: aniketflutter@foduu.com, mobile: 9876543210, type: both, street: TBS WORKSPACE  Floor - 02, landmark: hi, city: Bhubaneswar, state: {_id: 68f9ccb3281ec9e0cd95e40d, name: Madhya Pradesh, slug: madhya-pradesh, type: state, featured_image: null, is_featured: false, parentRegion: 68e63df6038f495b64eca490, children: [68f9cccc281ec9e0cd95e422, 68f9cce7281ec9e0cd95e449, 68f9ccfa281ec9e0cd95e482, 68f9cd19281ec9e0cd95e4a8, 68f9cd45281ec9e0cd95e4d7, 69ea2042f56476c922e5becd], currency: 68c51736f1f847cf76d205b8, created_at: 2025-10-23T06:35:31.305Z, updated_at: 2026-04-23T13:36:02.542Z, path: #68e63df6038f495b64eca490#68f9ccb3281ec9e0cd95e40d, __v: 0, id: 68f9ccb3281ec9e0cd95e40d}, country: {_id: 68e63df6038f495b64eca490, name: India, slug: india, type: country, featured_image: null, is_featured: false, parentRegion: null, children: [68f88bb729ef8cbaa7fcdfbe, 68f88d67066388d0ed8827ec, 68f88dbca7d36caf89372a58, 68f8a988e4da0b00d9ece447, 68f8a988e4da0b00d9ec
+I/flutter (17384): url === https://daksh-store.foduu.store/api/payment-methods 200
+I/flutter (17384): Loading selected address...
+I/flutter (17384): Selected index: 0
+I/flutter (17384): Address list length: 1
+I/flutter (17384): Address data type: _Map<String, dynamic>
+I/flutter (17384): Address data: {name: Tirupati, email: aniketflutter@foduu.com, mobile: 9876543210, type: both, street: TBS WORKSPACE  Floor - 02, landmark: hi, city: Bhubaneswar, state: {_id: 68f9ccb3281ec9e0cd95e40d, name: Madhya Pradesh, slug: madhya-pradesh, type: state, featured_image: null, is_featured: false, parentRegion: 68e63df6038f495b64eca490, children: [68f9cccc281ec9e0cd95e422, 68f9cce7281ec9e0cd95e449, 68f9ccfa281ec9e0cd95e482, 68f9cd19281ec9e0cd95e4a8, 68f9cd45281ec9e0cd95e4d7, 69ea2042f56476c922e5becd], currency: 68c51736f1f847cf76d205b8, created_at: 2025-10-23T06:35:31.305Z, updated_at: 2026-04-23T13:36:02.542Z, path: #68e63df6038f495b64eca490#68f9ccb3281ec9e0cd95e40d, __v: 0, id: 68f9ccb3281ec9e0cd95e40d}, country: {_id: 68e63df6038f495b64eca490, name: India, slug: india, type: country, featured_image: null, is_featured: false, parentRegion: null, children: [68f88bb729ef8cbaa7fcdfbe, 68f88d67066388d0ed8827ec, 68f88dbca7d36caf89372a58, 68f8a988e4da0b00d9ece447, 68f8a988e4da0b00d9ece446, 68f9ccb3281ec9e0cd95
+I/flutter (17384): Full address string: Tirupati, TBS WORKSPACE  Floor - 02, hi, Madhya Pradesh, India - 213424
 
-Running Gradle task 'assembleDebug'...     
-Potential fix: Your project's AGP version is typically defined in the plugins block of the `settings.gradle` file (/Users/flutterdev/Desktop/fastify-public-mobile-app-templates/android/settings.gradle), by a plugin with the id of com.android.application. 
-Running Gradle task 'assembleDebug'...     
-If you don't see a plugins block, your project was likely created with an older template version. In this case it is most likely defined in the top-level build.gradle file (/Users/flutterdev/Desktop/fastify-public-mobile-app-templates/android/build.gradle) by the following line in the dependencies block of the buildscript: "classpath 'com.android.tools.build:gradle:<version>'".
-Running Gradle task 'assembleDebug'...     
 
-Running Gradle task 'assembleDebug'...     
-Warning: Flutter support for your project's Kotlin version (2.2.20) will soon be dropped. Please upgrade your Kotlin version to a version of at least 2.3.20 soon.
-Running Gradle task 'assembleDebug'...     
-Alternatively, use the flag "--android-skip-build-dependency-validation" to bypass this check.
-Running Gradle task 'assembleDebug'...     
 
-Running Gradle task 'assembleDebug'...     
-Potential fix: Your project's KGP version is typically defined in the plugins block of the `settings.gradle` file (/Users/flutterdev/Desktop/fastify-public-mobile-app-templates/android/settings.gradle), by a plugin with the id of org.jetbrains.kotlin.android. 
-Running Gradle task 'assembleDebug'...     
-If you don't see a plugins block, your project was likely created with an older template version, in which case it is most likely defined in the top-level build.gradle file (/Users/flutterdev/Desktop/fastify-public-mobile-app-templates/android/build.gradle) by the ext.kotlin_version property.
-Running Gradle task 'assembleDebug'...     
 
-Running Gradle task 'assembleDebug'...                             17.6s
-✓ Built
-build/app/outputs/flutter-apk/app-debug.apk
-Installing build/app/outputs/flutter-apk/app-debug.apk...        1,115ms
-I/FlutterActivityAndFragmentDelegate(13636): If you are attempting to set --enable-dart-profiling via Intent extras to launch a Flutter component outside of using the Flutter CLI, note that support for setting engine flags on Android via Intent will soon be dropped; see https://github.com/flutter/flutter/issues/180686 for more information on this breaking change. To migrate, set --enable-dart-profiling or any other flags specified via Intent extras on the command line instead or see https://github.com/flutter/flutter/blob/main/docs/engine/Flutter-Android-Engine-Flags.md for alternative methods.
-D/FlutterJNI(13636): Beginning load of flutter...
-D/FlutterJNI(13636): flutter (null) was loaded normally!
-I/flutter (13636): [IMPORTANT:flutter/shell/common/shell.cc(528)] [Action Required]: Impeller opt-out deprecated.
-I/flutter (13636):     The application opted out of Impeller by either using the
-I/flutter (13636):     `--no-enable-impeller` flag or the
-I/flutter (13636):     `io.flutter.embedding.android.EnableImpeller` `AndroidManifest.xml` entry.
-I/flutter (13636):     These options are going to go away in an upcoming Flutter release. Remove
-I/flutter (13636):     the explicit opt-out. If you need to opt-out, please report a bug describing
-I/flutter (13636):     the issue.
-I/flutter (13636): 
-I/flutter (13636):     https://github.com/flutter/flutter/issues/new?template=02_bug.yml
-I/flutter (13636): 
-I/m.example.foddu(13636): hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->getSourceNodeId()J (runtime_flags=0, domain=platform, api=unsupported,test-api) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app, TargetSdkVersion=36) using reflection: allowed
-I/m.example.foddu(13636): hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityRecord;->getSourceNodeId()J (runtime_flags=0, domain=platform, api=unsupported) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app, TargetSdkVersion=36) using reflection: allowed
-I/m.example.foddu(13636): hiddenapi: Accessing hidden field Landroid/view/accessibility/AccessibilityNodeInfo;->mChildNodeIds:Landroid/util/LongArray; (runtime_flags=0, domain=platform, api=unsupported) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app, TargetSdkVersion=36) using reflection: allowed
-I/m.example.foddu(13636): hiddenapi: Accessing hidden method Landroid/util/LongArray;->get(I)J (runtime_flags=0, domain=platform, api=unsupported) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app, TargetSdkVersion=36) using reflection: allowed
-D/AccessibilityBridge(13636): Setting not found: accessibility_display_inversion_enabled, using default: 0
-D/FlutterRenderer(13636): Width is zero. 0,0
-D/Android: [Awesome Notifications](13636): App is now Foreground (LifeCycleManager:94)
-Syncing files to device sdk gphone64 arm64.
-W/HWUI    (13636): Unknown dataspace 0
-Syncing files to device sdk gphone64 arm64.
-D/WindowOnBackDispatcher(13636): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@9948fdf
-Syncing files to device sdk gphone64 arm64.
-I/WindowExtensionsImpl(13636): Initializing Window Extensions, vendor API level=9, activity embedding enabled=true
-Syncing files to device sdk gphone64 arm64.
-I/m.example.foddu(13636): Compiler allocated 5155KB to compile void android.view.ViewRootImpl.performTraversals()
-Syncing files to device sdk gphone64 arm64.
-D/VRI[MainActivity](13636): WindowInsets changed: 1080x2424 statusBars:[0,142,0,0] navigationBars:[0,0,0,63] mandatorySystemGestures:[0,174,0,84] 
-Syncing files to device sdk gphone64 arm64.
-D/FlutterRenderer(13636): Width is zero. 0,0
-Syncing files to device sdk gphone64 arm64.
-D/FlutterRenderer(13636): Width is zero. 0,0
-Syncing files to device sdk gphone64 arm64.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): 🎨 Using default LIGHT theme colors
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): 🎨 Using default DARK theme colors
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): 📦 Initializing DynamicThemeManager
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): 💾 Light theme found in storage, loading...
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): 🌐 Generating LIGHT theme from API
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): 🎨 Parsed color: #FF111111
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): 🎨 Parsed color: #FFD4AF37
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): 🎨 Parsed color: #FFFFFFFF
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): 🎨 Parsed color: #FFE53935
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): 💾 Dark theme found in storage, loading...
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): 🌐 Generating DARK theme from API
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): 🎨 Parsed color: #FFE5C07B
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): 🎨 Parsed color: #FFFFFFFF
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): 🎨 Parsed color: #FF121212
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): 🎨 Parsed color: #FFEF5350
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64.
-I/flutter (13636): ⚠️ Hex color missing
-Syncing files to device sdk gphone64 arm64...                      164ms
 
-Flutter run key commands.
-r Hot reload. 🔥🔥🔥
-R Hot restart.
-h List all available interactive commands.
-d Detach (terminate "flutter run" but leave
-application running).
-c Clear the screen
-q Quit (terminate the application on the
-device).
 
-A Dart VM Service on sdk gphone64 arm64 is
-available at:
-http://127.0.0.1:65029/j0-Ujzby4yg=/
-The Flutter DevTools debugger and profiler
-on sdk gphone64 arm64 is available at:
-http://127.0.0.1:65029/j0-Ujzby4yg=/devtool
-s/?uri=ws://127.0.0.1:65029/j0-Ujzby4yg=/ws
-I/flutter (13636): 🎭 Building LIGHT ThemeData
-I/flutter (13636): 🎭 Building DARK ThemeData
-I/TextToSpeech(13636): Connected to TTS engine
-I/TextToSpeech(13636): Setting up the connection to TTS engine...
-I/Choreographer(13636): Skipped 35 frames!  The application may be doing too much work on its main thread.
-I/HWUI    (13636): Using FreeType backend (prop=Auto)
-D/WindowLayoutComponentImpl(13636): Register WindowLayoutInfoListener on Context=com.example.foddu.MainActivity@d19f648, of which baseContext=android.app.ContextImpl@c5a308d
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/InsetsController(13636): hide(ime())
-I/ImeTracker(13636): com.example.foddu:26b297f2: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
-D/ProfileInstaller(13636): Installing profile for com.example.foddu
-I/flutter (13636): url === https://daksh-store.foduu.store/api/public-settings 200
-I/flutter (13636): Auth Preference saved: {auth_method: email_otp, email_otp: true, email_password: false, mobile_otp: false, provider: smtp}
-I/flutter (13636): swapnil splash screen response {coreSettings: {footersections: [{title: about, slug: about, content: <img alt="" src="assets/images/logo.png" style="width: 175px;"/>
-I/flutter (13636): <p class="mt-20">Aurexz Consulting delivers Project Management, Agile, and Technology Enablement
-I/flutter (13636):                             solutions,
-I/flutter (13636):                             helping organizations transition from project-based execution to scalable, product-centric
-I/flutter (13636):                             ways of
-I/flutter (13636):                             working.
-I/flutter (13636):                         </p>
-I/flutter (13636): <ul class="styled-icons icon-sm icon-dark icon-theme-colored2 icon-circled clearfix mt-10">
-I/flutter (13636): <li><a href="https://www.youtube.com/@agiletransformationminds"><i class="fa fa-youtube"></i></a></li>
-I/flutter (13636): <li><a href="https://www.linkedin.com/company/aurexzconsulting/"><i class="fa fa-linkedin"></i></a></li>
-I/flutter (13636): <li><a href="https://www.meetup.com/atminds/"><i class="fa fa-meetup"></i></a></li>
-I/flutter (13636): </ul>}, {title: useful-links, slug: useful-links, content: <h4 class="widget-title line-bottom-theme-colored2">Usefu
-I/flutter (13636): App Theme Color: {light: {primary: #111111, onPrimary: #ffffff, secondary: #d4af37, onSecondary: #111111, background: #ffffff, onBackground: #111111, surface: #fafafb, onSurface: #111111}, dark: {primary: #e5c07b, onPrimary: #111111, secondary: #ffffff, onSecondary: #111111, background: #121212, onBackground: #ffffff, surface: #1e1e1e, onSurface: #ffffff}}
-I/flutter (13636): 🌐 Updating themes from API
-I/flutter (13636): swaponil appThemeColor update working {light: {primary: #111111, onPrimary: #ffffff, secondary: #d4af37, onSecondary: #111111, background: #ffffff, onBackground: #111111, surface: #fafafb, onSurface: #111111}, dark: {primary: #e5c07b, onPrimary: #111111, secondary: #ffffff, onSecondary: #111111, background: #121212, onBackground: #ffffff, surface: #1e1e1e, onSurface: #ffffff}}
-I/flutter (13636): 🌐 Generating LIGHT theme from API
-I/flutter (13636): 🎨 Parsed color: #FF111111
-I/flutter (13636): 🎨 Parsed color: #FFd4af37
-I/flutter (13636): 🎨 Parsed color: #FFffffff
-I/flutter (13636): 🎨 Parsed color: #FFfafafb
-I/flutter (13636): ⚠️ Hex color missing
-I/flutter (13636): 🎨 Parsed color: #FFffffff
-I/flutter (13636): 🎨 Parsed color: #FF111111
-I/flutter (13636): 🎨 Parsed color: #FF111111
-I/flutter (13636): 🎨 Parsed color: #FF111111
-I/flutter (13636): ⚠️ Hex color missing
-I/flutter (13636): ⚠️ Hex color missing
-I/flutter (13636): ⚠️ Hex color missing
-I/flutter (13636): ⚠️ Hex color missing
-I/flutter (13636): ✅ Light theme updated & saved successfully
-I/flutter (13636): 🌐 Generating DARK theme from API
-I/flutter (13636): 🎨 Parsed color: #FFe5c07b
-I/flutter (13636): 🎨 Parsed color: #FFffffff
-I/flutter (13636): 🎨 Parsed color: #FF121212
-I/flutter (13636): 🎨 Parsed color: #FF1e1e1e
-I/flutter (13636): ⚠️ Hex color missing
-I/flutter (13636): 🎨 Parsed color: #FF111111
-I/flutter (13636): 🎨 Parsed color: #FF111111
-I/flutter (13636): 🎨 Parsed color: #FFffffff
-I/flutter (13636): 🎨 Parsed color: #FFffffff
-I/flutter (13636): ⚠️ Hex color missing
-I/flutter (13636): ⚠️ Hex color missing
-I/flutter (13636): ⚠️ Hex color missing
-I/flutter (13636): ⚠️ Hex color missing
-I/flutter (13636): ✅ Dark theme updated & saved successfully
-I/flutter (13636): 🔄 Refreshing app theme...
-I/flutter (13636): 🎭 Building LIGHT ThemeData
-I/flutter (13636): 🎭 Building DARK ThemeData
-I/flutter (13636): 🚀 [Onboarding] Fetching intro slides from slider/intro...
-I/flutter (13636): url === https://daksh-store.foduu.store/api/slider/intro 200
-I/flutter (13636): 📦 [Onboarding] Response type: _Map<String, dynamic>
-I/flutter (13636): ✅ [Onboarding] Successfully loaded 3 dynamic slides from backend!
-I/flutter (13636): 🖼️ [Onboarding] Pre-caching: https://daksh-store.foduu.store/images/2026/11/04/12-d770e534.webp
-I/flutter (13636): 🖼️ [Onboarding] Pre-caching: https://daksh-store.foduu.store/images/2026/11/04/11-7451feab.webp
-I/flutter (13636): 🖼️ [Onboarding] Pre-caching: https://daksh-store.foduu.store/images/2026/11/04/10-e88761b4.webp
-W/m.example.foddu(13636): userfaultfd: MOVE ioctl seems unsupported: Connection timed out
-I/flutter (13636): CreateAccountController - isOtpMode: true
-I/ImeTracker(13636): com.example.foddu:1a31ac27: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false
-D/InsetsController(13636): show(ime())
-D/InsetsController(13636): Setting requestedVisibleTypes to 511 (was 503)
-D/InputConnectionAdaptor(13636): The input method toggled cursor monitoring on
-D/WindowOnBackDispatcher(13636): setTopOnBackInvokedCallback (unwrapped): android.view.ImeBackAnimationController@59d99a2
-D/VRI[MainActivity](13636): WindowInsets changed: ime:[0,0,0,231] 
-W/InteractionJankMonitor(13636): Initializing without READ_DEVICE_CONFIG permission. enabled=false, interval=1, missedFrameThreshold=3, frameTimeThreshold=64, package=com.example.foddu
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-I/ImeTracker(13636): com.example.foddu:1a31ac27: onShown
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-D/FlutterJNI(13636): Sending viewport metrics to the engine.
-I/flutter (13636): Sign in clicked
 
-══╡ EXCEPTION CAUGHT BY WIDGETS LIBRARY
-╞══════════════════════════════════════════
-═════════════════
-The following assertion was thrown while
-finalizing the widget tree:
-Duplicate GlobalKey detected in widget
-tree.
-The following GlobalKey was specified
-multiple times in the widget tree. This
-will lead to parts of
-the widget tree being truncated
-unexpectedly, because the second time a key
-is seen, the previous
-instance is moved to the new location. The
-key was:
-- [LabeledGlobalKey<FormState>#d2fd8]
-This was determined by noticing that after
-the widget with the above global key was
-moved out of its
-previous parent, that previous parent never
-updated during this frame, meaning that it
-either did
-not update at all or updated before the
-widget was moved, in either case implying
-that it still
-thinks that it should have a child with
-that global key.
-The specific parent that did not update
-after having one or more children forcibly
-removed due to
-GlobalKey reparenting is:
-- RepaintBoundary(renderObject:
-RenderRepaintBoundary#94b56
-relayoutBoundary=up4)
-A GlobalKey can only be specified on one
-widget at a time in the widget tree.
 
-When the exception was thrown, this was the
-stack:
-#0      BuildOwner.finalizeTree.<anonymous
-closure>
-(package:flutter/src/widgets/framework.dart
-:3422:15)
-#1      BuildOwner.finalizeTree
-(package:flutter/src/widgets/framework.dart
-:3447:8)
-#2      WidgetsBinding.drawFrame
-(package:flutter/src/widgets/binding.dart:1
-578:19)
-#3
-RendererBinding._handlePersistentFrameCallb
-ack
-(package:flutter/src/rendering/binding.dart
-:558:5)
-#4
-SchedulerBinding._invokeFrameCallback
-(package:flutter/src/scheduler/binding.dart
-:1430:15)
-#5      SchedulerBinding.handleDrawFrame
-(package:flutter/src/scheduler/binding.dart
-:1345:9)
-#6      SchedulerBinding._handleDrawFrame
-(package:flutter/src/scheduler/binding.dart
-:1198:5)
-#7      _invoke (dart:ui/hooks.dart:441:13)
-#8      PlatformDispatcher._drawFrame
-(dart:ui/platform_dispatcher.dart:450:5)
-#9      _drawFrame
-(dart:ui/hooks.dart:413:31)
-═══════════════════════════════════════════
-═══════════════════════════════════════════
+
+
+
+
+
+
+
+
+
+
+I/flutter (17384): Order Create :{address_id: 6af2cc71596b4b9118455999, primary_method: cash, secondary_method: null, notes: , coupon_code: null, coupon_discount: 0}
+I/flutter (17384): url === https://daksh-store.foduu.store/checkout/place-order 201
+I/flutter (17384): url === https://daksh-store.foduu.store/api/cart 200
+
+Performing hot restart...                                               
+Restarted application in 1,757ms.
+I/flutter (17384): 🎨 Using default LIGHT theme colors
+I/flutter (17384): 🎨 Using default DARK theme colors
+I/flutter (17384): 📦 Initializing DynamicThemeManager
+I/flutter (17384): 💾 Light theme found in storage, loading...
+I/flutter (17384): 🌐 Generating LIGHT theme from API
+I/flutter (17384): 🎨 Parsed color: #FF111111
+I/flutter (17384): 🎨 Parsed color: #FFD4AF37
+I/flutter (17384): 🎨 Parsed color: #FFFFFFFF
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): 🎨 Parsed color: #FFE53935
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): 💾 Dark theme found in storage, loading...
+I/flutter (17384): 🌐 Generating DARK theme from API
+I/flutter (17384): 🎨 Parsed color: #FFE5C07B
+I/flutter (17384): 🎨 Parsed color: #FFFFFFFF
+I/flutter (17384): 🎨 Parsed color: #FF121212
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): 🎨 Parsed color: #FFEF5350
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): 🎭 Building LIGHT ThemeData
+I/flutter (17384): 🎭 Building DARK ThemeData
+I/flutter (17384): 🟢 DynamicLayout: Setting up SHARED socket listener for: daksh-store.foduu.store:mobileapp
+I/flutter (17384): 🔄 Socket already initialized, reconnecting...
+I/flutter (17384): 🔗 Socket URL: https://studio.foduu.store/
+I/flutter (17384): 🟢 DynamicLayout: Registered slug "wishlist" on existing listener (daksh-store.foduu.store:mobileapp)
+I/flutter (17384): 🔄 Socket already initialized, reconnecting...
+I/flutter (17384): 🔗 Socket URL: https://studio.foduu.store/
+I/flutter (17384): 🟢 DynamicLayout: Registered slug "home" on existing listener (daksh-store.foduu.store:mobileapp)
+D/WindowOnBackDispatcher(17384): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@7a17247
+I/flutter (17384): url === https://daksh-store.foduu.store/api/navigation/sidebar 200
+I/flutter (17384): url === https://daksh-store.foduu.store/api/wishlist/list 200
+I/flutter (17384): url === https://daksh-store.foduu.store/api/mobile-app/cart 200
+I/flutter (17384): ⚠️ DynamicLayout: No valid sections found for "cart"
+I/flutter (17384): url === https://daksh-store.foduu.store/api/mobile-app/wishlist 200
+I/flutter (17384): ⚠️ DynamicLayout: No valid sections found for "wishlist"
+I/flutter (17384): ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+I/flutter (17384): ✅ Socket CONNECTED successfully!
+I/flutter (17384): 🔗 Connected to: https://studio.foduu.store/
+I/flutter (17384): 🆔 Socket ID: aTbFj-InTGrlucy2AABl
+I/flutter (17384): 📡 Connection Status: CONNECTED
+I/flutter (17384): 👂 Active Listeners (1):
+I/flutter (17384):    - daksh-store.foduu.store:mobileapp
+I/flutter (17384): ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+I/flutter (17384): url === https://daksh-store.foduu.store/api/public/customer/profile 404
+I/flutter (17384): Instance of 'BadRequestException'
+I/flutter (17384): url === https://daksh-store.foduu.store/api/cart 200
+I/flutter (17384): url === https://daksh-store.foduu.store/api/auth/customer/profile 200
+I/flutter (17384): Profile data successfully fetched and parsed: {otp: null, otp_created_at: null, _id: 6aedc067c8352103b70760c6, name: aniket, email: aniketflutter@foduu.com, alt_email: null, alt_country_code: null, alt_mobile: null, password: null, status: active, refresh_token: null, timezone: null, last_login_at: null, email_verified_at: 2026-11-06T12:03:56.263Z, login_attempt: 0, twofactor_enabled: false, wallet_balance: 0, featured_image: null, date_of_birth: null, otp_attempts: 0, otp_locked_until: null, is_test_user: false, test_otp: null, password_reset_token: null, password_reset_token_expires_at: null, wishlist: [], email_opt_in: true, sms_opt_in: true, whatsapp_opt_in: false, marketing_unsubscribed_at: null, tags: [], gstin: null, business_name: null, gst_address: null, is_nc: false, fixed_discount_percent: 0, owner_id: 6ad065ddaa6d814cecd26f4f, reseller_id: null, website_id: 6ad06619aa6d814cecd2741f, deleted_at: null, addresses: [{name: Tirupati, email: aniketflutter@foduu.com, mobile: 9876543210, type: both, stre
+I/flutter (17384): url === https://daksh-store.foduu.store/api/mobile-app/home 200
+I/flutter (17384): 📄 DynamicLayout: Received 16 sections for "home"
+I/flutter (17384): 🧱 DynamicLayout: Built 16/16 sections; registered=[search, slider, categories, blog, banner, price_filter, spacer, divider, text_block, products, trust_badges, rich_text, countdown]
+I/flutter (17384): Products section: heading="", layout=parent_web, infiniteScroll=true, count=10
+I/flutter (17384): Products section: heading="Most popular products", layout=standard, infiniteScroll=true, count=10
+I/flutter (17384): Products section: heading="Users Who Viewed This Also Checked Out These Similar Profiles", layout=horizontal, infiniteScroll=false, count=3
+I/flutter (17384): Products section: heading="", layout=parent_web, infiniteScroll=true, count=4
+I/flutter (17384): Products section: heading="Discovering the Hottest Nearby Destinations in Your Area", layout=overlay, infiniteScroll=false, count=6
+I/flutter (17384): Products section: heading="Featured now", layout=horizontal, infiniteScroll=false, count=6
+I/flutter (17384): Products section: heading="Trending Products", layout=standard, infiniteScroll=true, count=10
+I/flutter (17384): url === https://daksh-store.foduu.store/api/coupons 200
+I/flutter (17384): url === https://daksh-store.foduu.store/api/order 200
+I/flutter (17384): url === https://daksh-store.foduu.store/api/cart/manage 200
+I/flutter (17384): isLogin true
+D/WindowOnBackDispatcher(17384): setTopOnBackInvokedCallback (unwrapped): androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@7b0e117
+I/flutter (17384): url === https://daksh-store.foduu.store/api/customer/addresses 200
+I/flutter (17384): respsen addressssssssss--- --- -- - - -[{name: Tirupati, email: aniketflutter@foduu.com, mobile: 9876543210, type: both, street: TBS WORKSPACE  Floor - 02, landmark: hi, city: Bhubaneswar, state: {_id: 68f9ccb3281ec9e0cd95e40d, name: Madhya Pradesh, slug: madhya-pradesh, type: state, featured_image: null, is_featured: false, parentRegion: 68e63df6038f495b64eca490, children: [68f9cccc281ec9e0cd95e422, 68f9cce7281ec9e0cd95e449, 68f9ccfa281ec9e0cd95e482, 68f9cd19281ec9e0cd95e4a8, 68f9cd45281ec9e0cd95e4d7, 69ea2042f56476c922e5becd], currency: 68c51736f1f847cf76d205b8, created_at: 2025-10-23T06:35:31.305Z, updated_at: 2026-04-23T13:36:02.542Z, path: #68e63df6038f495b64eca490#68f9ccb3281ec9e0cd95e40d, __v: 0, id: 68f9ccb3281ec9e0cd95e40d}, country: {_id: 68e63df6038f495b64eca490, name: India, slug: india, type: country, featured_image: null, is_featured: false, parentRegion: null, children: [68f88bb729ef8cbaa7fcdfbe, 68f88d67066388d0ed8827ec, 68f88dbca7d36caf89372a58, 68f8a988e4da0b00d9ece447, 68f8a988e4da0b00d9ec
+I/flutter (17384): url === https://daksh-store.foduu.store/api/payment-methods 200
+I/flutter (17384): Loading selected address...
+I/flutter (17384): Selected index: 0
+I/flutter (17384): Address list length: 1
+I/flutter (17384): Address data type: _Map<String, dynamic>
+I/flutter (17384): Address data: {name: Tirupati, email: aniketflutter@foduu.com, mobile: 9876543210, type: both, street: TBS WORKSPACE  Floor - 02, landmark: hi, city: Bhubaneswar, state: {_id: 68f9ccb3281ec9e0cd95e40d, name: Madhya Pradesh, slug: madhya-pradesh, type: state, featured_image: null, is_featured: false, parentRegion: 68e63df6038f495b64eca490, children: [68f9cccc281ec9e0cd95e422, 68f9cce7281ec9e0cd95e449, 68f9ccfa281ec9e0cd95e482, 68f9cd19281ec9e0cd95e4a8, 68f9cd45281ec9e0cd95e4d7, 69ea2042f56476c922e5becd], currency: 68c51736f1f847cf76d205b8, created_at: 2025-10-23T06:35:31.305Z, updated_at: 2026-04-23T13:36:02.542Z, path: #68e63df6038f495b64eca490#68f9ccb3281ec9e0cd95e40d, __v: 0, id: 68f9ccb3281ec9e0cd95e40d}, country: {_id: 68e63df6038f495b64eca490, name: India, slug: india, type: country, featured_image: null, is_featured: false, parentRegion: null, children: [68f88bb729ef8cbaa7fcdfbe, 68f88d67066388d0ed8827ec, 68f88dbca7d36caf89372a58, 68f8a988e4da0b00d9ece447, 68f8a988e4da0b00d9ece446, 68f9ccb3281ec9e0cd95
+I/flutter (17384): Full address string: Tirupati, TBS WORKSPACE  Floor - 02, hi, Madhya Pradesh, India - 213424
+I/flutter (17384): Order Create :{address_id: 6af2cc71596b4b9118455999, primary_method: cash, secondary_method: null, notes: , coupon_code: null, coupon_discount: 0}
+I/flutter (17384): url === https://daksh-store.foduu.store/checkout/place-order 201
+I/flutter (17384): url === https://daksh-store.foduu.store/api/cart 200
+D/WindowOnBackDispatcher(17384): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@7a17247
+D/WindowOnBackDispatcher(17384): setTopOnBackInvokedCallback (unwrapped): androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@7b0e117
+I/flutter (17384): 🔴 DynamicLayout: Unregistered slug "cart" (2 remaining)
+I/flutter (17384): 🔴 DynamicLayout: Unregistered slug "wishlist" (1 remaining)
+I/flutter (17384): 🔴 DynamicLayout: Unregistered slug "home" (0 remaining)
+D/WindowOnBackDispatcher(17384): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@7a17247
+I/flutter (17384): url === https://daksh-store.foduu.store/api/order/6af31327e841d34b0914c8e0 200
+I/flutter (17384): response {coupon: {coupon_code: null, coupon_type: null, discount_type: null, discount_value: 0, discount_amount: 0}, owner_discount: {discount_type: null, discount_value: 0, discount_amount: 0}, meta: {device: {os: {name: null, version: null}, browser: {name: null, version: null}, deviceType: desktop, app_version: null}, location: {country: IN, city: null, region: null}, ip: 122.175.194.41, user_agent: Dart/3.13 (dart:io), source: web_ecommerce, referrer: null, language: null}, _id: 6af31327e841d34b0914c8e0, order_no: 2611100005, client_order_id: null, invoice_hex: null, synced_at: null, total: 999, subtotal: 999, tax: 0, tax_amount: 0, taxable_amount: 999, shipping_charges: 0, packaging_charge: 0, round_off: 0, payment_status: pending, customer: 6aedc067c8352103b70760c6, address_id: 6af2cc71596b4b9118455999, address: {name: Tirupati, email: aniketflutter@foduu.com, mobile: 9876543210, address: TBS WORKSPACE  Floor - 02, hi, address_type: both, pincode: 213424, country: 68e63df6038f495b64eca490, state: 68f9
+
+══╡ EXCEPTION CAUGHT BY GESTURE
+╞═════════════════════════════════════════════════════
 ══════════════
+The following _TypeError was thrown while handling a
+gesture:
+type 'OrderSuccessController' is not a subtype of type
+'OrderSuccessController' in type cast where
+  OrderSuccessController is from
+package:foddu/app/modules/orderResponse/controllers/or
+dersucess_controller.dart
+  OrderSuccessController is from
+package:foddu/app/modules/payment/controllers/ordersuc
+ess_controller.dart
 
-D/WindowOnBackDispatcher(13636): setTopOnBackInvokedCallback (unwrapped): androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@adfadee
-I/flutter (13636): Sign in clicked
-I/flutter (13636): Sign in clicked
+When the exception was thrown, this was the stack:
+#0      GetInstance.find
+(package:get/get_instance/src/get_instance.dart:303:39
+)
+#1      Inst.find
+(package:get/get_instance/src/extension_instance.dart:
+69:45)
+#2      _bottomButtonState.build.<anonymous closure>
+(package:foddu/components/buttons/bottombutton.dart:65
+:35)
+#3      GestureRecognizer.invokeCallback
+(package:flutter/src/gestures/recognizer.dart:362:24)
+#4      TapGestureRecognizer.handleTapUp
+(package:flutter/src/gestures/tap.dart:758:11)
+#5      BaseTapGestureRecognizer._checkUp
+(package:flutter/src/gestures/tap.dart:383:5)
+#6      BaseTapGestureRecognizer.handlePrimaryPointer
+(package:flutter/src/gestures/tap.dart:314:7)
+#7      PrimaryPointerGestureRecognizer.handleEvent
+(package:flutter/src/gestures/recognizer.dart:738:9)
+#8      PointerRouter._dispatch
+(package:flutter/src/gestures/pointer_router.dart:97:1
+2)
+#9
+PointerRouter._dispatchEventToRoutes.<anonymous
+closure>
+(package:flutter/src/gestures/pointer_router.dart:140:
+9)
+#10     _LinkedHashMapMixin.forEach
+(dart:_compact_hash:721:13)
+#11     PointerRouter._dispatchEventToRoutes
+(package:flutter/src/gestures/pointer_router.dart:138:
+18)
+#12     PointerRouter.route
+(package:flutter/src/gestures/pointer_router.dart:128:
+7)
+#13     GestureBinding.handleEvent
+(package:flutter/src/gestures/binding.dart:538:19)
+#14     GestureBinding.dispatchEvent
+(package:flutter/src/gestures/binding.dart:508:22)
+#15     RendererBinding.dispatchEvent
+(package:flutter/src/rendering/binding.dart:473:11)
+#16     GestureBinding._handlePointerEventImmediately
+(package:flutter/src/gestures/binding.dart:447:7)
+#17     GestureBinding.handlePointerEvent
+(package:flutter/src/gestures/binding.dart:404:5)
+#18     GestureBinding._flushPointerEventQueue
+(package:flutter/src/gestures/binding.dart:351:7)
+#19     GestureBinding._handlePointerDataPacket
+(package:flutter/src/gestures/binding.dart:310:9)
+#20     _invoke1 (dart:ui/hooks.dart:457:13)
+#21     PlatformDispatcher._dispatchPointerDataPacket
+(dart:ui/platform_dispatcher.dart:473:7)
+#22     _dispatchPointerDataPacket
+(dart:ui/hooks.dart:374:31)
+
+Handler: "onTap"
+Recognizer:
+  TapGestureRecognizer#2789e
+══════════════════════════════════════════════════════
+══════════════════════════════════════════════
+
+Another exception was thrown: type
+'OrderSuccessController' is not a subtype of type
+'OrderSuccessController' in type cast where
+
+Performing hot restart...                                               
+Restarted application in 1,670ms.
+I/flutter (17384): 🎨 Using default LIGHT theme colors
+I/flutter (17384): 🎨 Using default DARK theme colors
+I/flutter (17384): 📦 Initializing DynamicThemeManager
+I/flutter (17384): 💾 Light theme found in storage, loading...
+I/flutter (17384): 🌐 Generating LIGHT theme from API
+I/flutter (17384): 🎨 Parsed color: #FF111111
+I/flutter (17384): 🎨 Parsed color: #FFD4AF37
+I/flutter (17384): 🎨 Parsed color: #FFFFFFFF
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): 🎨 Parsed color: #FFE53935
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): 💾 Dark theme found in storage, loading...
+I/flutter (17384): 🌐 Generating DARK theme from API
+I/flutter (17384): 🎨 Parsed color: #FFE5C07B
+I/flutter (17384): 🎨 Parsed color: #FFFFFFFF
+I/flutter (17384): 🎨 Parsed color: #FF121212
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): 🎨 Parsed color: #FFEF5350
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): ⚠️ Hex color missing
+I/flutter (17384): 🎭 Building LIGHT ThemeData
+I/flutter (17384): 🎭 Building DARK ThemeData
+I/flutter (17384): 🟢 DynamicLayout: Setting up SHARED socket listener for: daksh-store.foduu.store:mobileapp
+I/flutter (17384): 🔄 Socket already initialized, reconnecting...
+I/flutter (17384): 🔗 Socket URL: https://studio.foduu.store/
+I/flutter (17384): 🟢 DynamicLayout: Registered slug "wishlist" on existing listener (daksh-store.foduu.store:mobileapp)
+I/flutter (17384): 🔄 Socket already initialized, reconnecting...
+I/flutter (17384): 🔗 Socket URL: https://studio.foduu.store/
+I/flutter (17384): 🟢 DynamicLayout: Registered slug "home" on existing listener (daksh-store.foduu.store:mobileapp)
+I/flutter (17384): url === https://daksh-store.foduu.store/api/mobile-app/wishlist 200
+I/flutter (17384): ⚠️ DynamicLayout: No valid sections found for "wishlist"
+I/flutter (17384): url === https://daksh-store.foduu.store/api/mobile-app/cart 200
+I/flutter (17384): ⚠️ DynamicLayout: No valid sections found for "cart"
+I/flutter (17384): url === https://daksh-store.foduu.store/api/public/customer/profile 404
+I/flutter (17384): Instance of 'BadRequestException'
+I/flutter (17384): url === https://daksh-store.foduu.store/api/cart 200
+I/flutter (17384): url === https://daksh-store.foduu.store/api/navigation/sidebar 200
+I/flutter (17384): url === https://daksh-store.foduu.store/api/wishlist/list 200
+I/flutter (17384): url === https://daksh-store.foduu.store/api/auth/customer/profile 200
+I/flutter (17384): Profile data successfully fetched and parsed: {otp: null, otp_created_at: null, _id: 6aedc067c8352103b70760c6, name: aniket, email: aniketflutter@foduu.com, alt_email: null, alt_country_code: null, alt_mobile: null, password: null, status: active, refresh_token: null, timezone: null, last_login_at: null, email_verified_at: 2026-11-06T12:03:56.263Z, login_attempt: 0, twofactor_enabled: false, wallet_balance: 0, featured_image: null, date_of_birth: null, otp_attempts: 0, otp_locked_until: null, is_test_user: false, test_otp: null, password_reset_token: null, password_reset_token_expires_at: null, wishlist: [], email_opt_in: true, sms_opt_in: true, whatsapp_opt_in: false, marketing_unsubscribed_at: null, tags: [], gstin: null, business_name: null, gst_address: null, is_nc: false, fixed_discount_percent: 0, owner_id: 6ad065ddaa6d814cecd26f4f, reseller_id: null, website_id: 6ad06619aa6d814cecd2741f, deleted_at: null, addresses: [{name: Tirupati, email: aniketflutter@foduu.com, mobile: 9876543210, type: both, stre
+I/flutter (17384): url === https://daksh-store.foduu.store/api/mobile-app/home 200
+I/flutter (17384): 📄 DynamicLayout: Received 16 sections for "home"
+I/flutter (17384): 🧱 DynamicLayout: Built 16/16 sections; registered=[search, slider, categories, blog, banner, price_filter, spacer, divider, text_block, products, trust_badges, rich_text, countdown]
+I/flutter (17384): Products section: heading="", layout=parent_web, infiniteScroll=true, count=10
+I/flutter (17384): Products section: heading="Most popular products", layout=standard, infiniteScroll=true, count=10
+I/flutter (17384): Products section: heading="Users Who Viewed This Also Checked Out These Similar Profiles", layout=horizontal, infiniteScroll=false, count=3
+I/flutter (17384): Products section: heading="", layout=parent_web, infiniteScroll=true, count=4
+I/flutter (17384): Products section: heading="Discovering the Hottest Nearby Destinations in Your Area", layout=overlay, infiniteScroll=false, count=6
+I/flutter (17384): Products section: heading="Featured now", layout=horizontal, infiniteScroll=false, count=6
+I/flutter (17384): Products section: heading="Trending Products", layout=standard, infiniteScroll=true, count=10
+I/flutter (17384): ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+I/flutter (17384): ✅ Socket CONNECTED successfully!
+I/flutter (17384): 🔗 Connected to: https://studio.foduu.store/
+I/flutter (17384): 🆔 Socket ID: J16PYkaabLHm5UOeAABn
+I/flutter (17384): 📡 Connection Status: CONNECTED
+I/flutter (17384): 👂 Active Listeners (1):
+I/flutter (17384):    - daksh-store.foduu.store:mobileapp
+I/flutter (17384): ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+I/flutter (17384): url === https://daksh-store.foduu.store/api/coupons 200
+I/flutter (17384): url === https://daksh-store.foduu.store/api/order 200
+D/WindowOnBackDispatcher(17384): setTopOnBackInvokedCallback (unwrapped): androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@7b0e117
+I/flutter (17384): url === https://daksh-store.foduu.store/api/order 200
+I/flutter (17384): Image failed to load: https://mywatch.vbought.com/images/2026/11/04/12-d770e534.webp
+I/flutter (17384): Image failed to load: https://mywatch.vbought.com/images/2026/11/04/12-d770e534.webp
+I/flutter (17384): Image failed to load: https://mywatch.vbought.com/images/2026/11/04/12-d770e534.webp
+I/flutter (17384): url === https://daksh-store.foduu.store/api/orders/show/6af31327e841d34b0914c8e0 404
+I/flutter (17384): Instance of 'BadRequestException'
+I/flutter (17384): Image failed to load: https://mywatch.vbought.com/images/2026/11/04/12-d770e534.webp
+I/flutter (17384): Image failed to load: https://mywatch.vbought.com/images/2026/11/04/12-d770e534.webp
+I/flutter (17384): Image failed to load: https://mywatch.vbought.com/images/2026/11/04/12-d770e534.webp
+I/flutter (17384): Image failed to load: https://mywatch.vbought.com/images/2026/11/04/12-d770e534.webp
+I/flutter (17384): Image failed to load: https://mywatch.vbought.com/images/2026/11/04/12-d770e534.webp

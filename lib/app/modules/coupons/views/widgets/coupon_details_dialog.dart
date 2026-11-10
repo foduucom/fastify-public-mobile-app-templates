@@ -2,6 +2,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:foddu/app/modules/coupons/controllers/coupons_controller.dart';
 import 'package:foddu/app/modules/coupons/models/coupon_model.dart';
+import 'package:foddu/constants/dynamic_theme.dart';
 import 'package:get/get.dart';
 
 class CouponDetailsDialog extends StatefulWidget {
@@ -29,7 +30,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    const navyPrimary = Color(0xFF133E6D);
+    final navyPrimary = context.primaryColor;
     const greenSavings = Color(0xFF16A34A);
 
     final coupon = widget.coupon;
@@ -39,7 +40,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      backgroundColor: context.themeWhiteColor,
+      backgroundColor: context.surfaceColor,
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 480,
@@ -59,14 +60,14 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.w700,
                       fontSize: 17,
-                      color: context.themetitleColor,
+                      color: context.onSurfaceColor,
                     ),
                   ),
                   const Spacer(),
                   IconButton(
                     icon: Icon(
                       Icons.close_rounded,
-                      color: context.themeSecondrytext,
+                      color: context.onSurfaceVariantColor,
                       size: 22,
                     ),
                     splashRadius: 20,
@@ -107,7 +108,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
                             Text(
                               coupon.code,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Poppins',
                                 fontWeight: FontWeight.w800,
                                 fontSize: 22,
@@ -167,7 +168,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
                         Icon(
                           Icons.business_center_rounded,
                           size: 16,
-                          color: context.themeSecondrytext,
+                          color: context.onSurfaceVariantColor,
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -177,7 +178,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
                             fontWeight: FontWeight.w700,
                             fontSize: 12.5,
                             letterSpacing: 0.6,
-                            color: context.themeSecondrytext,
+                            color: context.onSurfaceVariantColor,
                           ),
                         ),
                       ],
@@ -195,7 +196,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
             Container(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
               decoration: BoxDecoration(
-                color: context.themeWhiteColor,
+                color: context.surfaceColor,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.04),
@@ -256,7 +257,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 13,
-              color: context.themeSecondrytext,
+              color: context.onSurfaceVariantColor,
             ),
           ),
           const SizedBox(width: 12),
@@ -268,7 +269,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
-                color: valueColor ?? context.themetitleColor,
+                color: valueColor ?? context.onSurfaceColor,
               ),
             ),
           ),
@@ -279,7 +280,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
 
   Widget _buildApplicableProductsContent(
       BuildContext context, CouponModel coupon) {
-    const navyPrimary = Color(0xFF133E6D);
+    final navyPrimary = context.primaryColor;
 
     // Case 1: All Products (e.g. LJDJ6C6IVM, W5TB8 where product_ids is empty)
     if (!coupon.hasProductRestrictions) {
@@ -350,7 +351,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
             ),
             child: Text(
               'Valid on ${coupon.productIds.length} specific item(s):',
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 11.5,
                 fontWeight: FontWeight.w600,
@@ -374,7 +375,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.inventory_2_outlined,
                       size: 14,
                       color: navyPrimary,
@@ -424,7 +425,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
           ),
           child: Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.info_outline_rounded,
                 size: 18,
                 color: navyPrimary,
@@ -433,7 +434,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
               Expanded(
                 child: Text(
                   'Applicable to Selected Products (${coupon.productCount} qualifying items)',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.w600,
                     fontSize: 12,
@@ -464,7 +465,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
                 hintStyle: TextStyle(
                   fontSize: 12,
                   fontFamily: 'Poppins',
-                  color: context.themeSecondrytext.withOpacity(0.7),
+                  color: context.onSurfaceVariantColor.withOpacity(0.7),
                 ),
                 prefixIcon: const Icon(Icons.search, size: 16),
                 suffixIcon: _searchQuery.isNotEmpty
@@ -491,7 +492,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: navyPrimary),
+                  borderSide: BorderSide(color: navyPrimary),
                 ),
               ),
             ),
@@ -544,7 +545,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
                 fontFamily: 'Poppins',
                 fontSize: 11,
                 fontStyle: FontStyle.italic,
-                color: context.themeSecondrytext,
+                color: context.onSurfaceVariantColor,
               ),
             ),
           ),

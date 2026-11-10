@@ -1,4 +1,4 @@
-import 'package:foddu/app/modules/Profie/profile/controllers/profile_controller.dart';
+import 'package:foddu/app/modules/profile_legacy/profile/controllers/profile_controller.dart';
 import 'package:foddu/app/modules/homepage/controllers/homepage_controller.dart';
 import 'package:get/get.dart';
 

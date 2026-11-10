@@ -98,13 +98,42 @@ class ShopController extends GetxController
       maxPrice.value = values.end;
     });
 
-    // Always load the full product catalog from the backend.
-    // CMS layout sections (promo banners, sliders, etc.) are fetched
-    // concurrently and rendered above the catalog grid when available.
-    fetchLayout(pageSlug);
-    fetchBrands();
-    fetchCategories();
-    fetchProducts(isRefresh: true);
+    // When opened plainly (bottom-tab, no filter args), show the full
+    // CMS canvas — the products section inside it handles infinite scroll.
+    // When opened with filter/category args, load the filtered catalog grid.
+    if (isPlainShopEntry.value) {
+      fetchLayout(pageSlug);
+    } else {
+      fetchBrands();
+      fetchCategories();
+      fetchProducts(isRefresh: true);
+    }
+  }
+
+  @override
+  Future<dynamic> fetchLayout(String slug, {dynamic requestBody}) async {
+    final response = await super.fetchLayout(slug, requestBody: requestBody);
+    _syncCmsProductMetadata();
+    return response;
+  }
+
+  void _syncCmsProductMetadata() {
+    final cmsJson = contentJsonFor('products');
+    if (cmsJson != null) {
+      final prodData = cmsJson['products'] ?? cmsJson['product'];
+      if (prodData is Map) {
+        final total = prodData['total'];
+        if (total != null) {
+          totalProducts.value =
+              int.tryParse(total.toString()) ?? totalProducts.value;
+        }
+        final dataList = prodData['data'];
+        if (dataList is List && dataList.isNotEmpty && products.isEmpty) {
+          products.assignAll(dataList);
+          isLoading.value = false;
+        }
+      }
+    }
   }
 
   void ensureFilterDataLoaded() {
@@ -394,13 +423,20 @@ class ShopController extends GetxController
 
     isListView.value = isList;
 
+    // Load products on demand if list is empty so the list/grid view has items
     if (products.isEmpty && !isLoading.value) {
+      ensureFilterDataLoaded();
       fetchProducts(isRefresh: true);
     }
   }
 
   // ─── FILTER CONTROLS ───────────────────────────────────────
   void applyFiltersAndRefresh() {
+    // Applying filters exits the CMS canvas and shows the filtered grid.
+    if (isPlainShopEntry.value) {
+      isPlainShopEntry.value = false;
+      ensureFilterDataLoaded();
+    }
     fetchProducts(isRefresh: true);
   }
 
