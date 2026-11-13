@@ -41,7 +41,7 @@ final class InstantDebitsPaymentMethodElement: ContainerElement {
     private let isSettingUp: Bool
     private let sellerName: String?
 
-    weak var delegate: ElementDelegate?
+    var delegate: ElementDelegate?
     var view: UIView {
         return formElement.view
     }

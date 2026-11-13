@@ -116,17 +116,7 @@ enum Intent {
                 return nil
             }
         case .checkoutSession(let session):
-            switch session.mode {
-            case .unknown:
-                stpAssertionFailure("Received CheckoutSession in unknown mode")
-                return nil
-            case .payment:
-                return session.totals?.total
-            case .setup:
-                return nil
-            case .subscription:
-                fatalError("Subscriptoins not yet implemented for CheckoutSessions")
-            }
+            return session.totalSummary?.total
         }
     }
 
@@ -181,14 +171,9 @@ enum Intent {
             case .setup:
                 return true
             }
-        case .checkoutSession(let checkoutSession):
-            switch checkoutSession.mode {
-            case .payment, .subscription, .unknown:
-                // TODO(porter) Figure out SFU during confirmation work
-                return false
-            case .setup:
-                return true
-            }
+        case .checkoutSession:
+            // TODO(porter) Figure out SFU during confirmation work
+            return false
         }
     }
 }

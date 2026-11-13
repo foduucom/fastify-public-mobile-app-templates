@@ -38,6 +38,10 @@ extension STPElementsSession {
         linkSettings?.popupWebviewOption ?? .shared
     }
 
+    var canSkipLinkWallet: Bool {
+        linkFlags["link_mobile_skip_wallet_in_flow_controller"] ?? false
+    }
+
     func shouldShowLink2FABeforePaymentSheet(for linkAccount: PaymentSheetLinkAccount) -> Bool {
         return self.supportsLink &&
         linkAccount.sessionState == .requiresVerification &&
@@ -53,5 +57,28 @@ extension STPElementsSession {
 
     var shouldShowPreferDebitCardHint: Bool {
         linkSettings?.linkShowPreferDebitCardHint ?? false
+    }
+}
+
+extension Intent {
+    var callToAction: ConfirmButton.CallToActionType {
+        switch self {
+        case .paymentIntent(let paymentIntent):
+            return .pay(amount: paymentIntent.amount, currency: paymentIntent.currency)
+        case .setupIntent:
+            return .setup
+        case .deferredIntent(let intentConfig):
+            switch intentConfig.mode {
+            case .payment(let amount, let currency, _, _, _):
+                return .pay(amount: amount, currency: currency)
+            case .setup:
+                return .setup
+            }
+        case .checkoutSession(let session):
+            if let amount = session.totalSummary?.total, let currency = session.currency {
+                return .pay(amount: amount, currency: currency)
+            }
+            return .setup
+        }
     }
 }

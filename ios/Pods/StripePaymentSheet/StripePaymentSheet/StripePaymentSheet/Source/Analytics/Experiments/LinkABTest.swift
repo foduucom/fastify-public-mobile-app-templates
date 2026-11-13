@@ -18,7 +18,7 @@ struct LinkABTest: LoggableExperiment {
         baseExperiment.group
     }
 
-    var dimensions: [String: String] {
+    var dimensions: [String: Any] {
         baseExperiment.dimensionsDictionary
     }
 

@@ -16,22 +16,22 @@
   "dependencies": {
     "Flutter": [],
     "Stripe": [
-      "~> 25.9.0"
+      "~> 25.6.0"
     ],
     "StripePaymentSheet": [
-      "~> 25.9.0"
+      "~> 25.6.0"
     ],
     "StripePayments": [
-      "~> 25.9.0"
+      "~> 25.6.0"
     ],
     "StripePaymentsUI": [
-      "~> 25.9.0"
+      "~> 25.6.0"
     ],
     "StripeApplePay": [
-      "~> 25.9.0"
+      "~> 25.6.0"
     ],
     "StripeFinancialConnections": [
-      "~> 25.9.0"
+      "~> 25.6.0"
     ]
   },
   "platforms": {

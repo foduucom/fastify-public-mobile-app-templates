@@ -208,7 +208,7 @@ class EmbeddedFormViewController: UIViewController {
             if shouldDeferConfirmation {
                 return .continue
             }
-            return .makeDefaultType(intent: intent)
+            return .makeDefaultTypeForPaymentSheet(intent: intent)
         }()
         let status: ConfirmButton.Status = {
             if isPaymentInFlight {

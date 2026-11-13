@@ -9,30 +9,26 @@ import Foundation
 @_spi(STP) import StripeCore
 @_spi(STP) import StripePayments
 
+/// Response wrapper for the checkout session init API.
+/// Contains both the checkout session and elements session data.
+struct CheckoutSessionInitResponse {
+    let checkoutSession: STPCheckoutSession
+    let elementsSession: STPElementsSession
+}
+
 extension STPAPIClient {
 
     /// Initializes a CheckoutSession, fetching payment configuration data.
     /// - Parameter checkoutSessionId: The ID of the checkout session (e.g., "cs_test_xxx")
-    /// - Returns: STPCheckoutSession object representing the checkout session.
-    func initCheckoutSession(checkoutSessionId: String) async throws -> STPCheckoutSession {
-        var elementsSessionParameters: [String: Any] = [
-            "is_aggregation_expected": true,
-            "locale": Locale.current.toLanguageTag(),
-        ]
-        if let sessionId = AnalyticsHelper.shared.sessionID {
-            elementsSessionParameters["mobile_session_id"] = sessionId
-        }
-        if let appId = Bundle.main.bundleIdentifier {
-            elementsSessionParameters["mobile_app_id"] = appId
-        }
+    /// - Returns: CheckoutSessionInitResponse containing the session and elements session
+    func initCheckoutSession(checkoutSessionId: String) async throws -> CheckoutSessionInitResponse {
         let parameters: [String: Any] = [
             "browser_locale": Locale.current.toLanguageTag(),
             "browser_timezone": TimeZone.current.identifier,
             "eid": UUID().uuidString,
             "redirect_type": "embedded",
-            "elements_session_client": elementsSessionParameters,
-            "adaptive_pricing": [
-                "allowed": true,
+            "elements_session_client": [
+                "is_aggregation_expected": true,
             ],
         ]
 
@@ -42,22 +38,14 @@ extension STPAPIClient {
             parameters: parameters
         )
 
-        return checkoutSession
-    }
+        guard let elementsSessionJSON = checkoutSession.allResponseFields["elements_session"] as? [AnyHashable: Any],
+              let elementsSession = STPElementsSession.decodedObject(fromAPIResponse: elementsSessionJSON) else {
+            throw PaymentSheetError.unknown(debugDescription: "Failed to decode elements session from checkout session init response")
+        }
 
-    /// Updates a CheckoutSession with the provided parameters.
-    /// - Parameters:
-    ///   - checkoutSessionId: The ID of the checkout session (e.g., "cs_test_xxx")
-    ///   - parameters: The update parameters (e.g., promotion_code)
-    /// - Returns: The updated STPCheckoutSession
-    func updateCheckoutSession(
-        checkoutSessionId: String,
-        parameters: [String: Any]
-    ) async throws -> STPCheckoutSession {
-        return try await APIRequest<STPCheckoutSession>.post(
-            with: self,
-            endpoint: "payment_pages/\(checkoutSessionId)",
-            parameters: parameters
+        return CheckoutSessionInitResponse(
+            checkoutSession: checkoutSession,
+            elementsSession: elementsSession
         )
     }
 
@@ -65,27 +53,28 @@ extension STPAPIClient {
     /// - Parameters:
     ///   - sessionId: The ID of the checkout session (e.g., "cs_test_xxx")
     ///   - paymentMethod: The ID of the payment method to use for confirmation (payment method must have billing email)
-    ///   - expectedAmount: The expected amount for validation. `nil` in setup mode.
+    ///   - expectedAmount: The expected amount for validation
     ///   - expectedPaymentMethodType: The expected payment method type (e.g., "card")
     ///   - returnURL: Optional return URL for redirect-based payment methods
     ///   - shipping: Optional shipping details
     ///   - paymentMethodOptions: Optional payment method options. BLIK code is extracted and passed as top-level `blik_code` parameter.
     ///   - clientAttributionMetadata: Optional client attribution metadata for analytics
     ///   - passiveCaptchaToken: Optional hCaptcha challenge response token
-    /// - Returns: STPCheckoutSession containing the full confirmed session with expanded intents
+    /// - Returns: CheckoutSessionConfirmResponse containing the confirmation result
     func confirmCheckoutSession(
         sessionId: String,
         paymentMethod: String,
-        expectedAmount: Int?,
+        expectedAmount: Int,
         expectedPaymentMethodType: String,
         returnURL: String? = nil,
         shipping: STPPaymentIntentShippingDetailsParams? = nil,
         paymentMethodOptions: STPConfirmPaymentMethodOptions? = nil,
         clientAttributionMetadata: STPClientAttributionMetadata? = nil,
         passiveCaptchaToken: String? = nil
-    ) async throws -> STPCheckoutSession {
+    ) async throws -> CheckoutSessionConfirmResponse {
         var parameters: [String: Any] = [
             "payment_method": paymentMethod,
+            "expected_amount": expectedAmount,
             "expected_payment_method_type": expectedPaymentMethodType,
             "expand": [
                 "payment_intent",
@@ -94,10 +83,6 @@ extension STPAPIClient {
                 "setup_intent.payment_method",
             ],
         ]
-
-        if let expectedAmount {
-            parameters["expected_amount"] = expectedAmount
-        }
 
         if let returnURL {
             parameters["return_url"] = returnURL
@@ -120,7 +105,7 @@ extension STPAPIClient {
             parameters["passive_captcha_token"] = passiveCaptchaToken
         }
 
-        return try await APIRequest<STPCheckoutSession>.post(
+        return try await APIRequest<CheckoutSessionConfirmResponse>.post(
             with: self,
             endpoint: "payment_pages/\(sessionId)/confirm",
             parameters: parameters

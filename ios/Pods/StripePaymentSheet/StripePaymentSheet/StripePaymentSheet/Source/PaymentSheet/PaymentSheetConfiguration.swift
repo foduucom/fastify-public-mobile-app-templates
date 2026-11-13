@@ -242,6 +242,9 @@ extension PaymentSheet {
         /// If true, the card form will instead initialize with the card scanner already open.
         public var opensCardScannerAutomatically: Bool = false
 
+        /// If true, an invisible challenge will be performed for human verification
+        @_spi(STP) public var enablePassiveCaptcha: Bool = false
+
         /// If true, device will attest and assert on confirmation requests
         @_spi(STP) public var enableAttestationOnConfirmation: Bool = false
 
@@ -861,7 +864,6 @@ extension PaymentSheet {
 
         /// How to collect the email field.
         /// Defaults to `automatic`.
-        /// - Note: When using CheckoutSessions, email is always set to `.always` regardless of the value provided.
         public var email: CollectionMode = .automatic
 
         /// How to collect the billing address.
@@ -877,7 +879,6 @@ extension PaymentSheet {
         /// A set of two-letter country codes representing countries the customers can select.
         /// If the set is empty (the default), we display all countries.
         /// Country codes are automatically normalized to uppercase.
-        /// - Note: Saved payment methods whose billing address country is not in this list are hidden.
         public var allowedCountries: Set<String> = [] {
             didSet {
                 allowedCountries = Set(allowedCountries.map { $0.uppercased() })

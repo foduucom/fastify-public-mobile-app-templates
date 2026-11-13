@@ -73,12 +73,11 @@ extension PaymentSheet {
                 case .new(let confirmParams) = self,
                 let linkedBank = confirmParams.instantDebitsLinkedBank
             {
-                return linkedBank.linkContextAnalyticsValue
-            } else if
-                case .saved(_, let confirmParams) = self,
-                let linkedBank = confirmParams?.instantDebitsLinkedBank
-            {
-                return linkedBank.linkContextAnalyticsValue
+                if linkedBank.linkMode == .linkCardBrand {
+                    return "link_card_brand"
+                } else {
+                    return "instant_debits"
+                }
             } else {
                 return nil
             }
@@ -213,8 +212,7 @@ extension PaymentSheet {
         }
 
         /// This contains all configurable properties of PaymentSheet
-        /// - Note: `internal(set)` because checkout session updates may apply address overrides to the configuration.
-        public internal(set) var configuration: Configuration
+        public let configuration: Configuration
 
         /// Contains information about the customer's desired payment option.
         /// You can use this to e.g. display the payment option in your UI.
@@ -305,7 +303,7 @@ extension PaymentSheet {
                 shouldLogExperimentExposure: false
             )
             self.viewController.flowControllerDelegate = self
-            self.confirmationChallenge = ConfirmationChallenge(enableAttestation: self.configuration.enableAttestationOnConfirmation, elementsSession: loadResult.elementsSession, stripeAttest: self.configuration.apiClient.stripeAttest)
+            self.confirmationChallenge = ConfirmationChallenge(enablePassiveCaptcha: self.configuration.enablePassiveCaptcha, enableAttestation: self.configuration.enableAttestationOnConfirmation, elementsSession: loadResult.elementsSession, stripeAttest: self.configuration.apiClient.stripeAttest)
             self.viewController.confirmationChallenge = self.confirmationChallenge
             updatePaymentOption()
         }
@@ -366,35 +364,18 @@ extension PaymentSheet {
 
         /// An asynchronous failable initializer for PaymentSheet.FlowController
         /// This asynchronously loads the CheckoutSession's payment methods and configuration.
-        /// - Parameter checkout: A fully loaded Checkout instance whose ``Checkout.session`` is non-nil.
+        /// - Parameter checkoutSessionId: The ID of a Stripe CheckoutSession object (e.g., "cs_test_xxx")
         /// - Parameter configuration: Configuration for the PaymentSheet. e.g. your business name, Customer details, etc.
         /// - Parameter completion: This is called with either a valid PaymentSheet.FlowController instance or an error if loading failed.
-        @MainActor @_spi(CheckoutSessionsPreview) public static func create(
-            checkout: Checkout,
+        @_spi(CheckoutSessionPreview) public static func create(
+            checkoutSessionId: String,
             configuration: PaymentSheet.Configuration,
             completion: @escaping (Result<PaymentSheet.FlowController, Error>) -> Void
         ) {
-            guard let stpSession = checkout.session as? STPCheckoutSession else {
-                stpAssertionFailure("Expected STPCheckoutSession, got \(type(of: checkout.session))")
-                completion(.failure(PaymentSheetError.unknown(debugDescription: "Invalid checkout session type")))
-                return
-            }
-            if checkout.isPerformingSessionUpdate {
-                let message = "A Checkout operation is already in progress. Wait for it to complete before calling PaymentSheet.FlowController.create(checkout:configuration:completion:)."
-                assertionFailure(message)
-                completion(.failure(PaymentSheetError.integrationError(nonPIIDebugDescription: message)))
-                return
-            }
-            var config = configuration
-            stpSession.applyAddressOverrides(to: &config)
-            create(mode: .checkoutSession(stpSession),
-                   configuration: config
-            ) { result in
-                if case .success(let flowController) = result {
-                    checkout.integrationDelegate = flowController
-                }
-                completion(result)
-            }
+            create(mode: .checkoutSession(checkoutSessionId),
+                   configuration: configuration,
+                   completion: completion
+            )
         }
 
         /// An asynchronous failable initializer for PaymentSheet.FlowController
@@ -494,12 +475,11 @@ extension PaymentSheet {
                     }
                 )
 
-                self.isPresented = true
                 presentingViewController.presentAsBottomSheet(bottomSheetVC, appearance: self.configuration.appearance)
+                self.isPresented = true
             }
 
             if canPresentLinkInPlaceOfFlowController {
-                isPresented = true
                 presentNativeLinkInPlaceOfFlowController(
                     from: presentingViewController,
                     selectedPaymentDetailsID: internalPaymentOption?.currentLinkPaymentMethod,
@@ -636,46 +616,17 @@ extension PaymentSheet {
         /// This ensures the appropriate payment methods are displayed, etc.
         /// - Parameter intentConfiguration: An updated IntentConfiguration
         /// - Parameter completion: Called when the update completes with an optional error. Your implementation should get the customer's updated payment option by using the `paymentOption` property and update your UI. If an error occurred, retry.
-        /// - Note: Don't call `confirm` or `present` until the update succeeds. Don't call this method while PaymentSheet is being presented.
+        /// - Note: Don't call `confirm` or `present` until the update succeeds. Don’t call this method while PaymentSheet is being presented. 
         public func update(intentConfiguration: IntentConfiguration, completion: @escaping (Error?) -> Void) {
             assert(Thread.isMainThread, "PaymentSheet.FlowController.update must be called from the main thread.")
             assert(!isPresented, "PaymentSheet.FlowController.update must be when PaymentSheet is not presented.")
-            performUpdate(mode: .deferredIntent(intentConfiguration), completion: completion)
-        }
 
-        /// Call this method when the CheckoutSession you used to initialize PaymentSheet.FlowController changes.
-        /// This ensures the appropriate payment methods are displayed, etc.
-        /// - Parameter checkout: The Checkout instance whose session has been updated.
-        /// - Parameter completion: Called when the update completes with an optional error. Your implementation should get the customer's updated payment option by using the `paymentOption` property and update your UI. If an error occurred, retry.
-        /// - Note: Don't call `confirm` or `present` until the update succeeds. Don't call this method while PaymentSheet is being presented.
-        @MainActor @_spi(CheckoutSessionsPreview) public func update(
-            checkout: Checkout,
-            completion: @escaping (Error?) -> Void
-        ) {
-            assert(Thread.isMainThread, "PaymentSheet.FlowController.update must be called from the main thread.")
-            assert(!isPresented, "PaymentSheet.FlowController.update must be when PaymentSheet is not presented.")
-            guard let stpSession = checkout.session as? STPCheckoutSession else {
-                stpAssertionFailure("Expected STPCheckoutSession, got \(type(of: checkout.session))")
-                completion(PaymentSheetError.unknown(debugDescription: "Invalid checkout session type"))
-                return
-            }
-            if checkout.isPerformingSessionUpdate {
-                let message = "A Checkout operation is already in progress. Wait for it to complete before calling PaymentSheet.FlowController.update(checkout:completion:)."
-                assertionFailure(message)
-                completion(PaymentSheetError.integrationError(nonPIIDebugDescription: message))
-                return
-            }
-            stpSession.applyAddressOverrides(to: &configuration)
-            performUpdate(mode: .checkoutSession(stpSession), completion: completion)
-        }
-
-        private func performUpdate(mode: PaymentSheet.InitializationMode, completion: @escaping (Error?) -> Void) {
             let updateID = UUID()
             latestUpdateContext = UpdateContext(id: updateID)
 
             // 1. Load the intent, payment methods, and link data from the Stripe API
             PaymentSheetLoader.load(
-                mode: mode,
+                mode: .deferredIntent(intentConfiguration),
                 configuration: configuration,
                 analyticsHelper: analyticsHelper,
                 integrationShape: .flowController,
@@ -683,7 +634,7 @@ extension PaymentSheet {
             ) { [weak self] result in
                 assert(Thread.isMainThread, "PaymentSheet.FlowController.update load callback must be called from the main thread.")
                 guard let self = self else {
-                    assertionFailure("The PaymentSheet.FlowController instance was destroyed during a call to `update`")
+                    assertionFailure("The PaymentSheet.FlowController instance was destroyed during a call to `update(intentConfiguration:completion:)`")
                     return
                 }
 
@@ -863,14 +814,6 @@ extension PaymentSheet {
     }
 }
 
-// MARK: - CheckoutIntegrationDelegate
-
-extension PaymentSheet.FlowController: CheckoutIntegrationDelegate {
-    var isSheetPresented: Bool {
-        isPresented
-    }
-}
-
 // MARK: - FlowControllerViewControllerDelegate
 
 protocol FlowControllerViewControllerDelegate: AnyObject {
@@ -983,11 +926,5 @@ extension PaymentOption {
         case .applePay, .new, .external:
             return nil
         }
-    }
-}
-
-private extension InstantDebitsLinkedBank {
-    var linkContextAnalyticsValue: String {
-        linkMode == .linkCardBrand ? "link_card_brand" : "instant_debits"
     }
 }

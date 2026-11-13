@@ -83,7 +83,7 @@ final class PayWithLinkWebController: NSObject, ASWebAuthenticationPresentationC
             self.intent = intent
             self.elementsSession = elementsSession
             self.configuration = configuration
-            self.callToAction = callToAction ?? .makeDefaultType(intent: intent)
+            self.callToAction = callToAction ?? intent.callToAction
             self.alwaysUseEphemeralSession = alwaysUseEphemeralSession
         }
     }

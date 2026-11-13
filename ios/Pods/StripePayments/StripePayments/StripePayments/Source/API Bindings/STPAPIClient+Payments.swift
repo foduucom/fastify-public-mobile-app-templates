@@ -1455,25 +1455,6 @@ extension STPAPIClient {
 }
 
 extension STPAPIClient {
-    /// Returns the 100 most recently created PMs attached to the given Customer
-    @_spi(STP) public func listPaymentMethods(
-        customerID: String,
-        ephemeralKeySecret: String
-    ) async throws -> [STPPaymentMethod] {
-        let header = authorizationHeader(using: ephemeralKeySecret)
-        let params: [String: Any] = [
-            "customer": customerID,
-            "limit": 100, // the maximum allowed by the API
-        ]
-        let response = try await APIRequest<STPPaymentMethodListDeserializer>.getWith(
-            self,
-            endpoint: APIEndpointPaymentMethods,
-            additionalHeaders: header,
-            parameters: params as [String: Any]
-        )
-        return response.paymentMethods ?? []
-    }
-
     @_spi(STP) public func listPaymentMethods(
         forCustomer customerID: String,
         using ephemeralKeySecret: String,
@@ -1871,62 +1852,6 @@ extension STPAPIClient {
             parameters: parameters
         ) { confirmationToken, _, error in
             completion(confirmationToken, error)
-        }
-    }
-}
-
-// MARK: - Intent Confirmation Challenge
-
-extension STPAPIClient {
-    /// Cancels the captcha challenge for a PaymentIntent.
-    /// - Parameters:
-    ///   - paymentIntentId: The ID of the PaymentIntent.
-    ///   - clientSecret: The client secret of the PaymentIntent.
-    ///   - completion: The callback to run with the updated PaymentIntent object, or an error.
-    @_spi(STP) public func cancelPaymentIntentCaptchaChallenge(
-        paymentIntentId: String,
-        clientSecret: String,
-        completion: @escaping STPPaymentIntentCompletionBlock
-    ) {
-        let endpoint = "\(APIEndpointPaymentIntents)/\(paymentIntentId)/cancel_challenge"
-        var parameters: [String: Any] = [:]
-
-        if !publishableKeyIsUserKey {
-            parameters["client_secret"] = clientSecret
-        }
-
-        APIRequest<STPPaymentIntent>.post(
-            with: self,
-            endpoint: endpoint,
-            parameters: parameters
-        ) { paymentIntent, _, error in
-            completion(paymentIntent, error)
-        }
-    }
-
-    /// Cancels the captcha challenge for a SetupIntent.
-    /// - Parameters:
-    ///   - setupIntentId: The ID of the SetupIntent.
-    ///   - clientSecret: The client secret of the SetupIntent.
-    ///   - completion: The callback to run with the updated SetupIntent object, or an error.
-    @_spi(STP) public func cancelSetupIntentCaptchaChallenge(
-        setupIntentId: String,
-        clientSecret: String,
-        completion: @escaping STPSetupIntentCompletionBlock
-    ) {
-        let endpoint = "\(APIEndpointSetupIntents)/\(setupIntentId)/cancel_challenge"
-        var parameters: [String: Any] = [:]
-
-        if !publishableKeyIsUserKey {
-            parameters["client_secret"] = clientSecret
-        }
-
-        APIRequest<STPSetupIntent>.post(
-            with: self,
-            endpoint: endpoint,
-            parameters: parameters
-        ) { setupIntent, _, error in
-            completion(setupIntent, error)
         }
     }
 }

@@ -100,7 +100,6 @@ class SheetNavigationBar: UIView {
         }
 
         NSLayoutConstraint.activate([
-            dummyView.widthAnchor.constraint(equalToConstant: 0),
             leftItemsStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
             leftItemsStackView.centerYAnchor.constraint(equalTo: centerYAnchor),
             leftItemsStackView.trailingAnchor.constraint(lessThanOrEqualTo: closeButtonRight.leadingAnchor),

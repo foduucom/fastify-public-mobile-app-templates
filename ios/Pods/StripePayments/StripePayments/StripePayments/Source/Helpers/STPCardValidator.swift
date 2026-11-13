@@ -448,8 +448,7 @@ public class STPCardValidator: NSObject {
             return
         }
 
-        // TODO: BIN retrieval is broken if you don't use STPAPIClient.shared (https://jira.corp.stripe.com/browse/MOBILESDK-4322)
-        cbcBinController.retrieveBINRanges(apiClient: STPAPIClient.shared, forPrefix: cardNumber, recordErrorsAsSuccess: false, onlyFetchForVariableLengthBINs: false) { result in
+        cbcBinController.retrieveBINRanges(forPrefix: cardNumber, recordErrorsAsSuccess: false, onlyFetchForVariableLengthBINs: false) { result in
             switch result {
             case .failure(let error):
                 completion(.failure(error))
@@ -515,7 +514,7 @@ extension STPCardValidator {
 
         return sum % 10 == 0
     }
-
+    
     /// Returns the brand (eg VISA) for a card, respecting card brand choice.
     @_spi(STP) public class func brand(for card: STPPaymentMethodCardParams?) -> STPCardBrand {
         guard let card, let number = card.number else {

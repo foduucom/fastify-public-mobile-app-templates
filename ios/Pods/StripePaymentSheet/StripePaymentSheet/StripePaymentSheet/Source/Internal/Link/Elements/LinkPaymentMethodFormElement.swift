@@ -91,10 +91,7 @@ final class LinkPaymentMethodFormElement: Element {
             billingDetails.email = email
         }
 
-        let preferredNetwork: String? = {
-            guard let brand = cardBrandSelector?.element.selectedBrand else { return nil }
-            return STPCardBrandUtilities.apiValue(from: brand)
-        }()
+        let preferredNetwork = cardBrandDropdownElement?.element.selectedItem.rawData
 
         return Params(
             expiryDate: expiryDate,
@@ -123,40 +120,46 @@ final class LinkPaymentMethodFormElement: Element {
         )
     }()
 
-    private lazy var cardBrandSelector: PaymentMethodElementWrapper<CardBrandChoiceElement>? = {
+    private lazy var cardBrandDropdownElement: PaymentMethodElementWrapper<DropdownFieldElement>? = {
         guard let cardBrands = paymentMethod.cardDetails?.availableNetworks, cardBrands.count > 1 else {
             return nil
         }
 
-        let cardBrandChoiceElement = CardBrandChoiceElement(
+        let cardBrandDropdown = DropdownFieldElement.makeCardBrandDropdown(
             cardBrands: Set(cardBrands),
             disallowedCardBrands: [
                 // We will add brands from card brand filtering here
             ],
             theme: theme,
-            allowDeselection: false
+            includePlaceholder: false
         )
 
         if let selectedBrand = paymentMethod.cardDetails?.cardBrand {
-            cardBrandChoiceElement.select(selectedBrand)
+            let index = cardBrandDropdown.items.firstIndex { item in
+                item.rawData == STPCardBrandUtilities.apiValue(from: selectedBrand)
+            }
+
+            if let index {
+                cardBrandDropdown.selectedIndex = Int(index)
+            }
         }
 
-        return PaymentMethodElementWrapper<CardBrandChoiceElement>(cardBrandChoiceElement) { field, params in
-            let cardBrand = field.selectedBrand ?? .unknown
+        return PaymentMethodElementWrapper<DropdownFieldElement>(cardBrandDropdown) { field, params in
+            let cardBrand = cardBrands[field.selectedIndex]
             let preferredNetworkAPIValue = STPCardBrandUtilities.apiValue(from: cardBrand)
-            params.paymentMethodParams.card?.networks = .init(preferred: cardBrand != .unknown ? preferredNetworkAPIValue : nil)
+            params.paymentMethodParams.card?.networks = .init(preferred: preferredNetworkAPIValue)
             return params
         }
     }()
 
     private lazy var panElement: TextFieldElement = {
-        let isCoBranded = cardBrandSelector != nil
+        let isCoBranded = cardBrandDropdownElement != nil
 
         let panElementConfig = TextFieldElement.LastFourConfiguration(
             lastFour: paymentMethod.cardDetails?.last4 ?? "",
             editConfiguration: isCoBranded ? .readOnlyWithoutDisabledAppearance : .readOnly,
             cardBrand: paymentMethod.cardDetails?.cardBrand,
-            cardBrandChoiceElement: cardBrandSelector?.element
+            cardBrandDropDown: cardBrandDropdownElement?.element
         )
 
         return panElementConfig.makeElement(theme: LinkUI.appearance.asElementsTheme)
@@ -212,7 +215,7 @@ final class LinkPaymentMethodFormElement: Element {
     private lazy var cardSection: SectionElement = {
         let allElements: [Element?] = [
             nameOnCardElement,
-            panElement, SectionElement.HiddenElement(cardBrandSelector),
+            panElement, SectionElement.HiddenElement(cardBrandDropdownElement),
             SectionElement.MultiElementRow([expiryDateElement, cvcElement], theme: theme),
         ]
         let elements = allElements.compactMap { $0 }

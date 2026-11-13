@@ -1,6 +1,4 @@
 ${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh
-${BUILT_PRODUCTS_DIR}/CwlCatchException/CwlCatchException.framework
-${BUILT_PRODUCTS_DIR}/CwlCatchExceptionSupport/CwlCatchExceptionSupport.framework
 ${BUILT_PRODUCTS_DIR}/DKImagePickerController/DKImagePickerController.framework
 ${BUILT_PRODUCTS_DIR}/DKPhotoGallery/DKPhotoGallery.framework
 ${BUILT_PRODUCTS_DIR}/FirebaseCore/FirebaseCore.framework
@@ -32,7 +30,6 @@ ${BUILT_PRODUCTS_DIR}/flutter_downloader/flutter_downloader.framework
 ${BUILT_PRODUCTS_DIR}/flutter_image_compress_common/flutter_image_compress_common.framework
 ${BUILT_PRODUCTS_DIR}/flutter_inappwebview_ios/flutter_inappwebview_ios.framework
 ${BUILT_PRODUCTS_DIR}/flutter_local_notifications/flutter_local_notifications.framework
-${BUILT_PRODUCTS_DIR}/flutter_native_splash/flutter_native_splash.framework
 ${BUILT_PRODUCTS_DIR}/fluttertoast/fluttertoast.framework
 ${BUILT_PRODUCTS_DIR}/image_picker_ios/image_picker_ios.framework
 ${BUILT_PRODUCTS_DIR}/just_audio/just_audio.framework
@@ -44,7 +41,6 @@ ${BUILT_PRODUCTS_DIR}/phonepe_payment_sdk/phonepe_payment_sdk.framework
 ${BUILT_PRODUCTS_DIR}/razorpay_flutter/razorpay_flutter.framework
 ${BUILT_PRODUCTS_DIR}/share_plus/share_plus.framework
 ${BUILT_PRODUCTS_DIR}/sms_autofill/sms_autofill.framework
-${BUILT_PRODUCTS_DIR}/speech_to_text/speech_to_text.framework
 ${BUILT_PRODUCTS_DIR}/sqflite_darwin/sqflite_darwin.framework
 ${BUILT_PRODUCTS_DIR}/stripe_ios/stripe_ios.framework
 ${BUILT_PRODUCTS_DIR}/url_launcher_ios/url_launcher_ios.framework

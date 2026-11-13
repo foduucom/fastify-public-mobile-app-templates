@@ -33,34 +33,45 @@ class ConfirmButton: UIControl {
         case custom(title: String)
         case customWithLock(title: String)
 
-        static func makeDefaultType(intent: Intent, withLock: Bool = true) -> Self {
+        static func makeDefaultTypeForPaymentSheet(intent: Intent) -> CallToActionType {
             switch intent {
             case .paymentIntent(let paymentIntent):
-                return .pay(amount: paymentIntent.amount, currency: paymentIntent.currency, withLock: withLock)
+                return .pay(amount: paymentIntent.amount, currency: paymentIntent.currency)
             case .setupIntent:
                 return .setup
             case .deferredIntent(let intentConfig):
                 switch intentConfig.mode {
                 case .payment(let amount, let currency, _, _, _):
-                    return .pay(amount: amount, currency: currency, withLock: withLock)
+                    return .pay(amount: amount, currency: currency)
                 case .setup:
                     return .setup
                 }
             case .checkoutSession(let checkoutSession):
-                switch checkoutSession.mode {
-                case .payment:
-                    if let amount = checkoutSession.totals?.total,
-                       let currency = checkoutSession.currency {
-                        return .pay(amount: amount, currency: currency, withLock: withLock)
-                    }
-                    stpAssertionFailure("Missing amount and currency in checkout session for .payment mode")
-                    return .setup
-                case .setup:
-                    return .setup
-                case .subscription, .unknown:
-                    stpAssertionFailure("Unknown and subscription modes not yet supported in checkout sessions")
-                    return .setup
+                if let amount = checkoutSession.totalSummary?.total, let currency = checkoutSession.currency {
+                    return .pay(amount: amount, currency: currency)
                 }
+                return .setup
+            }
+        }
+
+        static func makeDefaultTypeForLink(intent: Intent) -> CallToActionType {
+            switch intent {
+            case .paymentIntent(let paymentIntent):
+                return .pay(amount: paymentIntent.amount, currency: paymentIntent.currency, withLock: false)
+            case .setupIntent:
+                return .continue
+            case .deferredIntent(let intentConfig):
+                switch intentConfig.mode {
+                case .payment(let amount, let currency, _, _, _):
+                    return .pay(amount: amount, currency: currency, withLock: false)
+                case .setup:
+                    return .continue
+                }
+            case .checkoutSession(let checkoutSession):
+                if let amount = checkoutSession.totalSummary?.total, let currency = checkoutSession.currency {
+                    return .pay(amount: amount, currency: currency, withLock: false)
+                }
+                return .continue
             }
         }
     }

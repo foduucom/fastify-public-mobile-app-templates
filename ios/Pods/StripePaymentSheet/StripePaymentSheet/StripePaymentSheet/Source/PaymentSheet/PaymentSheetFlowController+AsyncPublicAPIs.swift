@@ -5,7 +5,6 @@
 //  Created by Yuki Tokuhiro on 3/1/25.
 //
 
-@_spi(STP) import StripePayments
 import UIKit
 
 extension PaymentSheet.FlowController {
@@ -66,16 +65,16 @@ extension PaymentSheet.FlowController {
 
     /// An asynchronous failable initializer for PaymentSheet.FlowController
     /// This asynchronously loads the CheckoutSession's payment methods and configuration.
-    /// - Parameter checkout: A fully loaded Checkout instance whose ``Checkout.session`` is non-nil.
+    /// - Parameter checkoutSessionId: The ID of a Stripe CheckoutSession object (e.g., "cs_test_xxx")
     /// - Parameter configuration: Configuration for the PaymentSheet. e.g. your business name, Customer details, etc.
     /// - Returns: A valid PaymentSheet.FlowController instance.
     /// - Throws: An error if loading failed.
-    @MainActor @_spi(CheckoutSessionsPreview) public static func create(
-        checkout: Checkout,
+    @_spi(CheckoutSessionPreview) public static func create(
+        checkoutSessionId: String,
         configuration: PaymentSheet.Configuration
     ) async throws -> PaymentSheet.FlowController {
         return try await withCheckedThrowingContinuation { continuation in
-            create(checkout: checkout, configuration: configuration) { result in
+            create(checkoutSessionId: checkoutSessionId, configuration: configuration) { result in
                 continuation.resume(with: result)
             }
         }
@@ -122,26 +121,6 @@ extension PaymentSheet.FlowController {
         return try await withCheckedThrowingContinuation { continuation in
             Task { @MainActor in
                 update(intentConfiguration: intentConfiguration) { error in
-                    if let error {
-                        continuation.resume(throwing: error)
-                    } else {
-                        continuation.resume()
-                    }
-                }
-            }
-        }
-    }
-
-    /// Call this method when the CheckoutSession you used to initialize PaymentSheet.FlowController changes.
-    /// This ensures the appropriate payment methods are displayed, etc.
-    /// When this method returns, your implementation should get the customer's updated payment option by using the `paymentOption` property and update your UI.
-    /// - Parameter checkout: The Checkout instance whose session has been updated.
-    /// - Throws: An error if the update fails. You should retry the update; the FlowController instance is not usable until the update succeeds.
-    /// - Note: Don't call `confirm` or `present` until the update succeeds. Don't call this method while PaymentSheet is being presented.
-    @_spi(CheckoutSessionsPreview) public func update(checkout: Checkout) async throws {
-        return try await withCheckedThrowingContinuation { continuation in
-            Task { @MainActor in
-                update(checkout: checkout) { error in
                     if let error {
                         continuation.resume(throwing: error)
                     } else {

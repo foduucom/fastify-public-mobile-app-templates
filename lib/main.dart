@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // import 'package:flutter_stripe/flutter_stripe.dart';
 
 import 'package:foduu_ecommerce/core/services/wishlistService.dart';
@@ -66,13 +68,6 @@ Future<void> main() async {
     Get.put(StudioSocketRouting(initialSlug: slug));
   }
 
-  // Initialize Firebase and push notifications
-  if (!kIsWeb) {
-    await Firebase.initializeApp();
-    await FirebaseHelpers.firebaseInitialise();
-    await FirebaseHelpers.getFCMToken();
-  }
-
   // Initialize dynamic theme from storage
   await DynamicThemeManager().init();
 
@@ -82,38 +77,53 @@ Future<void> main() async {
   // Register all dynamic layout widgets
   registerDefaultWidgets();
 
-  // Initialize App and get initial route
-  String initialRoute = await _initApp();
+  // Choose the first screen from local state so network/Firebase startup
+  // cannot leave iOS sitting on its blank native launch screen.
+  final box = GetStorage();
+  final isLogin = box.read('isLogin') == true || box.read('isLogin') == 'true';
+  final initialRoute = isLogin
+      ? Routes.BOTTOMBAR
+      : (isOtpLogin ? Routes.MOBILELOGIN : Routes.LOGIN);
 
   runApp(MyApp(initialRoute: initialRoute));
 
-  // If the session was found dead at launch, tell the user once Login is up.
-  if (SessionService.pendingNotice != null) {
-    Future.delayed(
-        const Duration(milliseconds: 900), SessionService.showPendingNotice);
-  }
-
-  // Remove splash screen after app is ready
-  // Splash screen removed (flutter_native_splash not configured)
+  // These tasks are best-effort and run after the first frame. Firebase config,
+  // push permissions, and network requests must not prevent the app UI opening.
+  if (!kIsWeb) unawaited(_initializeFirebaseServices());
+  unawaited(_refreshPublicSettings(box));
+  if (isLogin) unawaited(_validateSessionAfterLaunch());
 }
 
-Future<String> _initApp() async {
-  final box = GetStorage();
-  bool isLogin = box.read('isLogin') == true || box.read('isLogin') == 'true';
-
-  final refresh = _refreshPublicSettings(box);
-  // First ever launch has no saved settings, so give them a short window to
-  // arrive. Returning users start immediately from saved settings and the
-  // refresh finishes in the background; a 5xx never logs anyone out.
-  if (box.read('auth_preference') == null) {
-    await refresh.timeout(const Duration(seconds: 10), onTimeout: () {});
+Future<void> _initializeFirebaseServices() async {
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(const Duration(seconds: 10));
+    await FirebaseHelpers.firebaseInitialise()
+        .timeout(const Duration(seconds: 15));
+    await FirebaseHelpers.getFCMToken().timeout(const Duration(seconds: 10));
+  } catch (error, stackTrace) {
+    debugPrint('Firebase startup skipped: $error');
+    debugPrintStack(stackTrace: stackTrace);
   }
-  // Confirm the stored session once before the first screen is chosen, so a
-  // dead token goes straight to Login (one transition) instead of opening
-  // the app and being kicked out mid-load.
-  if (isLogin) isLogin = await SessionService.validateAtLaunch();
-  if (!isLogin) return isOtpLogin ? Routes.MOBILELOGIN : Routes.LOGIN;
-  return Routes.BOTTOMBAR;
+}
+
+Future<void> _validateSessionAfterLaunch() async {
+  try {
+    final isValid = await SessionService.validateAtLaunch();
+    if (isValid) return;
+
+    await WidgetsBinding.instance.endOfFrame;
+    final route = isOtpLogin ? Routes.MOBILELOGIN : Routes.LOGIN;
+    Get.offAllNamed(route);
+    if (SessionService.pendingNotice != null) {
+      await Future.delayed(const Duration(milliseconds: 400));
+      SessionService.showPendingNotice();
+    }
+  } catch (error, stackTrace) {
+    debugPrint('Session validation skipped: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  }
 }
 
 Future<void> _refreshPublicSettings(GetStorage box) async {

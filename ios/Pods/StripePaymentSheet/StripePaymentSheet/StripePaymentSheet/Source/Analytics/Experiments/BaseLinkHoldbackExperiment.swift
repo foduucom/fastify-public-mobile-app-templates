@@ -23,16 +23,16 @@ struct BaseLinkHoldbackExperiment {
     let elementsSessionId: String
     let mobileSessionId: String
 
-    var dimensionsDictionary: [String: String] {
+    var dimensionsDictionary: [String: Any] {
         [
             "dvs_provided": defaultValuesProvided,
-            "has_spms": hasSPMs.description,
+            "has_spms": hasSPMs,
             "integration_shape": integrationShape,
             "integration_type": "mpe_ios",
-            "is_returning_link_user": isReturningLinkUser.description,
+            "is_returning_link_user": isReturningLinkUser,
             "link_default_opt_in": linkDefaultOptIn,
-            "link_displayed": linkDisplayed.description,
-            "link_native": linkNative.description,
+            "link_displayed": linkDisplayed,
+            "link_native": linkNative,
             "recognition_type": "email",
             "mobile_sdk_version": sdkVersion,
             "elements_session_id": elementsSessionId,

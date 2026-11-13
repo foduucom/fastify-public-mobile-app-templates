@@ -24,8 +24,7 @@ public final class EmbeddedPaymentElement {
     public var presentingViewController: UIViewController?
 
     /// This contains the `configuration` you passed in to `create`.
-    /// - Note: `internal(set)` because checkout session updates may apply address overrides to the configuration.
-    public internal(set) var configuration: Configuration
+    public let configuration: Configuration
 
     /// See `EmbeddedPaymentElementDelegate`.
     public weak var delegate: EmbeddedPaymentElementDelegate?
@@ -90,46 +89,33 @@ public final class EmbeddedPaymentElement {
     }
 
     /// An asynchronous failable initializer for CheckoutSession mode
-    /// Loads payment methods and configuration from a fully loaded Checkout instance.
-    /// - Parameter checkout: A fully loaded Checkout instance whose ``Checkout.session`` is non-nil.
+    /// Loads the CheckoutSession's payment methods and configuration.
+    /// - Parameter checkoutSessionId: The ID of a Stripe CheckoutSession object (e.g., "cs_test_xxx")
     /// - Parameter configuration: Configuration for the PaymentSheet. e.g. your business name, customer details, etc.
     /// - Returns: A valid EmbeddedPaymentElement instance
     /// - Throws: An error if loading failed.
-    @_spi(CheckoutSessionsPreview) public static func create(
-        checkout: Checkout,
+    @_spi(CheckoutSessionPreview) public static func create(
+        checkoutSessionId: String,
         configuration: Configuration
     ) async throws -> EmbeddedPaymentElement {
-        guard let stpSession = checkout.session as? STPCheckoutSession else {
-            stpAssertionFailure("Expected STPCheckoutSession, got \(type(of: checkout.session))")
-            throw PaymentSheetError.unknown(debugDescription: "Invalid checkout session type")
-        }
-        if checkout.isPerformingSessionUpdate {
-            let message = "A Checkout operation is already in progress. Wait for it to complete before calling EmbeddedPaymentElement.create(checkout:configuration:)."
-            assertionFailure(message)
-            throw PaymentSheetError.integrationError(nonPIIDebugDescription: message)
-        }
-        var config = configuration
-        stpSession.applyAddressOverrides(to: &config)
-
-        try validateRowSelectionConfiguration(configuration: config)
+        try validateRowSelectionConfiguration(configuration: configuration)
 
         AnalyticsHelper.shared.generateSessionID()
         STPAnalyticsClient.sharedClient.addClass(toProductUsageIfNecessary: EmbeddedPaymentElement.self)
-        let analyticsHelper = PaymentSheetAnalyticsHelper(integrationShape: .embedded, configuration: config)
+        let analyticsHelper = PaymentSheetAnalyticsHelper(integrationShape: .embedded, configuration: configuration)
 
         let loadResult = try await PaymentSheetLoader.load(
-            mode: .checkoutSession(stpSession),
-            configuration: config,
+            mode: .checkoutSession(checkoutSessionId),
+            configuration: configuration,
             analyticsHelper: analyticsHelper,
             integrationShape: .embedded
         )
         let embeddedPaymentElement: EmbeddedPaymentElement = .init(
-            configuration: config,
+            configuration: configuration,
             loadResult: loadResult,
             analyticsHelper: analyticsHelper
         )
         embeddedPaymentElement.clearPaymentOptionIfNeeded()
-        checkout.integrationDelegate = embeddedPaymentElement
         return embeddedPaymentElement
     }
 
@@ -152,32 +138,6 @@ public final class EmbeddedPaymentElement {
     public func update(
         intentConfiguration: IntentConfiguration
     ) async -> UpdateResult {
-        return await performUpdate(mode: .deferredIntent(intentConfiguration))
-    }
-
-    /// Call this method when the CheckoutSession you used to initialize `EmbeddedPaymentElement` changes.
-    /// This ensures the appropriate payment methods are displayed, collect the right fields, etc.
-    /// - Parameter checkout: The Checkout instance whose session has been updated.
-    /// - Returns: The result of the update.
-    /// - Note: Upon completion, `paymentOption` may become nil if it's no longer available.
-    /// - Note: If you call `update` while a previous call to `update` is still in progress, the previous call returns `.canceled`.
-    @_spi(CheckoutSessionsPreview) public func update(
-        checkout: Checkout
-    ) async -> UpdateResult {
-        guard let stpSession = checkout.session as? STPCheckoutSession else {
-            stpAssertionFailure("Expected STPCheckoutSession, got \(type(of: checkout.session))")
-            return .failed(error: PaymentSheetError.unknown(debugDescription: "Invalid checkout session type"))
-        }
-        if checkout.isPerformingSessionUpdate {
-            let message = "A Checkout operation is already in progress. Wait for it to complete before calling EmbeddedPaymentElement.update(checkout:)."
-            assertionFailure(message)
-            return .failed(error: PaymentSheetError.integrationError(nonPIIDebugDescription: message))
-        }
-        stpSession.applyAddressOverrides(to: &configuration)
-        return await performUpdate(mode: .checkoutSession(stpSession))
-    }
-
-    private func performUpdate(mode: PaymentSheet.InitializationMode) async -> UpdateResult {
         let newUpdateContext = EmbeddedUpdateContext(status: .inProgress)
         self.latestUpdateContext = newUpdateContext
 
@@ -209,7 +169,7 @@ public final class EmbeddedPaymentElement {
             do {
                 // TODO(https://jira.corp.stripe.com/browse/MOBILESDK-3079): Make `load` respect task cancellation to reduce network consumption
                 loadResult = try await PaymentSheetLoader.load(
-                    mode: mode,
+                    mode: .deferredIntent(intentConfiguration),
                     configuration: configuration,
                     analyticsHelper: analyticsHelper,
                     integrationShape: .embedded,
@@ -448,15 +408,7 @@ public final class EmbeddedPaymentElement {
             self.delegate?.embeddedPaymentElementDidUpdateHeight(embeddedPaymentElement: self)
         }
         self.lastUpdatedPaymentOption = paymentOption
-        self.confirmationChallenge = ConfirmationChallenge(enableAttestation: configuration.enableAttestationOnConfirmation, elementsSession: loadResult.elementsSession, stripeAttest: configuration.apiClient.stripeAttest)
-    }
-}
-
-// MARK: - CheckoutIntegrationDelegate
-
-extension EmbeddedPaymentElement: CheckoutIntegrationDelegate {
-    var isSheetPresented: Bool {
-        presentingViewController?.presentedViewController is BottomSheetViewController
+        self.confirmationChallenge = ConfirmationChallenge(enablePassiveCaptcha: configuration.enablePassiveCaptcha, enableAttestation: configuration.enableAttestationOnConfirmation, elementsSession: loadResult.elementsSession, stripeAttest: configuration.apiClient.stripeAttest)
     }
 }
 
@@ -509,24 +461,6 @@ extension EmbeddedPaymentElement {
     ) {
         Task {
             let result = await update(intentConfiguration: intentConfiguration)
-            DispatchQueue.main.async {
-                completion(result)
-            }
-        }
-    }
-
-    /// Call this method when the CheckoutSession you used to initialize `EmbeddedPaymentElement` changes.
-    /// This ensures the appropriate payment methods are displayed, collect the right fields, etc.
-    /// - Parameter checkout: The Checkout instance whose session has been updated.
-    /// - Parameter completion: A completion block containing the result of the update. Called on the main thread.
-    /// - Returns: The result of the update. Any calls made to `update` before this call that are still in progress will return a `.canceled` result.
-    /// - Note: Upon completion, `paymentOption` may become nil if it's no longer available.
-    @_spi(CheckoutSessionsPreview) public func update(
-        checkout: Checkout,
-        completion: @escaping (UpdateResult) -> Void
-    ) {
-        Task {
-            let result = await update(checkout: checkout)
             DispatchQueue.main.async {
                 completion(result)
             }

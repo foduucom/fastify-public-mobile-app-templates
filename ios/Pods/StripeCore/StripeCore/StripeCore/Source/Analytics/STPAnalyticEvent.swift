@@ -240,7 +240,7 @@ import Foundation
     case paymentSheetElementsSessionCPMLoadFailed = "mc_elements_session_cpms_load_failed"
 
     // MARK: - PaymentSheet card brand choice
-    case paymentSheetDisplayCardBrandChoiceIndicator = "mc_display_cbc_selector"
+    case paymentSheetDisplayCardBrandDropdownIndicator = "mc_display_cbc_dropdown"
     case paymentSheetCardBrandSelected = "mc_cbc_selected"
     case paymentSheetOpenEditScreen = "mc_open_edit_screen"
     case paymentSheetUpdateCard = "mc_update_card"
@@ -249,7 +249,7 @@ import Foundation
     case paymentSheetDisallowedCardBrand = "mc_disallowed_card_brand"
 
     // MARK: - CustomerSheet card brand choice
-    case customerSheetDisplayCardBrandChoiceIndicator = "cs_display_cbc_selector"
+    case customerSheetDisplayCardBrandDropdownIndicator = "cs_display_cbc_dropdown"
     case customerSheetCardBrandSelected = "cs_cbc_selected"
     case customerSheetOpenEditScreen = "cs_open_edit_screen"
     case customerSheetUpdateCard = "cs_update_card"
@@ -327,11 +327,11 @@ import Foundation
 
     // MARK: - Attestation on Confirmation
     case attestationConfirmationPrepare = "elements.attestation.confirmation.prepare"
-    case attestationConfirmationPrepareSucceeded = "elements.attestation.confirmation.prepare.succeeded"
-    case attestationConfirmationPrepareFailed = "elements.attestation.confirmation.prepare.failed"
+    case attestationConfirmationPrepareSucceeded = "elements.attestation.confirmation.prepare_succeeded"
+    case attestationConfirmationPrepareFailed = "elements.attestation.confirmation.prepare_failed"
     case attestationConfirmationRequestToken = "elements.attestation.confirmation.request_token"
-    case attestationConfirmationRequestTokenSucceeded = "elements.attestation.confirmation.request_token.succeeded"
-    case attestationConfirmationRequestTokenFailed = "elements.attestation.confirmation.request_token.failed"
+    case attestationConfirmationRequestTokenSucceeded = "elements.attestation.confirmation.request_token_succeeded"
+    case attestationConfirmationRequestTokenFailed = "elements.attestation.confirmation.request_token_failed"
     case attestationConfirmationError = "elements.attestation.confirmation.error"
 
     // MARK: - Intent Confirmation Challenge
@@ -339,7 +339,6 @@ import Foundation
     case intentConfirmationChallengeSuccess = "elements.intent_confirmation_challenge.success"
     case intentConfirmationChallengeError = "elements.intent_confirmation_challenge.error"
     case intentConfirmationChallengeWebViewLoaded = "elements.intent_confirmation_challenge.web_view_loaded"
-    case intentConfirmationChallengeCanceled = "elements.intent_confirmation_challenge.cancel"
 
     // MARK: - STPApplePayContext
     case applePayContextStarted = "stripeios.applepaycontext.confirm.started"

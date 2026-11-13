@@ -708,13 +708,7 @@ class PriceDetails extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
-              final currentProduct = products[index];
-              final unitPrice = _getUnitPrice(currentProduct);
-              final originalPrice =
-                  _getOriginalPrice(currentProduct, unitPrice);
-              final hasDiscount = originalPrice > unitPrice && unitPrice > 0;
-              final quantity =
-                  (currentProduct['qty'] ?? currentProduct['quantity'] ?? 1);
+              final currentProduct = item['products'][index];
 
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -746,7 +740,7 @@ class PriceDetails extends StatelessWidget {
                       children: [
                         SizedBox(
                             width: Get.width * 0.6,
-                            child: Text(item['products'][index]['name'],
+                            child: Text(currentProduct['name'] ?? '',
                                 style: const TextStyle(fontSize: 12))),
                         const SizedBox(height: 6),
                         Container(
@@ -760,7 +754,7 @@ class PriceDetails extends StatelessWidget {
                                   'Quantity:'.tr,
                                   style: const TextStyle(fontSize: 12),
                                 ),
-                                Text('${item['products'][index]['qty']}',
+                                Text('${currentProduct['qty'] ?? currentProduct['quantity'] ?? 1}',
                                     style: const TextStyle(fontSize: 12)),
                               ],
                             )),
@@ -771,7 +765,7 @@ class PriceDetails extends StatelessWidget {
                             Text("price".tr,
                                 style: const TextStyle(fontSize: 12)),
                             const Text(" : ", style: TextStyle(fontSize: 12)),
-                            Text("₹${item['products'][index]['unit_price']}",
+                            Text("₹${currentProduct['unit_price'] ?? currentProduct['price'] ?? 0}",
                                 style: const TextStyle(fontSize: 12)),
                           ],
                         ),
@@ -786,9 +780,9 @@ class PriceDetails extends StatelessWidget {
                         //   ],
                         // )
                       ],
-                    )
-                  ],
-                ),
+                    ),
+                  ),
+                ],
               );
             },
           ),

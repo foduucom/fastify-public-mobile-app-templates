@@ -49,6 +49,7 @@ extension UIViewController {
             from: self,
             initiallySelectedPaymentDetailsID: selectedPaymentDetailsID,
             shouldShowSecondaryCta: shouldShowSecondaryCta,
+            canSkipWalletAfterVerification: false,
             completion: callback
         )
     }

@@ -4,16 +4,6 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>CwlCatchException.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
-		<key>CwlCatchExceptionSupport.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
 		<key>DKImagePickerController-DKImagePickerController.xcscheme</key>
 		<dict>
 			<key>isShown</key>
@@ -344,21 +334,6 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
-		<key>flutter_native_splash-flutter_native_splash_privacy.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
-		<key>flutter_native_splash.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
-		<key>flutter_tts.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
 		<key>fluttertoast-fluttertoast_privacy.xcscheme</key>
 		<dict>
 			<key>isShown</key>
@@ -455,11 +430,6 @@
 			<false/>
 		</dict>
 		<key>sms_autofill.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
-		<key>speech_to_text.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>

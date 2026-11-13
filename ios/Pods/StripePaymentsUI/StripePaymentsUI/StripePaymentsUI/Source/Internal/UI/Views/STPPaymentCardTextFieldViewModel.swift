@@ -202,8 +202,7 @@ class STPPaymentCardTextFieldViewModel: NSObject {
     }
 
     func validationStateForCardNumber(handler: @escaping (STPCardValidationState) -> Void) {
-        // TODO: BIN retrieval is broken if you don't use STPAPIClient.shared (https://jira.corp.stripe.com/browse/MOBILESDK-4322)
-        STPBINController.shared.retrieveBINRanges(apiClient: STPAPIClient.shared, forPrefix: cardNumber ?? "") { _ in
+        STPBINController.shared.retrieveBINRanges(forPrefix: cardNumber ?? "") { _ in
             self.hasCompleteMetadataForCardNumber = STPBINController.shared.hasBINRanges(
                 forPrefix: self.cardNumber ?? ""
             )

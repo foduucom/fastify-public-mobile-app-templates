@@ -30,7 +30,7 @@ class SimpleMandateElement: PaymentMethodElement {
         }
     }
 
-    weak var delegate: StripeUICore.ElementDelegate?
+    var delegate: StripeUICore.ElementDelegate?
     var view: UIView {
         return mandateTextView
     }

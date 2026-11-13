@@ -230,15 +230,15 @@ class PaymentSheetFormFactory {
             } else if paymentMethod == .revolutPay && isSettingUp {
                 // special case, display mandate for revolutPay when setting up or pi+sfu
                 additionalElements = [makeRevolutPayMandate()]
+            } else if paymentMethod == .klarna && isSettingUp {
+                // special case, display mandate for Klarna when setting up or pi+sfu
+                additionalElements = [makeKlarnaMandate()]
             } else if paymentMethod == .amazonPay && isSettingUp {
                 // special case, display mandate for Amazon Pay when setting up or pi+sfu
                 additionalElements = [makeAmazonPayMandate()]
             } else if paymentMethod == .satispay && isSettingUp {
                 // special case, display mandate for Satispay when setting up or pi+sfu
                 additionalElements = [makeSatispayMandate()]
-            } else if paymentMethod == .twint && isSettingUp {
-                // special case, display mandate for Twint when setting up or pi+sfu
-                additionalElements = [makeTwintMandate()]
             } else if paymentMethod == .bancontact {
                 return makeBancontact()
             } else if paymentMethod == .bacsDebit {
@@ -255,14 +255,6 @@ class PaymentSheetFormFactory {
                 return makeSwish()
             } else if paymentMethod == .afterpayClearpay {
                 return makeAfterpayClearpay()
-            } else if paymentMethod == .affirm {
-                return makeAffirm()
-            } else if paymentMethod == .klarna {
-                return makeKlarna()
-            } else if paymentMethod == .iDEAL {
-                return makeiDEAL()
-            } else if paymentMethod == .wero {
-                return makeWero()
             }
 
             guard let spec = FormSpecProvider.shared.formSpec(for: paymentMethod.identifier) else {
@@ -270,7 +262,9 @@ class PaymentSheetFormFactory {
                 analyticsHelper?.analyticsClient.log(analytic: errorAnalytic)
                 return FormElement(elements: [], theme: theme)
             }
-            if paymentMethod == .SEPADebit {
+            if paymentMethod == .iDEAL {
+                return makeiDEAL(spec: spec)
+            } else if paymentMethod == .SEPADebit {
                 return makeSepaDebit()
             }
 
@@ -642,6 +636,31 @@ extension PaymentSheetFormFactory {
         )
     }
 
+    func makeiDEAL(spec: FormSpec) -> PaymentMethodElement {
+        let contactSection: Element? = makeContactInformationSection(
+            nameRequiredByPaymentMethod: true,
+            emailRequiredByPaymentMethod: isSettingUp,
+            phoneRequiredByPaymentMethod: false
+        )
+        // Hack: Use the luxe spec to make the dropdown for convenience; it has the latest list of banks
+        let bankDropdown: Element? = spec.fields.reduce(nil) { dropdown, spec in
+            // Find the dropdown spec
+            if case .selector(let spec) = spec {
+                return makeDropdown(for: spec)
+            }
+            return dropdown
+        }
+
+        let addressSection: Element? = makeBillingAddressSectionIfNecessary(requiredByPaymentMethod: false)
+        let mandate: Element? = isSettingUp ? makeSepaMandate() : nil // Note: We show a SEPA mandate b/c iDEAL saves bank details as a SEPA Direct Debit Payment Method
+        let checkboxElement = makeSepaBasedPMCheckbox()
+        let elements: [Element?] = [contactSection, bankDropdown, addressSection, checkboxElement, mandate]
+        return FormElement(
+            autoSectioningElements: elements.compactMap { $0 },
+            theme: theme
+        )
+    }
+
     func makeUSBankAccount(merchantName: String) -> PaymentMethodElement {
         let isSaving = BoolReference()
         let defaultCheckbox: Element? = {
@@ -743,15 +762,15 @@ extension PaymentSheetFormFactory {
         return FormElement(elements: [contactInfoSection, billingDetails], theme: theme)
     }
 
-    func makeWero() -> PaymentMethodElement {
-        let country = makeCountry(countryCodes: ["DE", "BE", "FR"])
+    func makeAfterpayClearpay() -> PaymentMethodElement {
+        let header = makeAfterpayClearpayHeader()
         let contactInfoSection = makeContactInformationSection(
-            nameRequiredByPaymentMethod: false,
-            emailRequiredByPaymentMethod: false,
+            nameRequiredByPaymentMethod: true,
+            emailRequiredByPaymentMethod: true,
             phoneRequiredByPaymentMethod: false
         )
         let billingDetails = makeBillingAddressSectionIfNecessary(requiredByPaymentMethod: false)
-        return FormElement(autoSectioningElements: [country, contactInfoSection, billingDetails].compactMap { $0 }, theme: theme)
+        return FormElement(autoSectioningElements: [header, contactInfoSection, billingDetails].compactMap { $0 }, theme: theme)
     }
 
     // Only show checkbox for PI+SFU & Setup Intent
@@ -809,8 +828,17 @@ extension PaymentSheetFormFactory {
         }
     }
 
-    /// Creates a country dropdown for Klarna form specs with API path support
-    func makeKlarnaCountry(apiPath: String?) -> PaymentMethodElement? {
+    func makeAfterpayClearpayHeader() -> SubtitleElement {
+        return SubtitleElement(
+            view: AfterpayPriceBreakdownView(
+                currency: currency,
+                appearance: configuration.appearance
+            ),
+            isHorizontalMode: configuration.isHorizontalMode
+        )
+    }
+
+    func makeKlarnaCountry(apiPath: String? = nil) -> PaymentMethodElement? {
         let countryCodes = Locale.current.sortedByTheirLocalizedNames(addressSpecProvider.countries)
         let defaultValue = getPreviousCustomerInput(for: apiPath) ?? defaultBillingDetails(countryAPIPath: apiPath).address.country
         let country = PaymentMethodElementWrapper(

@@ -100,8 +100,6 @@ public class STPPaymentMethod: NSObject, STPAPIResponseDecodable {
     @objc private(set) public var payPay: STPPaymentMethodPayPay?
     /// If this is a TWINT PaymentMethod (i.e. `self.type == STPPaymentMethodTypeTwint`), this contains additional details.
     @objc private(set) public var twint: STPPaymentMethodTwint?
-    /// If this is a Wero PaymentMethod (i.e. `self.type == STPPaymentMethodTypeWero`), this contains additional details.
-    @objc private(set) public var wero: STPPaymentMethodWero?
 
     /// This field indicates whether this payment method can be shown again to its customer in a checkout flow
     @objc private(set) public var allowRedisplay: STPPaymentMethodAllowRedisplay
@@ -169,7 +167,6 @@ public class STPPaymentMethod: NSObject, STPAPIResponseDecodable {
             "mobilePay = \(String(describing: mobilePay))",
             "shopPay = \(String(describing: shopPay))",
             "twint = \(String(describing: twint))",
-            "wero = \(String(describing: wero))",
             "liveMode = \(liveMode ? "YES" : "NO")",
             "allowRedisplay = \(allResponseFields["allow_redisplay"] as? String ?? "")",
             "type = \(allResponseFields["type"] as? String ?? "")",
@@ -370,9 +367,6 @@ public class STPPaymentMethod: NSObject, STPAPIResponseDecodable {
         )
         paymentMethod.twint = STPPaymentMethodTwint.decodedObject(
             fromAPIResponse: dict.stp_dictionary(forKey: "twint")
-        )
-        paymentMethod.wero = STPPaymentMethodWero.decodedObject(
-            fromAPIResponse: dict.stp_dictionary(forKey: "wero")
         )
         return paymentMethod
     }

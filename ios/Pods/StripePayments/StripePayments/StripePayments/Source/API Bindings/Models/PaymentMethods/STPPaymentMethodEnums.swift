@@ -96,8 +96,6 @@ import Foundation
     @_spi(STP) case shopPay
     /// A PayPay payment method
     case payPay
-    /// A Wero payment method
-    case wero
     /// An unknown type.
     case unknown
 
@@ -109,7 +107,7 @@ import Foundation
         case .card:
             return STPLocalizedString("Card", "Payment Method for credit card")
         case .iDEAL:
-            return STPLocalizedString("iDEAL | Wero", "Source type brand name")
+            return STPLocalizedString("iDEAL", "Source type brand name")
         case .FPX:
             return STPLocalizedString("FPX", "Payment Method type brand name")
         case .SEPADebit:
@@ -192,8 +190,6 @@ import Foundation
             return "ShopPay"
         case .payPay:
             return "PayPay"
-        case .wero:
-            return "Wero"
         case .cardPresent,
             .unknown:
             return STPLocalizedString("Unknown", "Default missing source type label")
@@ -291,8 +287,6 @@ import Foundation
             return "shop_pay"
         case .payPay:
             return "paypay"
-        case .wero:
-            return "wero"
         }
     }
 

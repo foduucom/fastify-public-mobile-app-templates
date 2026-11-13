@@ -292,7 +292,7 @@ class PaymentSheetVerticalViewController: UIViewController, FlowControllerViewCo
             if isFlowController {
                 return .continue
             }
-            return .makeDefaultType(intent: intent)
+            return .makeDefaultTypeForPaymentSheet(intent: intent)
         }()
         let status: ConfirmButton.Status = {
             if isPaymentInFlight {

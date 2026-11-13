@@ -38,6 +38,7 @@ public enum PaymentSheetError: Error, LocalizedError {
     // MARK: Loading errors
     case paymentIntentInTerminalState(status: STPPaymentIntentStatus)
     case setupIntentInTerminalState(status: STPSetupIntentStatus)
+    case fetchPaymentMethodsFailure
 
     // MARK: Deferred intent errors
     case intentConfigurationValidationFailed(message: String)
@@ -106,6 +107,8 @@ extension PaymentSheetError: CustomDebugStringConvertible {
                 return "PaymentSheet received a PaymentIntent in a terminal state: \(status)"
             case .setupIntentInTerminalState(status: let status):
                 return "PaymentSheet received a SetupIntent in a terminal state: \(status)"
+            case .fetchPaymentMethodsFailure:
+                return "Failed to retrieve PaymentMethods for the customer"
             case .linkSignUpNotRequired:
                 return "Don't call sign up if not needed"
             case .noPaymentMethodTypesAvailable(intentPaymentMethods: let intentPaymentMethods):
