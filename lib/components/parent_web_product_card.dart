@@ -142,6 +142,9 @@ class ParentWebProductCard extends StatelessWidget {
     final regularPriceStr = priceInfo['salePrice']?.toString() ?? '';
     final discountRateStr = priceInfo['discountRate']?.toString() ?? '';
     final hasDiscount = discountRateStr.trim().isNotEmpty;
+    final badgeText = discountRateStr.trim().isNotEmpty
+        ? discountRateStr.trim().toUpperCase()
+        : (regularPriceStr.isNotEmpty ? 'SALE' : '');
 
     return GestureDetector(
       onTap: _navigateToDetail,
@@ -168,8 +171,8 @@ class ParentWebProductCard extends StatelessWidget {
                     ),
                   ),
 
-                  // Sale badge (top-left)
-                  if (hasDiscount)
+                  // Sale badge (top-left) - guaranteed high contrast crimson
+                  if (badgeText.isNotEmpty)
                     Positioned(
                       left: 8,
                       top: 8,
@@ -177,21 +180,23 @@ class ParentWebProductCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 7, vertical: 3),
                         decoration: BoxDecoration(
-                          color: colorScheme.error,
+                          color: const Color(0xFFDC2626),
                           borderRadius: BorderRadius.circular(6),
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
+                              color: Color(0x33000000),
                               blurRadius: 4,
+                              offset: Offset(0, 1),
                             ),
                           ],
                         ),
                         child: Text(
-                          discountRateStr.isNotEmpty ? discountRateStr : 'SALE',
-                          style: textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onError,
-                            fontWeight: FontWeight.w700,
+                          badgeText,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
                             fontSize: 10,
+                            letterSpacing: 0.2,
                           ),
                         ),
                       ),
@@ -350,6 +355,9 @@ class ParentWebProductCard extends StatelessWidget {
     final regularPriceStr = priceInfo['salePrice']?.toString() ?? '';
     final discountRateStr = priceInfo['discountRate']?.toString() ?? '';
     final hasDiscount = discountRateStr.trim().isNotEmpty;
+    final badgeText = discountRateStr.trim().isNotEmpty
+        ? discountRateStr.trim().toUpperCase()
+        : (regularPriceStr.isNotEmpty ? 'SALE' : '');
     final inStock = ProductHelper.isInStock(product);
 
     return GestureDetector(
@@ -395,7 +403,7 @@ class ParentWebProductCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (hasDiscount)
+                  if (badgeText.isNotEmpty)
                     Positioned(
                       left: 6,
                       top: 6,
@@ -403,21 +411,23 @@ class ParentWebProductCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2.5),
                         decoration: BoxDecoration(
-                          color: colorScheme.error,
+                          color: const Color(0xFFDC2626),
                           borderRadius: BorderRadius.circular(5),
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.25),
+                              color: Color(0x33000000),
                               blurRadius: 3,
+                              offset: Offset(0, 1),
                             ),
                           ],
                         ),
                         child: Text(
-                          discountRateStr.isNotEmpty ? discountRateStr : 'SALE',
-                          style: textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onError,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w700,
+                          badgeText,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.2,
                           ),
                         ),
                       ),

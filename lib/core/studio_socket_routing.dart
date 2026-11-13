@@ -13,15 +13,15 @@ class StudioSocketRouting extends GetxController {
   final SocketHelper _socketHelper = SocketHelper();
 
   // Map of bottom bar slugs to their tab indices
-  // Index 0=Home, 1=Account/Profile, 2=Shop/Category, 3=Wishlist, 4=Cart
+  // Index 0=Home, 1=Shop/Category, 2=Wishlist, 3=Cart, 4=Account/Profile
   static const Map<String, int> _bottomBarTabs = {
     'home': 0,
-    'account': 1,
-    'profile': 1,
-    'shop': 2,
-    'category': 2,
-    'wishlist': 3,
-    'cart': 4,
+    'shop': 1,
+    'category': 1,
+    'wishlist': 2,
+    'cart': 3,
+    'account': 4,
+    'profile': 4,
   };
 
   @override

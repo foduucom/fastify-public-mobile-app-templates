@@ -43,10 +43,28 @@ class _FoduuSliderState extends State<FoduuSlider>
       // For full screen, calculate height based on width with 16:9 aspect ratio
       return Get.width * 9 / 16;
     } else {
-      // Use the height from content_json, default to 200 if not provided
+      // Use dynamic responsive height (240–265px) so banners don't get cropped
       final dynamic height = widget.sliderData['height'];
-      return height != null ? height.toDouble() : 200.0;
+      final double dynamicH = (Get.width * 0.58).clamp(240.0, 265.0);
+      if (height != null) {
+        final h = height.toDouble();
+        return h < dynamicH ? dynamicH : h;
+      }
+      return dynamicH;
     }
+  }
+
+  String _cleanHtml(String text) {
+    if (text.isEmpty) return '';
+    // Strip HTML tags and normalize whitespace without injecting stray bullets
+    return text
+        .replaceAll(
+            RegExp(r'</?(li|p|div|h[1-6]|br)[^>]*>', caseSensitive: false), ' ')
+        .replaceAll(RegExp(r'<[^>]*>'), '')
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
   }
 
   void _resolveImageUrls() {
@@ -172,13 +190,14 @@ class _FoduuSliderState extends State<FoduuSlider>
                         final String? link = sliderItem['link'];
                         final String? sliderType = sliderItem['sliderType'];
 
-                        // Determine text color based on background (you can customize this)
+                        // Determine text color based on background
                         final bool isDarkBackground =
-                            sliderItem['dark_background'] ?? false;
-                        final Color textColor =
-                            isDarkBackground ? Colors.white : Colors.black;
+                            sliderItem['dark_background'] ?? true;
+                        final Color textColor = Colors.white;
                         final Color buttonColor =
                             Theme.of(context).primaryColor;
+                        final String cleanTitle = _cleanHtml(title);
+                        final String cleanDesc = _cleanHtml(description);
 
                         return GestureDetector(
                           behavior: HitTestBehavior.opaque,
@@ -213,131 +232,186 @@ class _FoduuSliderState extends State<FoduuSlider>
                                   "No link associated with this slide.");
                             }
                           },
-                          child: Container(
-                            child: Stack(
-                              children: [
-                                // Background Image
-                                Padding(
-                                  padding: pageSurroundingPadding,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(12.0),
-                                    child: (index < _imageUrls.length &&
-                                            _imageUrls[index].isNotEmpty &&
-                                            _imageUrls[index] != HelperFunctions.getNoImage())
-                                        ? CachedNetworkImage(
-                                            height: sliderHeight,
-                                            imageUrl: _imageUrls[index],
-                                            fit: BoxFit.cover,
-                                            width: Get.width,
-                                            errorWidget: ((context, url, error) =>
-                                                AppImagePlaceholder(
-                                                  radius: 12,
-                                                  height: sliderHeight,
-                                                  width: double.infinity,
-                                                  fit: BoxFit.cover,
-                                                )),
-                                            progressIndicatorBuilder:
-                                                ((context, url, progress) =>
-                                                    Container(
-                                                      width: MediaQuery.of(context)
-                                                          .size
-                                                          .width,
-                                                      height: sliderHeight,
-                                                      decoration: BoxDecoration(
-                                                          color: Theme.of(context)
-                                                              .colorScheme
-                                                              .surfaceContainerHighest),
-                                                      child: Center(
-                                                        child: HelperFunctions()
-                                                            .loadingIndicator(),
-                                                      ),
-                                                    )),
-                                          )
-                                        : AppImagePlaceholder(
-                                            radius: 12,
-                                            height: sliderHeight,
-                                            width: double.infinity,
-                                            fit: BoxFit.cover,
-                                          ),
-                                  ),
-                                ),
+                          child: Padding(
+                            padding: pageSurroundingPadding,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16.0),
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  // Background Image
+                                  (index < _imageUrls.length &&
+                                          _imageUrls[index].isNotEmpty &&
+                                          _imageUrls[index] !=
+                                              HelperFunctions.getNoImage())
+                                      ? CachedNetworkImage(
+                                          height: sliderHeight,
+                                          imageUrl: _imageUrls[index],
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
+                                          errorWidget:
+                                              ((context, url, error) =>
+                                                  const AppImagePlaceholder(
+                                                    radius: 16,
+                                                    fit: BoxFit.cover,
+                                                  )),
+                                          progressIndicatorBuilder:
+                                              ((context, url, progress) =>
+                                                  Container(
+                                                    width: double.infinity,
+                                                    height: sliderHeight,
+                                                    decoration: BoxDecoration(
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .surfaceContainerHighest),
+                                                    child: Center(
+                                                      child: HelperFunctions()
+                                                          .loadingIndicator(),
+                                                    ),
+                                                  )),
+                                        )
+                                      : const AppImagePlaceholder(
+                                          radius: 16,
+                                          fit: BoxFit.cover,
+                                        ),
 
-                                // Gradient Overlay for better text visibility
-                                Positioned.fill(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12.0),
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          Colors.transparent,
-                                          Colors.black.withOpacity(0.5),
-                                          Colors.black.withOpacity(0.8),
-                                        ],
-                                        stops: [0.3, 0.6, 1.0],
+                                  // Soft Ambient Scrim (keeps top 50% crystal clear for artwork)
+                                  Positioned.fill(
+                                    child: DecoratedBox(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Colors.transparent,
+                                            Colors.black.withOpacity(0.30),
+                                            Colors.black.withOpacity(0.72),
+                                          ],
+                                          stops: const [0.40, 0.70, 1.0],
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
 
-                                // Title and Content
-                                Positioned(
-                                  left: 20,
-                                  right: 20,
-                                  bottom: sliderHeight *
-                                      0.25, // Position from bottom
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      if (title.isNotEmpty)
-                                        Text(
-                                          title,
-                                          style: TextStyle(
-                                            fontFamily: 'Lato',
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.w700,
-                                            color: textColor,
-                                            height: 1.2,
-                                            shadows: [
-                                              Shadow(
-                                                blurRadius: 4.0,
+                                  // Title, Description & Action Button
+                                  Positioned(
+                                    left: 18,
+                                    right: 18,
+                                    bottom: 22,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 3.5),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withOpacity(0.22),
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            border: Border.all(
+                                                color: Colors.white
+                                                    .withOpacity(0.4)),
+                                          ),
+                                          child: const Text(
+                                            'New Arrival',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10.5,
+                                              fontWeight: FontWeight.w700,
+                                              letterSpacing: 0.3,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        if (cleanTitle.isNotEmpty)
+                                          Text(
+                                            cleanTitle,
+                                            style: const TextStyle(
+                                              fontFamily: 'Lato',
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w800,
+                                              color: Colors.white,
+                                              height: 1.15,
+                                              shadows: [
+                                                Shadow(
+                                                  blurRadius: 6.0,
+                                                  color: Colors.black,
+                                                  offset: Offset(0, 1),
+                                                ),
+                                              ],
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        if (cleanTitle.isNotEmpty &&
+                                            cleanDesc.isNotEmpty)
+                                          const SizedBox(height: 4),
+                                        if (cleanDesc.isNotEmpty)
+                                          Text(
+                                            cleanDesc,
+                                            style: TextStyle(
+                                              fontFamily: 'Lato',
+                                              fontSize: 12.5,
+                                              fontWeight: FontWeight.w400,
+                                              color: Colors.white
+                                                  .withOpacity(0.92),
+                                              shadows: const [
+                                                Shadow(
+                                                  blurRadius: 4.0,
+                                                  color: Colors.black,
+                                                  offset: Offset(0, 1),
+                                                ),
+                                              ],
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        const SizedBox(height: 8),
+                                        // Modern "Shop Now →" Pill Button
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 14, vertical: 6),
+                                          decoration: BoxDecoration(
+                                            color: buttonColor,
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            boxShadow: [
+                                              BoxShadow(
                                                 color: Colors.black
-                                                    .withOpacity(0.5),
-                                                offset: Offset(1.0, 1.0),
+                                                    .withOpacity(0.28),
+                                                blurRadius: 6,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                'Shop Now',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 11.5,
+                                                  fontWeight: FontWeight.w700,
+                                                  letterSpacing: 0.2,
+                                                ),
+                                              ),
+                                              SizedBox(width: 4),
+                                              Icon(
+                                                Icons.arrow_forward_rounded,
+                                                size: 13,
+                                                color: Colors.white,
                                               ),
                                             ],
                                           ),
                                         ),
-                                      if (title.isNotEmpty &&
-                                          description.isNotEmpty)
-                                        SizedBox(height: 8),
-                                      if (description.isNotEmpty)
-                                        Text(
-                                          description,
-                                          style: TextStyle(
-                                            fontFamily: 'Lato',
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w400,
-                                            color: textColor,
-                                            shadows: [
-                                              Shadow(
-                                                blurRadius: 3.0,
-                                                color: Colors.black
-                                                    .withOpacity(0.5),
-                                                offset: Offset(1.0, 1.0),
-                                              ),
-                                            ],
-                                          ),
-                                          maxLines: 3,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         );
@@ -361,15 +435,22 @@ class _FoduuSliderState extends State<FoduuSlider>
 
 Widget _indicator(bool isActive) {
   return AnimatedContainer(
-    duration: Duration(milliseconds: 300),
-    height: 8,
-    width: isActive ? 24 : 8,
-    margin: const EdgeInsets.symmetric(horizontal: 4.0),
+    duration: const Duration(milliseconds: 300),
+    height: 7,
+    width: isActive ? 22 : 7,
+    margin: const EdgeInsets.symmetric(horizontal: 3.5),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(50),
       color: isActive
           ? Theme.of(Get.context!).primaryColor
-          : Colors.white.withOpacity(0.6),
+          : Colors.white.withOpacity(0.55),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x40000000),
+          blurRadius: 3,
+          offset: Offset(0, 1),
+        ),
+      ],
     ),
   );
 }

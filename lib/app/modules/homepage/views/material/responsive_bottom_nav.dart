@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
-import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ResponsiveBottomNav extends StatelessWidget {
@@ -29,75 +27,49 @@ class ResponsiveBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    final barHeight = 65.0 + bottomPadding;
-    final itemWidth = MediaQuery.of(context).size.width / items.length;
+    final barHeight = 66.0 + bottomPadding;
 
     return Container(
       height: barHeight,
       decoration: BoxDecoration(
         color: backgroundColor,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.06),
             blurRadius: 20,
-            offset: const Offset(0, -5),
+            offset: const Offset(0, -4),
           ),
         ],
         border: Border(
           top: BorderSide(
-            color: borderColor.withOpacity(0.5),
+            color: borderColor.withOpacity(0.2),
             width: 0.5,
           ),
         ),
       ),
-      child: Stack(
-        children: [
-          // Sliding Indicator
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOutCubic,
-            left: currentIndex * itemWidth + (itemWidth * 0.1),
-            top: 0,
-            child: Container(
-              width: itemWidth * 0.8,
-              height: 3,
-              decoration: BoxDecoration(
-                color: activeColor,
-                borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(3),
-                ),
-                gradient: LinearGradient(
-                  colors: [
-                    activeColor,
-                    activeColor.withOpacity(0.5),
-                  ],
-                ),
+      child: Padding(
+        padding: EdgeInsets.only(bottom: bottomPadding, top: 6),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: List.generate(
+            items.length,
+            (index) => Expanded(
+              child: _NavItem(
+                item: items[index],
+                isActive: currentIndex == index,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  onTap(index);
+                },
+                activeColor: activeColor,
+                inactiveColor: inactiveColor,
               ),
             ),
           ),
-          // Nav Items
-          Padding(
-            padding: EdgeInsets.only(bottom: bottomPadding),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: List.generate(
-                items.length,
-                (index) => Expanded(
-                  child: _NavItem(
-                    item: items[index],
-                    isActive: currentIndex == index,
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      onTap(index);
-                    },
-                    activeColor: activeColor,
-                    inactiveColor: inactiveColor,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -137,68 +109,84 @@ class _NavItem extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                AnimatedScale(
-                  scale: isActive ? 1.2 : 1.0,
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeOutBack,
-                  child: Icon(
-                    isActive ? item.activeIcon : item.inactiveIcon,
-                    size: 24,
-                    color: isActive ? activeColor : inactiveColor,
-                  ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isActive ? 16 : 8,
+                  vertical: 4,
                 ),
-                if (item.badgeCount != null && item.badgeCount! > 0)
-                  Positioned(
-                    right: -5,
-                    top: -5,
-                    child: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 1.5),
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 16,
-                        minHeight: 16,
-                      ),
-                      child: Center(
-                        child: Text(
-                          item.badgeCount! > 9 ? '9+' : item.badgeCount.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 8,
-                            fontWeight: FontWeight.bold,
-                          ),
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? activeColor.withOpacity(0.12)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  isActive ? item.activeIcon : item.inactiveIcon,
+                  size: 23,
+                  color: isActive ? activeColor : inactiveColor,
+                ),
+              ),
+              if (item.badgeCount != null && item.badgeCount! > 0)
+                Positioned(
+                  right: isActive ? 6 : -2,
+                  top: -3,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.white, width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.redAccent.withOpacity(0.3),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        item.badgeCount! > 99
+                            ? '99+'
+                            : item.badgeCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          height: 1,
                         ),
                       ),
                     ),
                   ),
-              ],
+                ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 200),
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 10.5,
+              fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+              color: isActive ? activeColor : inactiveColor,
+              letterSpacing: isActive ? 0.2 : 0,
             ),
-            const SizedBox(height: 4),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 11,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                color: isActive ? activeColor : inactiveColor,
-                letterSpacing: isActive ? 0.2 : 0,
-              ),
-              child: Text(item.label),
-            ),
-          ],
-        ),
+            child: Text(item.label),
+          ),
+        ],
       ),
     );
   }

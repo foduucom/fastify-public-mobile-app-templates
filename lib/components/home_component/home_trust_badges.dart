@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/foduuCachedImageNetwork.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
@@ -42,8 +44,16 @@ class TrustBadgesComponent extends StatelessWidget {
     }
 
     if (hasCardText) {
+      final isPromo = cards.any((c) {
+        final f = _str(c['footer']).toLowerCase();
+        return f.contains('shop') || f.contains('deal') || f.contains('now');
+      });
+      if (isPromo) {
+        return _PromoCardList(contentJson: contentJson, cards: cards);
+      }
+
       final reviewLike = cards.every((c) => _str(c['text']).isNotEmpty) &&
-          cards.any((c) => _str(c['footer']).isNotEmpty);
+          cards.any((c) => _isRatingString(_str(c['footer'])));
       if (reviewLike) {
         return _TestimonialCarousel(
           slides: cards
@@ -74,6 +84,14 @@ String _str(dynamic v) => (v ?? '').toString().trim();
 
 String _cleanQuote(String s) =>
     s.replaceAll(RegExp(r'^["“”]+|["“”]+$'), '').trim();
+
+bool _isRatingString(String s) {
+  final clean = s.trim();
+  if (clean.isEmpty) return false;
+  if (clean.contains('★')) return true;
+  final num = double.tryParse(clean);
+  return num != null && num >= 1 && num <= 5;
+}
 
 int _starCount(String s) {
   final n = '★'.allMatches(s).length;
@@ -352,6 +370,209 @@ class _TestimonialCarouselState extends State<_TestimonialCarousel> {
   }
 }
 
+class _PromoCardList extends StatelessWidget {
+  final Map<String, dynamic> contentJson;
+  final List<Map> cards;
+
+  const _PromoCardList({required this.contentJson, required this.cards});
+
+  Map<String, String> _splitHeading(String raw) {
+    for (final tag in [
+      'Hot Pick',
+      'Deal of the Day',
+      'Fitness Deal',
+      'Best Value',
+      'Top Rated'
+    ]) {
+      if (raw.startsWith(tag)) {
+        return {'tag': tag, 'title': raw.substring(tag.length).trim()};
+      }
+    }
+    return {'tag': '', 'title': raw};
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final title = _str(contentJson['title'] ?? contentJson['heading']);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title.isNotEmpty)
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+              child: Text(
+                title,
+                style: theme.textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ),
+          SizedBox(
+            height: 148,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              scrollDirection: Axis.horizontal,
+              itemCount: cards.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, i) {
+                final c = cards[i];
+                final rawHeading = _str(c['heading'] ?? c['title']);
+                final split = _splitHeading(rawHeading);
+                final tag = split['tag']!;
+                final cardTitle = split['title']!;
+                final desc = _str(c['text'] ?? c['description']);
+                final image = c['image'] ?? c['icon'];
+                final imageUrl =
+                    image != null ? HelperFunctions().getImage(image) : '';
+
+                Color cardBg;
+                if (isDark) {
+                  cardBg = colorScheme.surface;
+                } else {
+                  switch (i % 3) {
+                    case 0:
+                      cardBg = const Color(0xFFF1F5F9);
+                      break;
+                    case 1:
+                      cardBg = const Color(0xFFFDF2F8);
+                      break;
+                    case 2:
+                    default:
+                      cardBg = const Color(0xFFF0FDF4);
+                      break;
+                  }
+                }
+
+                return GestureDetector(
+                  onTap: () {
+                    openShop({
+                      'name': cardTitle.isNotEmpty ? cardTitle : rawHeading,
+                      'source': 'promo'
+                    });
+                  },
+                  child: Container(
+                    width: (MediaQuery.of(context).size.width * 0.82)
+                        .clamp(285.0, 325.0),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: cardBg,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                          color: colorScheme.outline.withOpacity(0.14)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (tag.isNotEmpty)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2.5),
+                                  margin: const EdgeInsets.only(bottom: 5),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.primary.withOpacity(0.14),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    tag,
+                                    style: TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: colorScheme.primary,
+                                    ),
+                                  ),
+                                ),
+                              Text(
+                                cardTitle.isNotEmpty ? cardTitle : rawHeading,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: colorScheme.onSurface,
+                                  height: 1.2,
+                                ),
+                              ),
+                              if (desc.isNotEmpty) ...[
+                                const SizedBox(height: 3),
+                                Text(
+                                  desc,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    color: colorScheme.onSurfaceVariant,
+                                    height: 1.2,
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Shop Now',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: colorScheme.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(Icons.arrow_forward_rounded,
+                                      size: 13, color: colorScheme.primary),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        if (imageUrl.isNotEmpty)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: SizedBox(
+                              width: 95,
+                              height: 95,
+                              child: CachedNetworkImage(
+                                imageUrl: imageUrl,
+                                fit: BoxFit.contain,
+                                errorWidget: (_, __, ___) =>
+                                    const Icon(Icons.image_outlined),
+                                progressIndicatorBuilder: (_, __, ___) =>
+                                    HelperFunctions().loadingIndicator(),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _BadgeList extends StatelessWidget {
   final Map<String, dynamic> contentJson;
   final List<Map> cards;
@@ -361,7 +582,124 @@ class _BadgeList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final title = _str(contentJson['title'] ?? contentJson['heading']);
+    final eyebrow = _str(contentJson['eyebrow']);
+
+    final bool isBrandRow =
+        cards.every((c) => _str(c['text'] ?? c['description']).isEmpty);
+
+    if (isBrandRow) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (eyebrow.isNotEmpty || title.isNotEmpty)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (eyebrow.isNotEmpty)
+                      Text(
+                        eyebrow.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.0,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    if (title.isNotEmpty)
+                      Text(
+                        title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 100,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                scrollDirection: Axis.horizontal,
+                itemCount: cards.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, i) {
+                  final c = cards[i];
+                  final image = c['image'] ?? c['icon'];
+                  final imageUrl =
+                      image != null ? HelperFunctions().getImage(image) : '';
+                  final brandName = _str(c['heading'] ?? c['title']);
+
+                  return GestureDetector(
+                    onTap: () {
+                      openShop({'name': brandName, 'source': 'brand'});
+                    },
+                    child: Container(
+                      width: 126,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isDark ? colorScheme.surface : Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: colorScheme.outline.withOpacity(0.14),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (imageUrl.isNotEmpty)
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: CachedNetworkImage(
+                                  imageUrl: imageUrl,
+                                  fit: BoxFit.contain,
+                                  errorWidget: (_, __, ___) => const Icon(
+                                      Icons.business_outlined,
+                                      size: 26),
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 4),
+                          Text(
+                            brandName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Padding(
       padding: pageSurroundingPadding,
       child: Column(

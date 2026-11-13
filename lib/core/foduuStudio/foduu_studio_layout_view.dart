@@ -50,6 +50,9 @@ class FoduuStudioLayoutView extends StatelessWidget {
   /// CircularProgressIndicator when not provided.
   final Widget? loadingWidget;
 
+  /// Optional footer widget appended at the end of the scrollable list.
+  final Widget? footerWidget;
+
   /// Full-page constructor (with its own scroll + pull-to-refresh).
   const FoduuStudioLayoutView({
     super.key,
@@ -60,6 +63,7 @@ class FoduuStudioLayoutView extends StatelessWidget {
     required this.onRefresh,
     this.embedded = false,
     this.loadingWidget,
+    this.footerWidget,
   });
 
   /// Embedded constructor — no scroll wrapper, safe inside Column/ListView.
@@ -69,6 +73,7 @@ class FoduuStudioLayoutView extends StatelessWidget {
     required this.isLoading,
     required this.hasError,
     required this.errorMessage,
+    this.footerWidget,
   })  : onRefresh = null,
         embedded = true,
         loadingWidget = null;
@@ -114,7 +119,10 @@ class FoduuStudioLayoutView extends StatelessWidget {
       // ── Embedded mode: just a shrinkWrap list, no scroll wrapper ──
       if (embedded) {
         return Column(
-          children: widgetList.toList(),
+          children: [
+            ...widgetList.toList(),
+            if (footerWidget != null) footerWidget!,
+          ],
         );
       }
 
@@ -124,7 +132,10 @@ class FoduuStudioLayoutView extends StatelessWidget {
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
-            children: widgetList.toList(),
+            children: [
+              ...widgetList.toList(),
+              if (footerWidget != null) footerWidget!,
+            ],
           ),
         ),
       );

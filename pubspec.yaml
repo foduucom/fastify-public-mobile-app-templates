@@ -73,11 +73,16 @@ dev_dependencies:
 #   font_awesome_flutter:
 #     path: font_awesome_flutter
 
-flutter_icons:
+flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   remove_alpha_ios: true
-  image_path: "assets/images/appIconlogo.png"
+  image_path: "assets/images/app_launcher_icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/app_launcher_foreground.png"
+  web:
+    generate: true
+    image_path: "assets/images/app_launcher_icon.png"
 
 flutter:
   uses-material-design: true

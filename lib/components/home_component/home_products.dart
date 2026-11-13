@@ -426,34 +426,39 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return SizedBox(
-      height: 38,
+      height: 36,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         scrollDirection: Axis.horizontal,
         itemCount: _tabs.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 16),
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
           final selected = _selectedTab.value == i;
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => _selectedTab.value = i,
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               alignment: Alignment.center,
-              padding: const EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: selected ? colorScheme.primary : Colors.transparent,
-                    width: 2.5,
-                  ),
+                color: selected
+                    ? colorScheme.primary
+                    : colorScheme.surfaceVariant.withOpacity(0.4),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: selected
+                      ? colorScheme.primary
+                      : colorScheme.outline.withOpacity(0.15),
                 ),
               ),
               child: Text(
                 _tabs[i]['name']?.toString() ?? '',
-                style: textTheme.titleSmall?.copyWith(
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                style: textTheme.labelLarge?.copyWith(
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  fontSize: 12.5,
                   color: selected
-                      ? colorScheme.primary
+                      ? colorScheme.onPrimary
                       : colorScheme.onSurfaceVariant,
                 ),
               ),
@@ -1096,7 +1101,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         return _buildOverlayStyleList();
       case 'standard':
       default:
-        return _buildStandardStyleList();
+        return _buildParentWebHorizontalList();
     }
   }
 
@@ -1148,7 +1153,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   /// Build a single grid item — uses the card style from `layout`
   Widget _buildGridItem(Map<String, dynamic> product,
       Map<String, dynamic> priceInfo, String style) {
-    if (style == 'parent_web') {
+    if (style == 'parent_web' || style == 'standard') {
       return ParentWebProductCard(product: product, isList: false);
     }
 

@@ -180,7 +180,7 @@ class CustomDrawer extends GetView<HomepageController> {
       onTap: () {
         Get.back();
         if (isLoggedIn) {
-          _navigateToBottomBarPage(1); // Profile tab
+          _navigateToBottomBarPage(profileTabIndex); // Profile tab
         } else {
           isOtpLogin
               ? Get.toNamed(Routes.MOBILELOGIN)

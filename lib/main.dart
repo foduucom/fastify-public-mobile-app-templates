@@ -159,7 +159,7 @@ class MyApp extends StatelessWidget {
       builder: (themeController) {
         return GetMaterialApp(
           debugShowCheckedModeBanner: false,
-          title: "My App",
+          title: "Foduu",
           initialRoute: initialRoute,
           getPages: AppPages.routes,
           theme: themeController.lightTheme,

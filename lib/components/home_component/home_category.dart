@@ -45,9 +45,10 @@ class _TopCategoryHomeState extends State<CategoryHome>
     // 'columns': 2 (default)
     int columns = int.tryParse(contentJson['columns'].toString()) ?? 2;
     String heading =
-        (contentJson['heading'] ?? contentJson['title'] ?? '').toString();
+        (contentJson['heading'] ?? contentJson['title'] ?? '').toString().trim();
+    if (heading == '_' || heading == '-' || heading == '--') heading = '';
     String subheading =
-        (contentJson['subheading'] ?? contentJson['subtitle'] ?? '').toString();
+        (contentJson['subheading'] ?? contentJson['subtitle'] ?? '').toString().trim();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,7 +70,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
                 child: _buildGridView(categories, style, columns),
               )
             : _buildListView(categories, style, orientation),
-        const SizedBox(height: 26),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -91,7 +92,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
       final isOverlay = style == 'overlay';
       final listHeight = isOverlay
           ? _overlayCardHeight
-          : (style == 'circular' ? 120.0 : 140.0);
+          : (style == 'circular' ? 106.0 : 140.0);
       return SizedBox(
         height: listHeight,
         child: ScrollConfiguration(
@@ -256,50 +257,97 @@ class _TopCategoryHomeState extends State<CategoryHome>
     return isGrid ? card : SizedBox(width: _overlayCardWidth, child: card);
   }
 
+  IconData _getCategoryIcon(String name) {
+    final lower = name.toLowerCase();
+    if (lower.contains('drone')) return Icons.flight_takeoff_rounded;
+    if (lower.contains('smart home') || lower.contains('home')) return Icons.home_outlined;
+    if (lower.contains('print')) return Icons.print_outlined;
+    if (lower.contains('monitor') || lower.contains('display')) return Icons.desktop_windows_outlined;
+    if (lower.contains('appliance')) return Icons.kitchen_outlined;
+    if (lower.contains('camera')) return Icons.camera_alt_outlined;
+    if (lower.contains('audio') || lower.contains('headphone') || lower.contains('sound')) return Icons.headphones_outlined;
+    if (lower.contains('accessor')) return Icons.devices_other_outlined;
+    if (lower.contains('phone') || lower.contains('smartphone') || lower.contains('mobile')) return Icons.smartphone_outlined;
+    if (lower.contains('tablet') || lower.contains('ipad')) return Icons.tablet_mac_outlined;
+    if (lower.contains('watch') || lower.contains('smartwatch')) return Icons.watch_outlined;
+    if (lower.contains('tv') || lower.contains('television')) return Icons.tv_outlined;
+    if (lower.contains('game') || lower.contains('gaming')) return Icons.sports_esports_outlined;
+    if (lower.contains('laptop') || lower.contains('computer')) return Icons.laptop_outlined;
+    if (lower.contains('speaker')) return Icons.speaker_outlined;
+    return Icons.category_outlined;
+  }
+
+  Widget _buildCategoryFallback(String name, ColorScheme colorScheme) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: colorScheme.primary.withOpacity(0.08),
+      ),
+      child: Center(
+        child: Icon(
+          _getCategoryIcon(name),
+          size: 26,
+          color: colorScheme.primary,
+        ),
+      ),
+    );
+  }
+
   Widget _buildCircularItem(dynamic category, bool isGrid) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final catName = category['name']?.toString() ?? '';
+    final imageUrl = HelperFunctions().getImage(category['featured_image']);
+    final hasValidImage = imageUrl.isNotEmpty &&
+        imageUrl != HelperFunctions.getNoImage() &&
+        !imageUrl.contains('app_logo');
 
     return Container(
-      constraints: BoxConstraints(maxWidth: isGrid ? double.infinity : 80),
+      constraints: BoxConstraints(maxWidth: isGrid ? double.infinity : 76),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 70,
-            height: 70,
+            width: 62,
+            height: 62,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: colorScheme.surfaceVariant,
+              color: colorScheme.surface,
               border: Border.all(
-                color: colorScheme.outline.withOpacity(0.15),
+                color: colorScheme.outline.withOpacity(0.12),
                 width: 1,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: ClipOval(
-              child: (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
-                      HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
+              child: hasValidImage
                   ? CachedNetworkImage(
                       fit: BoxFit.cover,
-                      imageUrl: HelperFunctions().getImage(
-                        category['featured_image'],
-                      ),
+                      imageUrl: imageUrl,
                       errorWidget: (_, __, ___) =>
-                          const AppImagePlaceholder.circular(),
+                          _buildCategoryFallback(catName, colorScheme),
                       progressIndicatorBuilder: (_, __, ___) =>
                           HelperFunctions().loadingIndicator(),
                     )
-                  : const AppImagePlaceholder.circular(),
+                  : _buildCategoryFallback(catName, colorScheme),
             ),
           ),
           const SizedBox(height: 6),
           Flexible(
             child: Text(
-              category['name'].toString(),
-              style: textTheme.bodyMedium?.copyWith(
+              catName,
+              style: textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurface,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+                height: 1.15,
               ),
               textAlign: TextAlign.center,
               maxLines: 2,
@@ -415,15 +463,10 @@ class _TopCategoryHomeState extends State<CategoryHome>
                   fit: BoxFit.cover,
                   progressIndicatorBuilder: (_, __, ___) =>
                       HelperFunctions().loadingIndicator(),
-                  errorWidget: (_, __, ___) => Container(
-                    color: colorScheme.surfaceVariant,
-                    child: Center(
-                      child: Icon(
-                        Icons.category_outlined,
-                        color: colorScheme.onSurfaceVariant,
-                        size: 28,
-                      ),
-                    ),
+                  errorWidget: (_, __, ___) => const AppImagePlaceholder(
+                    radius: 0,
+                    width: double.infinity,
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),

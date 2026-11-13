@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import 'package:foduu_ecommerce/app/modules/cart/views/cart_view.dart';
 import 'package:foduu_ecommerce/app/modules/shop/views/shop_view.dart';
@@ -74,27 +75,27 @@ class BottombarView extends GetView<BottombarController> {
                     width: width,
                     height: height,
                     onSearchTap: () => Get.toNamed(Routes.SEARCH),
-                    onCartTap: () => controller.onTabChange(4),
+                    onCartTap: () => controller.onTabChange(cartTabIndex),
                     onMessageTap: () =>
                         Scaffold.of(scaffoldContext).openDrawer(),
-                    //onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),
+                    onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),
                   );
                 }
-                // Hide common header for Account (1), Shop (2), Wishlist (3), Cart (4)
+                // Hide common header for Shop (1), Wishlist (2), Cart (3), Account (4)
                 return const SizedBox.shrink();
               }),
 
-              // PageView takes remaining space
+              // PageView takes remaining space in industry-standard sequence
               Expanded(
                 child: PageView(
                   controller: controller.pageController,
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
                     HomePageView(),
-                    ProfileView(),
                     const ShopView(),
                     WishlistView(),
                     CartView(),
+                    ProfileView(),
                   ],
                 ),
               ),
@@ -123,11 +124,6 @@ class BottombarView extends GetView<BottombarController> {
             label: 'Home',
           ),
           const BottomNavItem(
-            activeIcon: Icons.person_rounded,
-            inactiveIcon: Icons.person_outline_rounded,
-            label: 'Account',
-          ),
-          const BottomNavItem(
             activeIcon: Icons.storefront_rounded,
             inactiveIcon: Icons.storefront_outlined,
             label: 'Shop',
@@ -143,6 +139,11 @@ class BottombarView extends GetView<BottombarController> {
             inactiveIcon: Icons.shopping_bag_outlined,
             label: 'Cart',
             badgeCount: cartController.cartItems.length,
+          ),
+          const BottomNavItem(
+            activeIcon: Icons.person_rounded,
+            inactiveIcon: Icons.person_outline_rounded,
+            label: 'Account',
           ),
         ],
       );

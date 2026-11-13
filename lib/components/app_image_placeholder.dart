@@ -2,19 +2,20 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 /// Shown in place of a photo when there is none or when it fails to load:
-/// the app launcher icon watermarked on a theme-aware tile.
+/// the app launcher icon on a theme-aware tile.
 class AppImagePlaceholder extends StatelessWidget {
   const AppImagePlaceholder({
     super.key,
     this.radius = 8.0,
     this.shape = BoxShape.rectangle,
     this.padding,
-    this.opacity = 0.38,
+    this.opacity = 1.0,
     this.backgroundColor,
     this.fit = BoxFit.contain,
     this.width,
     this.height,
     this.colorFilter,
+    this.imageAsset = 'assets/images/app_launcher_icon.png',
   });
 
   /// Specialized constructor for circular avatars (e.g. round category chips)
@@ -22,12 +23,13 @@ class AppImagePlaceholder extends StatelessWidget {
     super.key,
     double? size,
     this.padding,
-    this.opacity = 0.38,
+    this.opacity = 1.0,
     this.backgroundColor,
     this.fit = BoxFit.contain,
     double? width,
     double? height,
     this.colorFilter,
+    this.imageAsset = 'assets/images/app_launcher_icon.png',
   })  : radius = 0,
         shape = BoxShape.circle,
         width = size ?? width,
@@ -42,6 +44,7 @@ class AppImagePlaceholder extends StatelessWidget {
   final double? width;
   final double? height;
   final ColorFilter? colorFilter;
+  final String imageAsset;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +54,7 @@ class AppImagePlaceholder extends StatelessWidget {
 
     final Color defaultBg = isDark
         ? colorScheme.surfaceVariant.withOpacity(0.35)
-        : colorScheme.surfaceVariant;
+        : Colors.white;
     final Color tileColor = backgroundColor ?? defaultBg;
 
     return Container(
@@ -85,7 +88,7 @@ class AppImagePlaceholder extends StatelessWidget {
               child: Padding(
                 padding: effectivePadding,
                 child: Image.asset(
-                  'assets/images/app_logo.png',
+                  imageAsset,
                   fit: fit,
                 ),
               ),

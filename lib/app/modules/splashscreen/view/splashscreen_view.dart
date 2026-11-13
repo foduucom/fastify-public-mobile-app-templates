@@ -24,37 +24,38 @@ class SplashscreenView extends GetView<SplashScreenController> {
     var width = Get.width;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Stack(
-        alignment: Alignment.bottomCenter,
+        alignment: Alignment.center,
         children: [
-          Positioned(
-            top: height * 0.04,
-            right: 0,
-            left: 0,
-            bottom: height * 0.18,
-            child: Image.asset(
-              'assets/images/splash.png',
-              fit: BoxFit.fill,
+          Center(
+            child: SizedBox(
+              width: width * 0.55,
+              height: width * 0.55,
+              child: Image.asset(
+                'assets/images/app_launcher_icon.png',
+                fit: BoxFit.contain,
+              ),
             ),
           ),
           Positioned(
-            top: height * 0.80,
-            right: 0,
             left: 0,
-            bottom: height * 0.03,
+            right: 0,
+            bottom: height * 0.04,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CircularLoadingIndicator(
                   progress: controller.progressValue.value,
-                  size: height * 0.10,
+                  size: height * 0.08,
                 ),
+                const SizedBox(height: 16),
                 Text(
                   '©2023 OCTAGON - All Right Reserved ',
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

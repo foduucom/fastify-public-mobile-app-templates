@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/components/home_component/flash_sale_countdown_card.dart';
+import 'package:foduu_ecommerce/components/home_component/smart_assistant_showcase_card.dart';
 import 'package:foduu_ecommerce/components/home_component/icon_button_section.dart';
 import 'package:foduu_ecommerce/components/search_bar_rounded.dart';
 import '/app/routes/app_pages.dart';
@@ -15,6 +17,44 @@ import '/constants/constants.dart';
 import 'package:get/get.dart';
 
 import 'widget_registry.dart';
+
+bool _isFlashSaleSlider(Map? json) {
+  if (json == null) return false;
+  final slider = json['slider'];
+  if (slider is Map) {
+    final slug = (slider['slug'] ?? slider['name'] ?? '').toString();
+    if (slug == 'home-side-slider') return true;
+    final content = slider['content'];
+    if (content is List && content.isNotEmpty && content.first is Map) {
+      final heading = (content.first['heading'] ?? '').toString();
+      if (heading.contains('Flash Sale') || heading.contains('Timer')) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool _isShowcaseSlider(Map? json) {
+  if (json == null) return false;
+  final slider = json['slider'];
+  if (slider is Map) {
+    final slug = (slider['slug'] ?? slider['name'] ?? '').toString();
+    if (slug == 'home-second-slider') return true;
+    final content = slider['content'];
+    if (content is List && content.isNotEmpty && content.first is Map) {
+      final sub = (content.first['sub_heading'] ?? '').toString();
+      final heading = (content.first['heading'] ?? '').toString();
+      final desc = (content.first['description'] ?? '').toString();
+      if (sub.contains('Smart Home Assistant') ||
+          heading.contains('Smart Ecosystem') ||
+          desc.contains('smart home integration')) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
 /// Register all default section widget builders.
 ///
@@ -43,6 +83,14 @@ void registerDefaultWidgets() {
 
   // ─── Slider / Carousel ──────────────────────────────────────
   r.register('slider', (json) {
+    if (json is Map<String, dynamic>) {
+      if (_isFlashSaleSlider(json)) {
+        return FlashSaleCountdownCard(sliderData: json);
+      }
+      if (_isShowcaseSlider(json)) {
+        return SmartAssistantShowcaseCard(sliderData: json);
+      }
+    }
     return FoduuSlider(sliderData: json ?? {});
   });
 
@@ -95,7 +143,7 @@ void registerDefaultWidgets() {
   });
 
   r.register('countdown', (json) {
-    return Text('Count down timeer maintendedddd ');
+    return FlashSaleCountdownCard(sliderData: json is Map<String, dynamic> ? json : {});
   });
 
   // r.register('icon_button', (json) {

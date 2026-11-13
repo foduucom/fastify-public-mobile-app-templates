@@ -3,8 +3,13 @@ import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_controller.dar
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 
-/// Index of the Shop tab in the bottom bar (Home=0, Account=1, Shop=2, Wishlist=3, Cart=4).
-const int shopTabIndex = 2;
+/// Standard tab indices for bottom bar navigation:
+/// 0: Home, 1: Shop, 2: Wishlist, 3: Cart, 4: Account/Profile
+const int homeTabIndex = 0;
+const int shopTabIndex = 1;
+const int wishlistTabIndex = 2;
+const int cartTabIndex = 3;
+const int profileTabIndex = 4;
 
 /// Opens the Shop tab, optionally pre-filtered by [args] (same map shape that
 /// `ShopController.applyArguments` accepts). Falls back to pushing the
