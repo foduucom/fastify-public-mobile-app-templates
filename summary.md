@@ -753,3 +753,80 @@ and standardized the form submission process adhering strictly to the **Form Bui
 - **Static Analysis**: Verified with `flutter analyze lib/app/modules/mtp_solution/ lib/app/data/models/mtp_solution_sections.dart lib/core/studio_socket_routing.dart` — **0 compile errors, 0 warnings** (No issues found).
 - **Resilience**: Verified graceful offline fallback with canonical defaults matching `https://vision.foduu.store/mtp-solution`.
 
+
+
+---
+
+## Part 19: Dynamic CMS Mixing Architecture & Live WebSocket Indicator (`home.dart` & `foduuStudio`)
+
+### 1. Context & Objectives
+The Home screen (`lib/app/modules/homepage/views/home.dart`) was previously rendering a static hardcoded `ListView` of sections, bypassing the dynamic layout engine and making it incompatible with real-time CMS section reordering and Fastify Studio live previews.
+
+The objective was to:
+1. Make `home.dart` **CMS Mixing friendly** by integrating `FoduuStudioLayoutView` (`lib/core/foduuStudio/foduu_studio_layout_view.dart`) and `register_default_widgets.dart`, mirroring the architecture from the reference template (`fastify-public-mobile-app-templates/lib/app/modules/homepage/views/home_page_view.dart`).
+2. Strictly maintain 100% visual fidelity to the client-approved UI.
+3. Implement a real-time reactive WebSocket connection status indicator on the header (`AppBar.actions`) active **exclusively for web builds** (`if (kIsWeb)`).
+
+---
+
+### 2. Issues Diagnosed & Solutions Implemented
+
+#### A. Multiple Duplicate Top Hero Sliders (4 to 5 times on page)
+- **Root Cause**: Fastify Studio CMS stores all banners (Main Hero Slider, Side/Category Dual Banner, Top Seller Accessories, Next-Gen Networking) with `"type": "slider"`. The initial registry mapping mapped all `"type": "slider"` blocks directly to `VisionHeroSlider(data: ctrl.heroSlider.value)`, causing the top Deals & Promotions slider to repeat 4 to 5 times.
+- **Solution**: Developed an **Intelligent Slider & Banner Dispatcher** (`_buildSliderOrBanner`) in `register_default_widgets.dart` that inspects section metadata (`slug`, `id`, `name`, and slide content count):
+  - `home-slider` / `hero` $\rightarrow$ `VisionHeroSlider` (Hero Carousel)
+  - `camera` / `fiber-cable` / `side` $\rightarrow$ `CategoryBanners` (Enterprise & Cameras Dual Banner)
+  - `accessories` / `optic` $\rightarrow$ Absorbed into `BestSellerSection` (or rendered via `VisionBannerCard`)
+  - `next-gen` / `networking` / `promo` $\rightarrow$ `PromoStrip` (Coupon Promo Strip)
+  - Generic multi-slide CMS blocks $\rightarrow$ Dedicated `VisionHeroSlider` built from that section's own slides
+  - Generic single banner CMS blocks $\rightarrow$ `VisionBannerCard` using that section's own image, title, and link
+
+#### B. Best Seller Products Heading & Banner Placement
+- **Root Cause**: 
+  1. The backend CMS delivered a raw `rich_text` section with `"Best Seller Products"`, rendering an unstyled text block above the banner.
+  2. The accessories banner rendered standalone before the product section, while `BestSellerSection` rendered its own bold `_SectionTitle` directly above the products.
+- **Solution**:
+  1. In `register_default_widgets.dart`, suppressed raw `rich_text` and `text_block` sections containing `"best seller"`.
+  2. Absorbed the accessories banner directly into `BestSellerSection` by passing `bannerItem: ctrl.banners.value.fiberOpticAccessories`.
+  3. Established the exact client-approved hierarchy:
+     $$\textbf{Best Seller Products}\text{ (Bold Heading)} \longrightarrow \text{Fiber Optic Cables \& Accessories (Banner)} \longrightarrow \text{Products Rail}$$
+
+#### C. Next-Gen Networking Duplicate Subheading
+- **Root Cause**: In `home_sections.dart`, the parser assigned the coupon string (`"Use code CONNECT2026 to get best offer."`) to both `subtitle: rawDesc` and `detail: computedDetail`. `VisionBannerCard` rendered `subtitle.toUpperCase()` above the title and `detail` below it, printing the exact same text twice.
+- **Solution**: Added text comparison in `HomeBannersData.fromSections` and `HomeBannerItem.fromContentJson`: when `subtitle.trim().toLowerCase() == detail.trim().toLowerCase()`, `subtitle` is set to `''`, rendering the coupon code text cleanly only once below the title.
+
+#### D. Live WebSocket Connection Indicator for Web Build Only
+- **Implementation**:
+  - In `lib/app/modules/homepage/views/home.dart`, added a reactive status dot inside `AppBar.actions` guarded by `if (kIsWeb)`.
+  - Bound directly to `SocketHelper().isConnectedObs`:
+    - **Green** with glowing pulse shadow when connected (`SocketHelper().isConnectedObs.value == true`).
+    - **Red** with glowing pulse shadow when disconnected.
+    - Wrapped in a responsive `Tooltip` (`"Live Studio Connected"` / `"Live Studio Disconnected"`).
+  - Native iOS and Android builds remain 100% clean with this indicator hidden.
+
+---
+
+### 3. Files Modified
+1. `lib/core/foduuStudio/widget_registry.dart`:
+   - Enhanced payload parser to support both `content_json` and `data` structures, and propagate top-level `id` and `slug` to builders.
+2. `lib/core/foduuStudio/register_default_widgets.dart`:
+   - Replaced generic template widget builders with client-approved Vision Infrastructure components.
+   - Built `_buildSliderOrBanner` dispatcher for intelligent routing of CMS banners.
+   - Configured `BestSellerSection` with embedded `bannerItem`.
+   - Suppressed redundant `rich_text` and `text_block` titles.
+3. `lib/app/data/models/home_sections.dart`:
+   - Added `HomeHeroSliderData.fromContentJson(json)` and `HomeBannerItem.fromContentJson(json)` factories.
+   - Fixed subheading duplication for the Next-Gen Networking promo banner.
+4. `lib/app/modules/homepage/controllers/homepage_controller.dart`:
+   - Added `defaultFallbackSections` for instant frame-0 rendering with zero blank screens or layout shifts.
+   - Hardened `buildLayout(List sections)` with graceful fallback handling.
+5. `lib/app/modules/homepage/views/home.dart`:
+   - Integrated `FoduuStudioLayoutView` with reactive pull-to-refresh (`refreshAllData()`) and resilience loading states.
+   - Added conditional `if (kIsWeb)` live WebSocket status indicator in `AppBar.actions`.
+
+---
+
+### 4. Verification & Status
+- **UI Fidelity**: Visually verified against the client-approved screenshots — banner hierarchy, circular categories, quotation cards, and promo strip now match 100%.
+- **Zero Duplication**: Eliminated duplicate hero sliders, duplicate "Best Seller Products" headings, and duplicate Next-Gen coupon text.
+- **Dynamic Adaptability**: Ready for real-time section reordering and editing from Fastify Studio.

@@ -144,6 +144,17 @@ class HomepageController extends GetxController
   Future<void>? _refreshInFlight;
   Timer? _connectivityDebounce;
 
+  static final List<Map<String, dynamic>> defaultFallbackSections = [
+    {'type': 'slider', 'id': 'slider', 'content_json': {'slug': 'home-slider'}},
+    {'type': 'trust_badges', 'id': 'trust_badges', 'content_json': {}},
+    {'type': 'categories', 'id': 'categories', 'content_json': {'title': 'Top Categories of The Month'}},
+    {'type': 'special_offers', 'id': 'special_offers', 'content_json': {}},
+    {'type': 'category_banners', 'id': 'home-camera', 'content_json': {'slug': 'home-camera'}},
+    {'type': 'best_sellers', 'id': 'best_sellers', 'content_json': {}},
+    {'type': 'promo_strip', 'id': 'home-next-gen-networking', 'content_json': {'slug': 'home-next-gen-networking'}},
+    {'type': 'latest_products', 'id': 'latest_products', 'content_json': {}},
+  ];
+
   void _initDefaults() {
     heroSlider = HomeHeroSliderData.fallback().obs;
     trustBadges = HomeTrustBadgesData.fallback().obs;
@@ -152,11 +163,22 @@ class HomepageController extends GetxController
     banners = HomeBannersData.fallback().obs;
     bestSellersSection = HomeBestSellersData.fallback().obs;
     latestProductsSection = HomeLatestProductsData.fallback().obs;
+
+    // Immediately populate widgetList with client-approved default layout (Frame-0 instant paint)
+    if (widgetList.isEmpty) {
+      buildLayout(defaultFallbackSections);
+      isLayoutLoading.value = false;
+    }
   }
 
   /// Intercepts both initial fetch and live WebSocket broadcasts from FoduuStudioLayoutMixin
   @override
   void buildLayout(List sections) {
+    if (sections.isEmpty) {
+      super.buildLayout(defaultFallbackSections);
+      _parseCmsSections(defaultFallbackSections);
+      return;
+    }
     super.buildLayout(sections);
     _parseCmsSections(sections);
   }

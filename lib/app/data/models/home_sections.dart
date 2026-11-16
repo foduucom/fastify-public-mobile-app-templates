@@ -100,6 +100,28 @@ class HomeHeroSliderData {
     ]);
   }
 
+  factory HomeHeroSliderData.fromContentJson(Map<String, dynamic> json) {
+    final sliderObj = json['slider'] is Map ? json['slider'] as Map : json;
+    final content = sliderObj['content'] ??
+        sliderObj['slides'] ??
+        sliderObj['images'] ??
+        json['content'] ??
+        json['slides'] ??
+        json['images'];
+    if (content is List && content.isNotEmpty) {
+      final items = <HomeSlideItem>[];
+      for (final c in content) {
+        if (c is Map) {
+          items.add(HomeSlideItem.fromJson(Map<String, dynamic>.from(c)));
+        }
+      }
+      if (items.isNotEmpty) {
+        return HomeHeroSliderData(slides: items);
+      }
+    }
+    return HomeHeroSliderData.fallback();
+  }
+
   factory HomeHeroSliderData.fromSections(List sections) {
     for (final s in sections) {
       if (s is Map) {
@@ -461,6 +483,38 @@ class HomeBannerItem {
     required this.imageUrl,
     required this.linkUrl,
   });
+
+  factory HomeBannerItem.fromContentJson(Map<String, dynamic> json) {
+    final sliderObj = json['slider'] is Map ? json['slider'] as Map : json;
+    final contentList = sliderObj['content'] is List && (sliderObj['content'] as List).isNotEmpty
+        ? (sliderObj['content'] as List)
+        : (json['content'] is List && (json['content'] as List).isNotEmpty
+            ? (json['content'] as List)
+            : []);
+    final content = contentList.isNotEmpty ? contentList.first : sliderObj;
+    final cMap = content is Map ? Map<String, dynamic>.from(content) : <String, dynamic>{};
+
+    final rawHeading = _cleanStr(cMap['heading'] ?? cMap['title'] ?? json['heading'] ?? json['title']);
+    final rawDesc = _cleanStr(cMap['description'] ?? cMap['subheading'] ?? cMap['subtitle'] ?? json['subheading'] ?? json['subtitle']);
+    final btnText = _cleanStr(cMap['btn_text'] ?? cMap['button_text'] ?? json['button_text'], 'Shop Now');
+    final btnUrl = _cleanStr(cMap['btn_url'] ?? cMap['button_url'] ?? cMap['link'] ?? json['link'], '/product');
+    final img = _cleanImage(cMap['filePath'] ?? cMap['filepath'] ?? cMap['download_url'] ?? cMap['image'] ?? json['image']);
+    final id = _cleanStr(sliderObj['id'] ?? sliderObj['slug'] ?? json['id'] ?? json['slug'], 'banner');
+
+    final detailStr = cMap['detail']?.toString();
+    final isSame = detailStr != null &&
+        rawDesc.trim().toLowerCase() == detailStr.trim().toLowerCase();
+
+    return HomeBannerItem(
+      id: id,
+      title: rawHeading.isNotEmpty ? rawHeading : 'Vision Infrastructure',
+      subtitle: isSame ? '' : rawDesc,
+      detail: detailStr,
+      buttonText: btnText,
+      imageUrl: img ?? 'https://vision.foduu.store/images/2026/10/24/home-fiber-accessories-2a971bf3.webp',
+      linkUrl: btnUrl,
+    );
+  }
 }
 
 class HomeBannersData {
@@ -585,10 +639,12 @@ class HomeBannersData {
             computedDetail = rawDetail.isNotEmpty ? rawDetail : 'Use code CONNECT2026 to get best offer.';
           }
 
+          final isSameNextGen = rawDesc.trim().toLowerCase() == computedDetail.trim().toLowerCase();
+
           nextGen = HomeBannerItem(
             id: 'home-next-gen-networking',
             title: rawHeading.isNotEmpty ? rawHeading : 'NEXT-GEN NETWORKING',
-            subtitle: rawDesc,
+            subtitle: isSameNextGen ? '' : rawDesc,
             detail: computedDetail,
             buttonText: (btnText.isNotEmpty &&
                     btnText.toLowerCase() != 'explore solutions')
