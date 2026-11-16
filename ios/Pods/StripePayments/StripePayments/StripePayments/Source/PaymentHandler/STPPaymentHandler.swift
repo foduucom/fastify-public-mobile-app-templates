@@ -111,6 +111,7 @@ public class STPPaymentHandler: NSObject {
     /// This property guards against simultaneous usage of this class; only one "next action" can be handled at a time.
     private static var inProgress = false
     private var safariViewController: SFSafariViewController?
+    var safariViewControllerDismissedManually = false
     private var asWebAuthenticationSession: ASWebAuthenticationSession?
 
     /// The globally shared instance of `STPPaymentHandler`.
@@ -807,12 +808,12 @@ public class STPPaymentHandler: NSObject {
         case .SEPADebit,
             .bacsDebit,  // Bacs Debit takes 2-3 business days
             .AUBECSDebit,
-            .USBankAccount:
+            .USBankAccount,
+            .card: // When orchestration is enabled, cards move to a `processing` state after successful authorization.
             return true
 
         // Synchronous
         case .alipay,
-            .card,
             .UPI,
             .iDEAL,
             .FPX,
@@ -848,7 +849,8 @@ public class STPPaymentHandler: NSObject {
             .twint,
             .multibanco,
             .shopPay,
-            .payPay:
+            .payPay,
+            .wero:
             return false
 
         case .unknown:
@@ -1364,7 +1366,7 @@ public class STPPaymentHandler: NSObject {
                     }
                     _handleRedirect(to: redirectURL, withReturn: returnURL, useWebAuthSession: false)
                 case .intentConfirmationChallenge:
-                    _handleIntentConfirmationChallenge()
+                    _handleIntentConfirmationChallenge(stripeJs: useStripeSDK.stripeJs)
                 }
             } else {
                 failCurrentActionWithMissingNextActionDetails()
@@ -1591,7 +1593,7 @@ public class STPPaymentHandler: NSObject {
                         // This could happen if, for example, a payment is approved in an SFSafariViewController, the user closes the sheet, and the approval races with this fetch.
                         if
                             let paymentMethod = paymentIntent.paymentMethod,
-                            !STPPaymentHandler._isProcessingIntentSuccess(for: paymentMethod.type),
+                            !STPPaymentHandler._isProcessingIntentSuccess(for: paymentMethod.type) || (paymentMethod.type == .card && safariViewControllerDismissedManually),
                             paymentIntent.status == .processing,
                             pollingBudget?.canPoll ?? true
                         {
@@ -1658,7 +1660,7 @@ public class STPPaymentHandler: NSObject {
             retrieveOrRefreshSetupIntent(
                 currentAction: currentAction,
                 timeout: pollingBudget?.networkTimeout
-            ) { setupIntent, error in
+            ) { [self] setupIntent, error in
                 guard let setupIntent, error == nil else {
                     // Retry if polling budget allows. For the first call (no polling budget), create a minimal
                     // budget to allow one retry. This handles transient network errors.
@@ -1680,7 +1682,7 @@ public class STPPaymentHandler: NSObject {
                 }
                 currentAction.setupIntent = setupIntent
                 if let type = setupIntent.paymentMethod?.type,
-                   !STPPaymentHandler._isProcessingIntentSuccess(for: type),
+                   !STPPaymentHandler._isProcessingIntentSuccess(for: type) || (type == .card && safariViewControllerDismissedManually),
                    setupIntent.status == .processing,
                    pollingBudget?.canPoll ?? true
                 {
@@ -1851,6 +1853,7 @@ public class STPPaymentHandler: NSObject {
                             context.configureSafariViewController?(safariViewController)
                         }
                         self.safariViewController = safariViewController
+                        self.safariViewControllerDismissedManually = false
                         presentingViewController.present(safariViewController, animated: true, completion: {
                             completion?(safariViewController)
                         })
@@ -1913,7 +1916,7 @@ public class STPPaymentHandler: NSObject {
     }
 
     /// Handles intent confirmation challenge by presenting a WebView with the Stripe-hosted challenge page
-    func _handleIntentConfirmationChallenge() {
+    func _handleIntentConfirmationChallenge(stripeJs: STPIntentActionUseStripeSDK.StripeJS?) {
         guard let currentAction else {
             stpAssertionFailure("Calling _handleIntentConfirmationChallenge without a currentAction")
             let errorAnalytic = ErrorAnalytic(event: .unexpectedPaymentHandlerError, error: InternalError.invalidState, additionalNonPIIParams: ["error_message": "Calling _handleIntentConfirmationChallenge without a currentAction"])
@@ -1922,12 +1925,15 @@ public class STPPaymentHandler: NSObject {
         }
 
         if #available(iOS 14.0, *) {
-            // Extract client secret
+            // Extract client secret and intent type
             let clientSecret: String
+            let intentType: IntentType
             if let piAction = currentAction as? STPPaymentHandlerPaymentIntentActionParams {
                 clientSecret = piAction.paymentIntent.clientSecret
+                intentType = .paymentIntent(id: piAction.paymentIntent.stripeId)
             } else if let siAction = currentAction as? STPPaymentHandlerSetupIntentActionParams {
                 clientSecret = siAction.setupIntent.clientSecret
+                intentType = .setupIntent(id: siAction.setupIntent.stripeID)
             } else {
                 currentAction.complete(
                     with: .failed,
@@ -1962,7 +1968,10 @@ public class STPPaymentHandler: NSObject {
 
                 let challengeVC = IntentConfirmationChallengeViewController(
                     publishableKey: publishableKey,
-                    clientSecret: clientSecret
+                    clientSecret: clientSecret,
+                    intentType: intentType,
+                    apiClient: apiClient,
+                    stripeJs: stripeJs
                 ) { [weak self] result in
                     guard let self = self else { return }
 
@@ -1975,7 +1984,13 @@ public class STPPaymentHandler: NSObject {
                             self._retrieveAndCheckIntentForCurrentAction()
 
                         case .failure(let error):
-                            currentAction.complete(with: .failed, error: error as NSError)
+                            // Handle user cancellation separately - don't show error message
+                            if case ChallengeError.userCanceled = error {
+                                // We don't forward cancelation errors
+                                currentAction.complete(with: .canceled, error: nil)
+                            } else {
+                                currentAction.complete(with: .failed, error: error as NSError)
+                            }
                         }
                     }
                 }
@@ -2408,6 +2423,7 @@ extension STPPaymentHandler: SFSafariViewControllerDelegate {
     /// :nodoc:
     @objc
     public func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
+        self.safariViewControllerDismissedManually = true
         let context = currentAction?.authenticationContext
         if context?.responds(
             to: #selector(STPAuthenticationContext.authenticationContextWillDismiss(_:))

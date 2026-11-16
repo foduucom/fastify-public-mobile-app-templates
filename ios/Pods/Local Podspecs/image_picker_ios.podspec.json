@@ -15,21 +15,25 @@
     "http": "https://github.com/flutter/packages/tree/main/packages/image_picker_ios"
   },
   "documentation_url": "https://pub.dev/packages/image_picker_ios",
-  "source_files": "image_picker_ios/Sources/image_picker_ios/**/*.{h,m}",
-  "public_header_files": "image_picker_ios/Sources/image_picker_ios/**/*.h",
-  "module_map": "image_picker_ios/Sources/image_picker_ios/include/ImagePickerPlugin.modulemap",
+  "swift_versions": "5.0",
+  "source_files": "image_picker_ios/Sources/image_picker_ios/**/*.swift",
   "dependencies": {
     "Flutter": []
   },
   "platforms": {
-    "ios": "13.0"
+    "ios": "15.0"
   },
   "pod_target_xcconfig": {
     "DEFINES_MODULE": "YES"
+  },
+  "xcconfig": {
+    "LIBRARY_SEARCH_PATHS": "$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)/ $(SDKROOT)/usr/lib/swift",
+    "LD_RUNPATH_SEARCH_PATHS": "/usr/lib/swift"
   },
   "resource_bundles": {
     "image_picker_ios_privacy": [
       "image_picker_ios/Sources/image_picker_ios/Resources/PrivacyInfo.xcprivacy"
     ]
-  }
+  },
+  "swift_version": "5.0"
 }

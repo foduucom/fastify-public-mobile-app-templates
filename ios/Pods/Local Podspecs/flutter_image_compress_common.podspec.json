@@ -16,11 +16,10 @@
   "platforms": {
     "ios": "9.0"
   },
-  "source_files": "Classes/**/*",
-  "public_header_files": "Classes/**/*.h",
+  "source_files": "flutter_image_compress_common/Sources/flutter_image_compress_common/**/*.{h,m}",
+  "public_header_files": "flutter_image_compress_common/Sources/flutter_image_compress_common/include/flutter_image_compress_common/**/*.h",
   "dependencies": {
     "Flutter": [],
-    "Mantle": [],
     "SDWebImage": [],
     "SDWebImageWebPCoder": []
   }

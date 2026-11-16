@@ -41,10 +41,16 @@ extension PaymentSheet {
         .twint,
         .multibanco,
         .payPay,
+        .wero,
     ]
 
     /// A list of `STPPaymentMethodType` that can be saved in PaymentSheet
-    static let supportedSavedPaymentMethods: [STPPaymentMethodType] = [.card, .USBankAccount, .SEPADebit, .link]
+    static let supportedSavedPaymentMethods: [STPPaymentMethodType] = [
+        .card,
+        .USBankAccount,
+        .SEPADebit,
+        .link, /* note: not supported by ephemeral key*/
+    ]
 
     /// A list of `STPPaymentMethodType` that can be set as default in PaymentSheet when opted in to the "set as default" feature
     static let supportedDefaultPaymentMethods: [STPPaymentMethodType] = [.card, .USBankAccount]
@@ -311,11 +317,11 @@ extension PaymentSheet {
 
     /// Payment method types that require mandate data for PaymentIntents when `setup_future_usage` is set
     static var requiresMandateDataForPaymentIntent: Set<STPPaymentMethodType> {
-        [.payPal, .cashApp, .revolutPay, .amazonPay, .klarna, .satispay]
+        [.payPal, .cashApp, .revolutPay, .amazonPay, .klarna, .satispay, .twint]
     }
 
     /// Payment method types that require mandate data for SetupIntents
     static var requiresMandateDataForSetupIntent: Set<STPPaymentMethodType> {
-        [.payPal, .revolutPay, .satispay]
+        [.payPal, .revolutPay, .satispay, .twint]
     }
 }

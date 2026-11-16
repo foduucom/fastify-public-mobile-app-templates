@@ -78,8 +78,8 @@
 @import fluttertoast;
 #endif
 
-#if __has_include(<image_picker_ios/FLTImagePickerPlugin.h>)
-#import <image_picker_ios/FLTImagePickerPlugin.h>
+#if __has_include(<image_picker_ios/ImagePickerPlugin.h>)
+#import <image_picker_ios/ImagePickerPlugin.h>
 #else
 @import image_picker_ios;
 #endif
@@ -126,12 +126,6 @@
 @import share_plus;
 #endif
 
-#if __has_include(<sms_autofill/SmsAutoFillPlugin.h>)
-#import <sms_autofill/SmsAutoFillPlugin.h>
-#else
-@import sms_autofill;
-#endif
-
 #if __has_include(<sqflite_darwin/SqflitePlugin.h>)
 #import <sqflite_darwin/SqflitePlugin.h>
 #else
@@ -150,8 +144,8 @@
 @import url_launcher_ios;
 #endif
 
-#if __has_include(<video_player_avfoundation/FVPVideoPlayerPlugin.h>)
-#import <video_player_avfoundation/FVPVideoPlayerPlugin.h>
+#if __has_include(<video_player_avfoundation/VideoPlayerPlugin.h>)
+#import <video_player_avfoundation/VideoPlayerPlugin.h>
 #else
 @import video_player_avfoundation;
 #endif
@@ -183,7 +177,7 @@
   [InAppWebViewFlutterPlugin registerWithRegistrar:[registry registrarForPlugin:@"InAppWebViewFlutterPlugin"]];
   [FlutterLocalNotificationsPlugin registerWithRegistrar:[registry registrarForPlugin:@"FlutterLocalNotificationsPlugin"]];
   [FluttertoastPlugin registerWithRegistrar:[registry registrarForPlugin:@"FluttertoastPlugin"]];
-  [FLTImagePickerPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTImagePickerPlugin"]];
+  [ImagePickerPlugin registerWithRegistrar:[registry registrarForPlugin:@"ImagePickerPlugin"]];
   [JustAudioPlugin registerWithRegistrar:[registry registrarForPlugin:@"JustAudioPlugin"]];
   [OpenFilePlugin registerWithRegistrar:[registry registrarForPlugin:@"OpenFilePlugin"]];
   [FPPPackageInfoPlusPlugin registerWithRegistrar:[registry registrarForPlugin:@"FPPPackageInfoPlusPlugin"]];
@@ -191,11 +185,10 @@
   [PhonePePaymentSdk registerWithRegistrar:[registry registrarForPlugin:@"PhonePePaymentSdk"]];
   [RazorpayFlutterPlugin registerWithRegistrar:[registry registrarForPlugin:@"RazorpayFlutterPlugin"]];
   [FPPSharePlusPlugin registerWithRegistrar:[registry registrarForPlugin:@"FPPSharePlusPlugin"]];
-  [SmsAutoFillPlugin registerWithRegistrar:[registry registrarForPlugin:@"SmsAutoFillPlugin"]];
   [SqflitePlugin registerWithRegistrar:[registry registrarForPlugin:@"SqflitePlugin"]];
   [StripeIosPlugin registerWithRegistrar:[registry registrarForPlugin:@"StripeIosPlugin"]];
   [URLLauncherPlugin registerWithRegistrar:[registry registrarForPlugin:@"URLLauncherPlugin"]];
-  [FVPVideoPlayerPlugin registerWithRegistrar:[registry registrarForPlugin:@"FVPVideoPlayerPlugin"]];
+  [VideoPlayerPlugin registerWithRegistrar:[registry registrarForPlugin:@"VideoPlayerPlugin"]];
   [WakelockPlusPlugin registerWithRegistrar:[registry registrarForPlugin:@"WakelockPlusPlugin"]];
   [WebViewFlutterPlugin registerWithRegistrar:[registry registrarForPlugin:@"WebViewFlutterPlugin"]];
 }

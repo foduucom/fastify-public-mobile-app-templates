@@ -51,9 +51,7 @@ extension PaymentSheet {
             }
 
             // 2. Get expected amount from checkout session
-            guard let expectedAmount = checkoutSession.totalSummary?.total else {
-                throw PaymentSheetError.unknown(debugDescription: "Missing expected amount from checkout session")
-            }
+            let expectedAmount = try checkoutSession.expectedAmount()
 
             // 3. Call confirm API
             let response = try await configuration.apiClient.confirmCheckoutSession(
@@ -66,6 +64,9 @@ extension PaymentSheet {
                 paymentMethodOptions: paymentMethodOptions,
                 clientAttributionMetadata: clientAttributionMetadata
             )
+
+            // Update the Checkout session with the latest response
+            checkoutSession.onConfirmed?(response)
 
             // 4. Handle response based on checkout session mode
             return try await handleCheckoutSessionConfirmResponse(
@@ -82,7 +83,7 @@ extension PaymentSheet {
 
     @MainActor
     private static func handleCheckoutSessionConfirmResponse(
-        response: CheckoutSessionConfirmResponse,
+        response: STPCheckoutSession,
         checkoutSession: STPCheckoutSession,
         configuration: PaymentElementConfiguration,
         authenticationContext: STPAuthenticationContext,
