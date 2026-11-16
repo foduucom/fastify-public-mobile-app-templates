@@ -303,26 +303,38 @@ class _FoduuSliderState extends State<FoduuSlider>
                                           CrossAxisAlignment.start,
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 10, vertical: 3.5),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(0.22),
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                            border: Border.all(
-                                                color: Colors.white
-                                                    .withOpacity(0.4)),
-                                          ),
-                                          child: const Text(
-                                            'New Arrival',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 10.5,
-                                              fontWeight: FontWeight.w700,
-                                              letterSpacing: 0.3,
-                                            ),
-                                          ),
+                                        Builder(
+                                          builder: (context) {
+                                            final badgeText = (sliderItem['badge'] ??
+                                                    sliderItem['tag'] ??
+                                                    (cleanTitle.toLowerCase().contains('offer')
+                                                        ? 'Limited Time Offer'
+                                                        : cleanTitle.toLowerCase().contains('sale')
+                                                            ? 'Flash Sale'
+                                                            : 'New Arrival'))
+                                                .toString();
+                                            return Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: 10, vertical: 3.5),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withOpacity(0.22),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                border: Border.all(
+                                                    color: Colors.white
+                                                        .withOpacity(0.4)),
+                                              ),
+                                              child: Text(
+                                                badgeText,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 10.5,
+                                                  fontWeight: FontWeight.w700,
+                                                  letterSpacing: 0.3,
+                                                ),
+                                              ),
+                                            );
+                                          },
                                         ),
                                         const SizedBox(height: 6),
                                         if (cleanTitle.isNotEmpty)

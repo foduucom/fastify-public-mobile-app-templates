@@ -130,6 +130,7 @@ class FoduuStudioLayoutView extends StatelessWidget {
       return RefreshIndicator(
         onRefresh: onRefresh!,
         child: SingleChildScrollView(
+          clipBehavior: Clip.hardEdge,
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [

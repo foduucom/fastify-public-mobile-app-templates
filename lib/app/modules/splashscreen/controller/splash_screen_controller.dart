@@ -38,18 +38,30 @@ class SplashScreenController extends GetxController with BaseController {
       if (response != null) {
         progressValue.value = 0.8;
 
-        var authPreference = response['storeSettings']?['auth_preference'];
+        Map? storeSettings;
+        if (response is Map) {
+          if (response['storeSettings'] is Map) {
+            storeSettings = response['storeSettings'];
+          } else if (response['data'] is Map &&
+              response['data']['storeSettings'] is Map) {
+            storeSettings = response['data']['storeSettings'];
+          }
+        }
+
+        var authPreference = storeSettings?['auth_preference'];
 
         // Save auth preference for use throughout the app
-        box.write('auth_preference', authPreference);
+        if (authPreference != null && authPreference is Map) {
+          box.write(
+              'auth_preference', Map<String, dynamic>.from(authPreference));
+        }
         print('Auth Preference saved: $authPreference');
         print('swapnil splash screen response ${response}');
 
-        if (response['storeSettings']['app_theme_color'] != null) {
-          print(
-              'App Theme Color: ${response['storeSettings']['app_theme_color']}');
+        if (storeSettings != null && storeSettings['app_theme_color'] != null) {
+          print('App Theme Color: ${storeSettings['app_theme_color']}');
           DynamicThemeManager()
-              .updateFromApi(response['storeSettings']['app_theme_color']);
+              .updateFromApi(storeSettings['app_theme_color']);
 
           // Trigger app-wide theme rebuild
           Get.find<ThemeController>().refreshTheme();

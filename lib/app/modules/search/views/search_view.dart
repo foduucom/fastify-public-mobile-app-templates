@@ -370,7 +370,7 @@ class SearchView extends GetView<SearchsController> {
           crossAxisCount: 2,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio: 0.70,
+          childAspectRatio: 0.62,
         ),
         itemCount: controller.searchProduct.length,
         itemBuilder: (context, index) {

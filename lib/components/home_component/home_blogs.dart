@@ -7,6 +7,7 @@ import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'home_common_widgets.dart';
+import 'package:foduu_ecommerce/components/commonWidgets/dynamic_horizontal_arrow_scroller.dart';
 
 class BlogSection extends StatefulWidget {
   final dynamic blogData;
@@ -292,13 +293,17 @@ class _BlogSectionState extends State<BlogSection>
           // Horizontal Snapping Carousel
           SizedBox(
             height: 335,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
+            child: DynamicHorizontalArrowScroller(
               itemCount: _blogs.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 14),
-              itemBuilder: (context, index) {
+              scrollStep: cardWidth + 14.0,
+              builder: (context, scrollController) => ListView.separated(
+                controller: scrollController,
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: _blogs.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 14),
+                itemBuilder: (context, index) {
                 final blog = _blogs[index];
                 if (blog is! Map) return const SizedBox.shrink();
 
@@ -467,6 +472,7 @@ class _BlogSectionState extends State<BlogSection>
               },
             ),
           ),
+        ),
           const SizedBox(height: 18),
 
           // "EXPLORE MORE BLOG" Blue Pill CTA Button matching parent website

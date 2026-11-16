@@ -261,14 +261,52 @@ Addressing the disparity highlighted in Image 1 vs Image 2 (Parent Website `http
 
 ---
 
+### 11. Dual Promotional Component Separation & Parity (iPhone Flash Sale vs. Smartwatch Deal Banner)
+
+Addressing the architectural and visual distinction between the two promotional deal sections on the parent website ([https://foduu-electronics-store.foduu.store/](https://foduu-electronics-store.foduu.store/)):
+
+1. **Discrepancy & Root Cause Analysis:**
+   - **Part 1 (Top Hero Sidebar - Image 3):** On the parent website, the hero section has a split layout: the main headphones carousel on the left, and a dedicated **iPhone 15 Pro Flash Sale Card** (`slug: "home-side-slider"`) on the right. This card features a deep navy/slate top countdown bar (`02 DAYS : 23 HOURS : 32 MINS : 01 SECS`), a crisp light/surface body with `iPhone 15 Pro` title, `Today Only UP TO 20% Off` deal tag, bold price `₹2199.00`, `Shop Now >` action link, high-res iPhone product imagery, and a solid royal blue bottom bar (`"Limited Time Offer"`).
+   - **Part 2 (Lower Promotional Deal Banner - Image 4):** Positioned further down the page (below the tablet product collection with `₹18,999.00` cards), this is a wide landscape **Smartwatch Promotional Banner**: dark-to-amber background with a 3D orange metallic wave ribbon, dual smartwatches with bands on the left, `"LIMITED TIME OFFER!"` eyebrow tag, extra-large bold **`"UP TO 30% OFF"`** headline, `"on select smart gadgets"` subtitle, `"Shop Sale"` pill button, and a floating dark urgency countdown sub-card (`"Hurry! Offer ends in: 00 DAYS : 00 HOURS : 00 MIN : 00 SEC"`).
+   - Previously, a single generic deal matcher intercepted both sections and merged elements of both into one dark card layout.
+
+2. **Refactored `FlashSaleCountdownCard` (Image 3 Parity):**
+   - **File:** `lib/components/home_component/flash_sale_countdown_card.dart`
+   - **Top Countdown Header:** Dark navy bar (`#0F172A`) across the top header showing `[DD] DAYS : [HH] HOURS : [MM] MINS : [SS] SECS` with monospace digital digits and labels.
+   - **Card Body:** Crisp light container with left-hand content (`iPhone 15 Pro` title, `Today Only UP TO 20% Off`, `₹2199.00` bold price, `Shop Now >` link with arrow) and right-hand iPhone product visual contained cleanly without cropping.
+   - **Bottom Ribbon:** Full-width solid royal blue bar (`#2563EB`) displaying `"Limited Time Offer"` in bold white text.
+   - **Lifecycle Management:** Live 1-second interval `Timer.periodic` with proper cancellation on `dispose()`.
+
+3. **Dedicated `HeroFlashDealBanner` (Smartwatch Promotional Banner - Image 4 Parity):**
+   - **File:** `lib/components/home_component/hero_flash_deal_banner.dart`
+   - **Wide Landscape Geometry:** 22px rounded corners, dark-to-amber background with ambient radial orange glows (`#D95B14`).
+   - **Artwork Preservation:** Displays the wide banner graphic using `alignment: Alignment.centerLeft` and `BoxFit.cover`, keeping the dual smartwatches (black and orange loop straps) prominently visible at full resolution rather than squished into a square box.
+   - **Promotional Typography:** Orange eyebrow pill (`LIMITED TIME OFFER!`), extra-large bold white headline (**`UP TO 30% OFF`**), subtitle (`on select smart gadgets`), and `"Shop Sale"` rounded action pill button.
+   - **Urgency Sub-Card:** Dedicated floating dark container on the lower section featuring `"Hurry! Offer ends in"` with 4 digital timer blocks (`DAYS : HOURS : MIN : SEC`).
+
+4. **Strict Routing Separation in `register_default_widgets.dart`:**
+   - **`_isFlashSaleSlider`:** Strictly intercepts `home-side-slider` and iPhone flash deal payloads $\rightarrow$ renders `FlashSaleCountdownCard` (Image 3 design).
+   - **`_isSmartwatchDealBanner`:** Intercepts 30% OFF / smartwatch deal banners while explicitly excluding `home-side-slider` $\rightarrow$ renders `HeroFlashDealBanner` (Image 4 design).
+   - **`FoduuSlider`:** Renders the main top hero carousel (Headphones / Audio slider on the left of Image 3).
+   - **Result:** Complete decoupling with zero cross-contamination between the two promotional designs.
+
+5. **Product Card Overflow & Scroll Layout Fixes:**
+   - **`lib/components/product_grid_card.dart`:** Replaced rigid `const Spacer()` with `Flexible` content column and `MainAxisAlignment.spaceBetween`, eliminating the 10.0 pixels `RenderFlex` overflow exception recorded in `error.txt`.
+   - **`lib/core/foduuStudio/foduu_studio_layout_view.dart`:** Added `clipBehavior: Clip.hardEdge` to `SingleChildScrollView` to prevent scroll bleed-through under the fixed search header.
+
+---
+
 ## File Changes & Path Reference Table
 
 | File Path | Status | Key Changes Made |
 | :--- | :--- | :--- |
 | `lib/components/home_component/smart_assistant_showcase_card.dart` | **Created** | Dedicated Smart Home Assistant showcase card with Echo Dot visual, dual badges, headline, two feature spec tiles, and 'Shop Smart Devices' CTA. |
 | `lib/components/home_component/home_category.dart` | **Modified** | Heading sanitization, smart electronics category icon fallback mapping, 62px circular tiles, padding reduction. |
-| `lib/components/home_component/flash_sale_countdown_card.dart` | **Created** | Dedicated live countdown timer deal widget with 4 digit cells, badges, iPhone 15 Pro offer, and "Shop Now" CTA. |
-| `lib/core/foduuStudio/register_default_widgets.dart` | **Modified** | Added `_isFlashSaleSlider()` and `_isShowcaseSlider()` routing to their respective specialized cards. |
+| `lib/components/home_component/flash_sale_countdown_card.dart` | **Modified** | Redesigned with top navy countdown bar (`DAYS : HOURS : MINS : SECS`), clean surface card body (iPhone 15 Pro, Today Only UP TO 20% Off, ₹2199.00, Shop Now > link), and solid blue "Limited Time Offer" bottom bar (Image 3 Parity). |
+| `lib/components/home_component/hero_flash_deal_banner.dart` | **Created** | Dedicated Smartwatch Promotional Deal Banner with dark-to-amber background, dual smartwatches with bands, "UP TO 30% OFF", "Shop Sale" CTA, and floating digital countdown box (Image 4 Parity). |
+| `lib/core/foduuStudio/register_default_widgets.dart` | **Modified** | Added `_isSmartwatchDealBanner()` and separated `_isFlashSaleSlider()` for clean, independent routing of dual promotional components. |
+| `lib/components/product_grid_card.dart` | **Modified** | Replaced rigid `Spacer()` with `Flexible` content column and `MainAxisAlignment.spaceBetween` to eliminate 10px RenderFlex overflow. |
+| `lib/core/foduuStudio/foduu_studio_layout_view.dart` | **Modified** | Added `clipBehavior: Clip.hardEdge` to `SingleChildScrollView` preventing scroll bleed-through under the sticky search header. |
 | `lib/components/home_component/home_common_widgets.dart` | **Modified** | Fixed `StudioSectionHeader` two-row layout eliminating `"See all"` subtitle collision; unified About Store into single luxury card and suppressed duplicate title. |
 | `lib/components/home_component/home_slider.dart` | **Modified** | Unified clip container eliminating gradient bleed, 240–265px responsive height, ambient gradient preserving artwork, clean HTML parser, restored "Shop Now →" button, refined indicator dots. |
 | `lib/components/parent_web_product_card.dart` | **Modified** | Guaranteed crimson (`#DC2626`) Sale badge with bold white text, dynamic percentage formatting, suppressed empty pills. |

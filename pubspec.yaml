@@ -69,7 +69,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-# dependency_overrides:
+dependency_overrides:
+  # flutter_html 3.0.0 imports html's internal matches() API, removed in 0.15.7.
+  html: 0.15.6
 #   font_awesome_flutter:
 #     path: font_awesome_flutter
 

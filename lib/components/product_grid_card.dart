@@ -122,33 +122,42 @@ class ProductGridCard extends StatelessWidget {
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      name,
-                      style: textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                        height: 1.2,
-                        color: isOutOfStock
-                            ? colorScheme.onSurfaceVariant
-                            : null,
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            name,
+                            style: textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                              height: 1.2,
+                              color: isOutOfStock
+                                  ? colorScheme.onSurfaceVariant
+                                  : null,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (storeName.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              storeName,
+                              style: textTheme.bodySmall?.copyWith(
+                                fontSize: 11,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    if (storeName.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        storeName,
-                        style: textTheme.bodySmall?.copyWith(
-                          fontSize: 11,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    const Spacer(),
+                    const SizedBox(height: 4),
                     if (!isOutOfStock)
                       productType == 'variable'
                           ? Text(
