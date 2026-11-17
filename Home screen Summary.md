@@ -296,10 +296,45 @@ Addressing the architectural and visual distinction between the two promotional 
 
 ---
 
+### 12. Blog Images Resolution & Parent Web Parity Overhaul
+
+Addressing the issue where blog cards in the mobile app displayed blue gradient fallback containers instead of actual featured images (as seen on the parent web storefront `https://foduu-electronics-store.foduu.store/`):
+
+1. **Root Cause Analysis (Cloudflare 404 & Domain Rewrite Miss):**
+   - The CMS payload (`mobile-app/home`) and backend endpoints provided image URLs formatted with the internal 24-character hexadecimal tenant website ID subdomain:
+     `https://6ae85dc54e54c0c43a1d6e6d.foduu.store/images/2026/11/10/gaming-blog-mwaaf47g-508y8z-03.jpeg`
+   - Requesting images through this internal tenant subdomain triggered **HTTP 404 (Not Found)** because Cloudflare only serves media assets via the store's public domain (`foduu-electronics-store.foduu.store`).
+   - Legacy domain-fixing logic in both `HelperFunctions` and `BlogSection` only checked `uri.host.endsWith('.vbought.com')`, completely ignoring `.foduu.store` and raw hexadecimal tenant subdomains.
+   - This caused `CachedNetworkImage` to fail and consistently trigger `_buildEditorialFallback`, concealing all blog imagery behind the blue gradient article card.
+
+2. **Core Domain Rewriter (`lib/constants/helper_functions.dart`):**
+   - Implemented public `fixImageUrl(String imageUrl)` in `HelperFunctions`:
+     - Identifies any tenant subdomain (`*.foduu.store`, `*.vbought.com`, or 24-character hexadecimal MongoDB IDs `^[a-f0-9]{24}\.`) differing from `websiteDomain`.
+     - Automatically rewrites the host to the active public `websiteDomain` (`foduu-electronics-store.foduu.store`).
+     - Testing confirmed the rewritten URL resolves with **HTTP 200 OK** (35 KB JPEG / 4.2 MB PNG).
+
+3. **Home Blog Carousel UI Parity (`lib/components/home_component/home_blogs.dart`):**
+   - **Live Domain Resolution:** Connected `_fixDomain()` directly to `HelperFunctions().fixImageUrl()`.
+   - **Category Tag Pill Overlay:** Implemented `_resolveBlogTag()` to parse category names, tags, or featured image metadata tags (e.g. `'gaming'` $\rightarrow$ `'Gaming'`). Overlaid a rounded black pill badge (`bg-black`, white text, 10.5px bold font) at the bottom-left of the image, perfectly matching the parent website's `<span class="post-tag bg-black text-white rounded-pill">Gaming</span>`.
+   - **Smooth Shimmer Loading:** Integrated `_buildShimmerPlaceholder()` utilizing `Shimmer.fromColors` (`Colors.grey.shade300` $\rightarrow$ `Colors.grey.shade100`) to provide smooth skeleton loading and prevent abrupt layout shifts.
+   - **Editorial Fallback Retention:** Retained `_buildEditorialFallback` strictly as a graceful offline and 404 fallback.
+
+4. **Blog Model & Cross-Screen Consistency (`lib/models/blog_model.dart` & `lib/app/modules/blog/`):**
+   - **`BlogModel.fromJson()`:** Enhanced image resolution across all source keys (`featured_image`, `featured_image_url`, `image`, `thumbnail`, `cover_image`) through `HelperFunctions().getImage()`. Added tag fallback parsing from featured image metadata and exposed a `primaryTag` getter.
+   - **`blog_view.dart`:** Added category tag pill badges and shimmer loading placeholders over both grid (`_buildGridCard`) and list (`_buildListCard`) blog views.
+   - **`blog_detail_controller.dart`:** Updated `_resolveBlogFromArguments()` to support passing raw `Map` blog objects, enabling instantaneous article view transitions with full image rendering.
+
+---
+
 ## File Changes & Path Reference Table
 
 | File Path | Status | Key Changes Made |
 | :--- | :--- | :--- |
+| `lib/constants/helper_functions.dart` | **Modified** | Implemented `fixImageUrl()` to rewrite tenant subdomains (`*.foduu.store`, `*.vbought.com`, hex IDs) to `websiteDomain`, resolving Cloudflare 404s. |
+| `lib/components/home_component/home_blogs.dart` | **Modified** | Connected centralized domain fixing, added `_resolveBlogTag()` with bottom-left black tag pill overlay, added shimmer loading placeholder, preserved editorial fallback. |
+| `lib/models/blog_model.dart` | **Modified** | Enhanced `fromJson()` image resolution across multiple keys, added tag extraction from image metadata, added `primaryTag` getter. |
+| `lib/app/modules/blog/views/blog_view.dart` | **Modified** | Added tag badge overlays (`primaryTag`) over thumbnail images in both grid and list cards for visual parity with Home. |
+| `lib/app/modules/blog/controller/blog_detail_controller.dart` | **Modified** | Added support for parsing raw `Map` navigation arguments for immediate article details display without network latency. |
 | `lib/components/home_component/smart_assistant_showcase_card.dart` | **Created** | Dedicated Smart Home Assistant showcase card with Echo Dot visual, dual badges, headline, two feature spec tiles, and 'Shop Smart Devices' CTA. |
 | `lib/components/home_component/home_category.dart` | **Modified** | Heading sanitization, smart electronics category icon fallback mapping, 62px circular tiles, padding reduction. |
 | `lib/components/home_component/flash_sale_countdown_card.dart` | **Modified** | Redesigned with top navy countdown bar (`DAYS : HOURS : MINS : SECS`), clean surface card body (iPhone 15 Pro, Today Only UP TO 20% Off, ₹2199.00, Shop Now > link), and solid blue "Limited Time Offer" bottom bar (Image 3 Parity). |

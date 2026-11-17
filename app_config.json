@@ -53,6 +53,36 @@
       "slug": "product-listing",
       "route": "/product-listing",
       "description": "Shop / product list view with optional dynamic sections"
+    },
+    {
+      "title": "About Us",
+      "slug": "about-us",
+      "route": "/aboutus",
+      "description": "About Us page — fully CMS broadcasting driven dynamic layout"
+    },
+    {
+      "title": "Terms & Conditions",
+      "slug": "terms-and-conditions",
+      "route": "/policy-detail?type=terms",
+      "description": "Terms & Conditions — fully CMS broadcasting driven dynamic layout"
+    },
+    {
+      "title": "Privacy Policy",
+      "slug": "privacy-policy",
+      "route": "/policy-detail?type=privacy",
+      "description": "Privacy Policy — fully CMS broadcasting driven dynamic layout"
+    },
+    {
+      "title": "Contact Us",
+      "slug": "contact-us",
+      "route": "/contact",
+      "description": "Contact Us page — fully CMS broadcasting driven dynamic layout"
+    },
+    {
+      "title": "FAQ",
+      "slug": "faq",
+      "route": "/faq",
+      "description": "FAQ & Help Center — fully CMS broadcasting driven dynamic layout"
     }
   ],
   "layouts": {
@@ -71,6 +101,11 @@
         "name": "Overlay",
         "slug": "overlay",
         "description": "Full-image card with gradient overlay, name, and a hold-to-expand 'Shop Now' reveal (Shop by Occasion style)"
+      },
+      {
+        "name": "Parent Website",
+        "slug": "parent_web",
+        "description": "Horizontal circular category rail with active ring indicator and in-place product grid (Top Categories of the Month style)"
       }
     ],
     "product": [

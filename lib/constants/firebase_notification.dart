@@ -69,8 +69,7 @@ class FirebaseHelpers {
       requestSoundPermission: true,
     );
     await _localNotifications.initialize(
-      const InitializationSettings(
-          android: androidSettings, iOS: iosSettings),
+      const InitializationSettings(android: androidSettings, iOS: iosSettings),
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         if (response.payload != null) {
           navigateOnNotificationClick({'type': response.payload});
@@ -138,8 +137,6 @@ class FirebaseHelpers {
       badge: true,
       sound: true,
     );
-
-    await syncTopics();
 
     // Handle notification that launched app from terminated state
     final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
@@ -307,6 +304,12 @@ class FirebaseHelpers {
   static Future<String?> getFCMToken() async {
     if (kIsWeb) return null;
     try {
+      if (Platform.isIOS &&
+          await FirebaseMessaging.instance.getAPNSToken() == null) {
+        debugPrint(
+            'Skipping FCM token fetch: APNS token is not available yet.');
+        return null;
+      }
       final token = await FirebaseMessaging.instance.getToken();
       if (token != null) {
         box.write('my_fcm_token', token);
@@ -356,6 +359,12 @@ class FirebaseHelpers {
   static Future<void> _subscribeToDefaultTopics() async {
     if (kIsWeb) return;
     if (!(Platform.isAndroid || Platform.isIOS)) return;
+    if (Platform.isIOS &&
+        await FirebaseMessaging.instance.getAPNSToken() == null) {
+      debugPrint(
+          'Skipping FCM topic subscriptions: APNS token is not available yet.');
+      return;
+    }
 
     // We keep the prefix if preferred by user, but plan said raw strings for backend alignment.
     // Based on question 3 in the plan, I will use raw strings for backend topics but keep prefix for user topics as suggested in Phase 2.
@@ -375,6 +384,12 @@ class FirebaseHelpers {
 
   static Future<void> _subscribeToUserTopics() async {
     if (kIsWeb) return;
+    if (Platform.isIOS &&
+        await FirebaseMessaging.instance.getAPNSToken() == null) {
+      debugPrint(
+          'Skipping user topic subscriptions: APNS token is not available yet.');
+      return;
+    }
     final userDetails = box.read('userData');
     if (userDetails == null) return;
     final userId = userDetails['_id']?.toString();

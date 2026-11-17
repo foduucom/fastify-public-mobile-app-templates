@@ -33,15 +33,23 @@ class WidgetRegistry {
     final visible = section['visible'] as bool? ?? true;
     if (type == null || !_builders.containsKey(type) || !visible) return null;
 
-    final contentJson =
-        Map<String, dynamic>.from(section['content_json'] as Map? ?? {});
+    final rawContent = section['content_json'] ?? section['data'];
+    final contentJson = rawContent is Map
+        ? Map<String, dynamic>.from(rawContent)
+        : <String, dynamic>{};
 
-    // Merge top-level title/subtitle into contentJson if they exist
+    // Merge top-level title/subtitle/id/slug into contentJson if they exist
     if (section['title'] != null) {
       contentJson['title'] = section['title'];
     }
     if (section['subtitle'] != null) {
       contentJson['subtitle'] = section['subtitle'];
+    }
+    if (section['id'] != null) {
+      contentJson['id'] = section['id'];
+    }
+    if (section['slug'] != null) {
+      contentJson['slug'] = section['slug'];
     }
 
     return _builders[type]!(contentJson);

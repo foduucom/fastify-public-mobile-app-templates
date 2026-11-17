@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import 'package:get/get.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
@@ -153,12 +154,75 @@ class _BlogSectionState extends State<BlogSection>
 
   String _fixDomain(String imageUrl) {
     if (imageUrl.isEmpty) return imageUrl;
-    final uri = Uri.tryParse(imageUrl);
-    if (uri == null) return imageUrl;
-    if (uri.host.endsWith('.vbought.com') && uri.host != websiteDomain) {
-      return imageUrl.replaceFirst(uri.host, websiteDomain);
+    return HelperFunctions().fixImageUrl(imageUrl);
+  }
+
+  String? _resolveBlogTag(dynamic blog) {
+    if (blog is! Map) return null;
+
+    String? cleanTag(dynamic val) {
+      if (val == null) return null;
+      if (val is Map) {
+        final name = (val['name'] ?? val['title'])?.toString().trim();
+        if (name != null && name.isNotEmpty) return name;
+      } else if (val is String) {
+        final str = val.trim();
+        if (str.isNotEmpty) {
+          if (str == str.toLowerCase()) {
+            return str[0].toUpperCase() + str.substring(1);
+          }
+          return str;
+        }
+      }
+      return null;
     }
-    return imageUrl;
+
+    // 1. Direct categories
+    final categories = blog['categories'];
+    if (categories is List && categories.isNotEmpty) {
+      for (final item in categories) {
+        final resolved = cleanTag(item);
+        if (resolved != null) return resolved;
+      }
+    }
+    final cat = cleanTag(blog['category']);
+    if (cat != null) return cat;
+
+    // 2. Direct tags
+    final tags = blog['tags'];
+    if (tags is List && tags.isNotEmpty) {
+      for (final item in tags) {
+        final resolved = cleanTag(item);
+        if (resolved != null && resolved.toLowerCase() != 'blog') {
+          return resolved;
+        }
+      }
+    }
+
+    // 3. Featured image tags (e.g. ['gaming', 'blog'] -> 'Gaming')
+    final featImg = blog['featured_image'];
+    if (featImg is Map && featImg['tags'] is List) {
+      for (final item in (featImg['tags'] as List)) {
+        final resolved = cleanTag(item);
+        if (resolved != null && resolved.toLowerCase() != 'blog') {
+          return resolved;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  Widget _buildShimmerPlaceholder() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade300,
+      highlightColor: Colors.grey.shade100,
+      child: Container(
+        height: 145,
+        width: double.infinity,
+        color: Colors.white,
+      ),
+    );
   }
 
   String _cleanContent(String? raw) {
@@ -316,6 +380,7 @@ class _BlogSectionState extends State<BlogSection>
                     '';
                 final cleanDesc = _cleanContent(rawExcerpt);
                 final imageUrl = _resolveBlogImage(blog);
+                final tagStr = _resolveBlogTag(blog);
                 final dateStr = _formatDate(blog['created_at']);
 
                 return Container(
@@ -346,25 +411,57 @@ class _BlogSectionState extends State<BlogSection>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Article Image
+                        // Article Image with Tag Overlay & Shimmer
                         ClipRRect(
                           borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(15)),
                           child: SizedBox(
                             height: 145,
                             width: double.infinity,
-                            child: imageUrl.isNotEmpty
-                                ? CachedNetworkImage(
-                                    imageUrl: imageUrl,
-                                    height: 145,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    errorWidget: (_, __, ___) =>
-                                        _buildEditorialFallback(title, context),
-                                    progressIndicatorBuilder: (_, __, ___) =>
-                                        HelperFunctions().loadingIndicator(),
-                                  )
-                                : _buildEditorialFallback(title, context),
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                imageUrl.isNotEmpty
+                                    ? CachedNetworkImage(
+                                        imageUrl: imageUrl,
+                                        height: 145,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                        errorWidget: (_, __, ___) =>
+                                            _buildEditorialFallback(
+                                                title, context),
+                                        placeholder: (_, __) =>
+                                            _buildShimmerPlaceholder(),
+                                      )
+                                    : _buildEditorialFallback(title, context),
+                                if (imageUrl.isNotEmpty &&
+                                    tagStr != null &&
+                                    tagStr.isNotEmpty)
+                                  Positioned(
+                                    left: 12,
+                                    bottom: 12,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.85),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        tagStr,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: 0.3,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
 

@@ -54,6 +54,7 @@ abstract class Routes {
 
   static const ABOUTUS = _Paths.ABOUTUS;
   static const HELPANDSUPPORT = _Paths.HELPANDSUPPORT;
+  static const FAQ = _Paths.FAQ;
   static const TERMSANDCONDITION = _Paths.TERMSANDCONDITION;
   static const PHONEPAY = _Paths.PHONEPAY;
   static const BLOG_DETAILS = _Paths.BLOG_DETAILS;
@@ -117,6 +118,7 @@ abstract class _Paths {
 
   static const ABOUTUS = '/aboutus';
   static const HELPANDSUPPORT = '/helpandsupport';
+  static const FAQ = '/faq';
   static const TERMSANDCONDITION = '/termsandcondition';
 
   static const PHONEPAY = '/phonepay';

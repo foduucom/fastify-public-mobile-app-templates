@@ -21,8 +21,7 @@ class ShopFilterDrawer extends StatefulWidget {
 
 class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
   late Set<String> _tempCategories;
-  late Set<String> _tempMaterials;
-  late Set<String> _tempStyles;
+  late Map<String, Set<String>> _tempAttributes;
   late Set<String> _tempBrands;
   late RangeValues _tempPriceRange;
 
@@ -41,17 +40,19 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
 
   void _seedTempStateFromController() {
     _tempCategories = Set.from(controller.selectedCategories);
-    _tempMaterials = Set.from(controller.selectedAttributes['material'] ?? {});
-    _tempStyles = Set.from(controller.selectedAttributes['style'] ?? {});
+    _tempAttributes = {};
+    controller.selectedAttributes.forEach((key, val) {
+      _tempAttributes[key] = Set.from(val);
+    });
     _tempBrands = Set.from(controller.selectedBrands);
     _tempPriceRange = controller.currentPriceRange.value;
   }
 
   int get _totalSelectedCount {
-    int count = _tempCategories.length +
-        _tempMaterials.length +
-        _tempStyles.length +
-        _tempBrands.length;
+    int count = _tempCategories.length + _tempBrands.length;
+    for (final set in _tempAttributes.values) {
+      count += set.length;
+    }
     if (_tempPriceRange.start > 0 || _tempPriceRange.end < 10000) {
       count++;
     }
@@ -61,8 +62,7 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
   void _clearAll() {
     setState(() {
       _tempCategories = {};
-      _tempMaterials = {};
-      _tempStyles = {};
+      _tempAttributes.clear();
       _tempBrands = {};
       _tempPriceRange = const RangeValues(0, 10000);
     });
@@ -73,8 +73,12 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
     controller.selectedCategories
       ..clear()
       ..addAll(_tempCategories);
-    controller.selectedAttributes['material'] = _tempMaterials;
-    controller.selectedAttributes['style'] = _tempStyles;
+    controller.selectedAttributes.clear();
+    _tempAttributes.forEach((key, val) {
+      if (val.isNotEmpty) {
+        controller.selectedAttributes[key] = val;
+      }
+    });
     controller.selectedAttributes.refresh();
     controller.selectedBrands
       ..clear()
@@ -116,25 +120,27 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
                     const SizedBox(height: 12),
                     _buildPriceSectionCard(colorScheme, textTheme),
                     const SizedBox(height: 12),
-                    _buildTreeFilterSection(
-                      label: "Material",
-                      attributeKey: "material",
-                      tempSet: _tempMaterials,
-                      icon: Icons.layers_outlined,
-                      colorScheme: colorScheme,
-                      textTheme: textTheme,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildTreeFilterSection(
-                      label: "Style",
-                      attributeKey: "style",
-                      tempSet: _tempStyles,
-                      icon: Icons.style_outlined,
-                      colorScheme: colorScheme,
-                      textTheme: textTheme,
-                    ),
-                    const SizedBox(height: 12),
                     _buildBrandsSectionCard(colorScheme, textTheme),
+                    // Dynamically show any additional attribute sections ONLY if they contain options
+                    ...controller.categoryTreeByType.entries
+                        .where((entry) =>
+                            entry.key != 'product' && entry.value.isNotEmpty)
+                        .map((entry) {
+                      final key = entry.key;
+                      final label = key.capitalizeFirst ?? key;
+                      _tempAttributes.putIfAbsent(key, () => <String>{});
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: _buildTreeFilterSection(
+                          label: label,
+                          attributeKey: key,
+                          tempSet: _tempAttributes[key]!,
+                          icon: Icons.tune_rounded,
+                          colorScheme: colorScheme,
+                          textTheme: textTheme,
+                        ),
+                      );
+                    }),
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -239,16 +245,17 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
 
       final selectedCount = tempSet.length;
 
-      return Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
+      return Material(
+        color: colorScheme.surface,
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
+          side: BorderSide(
             color: selectedCount > 0
                 ? colorScheme.primary.withOpacity(0.3)
                 : colorScheme.outlineVariant.withOpacity(0.5),
           ),
         ),
+        clipBehavior: Clip.antiAlias,
         child: Theme(
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
@@ -391,16 +398,17 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
       final brands = controller.availableBrands;
       final selectedCount = _tempBrands.length;
 
-      return Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
+      return Material(
+        color: colorScheme.surface,
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
+          side: BorderSide(
             color: selectedCount > 0
                 ? colorScheme.primary.withOpacity(0.3)
                 : colorScheme.outlineVariant.withOpacity(0.5),
           ),
         ),
+        clipBehavior: Clip.antiAlias,
         child: Theme(
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
@@ -524,16 +532,17 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
     final isPriceFiltered =
         _tempPriceRange.start > 0 || _tempPriceRange.end < 10000;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
+    return Material(
+      color: colorScheme.surface,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
+        side: BorderSide(
           color: isPriceFiltered
               ? colorScheme.primary.withOpacity(0.3)
               : colorScheme.outlineVariant.withOpacity(0.5),
         ),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(

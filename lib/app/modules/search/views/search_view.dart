@@ -2,13 +2,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '/components/app_image_placeholder.dart';
-import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/category/views/category_dialog.dart';
 import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
-import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
 import 'package:foduu_ecommerce/components/home_component/customDrawer.dart';
 import 'package:foduu_ecommerce/components/home_component/studio_search_bar_rounded.dart';
-import 'package:foduu_ecommerce/constants/theme.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
 import 'package:foduu_ecommerce/models/blog_model.dart';
 import 'package:shimmer/shimmer.dart';
@@ -37,29 +34,7 @@ class SearchView extends GetView<SearchsController> {
       child: Scaffold(
         key: scaffoldKey,
         backgroundColor: colorScheme.background,
-        drawer: Drawer(
-          child: AuthDetails.isUserLogin()
-              ? const CustomDrawer()
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Center(
-                        child: Text(
-                      'Login to View Profile',
-                      style: txtTheme().displayMedium,
-                    )),
-                    const SizedBox(height: 15),
-                    SizedBox(
-                      width: Get.width * 0.6,
-                      child: AppButton(
-                          itemText: 'Login',
-                          keypressEvent: () {
-                            Get.offAllNamed(Routes.LOGIN);
-                          }),
-                    ),
-                  ],
-                ),
-        ),
+        drawer: const CustomDrawer(),
 
         // Remove the default AppBar completely
         appBar: null,

@@ -411,14 +411,22 @@ class HelperFunctions {
     return HelperFunctions.getNoImage();
   }
 
-  String _fixImageUrl(String imageUrl) {
+  String _fixImageUrl(String imageUrl) => fixImageUrl(imageUrl);
+
+  /// Rewrites internal tenant hosts (e.g. *.foduu.store, *.vbought.com, or raw mongo ID subdomains)
+  /// to the current public [websiteDomain] so that images resolve with 200 OK via Cloudflare.
+  String fixImageUrl(String imageUrl) {
     if (imageUrl.isEmpty) return imageUrl;
     final uri = Uri.tryParse(imageUrl);
-    if (uri == null) return imageUrl;
+    if (uri == null || uri.host.isEmpty) return imageUrl;
 
-    // If it's a vbought.com domain, replace host with websiteDomain to match constants.dart setup
-    if (uri.host.endsWith('.vbought.com') && uri.host != websiteDomain) {
-      return imageUrl.replaceFirst(uri.host, websiteDomain);
+    if (uri.host != websiteDomain) {
+      final isTenantSubdomain = uri.host.endsWith('.vbought.com') ||
+          uri.host.endsWith('.foduu.store') ||
+          RegExp(r'^[a-f0-9]{24}\.').hasMatch(uri.host);
+      if (isTenantSubdomain) {
+        return imageUrl.replaceFirst(uri.host, websiteDomain);
+      }
     }
     return imageUrl;
   }

@@ -99,11 +99,20 @@ Future<void> _initializeFirebaseServices() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     ).timeout(const Duration(seconds: 10));
-    await FirebaseHelpers.firebaseInitialise()
-        .timeout(const Duration(seconds: 15));
+    unawaited(_initializeNotificationHandlers());
     await FirebaseHelpers.getFCMToken().timeout(const Duration(seconds: 10));
+    await FirebaseHelpers.syncTopics();
   } catch (error, stackTrace) {
     debugPrint('Firebase startup skipped: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  }
+}
+
+Future<void> _initializeNotificationHandlers() async {
+  try {
+    await FirebaseHelpers.firebaseInitialise();
+  } catch (error, stackTrace) {
+    debugPrint('Notification handler setup failed: $error');
     debugPrintStack(stackTrace: stackTrace);
   }
 }

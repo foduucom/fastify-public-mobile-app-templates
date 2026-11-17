@@ -1,3 +1,5 @@
+import 'package:foduu_ecommerce/app/modules/contact/binding/contact_binding.dart';
+import 'package:foduu_ecommerce/app/modules/contact/views/contact_view.dart';
 import 'package:foduu_ecommerce/app/modules/support_ticket/bindings/support_ticket_binding.dart';
 import 'package:foduu_ecommerce/app/modules/support_ticket/views/support_ticket_view.dart';
 import 'package:foduu_ecommerce/app/modules/support_ticket_details/bindings/support_ticket_details_binding.dart';
@@ -7,7 +9,8 @@ import 'package:foduu_ecommerce/app/modules/reviews/views/my_reviews_view.dart';
 import 'package:foduu_ecommerce/app/modules/blog/binding.dart/blog_binding.dart';
 import 'package:foduu_ecommerce/app/modules/blog/views/blog_view.dart';
 import 'package:foduu_ecommerce/app/modules/blog/views/blog_details_view.dart';
-import 'package:foduu_ecommerce/app/modules/Profie/contact/view/contact_us_view.dart';
+import 'package:foduu_ecommerce/app/modules/aboutus/bindings/aboutus_binding.dart';
+import 'package:foduu_ecommerce/app/modules/aboutus/views/aboutus_view.dart';
 import 'package:foduu_ecommerce/app/modules/category_search/bindings/category_search_binding.dart';
 import 'package:foduu_ecommerce/app/modules/category_search/views/category_search_view.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/binding/order_binding.dart';
@@ -319,6 +322,16 @@ class AppPages {
       binding: HelpandsupportBinding(),
     ),
     GetPage(
+      name: _Paths.FAQ,
+      page: () => const HelpandsupportView(),
+      binding: HelpandsupportBinding(),
+    ),
+    GetPage(
+      name: _Paths.ABOUTUS,
+      page: () => const AboutusView(),
+      binding: AboutusBinding(),
+    ),
+    GetPage(
       name: _Paths.TERMSANDCONDITION,
       page: () => const TermsandconditionView(),
       binding: TermsandconditionBinding(),
@@ -331,7 +344,13 @@ class AppPages {
 
     GetPage(
       name: _Paths.CONTACTUS,
-      page: () => ContactUsView(),
+      page: () => const ContactView(),
+      binding: ContactBinding(),
+    ),
+    GetPage(
+      name: _Paths.CONTACT,
+      page: () => const ContactView(),
+      binding: ContactBinding(),
     ),
 
     GetPage(

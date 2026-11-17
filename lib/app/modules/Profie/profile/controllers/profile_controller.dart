@@ -204,7 +204,7 @@ class ProfileController extends GetxController with BaseController {
         var response = await BasicProvider("auth/customer/profile/update")
             .postRequest(form)
             .catchError(handleError);
-        Get.until((route) => !Get.isDialogOpen!);
+        Get.until((route) => Get.isDialogOpen != true);
 
         if (response == null) return;
         // Evict old cached image so the updated one loads fresh
@@ -214,11 +214,11 @@ class ProfileController extends GetxController with BaseController {
         await fetchDataFromServer();
         isLoading(false);
 
-        Get.until((route) => !Get.isDialogOpen!);
+        Get.until((route) => Get.isDialogOpen != true);
         var updatedprofile = AuthDetails().updateUserDetailsFromServer();
         //Get.find<BottombarController>().authDetails.value = updatedprofile;
         // HelperFunctions().showSnackBarSuccess(response["status"]);
-        Get.until((route) => !Get.isDialogOpen!);
+        Get.until((route) => Get.isDialogOpen != true);
         // Get.back();
         // Get.back();
 

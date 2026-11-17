@@ -1084,40 +1084,43 @@ class ProfileView extends GetView<ProfileController> {
     required VoidCallback onTap,
     required ColorScheme colorScheme,
   }) {
-    return ListTile(
-      onTap: onTap,
-      leading: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: colorScheme.primary.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10),
+    return Material(
+      color: colorScheme.surface,
+      child: ListTile(
+        onTap: onTap,
+        leading: Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, size: 20, color: colorScheme.primary),
         ),
-        child: Icon(icon, size: 20, color: colorScheme.primary),
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontFamily: 'Plus Jakarta Sans',
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: colorScheme.onSurface,
+        title: Text(
+          title,
+          style: TextStyle(
+            fontFamily: 'Plus Jakarta Sans',
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface,
+          ),
         ),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          fontFamily: 'Plus Jakarta Sans',
-          fontSize: 11.5,
-          color: colorScheme.onSurfaceVariant,
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            fontFamily: 'Plus Jakarta Sans',
+            fontSize: 11.5,
+            color: colorScheme.onSurfaceVariant,
+          ),
         ),
+        trailing: Icon(
+          Icons.chevron_right_rounded,
+          size: 18,
+          color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
       ),
-      trailing: Icon(
-        Icons.chevron_right_rounded,
-        size: 18,
-        color: colorScheme.onSurfaceVariant.withOpacity(0.5),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
     );
   }
 }

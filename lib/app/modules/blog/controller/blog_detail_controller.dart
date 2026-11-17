@@ -30,6 +30,14 @@ class BlogDetailsController extends GetxController with BaseController {
       if (args['blog'] is BlogModel) {
         currentBlog.value = args['blog'] as BlogModel;
         _populateAdjacentAndLatestBlogs();
+      } else if (args['blog'] is Map) {
+        try {
+          currentBlog.value =
+              BlogModel.fromJson(Map<String, dynamic>.from(args['blog']));
+          _populateAdjacentAndLatestBlogs();
+        } catch (_) {
+          if (args['id'] != null) fetchBlogById(args['id'].toString());
+        }
       } else if (args['id'] != null) {
         fetchBlogById(args['id'].toString());
       }

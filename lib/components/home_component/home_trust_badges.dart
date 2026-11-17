@@ -26,6 +26,16 @@ class TrustBadgesComponent extends StatelessWidget {
         _str(c['heading'] ?? c['title']).isNotEmpty ||
         _str(c['text'] ?? c['description']).isNotEmpty);
 
+    final isBrandShowcase = cards.length > 1 &&
+        cards.every((c) =>
+            _str(c['image']).isNotEmpty &&
+            _str(c['heading'] ?? c['title']).isEmpty &&
+            _str(c['text'] ?? c['description']).isEmpty);
+
+    if (isBrandShowcase) {
+      return _BadgeList(contentJson: contentJson, cards: cards);
+    }
+
     if (!hasCardText && subtitle.isNotEmpty) {
       final slides = [
         _Testimonial(

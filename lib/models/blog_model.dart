@@ -35,10 +35,17 @@ class BlogModel {
   factory BlogModel.fromJson(Map<String, dynamic> json) {
     // Extract Image URL safely from either featured_image_url or nested featured_image object
     // Resolve through HelperFunctions so relative paths get the app's image
-    // base URL and *.vbought.com hosts are rewritten to websiteDomain.
+    // base URL and internal tenant hosts are rewritten to websiteDomain.
     final noImage = HelperFunctions.getNoImage();
     String? resolvedImageUrl;
-    for (final source in [json['featured_image'], json['featured_image_url']]) {
+    for (final source in [
+      json['featured_image'],
+      json['featured_image_url'],
+      json['image'],
+      json['image_url'],
+      json['thumbnail'],
+      json['cover_image'],
+    ]) {
       if (source == null) continue;
       final resolved = HelperFunctions().getImage(source);
       if (resolved.isNotEmpty && resolved != noImage) {
@@ -74,6 +81,18 @@ class BlogModel {
           .map((e) => e is Map ? (e['name'] ?? '').toString() : e.toString())
           .where((s) => s.isNotEmpty)
           .toList();
+    }
+
+    // Fallback to featured_image tags if tagsList is empty
+    if (tagsList.isEmpty && json['featured_image'] is Map) {
+      final imgTags = json['featured_image']['tags'];
+      if (imgTags is List) {
+        tagsList = imgTags
+            .map((e) => e is Map ? (e['name'] ?? '').toString() : e.toString())
+            .where((s) => s.isNotEmpty && s.toLowerCase() != 'blog')
+            .map((s) => s[0].toUpperCase() + s.substring(1))
+            .toList();
+      }
     }
 
     final rawCategories = json['categories'];
@@ -135,6 +154,13 @@ class BlogModel {
     final words = raw.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length;
     final minutes = (words / 200).ceil();
     return '${minutes > 0 ? minutes : 1} min read';
+  }
+
+  /// Primary tag or category to display on cards
+  String? get primaryTag {
+    if (categories.isNotEmpty) return categories.first;
+    if (tags.isNotEmpty) return tags.first;
+    return null;
   }
 
   /// Author display name fallback

@@ -24,7 +24,7 @@ class ContactUsController extends GetxController {
       // });
       await Future.delayed(const Duration(seconds: 2)); // Simulating network
 
-      Get.until((route) => !Get.isDialogOpen!); // Close overlay loader
+      Get.until((route) => Get.isDialogOpen != true); // Close overlay loader
       isSubmitting.value = false;
 
       Get.back(); // Close the BottomSheet
@@ -43,7 +43,7 @@ class ContactUsController extends GetxController {
       emailCtrl.clear();
       messageCtrl.clear();
     } catch (e) {
-      Get.until((route) => !Get.isDialogOpen!);
+      Get.until((route) => Get.isDialogOpen != true);
       isSubmitting.value = false;
       debugPrint('Error sending message: $e');
     }

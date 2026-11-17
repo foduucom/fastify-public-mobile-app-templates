@@ -271,31 +271,57 @@ class BlogView extends GetView<BlogController> {
                   const BorderRadius.vertical(top: Radius.circular(12)),
               child: AspectRatio(
                 aspectRatio: 16 / 10,
-                child: blog.imageUrl != null && blog.imageUrl!.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: blog.imageUrl!,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: colorScheme.surfaceVariant,
-                          child: const Center(
-                            child: SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    blog.imageUrl != null && blog.imageUrl!.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: blog.imageUrl!,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: colorScheme.surfaceVariant,
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: colorScheme.surfaceVariant,
+                              child: Icon(Icons.article_outlined,
+                                  color: colorScheme.onSurfaceVariant),
+                            ),
+                          )
+                        : Container(
+                            color: colorScheme.surfaceVariant,
+                            child: Icon(Icons.article_outlined,
+                                color: colorScheme.onSurfaceVariant),
+                          ),
+                    if (blog.primaryTag != null && blog.primaryTag!.isNotEmpty)
+                      Positioned(
+                        left: 8,
+                        bottom: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.85),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            blog.primaryTag!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                        errorWidget: (context, url, error) => Container(
-                          color: colorScheme.surfaceVariant,
-                          child: Icon(Icons.article_outlined,
-                              color: colorScheme.onSurfaceVariant),
-                        ),
-                      )
-                    : Container(
-                        color: colorScheme.surfaceVariant,
-                        child: Icon(Icons.article_outlined,
-                            color: colorScheme.onSurfaceVariant),
                       ),
+                  ],
+                ),
               ),
             ),
 
@@ -426,21 +452,48 @@ class BlogView extends GetView<BlogController> {
                   const BorderRadius.vertical(top: Radius.circular(14)),
               child: AspectRatio(
                 aspectRatio: 16 / 9,
-                child: blog.imageUrl != null && blog.imageUrl!.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: blog.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) => Container(
-                          color: colorScheme.surfaceVariant,
-                          child: Icon(Icons.article_outlined,
-                              size: 40, color: colorScheme.onSurfaceVariant),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    blog.imageUrl != null && blog.imageUrl!.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: blog.imageUrl!,
+                            fit: BoxFit.cover,
+                            errorWidget: (_, __, ___) => Container(
+                              color: colorScheme.surfaceVariant,
+                              child: Icon(Icons.article_outlined,
+                                  size: 40, color: colorScheme.onSurfaceVariant),
+                            ),
+                          )
+                        : Container(
+                            color: colorScheme.surfaceVariant,
+                            child: Icon(Icons.article_outlined,
+                                size: 40, color: colorScheme.onSurfaceVariant),
+                          ),
+                    if (blog.primaryTag != null && blog.primaryTag!.isNotEmpty)
+                      Positioned(
+                        left: 12,
+                        bottom: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.85),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            blog.primaryTag!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
                         ),
-                      )
-                    : Container(
-                        color: colorScheme.surfaceVariant,
-                        child: Icon(Icons.article_outlined,
-                            size: 40, color: colorScheme.onSurfaceVariant),
                       ),
+                  ],
+                ),
               ),
             ),
 

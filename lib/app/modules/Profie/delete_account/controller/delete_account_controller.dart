@@ -35,7 +35,7 @@ class DeleteAccountController extends GetxController with BaseController {
       isLoading.value = false;
       box.erase();
       ApiCache.clear();
-      Get.until((route) => !Get.isDialogOpen!);
+      Get.until((route) => Get.isDialogOpen != true);
       HelperFunctions()
           .showSnackBarSuccess("Your account has been permanently deleted!");
       Get.offAllNamed(Routes.LOGIN);

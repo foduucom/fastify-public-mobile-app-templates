@@ -271,7 +271,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
       // Register this controller for the given slug
       _slugHandlers[slug] = this;
 
-      final eventName = '${domain}:mobileapp';
+      final eventName = '$domain:mobileapp';
 
       // Only set up the socket listener ONCE across all controllers
       if (_registeredEventName != eventName) {

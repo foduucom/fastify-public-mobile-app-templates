@@ -99,10 +99,7 @@ class ShopController extends GetxController
     });
 
     if (isPlainShopEntry.value) {
-      fetchLayout(pageSlug);
-    } else {
-      fetchBrands();
-      fetchCategories();
+      ensureFilterDataLoaded();
       fetchProducts(isRefresh: true);
     }
   }

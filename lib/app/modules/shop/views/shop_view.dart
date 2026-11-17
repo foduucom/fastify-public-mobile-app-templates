@@ -16,7 +16,6 @@ class ShopView extends GetView<ShopController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.lazyPut(() => ShopController());
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final scaffoldKey = GlobalKey<ScaffoldState>();
@@ -30,25 +29,24 @@ class ShopView extends GetView<ShopController> {
         elevation: 0,
         centerTitle: true,
         title: Obx(() {
-          if (controller.isPlainShopEntry.value) {
-            return Text(
-              "Shop",
-              style:
-                  textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            );
-          }
+          final title = controller.collectionName.value.isEmpty
+              ? "Shop"
+              : controller.collectionName.value;
+          final total = controller.totalProducts.value;
           return Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                controller.collectionName.value,
+                title,
                 style:
                     textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
-              Text(
-                "${controller.totalProducts.value} items",
-                style: textTheme.bodySmall
-                    ?.copyWith(color: colorScheme.onSurfaceVariant),
-              ),
+              if (total > 0)
+                Text(
+                  "$total items",
+                  style: textTheme.bodySmall
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
             ],
           );
         }),
@@ -71,30 +69,17 @@ class ShopView extends GetView<ShopController> {
           controller.goUpFilterCategory();
         },
         child: Obx(() {
-          if (controller.isPlainShopEntry.value) {
-            return FoduuStudioLayoutView(
-              onRefresh: () => controller.fetchLayout(ShopController.pageSlug),
-              widgetList: controller.widgetList,
-              isLoading: controller.isLayoutLoading,
-              hasError: controller.hasError,
-              errorMessage: controller.errorMessage,
-            );
-          }
-          // ── FILTERED / DASHBOARD ENTRY ──
           return Column(
             children: [
-              // ── CMS FREE-WILL SECTIONS (banner, rich_text, etc.) ──
-              ...controller.buildWidgetsExcluding(['categories', 'products']),
-
               // ── ACTIVE FILTER CHIPS (Horizontal Scroll) ──
               if (_hasActiveFilters()) _buildActiveFilterChips(colorScheme),
 
               // ── SUB CATEGORY STRIP (only when entered with category context) ──
               _buildSubCategorySection(colorScheme),
 
-              // ── PRODUCT GRID ──
+              // ── PRODUCT GRID / LIST ──
               Expanded(
-                child: controller.isLoading.value
+                child: controller.isLoading.value && controller.products.isEmpty
                     ? _buildGridShimmer()
                     : RefreshIndicator(
                         onRefresh: () =>
@@ -267,7 +252,7 @@ class ShopView extends GetView<ShopController> {
     );
   }
 
-  // ── MAIN PRODUCT GRID (shared TrendingProductSection, externally driven) ──
+  // ── MAIN PRODUCT GRID / LIST ──
   Widget _buildProductGrid(ColorScheme colorScheme, TextTheme textTheme) {
     if (controller.products.isEmpty) {
       return Center(
@@ -291,7 +276,7 @@ class ShopView extends GetView<ShopController> {
         return ListView.builder(
           controller: controller.scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           itemCount:
               controller.products.length + (controller.hasNextPage ? 1 : 0),
           itemBuilder: (context, index) {
@@ -316,23 +301,37 @@ class ShopView extends GetView<ShopController> {
         );
       }
 
-      return SingleChildScrollView(
+      return GridView.builder(
         controller: controller.scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
-        child: TrendingProductSection(
-          externalProducts: controller.products,
-          externalHasMore: controller.hasNextPage,
-          externalIsLoadingMore: controller.isFetchingMore.value,
-          onLoadMore: () => controller.fetchProducts(isRefresh: false),
-          hideHeader: true,
-          contentJson: const {
-            'view': 'grid',
-            'layout': 'parent_web',
-            'columns': '2',
-            'spacing': '12',
-            'aspect_ratio': '0.58',
-          },
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 0.58,
         ),
+        itemCount:
+            controller.products.length + (controller.hasNextPage ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index >= controller.products.length) {
+            if (!controller.isFetchingMore.value) {
+              controller.fetchProducts(isRefresh: false);
+            }
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+          final p = controller.products[index];
+          return ParentWebProductCard(
+            product:
+                p is Map<String, dynamic> ? p : Map<String, dynamic>.from(p),
+            isList: false,
+          );
+        },
       );
     });
   }
@@ -393,10 +392,13 @@ class _ShopHeaderToolbar extends StatelessWidget {
             // 2. Results text counter
             Expanded(
               child: Text(
-                "There are $total results in total",
+                controller.isLoading.value && total == 0
+                    ? "Loading..."
+                    : "$total Products",
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
-                  fontSize: 11.5,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -416,8 +418,8 @@ class _ShopHeaderToolbar extends StatelessWidget {
                   // List icon
                   InkWell(
                     onTap: () => controller.setViewMode(true),
-                    borderRadius: const BorderRadius.horizontal(
-                        left: Radius.circular(8)),
+                    borderRadius:
+                        const BorderRadius.horizontal(left: Radius.circular(8)),
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       color: isList

@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/app/data/models/contact_sections.dart';
+import 'package:foduu_ecommerce/app/modules/contact/controller/contact_controller.dart';
+import 'package:foduu_ecommerce/components/contact_component/contact_widgets.dart';
+import 'package:foduu_ecommerce/components/faq_components/faq_accordion_section.dart';
+import 'package:foduu_ecommerce/components/faq_components/faq_hero_card.dart';
+import 'package:foduu_ecommerce/components/faq_components/faq_search_bar.dart';
+import 'package:foduu_ecommerce/components/faq_components/faq_still_stuck_card.dart';
+import 'package:foduu_ecommerce/components/faq_components/faq_topic_badges.dart';
 import 'package:foduu_ecommerce/components/home_component/hero_flash_deal_banner.dart';
 import 'package:foduu_ecommerce/components/home_component/flash_sale_countdown_card.dart';
 import 'package:foduu_ecommerce/components/home_component/smart_assistant_showcase_card.dart';
-import 'package:foduu_ecommerce/components/home_component/icon_button_section.dart';
 import 'package:foduu_ecommerce/components/search_bar_rounded.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '/app/routes/app_pages.dart';
 import '/components/home_component/home_products.dart';
 import '/components/home_component/home_rich_text_component.dart';
@@ -104,6 +112,140 @@ bool _isShowcaseSlider(Map? json) {
   return false;
 }
 
+bool _isFaqHeroSlider(Map? json) {
+  if (json == null) return false;
+  final slider = json['slider'];
+  if (slider is Map) {
+    final slug =
+        (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
+    if (slug == 'faq' || slug == 'faq-slider' || slug.contains('faq-hero')) {
+      return true;
+    }
+    final content = slider['content'];
+    if (content is List && content.isNotEmpty && content.first is Map) {
+      final first = content.first as Map;
+      final heading = (first['heading'] ?? '').toString().toLowerCase();
+      final sub = (first['sub_heading'] ?? '').toString().toLowerCase();
+      if ((heading == 'faq' || sub.contains('help you today')) &&
+          !heading.contains('stuck')) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool _isFaqStillStuckSlider(Map? json) {
+  if (json == null) return false;
+  final slider = json['slider'];
+  if (slider is Map) {
+    final slug =
+        (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
+    if (slug == 'faq-center-slider' || slug.contains('stuck')) {
+      return true;
+    }
+    final content = slider['content'];
+    if (content is List && content.isNotEmpty && content.first is Map) {
+      final first = content.first as Map;
+      final heading = (first['heading'] ?? '').toString().toLowerCase();
+      if (heading.contains('stuck') || heading.contains('can’t find')) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool _isFaqAccordion(Map? json) {
+  if (json == null) return false;
+  final cols = int.tryParse((json['no_of_columns'] ?? '').toString()) ?? 0;
+  final eyebrow = (json['eyebrow'] ?? '').toString().toLowerCase();
+  final title = (json['title'] ?? '').toString().toLowerCase();
+  final cards = json['cards'] ?? json['items'];
+
+  if (cols == 1 ||
+      eyebrow.contains('categor') ||
+      title.contains('account') ||
+      title.contains('faq')) {
+    if (cards is List && cards.isNotEmpty) {
+      final first = cards.first;
+      if (first is Map) {
+        final heading = (first['heading'] ?? '').toString();
+        final text = (first['text'] ?? '').toString();
+        if (heading.contains('?') || (text.length > 50 && first['image'] == null)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+bool _isFaqTopicBadges(Map? json) {
+  if (json == null) return false;
+  final cards = json['cards'] ?? json['items'];
+  if (cards is List && cards.isNotEmpty) {
+    final hasArticles = cards.any((c) =>
+        c is Map &&
+        (c['text'] ?? '').toString().toLowerCase().contains('article'));
+    if (hasArticles) return true;
+  }
+  return false;
+}
+
+bool _isContactHeroSlider(Map? json) {
+  if (json == null) return false;
+  final slider = json['slider'];
+  if (slider is Map) {
+    final slug =
+        (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
+    if (slug == 'contact-us-slider' ||
+        slug == 'contact-us' ||
+        slug.contains('contact-us')) {
+      return true;
+    }
+    final content = slider['content'];
+    if (content is List && content.isNotEmpty && content.first is Map) {
+      final first = content.first as Map;
+      final heading = (first['heading'] ?? '').toString().toLowerCase();
+      final sub = (first['sub_heading'] ?? '').toString().toLowerCase();
+      if (heading == 'contact us' || sub.contains('get in touch')) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool _isContactChannels(Map? json) {
+  if (json == null) return false;
+  final title = (json['title'] ?? '').toString().toLowerCase();
+  if (title.contains('contact channel') || title.contains('channels')) {
+    return true;
+  }
+  return false;
+}
+
+void _handleContactCardTap(ContactChannelCard card) async {
+  if (card.isEmail) {
+    final email = card.text.trim();
+    if (email.isNotEmpty) {
+      try {
+        await launchUrl(Uri(scheme: 'mailto', path: email),
+            mode: LaunchMode.externalApplication);
+      } catch (_) {}
+    }
+  } else if (card.isPhone) {
+    final phone = card.cleanPhone;
+    if (phone.isNotEmpty) {
+      try {
+        await launchUrl(Uri(scheme: 'tel', path: phone),
+            mode: LaunchMode.externalApplication);
+      } catch (_) {}
+    }
+  }
+}
+
 /// Register all default section widget builders.
 ///
 /// Call this once in `main()` before `runApp(...)`.
@@ -113,6 +255,10 @@ void registerDefaultWidgets() {
 
   // ─── Search Bar ──────────────────────────────────────────────
   r.register('search', (json) {
+    final name = (json?['name'] ?? '').toString().toLowerCase();
+    if (name == 'faq-search' || name.contains('faq')) {
+      return FaqSearchBar.fromMap(json);
+    }
     return Padding(
       padding: pageSurroundingPadding,
       child: GestureDetector(
@@ -132,6 +278,19 @@ void registerDefaultWidgets() {
   // ─── Slider / Carousel ──────────────────────────────────────
   r.register('slider', (json) {
     if (json is Map<String, dynamic>) {
+      // Contact Us Hero Header
+      if (_isContactHeroSlider(json)) {
+        return ContactHeroBannerWidget(
+            data: ContactHeroHeaderData.fromContentJson(json));
+      }
+      // FAQ Hero Header
+      if (_isFaqHeroSlider(json)) {
+        return FaqHeroCard.fromMap(json);
+      }
+      // FAQ Still Stuck Support CTA Card
+      if (_isFaqStillStuckSlider(json)) {
+        return FaqStillStuckCard.fromMap(json);
+      }
       // 1. Image 3: Hero Sidebar Flash Sale Card (iPhone 15 Pro)
       if (_isFlashSaleSlider(json)) {
         return FlashSaleCountdownCard(sliderData: json);
@@ -207,6 +366,35 @@ void registerDefaultWidgets() {
 
   // ─── Trust Badges / Testimonials ────────────────────────────
   r.register('trust_badges', (json) {
+    if (json is Map<String, dynamic>) {
+      if (_isContactChannels(json)) {
+        return ContactChannelsWidget(
+          data: ContactChannelsData.fromContentJson(json),
+          onCardTap: _handleContactCardTap,
+        );
+      }
+      if (_isFaqAccordion(json)) {
+        return FaqAccordionSection.fromMap(json);
+      }
+      if (_isFaqTopicBadges(json)) {
+        return FaqTopicBadges.fromMap(json);
+      }
+    }
     return TrustBadgesComponent(contentJson: json ?? {});
   });
+
+  // ─── Form Builder ───────────────────────────────────────────
+  Widget buildFormBuilder(dynamic json) {
+    final contentJson = json is Map<String, dynamic>
+        ? json
+        : (json is Map ? Map<String, dynamic>.from(json) : <String, dynamic>{});
+    final formData = ContactFormBuilderData.fromContentJson(contentJson);
+    final ctrl = Get.isRegistered<ContactController>()
+        ? Get.find<ContactController>()
+        : Get.put(ContactController());
+    return ContactFormCardWidget(data: formData, controller: ctrl);
+  }
+
+  r.register('formbuilder', buildFormBuilder);
+  r.register('form_builder', buildFormBuilder);
 }

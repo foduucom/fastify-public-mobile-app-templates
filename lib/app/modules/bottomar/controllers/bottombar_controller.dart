@@ -23,6 +23,7 @@ class BottombarController extends GetxController with BaseController {
   final authDetails = {}.obs;
   var cart = List<dynamic>.empty().obs;
   var itemsInCart = 0.obs;
+  bool _pageControllerDisposed = false;
 
   @override
   void onInit() async {
@@ -89,16 +90,29 @@ class BottombarController extends GetxController with BaseController {
         .postRequest(form)
         .catchError(handleError);
     print(response);
+    if (Get.isDialogOpen == true) Get.back();
     if (response == null) return;
-    Get.until((route) => !Get.isDialogOpen!);
     // ShoppingHelper.defaultdialogbox(
     //     'Product Added to Wishlist'.tr, themePrimaryColor);
-    Future.delayed(Duration(seconds: 1), (() => Get.back()));
   }
 
   void onTabChange(value) {
+    if (_pageControllerDisposed || !pageController.hasClients || value < 0) {
+      return;
+    }
+    // A route can be removed while a pointer event from its bottom nav is still
+    // being dispatched, leaving a disposed PageView position attached briefly.
+    if (pageController.positions
+        .any((position) => !position.context.storageContext.mounted)) {
+      return;
+    }
+    try {
+      pageController.jumpToPage(value);
+    } on FlutterError catch (error) {
+      if (error.message.contains('used after being disposed')) return;
+      rethrow;
+    }
     currentPageIndex.value = value;
-    pageController.jumpToPage(value);
     update();
   }
 
@@ -144,6 +158,7 @@ class BottombarController extends GetxController with BaseController {
 
   @override
   void onClose() {
+    _pageControllerDisposed = true;
     pageController.dispose(); // Don't forget to dispose
     super.onClose();
   }
