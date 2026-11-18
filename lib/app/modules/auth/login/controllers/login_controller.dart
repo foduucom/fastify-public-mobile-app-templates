@@ -30,6 +30,7 @@ class LoginController extends GetxController with BaseController {
   var isOtpMode = true.obs; // Default to OTP mode
   var isPasswordMode = false.obs;
   var isMobileOtpMode = false.obs;
+  Function()? _authListener;
 
   // Toggle password visibility (kept for compatibility)
   void togglePasswordVisibility() {
@@ -45,17 +46,27 @@ class LoginController extends GetxController with BaseController {
 
     // Load auth settings
     loadAuthSettings();
+
+    // Reactively listen to auth_preference changes in storage
+    _authListener = box.listenKey('auth_preference', (value) {
+      loadAuthSettings();
+    });
   }
 
   void loadAuthSettings() {
-    isOtpMode.value = AuthSettingsHelper.isEmailOtpEnabled();
-    isPasswordMode.value = AuthSettingsHelper.isEmailPasswordEnabled();
-    isMobileOtpMode.value = AuthSettingsHelper.isMobileOtpEnabled();
-
-    // Prioritize mobile OTP if requested by user logic
-    if (isMobileOtpMode.value) {
-      isOtpMode.value = false;
+    final authType = AuthSettingsHelper.getAuthType();
+    if (authType == 'mobile_otp') {
+      isMobileOtpMode.value = true;
+      isOtpMode.value = true;
       isPasswordMode.value = false;
+    } else if (authType == 'otp' || authType == 'email_otp') {
+      isMobileOtpMode.value = false;
+      isOtpMode.value = true;
+      isPasswordMode.value = false;
+    } else {
+      isMobileOtpMode.value = false;
+      isOtpMode.value = false;
+      isPasswordMode.value = true;
     }
 
     print(
@@ -205,6 +216,7 @@ class LoginController extends GetxController with BaseController {
 
   @override
   void onClose() {
+    _authListener?.call();
     // emailController.dispose();
     // passwordController.dispose();
     super.onClose();

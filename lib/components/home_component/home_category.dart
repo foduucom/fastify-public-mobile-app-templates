@@ -13,6 +13,7 @@ import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 import 'home_common_widgets.dart';
 import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
+import 'package:foduu_ecommerce/components/commonWidgets/dynamic_horizontal_arrow_scroller.dart';
 
 class CategoryHome extends StatefulWidget {
   final dynamic categoryData;
@@ -94,21 +95,26 @@ class _TopCategoryHomeState extends State<CategoryHome>
           : (style == 'circular' ? 120.0 : 140.0);
       return SizedBox(
         height: listHeight,
-        child: ScrollConfiguration(
-          behavior: ScrollConfiguration.of(context).copyWith(
-            dragDevices: {
-              PointerDeviceKind.touch,
-              PointerDeviceKind.mouse,
-              PointerDeviceKind.trackpad,
-            },
-          ),
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            scrollDirection: Axis.horizontal,
-            itemCount: categories.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) =>
-                _buildCategoryItem(categories[index], style),
+        child: DynamicHorizontalArrowScroller(
+          itemCount: categories.length,
+          scrollStep: 180.0,
+          builder: (context, scrollController) => ScrollConfiguration(
+            behavior: ScrollConfiguration.of(context).copyWith(
+              dragDevices: {
+                PointerDeviceKind.touch,
+                PointerDeviceKind.mouse,
+                PointerDeviceKind.trackpad,
+              },
+            ),
+            child: ListView.separated(
+              controller: scrollController,
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              scrollDirection: Axis.horizontal,
+              itemCount: categories.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, index) =>
+                  _buildCategoryItem(categories[index], style),
+            ),
           ),
         ),
       );

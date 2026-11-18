@@ -21,6 +21,7 @@ import 'package:foduu_ecommerce/components/product_quick_view_modal.dart';
 import 'package:foduu_ecommerce/components/parent_web_product_card.dart';
 import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
+import 'package:foduu_ecommerce/components/commonWidgets/dynamic_horizontal_arrow_scroller.dart';
 
 class TrendingProductSection extends StatefulWidget {
   final Map<String, dynamic>? contentJson;
@@ -483,21 +484,26 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
     return SizedBox(
       height: totalCardHeight,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        scrollDirection: Axis.horizontal,
-        physics: const AlwaysScrollableScrollPhysics(),
+      child: DynamicHorizontalArrowScroller(
         itemCount: products.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (context, index) {
-          final product = products[index] as Map<String, dynamic>;
-          final priceInfo = ProductHelper.calculatePriceInfo(product);
-          if (!priceInfo['hasValidVariants']) return const SizedBox.shrink();
-          return SizedBox(
-            width: cardWidth,
-            child: _buildSiteProductCard(product, priceInfo, imageHeight),
-          );
-        },
+        scrollStep: (cardWidth + 12) * 2,
+        builder: (context, scrollController) => ListView.separated(
+          controller: scrollController,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          scrollDirection: Axis.horizontal,
+          physics: const AlwaysScrollableScrollPhysics(),
+          itemCount: products.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 12),
+          itemBuilder: (context, index) {
+            final product = products[index] as Map<String, dynamic>;
+            final priceInfo = ProductHelper.calculatePriceInfo(product);
+            if (!priceInfo['hasValidVariants']) return const SizedBox.shrink();
+            return SizedBox(
+              width: cardWidth,
+              child: _buildSiteProductCard(product, priceInfo, imageHeight),
+            );
+          },
+        ),
       ),
     );
   }
@@ -1221,36 +1227,41 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
     return SizedBox(
       height: totalCardHeight,
-      child: ScrollConfiguration(
-        behavior: ScrollConfiguration.of(context).copyWith(
-          dragDevices: {
-            PointerDeviceKind.touch,
-            PointerDeviceKind.mouse,
-            PointerDeviceKind.trackpad,
-          },
-        ),
-        child: ListView.separated(
-          controller: _scrollController,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          separatorBuilder: (context, index) => const SizedBox(width: 12),
-          shrinkWrap: false,
-          physics: const AlwaysScrollableScrollPhysics(),
-          scrollDirection: Axis.horizontal,
-          itemCount: itemCount,
-          itemBuilder: (context, index) {
-            if (index >= displayedProducts.length) {
-              return _buildLoadingIndicator();
-            }
-            final product = displayedProducts[index] as Map<String, dynamic>;
-            final priceInfo = ProductHelper.calculatePriceInfo(product);
-            if (!priceInfo['hasValidVariants']) {
-              return const SizedBox.shrink();
-            }
-            return SizedBox(
-              width: cardWidth,
-              child: ParentWebProductCard(product: product, isList: false),
-            );
-          },
+      child: DynamicHorizontalArrowScroller(
+        controller: _scrollController,
+        itemCount: itemCount,
+        scrollStep: (cardWidth + 12) * 2,
+        builder: (context, scrollController) => ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(
+            dragDevices: {
+              PointerDeviceKind.touch,
+              PointerDeviceKind.mouse,
+              PointerDeviceKind.trackpad,
+            },
+          ),
+          child: ListView.separated(
+            controller: scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            separatorBuilder: (context, index) => const SizedBox(width: 12),
+            shrinkWrap: false,
+            physics: const AlwaysScrollableScrollPhysics(),
+            scrollDirection: Axis.horizontal,
+            itemCount: itemCount,
+            itemBuilder: (context, index) {
+              if (index >= displayedProducts.length) {
+                return _buildLoadingIndicator();
+              }
+              final product = displayedProducts[index] as Map<String, dynamic>;
+              final priceInfo = ProductHelper.calculatePriceInfo(product);
+              if (!priceInfo['hasValidVariants']) {
+                return const SizedBox.shrink();
+              }
+              return SizedBox(
+                width: cardWidth,
+                child: ParentWebProductCard(product: product, isList: false),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -1274,36 +1285,41 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
     return SizedBox(
       height: totalCardHeight,
-      child: ScrollConfiguration(
-        behavior: ScrollConfiguration.of(context).copyWith(
-          dragDevices: {
-            PointerDeviceKind.touch,
-            PointerDeviceKind.mouse,
-            PointerDeviceKind.trackpad,
-          },
-        ),
-        child: ListView.separated(
-          controller: _scrollController,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          separatorBuilder: (context, index) => const SizedBox(width: 12),
-          shrinkWrap: false,
-          physics: const AlwaysScrollableScrollPhysics(),
-          scrollDirection: Axis.horizontal,
-          itemCount: itemCount,
-          itemBuilder: (context, index) {
-            if (index >= displayedProducts.length) {
-              return _buildLoadingIndicator();
-            }
-            final product = displayedProducts[index] as Map<String, dynamic>;
-            final priceInfo = ProductHelper.calculatePriceInfo(product);
-            if (!priceInfo['hasValidVariants']) {
-              return const SizedBox.shrink();
-            }
-            return SizedBox(
-              width: cardWidth,
-              child: _buildSiteProductCard(product, priceInfo, imageHeight),
-            );
-          },
+      child: DynamicHorizontalArrowScroller(
+        controller: _scrollController,
+        itemCount: itemCount,
+        scrollStep: (cardWidth + 12) * 2,
+        builder: (context, scrollController) => ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(
+            dragDevices: {
+              PointerDeviceKind.touch,
+              PointerDeviceKind.mouse,
+              PointerDeviceKind.trackpad,
+            },
+          ),
+          child: ListView.separated(
+            controller: scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            separatorBuilder: (context, index) => const SizedBox(width: 12),
+            shrinkWrap: false,
+            physics: const AlwaysScrollableScrollPhysics(),
+            scrollDirection: Axis.horizontal,
+            itemCount: itemCount,
+            itemBuilder: (context, index) {
+              if (index >= displayedProducts.length) {
+                return _buildLoadingIndicator();
+              }
+              final product = displayedProducts[index] as Map<String, dynamic>;
+              final priceInfo = ProductHelper.calculatePriceInfo(product);
+              if (!priceInfo['hasValidVariants']) {
+                return const SizedBox.shrink();
+              }
+              return SizedBox(
+                width: cardWidth,
+                child: _buildSiteProductCard(product, priceInfo, imageHeight),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -1335,34 +1351,39 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       padding: const EdgeInsets.only(left: 6.0),
       child: SizedBox(
         height: 120,
-        child: ScrollConfiguration(
-          behavior: ScrollConfiguration.of(context).copyWith(
-            dragDevices: {
-              PointerDeviceKind.touch,
-              PointerDeviceKind.mouse,
-              PointerDeviceKind.trackpad,
-            },
-          ),
-          child: ListView.separated(
-            controller: _scrollController,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            physics: const AlwaysScrollableScrollPhysics(),
-            scrollDirection: Axis.horizontal,
-            itemCount: itemCount,
-            itemBuilder: (context, index) {
-              if (index >= displayedProducts.length) {
-                return _buildLoadingIndicator();
-              }
-              final product = displayedProducts[index] as Map<String, dynamic>;
-              final priceInfo = ProductHelper.calculatePriceInfo(product);
-              if (!priceInfo['hasValidVariants']) {
-                return const SizedBox.shrink();
-              }
-              return SizedBox(
-                width: 300,
-                child: _buildHorizontalItem(product, priceInfo),
-              );
-            },
+        child: DynamicHorizontalArrowScroller(
+          controller: _scrollController,
+          itemCount: itemCount,
+          scrollStep: 310.0,
+          builder: (context, scrollController) => ScrollConfiguration(
+            behavior: ScrollConfiguration.of(context).copyWith(
+              dragDevices: {
+                PointerDeviceKind.touch,
+                PointerDeviceKind.mouse,
+                PointerDeviceKind.trackpad,
+              },
+            ),
+            child: ListView.separated(
+              controller: scrollController,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              physics: const AlwaysScrollableScrollPhysics(),
+              scrollDirection: Axis.horizontal,
+              itemCount: itemCount,
+              itemBuilder: (context, index) {
+                if (index >= displayedProducts.length) {
+                  return _buildLoadingIndicator();
+                }
+                final product = displayedProducts[index] as Map<String, dynamic>;
+                final priceInfo = ProductHelper.calculatePriceInfo(product);
+                if (!priceInfo['hasValidVariants']) {
+                  return const SizedBox.shrink();
+                }
+                return SizedBox(
+                  width: 300,
+                  child: _buildHorizontalItem(product, priceInfo),
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -1528,32 +1549,37 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       padding: const EdgeInsets.only(left: 6.0),
       child: SizedBox(
         height: 260,
-        child: ScrollConfiguration(
-          behavior: ScrollConfiguration.of(context).copyWith(
-            dragDevices: {
-              PointerDeviceKind.touch,
-              PointerDeviceKind.mouse,
-              PointerDeviceKind.trackpad,
-            },
-          ),
-          child: ListView.separated(
-            controller: _scrollController,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            shrinkWrap: false,
-            cacheExtent: 9999,
-            physics: const AlwaysScrollableScrollPhysics(),
-            scrollDirection: Axis.horizontal,
-            itemCount: itemCount,
-            itemBuilder: (context, index) {
-              if (index >= displayedProducts.length) {
-                return _buildLoadingIndicator();
-              }
-              final product = displayedProducts[index] as Map<String, dynamic>;
-              final priceInfo = ProductHelper.calculatePriceInfo(product);
-              if (!priceInfo['hasValidVariants'])
-                return const SizedBox.shrink();
-              return _buildOverlayItem(product, priceInfo);
-            },
+        child: DynamicHorizontalArrowScroller(
+          controller: _scrollController,
+          itemCount: itemCount,
+          scrollStep: 280.0,
+          builder: (context, scrollController) => ScrollConfiguration(
+            behavior: ScrollConfiguration.of(context).copyWith(
+              dragDevices: {
+                PointerDeviceKind.touch,
+                PointerDeviceKind.mouse,
+                PointerDeviceKind.trackpad,
+              },
+            ),
+            child: ListView.separated(
+              controller: scrollController,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              shrinkWrap: false,
+              cacheExtent: 9999,
+              physics: const AlwaysScrollableScrollPhysics(),
+              scrollDirection: Axis.horizontal,
+              itemCount: itemCount,
+              itemBuilder: (context, index) {
+                if (index >= displayedProducts.length) {
+                  return _buildLoadingIndicator();
+                }
+                final product = displayedProducts[index] as Map<String, dynamic>;
+                final priceInfo = ProductHelper.calculatePriceInfo(product);
+                if (!priceInfo['hasValidVariants'])
+                  return const SizedBox.shrink();
+                return _buildOverlayItem(product, priceInfo);
+              },
+            ),
           ),
         ),
       ),

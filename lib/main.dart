@@ -121,11 +121,21 @@ Future<void> _refreshPublicSettings(GetStorage box) async {
     final response = await BasicProvider('public-settings').getRequest();
     print('public-settings loaded');
 
-    final settings = response is Map ? response['storeSettings'] : null;
+    Map? settings;
+    if (response is Map) {
+      if (response['storeSettings'] is Map) {
+        settings = response['storeSettings'];
+      } else if (response['data'] is Map &&
+          response['data']['storeSettings'] is Map) {
+        settings = response['data']['storeSettings'];
+      }
+    }
     if (settings is! Map) return;
 
     final authPreference = settings['auth_preference'];
-    if (authPreference != null) box.write('auth_preference', authPreference);
+    if (authPreference != null && authPreference is Map) {
+      box.write('auth_preference', Map<String, dynamic>.from(authPreference));
+    }
 
     final storeName = settings['name'] ?? settings['store_name'];
     if (storeName != null) box.write('store_name', storeName);
