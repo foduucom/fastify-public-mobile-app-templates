@@ -53,6 +53,9 @@ class FoduuStudioLayoutView extends StatelessWidget {
   /// Optional footer widget appended at the end of the scrollable list.
   final Widget? footerWidget;
 
+  /// Optional scroll controller for infinite scroll pagination.
+  final ScrollController? scrollController;
+
   /// Full-page constructor (with its own scroll + pull-to-refresh).
   const FoduuStudioLayoutView({
     super.key,
@@ -64,6 +67,7 @@ class FoduuStudioLayoutView extends StatelessWidget {
     this.embedded = false,
     this.loadingWidget,
     this.footerWidget,
+    this.scrollController,
   });
 
   /// Embedded constructor — no scroll wrapper, safe inside Column/ListView.
@@ -74,6 +78,7 @@ class FoduuStudioLayoutView extends StatelessWidget {
     required this.hasError,
     required this.errorMessage,
     this.footerWidget,
+    this.scrollController,
   })  : onRefresh = null,
         embedded = true,
         loadingWidget = null;
@@ -130,6 +135,7 @@ class FoduuStudioLayoutView extends StatelessWidget {
       return RefreshIndicator(
         onRefresh: onRefresh!,
         child: SingleChildScrollView(
+          controller: scrollController,
           clipBehavior: Clip.hardEdge,
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(

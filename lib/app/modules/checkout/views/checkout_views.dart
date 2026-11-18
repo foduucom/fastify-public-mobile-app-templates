@@ -7,6 +7,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:foduu_ecommerce/components/buttons/primary_action_button.dart';
 import 'package:foduu_ecommerce/components/commonWidgets/secondary_app_header.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
+import '/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/helpers/dialog_helper.dart';
 import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import '../controllers/checkout_controllers.dart';
@@ -259,8 +260,7 @@ class CheckoutViews extends GetView<CheckOutController> {
             }
 
             return ListView.separated(
-              separatorBuilder: (_, __) =>
-                  SizedBox(height: height * 0.012),
+              separatorBuilder: (_, __) => SizedBox(height: height * 0.012),
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               padding: EdgeInsets.zero,
@@ -707,30 +707,25 @@ class CheckoutViews extends GetView<CheckOutController> {
           SizedBox(height: height * 0.015),
 
           // Pay Now Button
-          SizedBox(
-            width: width * 0.90,
-            height: height * 0.075,
-            child: PrimaryActionButton(
-              text: "Pay Now",
-              onPressed: () {
-                // Remove the immediate success dialog
-                // The success dialog should only show after payment is successful
-                controller.processOrder();
-
-                // ❌ REMOVE THIS - it's causing the issue
-                // DialogHelper.showSuccessDialog(
-                //   title: "Payment Successfully Processed",
-                //   description:
-                //       "Thank you for your purchase! Your payment has been successfully processed. Sit back, relax, and enjoy your new items.",
-                //   imagePath: "assets/images/success.png",
-                //   buttonText: "Continue",
-                //   onPressed: () {
-                //     Get.back();
-                //   },
-                // );
-              },
-            ),
-          ),
+          Obx(() {
+            final bool isCartEmpty = cartController.cartItems.isEmpty;
+            return SizedBox(
+              width: width * 0.90,
+              height: height * 0.075,
+              child: PrimaryActionButton(
+                text: isCartEmpty ? "Cart is Empty" : "Pay Now",
+                onPressed: isCartEmpty
+                    ? () {
+                        HelperFunctions().showSnackBarError(
+                            "Your cart is empty. Please add items to proceed.");
+                        Get.offAllNamed(Routes.BOTTOMBAR);
+                      }
+                    : () {
+                        controller.processOrder();
+                      },
+              ),
+            );
+          }),
         ],
       ),
     );

@@ -1,15 +1,10 @@
 import 'dart:io';
-import '/constants/constants.dart';
-import 'package:get_storage/get_storage.dart';
-import 'package:http/http.dart' as http;
-
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class OrderdetailController extends GetxController with BaseController {
@@ -29,19 +24,27 @@ class OrderdetailController extends GetxController with BaseController {
   @override
   Future<void> onInit() async {
     super.onInit();
-    if (Get.arguments != null && Get.arguments['id'] != null) {
-      id.value = Get.arguments['id'].toString();
+    final args = Get.arguments;
+    if (args is Map) {
+      final order = args['order'];
+      if (order is Map) {
+        item.value = Map<String, dynamic>.from(order);
+      }
+      final rawId =
+          args['id'] ?? (order is Map ? (order['_id'] ?? order['id']) : null);
+      if (rawId != null && rawId.toString().isNotEmpty) {
+        id.value = rawId.toString();
+      }
     }
 
-    await OrderDetail();
+    if (id.value != '0') await fetchOrderDetail();
   }
 
-  Future<void> OrderDetail() async {
+  Future<void> fetchOrderDetail() async {
     try {
       isLoading.value = true;
-      var response = await BasicProvider("order/$id")
-          .getRequest()
-          .catchError(handleError);
+      var response =
+          await BasicProvider("order/$id").getRequest().catchError(handleError);
 
       printInfo(info: 'OrderDetail response: $response');
       if (response == null) return;
@@ -56,14 +59,13 @@ class OrderdetailController extends GetxController with BaseController {
 
   /// Returns the current stage index (1-based) based on order status.
   int getCurrentStage() {
-    final orderData = item.containsKey('data') && item['data'] is Map
-        ? item['data']
-        : item;
+    final orderData =
+        item.containsKey('data') && item['data'] is Map ? item['data'] : item;
     final status = (orderData['status'] is Map
-            ? orderData['status']['name']
-            : orderData['status'])
-        ?.toString()
-        .toLowerCase() ??
+                ? orderData['status']['name']
+                : orderData['status'])
+            ?.toString()
+            .toLowerCase() ??
         '';
     if (status.contains('delivered')) return 5;
     if (status.contains('out for delivery') ||
@@ -74,11 +76,15 @@ class OrderdetailController extends GetxController with BaseController {
   }
 
   Future<void> downloadAndSavePDF(String id) async {
-    final orderData = item.containsKey('data') && item['data'] is Map ? item['data'] : item;
-    final paymentMethod = (orderData['payment_method'] ?? '').toString().toLowerCase();
-    final paymentStatus = (orderData['payment_status'] ?? '').toString().toLowerCase();
+    final orderData =
+        item.containsKey('data') && item['data'] is Map ? item['data'] : item;
+    final paymentMethod =
+        (orderData['payment_method'] ?? '').toString().toLowerCase();
+    final paymentStatus =
+        (orderData['payment_status'] ?? '').toString().toLowerCase();
     if (paymentMethod == 'cod' && paymentStatus != 'paid') {
-      HelperFunctions().showSnackBarError('Invoice will be available after payment is completed on delivery.');
+      HelperFunctions().showSnackBarError(
+          'Invoice will be available after payment is completed on delivery.');
       return;
     }
     if (await Permission.storage.request().isGranted) {
@@ -98,14 +104,8 @@ class OrderdetailController extends GetxController with BaseController {
           options: Options(responseType: ResponseType.bytes),
         );
 
-        final directory = Platform.isAndroid
-            ? await getExternalStorageDirectory()
-            : await getApplicationDocumentsDirectory();
-
         final Uint8List bytes = Uint8List.fromList(response.data!);
-        final appDocDir = await getExternalStorageDirectory();
         final String filePath = '/storage/emulated/0/Download/invoice_$id.pdf';
-        final pdfPath = '${appDocDir!.path}/your_file_name.pdf';
 
         // await File(filePath).writeAsBytes(bytes);
 

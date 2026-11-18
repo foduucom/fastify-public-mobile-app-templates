@@ -51,8 +51,47 @@ class FaqAccordionSection extends StatelessWidget {
               item.answer.toLowerCase().contains(query);
         }).toList();
 
-        if (filteredItems.isEmpty && query.isNotEmpty) {
-          return const SizedBox.shrink();
+        if (filteredItems.isEmpty &&
+            (query.isNotEmpty || selectedTopic.isNotEmpty)) {
+          return Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: colorScheme.outlineVariant),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.search_off_rounded,
+                      color: colorScheme.primary, size: 28),
+                  const SizedBox(height: 8),
+                  Text(
+                    'No matching answers found',
+                    style: theme.textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Try another search or clear your filters to browse all answers.',
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  TextButton.icon(
+                    onPressed: helpController.clearFilters,
+                    icon: const Icon(Icons.close_rounded, size: 18),
+                    label: const Text('Clear filters'),
+                  ),
+                ],
+              ),
+            ),
+          );
         }
 
         return _buildSectionBody(
@@ -197,14 +236,13 @@ class _FaqAccordionCardState extends State<_FaqAccordionCard> {
             ? (isDark
                 ? colorScheme.surfaceContainerHigh
                 : colorScheme.primary.withValues(alpha: 0.03))
-            : (isDark
-                ? colorScheme.surfaceContainer
-                : colorScheme.surface),
+            : (isDark ? colorScheme.surfaceContainer : colorScheme.surface),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: _isExpanded
               ? colorScheme.primary.withValues(alpha: 0.5)
-              : colorScheme.outlineVariant.withValues(alpha: isDark ? 0.3 : 0.5),
+              : colorScheme.outlineVariant
+                  .withValues(alpha: isDark ? 0.3 : 0.5),
           width: _isExpanded ? 1.4 : 1.0,
         ),
         boxShadow: [

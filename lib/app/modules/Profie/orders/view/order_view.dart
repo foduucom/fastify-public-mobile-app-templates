@@ -1,6 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '/components/app_image_placeholder.dart';
+import '/components/order_product_image.dart';
 import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import '/app/modules/bottomar/controllers/bottombar_controller.dart';
@@ -11,8 +10,7 @@ import 'package:shimmer/shimmer.dart';
 import '/app/modules/Profie/orders/controller/orders_controller.dart';
 
 class OrdersView extends GetView<OrdersController> {
-  OrdersView({Key? key}) : super(key: key);
-  var controllerval = Get.lazyPut(() => OrdersController());
+  const OrdersView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -71,60 +69,10 @@ class OrderCard extends StatelessWidget {
   final dynamic item;
   final int listIndex;
 
-  String _constructImageUrl(Map imageObj) {
-    final filepath = imageObj['filepath']?.toString() ?? '';
-    if (filepath.isNotEmpty) {
-      final cleanPath =
-          filepath.startsWith('/') ? filepath.substring(1) : filepath;
-      return 'https://mywatch.vbought.com/images/$cleanPath';
-    }
-    final url = imageObj['download_url']?.toString() ?? '';
-    return _fixImageUrl(url);
-  }
-
-  String _fixImageUrl(String url) {
-    if (url.isEmpty) return '';
-    final uri = Uri.tryParse(url);
-    if (uri == null) return url;
-    if (uri.host.endsWith('.vbought.com') &&
-        uri.host != 'mywatch.vbought.com') {
-      return url.replaceFirst(uri.host, 'mywatch.vbought.com');
-    }
-    return url;
-  }
-
-  String _getProductImage() {
-    try {
-      final products = item['products'];
-      if (products is! List || products.isEmpty) return '';
-
-      final first = products.first;
-      if (first == null || first is! Map) return '';
-
-      final productObj = first['product_id'];
-      if (productObj == null || productObj is! Map) return '';
-
-      final fi = productObj['featured_image'];
-      if (fi is Map) {
-        final url = _constructImageUrl(fi);
-        if (url.isNotEmpty) return url;
-      }
-
-      final frontImageId = productObj['front_image']?.toString() ?? '';
-      final gallery = productObj['gallery'];
-
-      if (gallery is List && frontImageId.isNotEmpty) {
-        final match = gallery.firstWhere(
-          (g) => g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
-          orElse: () => null,
-        );
-        if (match != null) return _constructImageUrl(match);
-      }
-
-      return '';
-    } catch (e) {
-      debugPrint('🚨 OrderCard image error: $e');
-      return '';
+  void _openOrder() {
+    final rawId = (item['_id'] ?? item['id'] ?? '').toString();
+    if (rawId.isNotEmpty) {
+      Get.toNamed(Routes.ORDER_DETAILS, arguments: {'id': rawId});
     }
   }
 
@@ -155,8 +103,7 @@ class OrderCard extends StatelessWidget {
     final theme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final orderId =
-        (item['order_no'] ?? item['_id'] ?? item['id'] ?? '').toString();
+    final orderId = (item['order_no'] ?? '').toString();
     final paymentMethod = (item['payment_method'] ?? '').toString();
     final isCod = paymentMethod.toLowerCase() == 'cod';
     final rawPaymentStatus = (item['payment_status'] ?? 'Pending').toString();
@@ -172,14 +119,12 @@ class OrderCard extends StatelessWidget {
     final products = item['products'];
     final productCount = (products is List) ? products.length : 0;
 
-    final imageUrl = _getProductImage();
+    final firstProduct =
+        products is List && products.isNotEmpty ? products.first : null;
     final productName = _getFirstProductName();
 
     return GestureDetector(
-      onTap: () => Get.toNamed(
-        Routes.ORDER_PRODUCTS,
-        arguments: {'order': item},
-      ),
+      onTap: _openOrder,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -192,183 +137,133 @@ class OrderCard extends StatelessWidget {
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // ── Product Image ──────────────────────────────
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                width: 68,
-                height: 68,
-                child: imageUrl.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        width: 68,
-                        height: 68,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => _imageFallback(theme),
-                        errorWidget: (_, __, ___) => _imageFallback(theme),
-                      )
-                    : _imageFallback(theme),
-              ),
-            ),
-            const SizedBox(width: 12),
+              children: [
+                // ── Product Image ──────────────────────────────
+                OrderProductImage(
+                  orderLine: firstProduct,
+                  width: 68,
+                  height: 68,
+                  radius: 8,
+                  fit: BoxFit.cover,
+                ),
+                const SizedBox(width: 12),
 
-            // ── Order Info ─────────────────────────────────
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
+                // ── Order Info ─────────────────────────────────
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Expanded(
-                        child: Text(
-                          productName,
-                          style: textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              productName,
+                              style: textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                fontFamily: 'lato',
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (productCount > 1)
+                            Container(
+                              margin: const EdgeInsets.only(left: 6),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: theme.primary.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                '+${productCount - 1} more',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                  color: theme.primary,
+                                  fontFamily: 'lato',
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        orderId.isEmpty ? 'Order' : 'Order #$orderId',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: theme.onSurface.withValues(alpha: 0.4),
+                          fontSize: 11,
+                          fontFamily: 'lato',
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (orderDate.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          orderDate,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: theme.onSurface.withValues(alpha: 0.35),
+                            fontSize: 11,
                             fontFamily: 'lato',
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      if (productCount > 1)
-                        Container(
-                          margin: const EdgeInsets.only(left: 6),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 7, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: theme.primary.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            '+${productCount - 1} more',
+                      ],
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '$currency$total',
                             style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w700,
                               color: theme.primary,
+                              fontSize: 14,
                               fontFamily: 'lato',
                             ),
                           ),
-                        ),
+                          Flexible(
+                            child: _StatusBadge(status: paymentStatus),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    'Order #$orderId',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: theme.onSurface.withValues(alpha: 0.4),
-                      fontSize: 11,
-                      fontFamily: 'lato',
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _openOrder,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.primary,
+                      foregroundColor: theme.onPrimary,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (orderDate.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      orderDate,
+                    child: Text(
+                      'View order & tracking',
                       style: textTheme.bodySmall?.copyWith(
-                        color: theme.onSurface.withValues(alpha: 0.35),
-                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: theme.onPrimary,
                         fontFamily: 'lato',
                       ),
                     ),
-                  ],
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '$currency$total',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: theme.primary,
-                          fontSize: 14,
-                          fontFamily: 'lato',
-                        ),
-                      ),
-                      Flexible(
-                        child: _StatusBadge(status: paymentStatus),
-                      ),
-                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () => Get.toNamed(
-                  Routes.ORDER_PRODUCTS,
-                  arguments: {'order': item},
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.onSurface,
-                  side: BorderSide(color: theme.outline.withValues(alpha: 0.5)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                ),
-                child: Text(
-                  'Details',
-                  style: textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.onSurface,
-                    fontFamily: 'lato',
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () {
-                  final rawId = (item['_id'] ?? item['id'] ?? '').toString();
-                  if (rawId.isNotEmpty) {
-                    Get.toNamed(Routes.ORDER_DETAILS, arguments: {'id': rawId});
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.primary,
-                  foregroundColor: theme.onPrimary,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                ),
-                child: Text(
-                  'Tracking',
-                  style: textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.onPrimary,
-                    fontFamily: 'lato',
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _imageFallback(ColorScheme theme) {
-    return const AppImagePlaceholder(
-      radius: 8,
-      width: 68,
-      height: 68,
-      fit: BoxFit.contain,
     );
   }
 }

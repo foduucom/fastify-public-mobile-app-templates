@@ -504,7 +504,7 @@ class ContactChannelsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -537,7 +537,9 @@ class ContactChannelsWidget extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              childAspectRatio: 0.95,
+              // Keep two-column cards comfortably tall for wrapped details,
+              // without creating the large empty area of the old tall tiles.
+              childAspectRatio: 1.05,
             ),
             itemBuilder: (context, index) {
               final card = data.cards[index];
@@ -628,7 +630,7 @@ class _ContactChannelTile extends StatelessWidget {
                 ),
                 child: Center(child: _buildIcon(context)),
               ),
-              const Spacer(),
+              const SizedBox(height: 12),
               Text(
                 card.heading,
                 maxLines: 1,
@@ -691,7 +693,7 @@ class ContactFaqAccordionWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

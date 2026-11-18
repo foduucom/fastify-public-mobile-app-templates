@@ -187,7 +187,13 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           _attachParentScrollListener();
         });
       }
-      if (trendingList.isEmpty && _hasMore.value) {
+      if (_hasMore.value && trendingList.length < 3 && !_isExternal) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _hasMore.value && !_isLoadingMore.value) {
+            _fetchProductsFromApi();
+          }
+        });
+      } else if (trendingList.isEmpty && _hasMore.value) {
         _fetchProductsFromApi();
       }
     } else {
@@ -265,21 +271,37 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       final categoryType =
           widget.contentJson?['category_type'] ?? 'random_category';
       final categoryIds = widget.contentJson?['category_ids'];
+      final categoryId = widget.contentJson?['category_id'];
+      final parentType = widget.contentJson?['parent_type'];
+      final parentId = parentType is Map ? parentType['_id'] : parentType?.toString();
+      final parentSlug = parentType is Map ? parentType['slug'] : null;
 
-      // Build query parameters
+      // Ensure count is at least 10 for paginated requests
+      final effectiveCount = _countPerPage > 1 ? _countPerPage : 10;
       final Map<String, dynamic> queryParams = {
         'page': _currentPage.toString(),
-        'count': _countPerPage.toString(),
+        'count': effectiveCount.toString(),
       };
 
-      if (categoryType == 'parent_category' ||
-          categoryType == 'random_category') {
+      if (categoryType == 'random_category') {
         queryParams['random'] = 'true';
-      } else if (categoryType == 'specific_category' &&
-          categoryIds != null &&
-          categoryIds is List &&
-          categoryIds.isNotEmpty) {
-        queryParams['specific'] = categoryIds.map((e) => e.toString()).toList();
+      } else if (categoryType == 'parent_category') {
+        if (parentSlug != null || parentId != null) {
+          queryParams['parentCategory'] = parentSlug ?? parentId;
+        } else {
+          queryParams['random'] = 'true';
+        }
+      } else if (categoryType == 'specific_category') {
+        if (categoryIds != null &&
+            categoryIds is List &&
+            categoryIds.isNotEmpty) {
+          queryParams['specific'] = categoryIds.map((e) => e.toString()).toList();
+        } else if (categoryId != null) {
+          final id = categoryId is Map ? (categoryId['_id'] ?? categoryId['id']) : categoryId;
+          queryParams['specific'] = [id.toString()];
+        } else if (parentSlug != null || parentId != null) {
+          queryParams['parentCategory'] = parentSlug ?? parentId;
+        }
       }
 
       final response = await BasicProvider('products')
@@ -386,12 +408,27 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                           ? subheading
                           : null,
                       onSeeAll: () {
-                        openShop({
-                          'filterType': categoryType,
-                          'filterValue': true,
-                          'name': heading.isNotEmpty ? heading : 'Products',
-                          'source': 'dashboard'
-                        });
+                        final parentType = widget.contentJson?['parent_type'];
+                        final parentSlug =
+                            parentType is Map ? parentType['slug'] : null;
+                        final parentId =
+                            parentType is Map ? parentType['_id'] : parentType;
+
+                        if (parentSlug != null || parentId != null) {
+                          openShop({
+                            'source': 'category',
+                            'categorySlug': parentSlug,
+                            'category': parentId,
+                            'name': heading.isNotEmpty ? heading : 'Products',
+                          });
+                        } else {
+                          openShop({
+                            'filterType': categoryType,
+                            'filterValue': true,
+                            'name': heading.isNotEmpty ? heading : 'Products',
+                            'source': 'dashboard',
+                          });
+                        }
                       },
                     ),
                   ),
@@ -1731,7 +1768,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   /// Horizontal loading indicator (for standard & overlay horizontal lists)
   Widget _buildLoadingIndicator() {
-    if (!_hasMoreValue) return const SizedBox.shrink();
+    if (!_hasMoreValue || !_isLoadingMoreValue) return const SizedBox.shrink();
     return const SizedBox(
       width: 60,
       child: Center(
@@ -1746,7 +1783,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   /// Vertical loading indicator (for horizontal-style vertical list)
   Widget _buildLoadingIndicatorVertical() {
-    if (!_hasMoreValue) return const SizedBox.shrink();
+    if (!_hasMoreValue || !_isLoadingMoreValue) return const SizedBox.shrink();
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 16.0),
       child: Center(

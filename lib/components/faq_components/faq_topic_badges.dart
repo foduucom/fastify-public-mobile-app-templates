@@ -18,52 +18,46 @@ class FaqTopicBadges extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
+    final isDark = theme.brightness == Brightness.dark;
     final helpController = Get.isRegistered<HelpandsupportController>()
         ? Get.find<HelpandsupportController>()
         : null;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Explore Topics',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15.5,
+                Expanded(
+                  child: Text(
+                    'Explore Topics',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 if (helpController != null)
                   Obx(() {
-                    final selected = helpController.selectedTopic.value;
-                    if (selected.isEmpty) return const SizedBox.shrink();
-                    return GestureDetector(
-                      onTap: () => helpController.selectTopic(''),
-                      child: Text(
-                        'Show All',
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.primary,
-                        ),
-                      ),
+                    if (helpController.selectedTopic.value.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return TextButton(
+                      onPressed: () => helpController.selectTopic(''),
+                      child: const Text('Show all'),
                     );
                   }),
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           SizedBox(
-            height: 105,
+            height: 132,
             child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               scrollDirection: Axis.horizontal,
               itemCount: data.badges.length,
               separatorBuilder: (_, __) => const SizedBox(width: 12),
@@ -73,34 +67,30 @@ class FaqTopicBadges extends StatelessWidget {
                     ? HelperFunctions().getImage(badge.image)
                     : '';
 
-                if (helpController != null) {
-                  return Obx(() {
-                    final isSelected =
-                        helpController.selectedTopic.value.toLowerCase() ==
-                            badge.heading.toLowerCase();
-                    return _buildBadgeCard(
-                      context: context,
-                      badge: badge,
-                      imageUrl: imageUrl,
-                      isSelected: isSelected,
-                      onTap: () {
-                        if (isSelected) {
-                          helpController.selectTopic('');
-                        } else {
-                          helpController.selectTopic(badge.heading);
-                        }
-                      },
-                    );
-                  });
+                if (helpController == null) {
+                  return _buildTopic(
+                    context,
+                    badge,
+                    imageUrl,
+                    isSelected: false,
+                    onTap: null,
+                  );
                 }
 
-                return _buildBadgeCard(
-                  context: context,
-                  badge: badge,
-                  imageUrl: imageUrl,
-                  isSelected: false,
-                  onTap: () {},
-                );
+                return Obx(() {
+                  final isSelected =
+                      helpController.selectedTopic.value.toLowerCase() ==
+                          badge.heading.toLowerCase();
+                  return _buildTopic(
+                    context,
+                    badge,
+                    imageUrl,
+                    isSelected: isSelected,
+                    onTap: () => helpController.selectTopic(
+                      isSelected ? '' : badge.heading,
+                    ),
+                  );
+                });
               },
             ),
           ),
@@ -109,107 +99,108 @@ class FaqTopicBadges extends StatelessWidget {
     );
   }
 
-  Widget _buildBadgeCard({
-    required BuildContext context,
-    required FaqTopicBadge badge,
-    required String imageUrl,
+  Widget _buildTopic(
+    BuildContext context,
+    FaqTopicBadge badge,
+    String imageUrl, {
     required bool isSelected,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
+    final iconColor = isSelected ? colorScheme.primary : colorScheme.onSurface;
+    final circleColor = isSelected
+        ? colorScheme.primary.withValues(alpha: isDark ? 0.2 : 0.1)
+        : colorScheme.surface;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 140,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? colorScheme.primary.withValues(alpha: isDark ? 0.22 : 0.1)
-              : (isDark
-                  ? colorScheme.surfaceContainerHigh
-                  : colorScheme.surface),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected
-                ? colorScheme.primary
-                : colorScheme.outlineVariant
-                    .withValues(alpha: isDark ? 0.3 : 0.5),
-            width: isSelected ? 1.8 : 1.0,
+    return Semantics(
+      button: onTap != null,
+      selected: isSelected,
+      label: '${badge.heading}. ${badge.articleCount}',
+      child: ExcludeSemantics(
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(16),
+            child: SizedBox(
+              width: 92,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    width: 66,
+                    height: 66,
+                    decoration: BoxDecoration(
+                      color: circleColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isSelected
+                            ? colorScheme.primary
+                            : colorScheme.outlineVariant
+                                .withValues(alpha: isDark ? 0.55 : 0.28),
+                        width: isSelected ? 2 : 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                            alpha: isDark ? 0.16 : 0.035,
+                          ),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: imageUrl.isNotEmpty
+                          ? FoduuCachedNetworkImage(
+                              image: imageUrl,
+                              height: 32,
+                              width: 32,
+                              fit: BoxFit.contain,
+                              colorFilter: ColorFilter.mode(
+                                iconColor,
+                                BlendMode.srcIn,
+                              ),
+                            )
+                          : Icon(
+                              Icons.folder_outlined,
+                              size: 30,
+                              color: iconColor,
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 7),
+                  Text(
+                    badge.heading,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w600,
+                      color: isSelected
+                          ? colorScheme.primary
+                          : colorScheme.onSurface,
+                      height: 1.15,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    badge.articleCount,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: isSelected
-                  ? colorScheme.primary.withValues(alpha: 0.15)
-                  : Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-              blurRadius: isSelected ? 10 : 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (imageUrl.isNotEmpty)
-                  FoduuCachedNetworkImage(
-                    image: imageUrl,
-                    height: 28,
-                    width: 28,
-                    fit: BoxFit.contain,
-                    colorFilter: isSelected
-                        ? ColorFilter.mode(colorScheme.primary, BlendMode.srcIn)
-                        : null,
-                  )
-                else
-                  Icon(
-                    Icons.folder_outlined,
-                    size: 24,
-                    color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
-                  ),
-                if (isSelected)
-                  Icon(
-                    Icons.check_circle_rounded,
-                    size: 16,
-                    color: colorScheme.primary,
-                  ),
-              ],
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  badge.heading,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 12.5,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                    color: isSelected
-                        ? colorScheme.primary
-                        : colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  badge.articleCount,
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ],
         ),
       ),
     );

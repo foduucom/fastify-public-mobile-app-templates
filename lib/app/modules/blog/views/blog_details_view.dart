@@ -133,7 +133,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
-              color: colorScheme.primary.withOpacity(0.12),
+              color: colorScheme.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
@@ -338,7 +338,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
                 decoration: BoxDecoration(
                   color: colorScheme.surfaceVariant,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                  border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
                 ),
                 child: Text(
                   '#$tag',
@@ -372,7 +372,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.15)),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.15)),
       ),
       child: Column(
         children: [
@@ -426,7 +426,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
               ),
             ),
           if (prev != null && next != null)
-            Divider(color: colorScheme.outline.withOpacity(0.12), height: 16),
+            Divider(color: colorScheme.outline.withValues(alpha: 0.12), height: 16),
           if (next != null)
             InkWell(
               onTap: () => controller.openBlog(next),
@@ -490,16 +490,16 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceVariant.withOpacity(0.5),
+        color: colorScheme.surfaceVariant.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.15)),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.15)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CircleAvatar(
             radius: 24,
-            backgroundColor: colorScheme.primary.withOpacity(0.2),
+            backgroundColor: colorScheme.primary.withValues(alpha: 0.2),
             child: Text(
               blog.authorName.isNotEmpty ? blog.authorName[0].toUpperCase() : 'A',
               style: TextStyle(
@@ -592,7 +592,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
                   color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                      color: colorScheme.outline.withOpacity(0.12)),
+                      color: colorScheme.outline.withValues(alpha: 0.12)),
                 ),
                 child: Row(
                   children: [

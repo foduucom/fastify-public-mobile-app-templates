@@ -24,6 +24,7 @@ class BottombarController extends GetxController with BaseController {
   var cart = List<dynamic>.empty().obs;
   var itemsInCart = 0.obs;
   bool _pageControllerDisposed = false;
+  bool _pageSyncScheduled = false;
 
   @override
   void onInit() async {
@@ -97,7 +98,31 @@ class BottombarController extends GetxController with BaseController {
   }
 
   void onTabChange(value) {
-    if (_pageControllerDisposed || !pageController.hasClients || value < 0) {
+    if (value is! int || value < 0 || value >= 5) {
+      return;
+    }
+    // Keep the selected tab even if a route transition has temporarily
+    // detached the PageView. The view retries the page sync after its next
+    // frame, so quick taps after Skip are not lost.
+    currentPageIndex.value = value;
+    if (_pageControllerDisposed) return;
+    _syncPageToSelectedTab();
+    update();
+  }
+
+  void syncPageToSelectedTab() => _syncPageToSelectedTab();
+
+  void _syncPageToSelectedTab() {
+    if (_pageControllerDisposed) return;
+    if (!pageController.hasClients) {
+      if (_pageSyncScheduled) return;
+      _pageSyncScheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _pageSyncScheduled = false;
+        if (!_pageControllerDisposed && pageController.hasClients) {
+          _syncPageToSelectedTab();
+        }
+      });
       return;
     }
     // A route can be removed while a pointer event from its bottom nav is still
@@ -107,13 +132,14 @@ class BottombarController extends GetxController with BaseController {
       return;
     }
     try {
-      pageController.jumpToPage(value);
+      final target = currentPageIndex.value;
+      if (pageController.page?.round() != target) {
+        pageController.jumpToPage(target);
+      }
     } on FlutterError catch (error) {
       if (error.message.contains('used after being disposed')) return;
       rethrow;
     }
-    currentPageIndex.value = value;
-    update();
   }
 
   void goToCart() {

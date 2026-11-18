@@ -1,17 +1,17 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:foduu_ecommerce/app/data/category_index_service.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
-import 'package:foduu_ecommerce/app/modules/category/controllers/category_controller.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/controllers/homepage_controller.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/drawerList.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
-import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 import 'package:shimmer/shimmer.dart';
 
 // ---------------------------------------------------------------------------
@@ -37,10 +37,50 @@ class _CustomDrawerState extends State<CustomDrawer> {
   int _currentLevel = 0; // 0 = main, 1 = categories, 2 = subcategories
 
   // ── Category drill-down state ────────────────────────────────────────────
+  final CategoryIndexService _categoryIndexService = CategoryIndexService();
+  final RxList<Map<String, dynamic>> _hydratedCategories =
+      <Map<String, dynamic>>[].obs;
+  final RxBool _isTreeLoading = false.obs;
   Map<String, dynamic>? _selectedParent;
 
   // ── CMS drawer items (from HomepageController) ───────────────────────────
   HomepageController get _hc => Get.find<HomepageController>();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHydratedCategories();
+  }
+
+  Future<void> _loadHydratedCategories() async {
+    if (_hydratedCategories.isEmpty) {
+      _isTreeLoading.value = true;
+    }
+
+    try {
+      // 1. Instantly display cached tree if available
+      final tree = await _categoryIndexService.getHydratedCategoryTree();
+      if (tree.isNotEmpty) {
+        _hydratedCategories.assignAll(tree);
+        _isTreeLoading.value = false;
+      }
+    } catch (e) {
+      debugPrint("CustomDrawer _loadHydratedCategories cache error: $e");
+    }
+
+    // 2. Sync fresh tree in background to reflect newly added categories
+    try {
+      final freshTree = await _categoryIndexService.getHydratedCategoryTree(
+          forceRefresh: true);
+      if (freshTree.isNotEmpty && mounted) {
+        _hydratedCategories.assignAll(freshTree);
+      }
+    } catch (e) {
+      debugPrint("CustomDrawer _loadHydratedCategories refresh error: $e");
+    } finally {
+      if (mounted) _isTreeLoading.value = false;
+    }
+  }
 
   // ──────────────────────────────────────────────────────────────────────────
 
@@ -100,7 +140,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
   Widget _buildMainMenuPage(BuildContext context) {
     final bool isLoggedIn = AuthDetails.isUserLogin();
-    final authdetails = AuthDetails.getUserDetails() ?? {};
+    final userDetails = AuthDetails.getUserDetails();
+    // GetStorage may restore nested JSON maps as Map<dynamic, dynamic>.
+    // Normalize at this boundary before passing the data to the typed header.
+    final Map<String, dynamic> authdetails = userDetails is Map
+        ? Map<String, dynamic>.from(userDetails)
+        : <String, dynamic>{};
 
     return Column(
       children: [
@@ -124,10 +169,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 icon: const Icon(Icons.shopping_bag_outlined),
                 title: 'All Products',
                 subtitle: 'Browse the complete catalog',
-                onTap: () {
-                  Get.back();
-                  openShop();
-                },
+                onTap: () => _navigateToBottomBarPage(shopTabIndex),
               ),
               // Browse by Category — drills into level 1
               ListTile(
@@ -293,68 +335,78 @@ class _CustomDrawerState extends State<CustomDrawer> {
   // ──────────────────────────────────────────────────────────────────────────
 
   Widget _buildCategoryPage(BuildContext context) {
-    // Pull categories from CategoryController if registered,
-    // otherwise show skeleton until it becomes available.
-    final bool catAvailable =
-        Get.isRegistered<CategoryController>();
-    final CategoryController? catController =
-        catAvailable ? Get.find<CategoryController>() : null;
-
     return Column(
       children: [
         // Back header
         _buildSubPageHeader(context, 'Browse by Category'),
 
         Expanded(
-          child: catController == null
-              ? _buildCategorySkeleton(context)
-              : Obx(() {
-                  final categories = catController.categoryList;
-                  return categories.isEmpty
-                      ? _buildCategorySkeleton(context)
-                      : ListView.separated(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          itemCount: categories.length,
-                          separatorBuilder: (_, __) => Divider(
-                            height: 1,
-                            color: context.outlineColor.withOpacity(0.3),
-                            indent: 16,
-                            endIndent: 16,
-                          ),
-                          itemBuilder: (_, i) {
-                            final cat = categories[i] as Map<String, dynamic>? ?? {};
-                            final name = cat['name']?.toString() ??
-                                cat['text']?.toString() ??
-                                '';
-                            final hasChildren =
-                                (cat['children'] as List?)?.isNotEmpty ?? false;
+          child: Obx(() {
+            if (_isTreeLoading.value && _hydratedCategories.isEmpty) {
+              return _buildCategorySkeleton(context);
+            }
 
-                            return ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 6),
-                              title: Text(
-                                name,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w500, fontSize: 14),
-                              ),
-                              trailing: hasChildren
-                                  ? Icon(Icons.arrow_forward_ios_rounded,
-                                      size: 13,
-                                      color: context.onSurfaceVariantColor)
-                                  : null,
-                              onTap: () {
-                                if (hasChildren) {
-                                  _goToLevel(2, parent: cat);
-                                } else {
-                                  Get.back();
-                                  Get.toNamed(Routes.CATEGORY_SEARCH,
-                                      arguments: cat);
-                                }
-                              },
-                            );
-                          },
-                        );
-                }),
+            if (_hydratedCategories.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Text(
+                    'No categories found.',
+                    style: TextStyle(
+                      color: context.onSurfaceVariantColor,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            return ListView.separated(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: _hydratedCategories.length,
+              separatorBuilder: (_, __) => Divider(
+                height: 1,
+                color: context.outlineColor.withOpacity(0.3),
+                indent: 16,
+                endIndent: 16,
+              ),
+              itemBuilder: (_, i) {
+                final cat = _hydratedCategories[i];
+                final name =
+                    cat['name']?.toString() ?? cat['text']?.toString() ?? '';
+                final hasChildren =
+                    (cat['children'] as List?)?.isNotEmpty ?? false;
+
+                return ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 6),
+                  title: Text(
+                    name,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w500, fontSize: 14),
+                  ),
+                  trailing: hasChildren
+                      ? Icon(Icons.arrow_forward_ios_rounded,
+                          size: 13,
+                          color: context.onSurfaceVariantColor)
+                      : null,
+                  onTap: () {
+                    if (hasChildren) {
+                      _goToLevel(2, parent: cat);
+                    } else {
+                      Get.back();
+                      openShop({
+                        'productId': cat['_id'] ?? cat['id'],
+                        'categorySlug': cat['slug'],
+                        'name': cat['name'],
+                        'source': 'category',
+                      });
+                    }
+                  },
+                );
+              },
+            );
+          }),
         ),
       ],
     );
@@ -397,6 +449,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     final sub = children[i];
                     final name = sub['name']?.toString() ??
                         sub['text']?.toString() ?? '';
+                    final hasNestedChildren =
+                        (sub['children'] as List?)?.isNotEmpty ?? false;
+
                     return ListTile(
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 6),
@@ -406,9 +461,17 @@ class _CustomDrawerState extends State<CustomDrawer> {
                           size: 13,
                           color: context.onSurfaceVariantColor),
                       onTap: () {
-                        Get.back();
-                        Get.toNamed(Routes.CATEGORY_SEARCH,
-                            arguments: sub);
+                        if (hasNestedChildren) {
+                          _goToLevel(2, parent: sub);
+                        } else {
+                          Get.back();
+                          openShop({
+                            'productId': sub['_id'] ?? sub['id'],
+                            'categorySlug': sub['slug'],
+                            'name': sub['name'],
+                            'source': 'category',
+                          });
+                        }
                       },
                     );
                   },
@@ -423,7 +486,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
   // ──────────────────────────────────────────────────────────────────────────
 
   Widget _buildHeader(BuildContext context, bool isLoggedIn,
-      Map<String, dynamic> authdetails) {
+      dynamic authdetails) {
     return Container(
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + 16,

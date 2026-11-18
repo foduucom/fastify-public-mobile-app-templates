@@ -14,8 +14,6 @@ import 'package:foduu_ecommerce/app/modules/aboutus/views/aboutus_view.dart';
 import 'package:foduu_ecommerce/app/modules/category_search/bindings/category_search_binding.dart';
 import 'package:foduu_ecommerce/app/modules/category_search/views/category_search_view.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/binding/order_binding.dart';
-import 'package:foduu_ecommerce/app/modules/Profie/orders/order_products/binding/order_products_binding.dart';
-import 'package:foduu_ecommerce/app/modules/Profie/orders/order_products/view/order_view.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/orders_details/binding/orderdetails_binding.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/orders_details/view/orderdetails_view.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/view/order_view.dart';
@@ -250,8 +248,8 @@ class AppPages {
 
     GetPage(
       name: _Paths.ORDER_PRODUCTS,
-      page: () => const OrderProductsView(),
-      binding: OrderProductsBinding(),
+      page: () => OrderdetailView(),
+      binding: OrderdetailBinding(),
     ),
     // GetPage(
     //   name: _Paths.LOGIN,
@@ -308,12 +306,6 @@ class AppPages {
       name: _Paths.NOTIFICATION,
       page: () => NotificationsView(),
       binding: NotificationsBinding(),
-    ),
-
-    GetPage(
-      name: _Paths.ORDER_PRODUCTS,
-      page: () => const OrderProductsView(),
-      binding: OrderProductsBinding(),
     ),
 
     GetPage(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/data/models/faq_sections.dart';
-import 'package:foduu_ecommerce/app/modules/helpandsupport/controllers/helpandsupport_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/foduuCachedImageNetwork.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
@@ -47,7 +46,8 @@ class FaqStillStuckCard extends StatelessWidget {
             end: Alignment.bottomRight,
           ),
           border: Border.all(
-            color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.35 : 0.5),
+            color: colorScheme.outlineVariant
+                .withValues(alpha: isDark ? 0.35 : 0.5),
             width: 1,
           ),
           boxShadow: [
@@ -105,8 +105,8 @@ class FaqStillStuckCard extends StatelessWidget {
                       padding: const EdgeInsets.only(left: 8.0),
                       child: FoduuCachedNetworkImage(
                         image: imageUrl,
-                        height: 54,
-                        width: 54,
+                        height: 68,
+                        width: 68,
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -123,9 +123,8 @@ class FaqStillStuckCard extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               // Action Buttons
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   ElevatedButton.icon(
                     onPressed: () {
@@ -143,6 +142,7 @@ class FaqStillStuckCard extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
+                      minimumSize: const Size.fromHeight(48),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -151,13 +151,9 @@ class FaqStillStuckCard extends StatelessWidget {
                       elevation: 0,
                     ),
                   ),
+                  const SizedBox(height: 10),
                   OutlinedButton.icon(
-                    onPressed: () {
-                      if (Get.isRegistered<HelpandsupportController>()) {
-                        final ctrl = Get.find<HelpandsupportController>();
-                        ctrl.clearFilters();
-                      }
-                    },
+                    onPressed: () => Get.toNamed(Routes.SEARCH),
                     icon: const Icon(Icons.forum_outlined, size: 16),
                     label: const Text(
                       'Search Community',
@@ -169,6 +165,7 @@ class FaqStillStuckCard extends StatelessWidget {
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: colorScheme.onSurface,
+                      minimumSize: const Size.fromHeight(48),
                       side: BorderSide(
                         color: colorScheme.outlineVariant
                             .withValues(alpha: isDark ? 0.4 : 0.7),

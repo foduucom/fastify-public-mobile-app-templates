@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../constants/dynamic_theme.dart';
 import 'web_theme_helper.dart';
 
 class AppWebViewScreen extends StatefulWidget {
@@ -30,6 +32,7 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';
+  String? _lastAppliedCss;
 
   @override
   void initState() {
@@ -45,8 +48,8 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
   }
 
   void _initWebFallbackTimer() {
+    _webTimeoutTimer?.cancel();
     if (kIsWeb) {
-      _webTimeoutTimer?.cancel();
       // Browsers often don't fire granular progress events for cross-origin iframes.
       // A fallback timer guarantees the loading overlay is dismissed so the iframe view displays.
       _webTimeoutTimer = Timer(const Duration(milliseconds: 2500), () {
@@ -56,6 +59,22 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
             _progress = 1.0;
           });
         }
+      });
+    } else {
+      // WKWebView may stall without sending a progress, stop, or error callback.
+      // End the spinner with a retryable error and leave a useful device log.
+      _webTimeoutTimer = Timer(const Duration(seconds: 25), () {
+        if (!mounted || !_isLoading) return;
+        debugPrint(
+          '[AppWebView] Load timed out after 25s. url=${widget.url}, '
+          'progress=${(_progress * 100).round()}%',
+        );
+        setState(() {
+          _hasError = true;
+          _isLoading = false;
+          _errorMessage =
+              'The page took too long to respond. Check your connection and try again.';
+        });
       });
     }
   }
@@ -69,6 +88,8 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
         onRefresh: () async {
           _hasError = false;
           _isLoading = true;
+          _progress = 0;
+          _initWebFallbackTimer();
           setState(() {});
           if (_webViewController != null) {
             _webViewController!.reload();
@@ -78,7 +99,23 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
     }
   }
 
-  String _getInjectedCss({required bool isDark}) {
+  String _cssColor(Color color) =>
+      '#${(color.toARGB32() & 0x00FFFFFF).toRadixString(16).padLeft(6, '0')}';
+
+  String _getInjectedCss({
+    required AppThemeColors colors,
+    required bool isDark,
+  }) {
+    final background = _cssColor(colors.background);
+    final onBackground = _cssColor(colors.onBackground);
+    final surface = _cssColor(colors.surface);
+    final onSurface = _cssColor(colors.onSurface);
+    final primary = _cssColor(colors.primary);
+    final onPrimary = _cssColor(colors.onPrimary);
+    final secondary = _cssColor(colors.secondary);
+    final outline = _cssColor(colors.outline);
+    final colorSchemeMode = isDark ? 'dark' : 'light';
+
     final cleanCss = widget.cleanView
         ? '''
       header,
@@ -93,119 +130,106 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
       .subscribe-popup {
         display: none !important;
       }
-      body,
-      .custom-rp-area,
-      .aq-contact-area,
-      .aq-blog-inner-area,
-      .aq-about-me-area {
+      body {
         padding-top: 16px !important;
         padding-bottom: 32px !important;
       }
     '''
         : '';
 
-    if (isDark) {
-      return '''
-        $cleanCss
-        html, body {
-          background-color: #121212 !important;
-          color: #e2e8f0 !important;
-        }
-        .custom-rp-area,
-        .custom-rp-container,
-        .custom-rp-row,
-        .custom-rp-col,
-        .custom-rp-box,
-        .custom-rp-content,
-        .custom-rp-bottom,
-        .aq-contact-area,
-        .aq-contact-wrap,
-        .aq-contact-form-box,
-        .aq-contact-info-item,
-        .aq-blog-inner-area,
-        .aq-blog-inner-top,
-        .aq-about-me-area,
-        .aq-about-info-item,
-        .container,
-        .row,
-        .col,
-        .card,
-        section,
-        div {
-          background-color: transparent !important;
-          color: #e2e8f0 !important;
-        }
-        .custom-rp-box,
-        .aq-contact-form-box,
-        .aq-contact-info-item,
-        .card,
-        .aq-contact-box {
-          background-color: #1e1e1e !important;
-          border: 1px solid #2d3748 !important;
-          box-shadow: none !important;
-        }
-        .custom-rp-highlight {
-          background-color: #27200d !important;
-          border-left: 4px solid #f59e0b !important;
-          color: #fef3c7 !important;
-        }
-        h1, h2, h3, h4, h5, h6, strong, b {
-          color: #f8fafc !important;
-        }
-        p, span, li, label, td, th {
-          color: #cbd5e1 !important;
-        }
-        a {
-          color: #60a5fa !important;
-        }
-        input, textarea, select {
-          background-color: #242424 !important;
-          color: #ffffff !important;
-          border: 1px solid #4a5568 !important;
-        }
-        input::placeholder, textarea::placeholder {
-          color: #718096 !important;
-        }
-        button[type="submit"], .btn-primary, .aq-btn {
-          background-color: #3b82f6 !important;
-          color: #ffffff !important;
-          border: none !important;
-        }
-      ''';
-    } else {
-      return '''
-        $cleanCss
-        html, body {
-          background-color: #ffffff !important;
-          color: #1a202c !important;
-        }
-        .custom-rp-box,
-        .aq-contact-form-box,
-        .aq-contact-info-item {
-          background-color: #ffffff !important;
-        }
-      ''';
-    }
+    return '''
+      $cleanCss
+      :root {
+        color-scheme: $colorSchemeMode;
+        --app-background: $background;
+        --app-on-background: $onBackground;
+        --app-surface: $surface;
+        --app-on-surface: $onSurface;
+        --app-primary: $primary;
+        --app-on-primary: $onPrimary;
+        --app-secondary: $secondary;
+        --app-outline: $outline;
+      }
+      html, body {
+        background-color: var(--app-background) !important;
+        color: var(--app-on-background) !important;
+      }
+      body {
+        color: var(--app-on-background) !important;
+      }
+      h1, h2, h3, h4, h5, h6, strong, b {
+        color: var(--app-on-surface) !important;
+      }
+      p, span, li, label, small, td, th, blockquote {
+        color: var(--app-on-background) !important;
+      }
+      a {
+        color: var(--app-secondary) !important;
+      }
+      .custom-rp-box,
+      .custom-rp-content,
+      .custom-rp-bottom,
+      .aq-contact-form-box,
+      .aq-contact-info-item,
+      .aq-contact-box,
+      .card {
+        background-color: var(--app-surface) !important;
+        color: var(--app-on-surface) !important;
+        border-color: var(--app-outline) !important;
+        box-shadow: none !important;
+      }
+      .custom-rp-highlight {
+        background-color: var(--app-surface) !important;
+        border-left: 4px solid var(--app-primary) !important;
+        color: var(--app-on-surface) !important;
+      }
+      input, textarea, select {
+        background-color: var(--app-surface) !important;
+        color: var(--app-on-surface) !important;
+        border-color: var(--app-outline) !important;
+      }
+      input::placeholder, textarea::placeholder {
+        color: var(--app-on-background) !important;
+        opacity: 0.7;
+      }
+      button[type="submit"], .btn-primary, .aq-btn {
+        background-color: var(--app-primary) !important;
+        color: var(--app-on-primary) !important;
+        border-color: var(--app-primary) !important;
+      }
+      hr {
+        border-color: var(--app-outline) !important;
+      }
+    ''';
   }
 
-  void _applyThemeStyling(bool isDark) {
+  Future<void> _applyThemeStyling(
+    AppThemeColors colors, {
+    required bool isDark,
+  }) async {
     // Avoid evaluating JS inside cross-origin iframes on web to prevent SecurityErrors
     if (kIsWeb || _webViewController == null) return;
+    final controller = _webViewController!;
+    final css = _getInjectedCss(
+      colors: colors,
+      isDark: isDark,
+    );
+    if (_lastAppliedCss == css) return;
+
     try {
-      final css = _getInjectedCss(isDark: isDark);
-      final escapedCss = css.replaceAll('\n', ' ').replaceAll('"', '\\"');
       final js = '''
         (function() {
           var styleEl = document.getElementById('flutter-webview-theme-override');
           if (!styleEl) {
             styleEl = document.createElement('style');
             styleEl.id = 'flutter-webview-theme-override';
-            document.head.appendChild(styleEl);
+            (document.head || document.documentElement).appendChild(styleEl);
           }
-          styleEl.innerHTML = "$escapedCss";
+          styleEl.textContent = ${jsonEncode(css)};
         })();
       ''';
-      _webViewController!.evaluateJavascript(source: js);
+      await controller.evaluateJavascript(source: js);
+      _lastAppliedCss = css;
     } catch (e) {
       debugPrint('WebView theme styling ignored: $e');
     }
@@ -214,14 +238,17 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark || Get.isDarkMode;
     final colorScheme = theme.colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+    final appColors = DynamicThemeManager().getColors(colorScheme.brightness);
 
     // Reactively update styling
     if (kIsWeb) {
       setWebThemeMode(isDark);
     } else {
-      _applyThemeStyling(isDark);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _applyThemeStyling(appColors, isDark: isDark);
+      });
     }
 
     return PopScope(
@@ -285,7 +312,7 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
             Expanded(
               child: Stack(
                 children: [
-                  _buildWebView(isDark),
+                  _buildWebView(appColors, isDark),
                   if (_isLoading && !_hasError)
                     Container(
                       color: colorScheme.surface,
@@ -353,6 +380,7 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
                                   _isLoading = true;
                                   _progress = 0;
                                 });
+                                _initWebFallbackTimer();
                                 _webViewController?.reload();
                               },
                               icon: const Icon(Icons.refresh_rounded),
@@ -382,13 +410,15 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
     );
   }
 
-  Widget _buildWebView(bool isDark) {
+  Widget _buildWebView(AppThemeColors appColors, bool isDark) {
     Widget webView = InAppWebView(
       initialUrlRequest: URLRequest(url: WebUri(widget.url)),
       initialSettings: InAppWebViewSettings(
         isInspectable: kDebugMode,
         javaScriptEnabled: true,
-        useShouldOverrideUrlLoading: true,
+        // No URL interception is needed here. Enabling it without a navigation
+        // callback can leave WKWebView waiting on a policy decision on iOS.
+        useShouldOverrideUrlLoading: false,
         mediaPlaybackRequiresUserGesture: true,
         allowsInlineMediaPlayback: true,
         transparentBackground: true,
@@ -408,35 +438,39 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
         _webViewController = controller;
       },
       onLoadStart: (controller, url) {
+        debugPrint('[AppWebView] Load started: $url');
+        _initWebFallbackTimer();
+        _lastAppliedCss = null;
         setState(() {
           _hasError = false;
+          _isLoading = true;
+          _progress = 0;
         });
-        if (!kIsWeb) {
-          _applyThemeStyling(isDark);
-        }
       },
       onProgressChanged: (controller, progress) {
+        if (!kIsWeb) {
+          debugPrint(
+              '[AppWebView] Load progress: $progress% url=${widget.url}');
+        }
         setState(() {
           _progress = progress / 100.0;
           if (progress >= 70) {
             _isLoading = false;
           }
         });
-        if (!kIsWeb && progress > 30) {
-          _applyThemeStyling(isDark);
-        }
         if (progress == 100) {
           _webTimeoutTimer?.cancel();
           _pullToRefreshController?.endRefreshing();
         }
       },
       onLoadStop: (controller, url) async {
+        debugPrint('[AppWebView] Load stopped: $url');
         _webTimeoutTimer?.cancel();
         _pullToRefreshController?.endRefreshing();
         if (kIsWeb) {
           setWebThemeMode(isDark);
         } else {
-          _applyThemeStyling(isDark);
+          await _applyThemeStyling(appColors, isDark: isDark);
         }
         if (mounted) {
           setState(() {
@@ -446,13 +480,38 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
         }
       },
       onReceivedError: (controller, request, error) {
+        debugPrint(
+          '[AppWebView] Load error: url=${request.url}, '
+          'mainFrame=${request.isForMainFrame}, type=${error.type}, '
+          'description=${error.description}',
+        );
         _webTimeoutTimer?.cancel();
         _pullToRefreshController?.endRefreshing();
-        if (request.isForMainFrame ?? true) {
+        if ((request.isForMainFrame ?? true) && mounted) {
           setState(() {
             _hasError = true;
             _isLoading = false;
             _errorMessage = error.description;
+          });
+        }
+      },
+      onReceivedHttpError: (controller, request, errorResponse) {
+        debugPrint(
+          '[AppWebView] HTTP error: url=${request.url}, '
+          'status=${errorResponse.statusCode}, '
+          'reason=${errorResponse.reasonPhrase}, '
+          'mainFrame=${request.isForMainFrame}',
+        );
+        if (request.isForMainFrame ?? true) {
+          _webTimeoutTimer?.cancel();
+          _pullToRefreshController?.endRefreshing();
+          if (!mounted) return;
+          setState(() {
+            _hasError = true;
+            _isLoading = false;
+            _errorMessage = errorResponse.reasonPhrase?.isNotEmpty == true
+                ? 'Server returned HTTP ${errorResponse.statusCode}: ${errorResponse.reasonPhrase}'
+                : 'Server returned HTTP ${errorResponse.statusCode ?? 'error'}.';
           });
         }
       },

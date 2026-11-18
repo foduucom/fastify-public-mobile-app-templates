@@ -49,8 +49,15 @@ class FaqHeroData {
         description: _str(first['description']).isNotEmpty
             ? _str(first['description'])
             : defaultDescription,
-        imagePath: _str(first['filePath']).isNotEmpty
-            ? _str(first['filePath'])
+        imagePath: _str(first['filePath'] ??
+                    first['download_url'] ??
+                    first['filepath'] ??
+                    first['url'])
+                .isNotEmpty
+            ? _str(first['filePath'] ??
+                first['download_url'] ??
+                first['filepath'] ??
+                first['url'])
             : defaultImage,
       );
     }
@@ -66,7 +73,9 @@ class FaqHeroData {
             : <String, dynamic>{};
         final slider = cj['slider'] is Map ? cj['slider'] as Map : cj;
         final slug = _str(slider['slug'] ?? slider['name']).toLowerCase();
-        if (slug == 'faq' || slug.contains('faq-hero') || slug.contains('faq-header')) {
+        if (slug == 'faq' ||
+            slug.contains('faq-hero') ||
+            slug.contains('faq-header')) {
           return FaqHeroData.fromMap(cj);
         }
       }
@@ -211,8 +220,8 @@ class FaqTopicBadgesSection {
             : <String, dynamic>{};
         final cols = int.tryParse(_str(cj['no_of_columns'])) ?? 0;
         final rawCards = cj['cards'] is List ? cj['cards'] as List : [];
-        final hasArticleText = rawCards.any(
-            (c) => c is Map && _str(c['text']).toLowerCase().contains('article'));
+        final hasArticleText = rawCards.any((c) =>
+            c is Map && _str(c['text']).toLowerCase().contains('article'));
 
         if (cols >= 2 || hasArticleText) {
           return FaqTopicBadgesSection.fromMap(cj);
@@ -310,8 +319,12 @@ class FaqAccordionSectionData {
       }
     }
     return FaqAccordionSectionData(
-      eyebrow: _str(json['eyebrow']).isNotEmpty ? _str(json['eyebrow']) : 'Categories',
-      title: _str(json['title']).isNotEmpty ? _str(json['title']) : 'Account & Access',
+      eyebrow: _str(json['eyebrow']).isNotEmpty
+          ? _str(json['eyebrow'])
+          : 'Categories',
+      title: _str(json['title']).isNotEmpty
+          ? _str(json['title'])
+          : 'Account & Access',
       subtitle: _str(json['subtitle']).isNotEmpty
           ? _str(json['subtitle'])
           : 'General Membership (${list.isNotEmpty ? list.length : defaultFaqs.length})',
@@ -330,7 +343,10 @@ class FaqAccordionSectionData {
         final eyebrow = _str(cj['eyebrow']).toLowerCase();
         final title = _str(cj['title']).toLowerCase();
 
-        if (cols == 1 || eyebrow.contains('categor') || title.contains('account') || title.contains('faq')) {
+        if (cols == 1 ||
+            eyebrow.contains('categor') ||
+            title.contains('account') ||
+            title.contains('faq')) {
           return FaqAccordionSectionData.fromMap(cj);
         }
       }
@@ -389,8 +405,15 @@ class FaqStillStuckData {
         description: _str(first['description']).isNotEmpty
             ? _str(first['description'])
             : defaultDescription,
-        imagePath: _str(first['filePath']).isNotEmpty
-            ? _str(first['filePath'])
+        imagePath: _str(first['filePath'] ??
+                    first['download_url'] ??
+                    first['filepath'] ??
+                    first['url'])
+                .isNotEmpty
+            ? _str(first['filePath'] ??
+                first['download_url'] ??
+                first['filepath'] ??
+                first['url'])
             : defaultImage,
         rawLinks: _str(first['link']),
       );

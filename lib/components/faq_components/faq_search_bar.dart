@@ -14,9 +14,8 @@ class FaqSearchBar extends StatefulWidget {
 
   factory FaqSearchBar.fromMap(Map<String, dynamic>? json) {
     return FaqSearchBar(
-      placeholder:
-          (json?['placeholder'] ?? 'How do I change my billing cycle?')
-              .toString(),
+      placeholder: (json?['placeholder'] ?? 'How do I change my billing cycle?')
+          .toString(),
     );
   }
 
@@ -65,9 +64,8 @@ class _FaqSearchBarState extends State<FaqSearchBar> {
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Container(
         decoration: BoxDecoration(
-          color: isDark
-              ? colorScheme.surfaceContainerHigh
-              : colorScheme.surface,
+          color:
+              isDark ? colorScheme.surfaceContainerHigh : colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: colorScheme.outlineVariant

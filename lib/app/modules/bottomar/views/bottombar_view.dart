@@ -29,6 +29,11 @@ class BottombarView extends GetView<BottombarController> {
   var wishListController = Get.put(WishlistController());
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (Get.isRegistered<BottombarController>()) {
+        controller.syncPageToSelectedTab();
+      }
+    });
     var width = Get.width;
     var height = Get.height;
 

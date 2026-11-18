@@ -42,6 +42,7 @@ class CheckOutController extends GetxController with BaseController {
   /// (e.g. "stripe", "razorpay"). Empty when not applicable.
   var secondaryPaymentGateway = ''.obs;
   var isPaymentLoading = true.obs;
+  final isCreatingOrder = false.obs;
 
   // Add these to CheckOutController
   var selectedAddressString = "".obs; // For displaying in UI
@@ -191,6 +192,8 @@ class CheckOutController extends GetxController with BaseController {
   void onInit() async {
     super.onInit();
     await getPaymentOption();
+    // Synchronize latest cart status from server
+    await CartService.to.fetchCart(useCache: false);
     // Use a short delay to ensure AddressListController has loaded data
     Future.delayed(Duration(milliseconds: 100), () {
       loadSelectedAddress();
@@ -515,10 +518,29 @@ class CheckOutController extends GetxController with BaseController {
   }
 
   Future<Map<String, dynamic>?> createOrder({String currency = 'INR'}) async {
-    final String methodName = deliveryOption['name'];
+    if (isCreatingOrder.value) return null;
+    isCreatingOrder.value = true;
+    final String methodName = (deliveryOption['name'] ?? 'cod').toString();
     String addressId = "";
 
     try {
+      // Checkout must use the server's current cart. Cached or stale local
+      // items can make /order/create fail with "Cart is empty".
+      await CartService.to.fetchCart(useCache: false);
+      if (CartService.to.loadError.value) {
+        HelperFunctions().showSnackBarError(
+          'Could not refresh your cart. Please try again.',
+        );
+        return null;
+      }
+      if (CartService.to.cartItems.isEmpty) {
+        HelperFunctions().showSnackBarError(
+          'Your cart is empty. Please add items before placing the order.',
+        );
+        Get.offAllNamed(Routes.CART);
+        return null;
+      }
+
       // Prioritize retrieving addressId from selectedAddressData which is already in this controller
       if (selectedAddressData.isNotEmpty) {
         addressId =
@@ -572,12 +594,13 @@ class CheckOutController extends GetxController with BaseController {
           _handleOutOfStockError(error);
           return null;
         }
-        if (error is FetchDataException || error is BadRequestException) {
-          HelperFunctions().showSnackBarError(
-              "we’re currently experiencing issues with the payment method you selected. could you please use an alternative payment method to complete the transaction?");
-        } else {
-          handleError(error);
+        final msg = error.toString().toLowerCase();
+        if (msg.contains('cart is empty')) {
+          HelperFunctions().showSnackBarError('Your cart is empty. Please add items to proceed.');
+          Get.offAllNamed(Routes.CART);
+          return null;
         }
+        handleError(error);
         return null; // Ensure null is returned so orderResponse reflects failure
       });
 
@@ -589,6 +612,8 @@ class CheckOutController extends GetxController with BaseController {
     } catch (e) {
       printInfo(info: 'Error creating order: $e');
       Get.snackbar("Error", "Failed to create order");
+    } finally {
+      isCreatingOrder.value = false;
     }
     return null;
   }
@@ -620,6 +645,13 @@ class CheckOutController extends GetxController with BaseController {
     required String methodName,
     required double amount,
   }) async {
+    if (cartController.cartItems.isEmpty) {
+      HelperFunctions()
+          .showSnackBarError('Your cart is empty. Please add items to proceed.');
+      Get.offAllNamed(Routes.BOTTOMBAR);
+      return;
+    }
+
     HelperFunctions().showOverlayLoader();
 
     Map<String, dynamic>? orderResponse;
@@ -664,6 +696,21 @@ class CheckOutController extends GetxController with BaseController {
   }
 
   Future<void> processOrder() async {
+    await CartService.to.fetchCart(useCache: false);
+    if (CartService.to.loadError.value) {
+      HelperFunctions().showSnackBarError(
+        'Could not refresh your cart. Please try again.',
+      );
+      return;
+    }
+
+    if (cartController.cartItems.isEmpty) {
+      HelperFunctions()
+          .showSnackBarError('Your cart is empty. Please add items to proceed.');
+      Get.offAllNamed(Routes.CART);
+      return;
+    }
+
     if (deliveryOption.isEmpty) {
       HelperFunctions().showSnackBarError('Please select a payment method');
       return;

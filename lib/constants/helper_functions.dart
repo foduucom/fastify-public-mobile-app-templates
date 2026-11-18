@@ -439,11 +439,31 @@ class HelperFunctions {
   static String resolveProductImage(dynamic product) {
     try {
       if (product is Map) {
-        final productObj = product['product_id'] is Map ? product['product_id'] : product;
+        final productObj = product['product_id'] is Map
+            ? product['product_id'] as Map
+            : product['product'] is Map
+                ? product['product'] as Map
+                : product;
+        final variant =
+            product['variant'] is Map ? product['variant'] as Map : null;
+        final candidates = <dynamic>[
+          if (variant != null) ...[
+            variant['featured_image'],
+            variant['front_image'],
+            variant['image'],
+          ],
+          product['image'],
+          product['featured_image'],
+          product['front_image'],
+          productObj['featured_image'],
+          productObj['front_image'],
+          productObj['image'],
+          if (productObj['images'] is List) ...(productObj['images'] as List),
+        ];
 
-        final featuredImage = productObj['featured_image'];
-        if (featuredImage is Map) {
-          final resolved = HelperFunctions().getImage(featuredImage);
+        for (final candidate in candidates) {
+          if (candidate == null) continue;
+          final resolved = HelperFunctions().getImage(candidate);
           if (resolved.isNotEmpty && resolved != getNoImage()) return resolved;
         }
 
@@ -451,19 +471,16 @@ class HelperFunctions {
         final gallery = productObj['gallery'];
         if (gallery is List && frontImageId.isNotEmpty) {
           final match = gallery.firstWhere(
-            (g) => g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
+            (image) =>
+                image is Map &&
+                (image['_id'] ?? image['id'])?.toString() == frontImageId,
             orElse: () => null,
           );
           if (match is Map) {
             final resolved = HelperFunctions().getImage(match);
-            if (resolved.isNotEmpty && resolved != getNoImage()) return resolved;
+            if (resolved.isNotEmpty && resolved != getNoImage())
+              return resolved;
           }
-        }
-
-        final directImage = product['image'] ?? productObj['image'] ?? product['featured_image'];
-        if (directImage != null) {
-          final resolved = HelperFunctions().getImage(directImage);
-          if (resolved.isNotEmpty && resolved != getNoImage()) return resolved;
         }
       } else if (product is String) {
         return HelperFunctions().getImage(product);
@@ -472,5 +489,14 @@ class HelperFunctions {
       debugPrint('resolveProductImage error: $e');
     }
     return getNoImage();
+  }
+
+  /// Returns a readable address/location label and suppresses unresolved
+  /// Mongo ObjectIds instead of showing database identifiers to customers.
+  static String displayReferenceName(dynamic value) {
+    final display = value is Map
+        ? (value['name'] ?? value['label'] ?? '').toString().trim()
+        : (value ?? '').toString().trim();
+    return RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(display) ? '' : display;
   }
 }

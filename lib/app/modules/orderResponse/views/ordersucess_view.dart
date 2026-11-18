@@ -1,536 +1,421 @@
 import 'package:flutter/material.dart';
 import '../controllers/ordersucess_controller.dart';
 import '/app/routes/app_pages.dart';
-import '/constants/constants.dart';
-import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
-import 'package:lottie/lottie.dart';
+import '/constants/helper_functions.dart';
 
 class OrdersucessView extends GetView<OrderSuccessController> {
   OrdersucessView({Key? key}) : super(key: key);
+
   @override
   final controller = Get.put(OrderSuccessController());
 
-  Widget _buildStatusBadge({
-    required String text,
-    required Color backgroundColor,
-    required Color textColor,
-    Color? borderColor,
-  }) {
+  static const _blue = Color(0xFF20558A);
+  static const _green = Color(0xFF16845B);
+  static const _orange = Color(0xFFB45309);
+
+  Widget _statusBadge(String text, Color background, Color foreground,
+      {Color? border}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(6),
-        border: borderColor != null ? Border.all(color: borderColor) : null,
+        color: background,
+        borderRadius: BorderRadius.circular(20),
+        border: border == null ? null : Border.all(color: border),
       ),
-      child: Text(
-        text.toUpperCase(),
-        style: TextStyle(
-          color: textColor,
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          fontFamily: 'lato',
-          letterSpacing: 0.5,
-        ),
-      ),
+      child: Text(text.toUpperCase(),
+          style: TextStyle(
+              color: foreground,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: .45)),
     );
   }
 
-  Widget _buildPriceRow({
-    required String label,
-    required String value,
-    bool isBold = false,
-    Color? textColor,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontFamily: 'lato',
-              fontSize: isBold ? 15 : 14,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontFamily: 'lato',
-              fontSize: isBold ? 15 : 14,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
-              color: textColor,
-            ),
-          ),
-        ],
+  Widget _sectionTitle(BuildContext context, String title, IconData icon) {
+    return Row(children: [
+      Icon(icon, size: 19, color: _blue),
+      const SizedBox(width: 9),
+      Text(title,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              )),
+    ]);
+  }
+
+  Widget _card(BuildContext context, Widget child) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant.withValues(alpha: .55)),
       ),
+      child: child,
     );
+  }
+
+  Widget _priceRow(BuildContext context, String label, String value,
+      {bool strong = false, Color? valueColor}) {
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(children: [
+        Expanded(
+            child: Text(label,
+                style: TextStyle(
+                  fontSize: strong ? 15 : 14,
+                  fontWeight: strong ? FontWeight.w700 : FontWeight.w400,
+                  color: colors.onSurfaceVariant,
+                ))),
+        const SizedBox(width: 12),
+        Text(value,
+            textAlign: TextAlign.end,
+            style: TextStyle(
+              fontSize: strong ? 16 : 14,
+              fontWeight: FontWeight.w700,
+              color: valueColor ?? colors.onSurface,
+            )),
+      ]),
+    );
+  }
+
+  String _addressValue(dynamic value) {
+    final displayValue = value is Map
+        ? (value['name'] ?? '').toString().trim()
+        : (value ?? '').toString().trim();
+    if (RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(displayValue)) return '';
+    return displayValue;
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
+    final colors = Theme.of(context).colorScheme;
     return WillPopScope(
       onWillPop: () async {
         Get.offAllNamed(Routes.BOTTOMBAR);
         return false;
       },
-      child: SafeArea(
-        child: Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          appBar: AppBar(
-            title: Text(
-              'Order Placed',
-              style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                fontFamily: 'lato',
-              ),
-            ),
-            automaticallyImplyLeading: false,
-            elevation: 0,
-          ),
-          body: Obx(() {
-            final orderData = controller.item.containsKey('data') &&
-                    controller.item['data'] is Map
-                ? controller.item['data']
-                : controller.item;
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(
+          title: const Text('Order Placed',
+              style: TextStyle(fontWeight: FontWeight.w700)),
+          automaticallyImplyLeading: false,
+          elevation: 0,
+          backgroundColor: colors.surface,
+          surfaceTintColor: Colors.transparent,
+        ),
+        body: Obx(() {
+          final rawData = controller.item['data'];
+          final orderData = rawData is Map ? rawData : controller.item;
+          final hasItem = orderData is Map && orderData.isNotEmpty;
 
-            final bool hasItem = orderData is Map && orderData.isNotEmpty;
-
-            // If still loading and orderData is empty, show clean interim progress
-            if (controller.isLoading.value && !hasItem) {
-              return Center(
+          if (controller.isLoading.value && !hasItem) {
+            return Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Center(
-                        child: LottieBuilder.asset(
-                          'assets/lotti/order-success.json',
-                          fit: BoxFit.cover,
-                          height: 180,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Order Placed Successfully!',
-                        style: textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'lato',
-                        ),
-                      ),
-                      if (controller.orderNo.value.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          'Your order #${controller.orderNo.value} has been placed.',
+              padding: const EdgeInsets.all(24),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                _successMark(colors),
+                const SizedBox(height: 16),
+                Text('Order placed successfully!',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w700)),
+                if (controller.orderNo.value.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text('Order #${controller.orderNo.value}',
+                      style: TextStyle(color: colors.onSurfaceVariant)),
+                ],
+                const SizedBox(height: 24),
+                HelperFunctions().loadingIndicator(),
+              ]),
+            ));
+          }
+
+          if (!hasItem) {
+            return Center(
+                child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                _successMark(colors),
+                const SizedBox(height: 16),
+                Text('Order placed successfully!',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w700)),
+                if (controller.orderNo.value.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text('Order #${controller.orderNo.value}',
+                      style: TextStyle(color: colors.onSurfaceVariant)),
+                ],
+                const SizedBox(height: 12),
+                const Text('Your order confirmation is ready.'),
+              ]),
+            ));
+          }
+
+          dynamic read(String key) => orderData[key];
+          double amount(dynamic value) => double.tryParse('${value ?? 0}') ?? 0;
+          final method = (read('payment_method') ?? 'COD').toString();
+          final isCod = method.toLowerCase() == 'cod';
+          final paymentStatus =
+              (read('payment_status') ?? (isCod ? 'PENDING' : 'PAID'))
+                  .toString()
+                  .toUpperCase();
+          final currency = (read('currency') ?? '₹').toString();
+          final total = amount(read('total'));
+          final subtotal =
+              amount(read('subtotal')) > 0 ? amount(read('subtotal')) : total;
+          final discount = amount(read('discount'));
+          final shipping = amount(read('shipping_charges') ?? read('shipping'));
+          final payments =
+              read('payments') is List ? read('payments') as List : <dynamic>[];
+          var paid = 0.0;
+          for (final payment in payments) {
+            if (payment is Map &&
+                ['paid', 'success', 'completed']
+                    .contains('${payment['status']}'.toLowerCase())) {
+              paid += amount(payment['amount']);
+            }
+          }
+          if (payments.isEmpty && paymentStatus == 'PAID' && !isCod)
+            paid = total;
+          final pending = (total - paid).clamp(0.0, double.infinity);
+          final orderNo =
+              (read('order_no') ?? controller.orderNo.value).toString();
+          final statusValue = read('status');
+          final orderStatus = statusValue is Map
+              ? (statusValue['name'] ?? 'Processing').toString()
+              : (statusValue ?? 'Processing').toString();
+          final address = read('address') is Map
+              ? read('address') as Map
+              : controller.address;
+          final city = _addressValue(address['city']);
+          final state = _addressValue(address['state']);
+          final country = _addressValue(address['country']);
+          final locality = [city, state, country]
+              .where((value) => value.isNotEmpty)
+              .join(', ');
+
+          return Stack(children: [
+            Positioned.fill(
+                child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 116),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                        child: Column(children: [
+                      _successMark(colors),
+                      const SizedBox(height: 14),
+                      Text('Order placed successfully!',
                           textAlign: TextAlign.center,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            fontFamily: 'lato',
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 24),
-                      HelperFunctions().loadingIndicator(),
-                    ],
-                  ),
-                ),
-              );
-            }
-
-            final paymentMethod = (orderData['payment_method'] ?? 'COD')
-                .toString()
-                .toUpperCase();
-            final isCod = paymentMethod.toLowerCase() == 'cod';
-            final paymentStatus =
-                (orderData['payment_status'] ?? (isCod ? 'PENDING' : 'PAID'))
-                    .toString()
-                    .toUpperCase();
-            final currency = (orderData['currency'] ?? '₹').toString();
-
-            double parseDouble(dynamic value) {
-              if (value == null) return 0.0;
-              return double.tryParse(value.toString()) ?? 0.0;
-            }
-
-            final double totalVal = parseDouble(orderData['total']);
-            final double subtotalVal = parseDouble(orderData['subtotal']) > 0
-                ? parseDouble(orderData['subtotal'])
-                : totalVal;
-            final double discountVal = parseDouble(orderData['discount']);
-            final double shippingVal =
-                parseDouble(orderData['shipping_charges'] ?? orderData['shipping']);
-
-            final List? payments = orderData['payments'] is List
-                ? orderData['payments']
-                : null;
-
-            double amountPaid = 0.0;
-            if (payments != null && payments.isNotEmpty) {
-              for (var pay in payments) {
-                if (pay is Map) {
-                  final pStatus =
-                      (pay['status'] ?? '').toString().toLowerCase();
-                  if (pStatus == 'paid' ||
-                      pStatus == 'success' ||
-                      pStatus == 'completed') {
-                    amountPaid += parseDouble(pay['amount']);
-                  }
-                }
-              }
-            } else if (paymentStatus == 'PAID' && !isCod) {
-              amountPaid = totalVal;
-            }
-
-            double pendingAmount = totalVal - amountPaid;
-            if (pendingAmount < 0) pendingAmount = 0.0;
-
-            final String displayedOrderNo =
-                (orderData['order_no'] ?? controller.orderNo.value).toString();
-
-            return Stack(
-              children: [
-                Positioned.fill(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: pageSurroundingPadding,
-                          child: Column(
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 6),
+                      Text(
+                          isCod
+                              ? 'Your order is confirmed. We’ll collect payment on delivery.'
+                              : 'Your payment is confirmed and your order is being prepared.',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: colors.onSurfaceVariant)),
+                    ])),
+                    const SizedBox(height: 22),
+                    _card(
+                        context,
+                        Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Center(
-                                child: LottieBuilder.asset(
-                                  'assets/lotti/order-success.json',
-                                  fit: BoxFit.cover,
-                                  height: 170,
-                                ),
-                              ),
-                              Center(
-                                child: Text(
-                                  'Order Placed Successfully!',
-                                  style: textTheme.headlineSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    fontFamily: 'lato',
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Center(
-                                child: Text(
-                                  isCod
-                                      ? 'Your order has been confirmed and will be delivered soon.'
-                                      : 'Payment is successfully processed and your order is on the way.',
-                                  textAlign: TextAlign.center,
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                    fontFamily: 'lato',
-                                  ),
-                                ),
-                              ),
-
-                              // COD Advisory Notice Box
-                              if (isCod && pendingAmount > 0) ...[
-                                const SizedBox(height: 14),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.amber.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                        color: Colors.amber.withValues(alpha: 0.4)),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.info_outline,
-                                          size: 20,
-                                          color: Colors.amber.shade800),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Text(
-                                          'Payment of $currency${pendingAmount.toStringAsFixed(2)} will be collected on delivery.',
+                              Row(children: [
+                                Expanded(
+                                    child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                      Text(
+                                          orderNo.isEmpty
+                                              ? 'Order details'
+                                              : 'Order #$orderNo',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium
+                                              ?.copyWith(
+                                                  fontWeight: FontWeight.w700)),
+                                      const SizedBox(height: 5),
+                                      Text('Your order has been received',
                                           style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.amber.shade900,
-                                            fontFamily: 'lato',
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-
-                              const SizedBox(height: 20),
-                              Text(
-                                'Order Details:',
-                                style: textTheme.titleMedium?.copyWith(
-                                  fontFamily: 'lato',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              if (displayedOrderNo.isNotEmpty) ...[
-                                Text(
-                                  'Your order # is: $displayedOrderNo',
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    fontFamily: 'lato',
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                              ],
-                              Text(
-                                'An email receipt including the details about your order has been sent to your email ID.',
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                  fontFamily: 'lato',
-                                ),
-                              ),
-
-                              // Delivery Address
-                              const SizedBox(height: 20),
-                              Text(
-                                'This order will be shipped to:',
-                                style: textTheme.titleSmall?.copyWith(
-                                  fontFamily: 'lato',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.surfaceContainerHighest
-                                      .withValues(alpha: 0.3),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    if (controller.address['name'] != null)
-                                      Text(
-                                        '${controller.address['name']}',
+                                              fontSize: 13,
+                                              color: colors.onSurfaceVariant)),
+                                    ])),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                    child: _statusBadge(orderStatus,
+                                        _blue.withValues(alpha: .1), _blue)),
+                              ]),
+                              const SizedBox(height: 14),
+                              const Divider(height: 1),
+                              const SizedBox(height: 14),
+                              Row(children: [
+                                Icon(Icons.payment_outlined,
+                                    size: 19, color: colors.onSurfaceVariant),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                    child: Text(
+                                        isCod ? 'Cash on delivery' : method,
                                         style: const TextStyle(
-                                          fontFamily: 'lato',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    if (controller.address['address'] != null)
-                                      Text(
-                                        '${controller.address['address']}',
-                                        style: const TextStyle(
-                                            fontFamily: 'lato', fontSize: 13),
-                                      ),
-                                    Text(
-                                      '${controller.address['city'] is Map ? controller.address['city']['name'] : ''}, ${controller.address['state'] is Map ? controller.address['state']['name'] : ''}, ${controller.address['country'] is Map ? controller.address['country']['name'] : ''}',
-                                      style: const TextStyle(
-                                          fontFamily: 'lato', fontSize: 13),
-                                    ),
-                                    if (controller.address['pincode'] != null)
-                                      Text(
-                                        'Pincode: ${controller.address['pincode']}',
-                                        style: const TextStyle(
-                                            fontFamily: 'lato', fontSize: 13),
-                                      ),
-                                    if (controller.address['mobile'] != null)
-                                      Text(
-                                        'Mobile: ${controller.address['mobile']}',
-                                        style: const TextStyle(
-                                            fontFamily: 'lato', fontSize: 13),
-                                      ),
-                                  ],
-                                ),
-                              ),
-
-                              // Payment Info & Status
-                              const SizedBox(height: 18),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Payment Method',
-                                        style: textTheme.bodySmall?.copyWith(
-                                          fontFamily: 'lato',
-                                          color: colorScheme.onSurfaceVariant,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        isCod
-                                            ? 'Cash On Delivery'
-                                            : paymentMethod,
-                                        style: const TextStyle(
-                                          fontFamily: 'lato',
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  _buildStatusBadge(
-                                    text: isCod && pendingAmount > 0
+                                            fontWeight: FontWeight.w600))),
+                                _statusBadge(
+                                    isCod && pending > 0
                                         ? 'Pending'
-                                        : (paymentStatus.isNotEmpty
-                                            ? paymentStatus
-                                            : 'PAID'),
-                                    backgroundColor: isCod && pendingAmount > 0
-                                        ? const Color(0xFFFEF3C7)
-                                        : const Color(0xFFECFDF5),
-                                    textColor: isCod && pendingAmount > 0
-                                        ? const Color(0xFF92400E)
-                                        : const Color(0xFF047857),
-                                    borderColor: isCod && pendingAmount > 0
-                                        ? const Color(0xFFFDE68A)
-                                        : const Color(0xFFA7F3D0),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        Divider(
-                          thickness: 8,
-                          color: colorScheme.surfaceContainerHighest,
-                        ),
-
-                        // Price Details Summary
-                        Padding(
-                          padding: pageSurroundingPadding,
-                          child: Column(
+                                        : paymentStatus,
+                                    isCod && pending > 0
+                                        ? const Color(0xFFFFF7DB)
+                                        : const Color(0xFFE9F7F0),
+                                    isCod && pending > 0 ? _orange : _green,
+                                    border: isCod && pending > 0
+                                        ? const Color(0xFFF5D98A)
+                                        : const Color(0xFFB8E4CD)),
+                              ]),
+                            ])),
+                    const SizedBox(height: 14),
+                    _card(
+                        context,
+                        Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Price Summary',
-                                style: textTheme.titleMedium?.copyWith(
-                                  fontFamily: 'lato',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              _buildPriceRow(
-                                label: 'Subtotal',
-                                value:
-                                    '$currency${subtotalVal.toStringAsFixed(2)}',
-                              ),
-                              if (discountVal > 0)
-                                _buildPriceRow(
-                                  label: 'Discount',
-                                  value:
-                                      '-$currency${discountVal.toStringAsFixed(2)}',
-                                  textColor: Colors.green,
-                                ),
-                              _buildPriceRow(
-                                label: 'Shipping Charges',
-                                value: shippingVal > 0
-                                    ? '$currency${shippingVal.toStringAsFixed(2)}'
-                                    : 'FREE',
-                                textColor: shippingVal == 0
-                                    ? Colors.green
-                                    : null,
-                              ),
-                              const Divider(height: 20),
-                              _buildPriceRow(
-                                label: 'Total Amount',
-                                value:
-                                    '$currency${totalVal.toStringAsFixed(2)}',
-                                isBold: true,
-                              ),
-                              if (isCod) ...[
-                                _buildPriceRow(
-                                  label: 'Amount Paid',
-                                  value:
-                                      '$currency${amountPaid.toStringAsFixed(2)}',
-                                  textColor: Colors.green,
-                                ),
-                                _buildPriceRow(
-                                  label: 'Payable on Delivery',
-                                  value:
-                                      '$currency${pendingAmount.toStringAsFixed(2)}',
-                                  isBold: true,
-                                  textColor: pendingAmount > 0
-                                      ? Colors.amber.shade900
-                                      : Colors.green,
-                                ),
+                              _sectionTitle(context, 'Delivery address',
+                                  Icons.location_on_outlined),
+                              const SizedBox(height: 14),
+                              if ((address['name'] ?? '').toString().isNotEmpty)
+                                Text('${address['name']}',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w700)),
+                              if ((address['address'] ?? '')
+                                  .toString()
+                                  .isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Text('${address['address']}',
+                                    style: TextStyle(
+                                        color: colors.onSurfaceVariant,
+                                        height: 1.45)),
                               ],
-                              const SizedBox(height: 100),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Bottom Continue Shopping Button
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, -2),
-                        ),
-                      ],
-                    ),
-                    child: SafeArea(
+                              if (locality.isNotEmpty) ...[
+                                const SizedBox(height: 2),
+                                Text(locality,
+                                    style: TextStyle(
+                                        color: colors.onSurfaceVariant)),
+                              ],
+                              if ((address['pincode'] ?? '')
+                                  .toString()
+                                  .isNotEmpty) ...[
+                                const SizedBox(height: 5),
+                                Text('Pincode: ${address['pincode']}',
+                                    style: TextStyle(
+                                        color: colors.onSurfaceVariant)),
+                              ],
+                              if ((address['mobile'] ?? '')
+                                  .toString()
+                                  .isNotEmpty) ...[
+                                const SizedBox(height: 3),
+                                Text('Mobile: ${address['mobile']}',
+                                    style: TextStyle(
+                                        color: colors.onSurfaceVariant)),
+                              ],
+                            ])),
+                    const SizedBox(height: 14),
+                    _card(
+                        context,
+                        Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _sectionTitle(context, 'Price summary',
+                                  Icons.receipt_long_outlined),
+                              const SizedBox(height: 12),
+                              _priceRow(context, 'Subtotal',
+                                  '$currency${subtotal.toStringAsFixed(2)}'),
+                              if (discount > 0)
+                                _priceRow(context, 'Discount',
+                                    '-$currency${discount.toStringAsFixed(2)}',
+                                    valueColor: _green),
+                              _priceRow(
+                                  context,
+                                  'Shipping',
+                                  shipping > 0
+                                      ? '$currency${shipping.toStringAsFixed(2)}'
+                                      : 'FREE',
+                                  valueColor: shipping == 0 ? _green : null),
+                              const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 6),
+                                  child: Divider(height: 1)),
+                              _priceRow(context, 'Total amount',
+                                  '$currency${total.toStringAsFixed(2)}',
+                                  strong: true),
+                              if (isCod) ...[
+                                _priceRow(context, 'Amount paid',
+                                    '$currency${paid.toStringAsFixed(2)}',
+                                    valueColor: _green),
+                                _priceRow(context, 'Payable on delivery',
+                                    '$currency${pending.toStringAsFixed(2)}',
+                                    strong: true,
+                                    valueColor: pending > 0 ? _orange : _green),
+                              ],
+                            ])),
+                  ]),
+            )),
+            Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                  decoration: BoxDecoration(color: colors.surface, boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withValues(alpha: .08),
+                        blurRadius: 12,
+                        offset: const Offset(0, -3)),
+                  ]),
+                  child: SafeArea(
                       top: false,
                       child: SizedBox(
                         width: double.infinity,
-                        height: 48,
+                        height: 50,
                         child: ElevatedButton(
-                          onPressed: () {
-                            Get.offAllNamed(Routes.BOTTOMBAR);
-                          },
+                          onPressed: () => Get.offAllNamed(Routes.BOTTOMBAR),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: colorScheme.primary,
-                            foregroundColor: colorScheme.onPrimary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: const Text(
-                            'Continue Shopping',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'lato',
-                            ),
-                          ),
+                              backgroundColor: colors.primary,
+                              foregroundColor: colors.onPrimary,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12))),
+                          child: const Text('Continue shopping',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w700)),
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          }),
-        ),
+                      )),
+                )),
+          ]);
+        }),
       ),
     );
   }
+
+  Widget _successMark(ColorScheme colors) => Container(
+        width: 76,
+        height: 76,
+        decoration: BoxDecoration(
+            color: _green.withValues(alpha: .12), shape: BoxShape.circle),
+        child: const Icon(Icons.check_rounded, color: _green, size: 42),
+      );
 }

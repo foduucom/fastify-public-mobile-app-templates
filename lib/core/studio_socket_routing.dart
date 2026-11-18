@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:foduu_ecommerce/app/modules/aboutus/controllers/aboutus_controller.dart';
+import 'package:foduu_ecommerce/app/modules/blog/controller/blog_controller.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foduu_ecommerce/app/modules/contact/controller/contact_controller.dart';
 import 'package:foduu_ecommerce/app/modules/helpandsupport/controllers/helpandsupport_controller.dart';
@@ -161,6 +162,17 @@ class StudioSocketRouting extends GetxController {
           }
         } else {
           Get.toNamed(Routes.HELPANDSUPPORT);
+        }
+        break;
+      case 'blog':
+      case 'blogs':
+      case 'articles':
+        if (Get.currentRoute == Routes.BLOG) {
+          if (Get.isRegistered<BlogController>()) {
+            Get.find<BlogController>().onRefresh();
+          }
+        } else {
+          Get.toNamed(Routes.BLOG);
         }
         break;
       default:

@@ -1,13 +1,10 @@
-import 'package:cached_network_image/cached_network_image.dart';
-import '/components/app_image_placeholder.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '/components/app_image_placeholder.dart';
+import '/components/order_product_image.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
 import '/app/modules/Profie/orders/orders_details/controller/orderdetails_controller.dart';
 import '/app/routes/app_pages.dart';
-import '/components/order_detail.dart';
 import '/constants/constants.dart';
 import '/constants/helper_functions.dart';
 import '/constants/theme.dart';
@@ -32,13 +29,10 @@ class OrderdetailView extends GetView<OrderdetailController> {
                     controller.item['data'] is Map
                 ? controller.item['data']
                 : controller.item;
-            final orderNo = orderData['order_no'] ??
-                orderData['_id'] ??
-                controller.id.value;
+            final orderNo =
+                HelperFunctions.displayReferenceName(orderData['order_no']);
             return Text(
-              orderNo != null && orderNo.toString().isNotEmpty && orderNo != '0'
-                  ? 'Order #$orderNo'
-                  : 'Order Details',
+              orderNo.isNotEmpty ? 'Order #$orderNo' : 'Order Details',
               style: textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 fontFamily: 'lato',
@@ -220,8 +214,8 @@ class OrderdetailView extends GetView<OrderdetailController> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    onPressed: () => controller
-                        .downloadAndSavePDF(orderData['_id'] ?? controller.id.value),
+                    onPressed: () => controller.downloadAndSavePDF(
+                        orderData['_id'] ?? controller.id.value),
                     child: controller.downloading.value
                         ? HelperFunctions().loadingIndicator(
                             color: colorScheme.onPrimary,
@@ -536,7 +530,8 @@ class PaymentTransactionsCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, size: 16, color: Colors.amber.shade800),
+                  Icon(Icons.info_outline,
+                      size: 16, color: Colors.amber.shade800),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -571,50 +566,74 @@ class ShippingAddress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Map? addressMap = address is Map ? address as Map : null;
+
+    String valueOf(dynamic value) {
+      return HelperFunctions.displayReferenceName(value);
+    }
+
+    final addressLines = addressMap == null
+        ? [valueOf(address)].where((part) => part.isNotEmpty).toList()
+        : [
+            addressMap['house_no'],
+            addressMap['address'],
+            addressMap['city'],
+            addressMap['state'],
+            addressMap['pincode'] ?? addressMap['postal_code'],
+          ].map(valueOf).where((part) => part.trim().isNotEmpty).toList();
+
     return Padding(
       padding: pageSurroundingPadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('shipping details'.tr,
-              style: const TextStyle(
-                  // color: themeTextColor,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 14)),
-          const Divider(),
-          // address != null
-          //     ? Text(address.toString(),
-          //         style: const TextStyle(
-          //             fontWeight: FontWeight.w600, fontSize: 16))
-          //     : const SizedBox(),
-          // const SizedBox(height: 6),
-          Text(
-              '${address['house_no']}  ${address['address'].toString().capitalize},',
-              style: const TextStyle(
-                  // color: themeTextColor,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 14)),
-          const SizedBox(height: 6),
-          Text('${address['city']['name']},',
-              style: const TextStyle(
-                  // color: themeTextColor,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 14)),
-          const SizedBox(height: 6),
-          Text('${address['state']['name']}, ${address['pincode']}',
-              style: const TextStyle(
-                  // color: themeTextColor,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 14)),
-          const SizedBox(height: 6),
-          Text(
-            '${mobileNo}',
-            style: const TextStyle(
-                // color: themeTextColor,
-                fontWeight: FontWeight.w400,
-                fontSize: 14),
-          )
-        ],
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color:
+                Theme.of(context).colorScheme.outline.withValues(alpha: 0.16),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.location_on_outlined,
+                    color: Theme.of(context).colorScheme.primary, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'shipping details'.tr,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              addressLines.isEmpty
+                  ? 'No address details available'
+                  : addressLines.join(', '),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    height: 1.45,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            if (mobileNo.trim().isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.phone_outlined,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  const SizedBox(width: 6),
+                  Text(mobileNo, style: Theme.of(context).textTheme.bodySmall),
+                ],
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -686,6 +705,39 @@ class PriceDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final products =
+        item['products'] is List ? item['products'] as List : const <dynamic>[];
+    final currency = (item['currency'] ?? '₹').toString();
+    final colors = Theme.of(context).colorScheme;
+    double amount(dynamic value) =>
+        double.tryParse(value?.toString() ?? '') ?? 0.0;
+    final subtotal = amount(item['subtotal'] ?? item['sub_total']);
+    final shipping = amount(item['shipping_charges'] ?? item['shipping']);
+    final discount = amount(item['discount']);
+    final total = amount(item['total']);
+
+    Widget summaryRow(String label, double value,
+        {bool strong = false, bool isDiscount = false}) {
+      final style = Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontWeight: strong ? FontWeight.w700 : FontWeight.w500,
+            color: strong ? colors.onSurface : colors.onSurfaceVariant,
+          );
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(
+          children: [
+            Expanded(child: Text(label, style: style)),
+            Text(
+              isDiscount
+                  ? '-$currency${value.abs().toStringAsFixed(2)}'
+                  : '$currency${value.toStringAsFixed(2)}',
+              style: style,
+            ),
+          ],
+        ),
+      );
+    }
+
     return Padding(
       padding: pageSurroundingPadding,
       child: Column(
@@ -698,126 +750,117 @@ class PriceDetails extends StatelessWidget {
                   fontSize: 14)),
           const Divider(),
           const SizedBox(height: 5),
+          if (products.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Text(
+                'No product details available',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+              ),
+            ),
           ListView.separated(
-            separatorBuilder: (context, index) {
-              return const SizedBox(
-                height: 10,
-              );
-            },
-            itemCount: item['products'].length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemCount: products.length,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
-              final currentProduct = item['products'][index];
-
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    height: Get.width * 0.26,
-                    width: Get.width * 0.26,
-                    margin: const EdgeInsets.only(right: 15),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                        border: Border.all(
-                            color: Theme.of(context).colorScheme.outline),
-                        borderRadius: BorderRadius.circular(8)),
-                    child: CachedNetworkImage(
-                        errorWidget: (context, url, error) => Container(
-                              decoration:
-                                  BoxDecoration(color: Colors.grey.shade300),
-                              child: const Center(child: Icon(Icons.error)),
-                            ),
-                        height: 100,
-                        width: 100,
-                        imageUrl: HelperFunctions()
-                            .getImage(currentProduct['image']),
-                        fit: BoxFit.contain),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                            width: Get.width * 0.6,
-                            child: Text(currentProduct['name'] ?? '',
-                                style: const TextStyle(fontSize: 12))),
-                        const SizedBox(height: 6),
-                        Container(
-                            padding: const EdgeInsets.all(5),
-                            decoration: BoxDecoration(
-                                // color: themegreyColor,
-                                borderRadius: BorderRadius.circular(6)),
-                            child: Row(
-                              children: [
-                                Text(
-                                  'Quantity:'.tr,
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                                Text('${currentProduct['qty'] ?? currentProduct['quantity'] ?? 1}',
-                                    style: const TextStyle(fontSize: 12)),
-                              ],
-                            )),
-                        const SizedBox(height: 6),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("price".tr,
-                                style: const TextStyle(fontSize: 12)),
-                            const Text(" : ", style: TextStyle(fontSize: 12)),
-                            Text("₹${currentProduct['unit_price'] ?? currentProduct['price'] ?? 0}",
-                                style: const TextStyle(fontSize: 12)),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        // Row(
-                        //   crossAxisAlignment: CrossAxisAlignment.start,
-                        //   children: [
-                        //     Text('by'.tr, style: const TextStyle(fontSize: 12)),
-                        //     const Text(' : ', style: TextStyle(fontSize: 12)),
-                        //     Text('${item['orderdetail'][0]['vendor']['name']}',
-                        //         style: const TextStyle(fontSize: 12)),
-                        //   ],
-                        // )
-                      ],
+              final currentProduct = products[index] is Map
+                  ? products[index] as Map
+                  : const <String, dynamic>{};
+              final product = currentProduct['product_id'] is Map
+                  ? currentProduct['product_id'] as Map
+                  : currentProduct['product'] is Map
+                      ? currentProduct['product'] as Map
+                      : currentProduct;
+              final name =
+                  (currentProduct['name'] ?? product['name'] ?? 'Product')
+                      .toString();
+              final quantity = int.tryParse(
+                    (currentProduct['qty'] ?? currentProduct['quantity'] ?? 1)
+                        .toString(),
+                  ) ??
+                  1;
+              final unitPrice = double.tryParse(
+                    (currentProduct['unit_price'] ??
+                            currentProduct['price'] ??
+                            product['price'] ??
+                            0)
+                        .toString(),
+                  ) ??
+                  0;
+              return Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerHighest.withValues(alpha: 0.28),
+                  borderRadius: BorderRadius.circular(14),
+                  border:
+                      Border.all(color: colors.outline.withValues(alpha: 0.12)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    OrderProductImage(
+                      orderLine: currentProduct,
+                      width: 86,
+                      height: 86,
+                      radius: 10,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${'Quantity'.tr}: $quantity',
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: colors.onSurfaceVariant,
+                                    ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            '$currency${unitPrice.toStringAsFixed(2)}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: colors.primary,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               );
             },
           ),
           const SizedBox(height: 5),
-          const Divider(),
-          // OrderDetail(
-          //     title: 'sub total'.tr,
-          //     amount: Text('\u{20B9}${item['subtotal'].toStringAsFixed(2)}',
-          //         style: txtTheme().displaySmall)),
-          // item['discount'] != 0 && item['discount'] != null
-          //     ? OrderDetail(
-          //         title: 'coupon Discount'.tr,
-          //         amount: Text(
-          //             '- \u{20B9}${item['discount'].toStringAsFixed(2)}',
-          //             style: const TextStyle(
-          //                 color: Colors.green,
-          //                 fontWeight: FontWeight.w400,
-          //                 fontSize: 14)))
-          //     : Container(),
-          // OrderDetail(
-          //     title: "Tax".tr + "",
-          //     amount: Text('\u{20B9} ${19.toStringAsFixed(2)}',
-          //         style: txtTheme().displaySmall)),
-          // OrderDetail(
-          //     title: 'Delivery'.tr,
-          //     amount: Text('\u{20B9}${item['shipping'].toStringAsFixed(2)}',
-          //         style: txtTheme().displaySmall)),
-          const Divider(thickness: 1.5),
-          const SizedBox(height: 10),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('discount'.tr, style: txtTheme().displayMedium),
-            Text('\u{20B9}${item['discount'].toStringAsFixed(2)}',
-                style: txtTheme().displayMedium)
-          ]),
-          const SizedBox(height: 15),
+          if (products.isNotEmpty) ...[
+            const Divider(height: 22),
+            summaryRow('Subtotal'.tr, subtotal),
+            if (shipping > 0) summaryRow('Shipping'.tr, shipping),
+            if (discount > 0)
+              summaryRow('Discount'.tr, discount, isDiscount: true),
+            const Divider(height: 18),
+            summaryRow('Total'.tr, total, strong: true),
+          ],
         ],
       ),
     );
@@ -944,13 +987,14 @@ reviewModal(OrderdetailController controller) {
                     }
                   },
                   style: themeButton,
-                  child: Builder(builder: (ctx) => Text('Submit'.toUpperCase(),
-                      style: TextStyle(
-                        color: Theme.of(ctx).colorScheme.onPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        // fontFamily: 'Lato'
-                      ))),
+                  child: Builder(
+                      builder: (ctx) => Text('Submit'.toUpperCase(),
+                          style: TextStyle(
+                            color: Theme.of(ctx).colorScheme.onPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            // fontFamily: 'Lato'
+                          ))),
                 ),
               ),
             ),

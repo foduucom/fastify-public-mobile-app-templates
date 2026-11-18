@@ -254,6 +254,7 @@ class OtpController extends GetxController with BaseController {
       // Sync any guest cart items added during Skip Mode to server
       try {
         await CartService.to.syncLocalCartToServer();
+        await CartService.to.fetchCart();
       } catch (e) {
         print('Cart sync error on login: $e');
       }

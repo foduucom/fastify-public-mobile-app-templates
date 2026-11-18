@@ -117,7 +117,8 @@ mixin FoduuStudioLayoutMixin on GetxController {
           toBuild = {
             ...section,
             'content_json': {
-              ...Map<String, dynamic>.from(section['content_json'] as Map? ?? {}),
+              ...Map<String, dynamic>.from(
+                  section['content_json'] as Map? ?? {}),
               'tab_categories': tabCategories,
             },
           };

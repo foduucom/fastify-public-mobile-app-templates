@@ -326,10 +326,70 @@ Addressing the issue where blog cards in the mobile app displayed blue gradient 
 
 ---
 
+### 13. Dynamic "Specific Category" Product Filtering & Carousel Hardening ("Popular In Cameras" & "Popular Accessories")
+
+Addressing the issue where **"Popular In Cameras"** displayed tablets and headphones instead of genuine cameras, and **"Popular Accessories"** showed a single card with an infinite loading spinner:
+
+1. **Root Cause Analysis & Investigations:**
+   - **Discrepancy 1 ("Popular In Cameras"):**
+     - The CMS database configured Section 9 with `"category_type": "specific_category"`, `"parent_type": "6ae96b20c7a7846a169e8571"` (Cameras ObjectId), and `"category_ids": []` (empty array, because the parent category was selected rather than specific child items).
+     - In the backend controller (`MobileController.ts` on server `192.168.1.89`), the condition `if (category_type === "specific_category" && Array.isArray(category_ids) && category_ids.length > 0)` failed because `category_ids` was empty. The backend never evaluated `parent_type`, leaving `categoryFilter` as `undefined`.
+     - Consequently, `ProductPipeline.list()` executed without any category constraints and returned global latest products (*Honor Pad 9*, *SteelSeries headphones*).
+   - **Discrepancy 2 ("Popular Accessories"):**
+     - **Database Product Tagging:** In MongoDB (`ff-foduu-fastify`), *Honor Pad 9* was explicitly saved with three category IDs: `[Tablets, Appliances, Accessories]`. Because it has the `Accessories` category ID (`6ae96b20c7a7846a169e856d`), both the parent website ([foduu-electronics-store.foduu.store](https://foduu-electronics-store.foduu.store/)) and the mobile app return it under Accessories. The second product in this category in the database is the *SteelSeries Arctis Nova Pro Wireless Headset*.
+     - **CMS Section Count:** The database had `"count": 1` for Section 10 ("Popular Accessories"), forcing the backend to return only 1 product and set `hasNextPage: true`.
+     - **Client Loading State Stall:** In `home_products.dart`, `_buildLoadingIndicator()` checked `if (!_hasMoreValue)` rather than `_isLoadingMoreValue`. Because `_hasMoreValue` was `true`, a `CircularProgressIndicator` was rendered permanently. Since a single card (~180px) did not fill the phone screen (~400px), the list could not be scrolled, `_onScroll` never triggered `_triggerLoadMore()`, and page 2 was never fetched.
+
+2. **Backend Hardening (`src/controllers/api/MobileController.ts` on `192.168.1.89`):**
+   - **Universal Identifier Resolution:** Normalizes and accepts category definitions across `category_ids` (array of ObjectIds, strings, or maps), `category_id` (singular or array), and `parent_type` (ObjectId string or category map `{ _id, slug, ... }`):
+     ```typescript
+     if (category_type === "specific_category") {
+       let targetIds: string[] = [];
+       if (Array.isArray(category_ids) && category_ids.length > 0) {
+         targetIds = category_ids.map((c: any) => typeof c === "object" && c !== null ? c._id || c.id : c).filter(Boolean);
+       } else if (category_id) {
+         const raw = Array.isArray(category_id) ? category_id : [category_id];
+         targetIds = raw.map((c: any) => typeof c === "object" && c !== null ? c._id || c.id || c.value : c).filter(Boolean);
+       }
+
+       if (targetIds.length > 0) {
+         categoryFilter = { type: "specific", categoryIds: targetIds };
+       } else if (parent_type) {
+         const parentId = typeof parent_type === "object" && parent_type !== null ? parent_type._id || parent_type.id : parent_type;
+         categoryFilter = { type: "parent", parentType: parentId };
+       }
+     }
+     ```
+   - **Safe Carousel Page Limit:** Replaced rigid `Number(count) || 10` with `const limit = rawCount > 1 ? rawCount : 10;`. Prevents broken 1-card carousels on mobile when `count` is misconfigured to `0` or `1`.
+   - **Fallback Metadata Population:** When `category_ids` is empty in `content_json` but `parent_type` is present, automatically populates `block.content_json.category_ids = [parentId]` so all client consumers receive valid category IDs.
+   - **PM2 Service Restart:** Safely restarted `studio-foduu` in PM2 and verified live `/api/mobile-app/home` responses:
+     - **"Popular In Cameras"** returns 10 genuine camera products (*Hasselblad X2D 100C*, *Leica M11*, *Panasonic Lumix GH6*, *Insta360 X3*, *GoPro HERO12*, *DJI Osmo Action 4*, *Fujifilm X-T5*, *Nikon Z8*, *Canon EOS R5 C*, *Sony Alpha 7R V*).
+     - **"Popular Accessories"** returns all available category items (*Honor Pad 9* and *SteelSeries Arctis Nova Pro Wireless Headset*).
+
+3. **Mobile App Frontend Hardening (`lib/components/home_component/home_products.dart`):**
+   - **Eliminated Stuck Progress Spinner:** Updated `_buildLoadingIndicator()` and `_buildLoadingIndicatorVertical()` to check `if (!_hasMoreValue || !_isLoadingMoreValue) return const SizedBox.shrink();`. The loading spinner is now strictly displayed only while a network request is actively in-flight.
+   - **Viewport Auto-Fill for Short Initial Data:** Added an automatic post-frame check:
+     ```dart
+     if (_hasMore.value && trendingList.length < 3 && !_isExternal) {
+       WidgetsBinding.instance.addPostFrameCallback((_) {
+         if (mounted && _hasMore.value && !_isLoadingMore.value) {
+           _fetchProductsFromApi();
+         }
+       });
+     }
+     ```
+     Ensures that if an initial section payload has fewer than 3 items, the widget immediately requests the next page to populate the carousel without requiring manual user scrolling.
+   - **Universal Parameter Extraction in `_fetchProductsFromApi()`:** Extracts category filters from `category_ids`, `category_id`, or `parent_type`, and enforces an effective pagination batch size of at least `10`.
+   - **Direct Category Navigation on "See All":** Updated the header's `onSeeAll` callback to pass `{ 'source': 'category', 'categorySlug': parentSlug, 'category': parentId, 'name': heading }` to `openShop()`, routing users directly to the pre-filtered category in the Shop view.
+
+---
+
 ## File Changes & Path Reference Table
 
 | File Path | Status | Key Changes Made |
 | :--- | :--- | :--- |
+| `src/controllers/api/MobileController.ts` *(Backend `192.168.1.89`)* | **Modified** | Added universal `specific_category` resolution (handling `category_ids`, `category_id`, and `parent_type`), safe minimum limit floor (default 10 if `count <= 1`), and automatic `category_ids` fallback population. |
+| `lib/components/home_component/home_products.dart` | **Modified** | Eliminated stuck spinner (checks `_isLoadingMoreValue`), added viewport auto-fill for short data (`trendingList.length < 3`), added universal category pagination params, and fixed "See all" navigation to open the filtered category in Shop. |
 | `lib/constants/helper_functions.dart` | **Modified** | Implemented `fixImageUrl()` to rewrite tenant subdomains (`*.foduu.store`, `*.vbought.com`, hex IDs) to `websiteDomain`, resolving Cloudflare 404s. |
 | `lib/components/home_component/home_blogs.dart` | **Modified** | Connected centralized domain fixing, added `_resolveBlogTag()` with bottom-left black tag pill overlay, added shimmer loading placeholder, preserved editorial fallback. |
 | `lib/models/blog_model.dart` | **Modified** | Enhanced `fromJson()` image resolution across multiple keys, added tag extraction from image metadata, added `primaryTag` getter. |

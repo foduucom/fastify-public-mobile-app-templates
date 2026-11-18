@@ -241,7 +241,8 @@ class HelpandsupportController extends GetxController
           }
         }
       } catch (cmsError) {
-        debugPrint('HelpandsupportController: CMS fetchLayout error: $cmsError');
+        debugPrint(
+            'HelpandsupportController: CMS fetchLayout error: $cmsError');
       }
 
       // Tier 2: Legacy API fallback (frontend/faq)

@@ -32,15 +32,20 @@ class CartService extends GetxService with BaseController {
   // ══════════════════════════════════════════════════════════
   //  FETCH CART
   // ══════════════════════════════════════════════════════════
-  Future<void> fetchCart() async {
+  Future<void> fetchCart({bool useCache = true}) async {
     if (_isGuest) {
       _loadLocalCart();
+      loadError.value = false;
       return;
     }
 
     try {
       var response = await BasicProvider("cart")
-          .getRequest(queryParams: {'populate': '*'}).catchError(handleError);
+          .getRequest(
+            queryParams: {'populate': '*'},
+            useCache: useCache,
+          )
+          .catchError(handleError);
 
       if (response == null) {
         // Keep what we have: a failed fetch must not look like an empty cart.
@@ -51,6 +56,7 @@ class CartService extends GetxService with BaseController {
       loadError.value = false;
       parseCartResponse(response);
     } catch (e) {
+      loadError.value = true;
       debugPrint('CartService.fetchCart error: $e');
     }
   }
@@ -128,29 +134,41 @@ class CartService extends GetxService with BaseController {
     final localItems = _readLocalCart();
     if (localItems.isEmpty) return;
 
+    bool allSynced = true;
     try {
-      // Build the list in the format the API expects
-      final List<Map<String, dynamic>> items = localItems.map((item) {
-        final product = item['product_id'];
+      for (final item in localItems) {
+        final product = item['product_id'] ?? item['product'];
         final pid = product is Map
             ? (product['_id'] ?? product['id'] ?? '')
-            : product.toString();
-        return {
-          'product_id': pid,
-          'variant_id': item['variant_id'] ?? '',
-          'quantity': item['quantity'] ?? 1,
-        };
-      }).toList();
+            : (product?.toString() ?? '');
+        final vid = item['variant_id'] ?? '';
+        final qty = int.tryParse(item['quantity']?.toString() ?? '1') ?? 1;
 
-      var response = await BasicProvider("cart/manage?populate=*")
-          .postRequest({'items': items}).catchError(handleError);
-
-      if (response != null) {
-        parseCartResponse(response);
+        if (pid.toString().isNotEmpty) {
+          final form = {
+            'product_id': pid,
+            'variant_id': vid,
+            'quantity': qty,
+          };
+          try {
+            print("syncLocalCartToServer form === $form");
+            final response = await BasicProvider("cart/manage?populate=*")
+                .postRequest(form);
+            if (response != null && response is Map<String, dynamic>) {
+              parseCartResponse(response);
+            }
+          } catch (itemError) {
+            allSynced = false;
+            debugPrint('Failed to sync item $pid to server: $itemError');
+          }
+        }
       }
 
-      // Clear local cart regardless of response
-      _clearLocalCart();
+      // Only clear local cart if synchronization did not experience critical failure
+      if (allSynced) {
+        _clearLocalCart();
+      }
+      await fetchCart();
     } catch (e) {
       debugPrint('CartService.syncLocalCartToServer error: $e');
     }

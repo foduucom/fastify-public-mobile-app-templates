@@ -408,57 +408,10 @@ class _ProductTile extends StatelessWidget {
   final dynamic product;
   final String currency;
 
-  String _constructImageUrl(Map imageObj) {
-    final filepath = imageObj['filepath']?.toString() ?? '';
-    if (filepath.isNotEmpty) {
-      final cleanPath =
-          filepath.startsWith('/') ? filepath.substring(1) : filepath;
-      return 'https://mywatch.vbought.com/images/$cleanPath';
-    }
-    final url = imageObj['download_url']?.toString() ?? '';
-    return _fixImageUrl(url);
-  }
-
-  String _fixImageUrl(String url) {
-    if (url.isEmpty) return '';
-    final uri = Uri.tryParse(url);
-    if (uri == null) return url;
-    if (uri.host.endsWith('.vbought.com') &&
-        uri.host != 'mywatch.vbought.com') {
-      return url.replaceFirst(uri.host, 'mywatch.vbought.com');
-    }
-    return url;
-  }
-
   String? _extractImageUrl(dynamic product) {
     try {
-      final productObj = product['product_id'];
-
-      if (productObj is Map) {
-        final fi = productObj['featured_image'];
-        if (fi is Map) {
-          final url = _constructImageUrl(fi);
-          if (url.isNotEmpty) return url;
-        }
-
-        final frontImageId = productObj['front_image']?.toString() ?? '';
-        final gallery = productObj['gallery'];
-
-        if (gallery is List && frontImageId.isNotEmpty) {
-          final match = gallery.firstWhere(
-            (g) =>
-                g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
-            orElse: () => null,
-          );
-          if (match != null) return _constructImageUrl(match);
-        }
-      }
-
-      final directImage = product['image'] ?? product['featured_image'];
-      if (directImage is Map) return _constructImageUrl(directImage);
-      if (directImage is String && directImage.startsWith('http')) {
-        return _fixImageUrl(directImage);
-      }
+      final imageUrl = HelperFunctions.resolveProductImage(product);
+      if (imageUrl != HelperFunctions.getNoImage()) return imageUrl;
     } catch (e) {
       debugPrint('Image extraction error: $e');
     }

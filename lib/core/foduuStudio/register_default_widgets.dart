@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/data/models/contact_sections.dart';
 import 'package:foduu_ecommerce/app/modules/contact/controller/contact_controller.dart';
+import 'package:foduu_ecommerce/components/blog_components/blog_feed_section.dart';
+import 'package:foduu_ecommerce/components/blog_components/blog_hero_card.dart';
+import 'package:foduu_ecommerce/components/blog_components/blog_search_bar.dart';
 import 'package:foduu_ecommerce/components/contact_component/contact_widgets.dart';
 import 'package:foduu_ecommerce/components/faq_components/faq_accordion_section.dart';
 import 'package:foduu_ecommerce/components/faq_components/faq_hero_card.dart';
@@ -246,6 +249,50 @@ void _handleContactCardTap(ContactChannelCard card) async {
   }
 }
 
+bool _isBlogHeroSlider(Map? json) {
+  if (json == null) return false;
+  final slider = json['slider'];
+  if (slider is Map) {
+    final slug =
+        (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
+    if (slug == 'blog-slider' || slug == 'blog' || slug.contains('blog-hero')) {
+      return true;
+    }
+    final content = slider['content'];
+    if (content is List && content.isNotEmpty && content.first is Map) {
+      final first = content.first as Map;
+      final heading = (first['heading'] ?? '').toString().toLowerCase();
+      final sub = (first['sub_heading'] ?? '').toString().toLowerCase();
+      if (heading == 'blog' || sub.contains('stories powered by tech')) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool _isBlogSearchBar(Map? json) {
+  if (json == null) return false;
+  final name = (json['name'] ?? '').toString().toLowerCase();
+  final placeholder = (json['placeholder'] ?? '').toString().toLowerCase();
+  if (name == 'search' &&
+      (placeholder.contains('articles') ||
+          placeholder.contains('guides') ||
+          placeholder.contains('reviews'))) {
+    return true;
+  }
+  return false;
+}
+
+bool _isBlogCategorySection(Map? json) {
+  if (json == null) return false;
+  final blogType = json['blog_type']?.toString();
+  if (blogType == 'blog_category') return true;
+  final categoryIds = json['category_ids'];
+  if (categoryIds is List && categoryIds.isNotEmpty) return true;
+  return false;
+}
+
 /// Register all default section widget builders.
 ///
 /// Call this once in `main()` before `runApp(...)`.
@@ -258,6 +305,9 @@ void registerDefaultWidgets() {
     final name = (json?['name'] ?? '').toString().toLowerCase();
     if (name == 'faq-search' || name.contains('faq')) {
       return FaqSearchBar.fromMap(json);
+    }
+    if (_isBlogSearchBar(json)) {
+      return BlogSearchBar.fromMap(json);
     }
     return Padding(
       padding: pageSurroundingPadding,
@@ -278,6 +328,10 @@ void registerDefaultWidgets() {
   // ─── Slider / Carousel ──────────────────────────────────────
   r.register('slider', (json) {
     if (json is Map<String, dynamic>) {
+      // Blog Hero Header
+      if (_isBlogHeroSlider(json)) {
+        return BlogHeroCard.fromMap(json);
+      }
       // Contact Us Hero Header
       if (_isContactHeroSlider(json)) {
         return ContactHeroBannerWidget(
@@ -315,6 +369,9 @@ void registerDefaultWidgets() {
 
   // ─── Blog Section ───────────────────────────────────────────
   r.register('blog', (json) {
+    if (json is Map<String, dynamic> && _isBlogCategorySection(json)) {
+      return BlogFeedSection.fromMap(json);
+    }
     return BlogSection(blogData: json);
   });
 
