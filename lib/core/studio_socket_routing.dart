@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:foddu/app/modules/bottomar/controllers/bottombar_controller.dart';
+import 'package:foddu/app/modules/search/controllers/search_controller.dart';
+import 'package:foddu/app/modules/shop/controllers/shop_controller.dart';
 import 'package:foddu/app/routes/app_pages.dart';
 import 'package:foddu/constants/constants.dart';
 import 'package:foddu/helpers/socket_helper.dart';
@@ -111,6 +113,9 @@ class StudioSocketRouting extends GetxController {
     if (tabIndex != null) {
       print(
           '🔄 StudioSocketRouting: Switching to bottom bar tab $tabIndex for slug: $slug');
+      if (tabIndex == shopTabIndex && Get.isRegistered<ShopController>()) {
+        Get.find<ShopController>().resetToPlainShop();
+      }
       _navigateToBottomBarTab(tabIndex);
       return;
     }
@@ -125,7 +130,12 @@ class StudioSocketRouting extends GetxController {
         Get.toNamed(Routes.DETAILCATEGORY);
         break;
       case 'search':
-        if (Get.currentRoute == Routes.SEARCH) return;
+        if (Get.currentRoute == Routes.SEARCH) {
+          if (Get.isRegistered<SearchsController>()) {
+            Get.find<SearchsController>().clearSearch();
+          }
+          return;
+        }
         if (Get.currentRoute != Routes.BOTTOMBAR) {
           Get.until((route) => route.settings.name == Routes.BOTTOMBAR);
         }
@@ -134,6 +144,9 @@ class StudioSocketRouting extends GetxController {
       case 'product-listing':
         if (Get.currentRoute != Routes.BOTTOMBAR) {
           Get.until((route) => route.settings.name == Routes.BOTTOMBAR);
+        }
+        if (Get.isRegistered<ShopController>()) {
+          Get.find<ShopController>().resetToPlainShop();
         }
         openShop();
         break;

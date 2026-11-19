@@ -37,6 +37,9 @@ mixin FoduuStudioLayoutMixin on GetxController {
 
   // ─── Observable state ────────────────────────────────────────
   final widgetList = <Widget>[].obs;
+  final promotionalWidgets = <Widget>[].obs;
+  final rawSections = <Map<String, dynamic>>[].obs;
+  final rxSectionTypes = <String>{}.obs;
   final isLayoutLoading = true.obs;
   final layoutError = ''.obs;
   final hasError = false.obs;
@@ -47,12 +50,8 @@ mixin FoduuStudioLayoutMixin on GetxController {
   List _lastSocketSections = [];
   List<String> _excludedSectionTypes = const [];
 
-  /// Section types present in the last fetched CMS layout.
-  List<String> get sectionTypes => _initialComponents
-      .whereType<Map>()
-      .map((section) => section['type']?.toString() ?? '')
-      .where((type) => type.isNotEmpty)
-      .toList(growable: false);
+  /// Section types present in the last fetched CMS layout (reactive).
+  List<String> get sectionTypes => rxSectionTypes.toList(growable: false);
 
   /// Excludes locally rendered sections from the widget tree.
   set excludeSectionTypes(List<String> types) {
@@ -62,7 +61,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
 
   /// Returns a section's CMS content JSON by its type.
   Map<String, dynamic>? contentJsonFor(String type) {
-    for (final section in _initialComponents.whereType<Map>()) {
+    for (final section in rawSections) {
       if (section['type'] != type) continue;
       final content = section['content_json'] ?? section['contentJson'];
       if (content is Map) return Map<String, dynamic>.from(content);
@@ -100,6 +99,15 @@ mixin FoduuStudioLayoutMixin on GetxController {
   void buildLayout(List sections) {
     _updateCategoryNameMap(sections);
     _initialComponents = sections;
+    final parsedSections = sections
+        .whereType<Map>()
+        .map((s) => Map<String, dynamic>.from(s))
+        .toList(growable: false);
+    rawSections.assignAll(parsedSections);
+    rxSectionTypes.assignAll(parsedSections
+        .map((s) => s['type']?.toString() ?? '')
+        .where((t) => t.isNotEmpty));
+
     widgetList.clear();
     for (var index = 0; index < sections.length; index++) {
       final rawSection = sections[index];
@@ -145,8 +153,15 @@ mixin FoduuStudioLayoutMixin on GetxController {
         print('⚠️ DynamicLayout: Failed building section $index: $e');
       }
     }
+
+    final nonPromotional = {'categories', 'products', 'search'};
+    promotionalWidgets.assignAll(parsedSections
+        .where((s) => !nonPromotional.contains(s['type']?.toString()))
+        .map(_registry.build)
+        .whereType<Widget>());
+
     print(
-        '🧱 DynamicLayout: Built ${widgetList.length}/${sections.length} sections; registered=${_registry.registeredTypes}');
+        '🧱 DynamicLayout: Built ${widgetList.length}/${sections.length} sections (${promotionalWidgets.length} promotional); registered=${_registry.registeredTypes}');
   }
 
   void _updateCategoryNameMap(List sections) {
@@ -174,12 +189,10 @@ mixin FoduuStudioLayoutMixin on GetxController {
     }
   }
 
-  /// Builds CMS sections except those rendered by the host view itself.
+  /// Builds CMS sections except those rendered by the host view itself (reactive).
   List<Widget> buildWidgetsExcluding(Iterable<String> excludedTypes) {
     final excluded = excludedTypes.toSet();
-    return _initialComponents
-        .whereType<Map>()
-        .map((s) => Map<String, dynamic>.from(s))
+    return rawSections
         .where((section) => !excluded.contains(section['type']?.toString()))
         .map(_registry.build)
         .whereType<Widget>()

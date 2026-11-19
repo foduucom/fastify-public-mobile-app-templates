@@ -15,7 +15,9 @@ class ShopView extends GetView<ShopController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.lazyPut(() => ShopController());
+    if (!Get.isRegistered<ShopController>()) {
+      Get.lazyPut(() => ShopController());
+    }
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final scaffoldKey = GlobalKey<ScaffoldState>();

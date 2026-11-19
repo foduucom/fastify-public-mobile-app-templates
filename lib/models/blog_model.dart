@@ -144,6 +144,25 @@ class BlogModel {
     }
     return 'Admin';
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'id': id,
+      'title': title,
+      'name': title,
+      'slug': slug,
+      'content': content,
+      'excerpt': excerpt,
+      'featured_image_url': imageUrl,
+      'featured_image': imageUrl,
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+      'featured': isFeatured,
+      'categories': categories,
+      'tags': tags,
+    };
+  }
 }
 
 class BlogAuthor {

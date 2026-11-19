@@ -98,16 +98,26 @@ class ShopController extends GetxController
       maxPrice.value = values.end;
     });
 
-    // When opened plainly (bottom-tab, no filter args), show the full
-    // CMS canvas — the products section inside it handles infinite scroll.
-    // When opened with filter/category args, load the filtered catalog grid.
+    // Always fetch layout to connect socket updates for the shop slug
+    // and load promotional CMS banners/widgets
+    fetchLayout(pageSlug);
+
     if (isPlainShopEntry.value) {
-      fetchLayout(pageSlug);
+      ensureFilterDataLoaded();
+      ensureCategoryTreeLoaded();
     } else {
       fetchBrands();
       fetchCategories();
       fetchProducts(isRefresh: true);
     }
+  }
+
+  /// Resets the controller back to plain CMS Canvas mode
+  void resetToPlainShop() {
+    isPlainShopEntry.value = true;
+    collectionName.value = "Shop";
+    clearAllFilters();
+    fetchLayout(pageSlug);
   }
 
   @override
