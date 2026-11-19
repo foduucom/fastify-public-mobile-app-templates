@@ -15,7 +15,7 @@ import '/constants/constants.dart';
 import '/constants/helper_functions.dart';
 
 import '../controllers/search_controller.dart';
-import 'filter_view.dart';
+import '/constants/product_helper.dart';
 
 class SearchView extends GetView<SearchsController> {
   const SearchView({Key? key}) : super(key: key);
@@ -58,7 +58,7 @@ class SearchView extends GetView<SearchsController> {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // 1. TOP MODERN SEARCH BAR (In-Line, Back Btn + Pill Input + Filter Btn)
+  // 1. TOP MODERN SEARCH BAR (In-Line, Back Btn + Pill Input)
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildTopSearchBar(BuildContext context) {
     return Padding(
@@ -86,7 +86,7 @@ class SearchView extends GetView<SearchsController> {
           ),
           const SizedBox(width: 10),
 
-          // Search Field Container
+          // Search Field Container (Full-width clean pill, no filter button)
           Expanded(
             child: Container(
               height: 48,
@@ -111,7 +111,7 @@ class SearchView extends GetView<SearchsController> {
                   Icon(Icons.search, color: colorScheme.onSurfaceVariant, size: 20),
                   const SizedBox(width: 8),
 
-                  // Text Field
+                  // Text Field - explicitly filled: false to remove dark theme background artifact
                   Expanded(
                     child: TextField(
                       controller: controller.searchTextController,
@@ -126,6 +126,8 @@ class SearchView extends GetView<SearchsController> {
                         fontWeight: FontWeight.w500,
                       ),
                       decoration: InputDecoration(
+                        filled: false,
+                        fillColor: Colors.transparent,
                         hintText: controller.searchPlaceholder,
                         hintStyle: TextStyle(
                           color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
@@ -153,7 +155,7 @@ class SearchView extends GetView<SearchsController> {
                           HelperFunctions().closeKeyboard(context);
                         },
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Icon(
                             Icons.cancel,
                             size: 18,
@@ -162,66 +164,6 @@ class SearchView extends GetView<SearchsController> {
                         ),
                       );
                     },
-                  ),
-
-                  // Vertical Separator
-                  Container(
-                    width: 1,
-                    height: 22,
-                    color: colorScheme.outline.withValues(alpha: 0.25),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                  ),
-
-                  // Filter Trigger Button
-                  GestureDetector(
-                    onTap: () async {
-                      final result = await showFilterBottomSheet(
-                        context,
-                        controller.currentFilter,
-                      );
-                      if (result != null) {
-                        controller.applyFilter(result);
-                      }
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Obx(() {
-                        final activeCount = controller.activeFilter.value.activeFilterCount;
-                        return Stack(
-                          clipBehavior: Clip.none,
-                          alignment: Alignment.center,
-                          children: [
-                            Icon(
-                              Icons.tune_rounded,
-                              color: activeCount > 0
-                                  ? Theme.of(context).primaryColor
-                                  : colorScheme.onSurface,
-                              size: 20,
-                            ),
-                            if (activeCount > 0)
-                              Positioned(
-                                top: -6,
-                                right: -6,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).primaryColor,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Text(
-                                    '$activeCount',
-                                    style: textTheme.labelSmall?.copyWith(
-                                      color: colorScheme.onPrimary,
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        );
-                      }),
-                    ),
                   ),
                 ],
               ),
@@ -432,6 +374,8 @@ class SearchView extends GetView<SearchsController> {
   // 3. STATE 2: PREDICTIVE AUTOCOMPLETE OVERLAY (Parent Web /search/global)
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildAutocompleteOverlay(BuildContext context) {
+    final cleanQuery = controller.queryText.value.trim();
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -445,7 +389,7 @@ class SearchView extends GetView<SearchsController> {
               child: Center(child: CupertinoActivityIndicator(radius: 12)),
             ),
 
-          // Bottom Action: Direct query execution
+          // Action Banner: Direct query execution (Clean trimmed query)
           InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () {
@@ -468,7 +412,7 @@ class SearchView extends GetView<SearchsController> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Search for "${controller.queryText.value}"',
+                      'Search for "$cleanQuery"',
                       style: textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).primaryColor,
                         fontWeight: FontWeight.bold,
@@ -502,18 +446,43 @@ class SearchView extends GetView<SearchsController> {
             const SizedBox(height: 12),
           ],
 
+          // If no suggestions found
           if (!controller.isAutocompleteLoading.value &&
-              !controller.hasAutocompleteResults)
-            Padding(
-              padding: const EdgeInsets.only(top: 40),
-              child: Center(
-                child: Text(
-                  'No instant suggestions found.\nTap above to see all results.',
-                  textAlign: TextAlign.center,
-                  style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+              !controller.hasAutocompleteResults) ...[
+            if (cleanQuery.length >= 2)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(Icons.search_off_rounded,
+                          size: 32,
+                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+                      const SizedBox(height: 6),
+                      Text(
+                        'No instant suggestions found for "$cleanQuery"',
+                        textAlign: TextAlign.center,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Tap the blue banner above to see all results',
+                        textAlign: TextAlign.center,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+            // Retain recent searches & popular brands so the user is never stuck
+            _buildRecentSearchesSection(context),
+            _buildBrandsSection(context),
+          ],
         ],
       ),
     );
@@ -535,37 +504,45 @@ class SearchView extends GetView<SearchsController> {
   }
 
   Widget _autocompleteProductTile(BuildContext context, dynamic item) {
-    final name = item['name']?.toString() ?? '';
-    final id = item['_id']?.toString() ?? '';
-    final rawImg = item['image']?.toString() ?? '';
-    final imgUrl = rawImg.isNotEmpty
-        ? (rawImg.startsWith('http') ? rawImg : '${url.replaceAll(RegExp(r'/+$'), '')}/$rawImg')
-        : '';
+    if (item is! Map) return const SizedBox.shrink();
+    final itemMap = Map<String, dynamic>.from(item);
+    final name = (itemMap['name'] ?? itemMap['title'] ?? '').toString();
+    final id = (itemMap['_id'] ?? itemMap['id'] ?? '').toString();
+
+    // Standard image resolution matching ShopView & ParentWebProductCard
+    final imgUrl = HelperFunctions.resolveProductImage(itemMap);
+
+    // Calculate pricing metadata
+    final priceInfo = ProductHelper.calculatePriceInfo(itemMap);
+    final priceStr = priceInfo['productPrice']?.toString() ?? '';
+    final regularPriceStr = priceInfo['salePrice']?.toString() ?? '';
+    final formattedPrice = ProductHelper.formatPrice(priceStr);
+    final formattedRegular = ProductHelper.formatPrice(regularPriceStr);
 
     return InkWell(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(10),
       onTap: () {
         controller.saveRecentSearch(id: id, name: name, type: 'product');
         Get.toNamed(Routes.PRODUCTDETAILS, arguments: {'productId': id});
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
         child: Row(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(8),
               child: Container(
-                width: 38,
-                height: 38,
+                width: 44,
+                height: 44,
                 color: colorScheme.surfaceContainerHighest,
-                child: imgUrl.isNotEmpty
+                child: (imgUrl.isNotEmpty && imgUrl != HelperFunctions.getNoImage())
                     ? CachedNetworkImage(
                         imageUrl: imgUrl,
                         fit: BoxFit.cover,
                         errorWidget: (_, __, ___) =>
-                            const Icon(Icons.image_outlined, size: 20),
+                            Icon(Icons.image_outlined, size: 22, color: colorScheme.onSurfaceVariant),
                       )
-                    : const Icon(Icons.shopping_bag_outlined, size: 20),
+                    : Icon(Icons.shopping_bag_outlined, size: 22, color: colorScheme.onSurfaceVariant),
               ),
             ),
             const SizedBox(width: 12),
@@ -577,16 +554,54 @@ class SearchView extends GetView<SearchsController> {
                     name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Product',
-                    style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      if (formattedPrice.isNotEmpty) ...[
+                        Text(
+                          formattedPrice,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (formattedRegular.isNotEmpty && formattedRegular != formattedPrice) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            formattedRegular,
+                            style: textTheme.labelSmall?.copyWith(
+                              decoration: TextDecoration.lineThrough,
+                              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(width: 8),
+                      ],
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Product',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
+            const SizedBox(width: 6),
             Icon(Icons.north_west, size: 14, color: colorScheme.onSurfaceVariant),
           ],
         ),
@@ -595,12 +610,16 @@ class SearchView extends GetView<SearchsController> {
   }
 
   Widget _autocompleteCategoryTile(BuildContext context, dynamic item) {
-    final name = item['name']?.toString() ?? '';
-    final slug = item['slug']?.toString() ?? '';
-    final id = item['_id']?.toString() ?? '';
+    if (item is! Map) return const SizedBox.shrink();
+    final itemMap = Map<String, dynamic>.from(item);
+    final name = (itemMap['name'] ?? '').toString();
+    final slug = (itemMap['slug'] ?? '').toString();
+    final id = (itemMap['_id'] ?? itemMap['id'] ?? '').toString();
+    final rawImg = itemMap['featured_image'] ?? itemMap['image'] ?? itemMap['icon'];
+    final catImg = HelperFunctions().getImage(rawImg);
 
     return InkWell(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(10),
       onTap: () {
         controller.saveRecentSearch(id: id, name: name, type: 'category');
         openShop({
@@ -611,17 +630,24 @@ class SearchView extends GetView<SearchsController> {
         });
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
         child: Row(
           children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                width: 44,
+                height: 44,
                 color: colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(6),
+                child: (catImg.isNotEmpty && catImg != HelperFunctions.getNoImage())
+                    ? CachedNetworkImage(
+                        imageUrl: catImg,
+                        fit: BoxFit.cover,
+                        errorWidget: (_, __, ___) =>
+                            Icon(Icons.folder_outlined, size: 22, color: colorScheme.onSurfaceVariant),
+                      )
+                    : Icon(Icons.folder_outlined, size: 22, color: colorScheme.onSurfaceVariant),
               ),
-              child: Icon(Icons.folder_outlined, size: 20, color: colorScheme.onSurfaceVariant),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -632,16 +658,28 @@ class SearchView extends GetView<SearchsController> {
                     name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+                    style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Category',
-                    style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+                  const SizedBox(height: 3),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'Category',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
+            const SizedBox(width: 6),
             Icon(Icons.north_west, size: 14, color: colorScheme.onSurfaceVariant),
           ],
         ),
@@ -650,27 +688,38 @@ class SearchView extends GetView<SearchsController> {
   }
 
   Widget _autocompleteBlogTile(BuildContext context, dynamic item) {
-    final name = item['name']?.toString() ?? item['title']?.toString() ?? '';
-    final id = item['_id']?.toString() ?? '';
+    if (item is! Map) return const SizedBox.shrink();
+    final itemMap = Map<String, dynamic>.from(item);
+    final name = (itemMap['name'] ?? itemMap['title'] ?? '').toString();
+    final id = (itemMap['_id'] ?? itemMap['id'] ?? '').toString();
+    final rawImg = itemMap['featured_image'] ?? itemMap['image'] ?? itemMap['cover_image'];
+    final blogImg = HelperFunctions().getImage(rawImg);
 
     return InkWell(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(10),
       onTap: () {
         controller.saveRecentSearch(id: id, name: name, type: 'blog');
         Get.toNamed(Routes.BLOG);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
         child: Row(
           children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                width: 44,
+                height: 44,
                 color: colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(6),
+                child: (blogImg.isNotEmpty && blogImg != HelperFunctions.getNoImage())
+                    ? CachedNetworkImage(
+                        imageUrl: blogImg,
+                        fit: BoxFit.cover,
+                        errorWidget: (_, __, ___) =>
+                            Icon(Icons.article_outlined, size: 22, color: colorScheme.onSurfaceVariant),
+                      )
+                    : Icon(Icons.article_outlined, size: 22, color: colorScheme.onSurfaceVariant),
               ),
-              child: Icon(Icons.article_outlined, size: 20, color: colorScheme.onSurfaceVariant),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -681,16 +730,28 @@ class SearchView extends GetView<SearchsController> {
                     name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+                    style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Blog',
-                    style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+                  const SizedBox(height: 3),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'Blog',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
+            const SizedBox(width: 6),
             Icon(Icons.north_west, size: 14, color: colorScheme.onSurfaceVariant),
           ],
         ),
@@ -707,11 +768,8 @@ class SearchView extends GetView<SearchsController> {
         // Entity Tabs
         _buildEntityTabs(context),
 
-        // Quick Sort & Filter Bar
+        // Quick Sort Bar (Filter removed)
         _buildSortAndFilterBar(context),
-
-        // Active Filter Removable Badges
-        Obx(() => _buildActiveFilterBadges(context)),
 
         // Main Results Body
         Expanded(
@@ -841,7 +899,7 @@ class SearchView extends GetView<SearchsController> {
     });
   }
 
-  // ── Quick Sort & Filter Bar ──
+  // ── Quick Sort Bar (Filter removed) ──
   Widget _buildSortAndFilterBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -865,168 +923,28 @@ class SearchView extends GetView<SearchsController> {
             ),
           ),
 
-          // Actions Row
-          Row(
-            children: [
-              // Sort Trigger
-              InkWell(
-                onTap: () => _showSortModal(context),
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Row(
-                    children: [
-                      Icon(Icons.swap_vert, size: 18, color: Theme.of(context).primaryColor),
-                      const SizedBox(width: 4),
-                      Obx(
-                        () => Text(
-                          _getSortLabel(controller.selectedSort.value),
-                          style: textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 12),
-
-              // Filter Trigger
-              InkWell(
-                onTap: () async {
-                  final result = await showFilterBottomSheet(
-                    context,
-                    controller.currentFilter,
-                  );
-                  if (result != null) {
-                    controller.applyFilter(result);
-                  }
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Row(
-                    children: [
-                      Icon(Icons.filter_list, size: 18, color: colorScheme.onSurface),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Filter',
-                        style: textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Active Filter Badges ──
-  Widget _buildActiveFilterBadges(BuildContext context) {
-    final f = controller.activeFilter.value;
-    final brand = controller.selectedBrandSlug.value;
-    final hasFilters = f.hasActiveFilters || brand.isNotEmpty;
-
-    if (!hasFilters) return const SizedBox.shrink();
-
-    return Container(
-      height: 38,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      margin: const EdgeInsets.only(top: 6),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: [
-          if (brand.isNotEmpty)
-            _filterBadge(
-              context,
-              'Brand: $brand',
-              () => controller.fetchProductsByBrand(brand),
-            ),
-          if (f.minPrice != null || f.maxPrice != null)
-            _filterBadge(
-              context,
-              '\$${(f.minPrice ?? 0).toInt()} - \$${(f.maxPrice ?? 10000).toInt()}',
-              () => controller.applyFilter(f.copyWith(clearMinPrice: true, clearMaxPrice: true)),
-            ),
-          if (f.featured)
-            _filterBadge(
-              context,
-              'Featured',
-              () => controller.applyFilter(f.copyWith(featured: false)),
-            ),
-          if (f.hot)
-            _filterBadge(
-              context,
-              'Hot Deals',
-              () => controller.applyFilter(f.copyWith(hot: false)),
-            ),
-          if (f.trending)
-            _filterBadge(
-              context,
-              'Trending',
-              () => controller.applyFilter(f.copyWith(trending: false)),
-            ),
-          if (f.recommended)
-            _filterBadge(
-              context,
-              'Recommended',
-              () => controller.applyFilter(f.copyWith(recommended: false)),
-            ),
-          GestureDetector(
-            onTap: () {
-              controller.selectedBrandSlug.value = '';
-              controller.clearFilter();
-            },
+          // Sort Trigger
+          InkWell(
+            onTap: () => _showSortModal(context),
+            borderRadius: BorderRadius.circular(8),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: Text(
-                'Clear All',
-                style: textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).primaryColor,
-                  fontWeight: FontWeight.bold,
-                ),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Row(
+                children: [
+                  Icon(Icons.swap_vert, size: 18, color: Theme.of(context).primaryColor),
+                  const SizedBox(width: 4),
+                  Obx(
+                    () => Text(
+                      _getSortLabel(controller.selectedSort.value),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _filterBadge(BuildContext context, String label, VoidCallback onRemove) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: textTheme.labelSmall?.copyWith(
-              color: Theme.of(context).primaryColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(width: 4),
-          GestureDetector(
-            onTap: onRemove,
-            child: Icon(Icons.close, size: 14, color: Theme.of(context).primaryColor),
           ),
         ],
       ),

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:get/get.dart';
@@ -6,10 +5,7 @@ import 'package:get/get.dart';
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_controller.dart';
 import 'package:foduu_ecommerce/app/modules/shop/views/widgets/shop_filter_drawer.dart';
 import 'package:foduu_ecommerce/components/home_component/home_category.dart';
-import 'package:foduu_ecommerce/components/home_component/home_products.dart';
 import 'package:foduu_ecommerce/components/parent_web_product_card.dart';
-import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
-import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
 
 class ShopView extends GetView<ShopController> {
   const ShopView({Key? key}) : super(key: key);
@@ -22,32 +18,36 @@ class ShopView extends GetView<ShopController> {
 
     return Scaffold(
       key: scaffoldKey,
-      backgroundColor: colorScheme.background,
+      backgroundColor: colorScheme.surface,
       drawer: ShopFilterDrawer(controller: controller),
+      onDrawerChanged: (isOpen) {
+        if (isOpen) {
+          controller.ensureFilterDataLoaded();
+          controller.ensureCategoryTreeLoaded();
+          controller.filterDrawerOpenTick.value++;
+        }
+      },
       appBar: AppBar(
-        backgroundColor: colorScheme.background,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         centerTitle: true,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              controller.ensureFilterDataLoaded();
+              controller.ensureCategoryTreeLoaded();
+              controller.filterDrawerOpenTick.value++;
+              Scaffold.of(context).openDrawer();
+            },
+          ),
+        ),
         title: Obx(() {
-          final title = controller.collectionName.value.isEmpty
-              ? "Shop"
-              : controller.collectionName.value;
-          final total = controller.totalProducts.value;
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                title,
-                style:
-                    textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              if (total > 0)
-                Text(
-                  "$total items",
-                  style: textTheme.bodySmall
-                      ?.copyWith(color: colorScheme.onSurfaceVariant),
-                ),
-            ],
+          return Text(
+            controller.collectionName.value == "All Products"
+                ? "Shop"
+                : controller.collectionName.value,
+            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           );
         }),
         bottom: PreferredSize(
@@ -57,6 +57,7 @@ class ShopView extends GetView<ShopController> {
             onFilterTap: () {
               controller.ensureFilterDataLoaded();
               controller.ensureCategoryTreeLoaded();
+              controller.filterDrawerOpenTick.value++;
               scaffoldKey.currentState?.openDrawer();
             },
           ),
@@ -69,25 +70,117 @@ class ShopView extends GetView<ShopController> {
           controller.goUpFilterCategory();
         },
         child: Obx(() {
-          return Column(
-            children: [
-              // ── ACTIVE FILTER CHIPS (Horizontal Scroll) ──
-              if (_hasActiveFilters()) _buildActiveFilterChips(colorScheme),
+          final isList = controller.isListView.value;
+          final totalCount = controller.totalProducts.value > 0
+              ? controller.totalProducts.value
+              : controller.products.length;
+          final promotionalWidgets =
+              controller.buildWidgetsExcluding(['categories', 'products']);
 
-              // ── SUB CATEGORY STRIP (only when entered with category context) ──
-              _buildSubCategorySection(colorScheme),
+          return RefreshIndicator(
+            onRefresh: () => Future.wait([
+              controller.fetchProducts(isRefresh: true),
+              controller.fetchLayout(ShopController.pageSlug),
+            ]),
+            child: CustomScrollView(
+              controller: controller.scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                // 1. ACTIVE FILTER CHIPS (directly beneath toolbar)
+                if (_hasActiveFilters())
+                  SliverToBoxAdapter(
+                    child: _buildActiveFilterChips(colorScheme),
+                  ),
 
-              // ── PRODUCT GRID / LIST ──
-              Expanded(
-                child: controller.isLoading.value && controller.products.isEmpty
-                    ? _buildGridShimmer()
-                    : RefreshIndicator(
-                        onRefresh: () =>
-                            controller.fetchProducts(isRefresh: true),
-                        child: _buildProductGrid(colorScheme, textTheme),
+                // 2. SUB CATEGORY STRIP (if category drilling is active)
+                if (controller.filterCurrentCategories.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: _buildSubCategorySection(colorScheme),
+                  ),
+
+                // 3. PRODUCT CATALOG: SHIMMER / EMPTY / GRID / LIST
+                if (controller.isLoading.value && controller.products.isEmpty)
+                  _buildSliverShimmerGrid()
+                else if (controller.products.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _buildEmptyState(colorScheme, textTheme),
+                  )
+                else if (isList)
+                  SliverPadding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final p = controller.products[index];
+                          return ParentWebProductCard(
+                            product: p is Map<String, dynamic>
+                                ? p
+                                : Map<String, dynamic>.from(p),
+                            isList: true,
+                          );
+                        },
+                        childCount: controller.products.length,
                       ),
-              ),
-            ],
+                    ),
+                  )
+                else
+                  SliverPadding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    sliver: SliverGrid(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 0.68,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final p = controller.products[index];
+                          return ParentWebProductCard(
+                            product: p is Map<String, dynamic>
+                                ? p
+                                : Map<String, dynamic>.from(p),
+                            isList: false,
+                          );
+                        },
+                        childCount: controller.products.length,
+                      ),
+                    ),
+                  ),
+
+                // 4. INFINITE SCROLL LOADING INDICATOR / END OF LIST
+                if (controller.hasNextPage)
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  )
+                else if (controller.products.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: _buildEndOfListFooter(
+                        colorScheme, textTheme, totalCount),
+                  ),
+
+                // 5. POST-CATALOG CMS SECTIONS (Banners, Sliders, Trust Badges, Blogs)
+                // Appears naturally when scrolling past products, exactly matching
+                // Image 4 and parent website /product structure.
+                if (promotionalWidgets.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 8.0, bottom: 24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: promotionalWidgets,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           );
         }),
       ),
@@ -157,15 +250,7 @@ class ShopView extends GetView<ShopController> {
 
   // ─── ACTIVE FILTER HELPERS ────────────────────────────────────────────
   bool _hasActiveFilters() {
-    return controller.isFeatured.value ||
-        controller.isHot.value ||
-        controller.isTrending.value ||
-        controller.isRecommended.value ||
-        controller.isRecentlyViewed.value ||
-        controller.selectedCategories.isNotEmpty ||
-        controller.selectedBrands.isNotEmpty ||
-        controller.minPrice.value > 0 ||
-        controller.maxPrice.value < 10000;
+    return controller.hasActiveFilters;
   }
 
   Widget _buildActiveFilterChips(ColorScheme colorScheme) {
@@ -184,6 +269,11 @@ class ShopView extends GetView<ShopController> {
             onPressed: () => controller.clearAllFilters(),
           ),
           const SizedBox(width: 8),
+
+          if (controller.searchQuery.value.isNotEmpty)
+            _activeChip('"${controller.searchQuery.value}"', () {
+              controller.clearProductSearch();
+            }, colorScheme),
 
           if (controller.isFeatured.value)
             _activeChip("Featured", () {
@@ -215,23 +305,31 @@ class ShopView extends GetView<ShopController> {
               controller.fetchProducts(isRefresh: true);
             }, colorScheme),
 
-          // ...controller.selectedCategories.map((cat) => _activeChip(
-          //       controller.availableCategories
-          //               .firstWhereOrNull((c) => c['slug'] == cat)?['name']
-          //               ?.toString() ??
-          //           cat.capitalizeFirst!,
-          //       () {
-          //         controller.toggleCategory(cat);
-          //         controller.fetchProducts(isRefresh: true);
-          //       },
-          //       colorScheme,
-          //     )),
+          ...controller.selectedCategories.map((cat) {
+            String label = cat;
+            final found = controller.availableCategories
+                .firstWhereOrNull((c) => c['slug'] == cat || c['_id'] == cat);
+            if (found != null && found['name'] != null) {
+              label = found['name'].toString();
+            }
+            return _activeChip(label, () {
+              controller.toggleCategory(cat);
+            }, colorScheme);
+          }),
 
           ...controller.selectedBrands
               .map((brand) => _activeChip(brand.capitalizeFirst!, () {
                     controller.toggleBrand(brand);
-                    controller.fetchProducts(isRefresh: true);
                   }, colorScheme)),
+
+          if (controller.minPrice.value > 0 || controller.maxPrice.value < 10000)
+            _activeChip(
+              "${controller.formatPriceForInput(controller.minPrice.value)} - ${controller.formatPriceForInput(controller.maxPrice.value)}",
+              () {
+                controller.updatePriceRange(const RangeValues(0, 10000));
+              },
+              colorScheme,
+            ),
         ],
       ),
     );
@@ -252,109 +350,116 @@ class ShopView extends GetView<ShopController> {
     );
   }
 
-  // ── MAIN PRODUCT GRID / LIST ──
-  Widget _buildProductGrid(ColorScheme colorScheme, TextTheme textTheme) {
-    if (controller.products.isEmpty) {
-      return Center(
+  Widget _buildEmptyState(ColorScheme colorScheme, TextTheme textTheme) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 48.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.inventory_2_outlined,
-                size: 80, color: colorScheme.outline.withOpacity(0.5)),
+                size: 72, color: colorScheme.outline.withOpacity(0.5)),
             const SizedBox(height: 16),
-            Text("No products match your filters",
-                style: textTheme.titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              "No products found",
+              style:
+                  textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Try adjusting or clearing your filters to see more results.",
+              textAlign: TextAlign.center,
+              style: textTheme.bodySmall
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: controller.clearAllFilters,
+              icon: const Icon(Icons.refresh, size: 16),
+              label: const Text("Clear Filters"),
+            ),
           ],
         ),
-      );
-    }
-
-    return Obx(() {
-      final isList = controller.isListView.value;
-      if (isList) {
-        return ListView.builder(
-          controller: controller.scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          itemCount:
-              controller.products.length + (controller.hasNextPage ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index >= controller.products.length) {
-              if (!controller.isFetchingMore.value) {
-                controller.fetchProducts(isRefresh: false);
-              }
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(),
-                ),
-              );
-            }
-            final p = controller.products[index];
-            return ParentWebProductCard(
-              product:
-                  p is Map<String, dynamic> ? p : Map<String, dynamic>.from(p),
-              isList: true,
-            );
-          },
-        );
-      }
-
-      return GridView.builder(
-        controller: controller.scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 0.58,
-        ),
-        itemCount:
-            controller.products.length + (controller.hasNextPage ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index >= controller.products.length) {
-            if (!controller.isFetchingMore.value) {
-              controller.fetchProducts(isRefresh: false);
-            }
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
-          final p = controller.products[index];
-          return ParentWebProductCard(
-            product:
-                p is Map<String, dynamic> ? p : Map<String, dynamic>.from(p),
-            isList: false,
-          );
-        },
-      );
-    });
-  }
-
-  Widget _buildGridShimmer() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey.shade300,
-      highlightColor: Colors.grey.shade100,
-      child: GridView.builder(
-        padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 0.58,
-        ),
-        itemCount: 6,
-        itemBuilder: (_, __) => Container(
-            decoration: BoxDecoration(
-                color: Colors.white, borderRadius: BorderRadius.circular(16))),
       ),
     );
   }
+
+  Widget _buildSliverShimmerGrid() {
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      sliver: SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 12,
+          childAspectRatio: 0.68,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            return Shimmer.fromColors(
+              baseColor: Colors.grey.shade300,
+              highlightColor: Colors.grey.shade100,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            );
+          },
+          childCount: 6,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEndOfListFooter(
+      ColorScheme colorScheme, TextTheme textTheme, int totalCount) {
+    return Padding(
+      padding: const EdgeInsets.only(
+          top: 24.0, bottom: 28.0, left: 32.0, right: 32.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Divider(
+              color: colorScheme.outline.withOpacity(0.25),
+              thickness: 1,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.check_circle_outline_rounded,
+                  size: 14,
+                  color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  "You've viewed all $totalCount items",
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Divider(
+              color: colorScheme.outline.withOpacity(0.25),
+              thickness: 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
 }
 
 // ─── SHOP HEADER TOOLBAR (Filter, Count, Grid/List Switcher, Sort) ───

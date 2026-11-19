@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import '/components/app_image_placeholder.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/core/services/wishlistService.dart'
@@ -376,9 +377,12 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   @override
   Widget build(BuildContext context) {
-    final heading =
+    var heading =
         (widget.contentJson?['heading'] ?? widget.contentJson?['title'] ?? '')
-            .toString();
+            .toString()
+            .trim();
+    // CMS uses punctuation placeholders to represent an intentionally empty heading.
+    if (heading == '_' || heading == '-' || heading == '--') heading = '';
     final subheading = (widget.contentJson?['subheading'] ??
             widget.contentJson?['subtitle'] ??
             '')
@@ -1152,16 +1156,26 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // GRID VIEW
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildGridView(String style) {
-    final columns =
-        int.tryParse(widget.contentJson?['columns']?.toString() ?? '1') ?? 1;
-    final aspectRatio = double.tryParse(
-            widget.contentJson?['aspect_ratio']?.toString() ?? '2.4') ??
-        2.4;
+    final rawColumns =
+        int.tryParse(widget.contentJson?['columns']?.toString() ?? '2') ?? 2;
+    // On mobile devices, clamp columns to maximum 2 regardless of desktop studio settings
+    final columns = kIsWeb ? rawColumns : rawColumns.clamp(1, 2);
+
+    final rawRatio = double.tryParse(
+            widget.contentJson?['aspect_ratio']?.toString() ?? '') ??
+        0.68;
+    // For 2-column portrait mobile cards (standard/parent_web), desktop ratios >= 1.0 (like 1.3 or 2.4)
+    // make the card wider than tall, leaving no height for image + title + stars + price.
+    // In that case, enforce standard portrait ratio 0.68 on mobile.
+    final double defaultMobileRatio =
+        (style == 'parent_web' || style == 'standard') ? 0.68 : 0.75;
+    final aspectRatio = (!kIsWeb && columns == 2 && rawRatio >= 1.0)
+        ? defaultMobileRatio
+        : (rawRatio > 0 ? rawRatio : defaultMobileRatio);
+
     final spacing =
-        double.tryParse(widget.contentJson?['spacing']?.toString() ?? '21') ??
-            21;
-    // final itemCount =
-    //     _infiniteScroll ? trendingList.length + 1 : trendingList.length;
+        double.tryParse(widget.contentJson?['spacing']?.toString() ?? '12') ??
+            12;
 
     final itemCount = _infiniteScroll
         ? displayedProducts.length + 1

@@ -121,6 +121,26 @@ class BlogModel {
     );
   }
 
+  /// Converts this blog to the map shape used by search autocomplete.
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'name': title,
+      'title': title,
+      'slug': slug,
+      'content': content,
+      'excerpt': excerpt,
+      'featured_image_url': imageUrl,
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+      'featured': isFeatured,
+      if (author != null) 'owner_id': author!.toJson(),
+      'categories': categories,
+      'tags': tags,
+      'comments_count': commentsCount,
+    };
+  }
+
   /// Formatted long date matching parent website detail page: e.g. "03 August 2026"
   String get formattedDate {
     if (createdAt == null) return '';
@@ -193,6 +213,13 @@ class BlogAuthor {
       email: (json['email'] ?? '').toString(),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        '_id': id,
+        'first_name': firstName,
+        'last_name': lastName,
+        'email': email,
+      };
 
   String get fullName {
     final name = '$firstName $lastName'.trim();

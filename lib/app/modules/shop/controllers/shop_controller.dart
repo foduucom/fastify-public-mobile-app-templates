@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/app/data/category_filter_service.dart';
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_attribute_filter_mixin.dart';
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_category_filter_mixin.dart';
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_category_tree_filter_mixin.dart';
@@ -64,6 +66,12 @@ class ShopController extends GetxController
   var selectedCategories = <String>{}.obs;
   var selectedBrands = <String>{}.obs;
 
+  // Search & Filter Drawer Synchronization
+  var filterDrawerOpenTick = 0.obs;
+  var searchQuery = "".obs;
+  late TextEditingController productSearchController;
+  Timer? _productSearchDebouncer;
+
   // Sort By (header dropdown)
   var selectedSortOption = ShopSortOption.newest.obs;
 
@@ -89,6 +97,7 @@ class ShopController extends GetxController
     super.onInit();
     scrollController = ScrollController();
     scrollController.addListener(_scrollListener);
+    productSearchController = TextEditingController();
 
     _parseArguments();
 
@@ -98,9 +107,45 @@ class ShopController extends GetxController
       maxPrice.value = values.end;
     });
 
+    // When opened plainly (bottom-tab, no filter args), show the full
+    // CMS canvas from api/mobile-app/shop.
+    // When opened with filter/category args, load the filtered catalog grid.
     if (isPlainShopEntry.value) {
       ensureFilterDataLoaded();
+      ensureCategoryTreeLoaded();
+      fetchLayout(pageSlug);
+    } else {
+      fetchBrands();
+      fetchCategories();
       fetchProducts(isRefresh: true);
+    }
+  }
+
+  @override
+  Future<dynamic> fetchLayout(String slug,
+      {dynamic requestBody, bool silent = false}) async {
+    final response = await super
+        .fetchLayout(slug, requestBody: requestBody, silent: silent);
+    _syncCmsProductMetadata();
+    return response;
+  }
+
+  void _syncCmsProductMetadata() {
+    final cmsJson = contentJsonFor('products');
+    if (cmsJson != null) {
+      final prodData = cmsJson['products'] ?? cmsJson['product'];
+      if (prodData is Map) {
+        final total = prodData['total'];
+        if (total != null) {
+          totalProducts.value =
+              int.tryParse(total.toString()) ?? totalProducts.value;
+        }
+        final dataList = prodData['data'];
+        if (dataList is List && dataList.isNotEmpty && products.isEmpty) {
+          products.assignAll(dataList);
+          isLoading.value = false;
+        }
+      }
     }
   }
 
@@ -190,6 +235,8 @@ class ShopController extends GetxController
 
   @override
   void onClose() {
+    _productSearchDebouncer?.cancel();
+    productSearchController.dispose();
     scrollController.dispose();
     categorySearchController.dispose();
     disposeAttributeFilterControllers();
@@ -197,8 +244,11 @@ class ShopController extends GetxController
   }
 
   void _scrollListener() {
-    if (scrollController.position.pixels >=
-        scrollController.position.maxScrollExtent - 200) {
+    if (!scrollController.hasClients) return;
+    final pos = scrollController.position;
+    if (pos.maxScrollExtent > 200 &&
+        pos.pixels > 80 &&
+        pos.pixels >= pos.maxScrollExtent - 250) {
       if (!isFetchingMore.value && hasNextPage && !isLoading.value) {
         fetchProducts(isRefresh: false);
       }
@@ -226,6 +276,10 @@ class ShopController extends GetxController
         'count': '10',
       };
 
+      if (searchQuery.value.trim().isNotEmpty) {
+        queryParams['search'] = searchQuery.value.trim();
+      }
+
       if (sortBy.value.isNotEmpty) {
         queryParams['sort_by'] = sortBy.value;
       }
@@ -247,7 +301,40 @@ class ShopController extends GetxController
       }
 
       if (selectedCategories.isNotEmpty) {
-        queryParams['category'] = selectedCategories.toList();
+        // The products endpoint distinguishes a parent category from an
+        // explicit category selection. Match the conventions used by the
+        // homepage products widget: parentCategory for a parent, and
+        // `specific` with category IDs for selected categories.
+        try {
+          await ensureCategoryTreeLoaded();
+        } catch (e) {
+          // A category-tree outage should not prevent the product request;
+          // unresolved selections use the legacy category parameter below.
+          debugPrint('ℹ️ Unable to resolve product category tree: $e');
+        }
+        final selectedNodes = selectedCategories
+            .map(_findProductCategoryNode)
+            .toList(growable: false);
+
+        if (selectedCategories.length == 1 && selectedNodes.first != null) {
+          final node = selectedNodes.first!;
+          if (node.children.isNotEmpty) {
+            queryParams['parentCategory'] =
+                node.slug.isNotEmpty ? node.slug : node.id;
+          } else if (node.id.isNotEmpty) {
+            queryParams['specific'] = [node.id];
+          } else {
+            queryParams['category'] = selectedCategories.toList();
+          }
+        } else if (selectedNodes
+            .every((node) => node != null && node.id.isNotEmpty)) {
+          queryParams['specific'] =
+              selectedNodes.map((node) => node!.id).toList();
+        } else {
+          // Preserve legacy behavior when the category tree cannot resolve a
+          // value (for example, a stale deep link or an unavailable tree API).
+          queryParams['category'] = selectedCategories.toList();
+        }
       }
       if (selectedBrands.isNotEmpty) {
         queryParams['brand'] = selectedBrands.toList();
@@ -275,43 +362,49 @@ class ShopController extends GetxController
         return;
       }
 
-      // ✅ FIXED: Parse Response correctly
+      // ✅ Parse Response correctly
       if (response != null) {
         List<dynamic> newProducts = [];
 
         // Check if response is a Map (paginated response)
-        if (response is Map<String, dynamic>) {
-          // Extract data array from the response map
-          if (response.containsKey('data') && response['data'] is List) {
-            newProducts = response['data'] as List<dynamic>;
-            totalProducts.value = response['total'] ?? products.length;
-            hasNextPage = response['hasNextPage'] ?? false;
-          }
-          // If response has products directly without data wrapper
-          else if (response.containsKey('products') &&
-              response['products'] is List) {
-            newProducts = response['products'] as List<dynamic>;
-            totalProducts.value = response['total'] ?? products.length;
-            hasNextPage = response['hasNextPage'] ?? false;
-          }
-          // If response is just a map but not paginated
-          else {
-            // Try to find any List in the response
-            final listKey = response.keys.firstWhere(
-              (k) => response[k] is List,
+        if (response is Map) {
+          final resMap = Map<String, dynamic>.from(response);
+
+          if (resMap.containsKey('data') && resMap['data'] is List) {
+            newProducts = List<dynamic>.from(resMap['data']);
+            totalProducts.value = int.tryParse(resMap['total']?.toString() ?? '') ??
+                totalProducts.value;
+            hasNextPage = resMap['hasNextPage'] == true;
+          } else if (resMap.containsKey('data') && resMap['data'] is Map) {
+            final innerData = Map<String, dynamic>.from(resMap['data']);
+            if (innerData['data'] is List) {
+              newProducts = List<dynamic>.from(innerData['data']);
+            }
+            totalProducts.value = int.tryParse(innerData['total']?.toString() ?? '') ??
+                totalProducts.value;
+            hasNextPage = innerData['hasNextPage'] == true;
+          } else if (resMap.containsKey('products') &&
+              resMap['products'] is List) {
+            newProducts = List<dynamic>.from(resMap['products']);
+            totalProducts.value = int.tryParse(resMap['total']?.toString() ?? '') ??
+                totalProducts.value;
+            hasNextPage = resMap['hasNextPage'] == true;
+          } else {
+            final listKey = resMap.keys.firstWhere(
+              (k) => resMap[k] is List,
               orElse: () => '',
             );
             if (listKey.isNotEmpty) {
-              newProducts = response[listKey] as List<dynamic>;
+              newProducts = List<dynamic>.from(resMap[listKey]);
             }
             hasNextPage = false;
           }
         }
         // If response is directly a List
-        else if (response is List<dynamic>) {
-          newProducts = response;
+        else if (response is List) {
+          newProducts = List<dynamic>.from(response);
           hasNextPage = false;
-          totalProducts.value = response.length;
+          totalProducts.value = newProducts.length;
         }
 
         // ✅ Apply products to the list
@@ -320,6 +413,8 @@ class ShopController extends GetxController
         } else {
           products.addAll(newProducts);
         }
+
+        _adjustMinPriceBoundFromProducts();
 
         debugPrint(
             '✅ Loaded ${newProducts.length} products, total: ${products.length}, hasNextPage: $hasNextPage');
@@ -333,6 +428,19 @@ class ShopController extends GetxController
       isLoading.value = false;
       isFetchingMore.value = false;
     }
+  }
+
+  CategoryTreeNode? _findProductCategoryNode(String slug) {
+    CategoryTreeNode? find(List<CategoryTreeNode> nodes) {
+      for (final node in nodes) {
+        if (node.slug == slug || node.id == slug) return node;
+        final child = find(node.children);
+        if (child != null) return child;
+      }
+      return null;
+    }
+
+    return find(categoryTreeByType['product'] ?? const <CategoryTreeNode>[]);
   }
 
   // ─── FETCH BRANDS ─────────────────────────────────────────────
@@ -374,11 +482,111 @@ class ShopController extends GetxController
         availableCategories.assignAll(response);
       }
       allCategories.assignAll(availableCategories);
+      prefetchCounts(availableCategories);
       debugPrint('✅ Loaded ${availableCategories.length} categories');
     } catch (e) {
       debugPrint('❌ Fetch Categories Error: $e');
     } finally {
       isCategoriesLoading.value = false;
+    }
+  }
+
+  // ─── SEARCH & PREFETCH CONTROLS ─────────────────────────────
+  void onProductSearchChanged(String value) {
+    _productSearchDebouncer?.cancel();
+    _productSearchDebouncer = Timer(const Duration(milliseconds: 400), () {
+      final q = value.trim();
+      if (q == searchQuery.value) return;
+      searchQuery.value = q;
+      isPlainShopEntry.value = false;
+      applyFiltersAndRefresh();
+    });
+  }
+
+  void clearProductSearch() {
+    _productSearchDebouncer?.cancel();
+    productSearchController.clear();
+    if (searchQuery.value.isEmpty) return;
+    searchQuery.value = "";
+    applyFiltersAndRefresh();
+  }
+
+  String formatPriceForInput(double val) {
+    final formattedStr = val.toStringAsFixed(2);
+    if (formattedStr.endsWith('.00')) {
+      return val.round().toString();
+    }
+    return formattedStr;
+  }
+
+  void _adjustMinPriceBoundFromProducts() {
+    if (products.isEmpty) return;
+    double? lowestEffective;
+    double? highestEffective;
+    for (var p in products) {
+      if (p is! Map) continue;
+      final variants = (p['variants'] ?? p['variant_ids'] ?? []) as List;
+      final pPrice = double.tryParse(p['price']?.toString() ?? '');
+      final pSale = double.tryParse(p['sale_price']?.toString() ?? '');
+      double eff = (pSale != null && pSale > 0) ? pSale : (pPrice ?? 0);
+      for (var v in variants) {
+        if (v is Map) {
+          final vP = double.tryParse(v['price']?.toString() ?? '') ?? 0;
+          final vSP = double.tryParse(v['sale_price']?.toString() ?? '');
+          final vEff = (vSP != null && vSP > 0) ? vSP : vP;
+          if (vEff > 0 && (lowestEffective == null || vEff < lowestEffective)) {
+            lowestEffective = vEff;
+          }
+          if (vEff > (highestEffective ?? 0)) {
+            highestEffective = vEff;
+          }
+        }
+      }
+      if (eff > 0 && (lowestEffective == null || eff < lowestEffective)) {
+        lowestEffective = eff;
+      }
+      if (eff > (highestEffective ?? 0)) {
+        highestEffective = eff;
+      }
+    }
+    if (lowestEffective != null && lowestEffective < absoluteMinPrice.value) {
+      absoluteMinPrice.value = lowestEffective;
+    }
+    if (highestEffective != null && highestEffective > absoluteMaxPrice.value) {
+      absoluteMaxPrice.value = highestEffective;
+    }
+  }
+
+  void prefetchCounts(List<dynamic> cats) {
+    for (final cat in cats) {
+      if (cat is! Map) continue;
+      final slug = cat['slug']?.toString() ?? cat['_id']?.toString() ?? '';
+      if (slug.isEmpty || categoryCountCache.containsKey(slug)) continue;
+      isCountLoading[slug] = true;
+      isCountLoading.refresh();
+
+      final Map<String, dynamic> params = {
+        'count': '1',
+        'category': slug,
+      };
+
+      BasicProvider("products").getRequest(queryParams: params).then((response) {
+        if (response != null && response is Map) {
+          int count = 0;
+          if (response['total'] != null) {
+            count = int.tryParse(response['total'].toString()) ?? 0;
+          } else if (response['data'] is Map && response['data']['total'] != null) {
+            count = int.tryParse(response['data']['total'].toString()) ?? 0;
+          }
+          categoryCountCache[slug] = count;
+          categoryCountCache.refresh();
+        }
+        isCountLoading.remove(slug);
+        isCountLoading.refresh();
+      }).catchError((_) {
+        isCountLoading.remove(slug);
+        isCountLoading.refresh();
+      });
     }
   }
 
@@ -399,10 +607,11 @@ class ShopController extends GetxController
 
   // ─── FILTER CONTROLS ───────────────────────────────────────
   void applyFiltersAndRefresh() {
-    // Any filter/sort action means the user wants the filtered product grid,
-    // not the CMS layout — switch entry mode even when triggered from the
-    // plain Shop tab (which never called fetchProducts on init).
-    isPlainShopEntry.value = false;
+    // Applying filters exits the CMS canvas and shows the filtered grid.
+    if (isPlainShopEntry.value) {
+      isPlainShopEntry.value = false;
+      ensureFilterDataLoaded();
+    }
     fetchProducts(isRefresh: true);
   }
 
@@ -493,6 +702,8 @@ class ShopController extends GetxController
   }
 
   void clearAllFilters() {
+    searchQuery.value = "";
+    productSearchController.clear();
     isFeatured.value = false;
     isHot.value = false;
     isTrending.value = false;
@@ -511,7 +722,8 @@ class ShopController extends GetxController
   }
 
   bool get hasActiveFilters {
-    return isFeatured.value ||
+    return searchQuery.value.isNotEmpty ||
+        isFeatured.value ||
         isHot.value ||
         isTrending.value ||
         isRecommended.value ||
@@ -525,6 +737,7 @@ class ShopController extends GetxController
 
   int get activeFilterCount {
     int count = 0;
+    if (searchQuery.value.isNotEmpty) count++;
     count += selectedCategories.length;
     count += selectedBrands.length;
     // Counted per selected value, not per attribute key — e.g. 2 selected

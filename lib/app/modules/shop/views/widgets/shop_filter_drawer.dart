@@ -24,6 +24,7 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
   late Map<String, Set<String>> _tempAttributes;
   late Set<String> _tempBrands;
   late RangeValues _tempPriceRange;
+  Worker? _openWorker;
 
   ShopController get controller => widget.controller;
 
@@ -36,6 +37,16 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
     // edge-swipe gesture that bypasses onTap entirely.
     controller.ensureFilterDataLoaded();
     controller.ensureCategoryTreeLoaded();
+    _openWorker = ever(controller.filterDrawerOpenTick, (_) {
+      if (!mounted) return;
+      setState(_seedTempStateFromController);
+    });
+  }
+
+  @override
+  void dispose() {
+    _openWorker?.dispose();
+    super.dispose();
   }
 
   void _seedTempStateFromController() {

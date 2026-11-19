@@ -154,119 +154,125 @@ class ParentWebProductCard extends StatelessWidget {
         children: [
           // Image with Floating Wishlist and Bag
           Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    fit: BoxFit.cover,
-                    progressIndicatorBuilder: (_, __, ___) =>
-                        HelperFunctions().loadingIndicator(),
-                    errorWidget: (_, __, ___) => Container(
-                      color: context.surfaceVariantColor,
-                      child: Icon(Icons.image_outlined,
-                          color: context.onSurfaceVariantColor),
-                    ),
-                  ),
-
-                  // Sale badge (top-left) - guaranteed high contrast crimson
-                  if (badgeText.isNotEmpty)
-                    Positioned(
-                      left: 8,
-                      top: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 7, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFDC2626),
-                          borderRadius: BorderRadius.circular(6),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x33000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          badgeText,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 10,
-                            letterSpacing: 0.2,
-                          ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.contain,
+                        progressIndicatorBuilder: (_, __, ___) =>
+                            HelperFunctions().loadingIndicator(),
+                        errorWidget: (_, __, ___) => const Center(
+                          child: Icon(Icons.image_outlined,
+                              color: Colors.grey, size: 36),
                         ),
                       ),
                     ),
 
-                  // Floating Wishlist Heart (top-right)
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Obx(() {
-                      final isFav = WishListService.to.isInWishlist(_productId);
-                      return GestureDetector(
-                        onTap: _handleToggleWishlist,
+                    // Sale badge (top-left) - crimson rounded pill
+                    if (badgeText.isNotEmpty)
+                      Positioned(
+                        left: 8,
+                        top: 8,
                         child: Container(
-                          width: 32,
-                          height: 32,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: context.surfaceColor.withValues(alpha: 0.9),
-                            boxShadow: [
+                            color: const Color(0xFFE11D48),
+                            borderRadius: BorderRadius.circular(6),
+                            boxShadow: const [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.12),
+                                color: Color(0x33000000),
                                 blurRadius: 4,
-                                offset: const Offset(0, 2),
+                                offset: Offset(0, 1),
                               ),
                             ],
                           ),
-                          child: Icon(
-                            isFav
-                                ? Icons.favorite_rounded
-                                : Icons.favorite_border_rounded,
-                            size: 17,
-                            color: isFav
-                                ? colorScheme.error
-                                : context.onSurfaceColor,
+                          child: Text(
+                            badgeText,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 10,
+                              letterSpacing: 0.2,
+                            ),
                           ),
                         ),
-                      );
-                    }),
-                  ),
+                      ),
 
-                  // Floating Quick Add to Bag (bottom-right)
-                  Positioned(
-                    right: 8,
-                    bottom: 8,
-                    child: GestureDetector(
-                      onTap: () => _handleAddToCart(context),
-                      child: Container(
-                        width: 34,
-                        height: 34,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: colorScheme.primary,
-                          boxShadow: [
-                            BoxShadow(
-                              color: colorScheme.primary.withValues(alpha: 0.35),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
+                    // Floating Wishlist Heart (top-right) - dark circle with white heart
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Obx(() {
+                        final isFav = WishListService.to.isInWishlist(_productId);
+                        return GestureDetector(
+                          onTap: _handleToggleWishlist,
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: const Color(0xFF1E293B),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.18),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: Icon(
-                          Icons.shopping_bag_outlined,
-                          size: 17,
-                          color: colorScheme.onPrimary,
+                            child: Icon(
+                              isFav
+                                  ? Icons.favorite_rounded
+                                  : Icons.favorite_border_rounded,
+                              size: 16,
+                              color: isFav ? Colors.redAccent : Colors.white,
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+
+                    // Floating Quick Add to Bag (bottom-right) - vibrant blue with shopping bag
+                    Positioned(
+                      right: 8,
+                      bottom: 8,
+                      child: GestureDetector(
+                        onTap: () => _handleAddToCart(context),
+                        child: Container(
+                          width: 34,
+                          height: 34,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFF2563EB),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0x402563EB),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.shopping_bag_outlined,
+                            size: 17,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

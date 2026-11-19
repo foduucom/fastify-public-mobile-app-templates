@@ -187,8 +187,10 @@ class _FoduuSliderState extends State<FoduuSlider>
                             sliderItem['description'] ?? '';
                         // final String buttonText =
                         //     sliderItem['button_text'] ?? 'Shop Now';
-                        final String? link = sliderItem['link'];
-                        final String? sliderType = sliderItem['sliderType'];
+                        final String? link = sliderItem['link']?.toString();
+                        final String normalizedLink = link?.trim() ?? '';
+                        final String? sliderType =
+                            sliderItem['sliderType']?.toString().toLowerCase();
 
                         // Determine text color based on background
                         final bool isDarkBackground =
@@ -202,19 +204,32 @@ class _FoduuSliderState extends State<FoduuSlider>
                         return GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () async {
-                            if (sliderType == 'categories') {
+                            // A destination type alone is not enough to route.
+                            // Some CMS slides are marked as categories/blogs
+                            // even when the backend has not assigned a link.
+                            // In that case, keep the user on Home and explain
+                            // why the banner did not open.
+                            if (normalizedLink.isEmpty) {
+                              HelperFunctions().showSnackBarError(
+                                  "No link associated with this slide.");
+                            } else if (sliderType == 'categories') {
                               openShop({
                                     'source': 'category',
-                                    'productId': link,
+                                    'productId': normalizedLink,
                                     'name': title
                                   });
                             } else if (sliderType == 'blog') {
                               Get.toNamed(Routes.BLOG_DETAILS, arguments: {
-                                'id': link,
+                                'id': normalizedLink,
                               });
-                            } else if (link != null && link.isNotEmpty) {
-                              if (link.startsWith('http')) {
-                                final Uri url = Uri.parse(link);
+                            } else {
+                              if (normalizedLink.startsWith('http')) {
+                                final Uri? url = Uri.tryParse(normalizedLink);
+                                if (url == null || !url.hasAuthority) {
+                                  HelperFunctions().showSnackBarError(
+                                      "Invalid link or unsupported slider type.");
+                                  return;
+                                }
                                 if (await canLaunchUrl(url)) {
                                   await launchUrl(url,
                                       mode: LaunchMode.externalApplication);
@@ -227,9 +242,6 @@ class _FoduuSliderState extends State<FoduuSlider>
                                 HelperFunctions().showSnackBarError(
                                     "Invalid link or unsupported slider type.");
                               }
-                            } else {
-                              HelperFunctions().showSnackBarError(
-                                  "No link associated with this slide.");
                             }
                           },
                           child: Padding(

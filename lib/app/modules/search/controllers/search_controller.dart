@@ -10,7 +10,6 @@ import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
 import '/core/foduuStudio/foduu_studio_layout_mixin.dart';
 import '/models/blog_model.dart';
-import '../models/filter_model.dart';
 import '../services/product_service.dart';
 
 /// Defines the three primary UI states for the Search screen
@@ -67,10 +66,6 @@ class SearchsController extends GetxController
   var box = GetStorage();
   late TextEditingController searchTextController;
   late ScrollController scrollController;
-
-  // ── Filters ──
-  var activeFilter = const FilterModel.empty().obs;
-  FilterModel get currentFilter => activeFilter.value;
 
   Timer? _debounce;
   Timer? _autocompleteDebounce;
@@ -207,14 +202,15 @@ class SearchsController extends GetxController
 
   // ── Typing Handler ──
   void onSearchChanged(String text) {
+    final trimmed = text.trim();
     queryText.value = text;
     _autocompleteDebounce?.cancel();
 
-    if (text.trim().isEmpty) {
+    if (trimmed.isEmpty) {
       autocompleteProducts.clear();
       autocompleteCategories.clear();
       autocompleteBlogs.clear();
-      if (selectedBrandSlug.isEmpty && !activeFilter.value.hasActiveFilters) {
+      if (selectedBrandSlug.isEmpty) {
         searchMode.value = SearchMode.browse;
       }
       return;
@@ -222,22 +218,74 @@ class SearchsController extends GetxController
 
     // Enter autocomplete predictive state
     searchMode.value = SearchMode.autocomplete;
-    _autocompleteDebounce = Timer(const Duration(milliseconds: 250), () {
-      fetchAutocomplete(text.trim());
+
+    // For instant responsive feel, trigger debounced autocomplete
+    _autocompleteDebounce = Timer(const Duration(milliseconds: 200), () {
+      fetchAutocomplete(trimmed);
     });
+  }
+
+  // ── Smart Local Autocomplete Fallback ──
+  // Matches against pre-hydrated CMS products, brands, and blogs so single-letter
+  // queries like "a" or network drops never leave the user with an empty screen.
+  void _localAutocomplete(String query) {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return;
+
+    // Match products from pre-hydrated CMS layout
+    final matchedProducts = searchProduct.where((p) {
+      if (p is Map) {
+        final name = (p['name'] ?? p['title'] ?? '').toString().toLowerCase();
+        final brand = (p['brand'] ?? '').toString().toLowerCase();
+        return name.contains(q) || brand.contains(q);
+      }
+      return false;
+    }).take(6).toList();
+
+    // Match brands
+    final matchedBrands = brands.where((b) {
+      if (b is Map) {
+        final name = (b['name'] ?? '').toString().toLowerCase();
+        return name.contains(q);
+      }
+      return false;
+    }).take(4).toList();
+
+    // Match blogs if cached
+    List matchedBlogs = [];
+    if (_blogCache != null && _blogCache!.isNotEmpty) {
+      matchedBlogs = _blogCache!
+          .where((b) =>
+              b.title.toLowerCase().contains(q) ||
+              b.cleanExcerpt.toLowerCase().contains(q) ||
+              b.authorName.toLowerCase().contains(q))
+          .take(4)
+          .map((b) => b.toJson())
+          .toList();
+    }
+
+    if (matchedProducts.isNotEmpty || matchedBrands.isNotEmpty || matchedBlogs.isNotEmpty) {
+      autocompleteProducts.assignAll(matchedProducts);
+      autocompleteCategories.assignAll(matchedBrands);
+      autocompleteBlogs.assignAll(matchedBlogs);
+    }
   }
 
   // ── Predictive Autocomplete using Parent Web's /search/global API ──
   Future<void> fetchAutocomplete(String query) async {
-    if (query.isEmpty) return;
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return;
     final token = ++_autocompleteToken;
     isAutocompleteLoading.value = true;
 
     try {
-      // 1. Try public global search endpoint directly (mirrors parent web)
+      // 1. Try public global search endpoint directly with proper headers
       final uri = Uri.parse(
-          '${url}search/global?q=${Uri.encodeComponent(query)}&limit=6');
-      final response = await http.get(uri).timeout(const Duration(seconds: 4));
+          '${url}search/global?q=${Uri.encodeComponent(trimmed)}&limit=6');
+      final response = await http.get(uri, headers: {
+        'accept': 'application/json',
+        'access-key': ACCESS_KEY,
+      }).timeout(const Duration(seconds: 4));
 
       if (token != _autocompleteToken) return;
 
@@ -245,14 +293,23 @@ class SearchsController extends GetxController
         final data = json.decode(response.body);
         if (data is Map && data['success'] == true && data['data'] is Map) {
           final resData = data['data'];
-          autocompleteProducts.assignAll(resData['products'] ?? []);
-          autocompleteCategories.assignAll(resData['categories'] ?? []);
-          autocompleteBlogs.assignAll(resData['blogs'] ?? []);
-          return;
+          final products = resData['products'] ?? [];
+          final categories = resData['categories'] ?? [];
+          final blogs = resData['blogs'] ?? [];
+
+          if (products.isNotEmpty || categories.isNotEmpty || blogs.isNotEmpty) {
+            autocompleteProducts.assignAll(products);
+            autocompleteCategories.assignAll(categories);
+            autocompleteBlogs.assignAll(blogs);
+            return;
+          }
         }
       }
+      // If remote returned empty (e.g. single-letter stop-word like "a"), fallback to local
+      _localAutocomplete(trimmed);
     } catch (_) {
       // Fallback: If network endpoint fails, perform quick local matching from cached lists
+      _localAutocomplete(trimmed);
     } finally {
       if (token == _autocompleteToken) {
         isAutocompleteLoading.value = false;
@@ -270,9 +327,7 @@ class SearchsController extends GetxController
     _debounce?.cancel();
     _autocompleteDebounce?.cancel();
 
-    if (query.isEmpty &&
-        selectedBrandSlug.isEmpty &&
-        !activeFilter.value.hasActiveFilters) {
+    if (query.isEmpty && selectedBrandSlug.isEmpty) {
       searchMode.value = SearchMode.browse;
       return;
     }
@@ -288,7 +343,6 @@ class SearchsController extends GetxController
     searchTextController.clear();
     queryText.value = '';
     selectedBrandSlug.value = '';
-    activeFilter.value = const FilterModel.empty();
     autocompleteProducts.clear();
     autocompleteCategories.clear();
     autocompleteBlogs.clear();
@@ -310,9 +364,7 @@ class SearchsController extends GetxController
     queryText.value = text;
     final token = ++_searchToken;
 
-    if (text.trim().isEmpty &&
-        selectedBrandSlug.isEmpty &&
-        !activeFilter.value.hasActiveFilters) {
+    if (text.trim().isEmpty && selectedBrandSlug.isEmpty) {
       searchCategories.clear();
       searchBlogs.clear();
       searchMode.value = SearchMode.browse;
@@ -335,7 +387,6 @@ class SearchsController extends GetxController
       final params = ProductService.buildQueryParams(
         page: 1,
         search: text.isEmpty ? null : text,
-        filter: activeFilter.value,
       );
 
       if (selectedBrandSlug.value.isNotEmpty) {
@@ -467,7 +518,6 @@ class SearchsController extends GetxController
         search: searchTextController.text.trim().isEmpty
             ? null
             : searchTextController.text.trim(),
-        filter: activeFilter.value,
       );
 
       if (selectedBrandSlug.value.isNotEmpty) {
@@ -485,17 +535,6 @@ class SearchsController extends GetxController
     } finally {
       isFetchingMore.value = false;
     }
-  }
-
-  // ── Filters ──
-  void applyFilter(FilterModel filter) {
-    activeFilter.value = filter;
-    searchMode.value = SearchMode.results;
-    getSearchSuggestion(text: searchTextController.text.trim());
-  }
-
-  void clearFilter() {
-    applyFilter(const FilterModel.empty());
   }
 
   // ── Parser ──
@@ -523,27 +562,5 @@ class SearchsController extends GetxController
       }
       hasNextPage = false;
     }
-
-    _applyClientSideFilter();
-  }
-
-  bool _isFlagTrue(dynamic value) {
-    if (value == null) return false;
-    if (value is bool) return value;
-    if (value is int) return value == 1;
-    return value.toString().toLowerCase() == 'true';
-  }
-
-  void _applyClientSideFilter() {
-    final f = activeFilter.value;
-    if (!f.featured && !f.hot && !f.trending && !f.recommended) return;
-
-    searchProduct.value = searchProduct.where((product) {
-      if (f.featured && !_isFlagTrue(product['featured'])) return false;
-      if (f.hot && !_isFlagTrue(product['hot'])) return false;
-      if (f.trending && !_isFlagTrue(product['trending'])) return false;
-      if (f.recommended && !_isFlagTrue(product['recommended'])) return false;
-      return true;
-    }).toList();
   }
 }
