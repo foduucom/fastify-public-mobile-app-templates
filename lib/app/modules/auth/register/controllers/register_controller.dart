@@ -186,13 +186,6 @@ class RegisterController extends GetxController {
 
       var code = countryCode.value.replaceAll('+', '');
 
-      print('Attempting registration with:');
-      print('Name: $name');
-      print('Mobile: $mobile');
-      print('Country Code: $code');
-      print('Email: $email');
-      print('Password Length: ${password.length}');
-
       // FIX: Handle the Map response properly
       final Map<String, dynamic> response = await registerProvider
           .passwordRegister(name, code, mobile, email, password);
@@ -216,8 +209,6 @@ class RegisterController extends GetxController {
   /// Handle successful registration response
   Future<void> _handleRegistrationSuccess(
       Map<String, dynamic> responseBody, String email) async {
-    print('Registration Success Response: $responseBody');
-
     // Check response structure
     if (responseBody['status'] == 'success') {
       final message = responseBody['data'] is String

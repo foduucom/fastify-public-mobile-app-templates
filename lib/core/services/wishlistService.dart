@@ -37,7 +37,8 @@ class WishListService extends GetxService with BaseController {
 
       loadError.value = false;
       parseWishListResponse(response);
-    } catch (e, stackTrack) {
+    } catch (e) {
+      loadError.value = true;
       debugPrint('WishlistService.fetchWishList error: $e');
     }
   }

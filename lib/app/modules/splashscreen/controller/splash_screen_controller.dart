@@ -60,11 +60,11 @@ class SplashScreenController extends GetxController with BaseController {
 
         if (storeSettings != null && storeSettings['app_theme_color'] != null) {
           print('App Theme Color: ${storeSettings['app_theme_color']}');
-          DynamicThemeManager()
+          final themeUpdated = DynamicThemeManager()
               .updateFromApi(storeSettings['app_theme_color']);
 
-          // Trigger app-wide theme rebuild
-          Get.find<ThemeController>().refreshTheme();
+          // Rebuild only when the response supplied a usable palette.
+          if (themeUpdated) Get.find<ThemeController>().refreshTheme();
         }
 
         progressValue.value = 0.9;

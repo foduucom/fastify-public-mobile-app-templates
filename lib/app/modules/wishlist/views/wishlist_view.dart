@@ -12,14 +12,12 @@ import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/product_helper.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
 import 'package:foduu_ecommerce/core/services/cartServcie.dart';
-import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 import 'package:get/get.dart';
 import '../controllers/wishlist_controller.dart';
 
 class WishlistView extends GetView<WishlistController> {
   WishlistView({Key? key}) : super(key: key);
-  final wishlist = Get.put(WishlistController());
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +42,8 @@ class WishlistView extends GetView<WishlistController> {
               if (count > 0) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: colors.primary.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
@@ -244,26 +243,30 @@ class WishlistView extends GetView<WishlistController> {
         padding: const EdgeInsets.only(bottom: 120),
         children: [
           // ── Wishlist Items (List or Grid) ──
-          Obx(() => controller.viewMode.value == 'list'
-              ? ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: controller.wishlistItems.length,
-                  separatorBuilder: (_, __) => Divider(
-                    thickness: 1,
-                    color: colorScheme.outline.withOpacity(0.15),
+          Obx(() {
+            if (controller.viewMode.value == 'list') {
+              return Column(
+                children: List<Widget>.generate(
+                  controller.wishlistItems.length,
+                  (index) => Column(
+                    children: [
+                      if (index > 0)
+                        Divider(
+                          thickness: 1,
+                          color: colorScheme.outline.withOpacity(0.15),
+                        ),
+                      _WishListItemCard(
+                        controller: controller,
+                        index: index,
+                      ),
+                    ],
                   ),
-                  itemBuilder: (context, index) {
-                    if (index >= controller.wishlistItems.length) {
-                      return const SizedBox.shrink();
-                    }
-                    return _WishListItemCard(
-                      controller: controller,
-                      index: index,
-                    );
-                  },
-                )
-              : _buildGridView(context, colorScheme, textTheme)),
+                ),
+              );
+            }
+
+            return _buildGridView(context, colorScheme, textTheme);
+          }),
 
           Divider(
             thickness: 1,
@@ -289,26 +292,31 @@ class WishlistView extends GetView<WishlistController> {
 
   Widget _buildGridView(
       BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
-    return GridView.builder(
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 0.65,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          const spacing = 10.0;
+          final cardWidth = (constraints.maxWidth - spacing) / 2;
+
+          return Wrap(
+            spacing: spacing,
+            runSpacing: spacing,
+            children: List<Widget>.generate(
+              controller.wishlistItems.length,
+              (index) => SizedBox(
+                width: cardWidth,
+                // Reserve enough room for product details and cart controls.
+                height: cardWidth / 0.62,
+                child: _WishListGridItem(
+                  controller: controller,
+                  index: index,
+                ),
+              ),
+            ),
+          );
+        },
       ),
-      itemCount: controller.wishlistItems.length,
-      itemBuilder: (context, index) {
-        if (index >= controller.wishlistItems.length) {
-          return const SizedBox.shrink();
-        }
-        return _WishListGridItem(
-          controller: controller,
-          index: index,
-        );
-      },
     );
   }
 }
@@ -361,12 +369,12 @@ class _WishListGridItem extends StatelessWidget {
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(12)),
                   child: AspectRatio(
-                    aspectRatio: 185 / 205, // Match home standard style
+                    aspectRatio: 1.05,
                     child: (imageUrl.isNotEmpty &&
                             imageUrl != HelperFunctions.getNoImage())
                         ? CachedNetworkImage(
                             imageUrl: imageUrl,
-                            fit: BoxFit.cover,
+                            fit: BoxFit.contain,
                             progressIndicatorBuilder: (_, __, ___) =>
                                 HelperFunctions().loadingIndicator(),
                             errorWidget: (_, __, ___) =>
@@ -575,7 +583,7 @@ class _WishListItemCard extends StatelessWidget {
       onTap: () => _navigateToProduct(productId),
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        height: 120,
+        height: 176,
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: colorScheme.surface,
@@ -589,82 +597,108 @@ class _WishListItemCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                // Product Image
-                Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: const BorderRadius.horizontal(
-                        left: Radius.circular(12),
-                      ),
-                      child: (imageUrl.isNotEmpty &&
-                              imageUrl != HelperFunctions.getNoImage())
-                          ? CachedNetworkImage(
-                              imageUrl: imageUrl,
-                              width: 120,
-                              height: 120,
-                              fit: BoxFit.cover,
-                              progressIndicatorBuilder: (_, __, ___) =>
-                                  HelperFunctions().loadingIndicator(),
-                              errorWidget: (_, __, ___) =>
-                                  const AppImagePlaceholder(
-                                width: 120,
-                                height: 120,
+                // Keep the image at a consistent square size and show the
+                // whole product rather than cropping it.
+                SizedBox(
+                  width: 128,
+                  height: 176,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.horizontal(
+                          left: Radius.circular(12),
+                        ),
+                        child: (imageUrl.isNotEmpty &&
+                                imageUrl != HelperFunctions.getNoImage())
+                            ? CachedNetworkImage(
+                                imageUrl: imageUrl,
+                                fit: BoxFit.contain,
+                                progressIndicatorBuilder: (_, __, ___) =>
+                                    HelperFunctions().loadingIndicator(),
+                                errorWidget: (_, __, ___) =>
+                                    const AppImagePlaceholder(
+                                  radius: 0,
+                                  fit: BoxFit.contain,
+                                ),
+                              )
+                            : const AppImagePlaceholder(
                                 radius: 0,
                                 fit: BoxFit.contain,
                               ),
-                            )
-                          : const AppImagePlaceholder(
-                              width: 120,
-                              height: 120,
-                              radius: 0,
-                              fit: BoxFit.contain,
+                      ),
+                      if (priceInfo['discountRate'] != null &&
+                          priceInfo['discountRate'].toString().isNotEmpty)
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
                             ),
-                    ),
-                    // Discount Badge
-                    if (priceInfo['discountRate'] != null &&
-                        priceInfo['discountRate'].toString().isNotEmpty)
-                      Positioned(
-                        left: 0,
-                        top: 0,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colorScheme.error,
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(12),
-                              bottomRight: Radius.circular(8),
+                            decoration: BoxDecoration(
+                              color: colorScheme.error,
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(12),
+                                bottomRight: Radius.circular(8),
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            priceInfo['discountRate'].toString(),
-                            style: textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onError,
-                              fontWeight: FontWeight.w600,
+                            child: Text(
+                              priceInfo['discountRate'].toString(),
+                              style: textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onError,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
                 // Product Info
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                    padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          productName,
-                          style: textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                productName,
+                                style: textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            IconButton(
+                              tooltip: 'Remove from wishlist',
+                              onPressed: () =>
+                                  WishListService.to.removeFromWishlist(
+                                productId: productId,
+                                variantSlug: variantSlug,
+                                variantId: variantId,
+                              ),
+                              visualDensity: VisualDensity.compact,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints.tightFor(
+                                width: 32,
+                                height: 32,
+                              ),
+                              icon: Icon(
+                                Icons.close_rounded,
+                                size: 20,
+                                color: colorScheme.error,
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -675,7 +709,7 @@ class _WishListItemCard extends StatelessWidget {
                             color: colorScheme.onSurfaceVariant,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         ProductBadges(product: product),
                         // if (productType == 'variable')
                         //   _buildVariablePrice(context, priceInfo)
@@ -690,7 +724,7 @@ class _WishListItemCard extends StatelessWidget {
                           children: [
                             // Quantity Selector
                             Container(
-                              height: 32,
+                              height: 36,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
@@ -751,35 +785,6 @@ class _WishListItemCard extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-            // Remove Button at top right
-            Positioned(
-              right: 5,
-              top: 5,
-              child: InkWell(
-                onTap: () {
-                  WishListService.to.removeFromWishlist(
-                    productId: productId,
-                    variantSlug: variantSlug,
-                    variantId: variantId,
-                  );
-                },
-                borderRadius: BorderRadius.circular(4),
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    "Remove",
-                    style: textTheme.labelSmall?.copyWith(
-                      color: colorScheme.error,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
             ),
           ],
         ),
@@ -861,14 +866,11 @@ class ProductBadges extends StatelessWidget {
   Color _getBadgeColor(String type, ColorScheme colorScheme) {
     switch (type) {
       case 'trending':
-        return Color.lerp(colorScheme.primary, Colors.black, 0.2) ??
-            colorScheme.primary;
+        return colorScheme.primary;
       case 'recommended':
-        return Color.lerp(colorScheme.primary, Colors.white, 0.3) ??
-            colorScheme.primary;
+        return colorScheme.secondary;
       case 'hot':
-        return Color.lerp(colorScheme.primary, Colors.red, 0.3) ??
-            colorScheme.primary;
+        return colorScheme.error;
       case 'featured':
       default:
         return colorScheme.primary;

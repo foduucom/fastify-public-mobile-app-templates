@@ -23,7 +23,6 @@ class OTPLoginProvider extends GetConnect {
           "access-key": ACCESS_KEY,
         },
       );
-      print("OTP send Sucesss msg=====${response.body}");
       if (response.status.hasError) {
         throw UnAuthorizedException(response.body['message']);
       } else {
@@ -39,7 +38,6 @@ class OTPLoginProvider extends GetConnect {
   Future<dynamic> verifyOtp(String email, String otp) async {
     try {
       final form = {"email": email, "otp": otp};
-      print("form===${form}");
       final response = await post(
         fetchUrl("auth/verify-otp"),
         form,
@@ -51,7 +49,6 @@ class OTPLoginProvider extends GetConnect {
         },
       );
 
-      print("otp verify response ${response.body}");
       if (response.status.hasError) {
         throw UnAuthorizedException(response.body['message']);
       } else {

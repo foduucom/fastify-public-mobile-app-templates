@@ -298,10 +298,14 @@ class DynamicThemeManager {
     final storedLight = _box.read(_lightThemeKey);
     if (storedLight != null) {
       debugPrint('💾 Light theme found in storage, loading...');
-      _lightColors = AppThemeColors.fromThemeMap(
-        Map<String, dynamic>.from(storedLight),
-        false,
-      );
+      final storedColors = Map<String, dynamic>.from(storedLight);
+      if (_isUsableThemeMap(storedColors)) {
+        _lightColors = AppThemeColors.fromThemeMap(storedColors, false);
+      } else {
+        debugPrint('⚠️ Stored light theme is unusable; restoring defaults');
+        _lightColors = AppThemeColors.defaultsLight();
+        _box.write(_lightThemeKey, _lightColors.toJson());
+      }
       _cachedLightTheme = null;
     } else {
       debugPrint('ℹ️ No stored light theme found, using defaults');
@@ -311,10 +315,14 @@ class DynamicThemeManager {
     final storedDark = _box.read(_darkThemeKey);
     if (storedDark != null) {
       debugPrint('💾 Dark theme found in storage, loading...');
-      _darkColors = AppThemeColors.fromThemeMap(
-        Map<String, dynamic>.from(storedDark),
-        true,
-      );
+      final storedColors = Map<String, dynamic>.from(storedDark);
+      if (_isUsableThemeMap(storedColors)) {
+        _darkColors = AppThemeColors.fromThemeMap(storedColors, true);
+      } else {
+        debugPrint('⚠️ Stored dark theme is unusable; restoring defaults');
+        _darkColors = AppThemeColors.defaultsDark();
+        _box.write(_darkThemeKey, _darkColors.toJson());
+      }
       _cachedDarkTheme = null;
     } else {
       debugPrint('ℹ️ No stored dark theme found, using defaults');
@@ -323,34 +331,74 @@ class DynamicThemeManager {
 
   /// Update theme colors from API response
   /// Expected format: { "light": { "primary": "#xxx", "secondary": "#xxx", "background": "#xxx", "error": "#xxx" }, "dark": { ... } }
-  void updateFromApi(Map<String, dynamic> appThemeColor) {
+  bool updateFromApi(Map<String, dynamic> appThemeColor) {
     debugPrint('🌐 Updating themes from API');
+    var updated = false;
 
     // Parse light theme
-    if (appThemeColor.containsKey('light') && appThemeColor['light'] != null) {
-      _lightColors = AppThemeColors.fromThemeMap(
-        Map<String, dynamic>.from(appThemeColor['light']),
-        false,
-      );
-      _cachedLightTheme = null;
-      _box.write(_lightThemeKey, _lightColors.toJson());
-      debugPrint('✅ Light theme updated & saved successfully');
+    final lightTheme = appThemeColor['light'];
+    if (lightTheme is Map) {
+      final lightColors = Map<String, dynamic>.from(lightTheme);
+      if (_isUsableThemeMap(lightColors)) {
+        _lightColors = AppThemeColors.fromThemeMap(lightColors, false);
+        _cachedLightTheme = null;
+        _box.write(_lightThemeKey, _lightColors.toJson());
+        debugPrint('✅ Light theme updated & saved successfully');
+        updated = true;
+      } else {
+        debugPrint('⚠️ Ignoring unusable light theme from API');
+      }
     } else {
-      debugPrint('⚠️ API response does not contain light theme');
+      debugPrint('⚠️ API response does not contain a light theme map');
     }
 
     // Parse dark theme
-    if (appThemeColor.containsKey('dark') && appThemeColor['dark'] != null) {
-      _darkColors = AppThemeColors.fromThemeMap(
-        Map<String, dynamic>.from(appThemeColor['dark']),
-        true,
-      );
-      _cachedDarkTheme = null;
-      _box.write(_darkThemeKey, _darkColors.toJson());
-      debugPrint('✅ Dark theme updated & saved successfully');
+    final darkTheme = appThemeColor['dark'];
+    if (darkTheme is Map) {
+      final darkColors = Map<String, dynamic>.from(darkTheme);
+      if (_isUsableThemeMap(darkColors)) {
+        _darkColors = AppThemeColors.fromThemeMap(darkColors, true);
+        _cachedDarkTheme = null;
+        _box.write(_darkThemeKey, _darkColors.toJson());
+        debugPrint('✅ Dark theme updated & saved successfully');
+        updated = true;
+      } else {
+        debugPrint('⚠️ Ignoring unusable dark theme from API');
+      }
     } else {
-      debugPrint('⚠️ API response does not contain dark theme');
+      debugPrint('⚠️ API response does not contain a dark theme map');
     }
+
+    return updated;
+  }
+
+  /// Reject palettes whose core colors all collapse to the same value. This
+  /// prevents malformed API responses (for example, every token set to black)
+  /// from replacing a working app theme and being persisted across sessions.
+  bool _isUsableThemeMap(Map<String, dynamic> themeMap) {
+    const coreTokens = [
+      'primary',
+      'secondary',
+      'background',
+      'surface',
+      'onPrimary',
+      'onBackground',
+      'onSurface',
+    ];
+    final providedTokens =
+        coreTokens.where(themeMap.containsKey).toList(growable: false);
+    if (providedTokens.length < 3) return true;
+
+    final parsedColors = <Color>[];
+    for (final token in providedTokens) {
+      final value = themeMap[token];
+      if (value is! String) return false;
+      final color = AppThemeColors._hexToColor(value);
+      if (color == null) return false;
+      parsedColors.add(color);
+    }
+
+    return parsedColors.map((color) => color.value).toSet().length > 1;
   }
 
   /// Clear stored themes (reset to defaults)
@@ -721,15 +769,17 @@ class ThemeController extends GetxController {
 
   /// Update theme from API
   void updateThemeFromApi(Map<String, dynamic> appThemeColor) {
-    _themeManager.updateFromApi(appThemeColor);
-    refreshTheme();
+    if (_themeManager.updateFromApi(appThemeColor)) {
+      refreshTheme();
+    }
   }
 
   /// Call this after updating theme from API to trigger rebuild
   void refreshTheme() {
     debugPrint('🔄 Refreshing app theme...');
-    update(); // This will trigger GetBuilder to rebuild
-    Get.forceAppUpdate(); // Force entire app to rebuild
+    // MyApp listens to this controller with GetBuilder, so this rebuilds the
+    // app theme without tearing down active scroll and semantics subtrees.
+    update();
   }
 
   /// Clear stored themes

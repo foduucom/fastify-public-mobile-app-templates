@@ -234,10 +234,7 @@ class AboutusController extends GetxController
               .toString();
         } else if (c['featured_image'] is Map) {
           final f = c['featured_image'] as Map;
-          icon = (f['download_url'] ??
-                  f['filepath'] ??
-                  f['filePath'] ??
-                  '')
+          icon = (f['download_url'] ?? f['filepath'] ?? f['filePath'] ?? '')
               .toString();
         } else if (c['image'] != null) {
           icon = c['image'].toString();
@@ -270,10 +267,7 @@ class AboutusController extends GetxController
     if (Get.isRegistered<BottombarController>()) {
       Get.back();
       final bottomBar = Get.find<BottombarController>();
-      bottomBar.currentPageIndex.value = 1;
-      if (bottomBar.pageController.hasClients) {
-        bottomBar.pageController.jumpToPage(1);
-      }
+      bottomBar.onTabChange(1);
     } else {
       Get.toNamed(Routes.SHOPPRODUCTLISTVIEW);
     }

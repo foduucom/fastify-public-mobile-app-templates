@@ -150,8 +150,6 @@ class LoginController extends GetxController with BaseController {
         };
       }
 
-      print('OTP Login request data: ${form.toString()}');
-
       // Make API call for OTP request
       var response = await BasicProvider('auth/login')
           .postRequest(form)
@@ -241,14 +239,10 @@ class LoginController extends GetxController with BaseController {
         };
       }
 
-      print('Password Login request data: ${form.toString()}');
-
       // Make API call using LoginProvider
       final response = await loginProvider.sendLoginRequest(form);
       final responseBody = response['body'];
       final statusCode = response['statusCode'];
-
-      print('Login Response Body Type: ${responseBody.runtimeType}');
 
       if (statusCode == 200 || statusCode == 201) {
         // Use AuthDetails to save the response properly

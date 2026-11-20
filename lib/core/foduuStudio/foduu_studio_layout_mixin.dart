@@ -88,7 +88,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
 
   /// Build the [widgetList] from a raw list of section maps.
   void buildLayout(List sections) {
-    widgetList.clear();
+    final nextWidgets = <Widget>[];
     sectionTypes.assignAll(sections
         .whereType<Map<String, dynamic>>()
         .map((s) => s['type'])
@@ -124,9 +124,14 @@ mixin FoduuStudioLayoutMixin on GetxController {
           };
         }
         final widget = _registry.build(toBuild);
-        if (widget != null) widgetList.add(widget);
+        if (widget != null) nextWidgets.add(widget);
       }
     }
+
+    // Publish the complete layout in one observable update. Clearing and
+    // appending one section at a time can rebuild embedded scrollables while
+    // Flutter is still updating their semantics tree.
+    widgetList.assignAll(nextWidgets);
   }
 
   /// Build widgets for the last-fetched sections, skipping [excludeTypes].
@@ -203,11 +208,12 @@ mixin FoduuStudioLayoutMixin on GetxController {
         errorMessage.value = "";
         // Handle Theme Update if present in the response
         var themeData = response['theme_color'] ?? response['app_theme_color'];
-        if (themeData != null) {
+        if (themeData is Map) {
           print('🎨 DynamicLayout: Theme found in API response');
-          DynamicThemeManager().updateFromApi(themeData);
+          final themeUpdated = DynamicThemeManager()
+              .updateFromApi(Map<String, dynamic>.from(themeData));
 
-          if (Get.isRegistered<ThemeController>()) {
+          if (themeUpdated && Get.isRegistered<ThemeController>()) {
             Get.find<ThemeController>().refreshTheme();
           }
         }
@@ -351,11 +357,12 @@ mixin FoduuStudioLayoutMixin on GetxController {
 
     // ── Handle Theme Update (applies globally) ──
     var themeData = contentPayload['theme_color'];
-    if (themeData != null) {
+    if (themeData is Map) {
       print('🎨 DynamicLayout: Theme update detected');
-      DynamicThemeManager().updateFromApi(themeData);
+      final themeUpdated = DynamicThemeManager()
+          .updateFromApi(Map<String, dynamic>.from(themeData));
 
-      if (Get.isRegistered<ThemeController>()) {
+      if (themeUpdated && Get.isRegistered<ThemeController>()) {
         Get.find<ThemeController>().refreshTheme();
       }
     }

@@ -104,7 +104,6 @@ class RegisterProvider extends GetConnect {
         'email': email,
         'password': password,
       };
-      print('Registration Request: $form');
       final response = await post(
         fetchUrl("auth/register"),
         jsonEncode(form),
@@ -121,22 +120,16 @@ class RegisterProvider extends GetConnect {
       if (response.body is String && (response.body as String).isNotEmpty) {
         try {
           responseBody = jsonDecode(response.body);
-          print('Successfully decoded JSON response');
         } catch (e) {
-          print('JSON decode error: $e');
           // If decode fails, use the raw string
           responseBody = response.body;
         }
       } else if (response.body is Map) {
         // Response is already a Map
         responseBody = response.body;
-        print('Response is already a Map');
       } else {
         responseBody = {'message': 'Empty response from server'};
       }
-
-      print('Processed Response Body: $responseBody');
-      print('Response Body Type: ${responseBody.runtimeType}');
 
       // Check for API errors
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -160,7 +153,6 @@ class RegisterProvider extends GetConnect {
           errorMessage = responseBody;
         }
 
-        print('Registration failed: $errorMessage');
         HelperFunctions().showSnackBarError(errorMessage);
 
         return {

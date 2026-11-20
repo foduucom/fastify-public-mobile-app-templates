@@ -118,10 +118,7 @@ class CartView extends GetView<CartController> {
                   onPressed: () {
                     if (Get.isRegistered<BottombarController>()) {
                       final bottomBar = Get.find<BottombarController>();
-                      bottomBar.currentPageIndex.value = 0;
-                      if (bottomBar.pageController.hasClients) {
-                        bottomBar.pageController.jumpToPage(0);
-                      }
+                      bottomBar.onTabChange(0);
                     }
                   },
                   icon: const Icon(Icons.shopping_bag_outlined, size: 20),

@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
 import '/app/modules/auth/auth_details.dart';
-import '/app/modules/bottomar/controllers/bottombar_controller.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:intl/intl.dart';
 
 class ProfileController extends GetxController with BaseController {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -26,6 +24,7 @@ class ProfileController extends GetxController with BaseController {
       comfirmPasswordController;
   final isLoading = false.obs;
   var imagePath = "".obs;
+  bool _isDisposed = false;
 
   var obsecureValue = true.obs;
   var newPasswordObsecureValue = true.obs;
@@ -87,12 +86,10 @@ class ProfileController extends GetxController with BaseController {
         "new_password": newPasswordController.text,
         "confirm_password": comfirmPasswordController.text
       };
-      print(form);
       var response = await BasicProvider("public/customer/change/password")
           .postRequest(form)
           .catchError(handleError);
       if (response == null) return;
-      print('passowrd 111 $response');
       Get.back();
       newPasswordController.text = '';
       oldPasswordController.text = '';
@@ -120,6 +117,7 @@ class ProfileController extends GetxController with BaseController {
           .getRequest()
           .catchError(handleError);
 
+      if (_isDisposed) return;
       if (response != null) {
         profiledata.clear();
         profiledata.addAll(response);
@@ -151,19 +149,20 @@ class ProfileController extends GetxController with BaseController {
           }
         }
 
-        debugPrint("Profile data successfully fetched and parsed: $response");
+        debugPrint('Profile data successfully fetched.');
       } else {
         debugPrint("Profile data response was null.");
       }
     } catch (e) {
-      debugPrint('Error fetching profile: $e');
+      if (!_isDisposed) debugPrint('Error fetching profile: $e');
     } finally {
-      isLoading(false);
+      if (!_isDisposed) isLoading(false);
     }
   }
 
   @override
   void onClose() {
+    _isDisposed = true;
     super.onClose();
     nameController.dispose();
     emailController.dispose();
@@ -174,6 +173,7 @@ class ProfileController extends GetxController with BaseController {
     oldPasswordController.dispose();
     newPasswordController.dispose();
     comfirmPasswordController.dispose();
+    addressController.dispose();
   }
 
   List notification = [
@@ -215,8 +215,7 @@ class ProfileController extends GetxController with BaseController {
         isLoading(false);
 
         Get.until((route) => Get.isDialogOpen != true);
-        var updatedprofile = AuthDetails().updateUserDetailsFromServer();
-        //Get.find<BottombarController>().authDetails.value = updatedprofile;
+        await AuthDetails().updateUserDetailsFromServer();
         // HelperFunctions().showSnackBarSuccess(response["status"]);
         Get.until((route) => Get.isDialogOpen != true);
         // Get.back();
@@ -224,7 +223,7 @@ class ProfileController extends GetxController with BaseController {
 
         HelperFunctions().showSnackBarSuccess('Profile update successfully');
       } catch (e) {
-        print('profile update error $e');
+        debugPrint('Profile update failed: $e');
         rethrow;
       }
     }

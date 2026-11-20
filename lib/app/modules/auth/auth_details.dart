@@ -97,8 +97,6 @@ class AuthDetails with BaseController {
 
       final data = response['data'];
 
-      print("Save Login Response (data.token): ${data?['token']}");
-
       if (data != null && data['token'] != null) {
         if (data['token'] is Map) {
           box.write('token', data['token']['value']);

@@ -446,8 +446,7 @@ class NoOrders extends StatelessWidget {
           const SizedBox(height: 20),
           AppButton(
             keypressEvent: () {
-              Get.find<BottombarController>().currentPageIndex.value = 0;
-              Get.find<BottombarController>().pageController.jumpToPage(0);
+              Get.find<BottombarController>().onTabChange(0);
               Get.back();
               Get.back();
             },

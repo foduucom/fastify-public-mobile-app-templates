@@ -11,8 +11,6 @@ class LoginProvider extends GetConnect {
   Future<Map<String, dynamic>> sendLoginRequest(
       Map<String, dynamic> form) async {
     try {
-      print('Login Request to ${fetchUrl("auth/login")}: $form');
-
       final response = await post(
         fetchUrl("auth/login"),
         jsonEncode(form),
@@ -24,8 +22,7 @@ class LoginProvider extends GetConnect {
         },
       ).timeout(const Duration(seconds: 30));
 
-      print('Login Response Status: ${response.statusCode}');
-      print('Login Response Body: ${response.body}');
+      print('Login request completed with status ${response.statusCode}.');
 
       // Return a structured map similar to OtpProvider
       return {
@@ -34,7 +31,7 @@ class LoginProvider extends GetConnect {
         'statusCode': response.statusCode,
       };
     } catch (e) {
-      print('LoginProvider error: $e');
+      print('Login request failed.');
       return {
         'body': {'status': 'error', 'message': e.toString()},
         'statusCode': 500,

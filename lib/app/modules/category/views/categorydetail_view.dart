@@ -1,9 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
-import 'package:foduu_ecommerce/app/modules/wishlist/controllers/wishlist_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/commonWidgets/appbarIcons.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
@@ -73,8 +71,7 @@ class CategeorydetailView extends GetView<CategeorydetaiController> {
 
             return bottomBarController.cartbadge(
               onTap: () {
-                bottomBarController.currentPageIndex.value = 3;
-                bottomBarController.pageController.jumpToPage(3);
+                bottomBarController.onTabChange(3);
               },
               child: HeartIcon(() {
                 Get.toNamed(Routes.WISHLIST);
@@ -210,14 +207,13 @@ class CategeorydetailView extends GetView<CategeorydetaiController> {
                                                   ['name'] !=
                                               'no further category') {
                                             openShop({
-                                                  'productId': controller
-                                                          .subcategory[subindex]
-                                                      ['_id'],
-                                                  'name': controller
-                                                          .subcategory[subindex]
-                                                      ['name'],
-                                                  'source': 'category'
-                                                });
+                                              'productId': controller
+                                                  .subcategory[subindex]['_id'],
+                                              'name': controller
+                                                      .subcategory[subindex]
+                                                  ['name'],
+                                              'source': 'category'
+                                            });
                                           }
                                         },
                                         child: Row(

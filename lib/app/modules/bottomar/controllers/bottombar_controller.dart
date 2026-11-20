@@ -1,11 +1,9 @@
-import 'package:foduu_ecommerce/services/api_cache.dart';
 import 'package:badges/badges.dart' as badges;
 // import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
-import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
@@ -15,7 +13,6 @@ import 'package:get_storage/get_storage.dart';
 
 class BottombarController extends GetxController with BaseController {
   // late GlobalKey<ScaffoldState> key;
-  var pageController = PageController();
   RxBool isLiked = false.obs;
   var box = GetStorage();
   var currentPageIndex = 0.obs;
@@ -23,8 +20,6 @@ class BottombarController extends GetxController with BaseController {
   final authDetails = {}.obs;
   var cart = List<dynamic>.empty().obs;
   var itemsInCart = 0.obs;
-  bool _pageControllerDisposed = false;
-  bool _pageSyncScheduled = false;
 
   @override
   void onInit() async {
@@ -101,45 +96,9 @@ class BottombarController extends GetxController with BaseController {
     if (value is! int || value < 0 || value >= 5) {
       return;
     }
-    // Keep the selected tab even if a route transition has temporarily
-    // detached the PageView. The view retries the page sync after its next
-    // frame, so quick taps after Skip are not lost.
+    // The selected index is the single source of truth for the IndexedStack.
     currentPageIndex.value = value;
-    if (_pageControllerDisposed) return;
-    _syncPageToSelectedTab();
     update();
-  }
-
-  void syncPageToSelectedTab() => _syncPageToSelectedTab();
-
-  void _syncPageToSelectedTab() {
-    if (_pageControllerDisposed) return;
-    if (!pageController.hasClients) {
-      if (_pageSyncScheduled) return;
-      _pageSyncScheduled = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _pageSyncScheduled = false;
-        if (!_pageControllerDisposed && pageController.hasClients) {
-          _syncPageToSelectedTab();
-        }
-      });
-      return;
-    }
-    // A route can be removed while a pointer event from its bottom nav is still
-    // being dispatched, leaving a disposed PageView position attached briefly.
-    if (pageController.positions
-        .any((position) => !position.context.storageContext.mounted)) {
-      return;
-    }
-    try {
-      final target = currentPageIndex.value;
-      if (pageController.page?.round() != target) {
-        pageController.jumpToPage(target);
-      }
-    } on FlutterError catch (error) {
-      if (error.message.contains('used after being disposed')) return;
-      rethrow;
-    }
   }
 
   void goToCart() {
@@ -184,8 +143,6 @@ class BottombarController extends GetxController with BaseController {
 
   @override
   void onClose() {
-    _pageControllerDisposed = true;
-    pageController.dispose(); // Don't forget to dispose
     super.onClose();
   }
 

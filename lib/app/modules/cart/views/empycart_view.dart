@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
-import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:get/get.dart';
@@ -54,11 +53,7 @@ class EmptycartView extends GetView {
                     itemText: 'START SHOPPING',
                     keypressEvent: () {
                       Get.back();
-                      Get.find<BottombarController>().currentPageIndex.value =
-                          0;
-                      Get.find<BottombarController>()
-                          .pageController
-                          .jumpToPage(0);
+                      Get.find<BottombarController>().onTabChange(0);
                     })
               ],
             ),

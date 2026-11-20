@@ -274,7 +274,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       final categoryIds = widget.contentJson?['category_ids'];
       final categoryId = widget.contentJson?['category_id'];
       final parentType = widget.contentJson?['parent_type'];
-      final parentId = parentType is Map ? parentType['_id'] : parentType?.toString();
+      final parentId =
+          parentType is Map ? parentType['_id'] : parentType?.toString();
       final parentSlug = parentType is Map ? parentType['slug'] : null;
 
       // Ensure count is at least 10 for paginated requests
@@ -296,9 +297,12 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         if (categoryIds != null &&
             categoryIds is List &&
             categoryIds.isNotEmpty) {
-          queryParams['specific'] = categoryIds.map((e) => e.toString()).toList();
+          queryParams['specific'] =
+              categoryIds.map((e) => e.toString()).toList();
         } else if (categoryId != null) {
-          final id = categoryId is Map ? (categoryId['_id'] ?? categoryId['id']) : categoryId;
+          final id = categoryId is Map
+              ? (categoryId['_id'] ?? categoryId['id'])
+              : categoryId;
           queryParams['specific'] = [id.toString()];
         } else if (parentSlug != null || parentId != null) {
           queryParams['parentCategory'] = parentSlug ?? parentId;
@@ -640,11 +644,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                                     if (Get.isRegistered<
                                         BottombarController>()) {
                                       Get.find<BottombarController>()
-                                          .currentPageIndex
-                                          .value = 4;
-                                      Get.find<BottombarController>()
-                                          .pageController
-                                          .jumpToPage(4);
+                                          .onTabChange(3);
                                     }
                                   },
                                   child: Text(
@@ -1429,7 +1429,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 if (index >= displayedProducts.length) {
                   return _buildLoadingIndicator();
                 }
-                final product = displayedProducts[index] as Map<String, dynamic>;
+                final product =
+                    displayedProducts[index] as Map<String, dynamic>;
                 final priceInfo = ProductHelper.calculatePriceInfo(product);
                 if (!priceInfo['hasValidVariants']) {
                   return const SizedBox.shrink();
@@ -1629,7 +1630,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 if (index >= displayedProducts.length) {
                   return _buildLoadingIndicator();
                 }
-                final product = displayedProducts[index] as Map<String, dynamic>;
+                final product =
+                    displayedProducts[index] as Map<String, dynamic>;
                 final priceInfo = ProductHelper.calculatePriceInfo(product);
                 if (!priceInfo['hasValidVariants'])
                   return const SizedBox.shrink();

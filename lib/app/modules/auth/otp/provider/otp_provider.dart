@@ -44,14 +44,11 @@ class OtpProvider extends GetConnect {
         try {
           responseBody = jsonDecode(response.body);
         } catch (_) {
-          responseBody = {'message': 'Invalid response from server: ${response.body}'};
+          responseBody = {
+            'message': 'Invalid response from server: ${response.body}'
+          };
         }
       }
-
-      // Print response headers to debug cookies
-      print('Response Headers: ${response.headers}');
-      print('Response Status: ${response.statusCode}');
-      print('Response Body: $responseBody');
 
       if (response.statusCode == 200) {
         // Save the login response including token using AuthDetails
@@ -117,7 +114,9 @@ class OtpProvider extends GetConnect {
         try {
           responseBody = jsonDecode(response.body);
         } catch (_) {
-          responseBody = {'message': 'Invalid response from server: ${response.body}'};
+          responseBody = {
+            'message': 'Invalid response from server: ${response.body}'
+          };
         }
       }
 

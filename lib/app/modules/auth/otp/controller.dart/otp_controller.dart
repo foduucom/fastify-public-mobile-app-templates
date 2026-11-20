@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
@@ -54,12 +53,9 @@ class OtpController extends GetxController with BaseController {
       String contextStr =
           args['context'] ?? 'forgot_password'; // Default to forgot_password
       otpContext.value = _getOtpContext(contextStr);
-      print(
-          'OTP Screen - Email: ${email.value}, Mobile: ${mobile.value}, Context: ${otpContext.value}');
     } else {
       // Fallback - try to get from storage or previous screen
       email.value = box.read('userEmail') ?? '';
-      print('OTP Screen - No args, using stored email: ${email.value}');
     }
 
     startCountdown();
@@ -193,15 +189,10 @@ class OtpController extends GetxController with BaseController {
   Future<void> _handleSuccessResponse(Map<String, dynamic> response) async {
     try {
       final responseBody = response['body'];
-      final headers = response['headers'];
       AuthDetails.saveLoginResponse(responseBody);
-
-      print('Full Response Body: ${jsonEncode(responseBody)}');
-      print('User Data Type: ${responseBody['data'].runtimeType}');
 
       // Check if data exists and is Map
       if (responseBody['data'] == null) {
-        print('ERROR: userData is null!');
         throw Exception('User data not found in response');
       }
 
@@ -209,8 +200,7 @@ class OtpController extends GetxController with BaseController {
 
       // Check if userData is actually a Map
       if (userData is! Map<String, dynamic>) {
-        print('ERROR: userData is not a Map! Type: ${userData.runtimeType}');
-        print('userData value: $userData');
+        debugPrint('OTP verification returned an unexpected user data shape.');
 
         // Try to handle if it's a string or other type
         if (userData is String) {
@@ -229,15 +219,6 @@ class OtpController extends GetxController with BaseController {
 
       // Now safely extract data with null checks
       final Map<String, dynamic> safeUserData = userData;
-
-      // Debug each field
-      print('Checking user data fields:');
-      print(
-          'id: ${safeUserData['id']} (type: ${safeUserData['id']?.runtimeType})');
-      print(
-          'email: ${safeUserData['email']} (type: ${safeUserData['email']?.runtimeType})');
-      print(
-          'name: ${safeUserData['name']} (type: ${safeUserData['name']?.runtimeType})');
 
       // Extract with null coalescing
       final userId = safeUserData['id']?.toString() ?? 'unknown_id';

@@ -29,11 +29,6 @@ class BottombarView extends GetView<BottombarController> {
   var wishListController = Get.put(WishlistController());
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (Get.isRegistered<BottombarController>()) {
-        controller.syncPageToSelectedTab();
-      }
-    });
     var width = Get.width;
     var height = Get.height;
 
@@ -63,18 +58,21 @@ class BottombarView extends GetView<BottombarController> {
                 return const SizedBox.shrink();
               }),
 
-              // PageView takes remaining space in industry-standard sequence
+              // Use the selected tab as the single source for both navigation
+              // state and visible content. IndexedStack preserves tab state.
               Expanded(
-                child: PageView(
-                  controller: controller.pageController,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    HomePageView(),
-                    const ShopView(),
-                    WishlistView(),
-                    CartView(),
-                    ProfileView(),
-                  ],
+                child: Obx(
+                  () => IndexedStack(
+                    index: controller.currentPageIndex.value,
+                    sizing: StackFit.expand,
+                    children: [
+                      HomePageView(),
+                      const ShopView(),
+                      WishlistView(),
+                      CartView(),
+                      ProfileView(),
+                    ],
+                  ),
                 ),
               ),
             ],

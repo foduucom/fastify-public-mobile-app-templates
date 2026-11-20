@@ -160,8 +160,9 @@ Future<void> _refreshPublicSettings(GetStorage box) async {
     if (storeName != null) box.write('store_name', storeName);
 
     if (settings['app_theme_color'] != null) {
-      DynamicThemeManager().updateFromApi(settings['app_theme_color']);
-      Get.find<ThemeController>().refreshTheme();
+      final themeUpdated =
+          DynamicThemeManager().updateFromApi(settings['app_theme_color']);
+      if (themeUpdated) Get.find<ThemeController>().refreshTheme();
     }
   } catch (e) {
     print('Error during initApp: $e');
