@@ -43,8 +43,9 @@ class OrderdetailController extends GetxController with BaseController {
   Future<void> fetchOrderDetail() async {
     try {
       isLoading.value = true;
-      var response =
-          await BasicProvider("order/$id").getRequest().catchError(handleError);
+      var response = await BasicProvider("order/$id")
+          .getRequest(useCache: false)
+          .catchError(handleError);
 
       printInfo(info: 'OrderDetail response: $response');
       if (response == null) return;
@@ -67,7 +68,7 @@ class OrderdetailController extends GetxController with BaseController {
             ?.toString()
             .toLowerCase() ??
         '';
-    if (status.contains('delivered')) return 5;
+    if (status.contains('delivered') || status.contains('complete')) return 5;
     if (status.contains('out for delivery') ||
         status.contains('out_for_delivery')) return 4;
     if (status.contains('shipped')) return 3;

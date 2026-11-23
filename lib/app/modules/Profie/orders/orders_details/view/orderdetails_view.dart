@@ -10,7 +10,6 @@ import '/constants/helper_functions.dart';
 import '/constants/theme.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:timeline_tile/timeline_tile.dart';
 
 class OrderdetailView extends GetView<OrderdetailController> {
   OrderdetailView({Key? key}) : super(key: key);
@@ -60,112 +59,292 @@ class OrderdetailView extends GetView<OrderdetailController> {
               (orderData['payment_status'] ?? '').toString().toLowerCase();
           final isPaid = paymentStatus == 'paid';
 
+          // Extract date
+          String formattedDate = '';
+          final rawDate = orderData['created_at'] ?? orderData['createdAt'];
+          if (rawDate != null) {
+            try {
+              final dt = DateTime.parse(rawDate.toString()).toLocal();
+              const months = [
+                'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+              ];
+              formattedDate = '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+            } catch (_) {
+              formattedDate = rawDate.toString().split('T')[0];
+            }
+          }
+
+          // Extract status label
+          final String rawStatus = (orderData['status'] is Map
+                  ? orderData['status']['name']
+                  : orderData['status'])
+              ?.toString()
+              .trim() ?? '';
+          final String orderStatusLabel = rawStatus.isNotEmpty
+              ? rawStatus
+              : (isPaid ? 'COMPLETE' : 'IN PROGRESS');
+          final bool isCompletedOrder =
+              orderStatusLabel.toLowerCase().contains('complete') ||
+              orderStatusLabel.toLowerCase().contains('delivered');
+
           return ListView(
             children: [
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
-              // ── Dynamic Order Tracking Timeline ─────────────────
+              // ── Order Header Summary (Parent Website Standard) ──
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Order Status',
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'lato',
-                      ),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: colorScheme.outline.withValues(alpha: 0.16),
                     ),
-                    const SizedBox(height: 16),
-                    ListView.builder(
-                      itemCount: controller.stages.length,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        final isCompleted = (index + 1) <= currentStage;
-                        final isLast = index == controller.stages.length - 1;
-
-                        return TimelineTile(
-                          isFirst: index == 0,
-                          isLast: isLast,
-                          indicatorStyle: IndicatorStyle(
-                            width: 28,
-                            height: 28,
-                            indicator: Container(
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: isCompleted
-                                    ? colorScheme.primary
-                                    : colorScheme.surfaceContainerHighest,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isCompleted
-                                      ? colorScheme.primary
-                                      : colorScheme.outline
-                                          .withValues(alpha: 0.3),
-                                  width: 2,
-                                ),
-                              ),
-                              child: Icon(
-                                isCompleted ? Icons.check : Icons.circle,
-                                color: isCompleted
-                                    ? colorScheme.onPrimary
-                                    : colorScheme.outline,
-                                size: isCompleted ? 16 : 8,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Order #${orderData['order_no'] ?? controller.id.value}',
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'lato',
                               ),
                             ),
                           ),
-                          beforeLineStyle: LineStyle(
-                            color: isCompleted
-                                ? colorScheme.primary
-                                : colorScheme.outline.withValues(alpha: 0.3),
-                            thickness: 2,
-                          ),
-                          afterLineStyle: LineStyle(
-                            color: (index + 1) < currentStage
-                                ? colorScheme.primary
-                                : colorScheme.outline.withValues(alpha: 0.3),
-                            thickness: 2,
-                          ),
-                          endChild: Padding(
-                            padding: const EdgeInsets.only(
-                                left: 16, top: 12, bottom: 20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  controller.stages[index],
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: isCompleted
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                    fontFamily: 'lato',
-                                    color: isCompleted
-                                        ? colorScheme.onSurface
-                                        : colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                                if (index + 1 == currentStage) ...[
-                                  const SizedBox(height: 2),
+                          if (isPaid)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFDCFCE7),
+                                borderRadius: BorderRadius.circular(20),
+                                border:
+                                    Border.all(color: const Color(0xFF86EFAC)),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.check,
+                                      size: 12, color: Color(0xFF166534)),
+                                  SizedBox(width: 4),
                                   Text(
-                                    'In Progress',
+                                    'PAID',
                                     style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: colorScheme.primary,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF166534),
                                       fontFamily: 'lato',
                                     ),
                                   ),
                                 ],
-                              ],
+                              ),
+                            ),
+                        ],
+                      ),
+                      if (formattedDate.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'Placed on $formattedDate',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontFamily: 'lato',
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: isCompletedOrder
+                                  ? const Color(0xFFDCFCE7)
+                                  : colorScheme.primaryContainer
+                                      .withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: isCompletedOrder
+                                    ? const Color(0xFF86EFAC)
+                                    : colorScheme.primary
+                                        .withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Text(
+                              orderStatusLabel.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: isCompletedOrder
+                                    ? const Color(0xFF166534)
+                                    : colorScheme.primary,
+                                fontFamily: 'lato',
+                              ),
                             ),
                           ),
-                        );
-                      },
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerHighest
+                                  .withValues(alpha: 0.4),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color:
+                                    colorScheme.outline.withValues(alpha: 0.2),
+                              ),
+                            ),
+                            child: Text(
+                              (orderData['payment_method'] ?? 'COD')
+                                  .toString()
+                                  .toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.onSurfaceVariant,
+                                fontFamily: 'lato',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // ── Compact Order Progress Stepper ─────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: colorScheme.outline.withValues(alpha: 0.16),
                     ),
-                  ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Order Status',
+                            style: textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'lato',
+                            ),
+                          ),
+                          Text(
+                            isCompletedOrder ? 'Complete' : 'In Progress',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isCompletedOrder
+                                  ? const Color(0xFF16A34A)
+                                  : colorScheme.primary,
+                              fontFamily: 'lato',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      // Horizontal milestone steps
+                      Row(
+                        children: List.generate(controller.stages.length, (index) {
+                          final stepNumber = index + 1;
+                          final bool isStepDone = stepNumber <= currentStage ||
+                              isCompletedOrder;
+                          final bool isLast =
+                              index == controller.stages.length - 1;
+
+                          return Expanded(
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    color: isStepDone
+                                        ? colorScheme.primary
+                                        : colorScheme.surfaceContainerHighest,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: isStepDone
+                                          ? colorScheme.primary
+                                          : colorScheme.outline
+                                              .withValues(alpha: 0.3),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    isStepDone ? Icons.check : Icons.circle,
+                                    size: isStepDone ? 14 : 6,
+                                    color: isStepDone
+                                        ? colorScheme.onPrimary
+                                        : colorScheme.outline,
+                                  ),
+                                ),
+                                if (!isLast)
+                                  Expanded(
+                                    child: Container(
+                                      height: 3,
+                                      color: isStepDone &&
+                                              (stepNumber < currentStage ||
+                                                  isCompletedOrder)
+                                          ? colorScheme.primary
+                                          : colorScheme.outline
+                                              .withValues(alpha: 0.2),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ),
+                      const SizedBox(height: 8),
+                      // Labels for start and end
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            controller.stages.first,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: colorScheme.onSurfaceVariant,
+                              fontFamily: 'lato',
+                            ),
+                          ),
+                          Text(
+                            controller.stages.last,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: isCompletedOrder
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: isCompletedOrder
+                                  ? colorScheme.primary
+                                  : colorScheme.onSurfaceVariant,
+                              fontFamily: 'lato',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
 
@@ -337,6 +516,9 @@ class PaymentTransactionsCard extends StatelessWidget {
     final paymentMethod =
         (item['payment_method'] ?? 'COD').toString().toUpperCase();
     final isCod = paymentMethod.toLowerCase() == 'cod';
+    final bool isOrderPaid = paymentStatus == 'PAID' ||
+        paymentStatus == 'SUCCESS' ||
+        paymentStatus == 'COMPLETED';
 
     double amountPaid = 0.0;
     if (payments != null && payments.isNotEmpty) {
@@ -350,12 +532,16 @@ class PaymentTransactionsCard extends StatelessWidget {
           }
         }
       }
-    } else if (paymentStatus == 'PAID') {
-      amountPaid = totalVal;
+    }
+    // If order is paid overall, ensure amountPaid matches totalVal
+    if (isOrderPaid) {
+      if (amountPaid < totalVal) {
+        amountPaid = totalVal;
+      }
     }
 
     double pendingAmount = totalVal - amountPaid;
-    if (pendingAmount < 0) pendingAmount = 0.0;
+    if (isOrderPaid || pendingAmount < 0) pendingAmount = 0.0;
 
     final String amountPaidStr = amountPaid.toStringAsFixed(2);
     final String pendingAmountStr = pendingAmount.toStringAsFixed(2);
@@ -455,12 +641,12 @@ class PaymentTransactionsCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: pendingAmount > 0
                         ? const Color(0xFFFEF2F2)
-                        : const Color(0xFFF9FAFB),
+                        : const Color(0xFFF0FDF4),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: pendingAmount > 0
                           ? const Color(0xFFFCA5A5)
-                          : const Color(0xFFE5E7EB),
+                          : const Color(0xFF86EFAC),
                     ),
                   ),
                   child: Row(
@@ -471,14 +657,16 @@ class PaymentTransactionsCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: pendingAmount > 0
                               ? const Color(0xFFFEE2E2)
-                              : const Color(0xFFF3F4F6),
+                              : const Color(0xFFDCFCE7),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          Icons.access_time_rounded,
+                          pendingAmount > 0
+                              ? Icons.access_time_rounded
+                              : Icons.check,
                           color: pendingAmount > 0
                               ? const Color(0xFFDC2626)
-                              : Colors.grey,
+                              : const Color(0xFF16A34A),
                           size: 16,
                         ),
                       ),
@@ -488,13 +676,15 @@ class PaymentTransactionsCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'DUE ON DELIVERY',
+                              pendingAmount > 0 && isCod
+                                  ? 'DUE ON DELIVERY'
+                                  : 'PENDING AMOUNT',
                               style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
                                 color: pendingAmount > 0
                                     ? const Color(0xFF991B1B)
-                                    : Colors.grey.shade700,
+                                    : const Color(0xFF166534),
                                 fontFamily: 'lato',
                                 letterSpacing: 0.5,
                               ),
@@ -507,7 +697,7 @@ class PaymentTransactionsCard extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                                 color: pendingAmount > 0
                                     ? const Color(0xFFDC2626)
-                                    : Colors.grey.shade800,
+                                    : const Color(0xFF16A34A),
                                 fontFamily: 'lato',
                               ),
                               maxLines: 1,
@@ -523,8 +713,36 @@ class PaymentTransactionsCard extends StatelessWidget {
             ],
           ),
 
-          // COD Advisory Message (only when pending amount remains and not already marked paid)
-          if (isCod && pendingAmount > 0 && paymentStatus != 'PAID') ...[
+          // Payment Status Banner
+          if (isOrderPaid) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0FDF4),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFF86EFAC)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle,
+                      size: 16, color: Color(0xFF16A34A)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Payment of $symbol$amountPaidStr completed ($paymentMethod).',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF166534),
+                        fontFamily: 'lato',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else if (isCod && pendingAmount > 0) ...[
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -552,6 +770,111 @@ class PaymentTransactionsCard extends StatelessWidget {
                 ],
               ),
             ),
+          ],
+
+          // Payment Transactions History Table (Matching Parent Website Image 4)
+          if (payments != null && payments.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            const Divider(height: 1),
+            const SizedBox(height: 12),
+            Text(
+              'Payment Transactions',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'lato',
+                color: colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...payments.whereType<Map>().map((pay) {
+              final payGateway =
+                  (pay['gateway'] ?? paymentMethod).toString().toUpperCase();
+              final payStatus =
+                  (pay['status'] ?? 'paid').toString().toUpperCase();
+              final isPayPaid = payStatus == 'PAID' ||
+                  payStatus == 'SUCCESS' ||
+                  payStatus == 'COMPLETED';
+              final payAmount = parseDouble(pay['amount']);
+              final payDate = (pay['paid_at'] ?? pay['created_at'] ?? '')
+                  .toString()
+                  .split('T')[0];
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          payGateway,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'lato',
+                          ),
+                        ),
+                        if (payDate.isNotEmpty)
+                          Text(
+                            payDate,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: colorScheme.onSurfaceVariant,
+                              fontFamily: 'lato',
+                            ),
+                          ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          '+ $symbol${payAmount.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: isPayPaid
+                                ? const Color(0xFF16A34A)
+                                : colorScheme.onSurface,
+                            fontFamily: 'lato',
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: isPayPaid
+                                ? const Color(0xFFDCFCE7)
+                                : const Color(0xFFFEF3C7),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            payStatus,
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: isPayPaid
+                                  ? const Color(0xFF166534)
+                                  : const Color(0xFF92400E),
+                              fontFamily: 'lato',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
           ],
         ],
       ),
@@ -1079,7 +1402,7 @@ reviewModal(OrderdetailController controller) {
               TextFormField(
                 controller: reviewController,
                 maxLength: 300,
-                scrollPhysics: AlwaysScrollableScrollPhysics(),
+                scrollPhysics: const AlwaysScrollableScrollPhysics(),
                 onChanged: (value) {
                   // .text = value;
                 },
