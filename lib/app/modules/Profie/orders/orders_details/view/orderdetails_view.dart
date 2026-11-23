@@ -191,12 +191,17 @@ class OrderdetailView extends GetView<OrderdetailController> {
               ),
 
               // ── Shipping Address ────────────────────────────────
-              if (orderData['address'] != null)
+              if (orderData['address'] != null || orderData['customer'] != null)
                 ShippingAddress(
+                  customerName: orderData['customer'] is Map
+                      ? (orderData['customer']['name']?.toString() ?? '')
+                      : '',
                   mobileNo: orderData['customer'] is Map
                       ? (orderData['customer']['mobile']?.toString() ?? '')
                       : '',
                   address: orderData['address'],
+                  paymentMethod: (orderData['payment_method'] ?? '').toString(),
+                  paymentStatus: (orderData['payment_status'] ?? '').toString(),
                 ),
 
               const SizedBox(height: 16),
@@ -345,7 +350,7 @@ class PaymentTransactionsCard extends StatelessWidget {
           }
         }
       }
-    } else if (paymentStatus == 'PAID' && !isCod) {
+    } else if (paymentStatus == 'PAID') {
       amountPaid = totalVal;
     }
 
@@ -518,8 +523,8 @@ class PaymentTransactionsCard extends StatelessWidget {
             ],
           ),
 
-          // COD Advisory Message
-          if (isCod && pendingAmount > 0) ...[
+          // COD Advisory Message (only when pending amount remains and not already marked paid)
+          if (isCod && pendingAmount > 0 && paymentStatus != 'PAID') ...[
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -559,28 +564,77 @@ class ShippingAddress extends StatelessWidget {
     super.key,
     required this.address,
     required this.mobileNo,
+    this.customerName = '',
+    this.paymentMethod = '',
+    this.paymentStatus = '',
   });
 
   final dynamic address;
   final String mobileNo;
+  final String customerName;
+  final String paymentMethod;
+  final String paymentStatus;
+
+  static bool _isPlaceholder(String val) {
+    final s = val.trim().toUpperCase();
+    return s.isEmpty ||
+        s == 'NA' ||
+        s == 'N/A' ||
+        s == 'NULL' ||
+        s == 'UNDEFINED' ||
+        s == 'NONE' ||
+        RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(val.trim());
+  }
+
+  static String _clean(dynamic val) {
+    if (val == null) return '';
+    final s = HelperFunctions.displayReferenceName(val).trim();
+    return _isPlaceholder(s) ? '' : s;
+  }
 
   @override
   Widget build(BuildContext context) {
     final Map? addressMap = address is Map ? address as Map : null;
 
-    String valueOf(dynamic value) {
-      return HelperFunctions.displayReferenceName(value);
+    final String recipientName =
+        _clean(addressMap?['name'] ?? customerName);
+    final String phone = _clean(
+        addressMap?['mobile'] ?? addressMap?['phone'] ?? mobileNo);
+    final String houseNo = _clean(addressMap?['house_no']);
+    final String street =
+        _clean(addressMap?['address'] ?? addressMap?['street']);
+    final String landmark = _clean(addressMap?['landmark']);
+    final String city = _clean(addressMap?['city']);
+    final String state = _clean(addressMap?['state']);
+    final String pincode =
+        _clean(addressMap?['pincode'] ?? addressMap?['postal_code']);
+
+    final streetParts = [houseNo, street, landmark]
+        .where((part) => part.isNotEmpty)
+        .toList();
+    final String streetLine = streetParts.join(', ');
+
+    final localityParts =
+        [city, state].where((part) => part.isNotEmpty).toList();
+    String cityLine = localityParts.join(', ');
+    if (pincode.isNotEmpty) {
+      cityLine = cityLine.isNotEmpty ? '$cityLine - $pincode' : pincode;
     }
 
-    final addressLines = addressMap == null
-        ? [valueOf(address)].where((part) => part.isNotEmpty).toList()
-        : [
-            addressMap['house_no'],
-            addressMap['address'],
-            addressMap['city'],
-            addressMap['state'],
-            addressMap['pincode'] ?? addressMap['postal_code'],
-          ].map(valueOf).where((part) => part.trim().isNotEmpty).toList();
+    final bool hasValidAddress = recipientName.isNotEmpty ||
+        phone.isNotEmpty ||
+        streetLine.isNotEmpty ||
+        cityLine.isNotEmpty;
+
+    final pStatus = paymentStatus.toUpperCase();
+    final bool isPaid =
+        pStatus == 'PAID' || pStatus == 'SUCCESS' || pStatus == 'COMPLETED';
+    final Color statusBg =
+        isPaid ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7);
+    final Color statusTextColor =
+        isPaid ? const Color(0xFF166534) : const Color(0xFF92400E);
+    final Color statusBorder =
+        isPaid ? const Color(0xFF86EFAC) : const Color(0xFFFCD34D);
 
     return Padding(
       padding: pageSurroundingPadding,
@@ -590,45 +644,138 @@ class ShippingAddress extends StatelessWidget {
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color:
-                Theme.of(context).colorScheme.outline.withValues(alpha: 0.16),
+            color: Theme.of(context)
+                .colorScheme
+                .outline
+                .withValues(alpha: 0.16),
           ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(Icons.location_on_outlined,
-                    color: Theme.of(context).colorScheme.primary, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  'shipping details'.tr,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                Row(
+                  children: [
+                    Icon(Icons.location_on_outlined,
+                        color: Theme.of(context).colorScheme.primary, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'shipping details'.tr,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                  ],
                 ),
+                if (paymentStatus.isNotEmpty)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: statusBg,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: statusBorder),
+                    ),
+                    child: Text(
+                      isPaid ? 'PAID' : paymentStatus.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: statusTextColor,
+                        fontFamily: 'lato',
+                      ),
+                    ),
+                  ),
               ],
             ),
             const SizedBox(height: 12),
-            Text(
-              addressLines.isEmpty
-                  ? 'No address details available'
-                  : addressLines.join(', '),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    height: 1.45,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-            ),
-            if (mobileNo.trim().isNotEmpty) ...[
-              const SizedBox(height: 8),
+            if (recipientName.isNotEmpty) ...[
+              Text(
+                recipientName,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+              ),
+              const SizedBox(height: 4),
+            ],
+            if (phone.isNotEmpty) ...[
               Row(
                 children: [
                   Icon(Icons.phone_outlined,
-                      size: 16,
+                      size: 15,
                       color: Theme.of(context).colorScheme.onSurfaceVariant),
                   const SizedBox(width: 6),
-                  Text(mobileNo, style: Theme.of(context).textTheme.bodySmall),
+                  Text(
+                    phone,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                        ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+            ],
+            if (streetLine.isNotEmpty) ...[
+              Text(
+                streetLine,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      height: 1.4,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+              const SizedBox(height: 2),
+            ],
+            if (cityLine.isNotEmpty) ...[
+              Text(
+                cityLine,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      height: 1.4,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
+            if (!hasValidAddress)
+              Text(
+                'No shipping address provided'.tr,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontStyle: FontStyle.italic,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            if (paymentMethod.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Divider(
+                color: Theme.of(context)
+                    .colorScheme
+                    .outline
+                    .withValues(alpha: 0.12),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(Icons.account_balance_wallet_outlined,
+                      size: 15,
+                      color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Payment Method: '.tr,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                  Text(
+                    paymentMethod.toUpperCase(),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                  ),
                 ],
               ),
             ],
