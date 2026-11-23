@@ -48,14 +48,4 @@ class NotificationsController extends GetxController with BaseController {
     allnotificationList.clear();
     // await fetchallnotificationlist();
   }
-
-  @override
-  void onReady() {
-    super.onReady();
-  }
-
-  @override
-  void onClose() {
-    super.onClose();
-  }
 }

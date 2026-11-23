@@ -66,7 +66,8 @@ class BlogView extends GetView<BlogController> {
               // Main Blog Content Area
               Obx(() {
                 if (controller.isLoading.value) {
-                  return _buildShimmerLoading(context, controller.isGridView.value);
+                  return _buildShimmerLoading(
+                      context, controller.isGridView.value);
                 }
 
                 if (controller.hasError.value && controller.allBlogs.isEmpty) {
@@ -122,7 +123,7 @@ class BlogView extends GetView<BlogController> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: colorScheme.primary.withOpacity(0.12),
+              color: colorScheme.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
@@ -200,7 +201,7 @@ class BlogView extends GetView<BlogController> {
               selected: isSelected,
               onSelected: (_) => controller.selectCategory(category),
               selectedColor: colorScheme.primary,
-              backgroundColor: colorScheme.surfaceVariant,
+              backgroundColor: colorScheme.surfaceContainerHighest,
               labelStyle: TextStyle(
                 color: isSelected
                     ? colorScheme.onPrimary
@@ -213,7 +214,7 @@ class BlogView extends GetView<BlogController> {
                 side: BorderSide(
                   color: isSelected
                       ? colorScheme.primary
-                      : colorScheme.outline.withOpacity(0.15),
+                      : colorScheme.outline.withValues(alpha: 0.15),
                 ),
               ),
             );
@@ -252,11 +253,11 @@ class BlogView extends GetView<BlogController> {
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: colorScheme.outline.withOpacity(0.15),
+            color: colorScheme.outline.withValues(alpha: 0.15),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -276,7 +277,7 @@ class BlogView extends GetView<BlogController> {
                         imageUrl: blog.imageUrl!,
                         fit: BoxFit.cover,
                         placeholder: (context, url) => Container(
-                          color: colorScheme.surfaceVariant,
+                          color: colorScheme.surfaceContainerHighest,
                           child: const Center(
                             child: SizedBox(
                               width: 20,
@@ -286,13 +287,13 @@ class BlogView extends GetView<BlogController> {
                           ),
                         ),
                         errorWidget: (context, url, error) => Container(
-                          color: colorScheme.surfaceVariant,
+                          color: colorScheme.surfaceContainerHighest,
                           child: Icon(Icons.article_outlined,
                               color: colorScheme.onSurfaceVariant),
                         ),
                       )
                     : Container(
-                        color: colorScheme.surfaceVariant,
+                        color: colorScheme.surfaceContainerHighest,
                         child: Icon(Icons.article_outlined,
                             color: colorScheme.onSurfaceVariant),
                       ),
@@ -313,9 +314,7 @@ class BlogView extends GetView<BlogController> {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          blog.shortDate.isNotEmpty
-                              ? blog.shortDate
-                              : 'Recent',
+                          blog.shortDate.isNotEmpty ? blog.shortDate : 'Recent',
                           style: textTheme.labelSmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                             fontSize: 10.5,
@@ -408,10 +407,11 @@ class BlogView extends GetView<BlogController> {
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: colorScheme.outline.withOpacity(0.15)),
+          border:
+              Border.all(color: colorScheme.outline.withValues(alpha: 0.15)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),
@@ -431,13 +431,13 @@ class BlogView extends GetView<BlogController> {
                         imageUrl: blog.imageUrl!,
                         fit: BoxFit.cover,
                         errorWidget: (_, __, ___) => Container(
-                          color: colorScheme.surfaceVariant,
+                          color: colorScheme.surfaceContainerHighest,
                           child: Icon(Icons.article_outlined,
                               size: 40, color: colorScheme.onSurfaceVariant),
                         ),
                       )
                     : Container(
-                        color: colorScheme.surfaceVariant,
+                        color: colorScheme.surfaceContainerHighest,
                         child: Icon(Icons.article_outlined,
                             size: 40, color: colorScheme.onSurfaceVariant),
                       ),
@@ -457,9 +457,7 @@ class BlogView extends GetView<BlogController> {
                           size: 14, color: colorScheme.onSurfaceVariant),
                       const SizedBox(width: 5),
                       Text(
-                        blog.shortDate.isNotEmpty
-                            ? blog.shortDate
-                            : 'Recent',
+                        blog.shortDate.isNotEmpty ? blog.shortDate : 'Recent',
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w500,
@@ -543,8 +541,7 @@ class BlogView extends GetView<BlogController> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final baseColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
-    final highlightColor =
-        isDark ? Colors.grey.shade700 : Colors.grey.shade100;
+    final highlightColor = isDark ? Colors.grey.shade700 : Colors.grey.shade100;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -597,7 +594,8 @@ class BlogView extends GetView<BlogController> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.article_outlined,
-                size: 64, color: colorScheme.onSurfaceVariant.withOpacity(0.5)),
+                size: 64,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
             const SizedBox(height: 16),
             Text(
               'No Articles Found',
@@ -640,7 +638,7 @@ class BlogView extends GetView<BlogController> {
         child: Column(
           children: [
             Icon(Icons.wifi_off_rounded,
-                size: 56, color: colorScheme.error.withOpacity(0.8)),
+                size: 56, color: colorScheme.error.withValues(alpha: 0.8)),
             const SizedBox(height: 16),
             Text(
               controller.errorMessage.value,

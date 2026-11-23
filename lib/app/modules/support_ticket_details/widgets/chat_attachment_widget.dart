@@ -58,7 +58,9 @@ class ChatAttachmentWidget extends StatelessWidget {
     if (attachment is Map) {
       mime = (attachment['mime_type'] ?? '').toString().toLowerCase();
       name = (attachment['name'] ?? '').toString().toLowerCase();
-      urlStr = (attachment['url'] ?? attachment['download_url'] ?? '').toString().toLowerCase();
+      urlStr = (attachment['url'] ?? attachment['download_url'] ?? '')
+          .toString()
+          .toLowerCase();
     } else if (attachment is String) {
       urlStr = attachment.toLowerCase();
       name = attachment.split('/').last.toLowerCase();
@@ -114,7 +116,8 @@ class ChatAttachmentWidget extends StatelessWidget {
     if (attachment is Map) {
       final name = attachment['name']?.toString();
       if (name != null && name.trim().isNotEmpty) return name;
-      final urlStr = attachment['url']?.toString() ?? attachment['download_url']?.toString();
+      final urlStr = attachment['url']?.toString() ??
+          attachment['download_url']?.toString();
       if (urlStr != null && urlStr.trim().isNotEmpty) {
         return urlStr.split('/').last;
       }
@@ -155,7 +158,8 @@ class ChatAttachmentWidget extends StatelessWidget {
           final mediaType = detectMediaType(att);
           switch (mediaType) {
             case ChatMediaType.image:
-              return _ImageAttachmentTile(attachment: att, allImages: attachments);
+              return _ImageAttachmentTile(
+                  attachment: att, allImages: attachments);
             case ChatMediaType.video:
               return _VideoAttachmentTile(attachment: att);
             case ChatMediaType.document:
@@ -220,9 +224,10 @@ class _ImageAttachmentTile extends StatelessWidget {
                 errorWidget: (context, url, error) => Container(
                   height: 120,
                   width: double.infinity,
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.grey.withValues(alpha: 0.2),
                   child: const Center(
-                    child: Icon(Icons.broken_image, color: Colors.grey, size: 36),
+                    child:
+                        Icon(Icons.broken_image, color: Colors.grey, size: 36),
                   ),
                 ),
               ),
@@ -232,7 +237,7 @@ class _ImageAttachmentTile extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
+                    color: Colors.black.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Icon(
@@ -347,7 +352,8 @@ class _VideoAttachmentTileState extends State<_VideoAttachmentTile> {
       if (await localFile.exists()) {
         final result = await OpenFilex.open(localPath);
         if (result.type != ResultType.done) {
-          Fluttertoast.showToast(msg: "Could not open video: ${result.message}");
+          Fluttertoast.showToast(
+              msg: "Could not open video: ${result.message}");
         }
         return;
       }
@@ -418,7 +424,9 @@ class _VideoAttachmentTileState extends State<_VideoAttachmentTile> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           CircularProgressIndicator(
-                            value: _downloadProgress > 0 ? _downloadProgress : null,
+                            value: _downloadProgress > 0
+                                ? _downloadProgress
+                                : null,
                             color: Colors.white,
                             strokeWidth: 3,
                           ),
@@ -437,11 +445,11 @@ class _VideoAttachmentTileState extends State<_VideoAttachmentTile> {
                         height: 52,
                         width: 52,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
+                              color: Colors.black.withValues(alpha: 0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -466,7 +474,7 @@ class _VideoAttachmentTileState extends State<_VideoAttachmentTile> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.65),
+                    color: Colors.black.withValues(alpha: 0.65),
                     borderRadius: const BorderRadius.only(
                       bottomLeft: Radius.circular(10),
                       bottomRight: Radius.circular(10),
@@ -496,7 +504,7 @@ class _VideoAttachmentTileState extends State<_VideoAttachmentTile> {
                       Text(
                         _isDownloaded ? 'PLAY' : 'TAP TO LOAD',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
@@ -576,7 +584,8 @@ class _DocumentAttachmentTileState extends State<_DocumentAttachmentTile> {
       if (await localFile.exists()) {
         final result = await OpenFilex.open(localPath);
         if (result.type != ResultType.done) {
-          Fluttertoast.showToast(msg: "Could not open document: ${result.message}");
+          Fluttertoast.showToast(
+              msg: "Could not open document: ${result.message}");
         }
         return;
       }
@@ -608,7 +617,8 @@ class _DocumentAttachmentTileState extends State<_DocumentAttachmentTile> {
 
       final result = await OpenFilex.open(localPath);
       if (result.type != ResultType.done) {
-        Fluttertoast.showToast(msg: "Could not open document: ${result.message}");
+        Fluttertoast.showToast(
+            msg: "Could not open document: ${result.message}");
       }
     } catch (e) {
       if (mounted) {
@@ -641,7 +651,7 @@ class _DocumentAttachmentTileState extends State<_DocumentAttachmentTile> {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
@@ -696,7 +706,8 @@ class _DocumentAttachmentTileState extends State<_DocumentAttachmentTile> {
                       _isPdf ? 'PDF Document' : 'Document',
                       style: TextStyle(
                         fontSize: 11,
-                        color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                        color: theme.textTheme.bodySmall?.color
+                            ?.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -720,8 +731,8 @@ class _DocumentAttachmentTileState extends State<_DocumentAttachmentTile> {
                   width: 32,
                   decoration: BoxDecoration(
                     color: _isDownloaded
-                        ? Colors.green.withOpacity(0.12)
-                        : primaryColor.withOpacity(0.12),
+                        ? Colors.green.withValues(alpha: 0.12)
+                        : primaryColor.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(

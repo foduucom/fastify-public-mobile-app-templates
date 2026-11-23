@@ -46,10 +46,10 @@ class OnboardingView extends GetView<OnboardingController> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.35),
+                        color: Colors.black.withValues(alpha: 0.35),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           width: 1,
                         ),
                       ),
@@ -84,7 +84,7 @@ class OnboardingView extends GetView<OnboardingController> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 24,
                     offset: const Offset(0, -6),
                   ),
@@ -181,7 +181,7 @@ class OnboardingView extends GetView<OnboardingController> {
                   borderRadius: BorderRadius.circular(3),
                   color: isSelected
                       ? colorScheme.primary
-                      : colorScheme.outlineVariant.withOpacity(0.6),
+                      : colorScheme.outlineVariant.withValues(alpha: 0.6),
                 ),
               ),
             );

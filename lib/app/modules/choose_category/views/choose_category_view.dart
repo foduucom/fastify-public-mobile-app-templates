@@ -48,30 +48,27 @@ class ChooseCategoryView extends GetView<ChooseCategoryController> {
               ),
               children: [
                 // Title + Description
-                Container(
-                  //margin: const EdgeInsets.only(left: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppText(
-                        "Discover Your Style Identity",
-                        fontSize: height * 0.03,
-                        height: 1.1,
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.onSurface,
-                      ),
-                      const SizedBox(height: 8),
-                      AppText(
-                        "Pick a Category that Aligns with Your Fashion Personality",
-                        fontSize: height * 0.018,
-                        height: 1.4,
-                        letterSpacing: 0,
-                        maxLines: 3,
-                        color: colorScheme.onSurfaceVariant,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      "Discover Your Style Identity",
+                      fontSize: height * 0.03,
+                      height: 1.1,
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.onSurface,
+                    ),
+                    const SizedBox(height: 8),
+                    AppText(
+                      "Pick a Category that Aligns with Your Fashion Personality",
+                      fontSize: height * 0.018,
+                      height: 1.4,
+                      letterSpacing: 0,
+                      maxLines: 3,
+                      color: colorScheme.onSurfaceVariant,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
 
                 SizedBox(height: height * 0.03),

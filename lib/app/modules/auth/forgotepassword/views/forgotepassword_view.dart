@@ -72,4 +72,3 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
     );
   }
 }
-

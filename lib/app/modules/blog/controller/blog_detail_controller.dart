@@ -15,7 +15,9 @@ class BlogDetailsController extends GetxController with BaseController {
   final Rx<BlogModel?> nextBlog = Rx<BlogModel?>(null);
 
   final RxBool isLoading = false.obs;
+  @override
   final RxBool hasError = false.obs;
+  @override
   final RxString errorMessage = ''.obs;
 
   @override
@@ -45,9 +47,8 @@ class BlogDetailsController extends GetxController with BaseController {
       hasError.value = false;
       errorMessage.value = '';
 
-      final response = await BasicProvider('blogs/$id')
-          .getRequest()
-          .catchError(handleError);
+      final response =
+          await BasicProvider('blogs/$id').getRequest().catchError(handleError);
 
       if (response == null) {
         hasError.value = true;
@@ -121,9 +122,8 @@ class BlogDetailsController extends GetxController with BaseController {
     final blog = currentBlog.value;
     if (blog == null) return;
 
-    final blogUrl = blog.slug.isNotEmpty
-        ? '${url}blog/${blog.slug}'
-        : '${url}blog';
+    final blogUrl =
+        blog.slug.isNotEmpty ? '${url}blog/${blog.slug}' : '${url}blog';
 
     FlutterClipboard.copy(blogUrl).then((_) {
       Fluttertoast.showToast(

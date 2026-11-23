@@ -159,7 +159,7 @@ class WishlistController extends GetxController
           "Select Variant",
           "Please open the product to select a variant before adding to cart",
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.orange.withOpacity(0.7),
+          backgroundColor: Colors.orange.withValues(alpha: 0.7),
           colorText: Colors.white,
         );
         return;
@@ -175,7 +175,7 @@ class WishlistController extends GetxController
       Get.snackbar(
         "Success",
         "Added to cart successfully",
-        backgroundColor: Colors.green.withOpacity(0.7),
+        backgroundColor: Colors.green.withValues(alpha: 0.7),
         colorText: Colors.white,
       );
     } catch (e) {
@@ -184,7 +184,7 @@ class WishlistController extends GetxController
         "Error",
         "Failed to add to cart",
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.7),
+        backgroundColor: Colors.red.withValues(alpha: 0.7),
         colorText: Colors.white,
       );
     } finally {

@@ -60,7 +60,7 @@ class CheckoutViews extends GetView<CheckOutController> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(height * 0.015),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -201,7 +201,7 @@ class CheckoutViews extends GetView<CheckOutController> {
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Theme.of(context).colorScheme.primary,
           colorText: Theme.of(context).colorScheme.onPrimary,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         );
       }
     });
@@ -210,7 +210,7 @@ class CheckoutViews extends GetView<CheckOutController> {
   // ── Payment Methods Section (integrated from second design) ──────────────
   Widget _buildPaymentMethodsSection(
       double width, double height, BuildContext context) {
-    return Container(
+    return SizedBox(
       width: width * 0.92,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -304,7 +304,7 @@ class CheckoutViews extends GetView<CheckOutController> {
           border: Border.all(
             color: isSelected
                 ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                : Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
             width: isSelected ? 1.5 : 1,
           ),
           color: isSelected
@@ -551,9 +551,9 @@ class CheckoutViews extends GetView<CheckOutController> {
       direction: ShimmerDirection.ltr,
       loop: 0,
       period: const Duration(seconds: 1),
-      baseColor: Theme.of(context).colorScheme.surfaceVariant,
+      baseColor: Theme.of(context).colorScheme.surfaceContainerHighest,
       highlightColor:
-          Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.1),
+          Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
       child: Column(
         children: [
           _buildShimmerTile(width, height, context),
@@ -572,7 +572,8 @@ class CheckoutViews extends GetView<CheckOutController> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(height * 0.015),
         border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.3)),
+            color:
+                Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [

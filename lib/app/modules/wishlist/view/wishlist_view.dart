@@ -17,7 +17,7 @@ class WishlistView extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 16),
-            AppTopBar(title: 'Wishlist'),
+            const AppTopBar(title: 'Wishlist'),
             const SizedBox(height: 16),
             Expanded(
               child: Obx(() {
@@ -31,8 +31,8 @@ class WishlistView extends StatelessWidget {
                   color: const Color(0xFF1A1A1A),
                   onRefresh: controller.fetchWishlist,
                   child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                     itemCount: controller.items.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 14),
                     itemBuilder: (_, i) => _WishlistCard(
@@ -59,7 +59,8 @@ class _EmptyWishlist extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 100, height: 100,
+            width: 100,
+            height: 100,
             decoration: const BoxDecoration(
                 color: Colors.white, shape: BoxShape.circle),
             child: const Icon(Icons.favorite_border_rounded,
@@ -78,8 +79,7 @@ class _EmptyWishlist extends StatelessWidget {
           GestureDetector(
             onTap: () => Get.back(),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 32, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               decoration: BoxDecoration(
                 color: const Color(0xFF1A1A1A),
                 borderRadius: BorderRadius.circular(30),
@@ -105,14 +105,14 @@ class _WishlistCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl   = controller.itemImage(item);
-    final name       = controller.itemName(item);
-    final variant    = controller.variantName(item);
-    final price      = controller.itemPrice(item);
-    final origPrice  = controller.originalPrice(item);
+    final imageUrl = controller.itemImage(item);
+    final name = controller.itemName(item);
+    final variant = controller.variantName(item);
+    final price = controller.itemPrice(item);
+    final origPrice = controller.originalPrice(item);
     final discounted = controller.hasDiscount(item);
-    final wId        = controller.wishlistId(item);
-    final pId        = controller.productId(item);
+    final wId = controller.wishlistId(item);
+    final pId = controller.productId(item);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -123,28 +123,28 @@ class _WishlistCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           // ── Image ─────────────────────────────────────────────
           GestureDetector(
             onTap: () => Get.toNamed('/productdetails', arguments: pId),
             child: Container(
-              width: 90, height: 100,
+              width: 90,
+              height: 100,
               decoration: BoxDecoration(
                 color: const Color(0xFFF5F3F0),
                 borderRadius: BorderRadius.circular(14),
               ),
               clipBehavior: Clip.antiAlias,
               child: imageUrl.isNotEmpty
-                  ? CachedNetworkImage(          // ✅ replaces Image.network
-                imageUrl: imageUrl,
-                fit: BoxFit.contain,
-                placeholder: (_, __) => const Center(
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Color(0xFFD0D0D0)),
-                ),
-                errorWidget: (_, __, ___) => _imageFallback(),
-              )
+                  ? CachedNetworkImage(
+                      // ✅ replaces Image.network
+                      imageUrl: imageUrl,
+                      fit: BoxFit.contain,
+                      placeholder: (_, __) => const Center(
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Color(0xFFD0D0D0)),
+                      ),
+                      errorWidget: (_, __, ___) => _imageFallback(),
+                    )
                   : _imageFallback(),
             ),
           ),
@@ -155,10 +155,8 @@ class _WishlistCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 GestureDetector(
-                  onTap: () =>
-                      Get.toNamed('/productdetails', arguments: pId),
+                  onTap: () => Get.toNamed('/productdetails', arguments: pId),
                   child: Text(
                     name,
                     style: const TextStyle(
@@ -269,21 +267,23 @@ class _WishlistCard extends StatelessWidget {
                         onTap: () => controller.removeItem(item),
                         child: Container(
                           height: 32, // 🔻 smaller height
-                          padding: const EdgeInsets.symmetric(horizontal: 6), // 🔻 less padding
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6), // 🔻 less padding
                           decoration: BoxDecoration(
                             color: const Color(0xFFF5F5F5),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Row(
+                          child: const Row(
                             mainAxisSize: MainAxisSize.min,
-                            children: const [
+                            children: [
                               Icon(
                                 Icons.add_shopping_cart,
                                 size: 14, // 🔻 smaller icon
                                 color: Color(0xFF4CAF50),
                               ),
                               SizedBox(width: 3),
-                              Flexible( // ✅ THIS is critical
+                              Flexible(
+                                // ✅ THIS is critical
                                 child: Text(
                                   "Move",
                                   maxLines: 1,
@@ -309,8 +309,6 @@ class _WishlistCard extends StatelessWidget {
     );
   }
 
-  Widget _imageFallback() => const Icon(
-      Icons.image_not_supported_outlined,
-      size: 36,
-      color: Color(0xFFD0D0D0));
+  Widget _imageFallback() => const Icon(Icons.image_not_supported_outlined,
+      size: 36, color: Color(0xFFD0D0D0));
 }

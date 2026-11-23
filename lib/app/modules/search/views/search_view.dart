@@ -77,10 +77,12 @@ class SearchView extends GetView<SearchsController> {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                color:
+                    colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.arrow_back, color: colorScheme.onSurface, size: 20),
+              child: Icon(Icons.arrow_back,
+                  color: colorScheme.onSurface, size: 20),
             ),
           ),
           const SizedBox(width: 10),
@@ -107,7 +109,8 @@ class SearchView extends GetView<SearchsController> {
               child: Row(
                 children: [
                   const SizedBox(width: 14),
-                  Icon(Icons.search, color: colorScheme.onSurfaceVariant, size: 20),
+                  Icon(Icons.search,
+                      color: colorScheme.onSurfaceVariant, size: 20),
                   const SizedBox(width: 8),
 
                   // Text Field - explicitly filled: false to remove dark theme background artifact
@@ -129,11 +132,13 @@ class SearchView extends GetView<SearchsController> {
                         fillColor: Colors.transparent,
                         hintText: controller.searchPlaceholder,
                         hintStyle: TextStyle(
-                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                          color: colorScheme.onSurfaceVariant
+                              .withValues(alpha: 0.8),
                           fontSize: 13.5,
                         ),
                         isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 12),
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,
@@ -180,7 +185,8 @@ class SearchView extends GetView<SearchsController> {
     return RefreshIndicator(
       onRefresh: () => controller.fetchLayout(SearchsController.pageSlug),
       child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics()),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -194,7 +200,8 @@ class SearchView extends GetView<SearchsController> {
 
             // Dynamic CMS Sections from mobile-app/search (Categories, Trending Products, Blogs)
             Obx(() {
-              if (controller.isLayoutLoading.value && controller.widgetList.isEmpty) {
+              if (controller.isLayoutLoading.value &&
+                  controller.widgetList.isEmpty) {
                 return _buildBrowseShimmer(context);
               }
 
@@ -231,7 +238,8 @@ class SearchView extends GetView<SearchsController> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.history, size: 18, color: colorScheme.onSurfaceVariant),
+                  Icon(Icons.history,
+                      size: 18, color: colorScheme.onSurfaceVariant),
                   const SizedBox(width: 6),
                   Text(
                     'Recent Searches',
@@ -259,7 +267,8 @@ class SearchView extends GetView<SearchsController> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: controller.recentSearchList.take(8).map((item) {
-                final name = (item is Map ? item['name'] : item)?.toString() ?? '';
+                final name =
+                    (item is Map ? item['name'] : item)?.toString() ?? '';
                 if (name.isEmpty) return const SizedBox.shrink();
 
                 return Padding(
@@ -271,9 +280,11 @@ class SearchView extends GetView<SearchsController> {
                       controller.submitSearch(name);
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                        color: colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: colorScheme.outline.withValues(alpha: 0.15),
@@ -292,7 +303,8 @@ class SearchView extends GetView<SearchsController> {
                           const SizedBox(width: 6),
                           GestureDetector(
                             onTap: () => controller.removeRecentItem(item),
-                            child: Icon(Icons.close, size: 14, color: colorScheme.onSurfaceVariant),
+                            child: Icon(Icons.close,
+                                size: 14, color: colorScheme.onSurfaceVariant),
                           ),
                         ],
                       ),
@@ -339,7 +351,8 @@ class SearchView extends GetView<SearchsController> {
                     onTap: () => controller.fetchProductsByBrand(slug),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 7),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? Theme.of(context).primaryColor
@@ -354,8 +367,10 @@ class SearchView extends GetView<SearchsController> {
                       child: Text(
                         name,
                         style: textTheme.bodySmall?.copyWith(
-                          color: isSelected ? Colors.white : colorScheme.onSurface,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          color:
+                              isSelected ? Colors.white : colorScheme.onSurface,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.w500,
                         ),
                       ),
                     ),
@@ -407,7 +422,8 @@ class SearchView extends GetView<SearchsController> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.search, size: 18, color: Theme.of(context).primaryColor),
+                  Icon(Icons.search,
+                      size: 18, color: Theme.of(context).primaryColor),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -418,7 +434,8 @@ class SearchView extends GetView<SearchsController> {
                       ),
                     ),
                   ),
-                  Icon(Icons.arrow_forward_ios, size: 14, color: Theme.of(context).primaryColor),
+                  Icon(Icons.arrow_forward_ios,
+                      size: 14, color: Theme.of(context).primaryColor),
                 ],
               ),
             ),
@@ -427,21 +444,24 @@ class SearchView extends GetView<SearchsController> {
           // ── Products Suggestions ──
           if (controller.autocompleteProducts.isNotEmpty) ...[
             _autocompleteGroupHeader("PRODUCTS"),
-            ...controller.autocompleteProducts.map((p) => _autocompleteProductTile(context, p)),
+            ...controller.autocompleteProducts
+                .map((p) => _autocompleteProductTile(context, p)),
             const SizedBox(height: 12),
           ],
 
           // ── Categories Suggestions ──
           if (controller.autocompleteCategories.isNotEmpty) ...[
             _autocompleteGroupHeader("CATEGORIES"),
-            ...controller.autocompleteCategories.map((c) => _autocompleteCategoryTile(context, c)),
+            ...controller.autocompleteCategories
+                .map((c) => _autocompleteCategoryTile(context, c)),
             const SizedBox(height: 12),
           ],
 
           // ── Blogs Suggestions ──
           if (controller.autocompleteBlogs.isNotEmpty) ...[
             _autocompleteGroupHeader("BLOGS"),
-            ...controller.autocompleteBlogs.map((b) => _autocompleteBlogTile(context, b)),
+            ...controller.autocompleteBlogs
+                .map((b) => _autocompleteBlogTile(context, b)),
             const SizedBox(height: 12),
           ],
 
@@ -456,7 +476,8 @@ class SearchView extends GetView<SearchsController> {
                     children: [
                       Icon(Icons.search_off_rounded,
                           size: 32,
-                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+                          color: colorScheme.onSurfaceVariant
+                              .withValues(alpha: 0.5)),
                       const SizedBox(height: 6),
                       Text(
                         'No instant suggestions found for "$cleanQuery"',
@@ -471,7 +492,8 @@ class SearchView extends GetView<SearchsController> {
                         'Tap the blue banner above to see all results',
                         textAlign: TextAlign.center,
                         style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                          color: colorScheme.onSurfaceVariant
+                              .withValues(alpha: 0.8),
                         ),
                       ),
                     ],
@@ -534,14 +556,16 @@ class SearchView extends GetView<SearchsController> {
                 width: 44,
                 height: 44,
                 color: colorScheme.surfaceContainerHighest,
-                child: (imgUrl.isNotEmpty && imgUrl != HelperFunctions.getNoImage())
+                child: (imgUrl.isNotEmpty &&
+                        imgUrl != HelperFunctions.getNoImage())
                     ? CachedNetworkImage(
                         imageUrl: imgUrl,
                         fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) =>
-                            Icon(Icons.image_outlined, size: 22, color: colorScheme.onSurfaceVariant),
+                        errorWidget: (_, __, ___) => Icon(Icons.image_outlined,
+                            size: 22, color: colorScheme.onSurfaceVariant),
                       )
-                    : Icon(Icons.shopping_bag_outlined, size: 22, color: colorScheme.onSurfaceVariant),
+                    : Icon(Icons.shopping_bag_outlined,
+                        size: 22, color: colorScheme.onSurfaceVariant),
               ),
             ),
             const SizedBox(width: 12),
@@ -568,22 +592,26 @@ class SearchView extends GetView<SearchsController> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        if (formattedRegular.isNotEmpty && formattedRegular != formattedPrice) ...[
+                        if (formattedRegular.isNotEmpty &&
+                            formattedRegular != formattedPrice) ...[
                           const SizedBox(width: 6),
                           Text(
                             formattedRegular,
                             style: textTheme.labelSmall?.copyWith(
                               decoration: TextDecoration.lineThrough,
-                              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                              color: colorScheme.onSurfaceVariant
+                                  .withValues(alpha: 0.6),
                             ),
                           ),
                         ],
                         const SizedBox(width: 8),
                       ],
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 1.5),
                         decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                          color: colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.6),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -601,7 +629,8 @@ class SearchView extends GetView<SearchsController> {
               ),
             ),
             const SizedBox(width: 6),
-            Icon(Icons.north_west, size: 14, color: colorScheme.onSurfaceVariant),
+            Icon(Icons.north_west,
+                size: 14, color: colorScheme.onSurfaceVariant),
           ],
         ),
       ),
@@ -614,7 +643,8 @@ class SearchView extends GetView<SearchsController> {
     final name = (itemMap['name'] ?? '').toString();
     final slug = (itemMap['slug'] ?? '').toString();
     final id = (itemMap['_id'] ?? itemMap['id'] ?? '').toString();
-    final rawImg = itemMap['featured_image'] ?? itemMap['image'] ?? itemMap['icon'];
+    final rawImg =
+        itemMap['featured_image'] ?? itemMap['image'] ?? itemMap['icon'];
     final catImg = HelperFunctions().getImage(rawImg);
 
     return InkWell(
@@ -638,14 +668,16 @@ class SearchView extends GetView<SearchsController> {
                 width: 44,
                 height: 44,
                 color: colorScheme.surfaceContainerHighest,
-                child: (catImg.isNotEmpty && catImg != HelperFunctions.getNoImage())
+                child: (catImg.isNotEmpty &&
+                        catImg != HelperFunctions.getNoImage())
                     ? CachedNetworkImage(
                         imageUrl: catImg,
                         fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) =>
-                            Icon(Icons.folder_outlined, size: 22, color: colorScheme.onSurfaceVariant),
+                        errorWidget: (_, __, ___) => Icon(Icons.folder_outlined,
+                            size: 22, color: colorScheme.onSurfaceVariant),
                       )
-                    : Icon(Icons.folder_outlined, size: 22, color: colorScheme.onSurfaceVariant),
+                    : Icon(Icons.folder_outlined,
+                        size: 22, color: colorScheme.onSurfaceVariant),
               ),
             ),
             const SizedBox(width: 12),
@@ -657,13 +689,16 @@ class SearchView extends GetView<SearchsController> {
                     name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                    style: textTheme.bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 3),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 1.5),
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                      color: colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
@@ -679,7 +714,8 @@ class SearchView extends GetView<SearchsController> {
               ),
             ),
             const SizedBox(width: 6),
-            Icon(Icons.north_west, size: 14, color: colorScheme.onSurfaceVariant),
+            Icon(Icons.north_west,
+                size: 14, color: colorScheme.onSurfaceVariant),
           ],
         ),
       ),
@@ -691,7 +727,8 @@ class SearchView extends GetView<SearchsController> {
     final itemMap = Map<String, dynamic>.from(item);
     final name = (itemMap['name'] ?? itemMap['title'] ?? '').toString();
     final id = (itemMap['_id'] ?? itemMap['id'] ?? '').toString();
-    final rawImg = itemMap['featured_image'] ?? itemMap['image'] ?? itemMap['cover_image'];
+    final rawImg =
+        itemMap['featured_image'] ?? itemMap['image'] ?? itemMap['cover_image'];
     final blogImg = HelperFunctions().getImage(rawImg);
 
     return InkWell(
@@ -710,14 +747,18 @@ class SearchView extends GetView<SearchsController> {
                 width: 44,
                 height: 44,
                 color: colorScheme.surfaceContainerHighest,
-                child: (blogImg.isNotEmpty && blogImg != HelperFunctions.getNoImage())
+                child: (blogImg.isNotEmpty &&
+                        blogImg != HelperFunctions.getNoImage())
                     ? CachedNetworkImage(
                         imageUrl: blogImg,
                         fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) =>
-                            Icon(Icons.article_outlined, size: 22, color: colorScheme.onSurfaceVariant),
+                        errorWidget: (_, __, ___) => Icon(
+                            Icons.article_outlined,
+                            size: 22,
+                            color: colorScheme.onSurfaceVariant),
                       )
-                    : Icon(Icons.article_outlined, size: 22, color: colorScheme.onSurfaceVariant),
+                    : Icon(Icons.article_outlined,
+                        size: 22, color: colorScheme.onSurfaceVariant),
               ),
             ),
             const SizedBox(width: 12),
@@ -729,13 +770,16 @@ class SearchView extends GetView<SearchsController> {
                     name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                    style: textTheme.bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 3),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 1.5),
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                      color: colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
@@ -751,7 +795,8 @@ class SearchView extends GetView<SearchsController> {
               ),
             ),
             const SizedBox(width: 6),
-            Icon(Icons.north_west, size: 14, color: colorScheme.onSurfaceVariant),
+            Icon(Icons.north_west,
+                size: 14, color: colorScheme.onSurfaceVariant),
           ],
         ),
       ),
@@ -780,7 +825,8 @@ class SearchView extends GetView<SearchsController> {
               return _buildGridShimmer();
             }
 
-            if (!controller.isSearching.value && controller.totalResultCount == 0) {
+            if (!controller.isSearching.value &&
+                controller.totalResultCount == 0) {
               return _buildEmptyState(context);
             }
 
@@ -811,7 +857,8 @@ class SearchView extends GetView<SearchsController> {
                       if (controller.isFetchingMore.value) {
                         return const Padding(
                           padding: EdgeInsets.symmetric(vertical: 24),
-                          child: Center(child: CupertinoActivityIndicator(radius: 14)),
+                          child: Center(
+                              child: CupertinoActivityIndicator(radius: 14)),
                         );
                       } else if (!controller.hasNextPage &&
                           controller.searchProduct.isNotEmpty) {
@@ -820,7 +867,8 @@ class SearchView extends GetView<SearchsController> {
                           child: Center(
                             child: Text(
                               "No more products",
-                              style: TextStyle(color: colorScheme.onSurfaceVariant),
+                              style: TextStyle(
+                                  color: colorScheme.onSurfaceVariant),
                             ),
                           ),
                         );
@@ -862,11 +910,13 @@ class SearchView extends GetView<SearchsController> {
               onTap: () => controller.selectedTabIndex.value = index,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? Theme.of(context).primaryColor
-                      : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      : colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -874,8 +924,10 @@ class SearchView extends GetView<SearchsController> {
                     Text(
                       '${tab['title']}',
                       style: textTheme.bodySmall?.copyWith(
-                        color: isSelected ? Colors.white : colorScheme.onSurface,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                        color:
+                            isSelected ? Colors.white : colorScheme.onSurface,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.w500,
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -905,7 +957,8 @@ class SearchView extends GetView<SearchsController> {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(
-          bottom: BorderSide(color: colorScheme.outline.withValues(alpha: 0.12)),
+          bottom:
+              BorderSide(color: colorScheme.outline.withValues(alpha: 0.12)),
         ),
       ),
       child: Row(
@@ -930,7 +983,8 @@ class SearchView extends GetView<SearchsController> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: Row(
                 children: [
-                  Icon(Icons.swap_vert, size: 18, color: Theme.of(context).primaryColor),
+                  Icon(Icons.swap_vert,
+                      size: 18, color: Theme.of(context).primaryColor),
                   const SizedBox(width: 4),
                   Obx(
                     () => Text(
@@ -978,7 +1032,8 @@ class SearchView extends GetView<SearchsController> {
         ),
         itemCount: controller.searchProduct.length,
         itemBuilder: (context, index) {
-          final product = controller.searchProduct[index] as Map<String, dynamic>;
+          final product =
+              controller.searchProduct[index] as Map<String, dynamic>;
           return ParentWebProductCard(
             product: product,
             isList: false,
@@ -991,7 +1046,8 @@ class SearchView extends GetView<SearchsController> {
                   name: productName,
                   type: 'product',
                 );
-                Get.toNamed(Routes.PRODUCTDETAILS, arguments: {'productId': productId});
+                Get.toNamed(Routes.PRODUCTDETAILS,
+                    arguments: {'productId': productId});
               }
             },
           );
@@ -1034,7 +1090,8 @@ class SearchView extends GetView<SearchsController> {
                 );
                 final children = category['children'];
                 if (children is List && children.isNotEmpty) {
-                  Get.dialog(CategoryDialog(category: category), barrierDismissible: true);
+                  Get.dialog(CategoryDialog(category: category),
+                      barrierDismissible: true);
                 } else {
                   openShop({
                     'productId': category['_id'],
@@ -1059,13 +1116,19 @@ class SearchView extends GetView<SearchsController> {
                         ),
                       ),
                       child: ClipOval(
-                        child: (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
-                                HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
+                        child: (HelperFunctions()
+                                    .getImage(category['featured_image'])
+                                    .isNotEmpty &&
+                                HelperFunctions()
+                                        .getImage(category['featured_image']) !=
+                                    HelperFunctions.getNoImage())
                             ? CachedNetworkImage(
                                 fit: BoxFit.cover,
-                                imageUrl: HelperFunctions().getImage(category['featured_image']),
+                                imageUrl: HelperFunctions()
+                                    .getImage(category['featured_image']),
                                 errorWidget: (_, __, ___) =>
-                                    const AppImagePlaceholder.circular(size: 66),
+                                    const AppImagePlaceholder.circular(
+                                        size: 66),
                               )
                             : const AppImagePlaceholder.circular(size: 66),
                       ),
@@ -1076,7 +1139,8 @@ class SearchView extends GetView<SearchsController> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
-                      style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+                      style: textTheme.bodySmall
+                          ?.copyWith(fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
@@ -1117,7 +1181,8 @@ class SearchView extends GetView<SearchsController> {
 
     return InkWell(
       onTap: () {
-        controller.saveRecentSearch(id: blog.id, name: blog.title, type: 'blog');
+        controller.saveRecentSearch(
+            id: blog.id, name: blog.title, type: 'blog');
         Get.toNamed(Routes.BLOG_DETAILS, arguments: {'blog': blog});
       },
       child: Padding(
@@ -1145,14 +1210,16 @@ class SearchView extends GetView<SearchsController> {
                     blog.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                    style: textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     blog.cleanExcerpt,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: textTheme.bodySmall
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -1178,7 +1245,8 @@ class SearchView extends GetView<SearchsController> {
             children: [
               Text(
                 'Sort By',
-                style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                style: textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 14),
               _sortOptionTile(context, 'Relevance', 'relevance'),
@@ -1200,7 +1268,9 @@ class SearchView extends GetView<SearchsController> {
         label,
         style: textTheme.bodyMedium?.copyWith(
           fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-          color: isSelected ? Theme.of(context).primaryColor : colorScheme.onSurface,
+          color: isSelected
+              ? Theme.of(context).primaryColor
+              : colorScheme.onSurface,
         ),
       ),
       trailing: isSelected
@@ -1241,7 +1311,8 @@ class SearchView extends GetView<SearchsController> {
             const SizedBox(height: 16),
             Text(
               "No results found",
-              style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style:
+                  textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -1253,9 +1324,11 @@ class SearchView extends GetView<SearchsController> {
               onPressed: controller.clearSearch,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).primaryColor,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
               ),
-              child: const Text('Back to Discover', style: TextStyle(color: Colors.white)),
+              child: const Text('Back to Discover',
+                  style: TextStyle(color: Colors.white)),
             ),
           ],
         ),

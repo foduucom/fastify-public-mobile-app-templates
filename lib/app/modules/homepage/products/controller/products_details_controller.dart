@@ -5,13 +5,13 @@ import '/app/data/basic_provider.dart';
 import '/constants/constants.dart';
 
 class ProductDetailsController extends GetxController with BaseController {
-
-  final RxBool isLoading       = true.obs;
-  final RxBool hasError        = false.obs;
-  final RxBool isWishlisted    = false.obs;
+  final RxBool isLoading = true.obs;
+  @override
+  final RxBool hasError = false.obs;
+  final RxBool isWishlisted = false.obs;
   final RxBool wishlistLoading = false.obs;
-  final RxInt  selectedVariantIndex = 0.obs;
-  final RxInt  selectedImageIndex   = 0.obs;
+  final RxInt selectedVariantIndex = 0.obs;
+  final RxInt selectedImageIndex = 0.obs;
 
   final Rx<Map<String, dynamic>> product = Rx<Map<String, dynamic>>({});
 
@@ -40,7 +40,8 @@ class ProductDetailsController extends GetxController with BaseController {
             : response as Map;
         product.value = Map<String, dynamic>.from(data);
         debugPrint('✅ Product loaded: ${product.value['name']}');
-        debugPrint('🖼️ Product image: ${allImages.isNotEmpty ? allImages[0] : "none"}');
+        debugPrint(
+            '🖼️ Product image: ${allImages.isNotEmpty ? allImages[0] : "none"}');
       } else {
         hasError(true);
       }
@@ -82,7 +83,7 @@ class ProductDetailsController extends GetxController with BaseController {
       if (response != null) {
         isWishlisted.toggle();
         Get.snackbar(
-          isWishlisted.value ? '❤️ Added'    : '🤍 Removed',
+          isWishlisted.value ? '❤️ Added' : '🤍 Removed',
           isWishlisted.value
               ? 'Added to your wishlist'
               : 'Removed from wishlist',
@@ -107,8 +108,7 @@ class ProductDetailsController extends GetxController with BaseController {
   }
 
   // ── Getters ───────────────────────────────────────────────────
-  String get name =>
-      product.value['name']?.toString() ?? '';
+  String get name => product.value['name']?.toString() ?? '';
 
   String get description {
     final raw = product.value['content']?.toString() ?? '';
@@ -118,9 +118,11 @@ class ProductDetailsController extends GetxController with BaseController {
   List<Map<String, dynamic>> get variants {
     final v = product.value['variants'];
     if (v is List) {
-      return v.map<Map<String, dynamic>>(
+      return v
+          .map<Map<String, dynamic>>(
             (e) => Map<String, dynamic>.from(e as Map),
-      ).toList();
+          )
+          .toList();
     }
     return [];
   }
@@ -150,7 +152,7 @@ class ProductDetailsController extends GetxController with BaseController {
     final v = selectedVariant;
     if (v.isNotEmpty) {
       final sale = double.tryParse(v['sale_price']?.toString() ?? '') ?? 0.0;
-      final orig = double.tryParse(v['price']?.toString()      ?? '') ?? 0.0;
+      final orig = double.tryParse(v['price']?.toString() ?? '') ?? 0.0;
       if (sale > 0) return sale;
       if (orig > 0) return orig;
     }
@@ -188,7 +190,8 @@ class ProductDetailsController extends GetxController with BaseController {
         if (g is Map) {
           final du = g['download_url']?.toString() ?? '';
           final fp = g['filepath']?.toString() ?? '';
-          final url = du.isNotEmpty ? du : (fp.isNotEmpty ? '$_imgBase$fp' : '');
+          final url =
+              du.isNotEmpty ? du : (fp.isNotEmpty ? '$_imgBase$fp' : '');
           if (url.isNotEmpty && !imgs.contains(url)) imgs.add(url);
         }
       }
@@ -201,7 +204,8 @@ class ProductDetailsController extends GetxController with BaseController {
         if (g is Map) {
           final du = g['download_url']?.toString() ?? '';
           final fp = g['filepath']?.toString() ?? '';
-          final url = du.isNotEmpty ? du : (fp.isNotEmpty ? '$_imgBase$fp' : '');
+          final url =
+              du.isNotEmpty ? du : (fp.isNotEmpty ? '$_imgBase$fp' : '');
           if (url.isNotEmpty && !imgs.contains(url)) imgs.add(url);
         }
       }
@@ -214,7 +218,8 @@ class ProductDetailsController extends GetxController with BaseController {
     final attrs = v['attributes'];
     if (attrs is Map && attrs.isNotEmpty) {
       return attrs.entries
-          .map((e) => '${_capitalize(e.key)}: ${_capitalize(e.value.toString())}')
+          .map((e) =>
+              '${_capitalize(e.key)}: ${_capitalize(e.value.toString())}')
           .join(' · ');
     }
     return v['name']?.toString() ?? '';
@@ -226,14 +231,15 @@ class ProductDetailsController extends GetxController with BaseController {
   // ── Actions ───────────────────────────────────────────────────
   void selectVariant(int index) {
     selectedVariantIndex.value = index;
-    selectedImageIndex.value   = 0;
+    selectedImageIndex.value = 0;
   }
 
   void onAddToCart() {
     final item = Map<String, dynamic>.from(product.value);
     item['_selected_variant'] = selectedVariant;
     Get.snackbar(
-      'Added to Cart', '$name added!',
+      'Added to Cart',
+      '$name added!',
       snackPosition: SnackPosition.TOP,
       backgroundColor: const Color(0xFF1A1A1A),
       colorText: Colors.white,

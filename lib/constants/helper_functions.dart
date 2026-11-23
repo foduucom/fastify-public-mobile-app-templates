@@ -64,7 +64,7 @@ class HelperFunctions {
           height: 130,
           width: 100,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Scaffold(
@@ -133,8 +133,8 @@ class HelperFunctions {
     final filePath = file.absolute.path;
     // Create output file path
     // eg:- "Volume/VM/abcd_out.jpeg"
-    final lastIndex;
-    var compressFormat;
+    final int lastIndex;
+    CompressFormat compressFormat;
     if (filePath.endsWith(".jpg") || filePath.endsWith(".jpeg")) {
       lastIndex = filePath.lastIndexOf(RegExp(r'.jp'));
       compressFormat = CompressFormat.jpeg;
@@ -166,17 +166,15 @@ class HelperFunctions {
   //---------------START: For Multiple Image Picker from Gallery or Camera ---------------//
   Future<List<String>> getMultiplesImagesFromGalleryOrCamera() async {
     final ImagePicker pickedFile = ImagePicker();
-    final List<XFile>? images =
+    final List<XFile> images =
         await pickedFile.pickMultiImage(imageQuality: 60);
     final List<String> imagesPath = [];
-    if (images != null) {
-      for (var image in images) {
-        File file = File(image.path);
-        var compressImage = await compressFile(file);
-        imagesPath.add(compressImage!.path);
-      }
-      return imagesPath;
+    for (var image in images) {
+      File file = File(image.path);
+      var compressImage = await compressFile(file);
+      imagesPath.add(compressImage!.path);
     }
+    return imagesPath;
     return imagesPath;
   }
   //---------------END: For Image Picker from Gallery or Camera ---------------//
@@ -188,7 +186,7 @@ class HelperFunctions {
       '${((timerMaxSeconds - currentSeconds) ~/ 60).toString().padLeft(2, '0')}: ${((timerMaxSeconds - currentSeconds) % 60).toString().padLeft(2, '0')}';
 
   Future<String> Otptimer() async {
-    final interval = const Duration(seconds: 1);
+    const interval = Duration(seconds: 1);
 
     // startTimeout([int? milliseconds]) {
     var duration = interval;
@@ -203,8 +201,9 @@ class HelperFunctions {
     return "";
   }
 
-  var _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-  Random _rnd = Random();
+  final _chars =
+      'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  final Random _rnd = Random();
 
   String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
       length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
@@ -217,7 +216,7 @@ class HelperFunctions {
       return "0";
     }
     if (count >= 1000 && count <= 1100) {
-      return (count / 1000).toString() + "K";
+      return "${count / 1000}K";
     }
     if (count >= 1100) {
       return (count / 1000).toStringAsFixed(1) + "K";
@@ -234,7 +233,7 @@ class HelperFunctions {
         titleStyle: const TextStyle(fontSize: 0),
         content: Column(
           children: [
-            Icon(Icons.check_circle, size: 50),
+            const Icon(Icons.check_circle, size: 50),
             Text(title,
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontWeight: FontWeight.w600)),
@@ -252,7 +251,7 @@ class HelperFunctions {
           height: 170,
           width: 250,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(1),
+            color: Colors.white.withValues(alpha: 1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Scaffold(
@@ -265,19 +264,19 @@ class HelperFunctions {
                   SizedBox(
                     child: Icon(icon, size: 50),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Text(
                     text,
-                    style: TextStyle(fontSize: 16, color: Colors.black),
+                    style: const TextStyle(fontSize: 16, color: Colors.black),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 10,
                   ),
                   ElevatedButton(
                     onPressed: () {
                       Get.back();
                     },
-                    child: Text("OK"),
+                    child: const Text("OK"),
                   )
                 ],
               ),
@@ -381,7 +380,7 @@ class HelperFunctions {
 
         if (isLog == true) {
           print('swapnil path $moduleName => $imageUrl');
-          print("Path image from module $moduleName => ${path}");
+          print("Path image from module $moduleName => $path");
         }
         return imageUrl;
       }
@@ -417,7 +416,8 @@ class HelperFunctions {
     if (uri == null) return imageUrl;
 
     // If it's a vbought.com or foduu.store domain, replace host with websiteDomain to match constants.dart setup
-    if ((uri.host.endsWith('.vbought.com') || uri.host.endsWith('.foduu.store')) &&
+    if ((uri.host.endsWith('.vbought.com') ||
+            uri.host.endsWith('.foduu.store')) &&
         uri.host != websiteDomain) {
       return imageUrl.replaceFirst(uri.host, websiteDomain);
     }
@@ -432,7 +432,8 @@ class HelperFunctions {
   static String resolveProductImage(dynamic product) {
     try {
       if (product is Map) {
-        final productObj = product['product_id'] is Map ? product['product_id'] : product;
+        final productObj =
+            product['product_id'] is Map ? product['product_id'] : product;
 
         final featuredImage = productObj['featured_image'];
         if (featuredImage is Map) {
@@ -444,16 +445,20 @@ class HelperFunctions {
         final gallery = productObj['gallery'];
         if (gallery is List && frontImageId.isNotEmpty) {
           final match = gallery.firstWhere(
-            (g) => g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
+            (g) =>
+                g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
             orElse: () => null,
           );
           if (match is Map) {
             final resolved = HelperFunctions().getImage(match);
-            if (resolved.isNotEmpty && resolved != getNoImage()) return resolved;
+            if (resolved.isNotEmpty && resolved != getNoImage())
+              return resolved;
           }
         }
 
-        final directImage = product['image'] ?? productObj['image'] ?? product['featured_image'];
+        final directImage = product['image'] ??
+            productObj['image'] ??
+            product['featured_image'];
         if (directImage != null) {
           final resolved = HelperFunctions().getImage(directImage);
           if (resolved.isNotEmpty && resolved != getNoImage()) return resolved;

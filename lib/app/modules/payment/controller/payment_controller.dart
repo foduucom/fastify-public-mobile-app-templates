@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class PaymentController extends GetxController {
-
-  final TextEditingController cardNumberController  = TextEditingController();
-  final TextEditingController cardHolderController  = TextEditingController();
-  final TextEditingController expiryController      = TextEditingController();
-  final TextEditingController cvvController         = TextEditingController();
+  final TextEditingController cardNumberController = TextEditingController();
+  final TextEditingController cardHolderController = TextEditingController();
+  final TextEditingController expiryController = TextEditingController();
+  final TextEditingController cvvController = TextEditingController();
 
   final RxBool isLoading = false.obs;
 
@@ -32,11 +31,10 @@ class PaymentController extends GetxController {
   }
 
   void _validate() {
-    isFormValid.value =
-        cardNumberController.text.trim().length >= 16 &&
-            cardHolderController.text.trim().isNotEmpty &&
-            expiryController.text.trim().length == 5 &&
-            cvvController.text.trim().length >= 3;
+    isFormValid.value = cardNumberController.text.trim().length >= 16 &&
+        cardHolderController.text.trim().isNotEmpty &&
+        expiryController.text.trim().length == 5 &&
+        cvvController.text.trim().length >= 3;
   }
 
   // ── Format card number with spaces ───────────────────────────
@@ -78,7 +76,8 @@ class PaymentController extends GetxController {
     try {
       await Future.delayed(const Duration(seconds: 1)); // replace with real API
       Get.snackbar(
-        '✅ Success', 'Payment method saved!',
+        '✅ Success',
+        'Payment method saved!',
         snackPosition: SnackPosition.TOP,
         backgroundColor: const Color(0xFF1A1A1A),
         colorText: Colors.white,

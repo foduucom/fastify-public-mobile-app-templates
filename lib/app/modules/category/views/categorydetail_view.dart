@@ -19,6 +19,7 @@ class CategeorydetailView extends GetView<CategeorydetaiController> {
   // var categorydetial = Get.arguments;
   // var index = 0;
 
+  @override
   var controller = Get.put(CategeorydetaiController());
 
   @override

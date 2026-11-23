@@ -89,4 +89,3 @@ class ResponsiveCircleIcon extends StatelessWidget {
     );
   }
 }
-

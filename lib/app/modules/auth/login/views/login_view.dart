@@ -17,4 +17,3 @@ class LoginView extends GetView<LoginController> {
     return const CreateAccountView();
   }
 }
-

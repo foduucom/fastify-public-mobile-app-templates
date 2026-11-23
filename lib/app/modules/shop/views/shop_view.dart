@@ -44,8 +44,8 @@ class ShopView extends GetView<ShopController> {
                   controller.isPlainShopEntry.value
                       ? "Shop"
                       : controller.collectionName.value,
-                  style:
-                      textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 if (!controller.isPlainShopEntry.value && total > 0)
                   Text(
@@ -68,59 +68,61 @@ class ShopView extends GetView<ShopController> {
             ),
           ),
         ),
-      body: PopScope(
-        canPop: controller.filterCategoryStack.isEmpty,
-        onPopInvokedWithResult: (didPop, _) {
-          if (didPop) return;
-          controller.goUpFilterCategory();
-        },
-        child: Obx(() {
-          // ── CMS CANVAS MODE (plain tab entry, no filters, and in grid mode) ──
-          // Renders the full CMS layout from api/mobile-app/shop including
-          // the products section with infinite scroll handled by
-          // TrendingProductSection internally.
-          if (controller.isPlainShopEntry.value && !controller.isListView.value) {
-            return FoduuStudioLayoutView(
-              widgetList: controller.widgetList,
-              isLoading: controller.isLayoutLoading,
-              hasError: controller.hasError,
-              errorMessage: controller.errorMessage,
-              onRefresh: () => controller.fetchLayout(ShopController.pageSlug),
+        body: PopScope(
+          canPop: controller.filterCategoryStack.isEmpty,
+          onPopInvokedWithResult: (didPop, _) {
+            if (didPop) return;
+            controller.goUpFilterCategory();
+          },
+          child: Obx(() {
+            // ── CMS CANVAS MODE (plain tab entry, no filters, and in grid mode) ──
+            // Renders the full CMS layout from api/mobile-app/shop including
+            // the products section with infinite scroll handled by
+            // TrendingProductSection internally.
+            if (controller.isPlainShopEntry.value &&
+                !controller.isListView.value) {
+              return FoduuStudioLayoutView(
+                widgetList: controller.widgetList,
+                isLoading: controller.isLayoutLoading,
+                hasError: controller.hasError,
+                errorMessage: controller.errorMessage,
+                onRefresh: () =>
+                    controller.fetchLayout(ShopController.pageSlug),
+              );
+            }
+
+            // ── FILTERED CATALOG MODE (category/brand/filter args) ──
+            return Column(
+              children: [
+                // ── CMS PROMOTIONAL SECTIONS (banners, sliders, rich_text, etc.)
+                // Renders CMS blocks that are NOT product/category grids.
+                // Will be empty until fetchLayout completes — no flicker.
+                ...controller.buildWidgetsExcluding(['categories', 'products']),
+
+                // ── ACTIVE FILTER CHIPS (Horizontal Scroll) ──
+                if (_hasActiveFilters()) _buildActiveFilterChips(colorScheme),
+
+                // ── SUB CATEGORY STRIP (only when entered with category context) ──
+                _buildSubCategorySection(colorScheme),
+
+                // ── PRODUCT GRID ──
+                Expanded(
+                  child: controller.isLoading.value
+                      ? _buildGridShimmer()
+                      : RefreshIndicator(
+                          onRefresh: () => Future.wait([
+                            controller.fetchProducts(isRefresh: true),
+                            controller.fetchLayout(ShopController.pageSlug),
+                          ]),
+                          child: _buildProductGrid(colorScheme, textTheme),
+                        ),
+                ),
+              ],
             );
-          }
-
-          // ── FILTERED CATALOG MODE (category/brand/filter args) ──
-          return Column(
-            children: [
-              // ── CMS PROMOTIONAL SECTIONS (banners, sliders, rich_text, etc.)
-              // Renders CMS blocks that are NOT product/category grids.
-              // Will be empty until fetchLayout completes — no flicker.
-              ...controller.buildWidgetsExcluding(['categories', 'products']),
-
-              // ── ACTIVE FILTER CHIPS (Horizontal Scroll) ──
-              if (_hasActiveFilters()) _buildActiveFilterChips(colorScheme),
-
-              // ── SUB CATEGORY STRIP (only when entered with category context) ──
-              _buildSubCategorySection(colorScheme),
-
-              // ── PRODUCT GRID ──
-              Expanded(
-                child: controller.isLoading.value
-                    ? _buildGridShimmer()
-                    : RefreshIndicator(
-                        onRefresh: () => Future.wait([
-                          controller.fetchProducts(isRefresh: true),
-                          controller.fetchLayout(ShopController.pageSlug),
-                        ]),
-                        child: _buildProductGrid(colorScheme, textTheme),
-                      ),
-              ),
-            ],
-          );
-        }),
-      ),
-    );  // end Scaffold
-    });  // end outer Obx
+          }),
+        ),
+      ); // end Scaffold
+    }); // end outer Obx
   }
 
   // ─── SUB CATEGORY STRIP + BREADCRUMB ─────────────────────────────────
@@ -289,7 +291,7 @@ class ShopView extends GetView<ShopController> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.inventory_2_outlined,
-                size: 80, color: colorScheme.outline.withOpacity(0.5)),
+                size: 80, color: colorScheme.outline.withValues(alpha: 0.5)),
             const SizedBox(height: 16),
             Text("No products match your filters",
                 style: textTheme.titleLarge
@@ -369,8 +371,8 @@ class ShopView extends GetView<ShopController> {
   Widget _buildEndOfListFooter(
       ColorScheme colorScheme, TextTheme textTheme, int totalCount) {
     return Padding(
-      padding:
-          const EdgeInsets.only(top: 24.0, bottom: 28.0, left: 32.0, right: 32.0),
+      padding: const EdgeInsets.only(
+          top: 24.0, bottom: 28.0, left: 32.0, right: 32.0),
       child: Row(
         children: [
           Expanded(
@@ -486,7 +488,8 @@ class _ShopHeaderToolbar extends StatelessWidget {
             // 3. Layout Switcher (List vs Grid)
             Container(
               decoration: BoxDecoration(
-                border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
+                border: Border.all(
+                    color: colorScheme.outline.withValues(alpha: 0.3)),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -495,12 +498,12 @@ class _ShopHeaderToolbar extends StatelessWidget {
                   // List icon
                   InkWell(
                     onTap: () => controller.setViewMode(true),
-                    borderRadius: const BorderRadius.horizontal(
-                        left: Radius.circular(8)),
+                    borderRadius:
+                        const BorderRadius.horizontal(left: Radius.circular(8)),
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       color: isList
-                          ? colorScheme.primary.withOpacity(0.15)
+                          ? colorScheme.primary.withValues(alpha: 0.15)
                           : Colors.transparent,
                       child: Icon(
                         Icons.view_agenda_outlined,
@@ -519,7 +522,7 @@ class _ShopHeaderToolbar extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       color: !isList
-                          ? colorScheme.primary.withOpacity(0.15)
+                          ? colorScheme.primary.withValues(alpha: 0.15)
                           : Colors.transparent,
                       child: Icon(
                         Icons.grid_view_rounded,
@@ -595,7 +598,7 @@ class _FilterTrigger extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          border: Border.all(color: colorScheme.outline.withOpacity(0.4)),
+          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.4)),
           borderRadius: BorderRadius.circular(24),
         ),
         child: Row(
@@ -636,7 +639,7 @@ class _SortTrigger extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        border: Border.all(color: colorScheme.outline.withOpacity(0.4)),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.4)),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(

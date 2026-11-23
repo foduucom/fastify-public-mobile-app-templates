@@ -11,10 +11,12 @@ class OnboardingView extends GetView<OnboardingController> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFEEECE8),
-      body: Column(              // ✅ Column — no more Stack overlap
+      body: Column(
+        // ✅ Column — no more Stack overlap
         children: [
-
-          const SizedBox(height: 20,),
+          const SizedBox(
+            height: 20,
+          ),
 
           // ── Image Area (top 53%) ────────────────────────────
           SizedBox(
@@ -31,7 +33,7 @@ class OnboardingView extends GetView<OnboardingController> {
           ),
 
           // ── White Bottom Panel (remaining space) ────────────
-          Expanded(
+          const Expanded(
             child: _BottomPanel(),
           ),
         ],
@@ -51,7 +53,7 @@ class _OnboardingPage extends StatelessWidget {
       padding: const EdgeInsets.only(top: 24),
       child: Image.asset(
         item.imagePath,
-        fit: BoxFit.contain,    // ✅ contain keeps phone mockup fully visible
+        fit: BoxFit.contain, // ✅ contain keeps phone mockup fully visible
       ),
     );
   }
@@ -69,13 +71,13 @@ class _BottomPanel extends GetView<OnboardingController> {
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
-          topLeft:  Radius.circular(46),
+          topLeft: Radius.circular(46),
           topRight: Radius.circular(46),
         ),
       ),
       padding: const EdgeInsets.fromLTRB(28, 32, 28, 28),
       child: Obx(() {
-        final item   = controller.pages[controller.currentPage.value];
+        final item = controller.pages[controller.currentPage.value];
         final isLast = controller.isLastPage;
 
         return Column(
@@ -109,10 +111,10 @@ class _BottomPanel extends GetView<OnboardingController> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 controller.pages.length,
-                    (i) => AnimatedContainer(
+                (i) => AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width:  controller.currentPage.value == i ? 20 : 8,
+                  width: controller.currentPage.value == i ? 20 : 8,
                   height: 8,
                   decoration: BoxDecoration(
                     color: controller.currentPage.value == i
@@ -157,7 +159,8 @@ class _BottomPanel extends GetView<OnboardingController> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
-                    color: Color(0xFF888888),  // ✅ fixed: was 0x000000 (transparent)
+                    color: Color(
+                        0xFF888888), // ✅ fixed: was 0x000000 (transparent)
                   ),
                 ),
               ),

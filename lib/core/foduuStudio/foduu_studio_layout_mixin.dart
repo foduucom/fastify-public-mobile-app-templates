@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, deprecated_member_use
 
 import 'dart:convert';
 
@@ -296,12 +296,11 @@ mixin FoduuStudioLayoutMixin on GetxController {
       _currentSlug = slug;
 
       // Register this controller for the given slug (both original and normalized)
-      final normalizedSlug =
-          slug.toLowerCase().replaceFirst(RegExp(r'^/'), '');
+      final normalizedSlug = slug.toLowerCase().replaceFirst(RegExp(r'^/'), '');
       _slugHandlers[slug] = this;
       _slugHandlers[normalizedSlug] = this;
 
-      final eventName = '${domain}:mobileapp';
+      final eventName = '$domain:mobileapp';
 
       // Only set up the socket listener ONCE across all controllers
       if (_registeredEventName != eventName) {
@@ -329,8 +328,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
   void disableSocketUpdates(String domain, String slug) {
     // A second controller can take over the same slug while the first route
     // is being disposed. Do not remove the newer controller's registration.
-    final normalizedSlug =
-        slug.toLowerCase().replaceFirst(RegExp(r'^/'), '');
+    final normalizedSlug = slug.toLowerCase().replaceFirst(RegExp(r'^/'), '');
     if (identical(_slugHandlers[slug], this)) {
       _slugHandlers.remove(slug);
     }
@@ -386,7 +384,8 @@ mixin FoduuStudioLayoutMixin on GetxController {
     final String? dataSlug =
         rawSlug?.toLowerCase().replaceFirst(RegExp(r'^/'), '');
 
-    print('📩 DynamicLayout: Socket event received for slug: "$dataSlug" (raw: "$rawSlug")');
+    print(
+        '📩 DynamicLayout: Socket event received for slug: "$dataSlug" (raw: "$rawSlug")');
     print('   Registered slugs: ${_slugHandlers.keys.toList()}');
 
     // ── Handle Theme Update (applies globally) ──
@@ -403,7 +402,8 @@ mixin FoduuStudioLayoutMixin on GetxController {
     // ── Handle Section Update (slug-specific) ──
     var newSections = contentPayload['sections'];
     if (newSections != null && newSections is List && dataSlug != null) {
-      final handler = _slugHandlers[dataSlug] ?? (rawSlug != null ? _slugHandlers[rawSlug] : null);
+      final handler = _slugHandlers[dataSlug] ??
+          (rawSlug != null ? _slugHandlers[rawSlug] : null);
       if (handler != null) {
         print('   ✅ Dispatching sections to slug: "$dataSlug"');
         handler._handleSectionUpdate(newSections, dataSlug);

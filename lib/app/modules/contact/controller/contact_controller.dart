@@ -48,7 +48,7 @@ class ContactController extends GetxController with BaseController {
       }
       isLoading(true);
 
-      var form;
+      FormData form;
       if (boxUserData.isNotEmpty) {
         form = FormData({
           'name': boxUserData["user"]["name"],

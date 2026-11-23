@@ -71,10 +71,10 @@ class BottombarView extends GetView<BottombarController> {
                   controller: controller.pageController,
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
-                    HomePageView(),
+                    const HomePageView(),
                     const ShopView(),
                     WishlistView(),
-                    CartView(),
+                    const CartView(),
                     ProfileView(),
                   ],
                 ),

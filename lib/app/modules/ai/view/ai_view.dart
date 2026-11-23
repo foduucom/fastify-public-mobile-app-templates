@@ -24,8 +24,8 @@ class _AiRoomoaViewState extends State<AiRoomoaView>
       duration: const Duration(seconds: 20),
     )..repeat(); // ✅ Slow infinite rotation of the starburst
 
-    _rotationAnim = Tween<double>(begin: 0, end: 2 * pi)
-        .animate(_rotationController);
+    _rotationAnim =
+        Tween<double>(begin: 0, end: 2 * pi).animate(_rotationController);
   }
 
   @override
@@ -90,7 +90,8 @@ class _AiRoomoaViewState extends State<AiRoomoaView>
                       width: double.infinity,
                       height: 46,
                       child: ElevatedButton(
-                        onPressed: () => Get.toNamed('/aichat'), // ✅ clean single line
+                        onPressed: () =>
+                            Get.toNamed('/aichat'), // ✅ clean single line
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1A1A1A),
                           foregroundColor: AppColors.scaffoldBackground,
@@ -107,7 +108,6 @@ class _AiRoomoaViewState extends State<AiRoomoaView>
                           ),
                         ),
                       ),
-
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -173,7 +173,6 @@ class _AiRoomoaViewState extends State<AiRoomoaView>
       child: Stack(
         alignment: Alignment.center,
         children: [
-
           // ── Rotating Starburst ───────────────────────────────
           AnimatedBuilder(
             animation: _rotationAnim,
@@ -195,7 +194,7 @@ class _AiRoomoaViewState extends State<AiRoomoaView>
               color: const Color(0xFF3A3A3A),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 20,
                   spreadRadius: 2,
                 ),
@@ -262,14 +261,14 @@ class _StarburstPainter extends CustomPainter {
 
       final startX = center.dx + innerRadius * cos(angle);
       final startY = center.dy + innerRadius * sin(angle);
-      final endX   = center.dx + endRadius  * cos(angle);
-      final endY   = center.dy + endRadius  * sin(angle);
+      final endX = center.dx + endRadius * cos(angle);
+      final endY = center.dy + endRadius * sin(angle);
 
       // Fade out towards edges
       final opacity = isLong ? 0.35 : 0.18;
 
       final paint = Paint()
-        ..color = const Color(0xFF6B6B6B).withOpacity(opacity)
+        ..color = const Color(0xFF6B6B6B).withValues(alpha: opacity)
         ..strokeWidth = isLong ? 1.2 : 0.8
         ..strokeCap = StrokeCap.round;
 
@@ -303,7 +302,7 @@ class _IconCircleButton extends StatelessWidget {
         width: 48,
         height: 48,
         decoration: const BoxDecoration(
-          color:AppColors.scaffoldBackground,
+          color: AppColors.scaffoldBackground,
           shape: BoxShape.circle,
         ),
         child: Icon(icon, size: 22, color: const Color(0xFF1A1A1A)),

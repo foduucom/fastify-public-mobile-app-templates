@@ -14,7 +14,9 @@ class BlogController extends GetxController with BaseController {
   // Loading and error states
   final RxBool isLoading = false.obs;
   final RxBool isMoreLoading = false.obs;
+  @override
   final RxBool hasError = false.obs;
+  @override
   final RxString errorMessage = ''.obs;
 
   // Pagination
@@ -101,8 +103,8 @@ class BlogController extends GetxController with BaseController {
 
         if (rawList is List) {
           final List<BlogModel> fetchedList = rawList
-              .map((item) =>
-                  BlogModel.fromJson(Map<String, dynamic>.from(item)))
+              .map(
+                  (item) => BlogModel.fromJson(Map<String, dynamic>.from(item)))
               .toList();
 
           if (isRefresh) {
@@ -177,8 +179,8 @@ class BlogController extends GetxController with BaseController {
 
     if (category != 'All') {
       result = result
-          .where((b) => b.categories.any(
-              (c) => c.trim().toLowerCase() == category.toLowerCase()))
+          .where((b) => b.categories
+              .any((c) => c.trim().toLowerCase() == category.toLowerCase()))
           .toList();
     }
 

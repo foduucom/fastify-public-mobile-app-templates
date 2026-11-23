@@ -14,6 +14,7 @@ class CategeorydetailView2 extends GetView<CategeorydetaiController> {
   // var categorydetial = Get.arguments;
   // var index = 0;
 
+  @override
   var controller = Get.put(CategeorydetaiController());
 
   @override
@@ -187,13 +188,11 @@ class CategeorydetailView2 extends GetView<CategeorydetaiController> {
                                         return GestureDetector(
                                           onTap: () {
                                             openShop({
-                                                  'productId': controller
-                                                          .subcategory[index]
-                                                      ['_id'],
-                                                  'name': controller
-                                                          .subcategory[index]
-                                                      ['name']
-                                                });
+                                              'productId': controller
+                                                  .subcategory[index]['_id'],
+                                              'name': controller
+                                                  .subcategory[index]['name']
+                                            });
                                           },
                                           child: Row(
                                             crossAxisAlignment:

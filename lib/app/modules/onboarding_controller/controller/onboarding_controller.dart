@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 
 import '../../../routes/app_pages.dart';
 
-
 class OnboardingItem {
   final String imagePath;
   final String title;
@@ -25,19 +24,19 @@ class OnboardingController extends GetxController {
       imagePath: 'assets/images/onboarding_1.png',
       title: 'Discover Your\nDream Space',
       subtitle:
-      'Explore thousands of furniture pieces\ncurated just for your home.',
+          'Explore thousands of furniture pieces\ncurated just for your home.',
     ),
     OnboardingItem(
       imagePath: 'assets/images/onboarding_2.png',
       title: 'Effortless Furniture\nExploration',
       subtitle:
-      'Browse the latest trends and curated looks\non your home screen.',
+          'Browse the latest trends and curated looks\non your home screen.',
     ),
     OnboardingItem(
       imagePath: 'assets/images/onboarding_3.png',
       title: 'Your Virtual\nFurniture Assistant',
       subtitle:
-      'Roomora helps you personalize interiors and\ntransform spaces with smart AI.',
+          'Roomora helps you personalize interiors and\ntransform spaces with smart AI.',
     ),
   ];
 

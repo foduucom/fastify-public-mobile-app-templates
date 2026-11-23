@@ -52,10 +52,5 @@ class CategeorydetaiController extends GetxController with BaseController {
   // }
 
   @override
-  void onReady() {
-    super.onReady();
-  }
-
-  @override
   void onClose() {}
 }

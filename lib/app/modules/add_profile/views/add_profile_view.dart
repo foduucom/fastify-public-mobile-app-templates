@@ -46,30 +46,27 @@ class AddProfileView extends GetView<AddProfileController> {
               ),
               children: [
                 // Title + Description
-                Container(
-                  //margin: const EdgeInsets.only(left: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppText(
-                        "Add a Profile Photo",
-                        fontSize: height * 0.03,
-                        height: 1.1,
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.onSurface,
-                      ),
-                      const SizedBox(height: 8),
-                      AppText(
-                        "Personalize your account and enhance your profile visibility with a profile photo.",
-                        fontSize: height * 0.018,
-                        height: 1.4,
-                        letterSpacing: 0,
-                        maxLines: 3,
-                        color: colorScheme.onSurfaceVariant,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      "Add a Profile Photo",
+                      fontSize: height * 0.03,
+                      height: 1.1,
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.onSurface,
+                    ),
+                    const SizedBox(height: 8),
+                    AppText(
+                      "Personalize your account and enhance your profile visibility with a profile photo.",
+                      fontSize: height * 0.018,
+                      height: 1.4,
+                      letterSpacing: 0,
+                      maxLines: 3,
+                      color: colorScheme.onSurfaceVariant,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
 
                 SizedBox(height: height * 0.02),
@@ -84,9 +81,9 @@ class AddProfileView extends GetView<AddProfileController> {
                       Container(
                         width: height * 0.27, // ≈ 214.52
                         height: height * 0.27, // ≈ 214.52
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           shape: BoxShape.circle, // radius ≈ 117224872
-                          image: const DecorationImage(
+                          image: DecorationImage(
                             image:
                                 AssetImage("assets/images/profile_image.png"),
                             fit: BoxFit.cover,

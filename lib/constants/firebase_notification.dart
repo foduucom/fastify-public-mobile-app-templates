@@ -69,8 +69,7 @@ class FirebaseHelpers {
       requestSoundPermission: true,
     );
     await _localNotifications.initialize(
-      const InitializationSettings(
-          android: androidSettings, iOS: iosSettings),
+      const InitializationSettings(android: androidSettings, iOS: iosSettings),
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         if (response.payload != null) {
           navigateOnNotificationClick({'type': response.payload});
@@ -359,7 +358,7 @@ class FirebaseHelpers {
 
     // We keep the prefix if preferred by user, but plan said raw strings for backend alignment.
     // Based on question 3 in the plan, I will use raw strings for backend topics but keep prefix for user topics as suggested in Phase 2.
-    final topics = defaultTopics;
+    const topics = defaultTopics;
 
     customerSubscribeList = [...topics];
     for (final topic in topics) {

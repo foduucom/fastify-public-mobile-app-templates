@@ -48,9 +48,9 @@ class HomeWishlistEmptyView extends StatelessWidget {
                     height: 140,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: colorScheme.primary.withOpacity(0.06),
+                      color: colorScheme.primary.withValues(alpha: 0.06),
                       border: Border.all(
-                        color: colorScheme.primary.withOpacity(0.12),
+                        color: colorScheme.primary.withValues(alpha: 0.12),
                         width: 1.5,
                       ),
                     ),
@@ -66,13 +66,13 @@ class HomeWishlistEmptyView extends StatelessWidget {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          colorScheme.primary.withOpacity(0.18),
-                          colorScheme.primary.withOpacity(0.08),
+                          colorScheme.primary.withValues(alpha: 0.18),
+                          colorScheme.primary.withValues(alpha: 0.08),
                         ],
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: colorScheme.primary.withOpacity(0.12),
+                          color: colorScheme.primary.withValues(alpha: 0.12),
                           blurRadius: 18,
                           offset: const Offset(0, 8),
                         ),
@@ -98,13 +98,13 @@ class HomeWishlistEmptyView extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
+                            color: Colors.black.withValues(alpha: 0.08),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
                         ],
                         border: Border.all(
-                          color: colorScheme.outline.withOpacity(0.15),
+                          color: colorScheme.outline.withValues(alpha: 0.15),
                           width: 1,
                         ),
                       ),
@@ -125,7 +125,7 @@ class HomeWishlistEmptyView extends StatelessWidget {
                       height: 10,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: colorScheme.primary.withOpacity(0.4),
+                        color: colorScheme.primary.withValues(alpha: 0.4),
                       ),
                     ),
                   ),
@@ -192,7 +192,7 @@ class HomeWishlistEmptyView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                 ),
                 elevation: 3,
-                shadowColor: colorScheme.primary.withOpacity(0.35),
+                shadowColor: colorScheme.primary.withValues(alpha: 0.35),
               ),
             ),
           ),
@@ -203,10 +203,11 @@ class HomeWishlistEmptyView extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceVariant.withOpacity(0.35),
+                color:
+                    colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: colorScheme.outline.withOpacity(0.12),
+                  color: colorScheme.outline.withValues(alpha: 0.12),
                 ),
               ),
               child: Row(

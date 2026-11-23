@@ -1,5 +1,4 @@
 import 'package:http_cookie_store/http_cookie_store.dart';
-import 'package:http/http.dart' as http;
 
 class CookieClientManager {
   static CookieClient? _client;

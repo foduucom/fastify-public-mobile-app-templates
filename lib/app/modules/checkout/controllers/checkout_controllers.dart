@@ -195,7 +195,7 @@ class CheckOutController extends GetxController with BaseController {
     super.onInit();
     await getPaymentOption();
     // Use a short delay to ensure AddressListController has loaded data
-    Future.delayed(Duration(milliseconds: 100), () {
+    Future.delayed(const Duration(milliseconds: 100), () {
       loadSelectedAddress();
 
       // Reactively listen to address changes if controller is available

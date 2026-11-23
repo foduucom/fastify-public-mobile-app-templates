@@ -53,27 +53,22 @@ class ProductView extends GetView<ProductController> {
                   onPressed: () => controller.shareContent(context),
                 ),
               ],
-              rightIcon: isInWishlist
-                  ? Icons.favorite
-                  : Icons.favorite_outline,
+              rightIcon: isInWishlist ? Icons.favorite : Icons.favorite_outline,
               onRightIconTap: () async {
                 String? variantId;
                 if (controller.productDetials['type'] == 'variable') {
-                  final variants =
-                      controller.productDetials['variants'];
+                  final variants = controller.productDetials['variants'];
                   if (variants != null &&
                       variants is List &&
-                      controller.selectedVariantIndex.value <
-                          variants.length) {
-                    variantId = variants[
-                        controller.selectedVariantIndex.value]['_id'];
+                      controller.selectedVariantIndex.value < variants.length) {
+                    variantId =
+                        variants[controller.selectedVariantIndex.value]['_id'];
                   }
                 }
 
                 await WishListService.to.toggleWishlist(
                   productId: controller.productId,
-                  variantSlug:
-                      controller.productDetials['variant_slug'] ?? '',
+                  variantSlug: controller.productDetials['variant_slug'] ?? '',
                   variantId: variantId,
                 );
               },
@@ -185,7 +180,7 @@ class ProductView extends GetView<ProductController> {
                                                   index
                                               ? colorScheme.primary
                                               : colorScheme.outline
-                                                  .withOpacity(0.5),
+                                                  .withValues(alpha: 0.5),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                   );
@@ -228,7 +223,7 @@ class ProductView extends GetView<ProductController> {
                                     ),
                                   ),
 
-                                  SizedBox(width: 10),
+                                  const SizedBox(width: 10),
 
                                   // Price (Right side)
                                   Flexible(
@@ -485,23 +480,32 @@ class ProductView extends GetView<ProductController> {
                               // HOT / TRENDING / FEATURED badges
                               Obx(() {
                                 final badges = <String>[];
-                                if (controller.productDetials['hot'] == true)
+                                if (controller.productDetials['hot'] == true) {
                                   badges.add('Hot');
+                                }
                                 if (controller.productDetials['trending'] ==
-                                    true) badges.add('Trending');
+                                    true) {
+                                  badges.add('Trending');
+                                }
                                 if (controller.productDetials['featured'] ==
-                                    true) badges.add('Featured');
-                                if (badges.isEmpty) return SizedBox.shrink();
+                                    true) {
+                                  badges.add('Featured');
+                                }
+                                if (badges.isEmpty)
+                                  return const SizedBox.shrink();
                                 return Padding(
                                   padding: EdgeInsets.only(top: height * 0.008),
                                   child: Wrap(
                                     spacing: 6,
                                     children: badges.map((b) {
                                       final bg = b == 'Hot'
-                                          ? Colors.orange.withOpacity(0.18)
+                                          ? Colors.orange
+                                              .withValues(alpha: 0.18)
                                           : b == 'Trending'
-                                              ? Colors.blue.withOpacity(0.18)
-                                              : Colors.purple.withOpacity(0.18);
+                                              ? Colors.blue
+                                                  .withValues(alpha: 0.18)
+                                              : Colors.purple
+                                                  .withValues(alpha: 0.18);
                                       final fg = b == 'Hot'
                                           ? Colors.orange
                                           : b == 'Trending'
@@ -550,14 +554,18 @@ class ProductView extends GetView<ProductController> {
                                             horizontal: 8, vertical: 3),
                                         decoration: BoxDecoration(
                                           color: inStock
-                                              ? Colors.green.withOpacity(0.15)
-                                              : Colors.red.withOpacity(0.15),
+                                              ? Colors.green
+                                                  .withValues(alpha: 0.15)
+                                              : Colors.red
+                                                  .withValues(alpha: 0.15),
                                           borderRadius:
                                               BorderRadius.circular(4),
                                           border: Border.all(
                                               color: inStock
-                                                  ? Colors.green.withOpacity(0.5)
-                                                  : Colors.red.withOpacity(0.5)),
+                                                  ? Colors.green
+                                                      .withValues(alpha: 0.5)
+                                                  : Colors.red
+                                                      .withValues(alpha: 0.5)),
                                         ),
                                         child: Text(
                                           inStock ? 'In Stock' : 'Out of Stock',
@@ -586,8 +594,9 @@ class ProductView extends GetView<ProductController> {
                                         : null;
                                 final sku = v?['sku']?.toString() ?? '';
                                 final barcode = v?['barcode']?.toString() ?? '';
-                                if (sku.isEmpty && barcode.isEmpty)
-                                  return SizedBox.shrink();
+                                if (sku.isEmpty && barcode.isEmpty) {
+                                  return const SizedBox.shrink();
+                                }
                                 return Padding(
                                   padding: EdgeInsets.only(top: height * 0.006),
                                   child: Row(
@@ -596,14 +605,16 @@ class ProductView extends GetView<ProductController> {
                                         Text('SKU: $sku',
                                             style: TextStyle(
                                                 fontSize: 11,
-                                                color: colorScheme.onSurfaceVariant)),
+                                                color: colorScheme
+                                                    .onSurfaceVariant)),
                                       if (sku.isNotEmpty && barcode.isNotEmpty)
                                         const SizedBox(width: 16),
                                       if (barcode.isNotEmpty)
                                         Text('Barcode: $barcode',
                                             style: TextStyle(
                                                 fontSize: 11,
-                                                color: colorScheme.onSurfaceVariant)),
+                                                color: colorScheme
+                                                    .onSurfaceVariant)),
                                     ],
                                   ),
                                 );
@@ -614,7 +625,7 @@ class ProductView extends GetView<ProductController> {
                                 () => (controller.colors.isEmpty ||
                                         controller.productDetials['type'] !=
                                             'variable')
-                                    ? SizedBox
+                                    ? const SizedBox
                                         .shrink() // Hide if no colors or not variable
                                     : Column(
                                         crossAxisAlignment:
@@ -631,7 +642,7 @@ class ProductView extends GetView<ProductController> {
                                             ),
                                           ),
                                           SizedBox(height: height * 0.01),
-                                          Container(
+                                          SizedBox(
                                             width: width * 0.90,
                                             height: height * 0.045,
                                             child: Row(
@@ -724,7 +735,7 @@ class ProductView extends GetView<ProductController> {
                                 () => (controller.sizes.isEmpty ||
                                         controller.productDetials['type'] !=
                                             'variable')
-                                    ? SizedBox
+                                    ? const SizedBox
                                         .shrink() // Hide if no sizes or not variable
                                     : Column(
                                         crossAxisAlignment:
@@ -741,7 +752,7 @@ class ProductView extends GetView<ProductController> {
                                             ),
                                           ),
                                           SizedBox(height: height * 0.01),
-                                          Container(
+                                          SizedBox(
                                             width: width * 0.90,
                                             height: height * 0.045,
                                             child: Row(
@@ -835,7 +846,7 @@ class ProductView extends GetView<ProductController> {
                                 children: [
                                   SizedBox(
                                     width: width * 0.535, // ≈ 200.15
-                                    child: Text(
+                                    child: const Text(
                                       "Description",
                                       style: TextStyle(
                                         fontFamily: 'Plus Jakarta Sans',
@@ -870,7 +881,7 @@ class ProductView extends GetView<ProductController> {
                               SizedBox(height: height * 0.004), // ≈ gap 10.46
 
                               // Remove the Expanded widget
-                              Container(
+                              SizedBox(
                                 width: width * 0.92,
                                 child: Obx(() {
                                   String description = controller
@@ -937,13 +948,13 @@ class ProductView extends GetView<ProductController> {
                                 final tags =
                                     controller.productDetials['tags'] as List?;
                                 if (tags == null || tags.isEmpty) {
-                                  return SizedBox.shrink();
+                                  return const SizedBox.shrink();
                                 }
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     SizedBox(height: height * 0.015),
-                                    Text(
+                                    const Text(
                                       'Tags',
                                       style: TextStyle(
                                         fontFamily: 'Plus Jakarta Sans',
@@ -960,18 +971,21 @@ class ProductView extends GetView<ProductController> {
                                             ? tag['name']?.toString() ?? ''
                                             : tag.toString();
                                         if (name.isEmpty) {
-                                          return SizedBox.shrink();
+                                          return const SizedBox.shrink();
                                         }
                                         return Chip(
                                           label: Text(
                                             name,
                                             style: TextStyle(
                                                 fontSize: 12,
-                                                color: colorScheme.onSurfaceVariant),
+                                                color: colorScheme
+                                                    .onSurfaceVariant),
                                           ),
-                                          backgroundColor: colorScheme.surfaceVariant,
+                                          backgroundColor: colorScheme
+                                              .surfaceContainerHighest,
                                           side: BorderSide(
-                                              color: colorScheme.outlineVariant),
+                                              color:
+                                                  colorScheme.outlineVariant),
                                           padding: EdgeInsets.zero,
                                           materialTapTargetSize:
                                               MaterialTapTargetSize.shrinkWrap,
@@ -1494,8 +1508,10 @@ class _OrderButtonState extends State<OrderButton>
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-                color:
-                    Theme.of(Get.context!).colorScheme.outline.withOpacity(0.3),
+                color: Theme.of(Get.context!)
+                    .colorScheme
+                    .outline
+                    .withValues(alpha: 0.3),
                 spreadRadius: 0,
                 blurRadius: 2),
           ],
@@ -1645,8 +1661,8 @@ class ProductGallery extends StatelessWidget {
         direction: ShimmerDirection.ltr,
         loop: 0,
         period: const Duration(seconds: 1),
-        baseColor: colorScheme.surfaceVariant,
-        highlightColor: colorScheme.onSurfaceVariant.withOpacity(0.1),
+        baseColor: colorScheme.surfaceContainerHighest,
+        highlightColor: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
         child: SizedBox(
           height: height * 0.47,
           width: width * 0.92,
@@ -1692,7 +1708,7 @@ class ProductGallery extends StatelessWidget {
       }).toList();
     } catch (e) {
       print("Error parsing gallery images: $e");
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
 
     // Ensure selectedImageIndex is valid
@@ -1716,7 +1732,7 @@ class ProductGallery extends StatelessWidget {
         color: Colors.grey.shade200, // Fallback color
       ),
       child: imagePaths.isEmpty
-          ? Center(child: Text('No images available'))
+          ? const Center(child: Text('No images available'))
           : Stack(
               children: [
                 // Full screen tap (Move this BEFORE thumbnails so thumbnails are clickable)

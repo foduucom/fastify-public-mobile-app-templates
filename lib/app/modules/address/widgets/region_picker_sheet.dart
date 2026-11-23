@@ -19,7 +19,8 @@ Future<Region?> showRegionPicker(
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (_) => Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: _RegionPickerSheet(
         title: title,
         searchHint: searchHint,
@@ -113,7 +114,8 @@ class _RegionPickerSheetState extends State<_RegionPickerSheet> {
 
   void _onSearchChanged(String _) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 400), () => _load(reset: true));
+    _debounce =
+        Timer(const Duration(milliseconds: 400), () => _load(reset: true));
   }
 
   @override
@@ -124,51 +126,51 @@ class _RegionPickerSheetState extends State<_RegionPickerSheet> {
       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       clipBehavior: Clip.antiAlias,
       child: Container(
-        constraints:
-            BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75),
+        constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.75),
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
         child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: cs.outline,
-                borderRadius: BorderRadius.circular(2),
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: cs.outline,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 14),
-          Text(widget.title,
-              style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: cs.onSurface)),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _searchCtrl,
-            onChanged: _onSearchChanged,
-            style: TextStyle(color: cs.onSurface, fontSize: 14),
-            decoration: InputDecoration(
-              hintText: widget.searchHint,
-              prefixIcon: const Icon(Icons.search),
-              isDense: true,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(6),
-                borderSide: BorderSide(color: cs.outline),
+            const SizedBox(height: 14),
+            Text(widget.title,
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: cs.onSurface)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _searchCtrl,
+              onChanged: _onSearchChanged,
+              style: TextStyle(color: cs.onSurface, fontSize: 14),
+              decoration: InputDecoration(
+                hintText: widget.searchHint,
+                prefixIcon: const Icon(Icons.search),
+                isDense: true,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(6),
+                  borderSide: BorderSide(color: cs.outline),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Flexible(child: _buildList(context)),
-        ],
+            const SizedBox(height: 8),
+            Flexible(child: _buildList(context)),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildList(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -185,8 +187,7 @@ class _RegionPickerSheetState extends State<_RegionPickerSheet> {
                   onPressed: () => _load(reset: true),
                   icon: const Icon(Icons.refresh),
                   label: Text('Retry'.tr))
-              : Text('No results'.tr,
-                  style: TextStyle(color: cs.onSurface)),
+              : Text('No results'.tr, style: TextStyle(color: cs.onSurface)),
         ),
       );
     }
@@ -217,9 +218,7 @@ class _RegionPickerSheetState extends State<_RegionPickerSheet> {
               style: TextStyle(
                   color: cs.onSurface,
                   fontWeight: selected ? FontWeight.bold : FontWeight.normal)),
-          trailing: selected
-              ? Icon(Icons.check, color: cs.primary)
-              : null,
+          trailing: selected ? Icon(Icons.check, color: cs.primary) : null,
           onTap: () => Navigator.of(context).pop(r),
         );
       },

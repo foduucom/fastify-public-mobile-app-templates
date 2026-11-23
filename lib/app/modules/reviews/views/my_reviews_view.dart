@@ -33,7 +33,8 @@ class MyReviewsView extends GetView<MyReviewsController> {
                 padding: const EdgeInsets.all(16),
                 itemCount: 5,
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (_, __) => _ReviewCardShimmer(colorScheme: colorScheme),
+                itemBuilder: (_, __) =>
+                    _ReviewCardShimmer(colorScheme: colorScheme),
               );
             }
 
@@ -42,8 +43,10 @@ class MyReviewsView extends GetView<MyReviewsController> {
                 builder: (context, constraints) => SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                    child: _EmptyState(colorScheme: colorScheme, textTheme: textTheme),
+                    constraints:
+                        BoxConstraints(minHeight: constraints.maxHeight),
+                    child: _EmptyState(
+                        colorScheme: colorScheme, textTheme: textTheme),
                   ),
                 ),
               );
@@ -59,11 +62,13 @@ class MyReviewsView extends GetView<MyReviewsController> {
                   review: review,
                   colorScheme: colorScheme,
                   textTheme: textTheme,
-                  onDelete: () => controller.confirmDeleteReview(context, review['id']),
+                  onDelete: () =>
+                      controller.confirmDeleteReview(context, review['id']),
                   onProductTap: () {
                     final slug = review['product_slug'];
                     if (slug != null && slug.toString().isNotEmpty) {
-                      Get.toNamed(Routes.PRODUCTDETAILS, arguments: {'slug': slug});
+                      Get.toNamed(Routes.PRODUCTDETAILS,
+                          arguments: {'slug': slug});
                     }
                   },
                 );
@@ -104,9 +109,12 @@ class _ReviewCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.08)),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.08)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2)),
         ],
       ),
       child: Column(
@@ -150,7 +158,8 @@ class _ReviewCard extends StatelessWidget {
                         productName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                        style: textTheme.titleSmall
+                            ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 4),
                       Row(
@@ -167,7 +176,8 @@ class _ReviewCard extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.delete_outline, color: colorScheme.error, size: 20),
+                  icon: Icon(Icons.delete_outline,
+                      color: colorScheme.error, size: 20),
                   onPressed: onDelete,
                 ),
               ],
@@ -177,7 +187,8 @@ class _ReviewCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               comment,
-              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface.withOpacity(0.8)),
+              style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.8)),
             ),
           ],
           if (date.isNotEmpty) ...[
@@ -186,7 +197,9 @@ class _ReviewCard extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: Text(
                 date,
-                style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.4), fontSize: 11),
+                style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.4),
+                    fontSize: 11),
               ),
             ),
           ],
@@ -210,16 +223,22 @@ class _EmptyState extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(color: colorScheme.onSurface.withOpacity(0.06), shape: BoxShape.circle),
-            child: Icon(Icons.rate_review_outlined, size: 48, color: colorScheme.onSurface.withOpacity(0.35)),
+            decoration: BoxDecoration(
+                color: colorScheme.onSurface.withValues(alpha: 0.06),
+                shape: BoxShape.circle),
+            child: Icon(Icons.rate_review_outlined,
+                size: 48, color: colorScheme.onSurface.withValues(alpha: 0.35)),
           ),
           const SizedBox(height: 20),
-          Text('No Reviews Yet', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+          Text('No Reviews Yet',
+              style:
+                  textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Text(
             'Reviews you submit for products will appear here.',
             textAlign: TextAlign.center,
-            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface.withOpacity(0.5)),
+            style: textTheme.bodyMedium
+                ?.copyWith(color: colorScheme.onSurface.withValues(alpha: 0.5)),
           ),
         ],
       ),
@@ -234,7 +253,8 @@ class _ReviewCardShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final base = isDark ? colorScheme.surfaceVariant : Colors.grey.shade300;
+    final base =
+        isDark ? colorScheme.surfaceContainerHighest : Colors.grey.shade300;
     final highlight = isDark ? colorScheme.surface : Colors.white;
 
     return Shimmer.fromColors(
@@ -242,7 +262,8 @@ class _ReviewCardShimmer extends StatelessWidget {
       highlightColor: highlight,
       child: Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(12)),
+        decoration:
+            BoxDecoration(color: base, borderRadius: BorderRadius.circular(12)),
         child: Row(
           children: [
             Container(width: 50, height: 50, color: base),

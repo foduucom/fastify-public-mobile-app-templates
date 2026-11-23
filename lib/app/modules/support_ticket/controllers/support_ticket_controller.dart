@@ -20,9 +20,8 @@ class SupportTicketController extends GetxController with BaseController {
   Future<void> getSupportTickets() async {
     try {
       isLoading.value = true;
-      var response = await BasicProvider("customer/support-tickets")
-          .getRequest(queryParams: {'page': 1, 'limit': 10})
-          .catchError(handleError);
+      var response = await BasicProvider("customer/support-tickets").getRequest(
+          queryParams: {'page': 1, 'limit': 10}).catchError(handleError);
 
       List rawTickets = [];
       Map<String, dynamic> rawPagination = {};
@@ -30,13 +29,15 @@ class SupportTicketController extends GetxController with BaseController {
       if (response is List) {
         rawTickets = response;
       } else if (response is Map) {
-        final ticketsData = response['tickets'] ?? response['data'] ?? response['docs'];
+        final ticketsData =
+            response['tickets'] ?? response['data'] ?? response['docs'];
         if (ticketsData is List) {
           rawTickets = ticketsData;
         } else if (ticketsData is Map && ticketsData['tickets'] is List) {
           rawTickets = ticketsData['tickets'];
           if (ticketsData['pagination'] is Map) {
-            rawPagination = Map<String, dynamic>.from(ticketsData['pagination']);
+            rawPagination =
+                Map<String, dynamic>.from(ticketsData['pagination']);
           }
         }
         if (response['pagination'] is Map) {
@@ -112,8 +113,7 @@ class SupportTicketController extends GetxController with BaseController {
   Future<bool> closeSupportTicket(String id, int index) async {
     try {
       await BasicProvider("customer/support-tickets/$id/close")
-          .postRequest({})
-          .catchError(handleError);
+          .postRequest({}).catchError(handleError);
 
       if (index >= 0 && index < supportTickets.length) {
         final ticket = Map<String, dynamic>.from(supportTickets[index]);

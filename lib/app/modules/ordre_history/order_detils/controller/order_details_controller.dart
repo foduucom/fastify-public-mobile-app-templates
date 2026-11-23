@@ -3,18 +3,17 @@ import 'package:get/get.dart';
 import '../../model/model.dart';
 import '/app/data/basic_provider.dart';
 
-
 class OrderDetailController extends GetxController {
-  final Rx<OrderModel?> order     = Rx<OrderModel?>(null);
-  final RxBool          isLoading = true.obs;
-  final RxString        error     = ''.obs;
+  final Rx<OrderModel?> order = Rx<OrderModel?>(null);
+  final RxBool isLoading = true.obs;
+  final RxString error = ''.obs;
 
   // orderNo passed via Get.arguments
   String get _orderNo =>
       (Get.arguments as Map?)?['order_no']?.toString() ??
-          (Get.arguments is OrderModel
-              ? (Get.arguments as OrderModel).orderNo
-              : '');
+      (Get.arguments is OrderModel
+          ? (Get.arguments as OrderModel).orderNo
+          : '');
 
   @override
   void onInit() {
@@ -31,11 +30,9 @@ class OrderDetailController extends GetxController {
   Future<void> _fetchDetail() async {
     if (_orderNo.isEmpty) return;
     try {
-      final result =
-      await BasicProvider('order/$_orderNo').getRequest();
+      final result = await BasicProvider('order/$_orderNo').getRequest();
       if (result != null && result is Map) {
-        order.value = OrderModel.fromJson(
-            Map<String, dynamic>.from(result as Map));
+        order.value = OrderModel.fromJson(Map<String, dynamic>.from(result));
       }
     } catch (e) {
       error.value = e.toString();
@@ -45,6 +42,7 @@ class OrderDetailController extends GetxController {
     }
   }
 
+  @override
   Future<void> refresh() async {
     isLoading(true);
     error.value = '';

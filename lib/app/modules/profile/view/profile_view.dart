@@ -56,7 +56,7 @@ class ProfileView extends GetView<ProfileController> {
         color: context.backgroundColor,
         border: Border(
           bottom: BorderSide(
-            color: context.outlineColor.withOpacity(0.08),
+            color: context.outlineColor.withValues(alpha: 0.08),
             width: 1,
           ),
         ),
@@ -74,7 +74,7 @@ class ProfileView extends GetView<ProfileController> {
                   shape: BoxShape.circle,
                   color: context.surfaceColor,
                   border: Border.all(
-                    color: context.outlineColor.withOpacity(0.12),
+                    color: context.outlineColor.withValues(alpha: 0.12),
                   ),
                 ),
                 child: Icon(
@@ -173,12 +173,12 @@ class _UserInfoCard extends GetView<ProfileController> {
           color: context.surfaceColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: const Color(0xFFD4AF37).withOpacity(0.2),
+            color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),
@@ -204,7 +204,7 @@ class _UserInfoCard extends GetView<ProfileController> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFD4AF37).withOpacity(0.25),
+                    color: const Color(0xFFD4AF37).withValues(alpha: 0.25),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -248,7 +248,8 @@ class _UserInfoCard extends GetView<ProfileController> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 7, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFD4AF37).withOpacity(0.15),
+                            color:
+                                const Color(0xFFD4AF37).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -271,7 +272,7 @@ class _UserInfoCard extends GetView<ProfileController> {
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 12,
-                        color: context.onSurfaceColor.withOpacity(0.65),
+                        color: context.onSurfaceColor.withValues(alpha: 0.65),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -284,7 +285,7 @@ class _UserInfoCard extends GetView<ProfileController> {
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 12,
-                        color: context.onSurfaceColor.withOpacity(0.65),
+                        color: context.onSurfaceColor.withValues(alpha: 0.65),
                       ),
                     ),
                   ],
@@ -295,10 +296,10 @@ class _UserInfoCard extends GetView<ProfileController> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFD4AF37).withOpacity(0.12),
+                      color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: const Color(0xFFD4AF37).withOpacity(0.35),
+                        color: const Color(0xFFD4AF37).withValues(alpha: 0.35),
                         width: 0.8,
                       ),
                     ),
@@ -336,10 +337,10 @@ class _UserInfoCard extends GetView<ProfileController> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFD4AF37).withOpacity(0.18),
+                  color: const Color(0xFFD4AF37).withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: const Color(0xFFD4AF37).withOpacity(0.4),
+                    color: const Color(0xFFD4AF37).withValues(alpha: 0.4),
                     width: 1,
                   ),
                 ),
@@ -485,11 +486,11 @@ class _QuickActionsMatrix extends GetView<ProfileController> {
           color: context.surfaceColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: context.outlineColor.withOpacity(0.08),
+            color: context.outlineColor.withValues(alpha: 0.08),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -502,7 +503,8 @@ class _QuickActionsMatrix extends GetView<ProfileController> {
               height: 38,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: (badgeColor ?? context.primaryColor).withOpacity(0.1),
+                color:
+                    (badgeColor ?? context.primaryColor).withValues(alpha: 0.1),
               ),
               child: Icon(
                 icon,
@@ -529,7 +531,8 @@ class _QuickActionsMatrix extends GetView<ProfileController> {
                 fontFamily: 'Poppins',
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: badgeColor ?? context.onSurfaceColor.withOpacity(0.6),
+                color:
+                    badgeColor ?? context.onSurfaceColor.withValues(alpha: 0.6),
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -568,12 +571,12 @@ class _CouponsPrivilegeBanner extends GetView<ProfileController> {
           ),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: const Color(0xFFD4AF37).withOpacity(0.4),
+            color: const Color(0xFFD4AF37).withValues(alpha: 0.4),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFD4AF37).withOpacity(0.08),
+              color: const Color(0xFFD4AF37).withValues(alpha: 0.08),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),
@@ -593,7 +596,7 @@ class _CouponsPrivilegeBanner extends GetView<ProfileController> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFD4AF37).withOpacity(0.3),
+                    color: const Color(0xFFD4AF37).withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -674,7 +677,7 @@ class _SecurityAndThemeContainer extends GetView<ProfileController> {
         color: context.surfaceColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: context.outlineColor.withOpacity(0.08),
+          color: context.outlineColor.withValues(alpha: 0.08),
         ),
       ),
       child: Column(
@@ -688,7 +691,7 @@ class _SecurityAndThemeContainer extends GetView<ProfileController> {
           ),
           Divider(
             height: 1,
-            color: context.outlineColor.withOpacity(0.06),
+            color: context.outlineColor.withValues(alpha: 0.06),
             indent: 68,
           ),
 
@@ -715,7 +718,7 @@ class _ThemeSwitcherTile extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFFD4AF37).withOpacity(0.12),
+              color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
             ),
             child: Icon(
               isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
@@ -743,7 +746,7 @@ class _ThemeSwitcherTile extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 12,
-                    color: context.onSurfaceColor.withOpacity(0.55),
+                    color: context.onSurfaceColor.withValues(alpha: 0.55),
                   ),
                 ),
               ],
@@ -794,7 +797,7 @@ class _ThemeSwitcherTile extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: context.outlineColor.withOpacity(0.08),
+                color: context.outlineColor.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
@@ -813,7 +816,7 @@ class _ThemeSwitcherTile extends StatelessWidget {
                   Icon(
                     Icons.unfold_more_rounded,
                     size: 16,
-                    color: context.onSurfaceColor.withOpacity(0.6),
+                    color: context.onSurfaceColor.withValues(alpha: 0.6),
                   ),
                 ],
               ),
@@ -837,7 +840,7 @@ class _MenuContainer extends StatelessWidget {
         color: context.surfaceColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: context.outlineColor.withOpacity(0.08),
+          color: context.outlineColor.withValues(alpha: 0.08),
         ),
       ),
       child: Column(
@@ -856,7 +859,7 @@ class _MenuContainer extends StatelessWidget {
               if (!isLast)
                 Divider(
                   height: 1,
-                  color: context.outlineColor.withOpacity(0.06),
+                  color: context.outlineColor.withValues(alpha: 0.06),
                   indent: 68,
                 ),
             ],
@@ -899,7 +902,7 @@ class _MenuTile extends StatelessWidget {
                 height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: context.primaryColor.withOpacity(0.08),
+                  color: context.primaryColor.withValues(alpha: 0.08),
                 ),
                 child: Icon(
                   icon,
@@ -928,7 +931,7 @@ class _MenuTile extends StatelessWidget {
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 12,
-                          color: context.onSurfaceColor.withOpacity(0.55),
+                          color: context.onSurfaceColor.withValues(alpha: 0.55),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -940,7 +943,7 @@ class _MenuTile extends StatelessWidget {
               trailing ??
                   Icon(
                     Icons.chevron_right_rounded,
-                    color: context.onSurfaceColor.withOpacity(0.4),
+                    color: context.onSurfaceColor.withValues(alpha: 0.4),
                     size: 22,
                   ),
             ],
@@ -973,7 +976,7 @@ class _SignOutButton extends GetView<ProfileController> {
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 14),
           side: BorderSide(
-            color: const Color(0xFFE53935).withOpacity(0.3),
+            color: const Color(0xFFE53935).withValues(alpha: 0.3),
             width: 1,
           ),
           shape: RoundedRectangleBorder(
@@ -1031,12 +1034,12 @@ class _GuestClubHeroCard extends GetView<ProfileController> {
         color: context.surfaceColor,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: const Color(0xFFD4AF37).withOpacity(0.4),
+          color: const Color(0xFFD4AF37).withValues(alpha: 0.4),
           width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFD4AF37).withOpacity(0.08),
+            color: const Color(0xFFD4AF37).withValues(alpha: 0.08),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -1050,9 +1053,9 @@ class _GuestClubHeroCard extends GetView<ProfileController> {
               Container(
                 width: 48,
                 height: 48,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     colors: [Color(0xFFE5C07B), Color(0xFFD4AF37)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -1109,8 +1112,8 @@ class _GuestClubHeroCard extends GetView<ProfileController> {
           _buildPerkRow(
               Icons.local_offer_outlined, 'Exclusive Welcome & Member Coupons'),
           const SizedBox(height: 6),
-          _buildPerkRow(
-              Icons.local_shipping_outlined, 'Real-time Tracking & Order History'),
+          _buildPerkRow(Icons.local_shipping_outlined,
+              'Real-time Tracking & Order History'),
           const SizedBox(height: 6),
           _buildPerkRow(
               Icons.favorite_border_rounded, 'Cloud Synced Luxury Wishlist'),
@@ -1148,7 +1151,7 @@ class _GuestClubHeroCard extends GetView<ProfileController> {
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     side: BorderSide(
-                      color: const Color(0xFFD4AF37).withOpacity(0.6),
+                      color: const Color(0xFFD4AF37).withValues(alpha: 0.6),
                       width: 1.2,
                     ),
                     shape: RoundedRectangleBorder(
@@ -1207,7 +1210,7 @@ class _GuestCouponsDiscoveryCard extends GetView<ProfileController> {
         color: context.surfaceColor,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: context.outlineColor.withOpacity(0.08),
+          color: context.outlineColor.withValues(alpha: 0.08),
         ),
       ),
       child: Row(
@@ -1217,7 +1220,7 @@ class _GuestCouponsDiscoveryCard extends GetView<ProfileController> {
             height: 44,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFFD4AF37).withOpacity(0.12),
+              color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
             ),
             child: const Icon(
               Icons.discount_outlined,
@@ -1245,7 +1248,7 @@ class _GuestCouponsDiscoveryCard extends GetView<ProfileController> {
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 11,
-                    color: context.onSurfaceColor.withOpacity(0.6),
+                    color: context.onSurfaceColor.withValues(alpha: 0.6),
                   ),
                 ),
               ],
@@ -1287,7 +1290,7 @@ class _GuestStoreMenuContainer extends StatelessWidget {
         color: context.surfaceColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: context.outlineColor.withOpacity(0.08),
+          color: context.outlineColor.withValues(alpha: 0.08),
         ),
       ),
       child: Column(
@@ -1300,7 +1303,7 @@ class _GuestStoreMenuContainer extends StatelessWidget {
           ),
           Divider(
             height: 1,
-            color: context.outlineColor.withOpacity(0.06),
+            color: context.outlineColor.withValues(alpha: 0.06),
             indent: 68,
           ),
           _MenuTile(
@@ -1311,7 +1314,7 @@ class _GuestStoreMenuContainer extends StatelessWidget {
           ),
           Divider(
             height: 1,
-            color: context.outlineColor.withOpacity(0.06),
+            color: context.outlineColor.withValues(alpha: 0.06),
             indent: 68,
           ),
           _MenuTile(
@@ -1322,7 +1325,7 @@ class _GuestStoreMenuContainer extends StatelessWidget {
           ),
           Divider(
             height: 1,
-            color: context.outlineColor.withOpacity(0.06),
+            color: context.outlineColor.withValues(alpha: 0.06),
             indent: 68,
           ),
           _MenuTile(
@@ -1351,7 +1354,7 @@ class _SectionHeader extends StatelessWidget {
         fontSize: 12,
         fontWeight: FontWeight.w700,
         letterSpacing: 1.1,
-        color: context.onSurfaceColor.withOpacity(0.55),
+        color: context.onSurfaceColor.withValues(alpha: 0.55),
       ),
     );
   }

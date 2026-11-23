@@ -53,7 +53,8 @@ class AiChatView extends StatelessWidget {
           GestureDetector(
             onTap: () => Get.back(),
             child: Container(
-              width: 44, height: 44,
+              width: 44,
+              height: 44,
               decoration: const BoxDecoration(
                   color: AppColors.scaffoldBackground, shape: BoxShape.circle),
               child: const Icon(Icons.arrow_back_ios_new_rounded,
@@ -69,18 +70,21 @@ class AiChatView extends StatelessWidget {
                     color: Color(0xFF1A1A1A))),
           ),
           Obx(() => GestureDetector(
-            onTap: controller.messages.isEmpty ? null : controller.clearChat,
-            child: Container(
-              width: 44, height: 44,
-              decoration: const BoxDecoration(
-                  color: AppColors.scaffoldBackground, shape: BoxShape.circle),
-              child: Icon(Icons.refresh_rounded,
-                  size: 20,
-                  color: controller.messages.isEmpty
-                      ? const Color(0xFFD0D0D0)
-                      : const Color(0xFF1A1A1A)),
-            ),
-          )),
+                onTap:
+                    controller.messages.isEmpty ? null : controller.clearChat,
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: const BoxDecoration(
+                      color: AppColors.scaffoldBackground,
+                      shape: BoxShape.circle),
+                  child: Icon(Icons.refresh_rounded,
+                      size: 20,
+                      color: controller.messages.isEmpty
+                          ? const Color(0xFFD0D0D0)
+                          : const Color(0xFF1A1A1A)),
+                ),
+              )),
         ],
       ),
     );
@@ -94,7 +98,8 @@ class AiChatView extends StatelessWidget {
         children: [
           const SizedBox(height: 24),
           Container(
-            width: 80, height: 80,
+            width: 80,
+            height: 80,
             decoration: const BoxDecoration(
                 shape: BoxShape.circle, color: Color(0xFF1A1A1A)),
             clipBehavior: Clip.antiAlias,
@@ -102,7 +107,8 @@ class AiChatView extends StatelessWidget {
                 fit: BoxFit.contain,
                 errorBuilder: (_, __, ___) => const Icon(
                     Icons.home_work_outlined,
-                    size: 36, color:AppColors.scaffoldBackground)),
+                    size: 36,
+                    color: AppColors.scaffoldBackground)),
           ),
           const SizedBox(height: 16),
           const Text('👋 Hi there!',
@@ -134,23 +140,23 @@ class AiChatView extends StatelessWidget {
   // ── Message List ──────────────────────────────────────────────
   Widget _buildMessageList(AiChatController controller) {
     return Obx(() => ListView.builder(
-      controller: controller.scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      itemCount: controller.messages.length +
-          (controller.isTyping.value ? 1 : 0),
-      itemBuilder: (_, i) {
-        if (i == controller.messages.length && controller.isTyping.value) {
-          return _TypingIndicator();
-        }
-        final msg    = controller.messages[i];
-        final isUser = msg['role'] == 'user';
-        return _MessageBubble(
-          msg: msg,
-          isUser: isUser,
-          controller: controller,
-        );
-      },
-    ));
+          controller: controller.scrollController,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          itemCount:
+              controller.messages.length + (controller.isTyping.value ? 1 : 0),
+          itemBuilder: (_, i) {
+            if (i == controller.messages.length && controller.isTyping.value) {
+              return _TypingIndicator();
+            }
+            final msg = controller.messages[i];
+            final isUser = msg['role'] == 'user';
+            return _MessageBubble(
+              msg: msg,
+              isUser: isUser,
+              controller: controller,
+            );
+          },
+        ));
   }
 
   // ── Attachment Preview Bar ────────────────────────────────────
@@ -171,41 +177,44 @@ class AiChatView extends StatelessWidget {
           return Stack(
             children: [
               Container(
-                width: 72, height: 72,
+                width: 72,
+                height: 72,
                 decoration: BoxDecoration(
-                    color:AppColors.scaffoldBackground,
+                    color: AppColors.scaffoldBackground,
                     borderRadius: BorderRadius.circular(14)),
                 clipBehavior: Clip.antiAlias,
                 child: isImage
                     ? Image.file(file, fit: BoxFit.cover)
                     : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.insert_drive_file_outlined,
-                        size: 28, color: Color(0xFF6B6B6B)),
-                    const SizedBox(height: 4),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Text(name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              fontSize: 9, color: Color(0xFF9E9E9E))),
-                    ),
-                  ],
-                ),
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.insert_drive_file_outlined,
+                              size: 28, color: Color(0xFF6B6B6B)),
+                          const SizedBox(height: 4),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Text(name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontSize: 9, color: Color(0xFF9E9E9E))),
+                          ),
+                        ],
+                      ),
               ),
               // Remove button
               Positioned(
-                top: 0, right: 0,
+                top: 0,
+                right: 0,
                 child: GestureDetector(
                   onTap: () => controller.removeAttachment(i),
                   child: Container(
-                    width: 20, height: 20,
+                    width: 20,
+                    height: 20,
                     decoration: const BoxDecoration(
                         color: Color(0xFF1A1A1A), shape: BoxShape.circle),
-                    child: const Icon(Icons.close,
-                        size: 12, color: Colors.white),
+                    child:
+                        const Icon(Icons.close, size: 12, color: Colors.white),
                   ),
                 ),
               ),
@@ -224,7 +233,6 @@ class AiChatView extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-
           // ── Attach Button ───────────────────────────────────
           _AttachMenu(controller: controller),
           const SizedBox(width: 8),
@@ -233,8 +241,7 @@ class AiChatView extends StatelessWidget {
           Expanded(
             child: Container(
               constraints: const BoxConstraints(minHeight: 54),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(28),
@@ -252,12 +259,11 @@ class AiChatView extends StatelessWidget {
                       minLines: 1,
                       decoration: const InputDecoration(
                         hintText: 'Ask me anything...',
-                        hintStyle: TextStyle(
-                            fontSize: 15, color: Color(0xFFB0AEAB)),
+                        hintStyle:
+                            TextStyle(fontSize: 15, color: Color(0xFFB0AEAB)),
                         border: InputBorder.none,
                         isDense: true,
-                        contentPadding:
-                        EdgeInsets.symmetric(vertical: 10),
+                        contentPadding: EdgeInsets.symmetric(vertical: 10),
                       ),
                       textInputAction: TextInputAction.newline,
                     ),
@@ -270,9 +276,9 @@ class AiChatView extends StatelessWidget {
 
           // ── Mic / Send Button ───────────────────────────────
           Obx(() {
-            final hasText  = controller.inputText.value.trim().isNotEmpty;
+            final hasText = controller.inputText.value.trim().isNotEmpty;
             final hasFiles = controller.attachedFiles.isNotEmpty;
-            final canSend  = hasText || hasFiles;
+            final canSend = hasText || hasFiles;
             final listening = controller.isListening.value;
 
             return GestureDetector(
@@ -281,19 +287,16 @@ class AiChatView extends StatelessWidget {
                   : controller.toggleMic,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                width: 54, height: 54,
+                width: 54,
+                height: 54,
                 decoration: BoxDecoration(
-                  color: listening
-                      ? Colors.redAccent
-                      : const Color(0xFF1A1A1A),
+                  color: listening ? Colors.redAccent : const Color(0xFF1A1A1A),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   canSend
                       ? Icons.send_rounded
-                      : (listening
-                      ? Icons.mic_off_rounded
-                      : Icons.mic_rounded),
+                      : (listening ? Icons.mic_off_rounded : Icons.mic_rounded),
                   color: Colors.white,
                   size: 22,
                 ),
@@ -316,9 +319,10 @@ class _AttachMenu extends StatelessWidget {
     return GestureDetector(
       onTap: () => _showAttachSheet(context),
       child: Container(
-        width: 44, height: 44,
-        decoration: const BoxDecoration(
-            color: Colors.white, shape: BoxShape.circle),
+        width: 44,
+        height: 44,
+        decoration:
+            const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
         child: const Icon(Icons.attach_file_rounded,
             size: 20, color: Color(0xFF6B6B6B)),
       ),
@@ -339,7 +343,8 @@ class _AttachMenu extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
                   color: const Color(0xFFD0D0D0),
                   borderRadius: BorderRadius.circular(2)),
@@ -388,7 +393,8 @@ class _AttachOption extends StatelessWidget {
       child: Column(
         children: [
           Container(
-            width: 64, height: 64,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
                 color: const Color(0xFFF5F3F0),
                 borderRadius: BorderRadius.circular(18)),
@@ -396,8 +402,7 @@ class _AttachOption extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(label,
-              style: const TextStyle(
-                  fontSize: 13, color: Color(0xFF6B6B6B))),
+              style: const TextStyle(fontSize: 13, color: Color(0xFF6B6B6B))),
         ],
       ),
     );
@@ -419,8 +424,7 @@ class _QuickActionCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20)),
+            color: Colors.white, borderRadius: BorderRadius.circular(20)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -432,9 +436,7 @@ class _QuickActionCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(action['subtitle']!,
                 style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF9E9E9E),
-                    height: 1.4)),
+                    fontSize: 13, color: Color(0xFF9E9E9E), height: 1.4)),
           ],
         ),
       ),
@@ -448,35 +450,31 @@ class _MessageBubble extends StatelessWidget {
   final bool isUser;
   final AiChatController controller;
   const _MessageBubble(
-      {required this.msg,
-        required this.isUser,
-        required this.controller});
+      {required this.msg, required this.isUser, required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    final text      = msg['text']      as String? ?? '';
-    final msgId     = msg['id']        as String? ?? '';
-    final files     = msg['files']     as List?   ?? [];
-    final fileNames = msg['fileNames'] as List?   ?? [];
+    final text = msg['text'] as String? ?? '';
+    final msgId = msg['id'] as String? ?? '';
+    final files = msg['files'] as List? ?? [];
+    final fileNames = msg['fileNames'] as List? ?? [];
 
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.78),
+        constraints:
+            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
         margin: const EdgeInsets.only(bottom: 12),
         child: Column(
           crossAxisAlignment:
-          isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
-
             // ── Attached files/images ───────────────────────
             if (files.isNotEmpty)
               ...List.generate(files.length, (i) {
                 final path = files[i].toString();
-                final name = i < fileNames.length
-                    ? fileNames[i].toString()
-                    : 'file';
+                final name =
+                    i < fileNames.length ? fileNames[i].toString() : 'file';
                 final isImage = ['.jpg', '.jpeg', '.png', '.webp']
                     .any((e) => name.toLowerCase().endsWith(e));
                 return Container(
@@ -490,47 +488,42 @@ class _MessageBubble extends StatelessWidget {
                   child: isImage
                       ? Image.file(File(path), fit: BoxFit.cover)
                       : Row(
-                    children: [
-                      const SizedBox(width: 12),
-                      const Icon(Icons.insert_drive_file_outlined,
-                          size: 24, color: Color(0xFF6B6B6B)),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(name,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF1A1A1A))),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                  ),
+                          children: [
+                            const SizedBox(width: 12),
+                            const Icon(Icons.insert_drive_file_outlined,
+                                size: 24, color: Color(0xFF6B6B6B)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(name,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                      fontSize: 12, color: Color(0xFF1A1A1A))),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                        ),
                 );
               }),
 
             // ── Text bubble ─────────────────────────────────
             if (text.isNotEmpty)
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 18, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                 decoration: BoxDecoration(
-                  color: isUser
-                      ? const Color(0xFF1A1A1A)
-                      : Colors.white,
+                  color: isUser ? const Color(0xFF1A1A1A) : Colors.white,
                   borderRadius: BorderRadius.only(
-                    topLeft:     const Radius.circular(20),
-                    topRight:    const Radius.circular(20),
-                    bottomLeft:  Radius.circular(isUser ? 20 : 4),
+                    topLeft: const Radius.circular(20),
+                    topRight: const Radius.circular(20),
+                    bottomLeft: Radius.circular(isUser ? 20 : 4),
                     bottomRight: Radius.circular(isUser ? 4 : 20),
                   ),
                 ),
                 child: Text(text,
                     style: TextStyle(
                       fontSize: 14,
-                      color: isUser
-                          ? Colors.white
-                          : const Color(0xFF1A1A1A),
+                      color: isUser ? Colors.white : const Color(0xFF1A1A1A),
                       height: 1.5,
                     )),
               ),
@@ -544,8 +537,8 @@ class _MessageBubble extends StatelessWidget {
                 return GestureDetector(
                   onTap: () => controller.speakMessage(msgId, text),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20)),
@@ -593,15 +586,14 @@ class _TypingIndicator extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20)),
-        child: Row(
+            color: Colors.white, borderRadius: BorderRadius.circular(20)),
+        child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             _Dot(delay: 0),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             _Dot(delay: 200),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             _Dot(delay: 400),
           ],
         ),
@@ -644,7 +636,8 @@ class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
     return FadeTransition(
       opacity: _anim,
       child: Container(
-        width: 8, height: 8,
+        width: 8,
+        height: 8,
         decoration: const BoxDecoration(
             color: Color(0xFFB0AEAB), shape: BoxShape.circle),
       ),

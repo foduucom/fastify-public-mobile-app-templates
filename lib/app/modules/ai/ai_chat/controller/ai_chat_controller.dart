@@ -9,23 +9,22 @@ import '/app/data/basic_provider.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 
 class AiChatController extends GetxController with BaseController {
-
   final TextEditingController inputController = TextEditingController();
-  final ScrollController      scrollController = ScrollController();
+  final ScrollController scrollController = ScrollController();
 
   // ── Observables ───────────────────────────────────────────────
   final RxList<Map<String, dynamic>> messages = <Map<String, dynamic>>[].obs;
-  final RxString  inputText       = ''.obs;
-  final RxBool    isTyping        = false.obs;
-  final RxBool    isListening     = false.obs;
-  final RxBool    isSpeaking      = false.obs;
-  final RxString  speakingMsgId   = ''.obs; // which msg is being read
-  final RxList<File>   attachedFiles  = <File>[].obs;
-  final RxList<String> attachedNames  = <String>[].obs;
+  final RxString inputText = ''.obs;
+  final RxBool isTyping = false.obs;
+  final RxBool isListening = false.obs;
+  final RxBool isSpeaking = false.obs;
+  final RxString speakingMsgId = ''.obs; // which msg is being read
+  final RxList<File> attachedFiles = <File>[].obs;
+  final RxList<String> attachedNames = <String>[].obs;
 
   // ── Services ──────────────────────────────────────────────────
   final stt.SpeechToText _speech = stt.SpeechToText();
-  final FlutterTts        _tts   = FlutterTts();
+  final FlutterTts _tts = FlutterTts();
   bool _speechAvailable = false;
 
   // ── Quick Actions ─────────────────────────────────────────────
@@ -33,7 +32,8 @@ class AiChatController extends GetxController with BaseController {
     {
       'emoji': '🛍️',
       'title': 'Find Products You\'ll Love',
-      'subtitle': 'Browse personalized product suggestions based on your preferences.',
+      'subtitle':
+          'Browse personalized product suggestions based on your preferences.',
       'prompt': 'Find products I\'ll love based on my preferences',
     },
     {
@@ -113,7 +113,7 @@ class AiChatController extends GetxController with BaseController {
     await _speech.listen(
       onResult: (result) {
         inputController.text = result.recognizedWords;
-        inputText.value      = result.recognizedWords;
+        inputText.value = result.recognizedWords;
         // move cursor to end
         inputController.selection = TextSelection.fromPosition(
           TextPosition(offset: inputController.text.length),
@@ -143,8 +143,8 @@ class AiChatController extends GetxController with BaseController {
   // ── Pick Image ────────────────────────────────────────────────
   Future<void> pickImage() async {
     final picker = ImagePicker();
-    final picked = await picker.pickImage(
-        source: ImageSource.gallery, imageQuality: 80);
+    final picked =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (picked == null) return;
     final file = File(picked.path);
     attachedFiles.add(file);
@@ -173,8 +173,8 @@ class AiChatController extends GetxController with BaseController {
 
   // ── Send Message ──────────────────────────────────────────────
   Future<void> sendMessage([String? overrideText]) async {
-    final text        = (overrideText ?? inputController.text).trim();
-    final hasFiles    = attachedFiles.isNotEmpty;
+    final text = (overrideText ?? inputController.text).trim();
+    final hasFiles = attachedFiles.isNotEmpty;
     if (text.isEmpty && !hasFiles) return;
 
     // stop mic if running
@@ -183,16 +183,16 @@ class AiChatController extends GetxController with BaseController {
       isListening(false);
     }
 
-    final msgId    = DateTime.now().millisecondsSinceEpoch.toString();
+    final msgId = DateTime.now().millisecondsSinceEpoch.toString();
     final filePaths = attachedFiles.map((f) => f.path).toList();
     final fileNames = attachedNames.toList();
 
     // Add user message with attachments snapshot
     messages.add({
-      'id':        msgId,
-      'role':      'user',
-      'text':      text,
-      'files':     filePaths,
+      'id': msgId,
+      'role': 'user',
+      'text': text,
+      'files': filePaths,
       'fileNames': fileNames,
     });
 
@@ -212,14 +212,15 @@ class AiChatController extends GetxController with BaseController {
 
       // ── Mock response for now ─────────────────────────────────
       await Future.delayed(const Duration(seconds: 1));
-      const reply = 'Thanks for your message! Our AI is being integrated. Stay tuned for smart furniture recommendations. 🛋️';
+      const reply =
+          'Thanks for your message! Our AI is being integrated. Stay tuned for smart furniture recommendations. 🛋️';
 
       final replyId = DateTime.now().millisecondsSinceEpoch.toString();
       messages.add({'id': replyId, 'role': 'ai', 'text': reply});
     } catch (e) {
       debugPrint('AI Chat error: $e');
       messages.add({
-        'id':   DateTime.now().millisecondsSinceEpoch.toString(),
+        'id': DateTime.now().millisecondsSinceEpoch.toString(),
         'role': 'ai',
         'text': 'Sorry, I\'m having trouble connecting. Please try again.',
       });

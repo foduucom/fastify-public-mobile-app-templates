@@ -90,29 +90,29 @@ class AppPages {
         binding: IntroBinding()),
     GetPage(
       name: _Paths.SPLASH,
-      page: () => SplashscreenView(),
+      page: () => const SplashscreenView(),
       binding: SplashscreenBinding(),
     ),
     GetPage(
       name: _Paths.ONBOARDING,
-      page: () => OnboardingView(),
+      page: () => const OnboardingView(),
       binding: OnboardingBinding(),
     ),
 
     GetPage(
       name: _Paths.REGISTER,
-      page: () => RegisterView(),
+      page: () => const RegisterView(),
       binding: RegisterBinding(),
     ),
 
     GetPage(
       name: _Paths.ADDRESS_LIST,
-      page: () => AddressListView(),
+      page: () => const AddressListView(),
       binding: AddressListBinding(),
     ),
     GetPage(
       name: _Paths.ADDRESS_FORM,
-      page: () => AddressFormView(),
+      page: () => const AddressFormView(),
       binding: AddressFormBinding(),
     ),
 
@@ -124,7 +124,7 @@ class AppPages {
 
     GetPage(
       name: _Paths.LOGIN,
-      page: () => LoginView(),
+      page: () => const LoginView(),
       binding: LoginBinding(),
       transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 300),
@@ -138,7 +138,7 @@ class AppPages {
 
     GetPage(
       name: _Paths.SEARCH,
-      page: () => SearchView(),
+      page: () => const SearchView(),
       binding: SearchBinding(),
     ),
 
@@ -156,7 +156,7 @@ class AppPages {
 
     GetPage(
       name: _Paths.HOME,
-      page: () => HomePageView(),
+      page: () => const HomePageView(),
       binding: HomepageBinding(),
     ),
 
@@ -192,7 +192,7 @@ class AppPages {
 
     GetPage(
         name: _Paths.CART,
-        page: () => CartView(),
+        page: () => const CartView(),
         binding: CartBinding(),
         children: [
           GetPage(
@@ -202,7 +202,7 @@ class AppPages {
           ),
           GetPage(
             name: _Paths.ORDERSUCCESS,
-            page: () => OrdersucessView(),
+            page: () => const OrdersucessView(),
             binding: OrderResponseBinding(),
           ),
         ]),
@@ -227,7 +227,7 @@ class AppPages {
 
     GetPage(
       name: _Paths.SHOPPRODUCTLISTVIEW,
-      page: () => ShopView(),
+      page: () => const ShopView(),
       binding: ShopBinding(),
     ),
 
@@ -245,7 +245,7 @@ class AppPages {
 
     GetPage(
       name: _Paths.ORDER_DETAILS,
-      page: () => OrderdetailView(),
+      page: () => const OrderdetailView(),
       binding: OrderdetailBinding(),
     ),
 
@@ -289,7 +289,7 @@ class AppPages {
 
     GetPage(
       name: _Paths.ADDRESS_FORM,
-      page: () => AddressListView(),
+      page: () => const AddressListView(),
       binding: AddressListBinding(),
     ),
 
@@ -307,7 +307,7 @@ class AppPages {
     // ),
     GetPage(
       name: _Paths.NOTIFICATION,
-      page: () => NotificationsView(),
+      page: () => const NotificationsView(),
       binding: NotificationsBinding(),
     ),
 
@@ -335,7 +335,7 @@ class AppPages {
 
     GetPage(
       name: _Paths.CONTACTUS,
-      page: () => ContactUsView(),
+      page: () => const ContactUsView(),
     ),
 
     GetPage(
@@ -368,12 +368,12 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.BLOG,
-      page: () => BlogView(),
+      page: () => const BlogView(),
       binding: BlogBinding(),
     ),
     GetPage(
       name: _Paths.BLOG_DETAILS,
-      page: () => BlogDetailsView(),
+      page: () => const BlogDetailsView(),
       binding: BlogBinding(),
     ),
     GetPage(

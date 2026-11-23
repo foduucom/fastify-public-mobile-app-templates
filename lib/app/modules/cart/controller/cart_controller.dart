@@ -5,13 +5,12 @@ import '/app/data/basic_provider.dart';
 import '/constants/constants.dart';
 
 class CartController extends GetxController with BaseController {
-
-  final RxBool   isLoading      = false.obs;
+  final RxBool isLoading = false.obs;
   final RxString updatingItemId = ''.obs;
 
   final RxList<Map<String, dynamic>> cartItems = <Map<String, dynamic>>[].obs;
   final RxDouble subTotal = 0.0.obs;
-  final RxDouble total    = 0.0.obs;
+  final RxDouble total = 0.0.obs;
 
   static String get _imgBase => assetURL;
 
@@ -39,8 +38,9 @@ class CartController extends GetxController with BaseController {
     if (response is! Map) return;
     final data = Map<String, dynamic>.from(response);
 
-    subTotal.value = double.tryParse(data['sub_total']?.toString() ?? '0') ?? 0.0;
-    total.value    = double.tryParse(data['total']?.toString()     ?? '0') ?? 0.0;
+    subTotal.value =
+        double.tryParse(data['sub_total']?.toString() ?? '0') ?? 0.0;
+    total.value = double.tryParse(data['total']?.toString() ?? '0') ?? 0.0;
 
     final rawItems = data['items'];
     if (rawItems is List) {
@@ -49,7 +49,8 @@ class CartController extends GetxController with BaseController {
           .toList();
       _smartUpdateList(newItems);
     }
-    debugPrint('🛒 Cart: ${cartItems.length} items | subtotal:${subTotal.value} total:${total.value}');
+    debugPrint(
+        '🛒 Cart: ${cartItems.length} items | subtotal:${subTotal.value} total:${total.value}');
   }
 
   // ── Smart diff — no full list replacement ─────────────────────
@@ -63,7 +64,7 @@ class CartController extends GetxController with BaseController {
     // Update changed items / append new ones
     for (final newItem in newItems) {
       final newId = itemId(newItem);
-      final idx   = cartItems.indexWhere((e) => itemId(e) == newId);
+      final idx = cartItems.indexWhere((e) => itemId(e) == newId);
       if (idx >= 0) {
         if (cartItems[idx]['quantity'] != newItem['quantity']) {
           cartItems[idx] = newItem;
@@ -95,10 +96,11 @@ class CartController extends GetxController with BaseController {
   double itemPrice(Map item) {
     final variant = item['variant_id'];
     if (variant is Map) {
-      final sp = double.tryParse(variant['sale_price']?.toString() ?? '') ?? 0.0;
-      final p  = double.tryParse(variant['price']?.toString()      ?? '') ?? 0.0;
+      final sp =
+          double.tryParse(variant['sale_price']?.toString() ?? '') ?? 0.0;
+      final p = double.tryParse(variant['price']?.toString() ?? '') ?? 0.0;
       if (sp > 0) return sp;
-      if (p  > 0) return p;
+      if (p > 0) return p;
     }
     // fallback to unit_price from cart item
     return double.tryParse(item['unit_price']?.toString() ?? '0') ?? 0.0;
@@ -119,7 +121,7 @@ class CartController extends GetxController with BaseController {
     if (variant is Map) {
       final gallery = variant['gallery'];
       if (gallery is List && gallery.isNotEmpty && gallery[0] is Map) {
-        final g  = gallery[0] as Map;
+        final g = gallery[0] as Map;
         final du = g['download_url']?.toString() ?? '';
         if (du.isNotEmpty) return _fixUrl(du);
         final fp = g['filepath']?.toString() ?? '';
@@ -149,9 +151,12 @@ class CartController extends GetxController with BaseController {
 
   // ── Update Quantity ────────────────────────────────────────────
   Future<void> updateQuantity(Map<String, dynamic> item, int newQty) async {
-    if (newQty <= 0) { removeItem(item); return; }
+    if (newQty <= 0) {
+      removeItem(item);
+      return;
+    }
 
-    final id  = itemId(item);
+    final id = itemId(item);
     final idx = cartItems.indexWhere((e) => itemId(e) == id);
 
     // Optimistic update
@@ -168,7 +173,7 @@ class CartController extends GetxController with BaseController {
           {
             'product_id': _productId(item),
             'variant_id': _variantId(item),
-            'quantity':   newQty,
+            'quantity': newQty,
           }
         ],
       });
@@ -187,7 +192,7 @@ class CartController extends GetxController with BaseController {
 
   // ── Remove Item ────────────────────────────────────────────────
   Future<void> removeItem(Map<String, dynamic> item) async {
-    final id   = itemId(item);
+    final id = itemId(item);
     final name = itemName(item);
 
     updatingItemId.value = id;
@@ -201,7 +206,8 @@ class CartController extends GetxController with BaseController {
       if (response != null) {
         await fetchCart(); // sync totals
         Get.snackbar(
-          'Removed', '$name removed from cart',
+          'Removed',
+          '$name removed from cart',
           snackPosition: SnackPosition.TOP,
           backgroundColor: const Color(0xFF1A1A1A),
           colorText: Colors.white,

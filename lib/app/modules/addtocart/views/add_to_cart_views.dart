@@ -26,7 +26,7 @@ class AddToCartViews extends GetView {
         ),
         child: Column(
           children: [
-            Container(
+            SizedBox(
               width: width * 0.92, // ≈ 345
               height: height * 0.35, // ≈ 280
               child: ListView.separated(
@@ -63,7 +63,8 @@ class AddToCartViews extends GetView {
             padding: EdgeInsets.all(width * 0.025), // ≈ 10
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(height * 0.01), // ≈ 8
-              border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
+              border:
+                  Border.all(color: colorScheme.outline.withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -187,7 +188,7 @@ class AddToCartViews extends GetView {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(height * 0.015),
         border: Border.all(
-          color: colorScheme.outline.withOpacity(0.3),
+          color: colorScheme.outline.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -208,7 +209,7 @@ class AddToCartViews extends GetView {
           SizedBox(width: width * 0.025),
 
           Expanded(
-            child: Container(
+            child: SizedBox(
               height: height * 0.075,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,7 +257,7 @@ class AddToCartViews extends GetView {
           SizedBox(width: width * 0.015), // Reduced spacing
 
           // QUANTITY SELECTOR - FIXED VERSION
-          Container(
+          SizedBox(
             width: height * 0.115, // Fixed width based on height, NOT width
             height: height * 0.035,
             child: Row(
@@ -269,7 +270,7 @@ class AddToCartViews extends GetView {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: colorScheme.outline.withOpacity(0.3),
+                      color: colorScheme.outline.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Icon(
@@ -301,8 +302,8 @@ class AddToCartViews extends GetView {
                   height: height * 0.035,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border:
-                        Border.all(color: colorScheme.outline.withOpacity(0.3)),
+                    border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.3)),
                   ),
                   child: Icon(
                     Icons.add,

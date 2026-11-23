@@ -1,8 +1,6 @@
 import 'package:get/get.dart';
 
 import 'controller/order_controller.dart';
-import 'model/model.dart';
-
 
 class OrderHistoryBinding extends Bindings {
   @override

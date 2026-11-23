@@ -119,7 +119,7 @@ class CouponsController extends GetxController {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
             side: BorderSide(
-              color: const Color(0xFFD4AF37).withOpacity(0.4),
+              color: const Color(0xFFD4AF37).withValues(alpha: 0.4),
               width: 1,
             ),
           ),
@@ -136,10 +136,7 @@ class CouponsController extends GetxController {
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (ctx) => CouponDetailsDialog
-      
-      
-      (coupon: coupon),
+      builder: (ctx) => CouponDetailsDialog(coupon: coupon),
     );
   }
 }

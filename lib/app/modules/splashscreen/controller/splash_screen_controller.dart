@@ -29,7 +29,7 @@ class SplashScreenController extends GetxController with BaseController {
       // Start progress
       progressValue.value = 0.1;
       await Future.delayed(
-          Duration(milliseconds: 100)); // Small delay for visual feedback
+          const Duration(milliseconds: 100)); // Small delay for visual feedback
 
       progressValue.value = 0.3;
       var response = await BasicProvider('public-settings').getRequest();
@@ -44,7 +44,7 @@ class SplashScreenController extends GetxController with BaseController {
         // Save auth preference for use throughout the app
         box.write('auth_preference', authPreference);
         print('Auth Preference saved: $authPreference');
-        print('swapnil splash screen response ${response}');
+        print('swapnil splash screen response $response');
 
         if (response['storeSettings']['app_theme_color'] != null) {
           print(

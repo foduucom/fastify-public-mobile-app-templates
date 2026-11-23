@@ -26,7 +26,7 @@ class AllReview extends StatelessWidget {
         appBar: AppBar(
           title: Text(
             'All Review  (${reviewData.length})',
-            style: TextStyle(fontFamily: 'lato', fontSize: 16),
+            style: const TextStyle(fontFamily: 'lato', fontSize: 16),
           ),
         ),
         body: SingleChildScrollView(
@@ -82,10 +82,10 @@ class AllReview extends StatelessWidget {
                 // ),
                 // const Divider(),
                 ListView.separated(
-                  separatorBuilder: (context, index) => Divider(),
+                  separatorBuilder: (context, index) => const Divider(),
                   shrinkWrap: true,
                   itemCount: reviewData.length,
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   itemBuilder: (context, index) {
                     return customerReview(
                         profileimage: reviewData[index]['customer']

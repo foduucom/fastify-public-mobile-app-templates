@@ -58,7 +58,8 @@ class EditprofileView extends GetView<ProfileController> {
                     child: Column(
                       children: [
                         // Profile Image Section
-                        _buildAvatarSection(context, colorScheme, isDark, height),
+                        _buildAvatarSection(
+                            context, colorScheme, isDark, height),
                         SizedBox(height: height * 0.03),
 
                         // Form Field Cards
@@ -183,12 +184,12 @@ class EditprofileView extends GetView<ProfileController> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: colorScheme.primary.withOpacity(0.55),
+                color: colorScheme.primary.withValues(alpha: 0.55),
                 width: 2.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(isDark ? 0.35 : 0.08),
+                  color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -208,8 +209,7 @@ class EditprofileView extends GetView<ProfileController> {
                     if (parts.length >= 2 &&
                         parts[0].isNotEmpty &&
                         parts[1].isNotEmpty) {
-                      initials =
-                          '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+                      initials = '${parts[0][0]}${parts[1][0]}'.toUpperCase();
                     } else if (parts.isNotEmpty && parts[0].isNotEmpty) {
                       initials = parts[0][0].toUpperCase();
                     }
@@ -224,7 +224,7 @@ class EditprofileView extends GetView<ProfileController> {
                         gradient: LinearGradient(
                           colors: [
                             colorScheme.primary,
-                            colorScheme.primary.withOpacity(0.78),
+                            colorScheme.primary.withValues(alpha: 0.78),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -272,7 +272,7 @@ class EditprofileView extends GetView<ProfileController> {
                     width: avatarSize,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
-                      color: colorScheme.surfaceVariant,
+                      color: colorScheme.surfaceContainerHighest,
                       child: Center(
                         child: SizedBox(
                           width: 24,
@@ -312,7 +312,7 @@ class EditprofileView extends GetView<ProfileController> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.25),
+                      color: Colors.black.withValues(alpha: 0.25),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -350,7 +350,7 @@ class EditprofileView extends GetView<ProfileController> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
+                              color: Colors.black.withValues(alpha: 0.2),
                               blurRadius: 3,
                             ),
                           ],
@@ -408,12 +408,13 @@ class EditprofileView extends GetView<ProfileController> {
               color: colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: colorScheme.outlineVariant.withOpacity(isDark ? 0.35 : 0.6),
+                color: colorScheme.outlineVariant
+                    .withValues(alpha: isDark ? 0.35 : 0.6),
                 width: 1.0,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(isDark ? 0.15 : 0.03),
+                  color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.03),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -425,7 +426,8 @@ class EditprofileView extends GetView<ProfileController> {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(isDark ? 0.20 : 0.10),
+                    color: colorScheme.primary
+                        .withValues(alpha: isDark ? 0.20 : 0.10),
                     borderRadius: BorderRadius.circular(9),
                   ),
                   child: Center(
@@ -433,7 +435,7 @@ class EditprofileView extends GetView<ProfileController> {
                       icon,
                       size: 19,
                       color: isDark
-                          ? colorScheme.primary.withOpacity(0.9)
+                          ? colorScheme.primary.withValues(alpha: 0.9)
                           : colorScheme.primary,
                     ),
                   ),
@@ -447,7 +449,7 @@ class EditprofileView extends GetView<ProfileController> {
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: value.isEmpty
-                          ? colorScheme.onSurfaceVariant.withOpacity(0.5)
+                          ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
                           : colorScheme.onSurface,
                     ),
                     maxLines: 1,
@@ -458,7 +460,7 @@ class EditprofileView extends GetView<ProfileController> {
                   Icon(
                     Icons.chevron_right,
                     size: 20,
-                    color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                   ),
               ],
             ),
@@ -499,7 +501,7 @@ class EditprofileView extends GetView<ProfileController> {
             decoration: InputDecoration(
               hintText: 'Enter $title',
               hintStyle: TextStyle(
-                color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -508,7 +510,7 @@ class EditprofileView extends GetView<ProfileController> {
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide(
-                  color: colorScheme.outlineVariant.withOpacity(0.7),
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.7),
                 ),
               ),
               focusedBorder: OutlineInputBorder(
@@ -579,7 +581,7 @@ class EditprofileView extends GetView<ProfileController> {
                   ),
                 ),
                 Divider(
-                  color: colorScheme.outlineVariant.withOpacity(0.5),
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                   height: 1,
                 ),
                 ListTile(

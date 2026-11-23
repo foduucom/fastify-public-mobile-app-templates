@@ -38,44 +38,44 @@ class DeleteAccountView extends GetView<DeleteAccountController> {
             const SizedBox(height: 10),
             Row(
               children: [
-                MyBullet(),
-                SizedBox(width: 10),
-                Text('Account'),
+                const MyBullet(),
+                const SizedBox(width: 10),
+                const Text('Account'),
               ],
             ),
             Row(
               children: [
-                MyBullet(),
-                SizedBox(width: 10),
-                Text('Order History'),
+                const MyBullet(),
+                const SizedBox(width: 10),
+                const Text('Order History'),
               ],
             ),
             Row(
               children: [
-                MyBullet(),
-                SizedBox(width: 10),
-                Text('Subscriptions'),
+                const MyBullet(),
+                const SizedBox(width: 10),
+                const Text('Subscriptions'),
               ],
             ),
             Row(
               children: [
-                MyBullet(),
-                SizedBox(width: 10),
-                Text('Comment'),
+                const MyBullet(),
+                const SizedBox(width: 10),
+                const Text('Comment'),
               ],
             ),
             Row(
               children: [
-                MyBullet(),
-                SizedBox(width: 10),
-                Text('Profile Image'),
+                const MyBullet(),
+                const SizedBox(width: 10),
+                const Text('Profile Image'),
               ],
             ),
             Row(
               children: [
-                MyBullet(),
-                SizedBox(width: 10),
-                Text('All Account related Data'),
+                const MyBullet(),
+                const SizedBox(width: 10),
+                const Text('All Account related Data'),
               ],
             ),
             const SizedBox(height: 20),
@@ -125,18 +125,18 @@ class DeleteAccountView extends GetView<DeleteAccountController> {
                 ),
               ],
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Obx(
               () => controller.account_delete.value
                   ? ElevatedButton.icon(
                       onPressed: () {
                         controller.deleteAccount();
                       },
-                      icon: Icon(
+                      icon: const Icon(
                         Icons.delete,
                         color: Colors.white,
                       ),
-                      label: Text(
+                      label: const Text(
                         "Delete my profile!",
                         style: TextStyle(color: Colors.white),
                       ),
@@ -151,13 +151,15 @@ class DeleteAccountView extends GetView<DeleteAccountController> {
 }
 
 class MyBullet extends StatelessWidget {
+  const MyBullet({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return new Container(
+    return Container(
       height: 10.0,
       width: 10.0,
-      decoration: new BoxDecoration(
-        color: const Color.fromARGB(255, 167, 158, 158),
+      decoration: const BoxDecoration(
+        color: Color.fromARGB(255, 167, 158, 158),
         shape: BoxShape.circle,
       ),
     );

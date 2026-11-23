@@ -17,7 +17,7 @@ class CartView extends GetView<CartController> {
         child: Column(
           children: [
             const SizedBox(height: 16),
-            AppTopBar(title: 'Add to Cart'),
+            const AppTopBar(title: 'Add to Cart'),
             const SizedBox(height: 16),
             Expanded(
               child: Obx(() {
@@ -34,7 +34,8 @@ class CartView extends GetView<CartController> {
                   itemBuilder: (_, i) {
                     final item = controller.cartItems[i];
                     return _CartItemCard(
-                      key: ValueKey(controller.itemId(item)), // ✅ prevents full rebuild
+                      key: ValueKey(
+                          controller.itemId(item)), // ✅ prevents full rebuild
                       item: item,
                     );
                   },
@@ -59,11 +60,11 @@ class _BottomBar extends GetView<CartController> {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white.withValues(alpha: 0.9),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, -4),
           ),
@@ -82,13 +83,13 @@ class _BottomBar extends GetView<CartController> {
                     fontWeight: FontWeight.w400,
                   )),
               Obx(() => Text(
-                '\$${controller.total.value.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A1A1A),
-                ),
-              )),
+                    '\$${controller.total.value.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1A1A1A),
+                    ),
+                  )),
             ],
           ),
           const SizedBox(width: 20),
@@ -105,7 +106,8 @@ class _BottomBar extends GetView<CartController> {
                       borderRadius: BorderRadius.circular(50)),
                 ),
                 child: const Text('Checkout',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
               ),
             ),
           ),
@@ -124,7 +126,8 @@ class _EmptyCart extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 100, height: 100,
+            width: 100,
+            height: 100,
             decoration: const BoxDecoration(
                 color: AppColors.scaffoldBackground, shape: BoxShape.circle),
             child: const Icon(Icons.shopping_basket_outlined,
@@ -169,11 +172,11 @@ class _CartItemCard extends GetView<CartController> {
 
   @override
   Widget build(BuildContext context) {
-    final name     = controller.itemName(item);
-    final price    = controller.itemPrice(item);
+    final name = controller.itemName(item);
+    final price = controller.itemPrice(item);
     final imageUrl = controller.itemImage(item);
-    final qty      = controller.itemQuantity(item);
-    final id       = controller.itemId(item);
+    final qty = controller.itemQuantity(item);
+    final id = controller.itemId(item);
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -185,7 +188,8 @@ class _CartItemCard extends GetView<CartController> {
         children: [
           // ── Image ──────────────────────────────────────────
           Container(
-            width: 90, height: 90,
+            width: 90,
+            height: 90,
             decoration: BoxDecoration(
               color: const Color(0xFFF5F3F0),
               borderRadius: BorderRadius.circular(14),
@@ -193,18 +197,19 @@ class _CartItemCard extends GetView<CartController> {
             clipBehavior: Clip.antiAlias,
             child: imageUrl.isNotEmpty
                 ? CachedNetworkImage(
-              imageUrl: imageUrl,
-              fit: BoxFit.contain,
-              placeholder: (_, __) => const Center(
-                child: CircularProgressIndicator(
-                    strokeWidth: 2, color: Color(0xFFD0D0D0)),
-              ),
-              errorWidget: (_, __, ___) => const Icon(
-                  Icons.chair_outlined,
-                  size: 40, color: Color(0xFFD0D0D0)),
-            )
+                    imageUrl: imageUrl,
+                    fit: BoxFit.contain,
+                    placeholder: (_, __) => const Center(
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Color(0xFFD0D0D0)),
+                    ),
+                    errorWidget: (_, __, ___) => const Icon(
+                        Icons.chair_outlined,
+                        size: 40,
+                        color: Color(0xFFD0D0D0)),
+                  )
                 : const Icon(Icons.chair_outlined,
-                size: 40, color: Color(0xFFD0D0D0)),
+                    size: 40, color: Color(0xFFD0D0D0)),
           ),
           const SizedBox(width: 14),
 
@@ -270,22 +275,23 @@ class _CartItemCard extends GetView<CartController> {
                       // ),
                       // Delete Button
                       GestureDetector(
-                        onTap: loading ? null : () => controller.removeItem(item),
+                        onTap:
+                            loading ? null : () => controller.removeItem(item),
                         child: Container(
-                          width: 36, height: 36,
+                          width: 36,
+                          height: 36,
                           decoration: BoxDecoration(
                             color: const Color(0xFFF5F5F5),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: loading
                               ? const Padding(
-                            padding: EdgeInsets.all(9),
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Color(0xFF1A1A1A)),
-                          )
+                                  padding: EdgeInsets.all(9),
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: Color(0xFF1A1A1A)),
+                                )
                               : const Icon(Icons.delete_outline,
-                              size: 18, color: Color(0xFF9E9E9E)),
+                                  size: 18, color: Color(0xFF9E9E9E)),
                         ),
                       ),
                     ],
@@ -303,16 +309,17 @@ class _CartItemCard extends GetView<CartController> {
 class _QtyButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
-  const _QtyButton({required this.icon, this.onTap});
+  const _QtyButton({required this.icon}) : onTap = null;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 32, height: 32,
-        decoration: const BoxDecoration(
-            color: Colors.white, shape: BoxShape.circle),
+        width: 32,
+        height: 32,
+        decoration:
+            const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
         child: Icon(icon, size: 16, color: const Color(0xFF1A1A1A)),
       ),
     );

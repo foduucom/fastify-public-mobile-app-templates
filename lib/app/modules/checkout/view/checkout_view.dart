@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import '../../../../app_colors.dart';
 import '../controller/checkout_controller.dart';
 
-
 class CheckoutView extends StatelessWidget {
   const CheckoutView({super.key});
 
@@ -20,21 +19,19 @@ class CheckoutView extends StatelessWidget {
             const SizedBox(height: 16),
             _buildTopBar(),
             const SizedBox(height: 16),
-
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     // ── Cart Items ────────────────────────────
                     Obx(() => Column(
-                      children: controller.cartItems
-                          .map((item) => _CheckoutItemCard(
-                          item: item, controller: controller))
-                          .toList(),
-                    )),
+                          children: controller.cartItems
+                              .map((item) => _CheckoutItemCard(
+                                  item: item, controller: controller))
+                              .toList(),
+                        )),
                     const SizedBox(height: 16),
 
                     // ── White Card Section ────────────────────
@@ -45,7 +42,6 @@ class CheckoutView extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-
                           // ── Address ──────────────────────────
                           // _buildAddressRow(controller),
                           _divider(),
@@ -53,25 +49,21 @@ class CheckoutView extends StatelessWidget {
                           // ── Payment Method ────────────────────
                           _buildSectionPad(
                             child: Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const _SectionTitle(
-                                    title: 'Payment method'),
+                                const _SectionTitle(title: 'Payment method'),
                                 const SizedBox(height: 12),
                                 Obx(() => _Dropdown(
-                                  hint: 'Select Payment method',
-                                  value: controller
-                                      .selectedPaymentMethod
-                                      .value
-                                      .isEmpty
-                                      ? null
-                                      : controller
-                                      .selectedPaymentMethod.value,
-                                  items: controller.paymentMethods,
-                                  onChanged: (v) => controller
-                                      .selectedPaymentMethod.value = v!,
-                                )),
+                                      hint: 'Select Payment method',
+                                      value: controller.selectedPaymentMethod
+                                              .value.isEmpty
+                                          ? null
+                                          : controller
+                                              .selectedPaymentMethod.value,
+                                      items: controller.paymentMethods,
+                                      onChanged: (v) => controller
+                                          .selectedPaymentMethod.value = v!,
+                                    )),
                               ],
                             ),
                           ),
@@ -80,22 +72,20 @@ class CheckoutView extends StatelessWidget {
                           // ── Promo / Voucher ────────────────────
                           _buildSectionPad(
                             child: Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const _SectionTitle(
-                                    title: 'Promo/voucher'),
+                                const _SectionTitle(title: 'Promo/voucher'),
                                 const SizedBox(height: 12),
                                 Obx(() => _Dropdown(
-                                  hint: 'Select voucher',
-                                  value: controller
-                                      .selectedVoucher.value.isEmpty
-                                      ? null
-                                      : controller.selectedVoucher.value,
-                                  items: controller.vouchers,
-                                  onChanged: (v) =>
-                                      controller.applyVoucher(v!),
-                                )),
+                                      hint: 'Select voucher',
+                                      value: controller
+                                              .selectedVoucher.value.isEmpty
+                                          ? null
+                                          : controller.selectedVoucher.value,
+                                      items: controller.vouchers,
+                                      onChanged: (v) =>
+                                          controller.applyVoucher(v!),
+                                    )),
                               ],
                             ),
                           ),
@@ -104,25 +94,24 @@ class CheckoutView extends StatelessWidget {
                           // ── SubTotal ───────────────────────────
                           _buildSectionPad(
                             child: Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const _SectionTitle(title: 'SubTotal'),
                                 const SizedBox(height: 14),
                                 _dashedDivider(),
                                 const SizedBox(height: 12),
                                 Obx(() => _PriceLine(
-                                  label:
-                                  'Item (${controller.cartItems.length}x):',
-                                  value: controller.subTotal.value,
-                                  isGray: true,
-                                )),
+                                      label:
+                                          'Item (${controller.cartItems.length}x):',
+                                      value: controller.subTotal.value,
+                                      isGray: true,
+                                    )),
                                 const SizedBox(height: 10),
                                 Obx(() => _PriceLine(
-                                  label: 'Delivery:',
-                                  value: controller.deliveryFee.value,
-                                  isGray: true,
-                                )),
+                                      label: 'Delivery:',
+                                      value: controller.deliveryFee.value,
+                                      isGray: true,
+                                    )),
                                 Obx(() {
                                   if (controller.discount.value <= 0) {
                                     return const SizedBox.shrink();
@@ -132,9 +121,8 @@ class CheckoutView extends StatelessWidget {
                                       const SizedBox(height: 10),
                                       _PriceLine(
                                         label: 'Discount:',
-                                        value:
-                                        -controller.discount.value,
-                                        isGray:     true,
+                                        value: -controller.discount.value,
+                                        isGray: true,
                                         isDiscount: true,
                                       ),
                                     ],
@@ -144,10 +132,10 @@ class CheckoutView extends StatelessWidget {
                                 _dashedDivider(),
                                 const SizedBox(height: 14),
                                 Obx(() => _PriceLine(
-                                  label: 'Order total',
-                                  value: controller.total.value,
-                                  isBold: true,
-                                )),
+                                      label: 'Order total',
+                                      value: controller.total.value,
+                                      isBold: true,
+                                    )),
                                 const SizedBox(height: 4),
                               ],
                             ),
@@ -167,35 +155,36 @@ class CheckoutView extends StatelessWidget {
       // ── Checkout Button ───────────────────────────────────────
       // ── Checkout Button ───────────────────────────────────────────
       bottomNavigationBar: Obx(() => Container(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-        color: const Color(0xFFEEECE8),
-        child: SizedBox(
-          height: 56,
-          child: ElevatedButton(
-            // ✅ Now calls placeOrder() directly
-            onPressed: controller.isPlacingOrder.value
-                ? null
-                : () => controller.placeOrder(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1A1A1A),
-              foregroundColor: Colors.white,
-              disabledBackgroundColor: const Color(0xFFD0CFC9),
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(50)),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+            color: const Color(0xFFEEECE8),
+            child: SizedBox(
+              height: 56,
+              child: ElevatedButton(
+                // ✅ Now calls placeOrder() directly
+                onPressed: controller.isPlacingOrder.value
+                    ? null
+                    : () => controller.placeOrder(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1A1A1A),
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: const Color(0xFFD0CFC9),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50)),
+                ),
+                child: controller.isPlacingOrder.value
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: AppColors.scaffoldBackground))
+                    : const Text('Place Order',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600)),
+              ),
             ),
-            child: controller.isPlacingOrder.value
-                ? const SizedBox(
-                width: 22, height: 22,
-                child: CircularProgressIndicator(
-                    strokeWidth: 2.5, color: AppColors.scaffoldBackground))
-                : const Text('Place Order',
-                style: TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w600)),
-          ),
-        ),
-      )),
-
+          )),
     );
   }
 
@@ -208,7 +197,8 @@ class CheckoutView extends StatelessWidget {
           GestureDetector(
             onTap: () => Get.back(),
             child: Container(
-              width: 44, height: 44,
+              width: 44,
+              height: 44,
               decoration: const BoxDecoration(
                   color: AppColors.scaffoldBackground, shape: BoxShape.circle),
               child: const Icon(Icons.arrow_back_ios_new_rounded,
@@ -229,22 +219,20 @@ class CheckoutView extends StatelessWidget {
     );
   }
 
-
-  Widget _divider() =>
-      Container(height: 1, color: const Color(0xFFF0EEEB));
+  Widget _divider() => Container(height: 1, color: const Color(0xFFF0EEEB));
 
   Widget _dashedDivider() => Row(
-    children: List.generate(
-      40,
+        children: List.generate(
+          40,
           (_) => Expanded(
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 2),
-          height: 1,
-          color: const Color(0xFFDDDDDD),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 2),
+              height: 1,
+              color: const Color(0xFFDDDDDD),
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 
   Widget _buildSectionPad({required Widget child}) =>
       Padding(padding: const EdgeInsets.all(20), child: child);
@@ -253,46 +241,45 @@ class CheckoutView extends StatelessWidget {
 // ── Checkout Item Card ────────────────────────────────────────────
 class _CheckoutItemCard extends StatelessWidget {
   final Map<String, dynamic> item;
-  final CheckoutController   controller;
-  const _CheckoutItemCard(
-      {required this.item, required this.controller});
+  final CheckoutController controller;
+  const _CheckoutItemCard({required this.item, required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    final name  = controller.itemName(item);
+    final name = controller.itemName(item);
     final price = controller.itemPrice(item);
     final image = controller.itemImage(item);
-    final qty   = controller.itemQuantity(item);
+    final qty = controller.itemQuantity(item);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20)),
+          color: Colors.white, borderRadius: BorderRadius.circular(20)),
       child: Row(
         children: [
           // Image
           Container(
-            width: 90, height: 90,
+            width: 90,
+            height: 90,
             decoration: BoxDecoration(
                 color: const Color(0xFFF5F3F0),
                 borderRadius: BorderRadius.circular(14)),
             clipBehavior: Clip.antiAlias,
             child: image.isNotEmpty
                 ? CachedNetworkImage(
-              imageUrl: image,
-              fit: BoxFit.contain,
-              placeholder: (_, __) => const Center(
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Color(0xFFD0D0D0))),
-              errorWidget: (_, __, ___) => const Icon(
-                  Icons.chair_outlined,
-                  size: 40, color: Color(0xFFD0D0D0)),
-            )
+                    imageUrl: image,
+                    fit: BoxFit.contain,
+                    placeholder: (_, __) => const Center(
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Color(0xFFD0D0D0))),
+                    errorWidget: (_, __, ___) => const Icon(
+                        Icons.chair_outlined,
+                        size: 40,
+                        color: Color(0xFFD0D0D0)),
+                  )
                 : const Icon(Icons.chair_outlined,
-                size: 40, color: Color(0xFFD0D0D0)),
+                    size: 40, color: Color(0xFFD0D0D0)),
           ),
           const SizedBox(width: 14),
 
@@ -320,8 +307,7 @@ class _CheckoutItemCard extends StatelessWidget {
 
           // Qty badge
           Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 14, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
                 color: const Color(0xFFF0EEEB),
                 borderRadius: BorderRadius.circular(50)),
@@ -362,19 +348,17 @@ class _Dropdown extends StatelessWidget {
         child: DropdownButton<String>(
           isExpanded: true,
           hint: Text(hint,
-              style: const TextStyle(
-                  fontSize: 14, color: Color(0xFFB0AEAB))),
+              style: const TextStyle(fontSize: 14, color: Color(0xFFB0AEAB))),
           value: value,
           icon: const Icon(Icons.keyboard_arrow_down_rounded,
               color: Color(0xFF9E9E9E)),
           items: items
               .map((e) => DropdownMenuItem(
-            value: e,
-            child: Text(e,
-                style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF1A1A1A))),
-          ))
+                    value: e,
+                    child: Text(e,
+                        style: const TextStyle(
+                            fontSize: 14, color: Color(0xFF1A1A1A))),
+                  ))
               .toList(),
           onChanged: onChanged,
         ),
@@ -393,31 +377,30 @@ class _PriceLine extends StatelessWidget {
   const _PriceLine({
     required this.label,
     required this.value,
-    this.isGray     = false,
-    this.isBold     = false,
+    this.isGray = false,
+    this.isBold = false,
     this.isDiscount = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color =
-    isGray ? const Color(0xFF9E9E9E) : const Color(0xFF1A1A1A);
+    final color = isGray ? const Color(0xFF9E9E9E) : const Color(0xFF1A1A1A);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label,
             style: TextStyle(
-                fontSize:   isBold ? 16 : 14,
+                fontSize: isBold ? 16 : 14,
                 fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
-                color:      color)),
+                color: color)),
         Text(
           isDiscount
               ? '-\$${value.abs().toStringAsFixed(2)}'
               : '\$${value.toStringAsFixed(2)}',
           style: TextStyle(
-              fontSize:   isBold ? 16 : 14,
+              fontSize: isBold ? 16 : 14,
               fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
-              color:      isDiscount ? Colors.green : color),
+              color: isDiscount ? Colors.green : color),
         ),
       ],
     );
@@ -433,8 +416,8 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(title,
         style: const TextStyle(
-            fontSize:   16,
+            fontSize: 16,
             fontWeight: FontWeight.w700,
-            color:      Color(0xFF1A1A1A)));
+            color: Color(0xFF1A1A1A)));
   }
 }

@@ -47,15 +47,5 @@ class ProductvariantController extends GetxController with BaseController {
     getYourSize.value = sizeList[getSelectedSize.value]['value'];
   }
 
-  @override
-  void onReady() {
-    super.onReady();
-  }
-
-  @override
-  void onClose() {
-    super.onClose();
-  }
-
   void increment() => count.value++;
 }

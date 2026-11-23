@@ -176,9 +176,11 @@ class ProfileController extends GetxController {
     final rawAddr = data['addresses'];
     if (rawAddr is List) {
       addresses.assignAll(
-        rawAddr.map<Map<String, dynamic>>(
-          (a) => Map<String, dynamic>.from(a as Map),
-        ).toList(),
+        rawAddr
+            .map<Map<String, dynamic>>(
+              (a) => Map<String, dynamic>.from(a as Map),
+            )
+            .toList(),
       );
     }
 
@@ -324,7 +326,7 @@ class ProfileController extends GetxController {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 20,
                 offset: const Offset(0, -4),
               ),
@@ -347,7 +349,7 @@ class ProfileController extends GetxController {
                 height: 56,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFE53935).withOpacity(0.12),
+                  color: const Color(0xFFE53935).withValues(alpha: 0.12),
                 ),
                 child: const Icon(
                   Icons.logout_rounded,

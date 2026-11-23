@@ -54,7 +54,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                   decoration: BoxDecoration(
-                    color: context.primaryColor.withOpacity(0.9),
+                    color: context.primaryColor.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(50),
                   ),
                   child: Text(
@@ -140,8 +140,9 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                   /// Password (login only, when not OTP mode)
                   if (!_isRegister)
                     Obx(() {
-                      if (_loginCtrl.isOtpMode.value)
+                      if (_loginCtrl.isOtpMode.value) {
                         return const SizedBox.shrink();
+                      }
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

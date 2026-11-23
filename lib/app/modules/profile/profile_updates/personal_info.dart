@@ -16,7 +16,7 @@ class PersonalInfoView extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 16),
-            AppTopBar(title: 'Edit Profile'),
+            const AppTopBar(title: 'Edit Profile'),
             const SizedBox(height: 24),
 
             Expanded(
@@ -25,7 +25,6 @@ class PersonalInfoView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     // ── Avatar Picker ───────────────────────
                     _AvatarPicker(controller: controller),
                     const SizedBox(height: 32),
@@ -70,7 +69,7 @@ class PersonalInfoView extends StatelessWidget {
                       hint: 'Enter your full address',
                       keyboardType: TextInputType.streetAddress,
                       textCapitalization: TextCapitalization.sentences,
-                      maxLines: 3,                // ✅ multiline for address
+                      maxLines: 3, // ✅ multiline for address
                     ),
                     const SizedBox(height: 40),
                   ],
@@ -97,24 +96,23 @@ class PersonalInfoView extends StatelessWidget {
         child: ElevatedButton(
           onPressed: active ? controller.onUpdate : null,
           style: ElevatedButton.styleFrom(
-            backgroundColor: active
-                ? const Color(0xFF1A1A1A)
-                : const Color(0xFFD0CFC9),
+            backgroundColor:
+                active ? const Color(0xFF1A1A1A) : const Color(0xFFD0CFC9),
             foregroundColor: Colors.white,
             disabledBackgroundColor: const Color(0xFFD0CFC9),
             disabledForegroundColor: Colors.white,
             elevation: 0,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(50)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
           ),
           child: controller.isLoading.value
               ? const SizedBox(
-              width: 22, height: 22,
-              child: CircularProgressIndicator(
-                  strokeWidth: 2.5, color: Colors.white))
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2.5, color: Colors.white))
               : const Text('Update',
-              style: TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.w600)),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         ),
       ),
     );
@@ -136,7 +134,8 @@ class _AvatarPicker extends StatelessWidget {
           return Stack(
             children: [
               Container(
-                width: 96, height: 96,
+                width: 96,
+                height: 96,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   color: Color(0xFFD9D9D9),
@@ -145,18 +144,19 @@ class _AvatarPicker extends StatelessWidget {
                 child: file != null
                     ? Image.file(file, fit: BoxFit.cover)
                     : const Icon(Icons.person,
-                    size: 48, color: Color(0xFF9E9E9E)),
+                        size: 48, color: Color(0xFF9E9E9E)),
               ),
               Positioned(
-                bottom: 0, right: 0,
+                bottom: 0,
+                right: 0,
                 child: Container(
-                  width: 28, height: 28,
+                  width: 28,
+                  height: 28,
                   decoration: const BoxDecoration(
                     color: Color(0xFF1A1A1A),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.edit,
-                      size: 14, color: Colors.white),
+                  child: const Icon(Icons.edit, size: 14, color: Colors.white),
                 ),
               ),
             ],
@@ -210,7 +210,7 @@ class _InputField extends StatelessWidget {
         controller: controller,
         keyboardType: keyboardType,
         textCapitalization: textCapitalization,
-        maxLines: maxLines,         // ✅ NEW
+        maxLines: maxLines, // ✅ NEW
         style: const TextStyle(fontSize: 15, color: Color(0xFF1A1A1A)),
         decoration: InputDecoration(
           hintText: hint,
@@ -221,8 +221,8 @@ class _InputField extends StatelessWidget {
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-              horizontal: 24, vertical: 18),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
         ),
       ),
     );

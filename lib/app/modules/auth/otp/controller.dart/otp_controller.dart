@@ -414,7 +414,7 @@ class OtpController extends GetxController with BaseController {
     countdown.value = 30;
     isResendVisible.value = false;
 
-    _countdownTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (countdown.value > 0) {
         countdown.value--;
       } else {

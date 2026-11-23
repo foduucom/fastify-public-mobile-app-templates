@@ -47,7 +47,7 @@ class WishlistView extends GetView<WishlistController> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: colors.primary.withOpacity(0.12),
+                    color: colors.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -208,7 +208,7 @@ class WishlistView extends GetView<WishlistController> {
                     Divider(
                       thickness: 1,
                       height: 32,
-                      color: colorScheme.outline.withOpacity(0.12),
+                      color: colorScheme.outline.withValues(alpha: 0.12),
                     ),
                     FoduuStudioLayoutView.embedded(
                       widgetList: controller.widgetList,
@@ -258,7 +258,7 @@ class WishlistView extends GetView<WishlistController> {
                   itemCount: controller.wishlistItems.length,
                   separatorBuilder: (_, __) => Divider(
                     thickness: 1,
-                    color: colorScheme.outline.withOpacity(0.15),
+                    color: colorScheme.outline.withValues(alpha: 0.15),
                   ),
                   itemBuilder: (context, index) {
                     if (index >= controller.wishlistItems.length) {
@@ -275,7 +275,7 @@ class WishlistView extends GetView<WishlistController> {
           Divider(
             thickness: 1,
             height: 32,
-            color: colorScheme.outline.withOpacity(0.12),
+            color: colorScheme.outline.withValues(alpha: 0.12),
           ),
 
           // ── Dynamic Layout Widgets ──
@@ -354,7 +354,7 @@ class _WishListGridItem extends StatelessWidget {
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: colorScheme.outline.withOpacity(0.15),
+            color: colorScheme.outline.withValues(alpha: 0.15),
             width: 1,
           ),
         ),
@@ -437,7 +437,7 @@ class _WishListGridItem extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: colorScheme.surface.withOpacity(0.8),
+                        color: colorScheme.surface.withValues(alpha: 0.8),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -492,7 +492,7 @@ class _WishListGridItem extends StatelessWidget {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(15),
                             border: Border.all(
-                              color: colorScheme.outline.withOpacity(0.3),
+                              color: colorScheme.outline.withValues(alpha: 0.3),
                             ),
                           ),
                           child: Row(
@@ -588,7 +588,7 @@ class _WishListItemCard extends StatelessWidget {
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: colorScheme.outline.withOpacity(0.15),
+            color: colorScheme.outline.withValues(alpha: 0.15),
             width: 1,
           ),
         ),
@@ -775,7 +775,7 @@ class _WishListItemCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: colorScheme.surface.withOpacity(0.9),
+                    color: colorScheme.surface.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -924,13 +924,13 @@ class ProductBadges extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: [
               _getBadgeColor(badge, colorScheme),
-              _getBadgeColor(badge, colorScheme).withOpacity(0.8),
+              _getBadgeColor(badge, colorScheme).withValues(alpha: 0.8),
             ],
           ),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: _getBadgeColor(badge, colorScheme).withOpacity(0.3),
+              color: _getBadgeColor(badge, colorScheme).withValues(alpha: 0.3),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),

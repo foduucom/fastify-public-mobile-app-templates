@@ -207,9 +207,7 @@ class BasicProvider {
               getFile.stream!,
               getFile.length ?? 0,
               filename: getFile.filename,
-              contentType: getFile.contentType != null
-                  ? MediaType.parse(getFile.contentType!)
-                  : null,
+              contentType: MediaType.parse(getFile.contentType),
             ));
           } else {
             print(

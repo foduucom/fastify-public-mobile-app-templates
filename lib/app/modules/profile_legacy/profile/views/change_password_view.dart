@@ -73,9 +73,9 @@ class ChangePasswordView extends GetView<ProfileController> {
                       ),
                       const SizedBox(height: 4),
                       Obx(
-                            () => TextFormField(
+                        () => TextFormField(
                           obscureText:
-                          !controller.oldPasswordObsecureValue.value,
+                              !controller.oldPasswordObsecureValue.value,
                           decoration: InputDecoration(
                             floatingLabelBehavior: FloatingLabelBehavior.never,
                             contentPadding: EdgeInsets.symmetric(
@@ -119,7 +119,7 @@ class ChangePasswordView extends GetView<ProfileController> {
                             suffixIcon: GestureDetector(
                               onTap: () {
                                 controller.oldPasswordObsecureValue.value =
-                                !controller.oldPasswordObsecureValue.value;
+                                    !controller.oldPasswordObsecureValue.value;
                               },
                               child: Icon(
                                 controller.oldPasswordObsecureValue.value
@@ -165,9 +165,9 @@ class ChangePasswordView extends GetView<ProfileController> {
                       ),
                       const SizedBox(height: 4),
                       Obx(
-                            () => TextFormField(
+                        () => TextFormField(
                           obscureText:
-                          !controller.newPasswordObsecureValue.value,
+                              !controller.newPasswordObsecureValue.value,
                           decoration: InputDecoration(
                             floatingLabelBehavior: FloatingLabelBehavior.never,
                             contentPadding: EdgeInsets.symmetric(
@@ -211,7 +211,7 @@ class ChangePasswordView extends GetView<ProfileController> {
                             suffixIcon: GestureDetector(
                               onTap: () {
                                 controller.newPasswordObsecureValue.value =
-                                !controller.newPasswordObsecureValue.value;
+                                    !controller.newPasswordObsecureValue.value;
                               },
                               child: Icon(
                                 controller.newPasswordObsecureValue.value
@@ -257,9 +257,9 @@ class ChangePasswordView extends GetView<ProfileController> {
                       ),
                       const SizedBox(height: 4),
                       Obx(
-                            () => TextFormField(
+                        () => TextFormField(
                           obscureText:
-                          !controller.comfirmPasswordObsecureValue.value,
+                              !controller.comfirmPasswordObsecureValue.value,
                           decoration: InputDecoration(
                             floatingLabelBehavior: FloatingLabelBehavior.never,
                             contentPadding: EdgeInsets.symmetric(
@@ -303,15 +303,15 @@ class ChangePasswordView extends GetView<ProfileController> {
                             suffixIcon: GestureDetector(
                               onTap: () {
                                 controller.comfirmPasswordObsecureValue.value =
-                                !controller
-                                    .comfirmPasswordObsecureValue.value;
+                                    !controller
+                                        .comfirmPasswordObsecureValue.value;
                               },
                               child: Icon(
                                 controller.comfirmPasswordObsecureValue.value
                                     ? Icons.visibility
                                     : Icons.visibility_off,
                                 color: controller
-                                    .comfirmPasswordObsecureValue.value
+                                        .comfirmPasswordObsecureValue.value
                                     ? Theme.of(context).primaryColor
                                     : Colors.grey,
                                 size: height * 0.022,
@@ -331,7 +331,8 @@ class ChangePasswordView extends GetView<ProfileController> {
                             if (value.length < 6) {
                               return 'Password must be at least 6 characters';
                             }
-                            if (value != controller.newPasswordController.text) {
+                            if (value !=
+                                controller.newPasswordController.text) {
                               return 'Passwords do not match';
                             }
                             return null;

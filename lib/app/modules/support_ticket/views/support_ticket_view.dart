@@ -27,7 +27,8 @@ class SupportTicketView extends GetView<SupportTicketController> {
           elevation: 0,
         ),
         floatingActionButton: Obx(() {
-          if (controller.isLoading.isTrue && controller.supportTickets.isEmpty) {
+          if (controller.isLoading.isTrue &&
+              controller.supportTickets.isEmpty) {
             return const SizedBox.shrink();
           }
           return FloatingActionButton.extended(
@@ -35,19 +36,22 @@ class SupportTicketView extends GetView<SupportTicketController> {
             foregroundColor: Colors.white,
             icon: const Icon(Icons.add),
             label: const Text('Generate Ticket'),
-            onPressed: () => _showGenerateTicketBottomSheet(context, colorScheme, textTheme),
+            onPressed: () =>
+                _showGenerateTicketBottomSheet(context, colorScheme, textTheme),
           );
         }),
         body: RefreshIndicator(
           color: theme.primaryColor,
           onRefresh: () => controller.getSupportTickets(),
           child: Obx(() {
-            if (controller.isLoading.isTrue && controller.supportTickets.isEmpty) {
+            if (controller.isLoading.isTrue &&
+                controller.supportTickets.isEmpty) {
               return ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: 6,
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (_, __) => _TicketCardShimmer(colorScheme: colorScheme),
+                itemBuilder: (_, __) =>
+                    _TicketCardShimmer(colorScheme: colorScheme),
               );
             }
 
@@ -56,8 +60,10 @@ class SupportTicketView extends GetView<SupportTicketController> {
                 builder: (context, constraints) => SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                    child: _EmptyState(colorScheme: colorScheme, textTheme: textTheme),
+                    constraints:
+                        BoxConstraints(minHeight: constraints.maxHeight),
+                    child: _EmptyState(
+                        colorScheme: colorScheme, textTheme: textTheme),
                   ),
                 ),
               );
@@ -74,12 +80,17 @@ class SupportTicketView extends GetView<SupportTicketController> {
                   colorScheme: colorScheme,
                   textTheme: textTheme,
                   onView: () {
-                    final id = ticket['id'] ?? ticket['_id'] ?? ticket['ticket_number'];
-                    Get.toNamed(Routes.SUPPORT_TICKET_DETAILS, arguments: {'id': id});
+                    final id = ticket['id'] ??
+                        ticket['_id'] ??
+                        ticket['ticket_number'];
+                    Get.toNamed(Routes.SUPPORT_TICKET_DETAILS,
+                        arguments: {'id': id});
                   },
-                  onClose: (ticket['status'] ?? '').toString().toLowerCase() == 'closed'
+                  onClose: (ticket['status'] ?? '').toString().toLowerCase() ==
+                          'closed'
                       ? null
-                      : () => _confirmCloseTicket(context, colorScheme, ticket, index),
+                      : () => _confirmCloseTicket(
+                          context, colorScheme, ticket, index),
                 );
               },
             );
@@ -89,20 +100,22 @@ class SupportTicketView extends GetView<SupportTicketController> {
     );
   }
 
-  void _confirmCloseTicket(
-      BuildContext context, ColorScheme colorScheme, dynamic ticket, int index) {
+  void _confirmCloseTicket(BuildContext context, ColorScheme colorScheme,
+      dynamic ticket, int index) {
     Get.dialog(
       AlertDialog(
         backgroundColor: colorScheme.surface,
-        title: Text('Close Ticket', style: TextStyle(color: colorScheme.onSurface)),
+        title: Text('Close Ticket',
+            style: TextStyle(color: colorScheme.onSurface)),
         content: Text(
           'Are you sure you want to close this support ticket? You will not be able to reply to it once closed.',
-          style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+          style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.7)),
         ),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: Text('Cancel', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+            child: Text('Cancel',
+                style: TextStyle(color: colorScheme.onSurfaceVariant)),
           ),
           TextButton(
             onPressed: () {
@@ -110,7 +123,8 @@ class SupportTicketView extends GetView<SupportTicketController> {
               final id = (ticket['id'] ?? ticket['_id']).toString();
               controller.closeSupportTicket(id, index);
             },
-            child: Text('Close Ticket', style: TextStyle(color: colorScheme.error)),
+            child: Text('Close Ticket',
+                style: TextStyle(color: colorScheme.error)),
           ),
         ],
       ),
@@ -131,7 +145,8 @@ class SupportTicketView extends GetView<SupportTicketController> {
 
     Get.bottomSheet(
       Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         child: Container(
           decoration: BoxDecoration(
             color: colorScheme.surface,
@@ -146,20 +161,25 @@ class SupportTicketView extends GetView<SupportTicketController> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text('Generate Ticket',
-                      style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600)),
+                      style: textTheme.titleLarge
+                          ?.copyWith(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: subjectController,
                     decoration: const InputDecoration(labelText: 'Subject'),
                     validator: (value) =>
-                        (value == null || value.trim().isEmpty) ? 'Subject is required' : null,
+                        (value == null || value.trim().isEmpty)
+                            ? 'Subject is required'
+                            : null,
                   ),
                   const SizedBox(height: 12),
                   Obx(() => DropdownButtonFormField<String>(
-                        value: selectedType.value,
-                        decoration: const InputDecoration(labelText: 'Ticket Type'),
+                        initialValue: selectedType.value,
+                        decoration:
+                            const InputDecoration(labelText: 'Ticket Type'),
                         items: ticketTypes
-                            .map((type) => DropdownMenuItem(value: type, child: Text(type)))
+                            .map((type) => DropdownMenuItem(
+                                value: type, child: Text(type)))
                             .toList(),
                         onChanged: (value) {
                           if (value != null) selectedType.value = value;
@@ -171,10 +191,14 @@ class SupportTicketView extends GetView<SupportTicketController> {
                     maxLines: 4,
                     decoration: const InputDecoration(labelText: 'Description'),
                     validator: (value) =>
-                        (value == null || value.trim().isEmpty) ? 'Description is required' : null,
+                        (value == null || value.trim().isEmpty)
+                            ? 'Description is required'
+                            : null,
                   ),
                   const SizedBox(height: 12),
-                  Text('Priority', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
+                  Text('Priority',
+                      style: textTheme.bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w500)),
                   const SizedBox(height: 8),
                   Obx(() => Wrap(
                         spacing: 8,
@@ -184,9 +208,12 @@ class SupportTicketView extends GetView<SupportTicketController> {
                           return ChoiceChip(
                             label: Text(priority),
                             selected: selected,
-                            selectedColor: color.withOpacity(0.15),
-                            labelStyle: TextStyle(color: selected ? color : colorScheme.onSurface),
-                            onSelected: (_) => selectedPriority.value = priority,
+                            selectedColor: color.withValues(alpha: 0.15),
+                            labelStyle: TextStyle(
+                                color:
+                                    selected ? color : colorScheme.onSurface),
+                            onSelected: (_) =>
+                                selectedPriority.value = priority,
                           );
                         }).toList(),
                       )),
@@ -194,8 +221,10 @@ class SupportTicketView extends GetView<SupportTicketController> {
                   Obx(() => selectedFile.value == null
                       ? OutlinedButton.icon(
                           onPressed: () async {
-                            final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-                            if (picked != null) selectedFile.value = File(picked.path);
+                            final picked = await ImagePicker()
+                                .pickImage(source: ImageSource.gallery);
+                            if (picked != null)
+                              selectedFile.value = File(picked.path);
                           },
                           icon: const Icon(Icons.attach_file),
                           label: const Text('Attach Image'),
@@ -204,7 +233,8 @@ class SupportTicketView extends GetView<SupportTicketController> {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
-                              child: Image.file(selectedFile.value!, width: 48, height: 48, fit: BoxFit.cover),
+                              child: Image.file(selectedFile.value!,
+                                  width: 48, height: 48, fit: BoxFit.cover),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -238,12 +268,15 @@ class SupportTicketView extends GetView<SupportTicketController> {
                               : () async {
                                   if (!formKey.currentState!.validate()) return;
                                   isSubmitting.value = true;
-                                  final success = await controller.createSupportTicket(
+                                  final success =
+                                      await controller.createSupportTicket(
                                     subject: subjectController.text.trim(),
                                     message: descriptionController.text.trim(),
                                     priority: selectedPriority.value,
                                     ticketType: selectedType.value,
-                                    files: selectedFile.value != null ? [selectedFile.value!] : const [],
+                                    files: selectedFile.value != null
+                                        ? [selectedFile.value!]
+                                        : const [],
                                   );
                                   isSubmitting.value = false;
                                   if (success) Get.back();
@@ -252,7 +285,8 @@ class SupportTicketView extends GetView<SupportTicketController> {
                               ? const SizedBox(
                                   height: 20,
                                   width: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: Colors.white),
                                 )
                               : const Text('Submit'),
                         ),
@@ -268,7 +302,8 @@ class SupportTicketView extends GetView<SupportTicketController> {
     );
   }
 
-  static Color _priorityColor(String priority) => SupportTicketStatus.priorityColor(priority);
+  static Color _priorityColor(String priority) =>
+      SupportTicketStatus.priorityColor(priority);
 }
 
 class _TicketCard extends StatelessWidget {
@@ -294,17 +329,21 @@ class _TicketCard extends StatelessWidget {
     final status = (ticket['status'] ?? 'new').toString();
     final priority = (ticket['priority'] ?? 'medium').toString();
     final createdAt = ticket['created_at']?.toString();
-    final createdDate =
-        (createdAt != null && createdAt.isNotEmpty) ? HelperFunctions().toCarbonToHumanDateFormat(createdAt) : '';
+    final createdDate = (createdAt != null && createdAt.isNotEmpty)
+        ? HelperFunctions().toCarbonToHumanDateFormat(createdAt)
+        : '';
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.08)),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.08)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 3)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 3)),
         ],
       ),
       child: Column(
@@ -315,7 +354,7 @@ class _TicketCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: colorScheme.onSurface.withOpacity(0.06),
+                  color: colorScheme.onSurface.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text('TKT-$id', style: textTheme.labelSmall),
@@ -325,14 +364,17 @@ class _TicketCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(subject, style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+          Text(subject,
+              style:
+                  textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
           if (message.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
               message,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.5)),
+              style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.5)),
             ),
           ],
           const SizedBox(height: 10),
@@ -342,14 +384,16 @@ class _TicketCard extends StatelessWidget {
               const Spacer(),
               if (createdDate.isNotEmpty)
                 Text(createdDate,
-                    style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.4))),
+                    style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurface.withValues(alpha: 0.4))),
               const SizedBox(width: 8),
               InkWell(
                 onTap: onView,
                 borderRadius: BorderRadius.circular(20),
                 child: Padding(
                   padding: const EdgeInsets.all(4),
-                  child: Icon(Icons.visibility_outlined, size: 18, color: Theme.of(context).primaryColor),
+                  child: Icon(Icons.visibility_outlined,
+                      size: 18, color: Theme.of(context).primaryColor),
                 ),
               ),
               if (onClose != null) ...[
@@ -359,7 +403,8 @@ class _TicketCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   child: Padding(
                     padding: const EdgeInsets.all(4),
-                    child: Icon(Icons.check_circle_outline, size: 18, color: colorScheme.error),
+                    child: Icon(Icons.check_circle_outline,
+                        size: 18, color: colorScheme.error),
                   ),
                 ),
               ],
@@ -382,13 +427,14 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.5)),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
       child: Text(
         status,
-        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
+        style:
+            TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -415,13 +461,17 @@ class _PriorityBadge extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+      decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(6)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 12, color: color),
           const SizedBox(width: 3),
-          Text(priority, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600)),
+          Text(priority,
+              style: TextStyle(
+                  color: color, fontSize: 11, fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -442,16 +492,22 @@ class _EmptyState extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(color: colorScheme.onSurface.withOpacity(0.06), shape: BoxShape.circle),
-            child: Icon(Icons.confirmation_num_outlined, size: 48, color: colorScheme.onSurface.withOpacity(0.35)),
+            decoration: BoxDecoration(
+                color: colorScheme.onSurface.withValues(alpha: 0.06),
+                shape: BoxShape.circle),
+            child: Icon(Icons.confirmation_num_outlined,
+                size: 48, color: colorScheme.onSurface.withValues(alpha: 0.35)),
           ),
           const SizedBox(height: 20),
-          Text('No Support Tickets', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+          Text('No Support Tickets',
+              style:
+                  textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Text(
             'Tap "Generate Ticket" to raise a new support request.',
             textAlign: TextAlign.center,
-            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface.withOpacity(0.5)),
+            style: textTheme.bodyMedium
+                ?.copyWith(color: colorScheme.onSurface.withValues(alpha: 0.5)),
           ),
         ],
       ),
@@ -466,7 +522,8 @@ class _TicketCardShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final base = isDark ? colorScheme.surfaceVariant : Colors.grey.shade300;
+    final base =
+        isDark ? colorScheme.surfaceContainerHighest : Colors.grey.shade300;
     final highlight = isDark ? colorScheme.surface : Colors.white;
 
     return Shimmer.fromColors(
@@ -474,7 +531,8 @@ class _TicketCardShimmer extends StatelessWidget {
       highlightColor: highlight,
       child: Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(14)),
+        decoration:
+            BoxDecoration(color: base, borderRadius: BorderRadius.circular(14)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

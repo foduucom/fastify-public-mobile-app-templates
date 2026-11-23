@@ -15,18 +15,18 @@ class ChangePasswordView extends StatefulWidget {
 class _ChangePasswordViewState extends State<ChangePasswordView> {
   final _formKey = GlobalKey<FormState>();
 
-  int _selectedTab = 0;
-  final _oldPasswordCtrl     = TextEditingController();
-  final _newPasswordCtrl     = TextEditingController();
+  final int _selectedTab = 0;
+  final _oldPasswordCtrl = TextEditingController();
+  final _newPasswordCtrl = TextEditingController();
   final _confirmPasswordCtrl = TextEditingController();
-  bool _oldVisible     = false;
-  bool _newVisible     = false;
+  bool _oldVisible = false;
+  bool _newVisible = false;
   bool _confirmVisible = false;
 
   bool get _hasInput =>
       _oldPasswordCtrl.text.isNotEmpty &&
-          _newPasswordCtrl.text.isNotEmpty &&
-          _confirmPasswordCtrl.text.isNotEmpty;
+      _newPasswordCtrl.text.isNotEmpty &&
+      _confirmPasswordCtrl.text.isNotEmpty;
 
   @override
   void dispose() {
@@ -46,7 +46,9 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
             const SizedBox(height: 16),
 
             // ── Top Bar ─────────────────────────────────────────
-            AppTopBar(title: 'change password',),
+            const AppTopBar(
+              title: 'change password',
+            ),
             const SizedBox(height: 12),
 
             Expanded(
@@ -58,10 +60,9 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       // ── Show fields based on tab ───────────
                       if (_selectedTab == 0) ...[
-                        _FieldLabel(label: 'Old password'),
+                        const _FieldLabel(label: 'Old password'),
                         const SizedBox(height: 10),
                         _PasswordField(
                           controller: _oldPasswordCtrl,
@@ -71,8 +72,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                               setState(() => _oldVisible = !_oldVisible),
                         ),
                         const SizedBox(height: 20),
-
-                        _FieldLabel(label: 'New password'),
+                        const _FieldLabel(label: 'New password'),
                         const SizedBox(height: 10),
                         _PasswordField(
                           controller: _newPasswordCtrl,
@@ -82,18 +82,16 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                               setState(() => _newVisible = !_newVisible),
                         ),
                         const SizedBox(height: 20),
-
-                        _FieldLabel(label: 'Confirm password'),
+                        const _FieldLabel(label: 'Confirm password'),
                         const SizedBox(height: 10),
                         _PasswordField(
                           controller: _confirmPasswordCtrl,
                           hint: 'Enter your confirm password',
                           isVisible: _confirmVisible,
                           onToggle: () => setState(
-                                  () => _confirmVisible = !_confirmVisible),
+                              () => _confirmVisible = !_confirmVisible),
                         ),
                       ] else ...[
-
                         // ── Security Tab Placeholder ───────────
                         const SizedBox(height: 40),
                         Center(
@@ -148,9 +146,8 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
         child: ElevatedButton(
           onPressed: _hasInput ? _onUpdate : null,
           style: ElevatedButton.styleFrom(
-            backgroundColor: _hasInput
-                ? const Color(0xFF1A1A1A)
-                : const Color(0xFFD0CFC9),
+            backgroundColor:
+                _hasInput ? const Color(0xFF1A1A1A) : const Color(0xFFD0CFC9),
             foregroundColor: AppColors.scaffoldBackground,
             disabledBackgroundColor: const Color(0xFFD0CFC9),
             disabledForegroundColor: AppColors.scaffoldBackground,
@@ -195,6 +192,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
     );
   }
 }
+
 class _FieldLabel extends StatelessWidget {
   final String label;
   const _FieldLabel({required this.label});

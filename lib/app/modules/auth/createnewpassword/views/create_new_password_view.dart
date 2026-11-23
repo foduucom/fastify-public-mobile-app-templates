@@ -96,4 +96,3 @@ class CreateNewPasswordView extends GetView<CreateNewPasswordController> {
     );
   }
 }
-

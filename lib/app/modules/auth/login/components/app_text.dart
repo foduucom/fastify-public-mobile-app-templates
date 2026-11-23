@@ -46,4 +46,3 @@ class AppText extends StatelessWidget {
     );
   }
 }
-

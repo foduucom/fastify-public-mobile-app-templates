@@ -133,7 +133,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
-              color: colorScheme.primary.withOpacity(0.12),
+              color: colorScheme.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
@@ -183,9 +183,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
                     size: 15, color: colorScheme.onSurfaceVariant),
                 const SizedBox(width: 4),
                 Text(
-                  blog.formattedDate.isNotEmpty
-                      ? blog.formattedDate
-                      : 'Recent',
+                  blog.formattedDate.isNotEmpty ? blog.formattedDate : 'Recent',
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -244,7 +242,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
           imageUrl: blog.imageUrl!,
           fit: BoxFit.cover,
           placeholder: (_, __) => Container(
-            color: colorScheme.surfaceVariant,
+            color: colorScheme.surfaceContainerHighest,
             child: const Center(
               child: SizedBox(
                 width: 24,
@@ -265,7 +263,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return Container(
+    return SizedBox(
       width: double.infinity,
       child: HtmlWidget(
         blog.content.isNotEmpty ? blog.content : '<p>${blog.excerpt}</p>',
@@ -278,10 +276,10 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
           if (element.localName == 'blockquote') {
             return {
               'background-color':
-                  '#${colorScheme.surfaceVariant.value.toRadixString(16).substring(2)}',
+                  '#${colorScheme.surfaceContainerHighest.toARGB32().toRadixString(16).substring(2)}',
               'padding': '14px 18px',
               'border-left':
-                  '4px solid #${colorScheme.primary.value.toRadixString(16).substring(2)}',
+                  '4px solid #${colorScheme.primary.toARGB32().toRadixString(16).substring(2)}',
               'font-style': 'italic',
               'margin': '16px 0',
               'border-radius': '6px',
@@ -294,7 +292,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
               'font-weight': 'bold',
               'margin': '14px 0 8px 0',
               'color':
-                  '#${colorScheme.onSurface.value.toRadixString(16).substring(2)}',
+                  '#${colorScheme.onSurface.toARGB32().toRadixString(16).substring(2)}',
             };
           }
           return null;
@@ -334,11 +332,13 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
             runSpacing: 6,
             children: tags.map((tag) {
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: colorScheme.surfaceVariant,
+                  color: colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                  border: Border.all(
+                      color: colorScheme.outline.withValues(alpha: 0.2)),
                 ),
                 child: Text(
                   '#$tag',
@@ -372,7 +372,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.15)),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.15)),
       ),
       child: Column(
         children: [
@@ -387,7 +387,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceVariant,
+                        color: colorScheme.surfaceContainerHighest,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(Icons.arrow_back_rounded,
@@ -426,7 +426,8 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
               ),
             ),
           if (prev != null && next != null)
-            Divider(color: colorScheme.outline.withOpacity(0.12), height: 16),
+            Divider(
+                color: colorScheme.outline.withValues(alpha: 0.12), height: 16),
           if (next != null)
             InkWell(
               onTap: () => controller.openBlog(next),
@@ -466,7 +467,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceVariant,
+                        color: colorScheme.surfaceContainerHighest,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(Icons.arrow_forward_rounded,
@@ -490,18 +491,20 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceVariant.withOpacity(0.5),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.15)),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.15)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CircleAvatar(
             radius: 24,
-            backgroundColor: colorScheme.primary.withOpacity(0.2),
+            backgroundColor: colorScheme.primary.withValues(alpha: 0.2),
             child: Text(
-              blog.authorName.isNotEmpty ? blog.authorName[0].toUpperCase() : 'A',
+              blog.authorName.isNotEmpty
+                  ? blog.authorName[0].toUpperCase()
+                  : 'A',
               style: TextStyle(
                 color: colorScheme.primary,
                 fontWeight: FontWeight.bold,
@@ -592,7 +595,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
                   color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                      color: colorScheme.outline.withOpacity(0.12)),
+                      color: colorScheme.outline.withValues(alpha: 0.12)),
                 ),
                 child: Row(
                   children: [
@@ -607,14 +610,14 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
                                 imageUrl: item.imageUrl!,
                                 fit: BoxFit.cover,
                                 errorWidget: (_, __, ___) => Container(
-                                  color: colorScheme.surfaceVariant,
+                                  color: colorScheme.surfaceContainerHighest,
                                   child: Icon(Icons.article_outlined,
                                       size: 20,
                                       color: colorScheme.onSurfaceVariant),
                                 ),
                               )
                             : Container(
-                                color: colorScheme.surfaceVariant,
+                                color: colorScheme.surfaceContainerHighest,
                                 child: Icon(Icons.article_outlined,
                                     size: 20,
                                     color: colorScheme.onSurfaceVariant),

@@ -105,7 +105,7 @@ class CategoryDialog extends StatelessWidget {
                 ),
                 tooltip: 'Expand view',
               ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             // Close button
             GestureDetector(
               onTap: () => Get.back(),
@@ -163,7 +163,7 @@ class CategoryDialog extends StatelessWidget {
             maxHeight: height * 0.3,
           ),
           child: ListView.builder(
-            padding: EdgeInsets.all(0),
+            padding: const EdgeInsets.all(0),
             shrinkWrap: true,
             physics: const BouncingScrollPhysics(),
             itemCount: displayedChildren.length,
@@ -190,7 +190,7 @@ class CategoryDialog extends StatelessWidget {
                   size: height * 0.016,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(
                   '+ ${children.length - 3} more categories',
                   style: TextStyle(
@@ -227,7 +227,7 @@ class CategoryDialog extends StatelessWidget {
         // Show all categories
         Expanded(
           child: ListView.builder(
-            padding: EdgeInsets.all(0),
+            padding: const EdgeInsets.all(0),
             physics: const BouncingScrollPhysics(),
             itemCount: children.length,
             itemBuilder: ((context, index) {
@@ -253,7 +253,7 @@ class CategoryDialog extends StatelessWidget {
       int index,
       CategoryDialogController dialogController) {
     return ExpansionPanelList(
-      animationDuration: Duration(milliseconds: 500),
+      animationDuration: const Duration(milliseconds: 500),
       elevation: 0,
       expandedHeaderPadding: EdgeInsets.zero,
       children: [
@@ -291,10 +291,10 @@ class CategoryDialog extends StatelessWidget {
                   )
                 : Column(
                     children: [
-                      Divider(height: 2),
+                      const Divider(height: 2),
                       ListView.builder(
                         shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
+                        physics: const NeverScrollableScrollPhysics(),
                         itemCount: dialogController.subcategory.length,
                         itemBuilder: (context, subindex) {
                           return GestureDetector(
@@ -307,7 +307,8 @@ class CategoryDialog extends StatelessWidget {
                                     "DEBUG: Navigating from Sub-subcategory: ${dialogController.subcategory[subindex]['name']}");
                                 print(
                                     "DEBUG: Arguments: {productId: ${dialogController.subcategory[subindex]['_id']}, categorySlug: ${dialogController.subcategory[subindex]['slug']}}");
-                                openShop({
+                                openShop(
+                                  {
                                     'productId': dialogController
                                         .subcategory[subindex]['_id'],
                                     'categorySlug': dialogController
@@ -325,7 +326,7 @@ class CategoryDialog extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 Padding(
-                                  padding: EdgeInsets.fromLTRB(
+                                  padding: const EdgeInsets.fromLTRB(
                                     40.0,
                                     10.0,
                                     10.0,
@@ -346,7 +347,7 @@ class CategoryDialog extends StatelessWidget {
                           );
                         },
                       ),
-                      Divider(height: 2),
+                      const Divider(height: 2),
                     ],
                   ),
           ),
@@ -383,7 +384,7 @@ class CategoryDialog extends StatelessWidget {
             dialogController.isExpandedView.value
                 ? 'Show Less'
                 : 'View All Categories',
-            style: TextStyle(
+            style: const TextStyle(
               fontFamily: 'Plus Jakarta Sans',
               fontSize: 16,
               fontWeight: FontWeight.w600,

@@ -93,7 +93,7 @@ class BottombarController extends GetxController with BaseController {
     Get.until((route) => Get.isDialogOpen != true);
     // ShoppingHelper.defaultdialogbox(
     //     'Product Added to Wishlist'.tr, themePrimaryColor);
-    Future.delayed(Duration(seconds: 1), (() => Get.back()));
+    Future.delayed(const Duration(seconds: 1), (() => Get.back()));
   }
 
   void onTabChange(value) {
@@ -109,11 +109,6 @@ class BottombarController extends GetxController with BaseController {
     // } else {
     //   Get.to(() => const EmptycartView());
     // }
-  }
-
-  @override
-  void onReady() {
-    super.onReady();
   }
 
   void addToCart(dynamic item) {

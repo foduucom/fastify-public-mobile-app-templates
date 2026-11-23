@@ -125,7 +125,8 @@ class OtpView extends GetView<OtpController> {
                         // ✅ Dynamic borders
                         activeColor: context.primaryColor,
                         selectedColor: context.primaryColor,
-                        inactiveColor: context.onSurfaceColor.withOpacity(0.12),
+                        inactiveColor:
+                            context.onSurfaceColor.withValues(alpha: 0.12),
                       ),
 
                       enableActiveFill: true,

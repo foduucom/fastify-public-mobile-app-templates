@@ -180,7 +180,7 @@ class OrderCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: theme.surface,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: theme.outline.withOpacity(0.25)),
+          border: Border.all(color: theme.outline.withValues(alpha: 0.25)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,

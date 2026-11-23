@@ -30,7 +30,7 @@ class InternetconnectionController extends GetxController {
         showInternetErrorDialog();
       } else {
         if (isOnNoInternetScreen.value) {
-          Future.delayed(Duration(milliseconds: 300), () {
+          Future.delayed(const Duration(milliseconds: 300), () {
             returnFromNoInternetScreen();
           });
         }
@@ -80,7 +80,7 @@ class InternetconnectionController extends GetxController {
       // Check if we should navigate back
       if (connectionStatus.value == true &&
           isOnNoInternetScreen.value == true) {
-        await Future.delayed(Duration(milliseconds: 500));
+        await Future.delayed(const Duration(milliseconds: 500));
         returnFromNoInternetScreen();
       } else if (connectionStatus.value == false) {
         print('=== Still no connection ===');

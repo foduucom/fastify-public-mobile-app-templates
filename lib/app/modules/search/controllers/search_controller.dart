@@ -233,23 +233,30 @@ class SearchsController extends GetxController
     if (q.isEmpty) return;
 
     // Match products from pre-hydrated CMS layout
-    final matchedProducts = searchProduct.where((p) {
-      if (p is Map) {
-        final name = (p['name'] ?? p['title'] ?? '').toString().toLowerCase();
-        final brand = (p['brand'] ?? '').toString().toLowerCase();
-        return name.contains(q) || brand.contains(q);
-      }
-      return false;
-    }).take(6).toList();
+    final matchedProducts = searchProduct
+        .where((p) {
+          if (p is Map) {
+            final name =
+                (p['name'] ?? p['title'] ?? '').toString().toLowerCase();
+            final brand = (p['brand'] ?? '').toString().toLowerCase();
+            return name.contains(q) || brand.contains(q);
+          }
+          return false;
+        })
+        .take(6)
+        .toList();
 
     // Match brands
-    final matchedBrands = brands.where((b) {
-      if (b is Map) {
-        final name = (b['name'] ?? '').toString().toLowerCase();
-        return name.contains(q);
-      }
-      return false;
-    }).take(4).toList();
+    final matchedBrands = brands
+        .where((b) {
+          if (b is Map) {
+            final name = (b['name'] ?? '').toString().toLowerCase();
+            return name.contains(q);
+          }
+          return false;
+        })
+        .take(4)
+        .toList();
 
     // Match blogs if cached
     List matchedBlogs = [];
@@ -264,7 +271,9 @@ class SearchsController extends GetxController
           .toList();
     }
 
-    if (matchedProducts.isNotEmpty || matchedBrands.isNotEmpty || matchedBlogs.isNotEmpty) {
+    if (matchedProducts.isNotEmpty ||
+        matchedBrands.isNotEmpty ||
+        matchedBlogs.isNotEmpty) {
       autocompleteProducts.assignAll(matchedProducts);
       autocompleteCategories.assignAll(matchedBrands);
       autocompleteBlogs.assignAll(matchedBlogs);
@@ -297,7 +306,9 @@ class SearchsController extends GetxController
           final categories = resData['categories'] ?? [];
           final blogs = resData['blogs'] ?? [];
 
-          if (products.isNotEmpty || categories.isNotEmpty || blogs.isNotEmpty) {
+          if (products.isNotEmpty ||
+              categories.isNotEmpty ||
+              blogs.isNotEmpty) {
             autocompleteProducts.assignAll(products);
             autocompleteCategories.assignAll(categories);
             autocompleteBlogs.assignAll(blogs);

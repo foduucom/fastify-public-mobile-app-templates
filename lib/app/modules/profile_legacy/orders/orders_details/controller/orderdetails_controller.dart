@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'package:foddu/app/modules/auth/token_manager.dart';
-import 'package:foddu/constants/constants.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:http/http.dart' as http;
 
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
@@ -119,7 +117,7 @@ class OrderdetailController extends GetxController with BaseController {
         HelperFunctions()
             .showSnackBarSuccess('Invoice downloaded and saved successfully');
       } catch (e) {
-        print('error inn pdf downoad ${e}');
+        print('error inn pdf downoad $e');
         downloading.value = false;
         HelperFunctions().showSnackBarError('Failed to download Invoice');
       }
@@ -137,7 +135,7 @@ class OrderdetailController extends GetxController with BaseController {
     if (token != null) {
       userHeader = {
         "Accept": "application/json",
-        "Authorization": "Bearer ${token}"
+        "Authorization": "Bearer $token"
       };
     } else {
       userHeader = {
@@ -180,16 +178,6 @@ class OrderdetailController extends GetxController with BaseController {
   //     // Handle error
   //   }
   // }
-
-  @override
-  void onReady() {
-    super.onReady();
-  }
-
-  @override
-  void onClose() {
-    super.onClose();
-  }
 
   Future<void> postReview(
       {required String summary, required int rating}) async {

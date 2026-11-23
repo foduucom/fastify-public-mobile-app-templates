@@ -13,7 +13,7 @@ import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 
 class OrderdetailView extends GetView<OrderdetailController> {
-  OrderdetailView({Key? key}) : super(key: key);
+  const OrderdetailView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -13,7 +13,6 @@ class OrderSuccessView extends StatefulWidget {
 
 class _OrderSuccessViewState extends State<OrderSuccessView>
     with TickerProviderStateMixin {
-
   late AnimationController _badgeCtrl;
   late AnimationController _confettiCtrl;
   late AnimationController _textCtrl;
@@ -21,15 +20,14 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
   late Animation<double> _badgeScale;
   late Animation<double> _badgeFade;
   late Animation<double> _textFade;
-  late Animation<Offset>  _textSlide;
+  late Animation<Offset> _textSlide;
 
   // Confetti pieces data
   final List<_ConfettiPiece> _pieces = [];
   late Animation<double> _confettiAnim;
 
   // Order data passed via Get.arguments
-  String get _orderNo =>
-      (Get.arguments as Map?)?['order_no']?.toString() ?? '';
+  String get _orderNo => (Get.arguments as Map?)?['order_no']?.toString() ?? '';
 
   @override
   void initState() {
@@ -38,43 +36,43 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
 
     // ── Badge pop animation ───────────────────────────────────
     _badgeCtrl = AnimationController(
-      vsync:    this,
+      vsync: this,
       duration: const Duration(milliseconds: 600),
     );
     _badgeScale = CurvedAnimation(
       parent: _badgeCtrl,
-      curve:  Curves.elasticOut,
+      curve: Curves.elasticOut,
     );
     _badgeFade = CurvedAnimation(
       parent: _badgeCtrl,
-      curve:  Curves.easeIn,
+      curve: Curves.easeIn,
     );
 
     // ── Confetti fall animation ───────────────────────────────
     _confettiCtrl = AnimationController(
-      vsync:    this,
+      vsync: this,
       duration: const Duration(milliseconds: 2200),
     );
     _confettiAnim = CurvedAnimation(
       parent: _confettiCtrl,
-      curve:  Curves.easeOut,
+      curve: Curves.easeOut,
     );
 
     // ── Text slide-up animation ───────────────────────────────
     _textCtrl = AnimationController(
-      vsync:    this,
+      vsync: this,
       duration: const Duration(milliseconds: 500),
     );
     _textFade = CurvedAnimation(
       parent: _textCtrl,
-      curve:  Curves.easeIn,
+      curve: Curves.easeIn,
     );
     _textSlide = Tween<Offset>(
       begin: const Offset(0, 0.3),
-      end:   Offset.zero,
+      end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _textCtrl,
-      curve:  Curves.easeOut,
+      curve: Curves.easeOut,
     ));
 
     // ── Sequence: badge → confetti → text ────────────────────
@@ -98,14 +96,14 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
     ];
     for (int i = 0; i < 48; i++) {
       _pieces.add(_ConfettiPiece(
-        x:      rng.nextDouble(),
-        y:      rng.nextDouble() * 0.7,
-        color:  colors[rng.nextInt(colors.length)],
-        size:   rng.nextDouble() * 10 + 6,
-        angle:  rng.nextDouble() * pi * 2,
+        x: rng.nextDouble(),
+        y: rng.nextDouble() * 0.7,
+        color: colors[rng.nextInt(colors.length)],
+        size: rng.nextDouble() * 10 + 6,
+        angle: rng.nextDouble() * pi * 2,
         isRect: rng.nextBool(),
-        speed:  rng.nextDouble() * 0.4 + 0.6,
-        sway:   (rng.nextDouble() - 0.5) * 0.08,
+        speed: rng.nextDouble() * 0.4 + 0.6,
+        sway: (rng.nextDouble() - 0.5) * 0.08,
       ));
     }
   }
@@ -127,7 +125,9 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
       body: SafeArea(
         child: Column(
           children: [
-            AppTopBar(title: 'Help & Support',),
+            const AppTopBar(
+              title: 'Help & Support',
+            ),
             Expanded(
               child: Stack(
                 alignment: Alignment.center,
@@ -137,7 +137,7 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
                     builder: (_, __) => CustomPaint(
                       size: Size(size.width, size.height * 0.65),
                       painter: _ConfettiPainter(
-                        pieces:   _pieces,
+                        pieces: _pieces,
                         progress: _confettiAnim.value,
                       ),
                     ),
@@ -158,9 +158,11 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
                               color: Color(0xFF1A1A1A),
                               shape: BoxShape.circle,
                             ),
-                            child: ClipOval( // ✅ ensures image stays circular
+                            child: ClipOval(
+                              // ✅ ensures image stays circular
                               child: Padding(
-                                padding: const EdgeInsets.all(20), // adjust spacing
+                                padding:
+                                    const EdgeInsets.all(20), // adjust spacing
                                 child: Image.asset(
                                   'assets/images/logo_success.png', // 🔁 your actual path
                                   fit: BoxFit.contain,
@@ -181,16 +183,16 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
                             children: [
                               const Text('Order Successful!',
                                   style: TextStyle(
-                                      fontSize:   26,
+                                      fontSize: 26,
                                       fontWeight: FontWeight.w800,
-                                      color:      Color(0xFF1A1A1A))),
+                                      color: Color(0xFF1A1A1A))),
                               const SizedBox(height: 10),
                               const Text(
                                 'You have successfully made order',
                                 style: TextStyle(
                                     fontSize: 14,
-                                    color:    Color(0xFF9E9E9E),
-                                    height:   1.5),
+                                    color: Color(0xFF9E9E9E),
+                                    height: 1.5),
                               ),
                               if (_orderNo.isNotEmpty) ...[
                                 const SizedBox(height: 8),
@@ -199,15 +201,14 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
                                       horizontal: 16, vertical: 6),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius:
-                                    BorderRadius.circular(50),
+                                    borderRadius: BorderRadius.circular(50),
                                   ),
                                   child: Text(
                                     '# $_orderNo',
                                     style: const TextStyle(
-                                        fontSize:   13,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.w700,
-                                        color:      Color(0xFF1A1A1A),
+                                        color: Color(0xFF1A1A1A),
                                         letterSpacing: 0.5),
                                   ),
                                 ),
@@ -225,33 +226,29 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
               child: Column(
                 children: [
-
                   // View Order
                   SizedBox(
-                    width:  double.infinity,
+                    width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: () =>
-                          Get.toNamed('/orders'),
+                      onPressed: () => Get.toNamed('/orders'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF1A1A1A),
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                            borderRadius:
-                            BorderRadius.circular(50)),
+                            borderRadius: BorderRadius.circular(50)),
                       ),
                       child: const Text('View Order',
                           style: TextStyle(
-                              fontSize:   16,
-                              fontWeight: FontWeight.w600)),
+                              fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
                   ),
                   const SizedBox(height: 12),
 
                   // Back to Home
                   SizedBox(
-                    width:  double.infinity,
+                    width: double.infinity,
                     height: 56,
                     child: OutlinedButton(
                       onPressed: () => Get.offAllNamed('/home'),
@@ -260,14 +257,13 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
                         side: const BorderSide(
                             color: Color(0xFFD0CEC9), width: 1.5),
                         shape: RoundedRectangleBorder(
-                            borderRadius:
-                            BorderRadius.circular(50)),
+                            borderRadius: BorderRadius.circular(50)),
                       ),
                       child: const Text('Back to home',
                           style: TextStyle(
-                              fontSize:   16,
+                              fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color:      Color(0xFF1A1A1A))),
+                              color: Color(0xFF1A1A1A))),
                     ),
                   ),
                 ],
@@ -283,8 +279,8 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
 // ── Confetti Data Model ───────────────────────────────────────────
 class _ConfettiPiece {
   final double x, y, size, angle, speed, sway;
-  final Color  color;
-  final bool   isRect;
+  final Color color;
+  final bool isRect;
 
   const _ConfettiPiece({
     required this.x,
@@ -313,18 +309,18 @@ class _ConfettiPainter extends CustomPainter {
     final paint = Paint()..style = PaintingStyle.fill;
 
     for (final p in pieces) {
-      final fallY  = p.y + progress * p.speed * 0.85;
-      final swayX  = p.x + sin(progress * pi * 2 + p.angle) * p.sway;
-      final opacity = (1.0 - (fallY - 0.6).clamp(0.0, 1.0) / 0.4)
-          .clamp(0.0, 1.0);
+      final fallY = p.y + progress * p.speed * 0.85;
+      final swayX = p.x + sin(progress * pi * 2 + p.angle) * p.sway;
+      final opacity =
+          (1.0 - (fallY - 0.6).clamp(0.0, 1.0) / 0.4).clamp(0.0, 1.0);
 
       if (fallY > 1.1 || opacity <= 0) continue;
 
-      final dx     = swayX * size.width;
-      final dy     = fallY * size.height;
+      final dx = swayX * size.width;
+      final dy = fallY * size.height;
       final rotate = p.angle + progress * pi * 3;
 
-      paint.color = p.color.withOpacity(opacity);
+      paint.color = p.color.withValues(alpha: opacity);
 
       canvas.save();
       canvas.translate(dx, dy);
@@ -333,9 +329,7 @@ class _ConfettiPainter extends CustomPainter {
       if (p.isRect) {
         canvas.drawRect(
           Rect.fromCenter(
-              center: Offset.zero,
-              width:  p.size,
-              height: p.size * 0.55),
+              center: Offset.zero, width: p.size, height: p.size * 0.55),
           paint,
         );
       } else {
@@ -344,7 +338,7 @@ class _ConfettiPainter extends CustomPainter {
           RRect.fromRectAndRadius(
             Rect.fromCenter(
                 center: Offset.zero,
-                width:  p.size * 0.35,
+                width: p.size * 0.35,
                 height: p.size * 1.4),
             const Radius.circular(2),
           ),
@@ -357,6 +351,5 @@ class _ConfettiPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_ConfettiPainter old) =>
-      old.progress != progress;
+  bool shouldRepaint(_ConfettiPainter old) => old.progress != progress;
 }

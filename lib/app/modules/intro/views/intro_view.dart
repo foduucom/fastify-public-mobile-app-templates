@@ -104,7 +104,7 @@ class IntroView extends GetView<IntroController> {
                   }),
                 )),
             // const Spacer(),
-            SizedBox(
+            const SizedBox(
               height: 10,
             ),
             Obx(
@@ -125,7 +125,7 @@ class IntroView extends GetView<IntroController> {
                 },
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
 

@@ -3,17 +3,15 @@ import 'package:get/get.dart';
 import '../model/model.dart';
 import '/app/data/basic_provider.dart';
 
-
 class OrderHistoryController extends GetxController {
-
-  final RxList<OrderModel> allOrders       = <OrderModel>[].obs;
-  final RxBool             isLoading        = false.obs;
-  final RxBool             isLoadingMore    = false.obs;
-  final RxInt              selectedTab      = 0.obs;
+  final RxList<OrderModel> allOrders = <OrderModel>[].obs;
+  final RxBool isLoading = false.obs;
+  final RxBool isLoadingMore = false.obs;
+  final RxInt selectedTab = 0.obs;
 
   // Pagination
-  int  _page      = 1;
-  bool _hasMore   = true;
+  int _page = 1;
+  bool _hasMore = true;
   static const int _limit = 10;
 
   @override
@@ -25,7 +23,7 @@ class OrderHistoryController extends GetxController {
   // ── GET /api/order ────────────────────────────────────────
   Future<void> fetchOrders({bool refresh = false}) async {
     if (refresh) {
-      _page    = 1;
+      _page = 1;
       _hasMore = true;
       allOrders.clear();
     }
@@ -36,7 +34,7 @@ class OrderHistoryController extends GetxController {
     try {
       final result = await BasicProvider('order').getRequest(
         queryParams: {
-          'page':  _page.toString(),
+          'page': _page.toString(),
           'limit': _limit.toString(),
         },
       );
@@ -44,15 +42,15 @@ class OrderHistoryController extends GetxController {
       if (result != null && result is Map) {
         final docs = (result['docs'] as List? ?? []);
         final orders = docs
-            .map((e) => OrderModel.fromJson(
-            Map<String, dynamic>.from(e as Map)))
+            .map(
+                (e) => OrderModel.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList();
 
         allOrders.addAll(orders);
 
         // Pagination flags from API
         _hasMore = result['hasNextPage'] == true;
-        _page    = (result['page'] as num?)?.toInt() ?? _page;
+        _page = (result['page'] as num?)?.toInt() ?? _page;
         if (_hasMore) _page++;
 
         debugPrint('✅ Orders loaded: ${allOrders.length}');

@@ -30,7 +30,7 @@ class CouponsView extends GetView<CouponsController> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: context.outlineColor.withOpacity(0.6),
+            color: context.outlineColor.withValues(alpha: 0.6),
             height: 1,
           ),
         ),
@@ -51,7 +51,7 @@ class CouponsView extends GetView<CouponsController> {
                     width: 76,
                     height: 76,
                     decoration: BoxDecoration(
-                      color: context.primaryColor.withOpacity(0.1),
+                      color: context.primaryColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -175,7 +175,7 @@ class CouponsView extends GetView<CouponsController> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: context.primaryColor.withOpacity(0.1),
+                        color: context.primaryColor.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(

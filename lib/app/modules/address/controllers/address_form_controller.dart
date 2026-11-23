@@ -129,9 +129,8 @@ class AddressFormController extends GetxController with BaseController {
           addressType.value = addr['address_type'] ?? 'Home';
           isDefault.value = (addr['is_default'] == 1);
 
-          selectedCountry.value = addr['country'] is Map
-              ? Map.from(addr['country'])
-              : {};
+          selectedCountry.value =
+              addr['country'] is Map ? Map.from(addr['country']) : {};
           selectedState.value =
               addr['state'] is Map ? Map.from(addr['state']) : {};
           city.text = addr['city'] is Map
@@ -175,7 +174,7 @@ class AddressFormController extends GetxController with BaseController {
         'is_default': isDefault.value ? 1 : 0
       };
 
-      print('postman body ${body}');
+      print('postman body $body');
 
       bool isSuccess = false;
 
@@ -184,7 +183,7 @@ class AddressFormController extends GetxController with BaseController {
           var response =
               await BasicProvider('customer/addresses/$editAddressId')
                   .patchRequest(body);
-          print('address update response ${response}');
+          print('address update response $response');
           isSuccess = true;
         } catch (e) {
           print('Error caught: $e');
@@ -202,7 +201,7 @@ class AddressFormController extends GetxController with BaseController {
         try {
           var response =
               await BasicProvider('customer/addresses/add').postRequest(body);
-          print('address update response 1: ${response}');
+          print('address update response 1: $response');
           isSuccess = true;
         } catch (e) {
           print('Error caught: $e');

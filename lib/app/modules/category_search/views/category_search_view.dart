@@ -64,7 +64,7 @@ class _SearchBar extends StatelessWidget {
           hintText: 'Search categories...',
           prefixIcon: const Icon(Icons.search),
           filled: true,
-          fillColor: colorScheme.surfaceVariant.withOpacity(0.4),
+          fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
           contentPadding:
               const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
           border: OutlineInputBorder(
@@ -192,7 +192,7 @@ class _ParentDropdown extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: DropdownButtonFormField<String>(
-          value: controller.selectedParentSlug.value,
+          initialValue: controller.selectedParentSlug.value,
           isExpanded: true,
           decoration: InputDecoration(
             labelText: 'Show sub-categories of...',
@@ -313,10 +313,11 @@ class _CategoryCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: colorScheme.outline.withOpacity(0.12)),
+          border:
+              Border.all(color: colorScheme.outline.withValues(alpha: 0.12)),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.shadow.withOpacity(0.05),
+              color: colorScheme.shadow.withValues(alpha: 0.05),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -333,8 +334,12 @@ class _CategoryCard extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
-                            HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
+                    (HelperFunctions()
+                                .getImage(category['featured_image'])
+                                .isNotEmpty &&
+                            HelperFunctions()
+                                    .getImage(category['featured_image']) !=
+                                HelperFunctions.getNoImage())
                         ? CachedNetworkImage(
                             imageUrl: HelperFunctions()
                                 .getImage(category['featured_image']),
@@ -345,7 +350,7 @@ class _CategoryCard extends StatelessWidget {
                               fit: BoxFit.contain,
                             ),
                             progressIndicatorBuilder: (_, __, ___) => Container(
-                              color: colorScheme.surfaceVariant,
+                              color: colorScheme.surfaceContainerHighest,
                             ),
                           )
                         : const AppImagePlaceholder(

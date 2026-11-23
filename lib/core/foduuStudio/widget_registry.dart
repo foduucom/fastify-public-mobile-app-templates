@@ -35,9 +35,8 @@ class WidgetRegistry {
     if (builder == null || !visible) return null;
 
     final rawContent = section['content_json'] ?? section['contentJson'];
-    final content = rawContent is Map
-        ? Map<String, dynamic>.from(rawContent)
-        : null;
+    final content =
+        rawContent is Map ? Map<String, dynamic>.from(rawContent) : null;
     return builder(content);
   }
 

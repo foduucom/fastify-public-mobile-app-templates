@@ -100,7 +100,7 @@ void registerDefaultWidgets() {
   });
 
   r.register('countdown', (json) {
-    return Text('Count down timeer maintendedddd ');
+    return const Text('Count down timeer maintendedddd ');
   });
 
   // r.register('icon_button', (json) {

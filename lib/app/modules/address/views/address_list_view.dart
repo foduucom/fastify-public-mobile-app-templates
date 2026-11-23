@@ -70,16 +70,18 @@ class AddressListView extends GetView<AddressListController> {
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? colorScheme.primary.withOpacity(0.06)
+                                      ? colorScheme.primary
+                                          .withValues(alpha: 0.06)
                                       : (isDark
-                                          ? colorScheme.surfaceVariant
-                                              .withOpacity(0.4)
+                                          ? colorScheme.surfaceContainerHighest
+                                              .withValues(alpha: 0.4)
                                           : colorScheme.surface),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                     color: isSelected
                                         ? colorScheme.primary
-                                        : colorScheme.outline.withOpacity(0.6),
+                                        : colorScheme.outline
+                                            .withValues(alpha: 0.6),
                                     width: isSelected ? 1.5 : 1.0,
                                   ),
                                 ),
@@ -145,12 +147,12 @@ class AddressListView extends GetView<AddressListController> {
                                                 ),
                                                 decoration: BoxDecoration(
                                                   color: colorScheme.secondary
-                                                      .withOpacity(0.12),
+                                                      .withValues(alpha: 0.12),
                                                   borderRadius:
                                                       BorderRadius.circular(6),
                                                   border: Border.all(
                                                     color: colorScheme.secondary
-                                                        .withOpacity(0.4),
+                                                        .withValues(alpha: 0.4),
                                                     width: 0.8,
                                                   ),
                                                 ),
@@ -175,12 +177,12 @@ class AddressListView extends GetView<AddressListController> {
                                                 ),
                                                 decoration: BoxDecoration(
                                                   color: colorScheme.primary
-                                                      .withOpacity(0.12),
+                                                      .withValues(alpha: 0.12),
                                                   borderRadius:
                                                       BorderRadius.circular(6),
                                                   border: Border.all(
                                                     color: colorScheme.primary
-                                                        .withOpacity(0.4),
+                                                        .withValues(alpha: 0.4),
                                                     width: 0.8,
                                                   ),
                                                 ),
@@ -415,7 +417,8 @@ class AddressListView extends GetView<AddressListController> {
             Container(
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceVariant.withOpacity(0.6),
+                color:
+                    colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
                 shape: BoxShape.circle,
               ),
               child: Icon(

@@ -12,11 +12,6 @@ class DeleteAccountController extends GetxController with BaseController {
   var isLoading = false.obs;
   var box = GetStorage();
 
-  @override
-  void onInit() {
-    super.onInit();
-  }
-
   Future<void> deleteAccount() async {
     HelperFunctions().showOverlayLoader();
 
@@ -40,15 +35,5 @@ class DeleteAccountController extends GetxController with BaseController {
           .showSnackBarSuccess("Your account has been permanently deleted!");
       Get.offAllNamed(Routes.LOGIN);
     }
-  }
-
-  @override
-  void onReady() {
-    super.onReady();
-  }
-
-  @override
-  void onClose() {
-    super.onClose();
   }
 }

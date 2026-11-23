@@ -239,7 +239,8 @@ class CategorySearchController extends GetxController with BaseController {
         barrierDismissible: true,
       );
     } else {
-      openShop({
+      openShop(
+        {
           'productId': category['_id'],
           'categorySlug': category['slug'],
           'name': category['name'],

@@ -80,7 +80,7 @@ class NotificationsView extends GetView<NotificationsController> {
         ),
         child: Column(
           children: [
-            Container(
+            SizedBox(
               width: width * 0.92, // ≈ 345
               height: height * 0.75, // ≈ 580
               child: Column(
@@ -92,10 +92,10 @@ class NotificationsView extends GetView<NotificationsController> {
                       children: [
                         Row(
                           children: [
-                            Expanded(
+                            const Expanded(
                               child: Divider(
                                 thickness: 1,
-                                color: const Color(0xFFE0E0E0),
+                                color: Color(0xFFE0E0E0),
                               ),
                             ),
                             SizedBox(width: width * 0.03),
@@ -110,10 +110,10 @@ class NotificationsView extends GetView<NotificationsController> {
                               ),
                             ),
                             SizedBox(width: width * 0.03),
-                            Expanded(
+                            const Expanded(
                               child: Divider(
                                 thickness: 1,
-                                color: const Color(0xFFE0E0E0),
+                                color: Color(0xFFE0E0E0),
                               ),
                             ),
                           ],
@@ -142,10 +142,10 @@ class NotificationsView extends GetView<NotificationsController> {
                       children: [
                         Row(
                           children: [
-                            Expanded(
+                            const Expanded(
                               child: Divider(
                                 thickness: 1,
-                                color: const Color(0xFFE0E0E0),
+                                color: Color(0xFFE0E0E0),
                               ),
                             ),
                             SizedBox(width: width * 0.03),
@@ -160,10 +160,10 @@ class NotificationsView extends GetView<NotificationsController> {
                               ),
                             ),
                             SizedBox(width: width * 0.03),
-                            Expanded(
+                            const Expanded(
                               child: Divider(
                                 thickness: 1,
-                                color: const Color(0xFFE0E0E0),
+                                color: Color(0xFFE0E0E0),
                               ),
                             ),
                           ],
@@ -280,23 +280,23 @@ class NotificationsView extends GetView<NotificationsController> {
 //     return Column(
 //       crossAxisAlignment: CrossAxisAlignment.start,
 //       children: [
-        // Row(
-        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //   children: [
-        //     item['type'] != null
-        //         ? Text(
-        //             item['type'].toString().capitalizeFirst.toString(),
-        //             style: const TextStyle(
-        //               fontWeight: FontWeight.w600,
-        //               fontSize: 16,
-        //             ),
-        //           )
-        //         : Container(),
-        // Text(
-        //   HelperFunctions().toCarbonToHumanDateFormat(item["created_at"]),
-        // )
-        //   ],
-        // ),
+// Row(
+//   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//   children: [
+//     item['type'] != null
+//         ? Text(
+//             item['type'].toString().capitalizeFirst.toString(),
+//             style: const TextStyle(
+//               fontWeight: FontWeight.w600,
+//               fontSize: 16,
+//             ),
+//           )
+//         : Container(),
+// Text(
+//   HelperFunctions().toCarbonToHumanDateFormat(item["created_at"]),
+// )
+//   ],
+// ),
 //         const SizedBox(
 //           height: 10,
 //         ),

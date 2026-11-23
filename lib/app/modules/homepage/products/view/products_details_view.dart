@@ -12,7 +12,7 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
       backgroundColor: const Color(0xFFECE8E5),
       body: Obx(() {
         if (controller.isLoading.value) return _LoadingView();
-        if (controller.hasError.value)  return _ErrorView();
+        if (controller.hasError.value) return _ErrorView();
         return _ContentView();
       }),
     );
@@ -42,8 +42,7 @@ class _ErrorView extends GetView<ProductDetailsController> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline,
-                size: 56, color: Color(0xFF9E9E9E)),
+            const Icon(Icons.error_outline, size: 56, color: Color(0xFF9E9E9E)),
             const SizedBox(height: 16),
             const Text('Failed to load product',
                 style: TextStyle(fontSize: 16, color: Color(0xFF6B6B6B))),
@@ -51,15 +50,14 @@ class _ErrorView extends GetView<ProductDetailsController> {
             GestureDetector(
               onTap: controller.goBack,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 32, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1A1A1A),
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: const Text('Go Back',
-                    style: TextStyle(
-                        color: Colors.white, fontSize: 15)),
+                    style: TextStyle(color: Colors.white, fontSize: 15)),
               ),
             ),
           ],
@@ -102,7 +100,9 @@ class _ContentView extends GetView<ProductDetailsController> {
         ),
         _TopBar(),
         Positioned(
-          bottom: 0, left: 0, right: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
           child: _AddToCartBar(),
         ),
       ],
@@ -121,44 +121,42 @@ class _TopBar extends GetView<ProductDetailsController> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-
           GestureDetector(
             onTap: controller.goBack,
             child: Container(
-              width: 44, height: 44,
+              width: 44,
+              height: 44,
               decoration: const BoxDecoration(
                   color: Colors.white, shape: BoxShape.circle),
               child: const Icon(Icons.arrow_back_ios_new_rounded,
                   size: 18, color: Color(0xFF1A1A1A)),
             ),
           ),
-
           Obx(() {
-            final liked   = controller.isWishlisted.value;
+            final liked = controller.isWishlisted.value;
             final loading = controller.wishlistLoading.value;
 
             return GestureDetector(
               onTap: controller.toggleWishlist,
               child: Container(
-                width: 44, height: 44,
+                width: 44,
+                height: 44,
                 decoration: const BoxDecoration(
                     color: Colors.white, shape: BoxShape.circle),
                 child: loading
                     ? const Padding(
-                  padding: EdgeInsets.all(12),
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Color(0xFF1A1A1A)),
-                )
+                        padding: EdgeInsets.all(12),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Color(0xFF1A1A1A)),
+                      )
                     : Icon(
-                  liked
-                      ? Icons.favorite_rounded
-                      : Icons.favorite_border_rounded,
-                  size: 20,
-                  color: liked
-                      ? Colors.redAccent
-                      : const Color(0xFF1A1A1A),
-                ),
+                        liked
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        size: 20,
+                        color:
+                            liked ? Colors.redAccent : const Color(0xFF1A1A1A),
+                      ),
               ),
             );
           }),
@@ -173,7 +171,7 @@ class _ImageGallery extends GetView<ProductDetailsController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final images  = controller.allImages;
+      final images = controller.allImages;
       final current = controller.selectedImageIndex.value;
 
       if (images.isEmpty) {
@@ -181,8 +179,8 @@ class _ImageGallery extends GetView<ProductDetailsController> {
           height: 380,
           color: const Color(0xFFF5F5F5),
           child: const Center(
-            child: Icon(Icons.chair_outlined,
-                size: 80, color: Color(0xFFD0D0D0)),
+            child:
+                Icon(Icons.chair_outlined, size: 80, color: Color(0xFFD0D0D0)),
           ),
         );
       }
@@ -194,8 +192,7 @@ class _ImageGallery extends GetView<ProductDetailsController> {
             width: double.infinity,
             child: PageView.builder(
               itemCount: images.length,
-              onPageChanged: (i) =>
-              controller.selectedImageIndex.value = i,
+              onPageChanged: (i) => controller.selectedImageIndex.value = i,
               itemBuilder: (_, i) => _NetImg(url: images[i]),
             ),
           ),
@@ -207,7 +204,7 @@ class _ImageGallery extends GetView<ProductDetailsController> {
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width:  current == i ? 20 : 8,
+                  width: current == i ? 20 : 8,
                   height: 8,
                   decoration: BoxDecoration(
                     color: current == i
@@ -230,14 +227,14 @@ class _ProductName extends GetView<ProductDetailsController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() => Text(
-      controller.name,
-      style: const TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.w600,
-        color: Color(0xFF1A1A1A),
-        height: 1.3,
-      ),
-    ));
+          controller.name,
+          style: const TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1A1A1A),
+            height: 1.3,
+          ),
+        ));
   }
 }
 
@@ -246,9 +243,9 @@ class _PriceRow extends GetView<ProductDetailsController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final price    = controller.price;
+      final price = controller.price;
       final original = controller.originalPrice;
-      final hasDisc  = controller.hasDiscount;
+      final hasDisc = controller.hasDiscount;
 
       return Row(
         children: [
@@ -273,8 +270,7 @@ class _PriceRow extends GetView<ProductDetailsController> {
             ),
             const SizedBox(width: 8),
             Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: const Color(0xFF1A1A1A),
                 borderRadius: BorderRadius.circular(8),
@@ -318,19 +314,17 @@ class _VariantSelector extends GetView<ProductDetailsController> {
             spacing: 10,
             runSpacing: 10,
             children: List.generate(variants.length, (i) {
-              final label      = controller.variantLabel(variants[i]);
+              final label = controller.variantLabel(variants[i]);
               final isSelected = selected == i;
 
               return GestureDetector(
                 onTap: () => controller.selectVariant(i),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? const Color(0xFF1A1A1A)
-                        : Colors.white,
+                    color: isSelected ? const Color(0xFF1A1A1A) : Colors.white,
                     borderRadius: BorderRadius.circular(30),
                     border: Border.all(
                       color: isSelected
@@ -343,9 +337,8 @@ class _VariantSelector extends GetView<ProductDetailsController> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: isSelected
-                          ? Colors.white
-                          : const Color(0xFF1A1A1A),
+                      color:
+                          isSelected ? Colors.white : const Color(0xFF1A1A1A),
                     ),
                   ),
                 ),

@@ -69,4 +69,3 @@ class AppPasswordField extends StatelessWidget {
         ));
   }
 }
-

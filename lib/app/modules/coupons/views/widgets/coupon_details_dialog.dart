@@ -199,7 +199,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
                 color: context.surfaceColor,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 6,
                     offset: const Offset(0, -2),
                   ),
@@ -465,7 +465,7 @@ class _CouponDetailsDialogState extends State<CouponDetailsDialog> {
                 hintStyle: TextStyle(
                   fontSize: 12,
                   fontFamily: 'Poppins',
-                  color: context.onSurfaceVariantColor.withOpacity(0.7),
+                  color: context.onSurfaceVariantColor.withValues(alpha: 0.7),
                 ),
                 prefixIcon: const Icon(Icons.search, size: 16),
                 suffixIcon: _searchQuery.isNotEmpty

@@ -93,7 +93,7 @@ class _CircularLoadingIndicatorState extends State<CircularLoadingIndicator>
             child: CircularProgressIndicator(
               value: 1.0,
               strokeWidth: widget.strokeWidth,
-              backgroundColor: secondary.withOpacity(0.3),
+              backgroundColor: secondary.withValues(alpha: 0.3),
               valueColor: AlwaysStoppedAnimation<Color>(secondary),
             ),
           ),

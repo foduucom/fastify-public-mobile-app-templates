@@ -13,7 +13,7 @@ import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 
 class OrdersucessView extends GetView<OrderSuccessController> {
-  OrdersucessView({Key? key}) : super(key: key);
+  const OrdersucessView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

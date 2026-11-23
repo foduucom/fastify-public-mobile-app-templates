@@ -91,7 +91,7 @@ class CartView extends GetView<CartController> {
                 errorBuilder: (ctx, err, stack) => Icon(
                   Icons.remove_shopping_cart_outlined,
                   size: height * 0.15,
-                  color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
               ),
               const SizedBox(height: 24),
@@ -253,7 +253,7 @@ class CartView extends GetView<CartController> {
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: colorScheme.outline.withOpacity(0.2),
+            color: colorScheme.outline.withValues(alpha: 0.2),
           ),
         ),
         padding: const EdgeInsets.all(12),
@@ -282,7 +282,8 @@ class CartView extends GetView<CartController> {
                         placeholder: (context, url) => Container(
                           width: 82,
                           height: 82,
-                          color: colorScheme.surfaceVariant.withOpacity(0.5),
+                          color: colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.5),
                           child: Center(
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
@@ -341,7 +342,7 @@ class CartView extends GetView<CartController> {
                           child: Icon(
                             Icons.delete_outline_rounded,
                             size: 20,
-                            color: colorScheme.error.withOpacity(0.85),
+                            color: colorScheme.error.withValues(alpha: 0.85),
                           ),
                         ),
                       ),
@@ -402,7 +403,7 @@ class CartView extends GetView<CartController> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 5, vertical: 1.5),
                                 decoration: BoxDecoration(
-                                  color: Colors.green.withOpacity(0.12),
+                                  color: Colors.green.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
@@ -428,9 +429,10 @@ class CartView extends GetView<CartController> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: colorScheme.outline.withOpacity(0.35),
+                            color: colorScheme.outline.withValues(alpha: 0.35),
                           ),
-                          color: colorScheme.surfaceVariant.withOpacity(0.3),
+                          color: colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.3),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -518,7 +520,7 @@ class CartView extends GetView<CartController> {
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: colorScheme.outline.withOpacity(0.2),
+          color: colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -545,9 +547,11 @@ class CartView extends GetView<CartController> {
           Container(
             height: 44,
             decoration: BoxDecoration(
-              color: colorScheme.surfaceVariant.withOpacity(0.25),
+              color:
+                  colorScheme.surfaceContainerHighest.withValues(alpha: 0.25),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: colorScheme.outline.withOpacity(0.25)),
+              border: Border.all(
+                  color: colorScheme.outline.withValues(alpha: 0.25)),
             ),
             child: Row(
               children: [
@@ -661,7 +665,7 @@ class CartView extends GetView<CartController> {
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: colorScheme.outline.withOpacity(0.2),
+            color: colorScheme.outline.withValues(alpha: 0.2),
           ),
         ),
         padding: const EdgeInsets.all(16),
@@ -775,13 +779,13 @@ class CartView extends GetView<CartController> {
         color: colorScheme.surface,
         border: Border(
           top: BorderSide(
-            color: colorScheme.outline.withOpacity(0.18),
+            color: colorScheme.outline.withValues(alpha: 0.18),
             width: 1,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             offset: const Offset(0, -3),
             blurRadius: 8,
           ),
@@ -879,10 +883,10 @@ class CartView extends GetView<CartController> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceVariant.withOpacity(0.35),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: colorScheme.outline.withOpacity(0.12),
+          color: colorScheme.outline.withValues(alpha: 0.12),
         ),
       ),
       child: Row(

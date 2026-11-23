@@ -66,10 +66,12 @@ class TempraryChangePassword extends StatelessWidget {
                     fontSize: height * 0.0165,
                     hintText: "Insert your old password",
                     validator: (value) {
-                      if (value == null || value.isEmpty)
+                      if (value == null || value.isEmpty) {
                         return 'Please enter your old password';
-                      if (value.length < 6)
+                      }
+                      if (value.length < 6) {
                         return 'Password must be at least 6 characters';
+                      }
                       return null;
                     },
                   )),
@@ -96,10 +98,12 @@ class TempraryChangePassword extends StatelessWidget {
                     fontSize: height * 0.0165,
                     hintText: "Insert your new password",
                     validator: (value) {
-                      if (value == null || value.isEmpty)
+                      if (value == null || value.isEmpty) {
                         return 'Please enter your new password';
-                      if (value.length < 6)
+                      }
+                      if (value.length < 6) {
                         return 'Password must be at least 6 characters';
+                      }
                       return null;
                     },
                   )),
@@ -128,12 +132,15 @@ class TempraryChangePassword extends StatelessWidget {
                   fontSize: height * 0.0165,
                   hintText: "Confirm your new password",
                   validator: (value) {
-                    if (value == null || value.isEmpty)
+                    if (value == null || value.isEmpty) {
                       return 'Please confirm your password';
-                    if (value.length < 6)
+                    }
+                    if (value.length < 6) {
                       return 'Password must be at least 6 characters';
-                    if (value != controller.newPasswordController.text)
+                    }
+                    if (value != controller.newPasswordController.text) {
                       return 'Passwords do not match';
+                    }
                     return null;
                   },
                 );
@@ -149,7 +156,8 @@ class TempraryChangePassword extends StatelessWidget {
               onPressed: controller.isLoading.value
                   ? null // Disable button when loading
                   : () {
-                      if (controller.changePasswordFormKey.currentState!.validate()) {
+                      if (controller.changePasswordFormKey.currentState!
+                          .validate()) {
                         controller
                             .changePassword(); // Call the changePassword method
                       }

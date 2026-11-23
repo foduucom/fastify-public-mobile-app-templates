@@ -9,10 +9,9 @@ import '/app/routes/app_pages.dart';
 import '/constants/helper_functions.dart';
 
 class OtpController extends GetxController with BaseController {
-
-  final isLoading   = false.obs;
+  final isLoading = false.obs;
   final isResending = false.obs;
-  final otpCode     = ''.obs;
+  final otpCode = ''.obs;
   late String email;
 
   final box = GetStorage();
@@ -37,25 +36,23 @@ class OtpController extends GetxController with BaseController {
     isLoading(true);
 
     try {
-      final response = await BasicProvider('auth/verify-otp')
-          .postRequest({
-        'email':          email,
-        'otp':            otpCode.value,
+      final response = await BasicProvider('auth/verify-otp').postRequest({
+        'email': email,
+        'otp': otpCode.value,
         'device_details': await HelperFunctions.getDeviceDetails(),
-      })
-          .catchError(handleError);
+      }).catchError(handleError);
 
       if (response != null) {
         // ── BasicProvider already returns response.body["data"] ──
         // So `response` IS the user object directly.
         // Structure: { id, name, email, mobile, token: { value, expiry }, ... }
-        final data = Map<String, dynamic>.from(response as Map); // ✅ no ['data'] unwrap
+        final data =
+            Map<String, dynamic>.from(response as Map); // ✅ no ['data'] unwrap
 
         // ── Extract token ──────────────────────────────────────
         final tokenObj = data['token'];
-        final token    = tokenObj is Map
-            ? tokenObj['value']?.toString() ?? ''
-            : '';
+        final token =
+            tokenObj is Map ? tokenObj['value']?.toString() ?? '' : '';
 
         debugPrint('🔍 data keys: ${data.keys.toList()}');
         debugPrint('🔍 tokenObj: $tokenObj');
@@ -64,17 +61,18 @@ class OtpController extends GetxController with BaseController {
         if (token.isNotEmpty) {
           // ✅ Save JWT token
           AuthDetails.saveToken(token);
-          box.write('isLogin',    true);
+          box.write('isLogin', true);
           box.write('auth_token', token);
 
           // ✅ Save basic user info for immediate ProfileController use
-          box.write('user_name',  data['name']?.toString()  ?? '');
+          box.write('user_name', data['name']?.toString() ?? '');
           box.write('user_email', data['email']?.toString() ?? '');
-          box.write('user_id',    data['id']?.toString()    ?? '');
+          box.write('user_id', data['id']?.toString() ?? '');
 
           // ✅ Verify storage actually worked
           final verify = box.read<String>('auth_token') ?? 'EMPTY';
-          debugPrint('🔐 Token read-back: ${verify.length > 20 ? verify.substring(0, 20) : verify}...');
+          debugPrint(
+              '🔐 Token read-back: ${verify.length > 20 ? verify.substring(0, 20) : verify}...');
         } else {
           debugPrint('⚠️ Token missing — full response: $response');
         }
@@ -93,12 +91,10 @@ class OtpController extends GetxController with BaseController {
   Future<void> resendOtp() async {
     isResending(true);
     try {
-      final response = await BasicProvider('auth/login')
-          .postRequest({
-        'email':          email,
+      final response = await BasicProvider('auth/login').postRequest({
+        'email': email,
         'device_details': await HelperFunctions.getDeviceDetails(),
-      })
-          .catchError(handleError);
+      }).catchError(handleError);
 
       if (response != null) {
         HelperFunctions().showSnackBarSuccess('OTP resent to $email');

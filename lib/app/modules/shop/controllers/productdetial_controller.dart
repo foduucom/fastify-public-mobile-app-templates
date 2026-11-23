@@ -19,7 +19,7 @@ class ProductdetialController extends GetxController
   var box = GetStorage();
   var productGallery = List.empty().obs;
   var pageController = PageController();
-  int _currentPage = 0;
+  final int _currentPage = 0;
   var similarProduct = [].obs;
   var selectedPageIndex = 0.obs;
   var isAlreadyInCart = false.obs;
@@ -79,9 +79,9 @@ class ProductdetialController extends GetxController
     //       .any((element) => element['_id'] == productId);
     // }
 
-    categoriesId.forEach((element) {
+    for (var element in categoriesId) {
       cateogries.add("${element['_id']}");
-    });
+    }
 
     getSimilarProduct(cateogries);
 
@@ -89,7 +89,7 @@ class ProductdetialController extends GetxController
     getProductReview(productId);
     controller = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 300),
     );
     scaleAnimation = Tween<double>(begin: 1.0, end: 1.5).animate(
       CurvedAnimation(parent: controller, curve: Curves.easeInOut),
@@ -278,11 +278,6 @@ class ProductdetialController extends GetxController
     // });
     // Get.find<BottombarController>().currentPageIndex.value = 2;
     // Get.find<BottombarController>().pageController.jumpToPage(2);
-  }
-
-  @override
-  void onReady() {
-    super.onReady();
   }
 
   void increment() {

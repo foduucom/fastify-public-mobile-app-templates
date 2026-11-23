@@ -32,7 +32,7 @@ class ProductController extends GetxController
   var box = GetStorage();
   var productGallery = List.empty().obs;
   var pageController = PageController();
-  int _currentPage = 0;
+  final int _currentPage = 0;
   var similarProduct = [].obs;
   var selectedPageIndex = 0.obs;
   var isAlreadyInCart = false.obs;
@@ -92,9 +92,9 @@ class ProductController extends GetxController
       categoriesId.addAll(productDetials['categories']);
     }
 
-    categoriesId.forEach((element) {
+    for (var element in categoriesId) {
       cateogries.add("${element['_id']}");
-    });
+    }
 
     getSimilarProduct(cateogries);
     extractAttributes();
@@ -104,7 +104,7 @@ class ProductController extends GetxController
     getProductReview(productId);
     controller = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 300),
     );
     scaleAnimation = Tween<double>(begin: 1.0, end: 1.5).animate(
       CurvedAnimation(parent: controller, curve: Curves.easeInOut),
@@ -143,7 +143,9 @@ class ProductController extends GetxController
 
   void updateSelectedVariant() {
     if (productDetials['variants'] == null ||
-        productDetials['variants'] is! List) return;
+        productDetials['variants'] is! List) {
+      return;
+    }
 
     List variants = productDetials['variants'];
     int variantIndex = -1;
@@ -452,11 +454,6 @@ class ProductController extends GetxController
     } finally {
       isLoading.value = false;
     }
-  }
-
-  @override
-  void onReady() {
-    super.onReady();
   }
 
   void increment() {

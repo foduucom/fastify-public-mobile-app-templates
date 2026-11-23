@@ -16,7 +16,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 class SplashscreenView extends GetView<SplashScreenController> {
-  SplashscreenView({super.key});
+  const SplashscreenView({super.key});
 
   @override
   Widget build(BuildContext context) {

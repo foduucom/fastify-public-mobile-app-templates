@@ -114,12 +114,14 @@ class OnboardingController extends GetxController {
             items.sort((a, b) => a.order.compareTo(b.order));
             slides.assignAll(items);
             slides.refresh();
-            debugPrint("✅ [Onboarding] Successfully loaded ${items.length} dynamic slides from backend!");
+            debugPrint(
+                "✅ [Onboarding] Successfully loaded ${items.length} dynamic slides from backend!");
 
             // Pre-cache backend WebP images
             for (final item in items) {
               if (!item.isAsset && item.fullImageUrl.isNotEmpty) {
-                debugPrint("🖼️ [Onboarding] Pre-caching: ${item.fullImageUrl}");
+                debugPrint(
+                    "🖼️ [Onboarding] Pre-caching: ${item.fullImageUrl}");
                 try {
                   CachedNetworkImageProvider(item.fullImageUrl)
                       .resolve(ImageConfiguration.empty);
@@ -132,7 +134,8 @@ class OnboardingController extends GetxController {
             restartAutoPagination();
           }
         } else {
-          debugPrint("⚠️ [Onboarding] Content list is empty in response: $response");
+          debugPrint(
+              "⚠️ [Onboarding] Content list is empty in response: $response");
         }
       }
     } catch (e) {

@@ -1,7 +1,6 @@
 import 'package:foddu/constants/constants.dart';
 import 'package:foddu/constants/helper_functions.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class RegisterProvider extends GetConnect {

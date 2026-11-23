@@ -199,7 +199,7 @@ class _FilterSheetState extends State<_FilterSheet> {
           width: 40,
           height: 4,
           decoration: BoxDecoration(
-            color: colorScheme.onSurfaceVariant.withOpacity(0.3),
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -222,7 +222,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             ],
           ),
         ),
-        Divider(height: 1, color: colorScheme.outline.withOpacity(0.15)),
+        Divider(height: 1, color: colorScheme.outline.withValues(alpha: 0.15)),
       ],
     );
   }
@@ -233,8 +233,7 @@ class _FilterSheetState extends State<_FilterSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Sort By',
-            style: textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.w600)),
+            style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
         const SizedBox(height: 10),
         Wrap(
           spacing: 8,
@@ -245,7 +244,7 @@ class _FilterSheetState extends State<_FilterSheet> {
               label: Text(_sortOptions[i].label),
               selected: selected,
               onSelected: (_) => setState(() => _sortIndex = i),
-              selectedColor: colorScheme.primary.withOpacity(0.15),
+              selectedColor: colorScheme.primary.withValues(alpha: 0.15),
               labelStyle: textTheme.bodySmall?.copyWith(
                 color: selected ? colorScheme.primary : colorScheme.onSurface,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
@@ -255,7 +254,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                 side: BorderSide(
                   color: selected
                       ? colorScheme.primary
-                      : colorScheme.outline.withOpacity(0.3),
+                      : colorScheme.outline.withValues(alpha: 0.3),
                 ),
               ),
             );
@@ -279,7 +278,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             Switch(
               value: _priceRangeActive,
               onChanged: (v) => setState(() => _priceRangeActive = v),
-              activeColor: colorScheme.primary,
+              activeThumbColor: colorScheme.primary,
             ),
           ],
         ),
@@ -290,7 +289,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             max: _priceMax,
             divisions: 100,
             activeColor: colorScheme.primary,
-            inactiveColor: colorScheme.primary.withOpacity(0.15),
+            inactiveColor: colorScheme.primary.withValues(alpha: 0.15),
             labels: RangeLabels(
               '₹${_priceRange.start.round()}',
               '₹${_priceRange.end.round()}',
@@ -307,15 +306,15 @@ class _FilterSheetState extends State<_FilterSheet> {
                   value: _priceRange.start,
                   onChanged: (v) {
                     if (v >= _priceMin && v <= _priceRange.end) {
-                      setState(() =>
-                          _priceRange = RangeValues(v, _priceRange.end));
+                      setState(
+                          () => _priceRange = RangeValues(v, _priceRange.end));
                     }
                   },
                 ),
                 Container(
                   width: 24,
                   height: 1,
-                  color: colorScheme.outline.withOpacity(0.3),
+                  color: colorScheme.outline.withValues(alpha: 0.3),
                 ),
                 _PriceField(
                   label: 'Max',
@@ -341,8 +340,7 @@ class _FilterSheetState extends State<_FilterSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Product Type',
-            style:
-                textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+            style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         _flagTile('Featured', _featured, (v) => setState(() => _featured = v),
             Icons.star, Colors.amber.shade700, colorScheme),
@@ -374,7 +372,7 @@ class _FilterSheetState extends State<_FilterSheet> {
       ),
       value: value,
       onChanged: onChanged,
-      activeColor: colorScheme.primary,
+      activeThumbColor: colorScheme.primary,
       dense: true,
     );
   }
@@ -394,8 +392,7 @@ class _FilterSheetState extends State<_FilterSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(title,
-            style:
-                textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+            style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
         const SizedBox(height: 10),
         Wrap(
           spacing: 8,
@@ -410,20 +407,18 @@ class _FilterSheetState extends State<_FilterSheet> {
                 sel ? updated.add(item) : updated.remove(item);
                 onChanged(updated);
               },
-              selectedColor: colorScheme.primary.withOpacity(0.15),
+              selectedColor: colorScheme.primary.withValues(alpha: 0.15),
               checkmarkColor: colorScheme.primary,
               labelStyle: TextStyle(
-                color:
-                    isSelected ? colorScheme.primary : colorScheme.onSurface,
-                fontWeight:
-                    isSelected ? FontWeight.w600 : FontWeight.normal,
+                color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
                 side: BorderSide(
                   color: isSelected
                       ? colorScheme.primary
-                      : colorScheme.outline.withOpacity(0.3),
+                      : colorScheme.outline.withValues(alpha: 0.3),
                 ),
               ),
             );
@@ -441,7 +436,7 @@ class _FilterSheetState extends State<_FilterSheet> {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(
-          top: BorderSide(color: colorScheme.outline.withOpacity(0.15)),
+          top: BorderSide(color: colorScheme.outline.withValues(alpha: 0.15)),
         ),
       ),
       child: Row(
@@ -451,7 +446,8 @@ class _FilterSheetState extends State<_FilterSheet> {
               onPressed: _reset,
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                side: BorderSide(color: colorScheme.outline.withOpacity(0.3)),
+                side: BorderSide(
+                    color: colorScheme.outline.withValues(alpha: 0.3)),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -523,12 +519,12 @@ class _PriceField extends StatelessWidget {
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide:
-                BorderSide(color: colorScheme.outline.withOpacity(0.3)),
+                BorderSide(color: colorScheme.outline.withValues(alpha: 0.3)),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide:
-                BorderSide(color: colorScheme.outline.withOpacity(0.3)),
+                BorderSide(color: colorScheme.outline.withValues(alpha: 0.3)),
           ),
         ),
         onChanged: (text) {

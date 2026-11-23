@@ -18,23 +18,24 @@ class MyReviewsController extends GetxController with BaseController {
   Future<void> fetchReviews() async {
     try {
       isLoading.value = true;
-      var response = await BasicProvider("customer/reviews")
-          .getRequest(queryParams: {'page': 1, 'limit': 50})
-          .catchError(handleError);
+      var response = await BasicProvider("customer/reviews").getRequest(
+          queryParams: {'page': 1, 'limit': 50}).catchError(handleError);
 
       reviewsList.clear();
       List rawReviews = [];
       if (response is List) {
         rawReviews = response;
       } else if (response is Map) {
-        final reviews = response['reviews'] ?? response['data'] ?? response['docs'];
+        final reviews =
+            response['reviews'] ?? response['data'] ?? response['docs'];
         if (reviews is List) {
           rawReviews = reviews;
         } else if (reviews is Map && reviews['reviews'] is List) {
           rawReviews = reviews['reviews'];
         }
       }
-      reviewsList.addAll(rawReviews.whereType<Map>().map((e) => _normalizeReview(e)));
+      reviewsList
+          .addAll(rawReviews.whereType<Map>().map((e) => _normalizeReview(e)));
     } catch (e) {
       debugPrint('fetchReviews error: $e');
     } finally {
@@ -81,7 +82,7 @@ class MyReviewsController extends GetxController with BaseController {
             style: TextStyle(color: colorScheme.onSurface)),
         content: Text(
           'Are you sure you want to delete this review?',
-          style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+          style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.7)),
         ),
         actions: [
           TextButton(

@@ -66,14 +66,4 @@ class OrdersController extends GetxController with BaseController {
     orderList.clear();
     await Orders();
   }
-
-  @override
-  void onReady() {
-    super.onReady();
-  }
-
-  @override
-  void onClose() {
-    super.onClose();
-  }
 }

@@ -160,7 +160,7 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: colorScheme.primaryContainer.withOpacity(0.5),
+              color: colorScheme.primaryContainer.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -244,8 +244,8 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: selectedCount > 0
-                ? colorScheme.primary.withOpacity(0.3)
-                : colorScheme.outlineVariant.withOpacity(0.5),
+                ? colorScheme.primary.withValues(alpha: 0.3)
+                : colorScheme.outlineVariant.withValues(alpha: 0.5),
           ),
         ),
         child: Material(
@@ -255,132 +255,134 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
           child: Theme(
             data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
             child: ExpansionTile(
-            initiallyExpanded: true,
-            tilePadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-            childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-            leading: Icon(
-              icon,
-              size: 20,
-              color: selectedCount > 0
-                  ? colorScheme.primary
-                  : colorScheme.onSurfaceVariant,
-            ),
-            title: Row(
-              children: [
-                Text(
-                  label,
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
-                ),
-                if (selectedCount > 0) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(10),
+              initiallyExpanded: true,
+              tilePadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+              childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+              leading: Icon(
+                icon,
+                size: 20,
+                color: selectedCount > 0
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
+              ),
+              title: Row(
+                children: [
+                  Text(
+                    label,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
                     ),
-                    child: Text(
-                      "$selectedCount",
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onPrimaryContainer,
+                  ),
+                  if (selectedCount > 0) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        "$selectedCount",
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onPrimaryContainer,
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ],
-              ],
-            ),
-            children: [
-              if (loading && nodes.isEmpty && !hasError)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Center(child: CupertinoActivityIndicator()),
-                )
-              else if (hasError)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          "Couldn't load $label",
-                          style:
-                              TextStyle(fontSize: 13, color: colorScheme.error),
-                        ),
-                      ),
-                      TextButton.icon(
-                        onPressed: () =>
-                            controller.retryCategoryTreeType(attributeKey),
-                        icon: const Icon(Icons.refresh, size: 16),
-                        label: const Text("Retry"),
-                      ),
-                    ],
-                  ),
-                )
-              else if (nodes.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    "No $label options available",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                )
-              else
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: nodes.map((node) {
-                      final isSelected = tempSet.contains(node.slug);
-                      return FilterChip(
-                        label: Text(node.name),
-                        selected: isSelected,
-                        onSelected: (checked) {
-                          setState(() {
-                            if (checked) {
-                              tempSet.add(node.slug);
-                            } else {
-                              tempSet.remove(node.slug);
-                            }
-                          });
-                        },
-                        selectedColor: colorScheme.primaryContainer,
-                        checkmarkColor: colorScheme.onPrimaryContainer,
-                        labelStyle: TextStyle(
-                          fontSize: 13,
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.normal,
-                          color: isSelected
-                              ? colorScheme.onPrimaryContainer
-                              : colorScheme.onSurface,
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: BorderSide(
-                            color: isSelected
-                                ? colorScheme.primary
-                                : colorScheme.outlineVariant.withOpacity(0.6),
+              ),
+              children: [
+                if (loading && nodes.isEmpty && !hasError)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(child: CupertinoActivityIndicator()),
+                  )
+                else if (hasError)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            "Couldn't load $label",
+                            style: TextStyle(
+                                fontSize: 13, color: colorScheme.error),
                           ),
                         ),
-                        showCheckmark: true,
-                        backgroundColor:
-                            colorScheme.surfaceVariant.withOpacity(0.3),
-                      );
-                    }).toList(),
+                        TextButton.icon(
+                          onPressed: () =>
+                              controller.retryCategoryTreeType(attributeKey),
+                          icon: const Icon(Icons.refresh, size: 16),
+                          label: const Text("Retry"),
+                        ),
+                      ],
+                    ),
+                  )
+                else if (nodes.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      "No $label options available",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  )
+                else
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: nodes.map((node) {
+                        final isSelected = tempSet.contains(node.slug);
+                        return FilterChip(
+                          label: Text(node.name),
+                          selected: isSelected,
+                          onSelected: (checked) {
+                            setState(() {
+                              if (checked) {
+                                tempSet.add(node.slug);
+                              } else {
+                                tempSet.remove(node.slug);
+                              }
+                            });
+                          },
+                          selectedColor: colorScheme.primaryContainer,
+                          checkmarkColor: colorScheme.onPrimaryContainer,
+                          labelStyle: TextStyle(
+                            fontSize: 13,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: isSelected
+                                ? colorScheme.onPrimaryContainer
+                                : colorScheme.onSurface,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? colorScheme.primary
+                                  : colorScheme.outlineVariant
+                                      .withValues(alpha: 0.6),
+                            ),
+                          ),
+                          showCheckmark: true,
+                          backgroundColor: colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.3),
+                        );
+                      }).toList(),
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -401,8 +403,8 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: selectedCount > 0
-                ? colorScheme.primary.withOpacity(0.3)
-                : colorScheme.outlineVariant.withOpacity(0.5),
+                ? colorScheme.primary.withValues(alpha: 0.3)
+                : colorScheme.outlineVariant.withValues(alpha: 0.5),
           ),
         ),
         child: Material(
@@ -412,115 +414,117 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
           child: Theme(
             data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
             child: ExpansionTile(
-            initiallyExpanded: true,
-            tilePadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-            childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-            leading: Icon(
-              Icons.branding_watermark_outlined,
-              size: 20,
-              color: selectedCount > 0
-                  ? colorScheme.primary
-                  : colorScheme.onSurfaceVariant,
-            ),
-            title: Row(
-              children: [
-                Text(
-                  "Brands",
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
-                ),
-                if (selectedCount > 0) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(10),
+              initiallyExpanded: true,
+              tilePadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+              childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+              leading: Icon(
+                Icons.branding_watermark_outlined,
+                size: 20,
+                color: selectedCount > 0
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
+              ),
+              title: Row(
+                children: [
+                  Text(
+                    "Brands",
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
                     ),
-                    child: Text(
-                      "$selectedCount",
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onPrimaryContainer,
+                  ),
+                  if (selectedCount > 0) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        "$selectedCount",
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onPrimaryContainer,
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ],
-              ],
-            ),
-            children: [
-              if (loading && brands.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Center(child: CupertinoActivityIndicator()),
-                )
-              else if (brands.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    "No brands available",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: colorScheme.onSurfaceVariant,
+              ),
+              children: [
+                if (loading && brands.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(child: CupertinoActivityIndicator()),
+                  )
+                else if (brands.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      "No brands available",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  )
+                else
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: brands.map((brand) {
+                        final String slug = brand['slug']?.toString() ?? '';
+                        final String name =
+                            brand['name']?.toString() ?? 'Unknown';
+                        final isSelected = _tempBrands.contains(slug);
+
+                        return FilterChip(
+                          label: Text(name),
+                          selected: isSelected,
+                          onSelected: (checked) {
+                            setState(() {
+                              if (checked) {
+                                _tempBrands.add(slug);
+                              } else {
+                                _tempBrands.remove(slug);
+                              }
+                            });
+                          },
+                          selectedColor: colorScheme.primaryContainer,
+                          checkmarkColor: colorScheme.onPrimaryContainer,
+                          labelStyle: TextStyle(
+                            fontSize: 13,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: isSelected
+                                ? colorScheme.onPrimaryContainer
+                                : colorScheme.onSurface,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? colorScheme.primary
+                                  : colorScheme.outlineVariant
+                                      .withValues(alpha: 0.6),
+                            ),
+                          ),
+                          showCheckmark: true,
+                          backgroundColor: colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.3),
+                        );
+                      }).toList(),
                     ),
                   ),
-                )
-              else
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: brands.map((brand) {
-                      final String slug = brand['slug']?.toString() ?? '';
-                      final String name =
-                          brand['name']?.toString() ?? 'Unknown';
-                      final isSelected = _tempBrands.contains(slug);
-
-                      return FilterChip(
-                        label: Text(name),
-                        selected: isSelected,
-                        onSelected: (checked) {
-                          setState(() {
-                            if (checked) {
-                              _tempBrands.add(slug);
-                            } else {
-                              _tempBrands.remove(slug);
-                            }
-                          });
-                        },
-                        selectedColor: colorScheme.primaryContainer,
-                        checkmarkColor: colorScheme.onPrimaryContainer,
-                        labelStyle: TextStyle(
-                          fontSize: 13,
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.normal,
-                          color: isSelected
-                              ? colorScheme.onPrimaryContainer
-                              : colorScheme.onSurface,
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: BorderSide(
-                            color: isSelected
-                                ? colorScheme.primary
-                                : colorScheme.outlineVariant.withOpacity(0.6),
-                          ),
-                        ),
-                        showCheckmark: true,
-                        backgroundColor:
-                            colorScheme.surfaceVariant.withOpacity(0.3),
-                      );
-                    }).toList(),
-                  ),
-                ),
               ],
             ),
           ),
@@ -539,8 +543,8 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isPriceFiltered
-              ? colorScheme.primary.withOpacity(0.3)
-              : colorScheme.outlineVariant.withOpacity(0.5),
+              ? colorScheme.primary.withValues(alpha: 0.3)
+              : colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
       ),
       child: Material(
@@ -550,148 +554,155 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
         child: Theme(
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
-          initiallyExpanded: true,
-          tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-          childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-          leading: Icon(
-            Icons.payments_outlined,
-            size: 20,
-            color: isPriceFiltered
-                ? colorScheme.primary
-                : colorScheme.onSurfaceVariant,
-          ),
-          title: Text(
-            "Price Range",
-            style: textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 15,
-            ),
-          ),
-          subtitle: Text(
-            "₹${_tempPriceRange.start.round()} - ₹${_tempPriceRange.end.round()}",
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+            initiallyExpanded: true,
+            tilePadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+            childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+            leading: Icon(
+              Icons.payments_outlined,
+              size: 20,
               color: isPriceFiltered
                   ? colorScheme.primary
                   : colorScheme.onSurfaceVariant,
             ),
-          ),
-          children: [
-            const SizedBox(height: 6),
-            // Price Display Cards
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 10, horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceVariant.withOpacity(0.4),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: colorScheme.outlineVariant.withOpacity(0.4)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Min Price",
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          "₹${_tempPriceRange.start.round()}",
-                          style: textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
-                  child: Text("-",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                ),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 10, horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceVariant.withOpacity(0.4),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: colorScheme.outlineVariant.withOpacity(0.4)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Max Price",
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          "₹${_tempPriceRange.end.round()}",
-                          style: textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            // Quick Price Preset Chips
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                _pricePresetChip("Under ₹1k", 0, 1000, colorScheme),
-                _pricePresetChip("₹1k - ₹5k", 1000, 5000, colorScheme),
-                _pricePresetChip("₹5k - ₹10k", 5000, 10000, colorScheme),
-                _pricePresetChip("Reset", 0, 10000, colorScheme),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // Custom Range Slider
-            SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                rangeThumbShape: const RoundRangeSliderThumbShape(
-                    enabledThumbRadius: 9, elevation: 3),
-                overlayShape: const RoundSliderOverlayShape(overlayRadius: 18),
-                activeTrackColor: colorScheme.primary,
-                inactiveTrackColor:
-                    colorScheme.primaryContainer.withOpacity(0.4),
-                thumbColor: colorScheme.primary,
-              ),
-              child: RangeSlider(
-                values: _tempPriceRange,
-                min: 0,
-                max: 10000,
-                divisions: 100,
-                labels: RangeLabels(
-                  "₹${_tempPriceRange.start.round()}",
-                  "₹${_tempPriceRange.end.round()}",
-                ),
-                onChanged: (values) => setState(() => _tempPriceRange = values),
+            title: Text(
+              "Price Range",
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
               ),
             ),
+            subtitle: Text(
+              "₹${_tempPriceRange.start.round()} - ₹${_tempPriceRange.end.round()}",
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: isPriceFiltered
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
+              ),
+            ),
+            children: [
+              const SizedBox(height: 6),
+              // Price Display Cards
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: colorScheme.outlineVariant
+                                .withValues(alpha: 0.4)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Min Price",
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            "₹${_tempPriceRange.start.round()}",
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: Text("-",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: colorScheme.outlineVariant
+                                .withValues(alpha: 0.4)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Max Price",
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            "₹${_tempPriceRange.end.round()}",
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              // Quick Price Preset Chips
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  _pricePresetChip("Under ₹1k", 0, 1000, colorScheme),
+                  _pricePresetChip("₹1k - ₹5k", 1000, 5000, colorScheme),
+                  _pricePresetChip("₹5k - ₹10k", 5000, 10000, colorScheme),
+                  _pricePresetChip("Reset", 0, 10000, colorScheme),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Custom Range Slider
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  rangeThumbShape: const RoundRangeSliderThumbShape(
+                      enabledThumbRadius: 9, elevation: 3),
+                  overlayShape:
+                      const RoundSliderOverlayShape(overlayRadius: 18),
+                  activeTrackColor: colorScheme.primary,
+                  inactiveTrackColor:
+                      colorScheme.primaryContainer.withValues(alpha: 0.4),
+                  thumbColor: colorScheme.primary,
+                ),
+                child: RangeSlider(
+                  values: _tempPriceRange,
+                  min: 0,
+                  max: 10000,
+                  divisions: 100,
+                  labels: RangeLabels(
+                    "₹${_tempPriceRange.start.round()}",
+                    "₹${_tempPriceRange.end.round()}",
+                  ),
+                  onChanged: (values) =>
+                      setState(() => _tempPriceRange = values),
+                ),
+              ),
             ],
           ),
         ),
@@ -720,7 +731,7 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
         decoration: BoxDecoration(
           color: isSelected
               ? colorScheme.primary
-              : colorScheme.surfaceVariant.withOpacity(0.5),
+              : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
@@ -746,7 +757,7 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
         color: colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, -4),
           ),
@@ -765,7 +776,7 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 side: BorderSide(
-                    color: colorScheme.outlineVariant.withOpacity(0.8)),
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.8)),
               ),
             ),
           ),

@@ -133,9 +133,8 @@ class AddressFormView extends GetView<AddressFormController> {
                   fieldHintText: "Enter nearby landmark",
                   controller: controller.landmark,
                   validationmsg: "Required",
-                  validCheck: (v) => (v == null || v.trim().isEmpty)
-                      ? "Enter Landmark"
-                      : null,
+                  validCheck: (v) =>
+                      (v == null || v.trim().isEmpty) ? "Enter Landmark" : null,
                 ),
                 const SizedBox(height: 16),
 
@@ -166,8 +165,9 @@ class AddressFormView extends GetView<AddressFormController> {
                   fieldHintText: "Enter your Town/City",
                   controller: controller.city,
                   validationmsg: "City is required",
-                  validCheck: (v) =>
-                      (v == null || v.trim().isEmpty) ? "Enter Town/City" : null,
+                  validCheck: (v) => (v == null || v.trim().isEmpty)
+                      ? "Enter Town/City"
+                      : null,
                 ),
                 const SizedBox(height: 24),
 
@@ -207,10 +207,11 @@ class AddressFormView extends GetView<AddressFormController> {
                 // Default Address Switch
                 Obx(() => Container(
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceVariant.withOpacity(0.5),
+                        color: colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: colorScheme.outline.withOpacity(0.5),
+                          color: colorScheme.outline.withValues(alpha: 0.5),
                           width: 1,
                         ),
                       ),
@@ -253,8 +254,8 @@ class AddressFormView extends GetView<AddressFormController> {
             boxShadow: [
               BoxShadow(
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.black.withOpacity(0.3)
-                    : Colors.black.withOpacity(0.06),
+                    ? Colors.black.withValues(alpha: 0.3)
+                    : Colors.black.withValues(alpha: 0.06),
                 blurRadius: 8,
                 offset: const Offset(0, -3),
               ),
@@ -340,7 +341,7 @@ class AddressFormView extends GetView<AddressFormController> {
             decoration: BoxDecoration(
               color: enabled
                   ? colorScheme.surfaceContainerHighest
-                  : colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                  : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: colorScheme.outline, width: 1),
             ),
@@ -389,8 +390,8 @@ class AddressFormView extends GetView<AddressFormController> {
           padding: const EdgeInsets.symmetric(vertical: 11),
           decoration: BoxDecoration(
             color: isSelected
-                ? colorScheme.primary.withOpacity(0.12)
-                : colorScheme.surfaceVariant,
+                ? colorScheme.primary.withValues(alpha: 0.12)
+                : colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: isSelected ? colorScheme.primary : colorScheme.outline,
@@ -413,9 +414,8 @@ class AddressFormView extends GetView<AddressFormController> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected
-                      ? colorScheme.primary
-                      : colorScheme.onSurface,
+                  color:
+                      isSelected ? colorScheme.primary : colorScheme.onSurface,
                 ),
               ),
             ],

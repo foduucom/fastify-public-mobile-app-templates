@@ -4,21 +4,20 @@ import '../../cart/controller/cart_controller.dart';
 import '/app/data/basic_provider.dart';
 
 class CheckoutController extends GetxController {
-
   late final CartController _cart;
 
   // ── Static address ID for now (replace with real later) ───────
   static const String _staticAddressId = '69bcfe79c057ac52a72a6302';
 
   final RxList<Map<String, dynamic>> cartItems = <Map<String, dynamic>>[].obs;
-  final RxDouble subTotal    = 0.0.obs;
+  final RxDouble subTotal = 0.0.obs;
   final RxDouble deliveryFee = 5.0.obs;
-  final RxDouble total       = 0.0.obs;
-  final RxDouble discount    = 0.0.obs;
+  final RxDouble total = 0.0.obs;
+  final RxDouble discount = 0.0.obs;
 
   final RxString selectedPaymentMethod = ''.obs;
-  final RxString selectedVoucher       = ''.obs;
-  final RxBool   isPlacingOrder        = false.obs;
+  final RxString selectedVoucher = ''.obs;
+  final RxBool isPlacingOrder = false.obs;
 
   // ── Display labels → API values ───────────────────────────────
   final List<String> paymentMethods = [
@@ -31,9 +30,9 @@ class CheckoutController extends GetxController {
   // Maps display label → API primary_method value
   static const Map<String, String> _methodApiMap = {
     'Credit / Debit Card': 'stripe',
-    'Cash on Delivery':    'cod',
-    'UPI / Net Banking':   'upi',
-    'Wallet':              'wallet',
+    'Cash on Delivery': 'cod',
+    'UPI / Net Banking': 'upi',
+    'Wallet': 'wallet',
   };
 
   final List<String> vouchers = [
@@ -77,12 +76,13 @@ class CheckoutController extends GetxController {
     // Validate payment method
     if (selectedPaymentMethod.value.isEmpty) {
       Get.snackbar(
-        'Payment Required', 'Please select a payment method',
-        snackPosition:   SnackPosition.TOP,
+        'Payment Required',
+        'Please select a payment method',
+        snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.redAccent,
-        colorText:       Colors.white,
-        margin:          const EdgeInsets.all(16),
-        borderRadius:    12,
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 12,
       );
       return;
     }
@@ -90,20 +90,18 @@ class CheckoutController extends GetxController {
     isPlacingOrder(true);
     try {
       // Map display label → API value
-      final apiMethod = _methodApiMap[selectedPaymentMethod.value]
-          ?? 'stripe';
+      final apiMethod = _methodApiMap[selectedPaymentMethod.value] ?? 'stripe';
 
       // ✅ Exact body your API expects
       final body = {
-        'address_id':     _staticAddressId,
+        'address_id': _staticAddressId,
         'primary_method': apiMethod,
       };
 
       debugPrint('🛒 Creating order: $body');
 
       // BasicProvider returns body["data"] directly
-      final result =
-      await BasicProvider('order/create').postRequest(body);
+      final result = await BasicProvider('order/create').postRequest(body);
 
       if (result != null) {
         final orderNo = result['order_no']?.toString() ?? '';
@@ -116,24 +114,24 @@ class CheckoutController extends GetxController {
           'order_no': orderNo,
         });
       }
-
     } catch (e) {
       debugPrint('Place order error: $e');
       Get.snackbar(
-        '❌ Error', 'Failed to place order. Please try again.',
-        snackPosition:   SnackPosition.TOP,
+        '❌ Error',
+        'Failed to place order. Please try again.',
+        snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.redAccent,
-        colorText:       Colors.white,
-        margin:          const EdgeInsets.all(16),
-        borderRadius:    12,
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 12,
       );
     } finally {
       isPlacingOrder(false);
     }
   }
 
-  String itemName(Map item)     => _cart.itemName(item);
-  double itemPrice(Map item)    => _cart.itemPrice(item);
-  String itemImage(Map item)    => _cart.itemImage(item);
-  int    itemQuantity(Map item) => _cart.itemQuantity(item);
+  String itemName(Map item) => _cart.itemName(item);
+  double itemPrice(Map item) => _cart.itemPrice(item);
+  String itemImage(Map item) => _cart.itemImage(item);
+  int itemQuantity(Map item) => _cart.itemQuantity(item);
 }

@@ -29,7 +29,6 @@ class PaymentView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     // ── Card Number ─────────────────────────
                     const _FieldLabel(label: 'Card Number'),
                     const SizedBox(height: 10),
@@ -109,8 +108,8 @@ class PaymentView extends StatelessWidget {
 
             // ── Checkout Button (pinned bottom) ────────────────
             Obx(() {
-              final active = controller.isFormValid.value &&
-                  !controller.isLoading.value;
+              final active =
+                  controller.isFormValid.value && !controller.isLoading.value;
               return Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
                 child: SizedBox(
@@ -131,13 +130,13 @@ class PaymentView extends StatelessWidget {
                     ),
                     child: controller.isLoading.value
                         ? const SizedBox(
-                        width: 22, height: 22,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2.5, color: Colors.white))
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2.5, color: Colors.white))
                         : const Text('Checkout',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600)),
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w600)),
                   ),
                 ),
               );
@@ -156,7 +155,8 @@ class PaymentView extends StatelessWidget {
           GestureDetector(
             onTap: () => Get.back(),
             child: Container(
-              width: 44, height: 44,
+              width: 44,
+              height: 44,
               decoration: const BoxDecoration(
                   color: Colors.white, shape: BoxShape.circle),
               child: const Icon(Icons.arrow_back_ios_new_rounded,
@@ -229,8 +229,7 @@ class _InputField extends StatelessWidget {
         obscureText: obscureText,
         onChanged: onChanged,
         inputFormatters: inputFormatters,
-        style: const TextStyle(
-            fontSize: 15, color: Color(0xFF1A1A1A)),
+        style: const TextStyle(fontSize: 15, color: Color(0xFF1A1A1A)),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: const TextStyle(
@@ -240,8 +239,8 @@ class _InputField extends StatelessWidget {
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-              horizontal: 24, vertical: 18),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
         ),
       ),
     );

@@ -27,8 +27,7 @@ class HomepageController extends GetxController
     await getDashboardDesign(pageSlug);
   }
 
-  Future<dynamic> getDashboardDesign(String slug,
-      {dynamic? requestBody}) async {
+  Future<dynamic> getDashboardDesign(String slug, {dynamic requestBody}) async {
     try {
       isLoading.value = true;
 
@@ -52,7 +51,9 @@ class HomepageController extends GetxController
 
       if (response != null) {
         // Handle both 'data' (from BasicProvider) and direct list if applicable
-        var list = response is List ? response : (response['value'] ?? response['data'] ?? []);
+        var list = response is List
+            ? response
+            : (response['value'] ?? response['data'] ?? []);
         drawernavigationItems.assignAll(list is List ? list : []);
       } else {
         print('WARNING: Drawer navigation data is null');
@@ -65,10 +66,5 @@ class HomepageController extends GetxController
     } finally {
       isDrawerNavigationLoading.value = false;
     }
-  }
-
-  @override
-  void onClose() {
-    super.onClose();
   }
 }

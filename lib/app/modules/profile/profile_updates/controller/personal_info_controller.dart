@@ -5,14 +5,13 @@ import 'dart:io';
 import '/app/data/basic_provider.dart';
 
 class PersonalInfoController extends GetxController {
-
-  final TextEditingController nameController     = TextEditingController();
-  final TextEditingController mobileController   = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController mobileController = TextEditingController();
   final TextEditingController interestController = TextEditingController();
-  final TextEditingController addressController  = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
 
   final Rx<File?> pickedImage = Rx<File?>(null);
-  final RxBool    isLoading   = false.obs;
+  final RxBool isLoading = false.obs;
 
   @override
   void onInit() {
@@ -30,10 +29,10 @@ class PersonalInfoController extends GetxController {
   }
 
   bool get hasInput =>
-      nameController.text.trim().isNotEmpty     ||
-          mobileController.text.trim().isNotEmpty   ||
-          interestController.text.trim().isNotEmpty ||
-          addressController.text.trim().isNotEmpty;
+      nameController.text.trim().isNotEmpty ||
+      mobileController.text.trim().isNotEmpty ||
+      interestController.text.trim().isNotEmpty ||
+      addressController.text.trim().isNotEmpty;
 
   // ── Fetch Profile ─────────────────────────────────────────────
   // BasicProvider already returns body["data"], so result IS the object
@@ -41,16 +40,15 @@ class PersonalInfoController extends GetxController {
     isLoading(true);
     try {
       // ✅ FIX 1: correct variable name (was 'response', unused)
-      final result =
-      await BasicProvider('auth/customer/profile').getRequest();
+      final result = await BasicProvider('auth/customer/profile').getRequest();
 
       // ✅ FIX 2: result IS the data object — no ['data'] key needed
       if (result != null && result is Map) {
-        nameController.text     = result['name']?.toString()     ?? '';
-        mobileController.text   = result['mobile']?.toString()   ??
-            result['phone']?.toString()    ?? '';
+        nameController.text = result['name']?.toString() ?? '';
+        mobileController.text =
+            result['mobile']?.toString() ?? result['phone']?.toString() ?? '';
         interestController.text = result['interest']?.toString() ?? '';
-        addressController.text  = result['address']?.toString()  ?? '';
+        addressController.text = result['address']?.toString() ?? '';
       }
     } catch (e) {
       debugPrint('Fetch profile error: $e');
@@ -75,11 +73,11 @@ class PersonalInfoController extends GetxController {
       Get.snackbar(
         'Nothing to update',
         'Please fill in at least one field',
-        snackPosition:   SnackPosition.TOP,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.orange,
-        colorText:       Colors.white,
-        margin:          const EdgeInsets.all(16),
-        borderRadius:    12,
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 12,
       );
       return;
     }
@@ -91,17 +89,22 @@ class PersonalInfoController extends GetxController {
       if (pickedImage.value != null) {
         // ── Multipart (has image) ─────────────────────────
         final fields = <String, String>{};
-        if (nameController.text.trim().isNotEmpty)
-          fields['name']     = nameController.text.trim();
-        if (mobileController.text.trim().isNotEmpty)
-          fields['mobile']   = mobileController.text.trim();
-        if (interestController.text.trim().isNotEmpty)
+        if (nameController.text.trim().isNotEmpty) {
+          fields['name'] = nameController.text.trim();
+        }
+        if (mobileController.text.trim().isNotEmpty) {
+          fields['mobile'] = mobileController.text.trim();
+        }
+        if (interestController.text.trim().isNotEmpty) {
           fields['interest'] = interestController.text.trim();
-        if (addressController.text.trim().isNotEmpty)
-          fields['address']  = addressController.text.trim();
+        }
+        if (addressController.text.trim().isNotEmpty) {
+          fields['address'] = addressController.text.trim();
+        }
 
         // ✅ FIX 3: correct endpoint
-        result = await BasicProvider('auth/customer/profile/update').postRequest(
+        result =
+            await BasicProvider('auth/customer/profile/update').postRequest(
           FormData({
             ...fields,
             'featured_image': MultipartFile(
@@ -114,13 +117,13 @@ class PersonalInfoController extends GetxController {
         // ── JSON (no image) ───────────────────────────────
         final body = <String, dynamic>{
           if (nameController.text.trim().isNotEmpty)
-            'name':     nameController.text.trim(),
+            'name': nameController.text.trim(),
           if (mobileController.text.trim().isNotEmpty)
-            'mobile':   mobileController.text.trim(),
+            'mobile': mobileController.text.trim(),
           if (interestController.text.trim().isNotEmpty)
             'interest': interestController.text.trim(),
           if (addressController.text.trim().isNotEmpty)
-            'address':  addressController.text.trim(),
+            'address': addressController.text.trim(),
         };
 
         // ✅ FIX 3: correct endpoint
@@ -130,13 +133,14 @@ class PersonalInfoController extends GetxController {
 
       if (result != null) {
         Get.snackbar(
-          '✅ Success', 'Profile updated successfully',
-          snackPosition:   SnackPosition.TOP,
+          '✅ Success',
+          'Profile updated successfully',
+          snackPosition: SnackPosition.TOP,
           backgroundColor: const Color(0xFF1A1A1A),
-          colorText:       Colors.white,
-          margin:          const EdgeInsets.all(16),
-          borderRadius:    12,
-          duration:        const Duration(seconds: 2),
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 12,
+          duration: const Duration(seconds: 2),
         );
         // ✅ Go back so ProfileView re-fetches
         Get.back(result: true);
@@ -144,13 +148,14 @@ class PersonalInfoController extends GetxController {
     } catch (e) {
       debugPrint('Update profile error: $e');
       Get.snackbar(
-        '❌ Error', 'Failed to update profile. Please try again.',
-        snackPosition:   SnackPosition.TOP,
+        '❌ Error',
+        'Failed to update profile. Please try again.',
+        snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.redAccent,
-        colorText:       Colors.white,
-        margin:          const EdgeInsets.all(16),
-        borderRadius:    12,
-        duration:        const Duration(seconds: 3),
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 12,
+        duration: const Duration(seconds: 3),
       );
     } finally {
       isLoading(false);

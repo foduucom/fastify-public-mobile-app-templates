@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import '../../model/model.dart';
 import '../controller/order_details_controller.dart';
 
-
 class OrderDetailView extends GetView<OrderDetailController> {
   const OrderDetailView({super.key});
 
@@ -18,15 +17,13 @@ class OrderDetailView extends GetView<OrderDetailController> {
             const SizedBox(height: 16),
             _buildTopBar(),
             const SizedBox(height: 8),
-
             Expanded(
               child: Obx(() {
                 // ── Loading ─────────────────────────────
                 if (controller.isLoading.value &&
                     controller.order.value == null) {
                   return const Center(
-                    child: CircularProgressIndicator(
-                        color: Color(0xFF1A1A1A)),
+                    child: CircularProgressIndicator(color: Color(0xFF1A1A1A)),
                   );
                 }
                 // ── Error ────────────────────────────────
@@ -55,7 +52,8 @@ class OrderDetailView extends GetView<OrderDetailController> {
           GestureDetector(
             onTap: () => Get.back(),
             child: Container(
-              width: 44, height: 44,
+              width: 44,
+              height: 44,
               decoration: const BoxDecoration(
                   color: Colors.white, shape: BoxShape.circle),
               child: const Icon(Icons.arrow_back_ios_new_rounded,
@@ -74,7 +72,8 @@ class OrderDetailView extends GetView<OrderDetailController> {
           GestureDetector(
             onTap: () => controller.refresh(),
             child: Container(
-              width: 44, height: 44,
+              width: 44,
+              height: 44,
               decoration: const BoxDecoration(
                   color: Colors.white, shape: BoxShape.circle),
               child: const Icon(Icons.refresh_rounded,
@@ -106,13 +105,11 @@ class OrderDetailView extends GetView<OrderDetailController> {
               child: Column(
                 children: List.generate(
                   order.products.length,
-                      (i) => Column(
+                  (i) => Column(
                     children: [
                       _ProductRow(product: order.products[i]),
                       if (i < order.products.length - 1)
-                        const Divider(
-                            height: 20,
-                            color: Color(0xFFF0EEEB)),
+                        const Divider(height: 20, color: Color(0xFFF0EEEB)),
                     ],
                   ),
                 ),
@@ -147,9 +144,7 @@ class OrderDetailView extends GetView<OrderDetailController> {
                 title: 'Notes',
                 child: Text(order.notes,
                     style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF6B6B6B),
-                        height: 1.5)),
+                        fontSize: 13, color: Color(0xFF6B6B6B), height: 1.5)),
               ),
             ],
           ],
@@ -163,8 +158,7 @@ class OrderDetailView extends GetView<OrderDetailController> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20)),
+          color: Colors.white, borderRadius: BorderRadius.circular(20)),
       child: Column(
         children: [
           Row(
@@ -174,9 +168,8 @@ class OrderDetailView extends GetView<OrderDetailController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text('Order Number',
-                        style: TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFF9E9E9E))),
+                        style:
+                            TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
                     const SizedBox(height: 4),
                     Text('# ${order.orderNo}',
                         style: const TextStyle(
@@ -206,9 +199,7 @@ class OrderDetailView extends GetView<OrderDetailController> {
               _InfoTile(
                 icon: Icons.receipt_long_outlined,
                 label: 'Payment',
-                value: order.paymentStatus == 'paid'
-                    ? 'Paid'
-                    : 'Unpaid',
+                value: order.paymentStatus == 'paid' ? 'Paid' : 'Unpaid',
                 valueColor: order.isPaid
                     ? const Color(0xFF2E7D32)
                     : const Color(0xFFF57F17),
@@ -218,7 +209,7 @@ class OrderDetailView extends GetView<OrderDetailController> {
                 icon: Icons.shopping_bag_outlined,
                 label: 'Items',
                 value:
-                '${order.products.length} item${order.products.length != 1 ? 's' : ''}',
+                    '${order.products.length} item${order.products.length != 1 ? 's' : ''}',
               ),
             ],
           ),
@@ -231,14 +222,14 @@ class OrderDetailView extends GetView<OrderDetailController> {
   Widget _buildAddressBlock(OrderAddress a) {
     if (a.address.isEmpty && a.name.isEmpty) {
       return const Text('No delivery address provided.',
-          style: TextStyle(
-              fontSize: 13, color: Color(0xFF9E9E9E)));
+          style: TextStyle(fontSize: 13, color: Color(0xFF9E9E9E)));
     }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 40, height: 40,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
               color: const Color(0xFFF5F3F0),
               borderRadius: BorderRadius.circular(12)),
@@ -260,15 +251,12 @@ class OrderDetailView extends GetView<OrderDetailController> {
               if (a.address.isNotEmpty)
                 Text(a.address,
                     style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF6B6B6B),
-                        height: 1.5)),
+                        fontSize: 13, color: Color(0xFF6B6B6B), height: 1.5)),
               if (a.pincode.isNotEmpty) ...[
                 const SizedBox(height: 2),
                 Text('Pincode: ${a.pincode}',
                     style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF9E9E9E))),
+                        fontSize: 12, color: Color(0xFF9E9E9E))),
               ],
               if (a.mobile.isNotEmpty) ...[
                 const SizedBox(height: 6),
@@ -278,8 +266,7 @@ class OrderDetailView extends GetView<OrderDetailController> {
                   const SizedBox(width: 4),
                   Text(a.mobile,
                       style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF9E9E9E))),
+                          fontSize: 12, color: Color(0xFF9E9E9E))),
                 ]),
               ],
             ],
@@ -294,7 +281,8 @@ class OrderDetailView extends GetView<OrderDetailController> {
     return Row(
       children: [
         Container(
-          width: 40, height: 40,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
               color: const Color(0xFFF5F3F0),
               borderRadius: BorderRadius.circular(12)),
@@ -314,7 +302,8 @@ class OrderDetailView extends GetView<OrderDetailController> {
               const SizedBox(height: 4),
               Row(children: [
                 Container(
-                  width: 6, height: 6,
+                  width: 6,
+                  height: 6,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: order.isPaid
@@ -324,9 +313,7 @@ class OrderDetailView extends GetView<OrderDetailController> {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  order.isPaid
-                      ? 'Payment received'
-                      : 'Payment pending',
+                  order.isPaid ? 'Payment received' : 'Payment pending',
                   style: TextStyle(
                       fontSize: 12,
                       color: order.isPaid
@@ -352,8 +339,7 @@ class OrderDetailView extends GetView<OrderDetailController> {
       children: [
         _PriceLine(
             label: 'Subtotal',
-            value:
-            '${order.currency}${order.subtotal.toStringAsFixed(0)}'),
+            value: '${order.currency}${order.subtotal.toStringAsFixed(0)}'),
         const SizedBox(height: 10),
         _PriceLine(
             label: 'Shipping',
@@ -364,8 +350,7 @@ class OrderDetailView extends GetView<OrderDetailController> {
           const SizedBox(height: 10),
           _PriceLine(
               label: 'Discount',
-              value:
-              '-${order.currency}${order.discount.toStringAsFixed(0)}',
+              value: '-${order.currency}${order.discount.toStringAsFixed(0)}',
               valueColor: const Color(0xFF2E7D32)),
         ],
         const SizedBox(height: 14),
@@ -373,8 +358,7 @@ class OrderDetailView extends GetView<OrderDetailController> {
         const SizedBox(height: 14),
         _PriceLine(
           label: 'Total',
-          value:
-          '${order.currency}${order.total.toStringAsFixed(0)}',
+          value: '${order.currency}${order.total.toStringAsFixed(0)}',
           isBold: true,
         ),
       ],
@@ -387,8 +371,7 @@ class OrderDetailView extends GetView<OrderDetailController> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline,
-              size: 48, color: Color(0xFFB0AEAB)),
+          const Icon(Icons.error_outline, size: 48, color: Color(0xFFB0AEAB)),
           const SizedBox(height: 16),
           const Text('Failed to load order.',
               style: TextStyle(
@@ -412,14 +395,12 @@ class OrderDetailView extends GetView<OrderDetailController> {
   }
 
   // ── White Section Card ────────────────────────────────────
-  Widget _buildSectionCard(
-      {required String title, required Widget child}) {
+  Widget _buildSectionCard({required String title, required Widget child}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20)),
+          color: Colors.white, borderRadius: BorderRadius.circular(20)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -447,26 +428,26 @@ class _ProductRow extends StatelessWidget {
       children: [
         // Thumbnail
         Container(
-          width: 58, height: 58,
+          width: 58,
+          height: 58,
           decoration: BoxDecoration(
               color: const Color(0xFFF5F3F0),
               borderRadius: BorderRadius.circular(12)),
           clipBehavior: Clip.antiAlias,
           child: product.imageUrl.isNotEmpty
               ? CachedNetworkImage(
-            imageUrl: product.imageUrl,
-            fit: BoxFit.contain,
-            placeholder: (_, __) => const Center(
-                child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Color(0xFFD0D0D0))),
-            errorWidget: (_, __, ___) => const Icon(
-                Icons.inventory_2_outlined,
-                size: 24,
-                color: Color(0xFFD0D0D0)),
-          )
+                  imageUrl: product.imageUrl,
+                  fit: BoxFit.contain,
+                  placeholder: (_, __) => const Center(
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Color(0xFFD0D0D0))),
+                  errorWidget: (_, __, ___) => const Icon(
+                      Icons.inventory_2_outlined,
+                      size: 24,
+                      color: Color(0xFFD0D0D0)),
+                )
               : const Icon(Icons.inventory_2_outlined,
-              size: 24, color: Color(0xFFD0D0D0)),
+                  size: 24, color: Color(0xFFD0D0D0)),
         ),
         const SizedBox(width: 12),
 
@@ -486,23 +467,20 @@ class _ProductRow extends StatelessWidget {
                   product.variantName != product.name) ...[
                 const SizedBox(height: 3),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                       color: const Color(0xFFF5F3F0),
                       borderRadius: BorderRadius.circular(6)),
                   child: Text(product.variantName,
                       style: const TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFF6B6B6B))),
+                          fontSize: 11, color: Color(0xFF6B6B6B))),
                 ),
               ],
               const SizedBox(height: 4),
               Text(
                 '₹${product.unitPrice.toStringAsFixed(0)}  ×  ${product.qty}',
-                style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF9E9E9E)),
+                style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E)),
               ),
             ],
           ),
@@ -526,12 +504,9 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: isPaid
-            ? const Color(0xFFE8F5E9)
-            : const Color(0xFFFFF8E1),
+        color: isPaid ? const Color(0xFFE8F5E9) : const Color(0xFFFFF8E1),
         borderRadius: BorderRadius.circular(50),
       ),
       child: Text(
@@ -539,9 +514,7 @@ class _StatusChip extends StatelessWidget {
         style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: isPaid
-                ? const Color(0xFF2E7D32)
-                : const Color(0xFFF57F17)),
+            color: isPaid ? const Color(0xFF2E7D32) : const Color(0xFFF57F17)),
       ),
     );
   }
@@ -565,8 +538,7 @@ class _InfoTile extends StatelessWidget {
           Icon(icon, size: 20, color: const Color(0xFF9E9E9E)),
           const SizedBox(height: 5),
           Text(label,
-              style: const TextStyle(
-                  fontSize: 10, color: Color(0xFF9E9E9E))),
+              style: const TextStyle(fontSize: 10, color: Color(0xFF9E9E9E))),
           const SizedBox(height: 2),
           Text(value,
               textAlign: TextAlign.center,
@@ -583,8 +555,7 @@ class _InfoTile extends StatelessWidget {
 class _VerticalDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-        width: 1, height: 40, color: const Color(0xFFF0EEEB));
+    return Container(width: 1, height: 40, color: const Color(0xFFF0EEEB));
   }
 }
 

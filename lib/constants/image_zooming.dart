@@ -6,7 +6,7 @@ import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
 class ImageSlider2 extends StatefulWidget {
-  ImageSlider2({
+  const ImageSlider2({
     Key? key,
   }) : super(key: key);
   @override
@@ -96,7 +96,7 @@ class _ImageSliderState extends State<ImageSlider2> {
                 onTap: () {
                   Navigator.pop(context);
                 },
-                child: Icon(
+                child: const Icon(
                   Icons.arrow_back_ios,
                   color: Colors.white,
                 ),

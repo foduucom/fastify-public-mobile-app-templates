@@ -43,7 +43,7 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                     gradient: LinearGradient(
                       colors: [
                         colorScheme.primary,
-                        colorScheme.primary.withOpacity(0.82),
+                        colorScheme.primary.withValues(alpha: 0.82),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -51,7 +51,7 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: [
                       BoxShadow(
-                        color: colorScheme.primary.withOpacity(0.25),
+                        color: colorScheme.primary.withValues(alpha: 0.25),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -62,7 +62,7 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -91,7 +91,7 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                               style: TextStyle(
                                 fontFamily: 'Plus Jakarta Sans',
                                 fontSize: 12.5,
-                                color: Colors.white.withOpacity(0.85),
+                                color: Colors.white.withValues(alpha: 0.85),
                                 height: 1.35,
                               ),
                             ),
@@ -151,19 +151,21 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                   color: colorScheme.surface,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: colorScheme.outline.withOpacity(0.2)),
+                    side: BorderSide(
+                        color: colorScheme.outline.withValues(alpha: 0.2)),
                   ),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(16),
                     onTap: () => Get.toNamed(Routes.SUPPORT_TICKET),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
                       child: Row(
                         children: [
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: colorScheme.primary.withOpacity(0.1),
+                              color: colorScheme.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Icon(
@@ -201,7 +203,8 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                           Icon(
                             Icons.arrow_forward_ios_rounded,
                             size: 14,
-                            color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+                            color: colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.6),
                           ),
                         ],
                       ),
@@ -235,7 +238,8 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                       decoration: BoxDecoration(
                         color: colorScheme.surface,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                        border: Border.all(
+                            color: colorScheme.outline.withValues(alpha: 0.2)),
                       ),
                       child: Center(
                         child: Text(
@@ -277,7 +281,9 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                         decoration: BoxDecoration(
                           color: colorScheme.surface,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                          border: Border.all(
+                              color:
+                                  colorScheme.outline.withValues(alpha: 0.2)),
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: ExpansionTile(
@@ -313,18 +319,17 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                             if (subFaqs.isNotEmpty) ...[
                               if (answer.isNotEmpty) const SizedBox(height: 10),
                               ...subFaqs.map((sub) {
-                                final subQ = (sub['name'] ??
-                                        sub['question'] ??
-                                        'Detail')
-                                    .toString();
-                                final subA = (sub['answer'] ??
-                                        sub['description'] ??
-                                        '')
-                                    .toString();
+                                final subQ =
+                                    (sub['name'] ?? sub['question'] ?? 'Detail')
+                                        .toString();
+                                final subA =
+                                    (sub['answer'] ?? sub['description'] ?? '')
+                                        .toString();
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 8),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         '• ',
@@ -344,7 +349,8 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                                             style: TextStyle(
                                               fontFamily: 'Plus Jakarta Sans',
                                               fontSize: 12.5,
-                                              color: colorScheme.onSurfaceVariant,
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
                                               height: 1.4,
                                             ),
                                           ),
@@ -376,7 +382,8 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                    border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.2)),
                   ),
                   child: Column(
                     children: [
@@ -388,7 +395,7 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                       ),
                       Divider(
                         height: 1,
-                        color: colorScheme.outline.withOpacity(0.15),
+                        color: colorScheme.outline.withValues(alpha: 0.15),
                         indent: 56,
                       ),
                       _buildLinkTile(
@@ -399,7 +406,7 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                       ),
                       Divider(
                         height: 1,
-                        color: colorScheme.outline.withOpacity(0.15),
+                        color: colorScheme.outline.withValues(alpha: 0.15),
                         indent: 56,
                       ),
                       _buildLinkTile(
@@ -433,7 +440,7 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: colorScheme.outline.withOpacity(0.2)),
+        side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.2)),
       ),
       child: InkWell(
         onTap: onTap,
@@ -446,7 +453,7 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withOpacity(0.1),
+                  color: colorScheme.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: colorScheme.primary, size: 20),
@@ -499,7 +506,7 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
       trailing: Icon(
         Icons.arrow_forward_ios_rounded,
         size: 13,
-        color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
       ),
       onTap: onTap,
       dense: true,

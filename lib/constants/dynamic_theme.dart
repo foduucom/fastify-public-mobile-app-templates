@@ -35,13 +35,12 @@ class DefaultThemeColors {
   static const Color darkOnSurfaceVariant = Color(0xFFAAAAAA);
   // ============ SEMANTIC / ALERT COLORS ============
   static const Color alertWarninglight = Color(0xFFFFF8E1); // Amber 50
-  static const Color alertWarning = Color(0xFFF9A825);      // Amber 800
+  static const Color alertWarning = Color(0xFFF9A825); // Amber 800
   static const Color alertSuccessLight = Color(0xFFE8F5E9); // Green 50
-  static const Color alertSuccess = Color(0xFF388E3C);      // Green 700
-  static const Color alertInfoLight = Color(0xFFE3F2FD);    // Blue 50
-  static const Color alertInfo = Color(0xFF1976D2);         // Blue 700
+  static const Color alertSuccess = Color(0xFF388E3C); // Green 700
+  static const Color alertInfoLight = Color(0xFFE3F2FD); // Blue 50
+  static const Color alertInfo = Color(0xFF1976D2); // Blue 700
 }
-
 
 class AppThemeColors {
   final Color primary;
@@ -207,13 +206,13 @@ class AppThemeColors {
       onPrimary: onPrimary,
       onSecondary: onSecondary,
       onBackground:
-          _hexToColor(themeMap['onBackground']) ?? generatedScheme.onBackground,
+          _hexToColor(themeMap['onBackground']) ?? generatedScheme.onSurface,
       onSurface:
           _hexToColor(themeMap['onSurface']) ?? generatedScheme.onSurface,
       onError: _hexToColor(themeMap['onError']) ?? generatedScheme.onError,
       outline: _hexToColor(themeMap['outline']) ?? generatedScheme.outline,
       surfaceVariant: _hexToColor(themeMap['surfaceVariant']) ??
-          generatedScheme.surfaceVariant,
+          generatedScheme.surfaceContainerHighest,
       onSurfaceVariant: _hexToColor(themeMap['onSurfaceVariant']) ??
           generatedScheme.onSurfaceVariant,
     );
@@ -252,7 +251,7 @@ class AppThemeColors {
   }
 
   static String _colorToHex(Color color) {
-    return '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
+    return '#${color.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
   }
 }
 
@@ -393,19 +392,17 @@ class DynamicThemeManager {
         onSecondary: colors.onSecondary,
         surface: colors.surface,
         onSurface: colors.onSurface,
-        background: colors.background,
-        onBackground: colors.onBackground,
         error: colors.error,
         onError: colors.onError,
         outline: colors.outline,
-        surfaceVariant: colors.surfaceVariant,
+        surfaceContainerHighest: colors.surfaceVariant,
         onSurfaceVariant: colors.onSurfaceVariant,
       ),
       textTheme: _buildTextTheme(colors),
       primaryColor: colors.primary,
       cardColor: colors.surface,
       dividerTheme: DividerThemeData(
-          color: colors.surfaceVariant.withOpacity(0.5), thickness: 8),
+          color: colors.surfaceVariant.withValues(alpha: 0.5), thickness: 8),
       iconTheme: IconThemeData(color: colors.onBackground),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -519,7 +516,7 @@ class DynamicThemeManager {
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return colors.primary.withOpacity(0.5);
+            return colors.primary.withValues(alpha: 0.5);
           }
           return colors.onSurfaceVariant;
         }),
