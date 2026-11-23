@@ -33,8 +33,28 @@ class SessionService {
   /// replaced, when a snackbar would attach to a dying Scaffold).
   static String? pendingNotice;
 
-  /// Settings that are not user data and must survive a sign-out.
-  static const _keptKeys = ['auth_preference', 'store_name', 'isIntroViewed'];
+  /// Keys that contain account/session data. Other app preferences and local
+  /// conveniences (theme, currency, recent searches, store settings) survive.
+  static const _sessionKeys = [
+    'userData',
+    'isLogin',
+    'token',
+    'refreshToken',
+    'accessToken',
+    'tokenExpiry',
+    'otpEmail',
+    'auth_token',
+    'user_name',
+    'user_email',
+    'user_id',
+    'userEmail',
+    'userName',
+    'userId',
+    'userDetails',
+    'local_cart',
+    'cart',
+    'wishlist',
+  ];
 
   static void showPendingNotice() {
     final notice = pendingNotice;
@@ -48,25 +68,54 @@ class SessionService {
   /// Firebase or the network.
   static Future<void> clearLocalSession() async {
     final box = GetStorage();
-    final kept = {for (final k in _keptKeys) k: box.read(k)};
-    await box.erase();
-    for (final e in kept.entries) {
-      if (e.value != null) await box.write(e.key, e.value);
+    for (final key in _sessionKeys) {
+      await box.remove(key);
     }
-    unawaited(ApiCache.clear());
+    await ApiCache.clear();
+    await FirebaseHelpers.clearLocalNotifications();
     AuthDetails.loggedIn.value = false;
     try {
       if (Get.isRegistered<WishListService>()) {
         WishListService.to.wishListItems.clear();
+        WishListService.to.loadError.value = false;
       }
       if (Get.isRegistered<CartService>()) {
         CartService.to.cartItems.clear();
+        CartService.to.subTotal.value = 0;
+        CartService.to.total.value = 0;
+        CartService.to.loadError.value = false;
       }
       if (Get.isRegistered<ProfileController>()) {
         Get.find<ProfileController>().profiledata.clear();
       }
     } catch (e) {
       if (kDebugMode) debugPrint('SessionService reset error: $e');
+    }
+  }
+
+  /// User initiated sign-out: start server/FCM cleanup without making local
+  /// sign-out wait on either network service.
+  static Future<void> signOut() async {
+    final box = GetStorage();
+    final userData = box.read('userData');
+    final userId = userData is Map
+        ? (userData['_id'] ?? userData['id'])?.toString()
+        : null;
+    final useMobileLogin = isOtpLogin;
+
+    unawaited(_requestServerLogout());
+    await clearLocalSession();
+    unsubscribeFromPushInBackground(userId);
+    useMobileLogin
+        ? Get.offAllNamed(Routes.MOBILELOGIN)
+        : Get.offAllNamed(Routes.LOGIN);
+  }
+
+  static Future<void> _requestServerLogout() async {
+    try {
+      await BasicProvider('auth/logout').postRequest({});
+    } catch (_) {
+      // Local logout must complete even when the API is unavailable.
     }
   }
 

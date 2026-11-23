@@ -20,6 +20,7 @@ import 'package:foddu/components/product_quick_view_modal.dart';
 import 'package:foddu/components/parent_web_product_card.dart';
 import 'package:foddu/app/modules/shop/shop_navigation.dart';
 import 'package:foddu/app/modules/bottomar/controllers/bottombar_controller.dart';
+import 'package:foddu/services/product_pagination.dart';
 
 class TrendingProductSection extends StatefulWidget {
   final Map<String, dynamic>? contentJson;
@@ -67,6 +68,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   final _isLoadingMore = false.obs;
   final _isInitialLoading = false.obs;
   final _hasMore = true.obs;
+  bool _pageLoadFailed = false;
   int _countPerPage = 10;
   ScrollController? _scrollController;
   ScrollPosition? _parentScrollPosition;
@@ -165,10 +167,18 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
     if (productData != null) {
       if (productData is Map) {
-        trendingList.value = productData['data'] ?? [];
-        _hasMore.value = productData['hasNextPage'] ?? false;
-        _currentPage.value = productData['next'] ??
-            ((productData['current_page'] ?? 1) + 1).toInt();
+        final initialProducts =
+            productData['data'] is List ? productData['data'] as List : [];
+        trendingList.value = initialProducts;
+        _hasMore.value = ProductPagination.hasMore(
+          productData,
+          itemCount: initialProducts.length,
+          pageSize: _countPerPage,
+        );
+        _currentPage.value = ProductPagination.nextPage(
+          productData,
+          defaultPage: initialProducts.isEmpty ? 1 : 2,
+        );
       } else {
         trendingList.value = productData;
         _hasMore.value = false;
@@ -289,8 +299,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   }
 
   Future<void> _fetchProductsFromApi() async {
-    if (_isLoadingMore.value || !_hasMore.value) return;
+    if (_isLoadingMore.value || !_hasMore.value || _pageLoadFailed) return;
 
+    final requestedPage = _currentPage.value;
     _isLoadingMore.value = true;
 
     try {
@@ -327,21 +338,13 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
       if (response == null) {
         _isLoadingMore.value = false;
-        _hasMore.value = false;
+        _pageLoadFailed = true;
         return;
       }
 
       // Handle response and update pagination state
       List newProducts = [];
       if (response is Map) {
-        _hasMore.value = response['hasNextPage'] ?? false;
-        if (response['next'] != null) {
-          _currentPage.value = int.parse(response['next'].toString());
-        } else if (response['current_page'] != null) {
-          _currentPage.value =
-              int.parse(response['current_page'].toString()) + 1;
-        }
-
         // Extract products - check common keys
         if (response['data'] != null && response['data'] is List) {
           newProducts = response['data'];
@@ -353,30 +356,38 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         }
       } else if (response is List) {
         newProducts = response;
-        _hasMore.value = false;
       }
+
+      _hasMore.value = response is Map &&
+          ProductPagination.hasMore(
+            response,
+            itemCount: newProducts.length,
+            pageSize: _countPerPage,
+          );
+      _currentPage.value = response is Map
+          ? ProductPagination.nextPage(
+              response,
+              defaultPage: requestedPage + 1,
+            )
+          : requestedPage + 1;
 
       if (newProducts.isNotEmpty) {
-        trendingList.addAll(newProducts);
+        trendingList.addAll(
+          ProductPagination.uniquePage(trendingList, newProducts),
+        );
       }
 
+      _pageLoadFailed = false;
       _isLoadingMore.value = false;
-
-      // Final fallback if hasNextPage was missing
-      if (response is Map && response['hasNextPage'] == null) {
-        if (newProducts.length < _countPerPage) {
-          _hasMore.value = false;
-        }
-      }
     } catch (e) {
       print("🔥 Error fetching products: $e");
+      _pageLoadFailed = true;
       _isLoadingMore.value = false;
-      _hasMore.value = false;
     } finally {
       _isInitialLoading.value = false;
       // After new products are rendered, re-check whether the viewport is
       // still not full — if so, keep fetching until scrollable.
-      if (_useParentScroll && _hasMore.value) {
+      if (_useParentScroll && _hasMore.value && !_pageLoadFailed) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _loadMoreIfViewportNotFull();
         });
@@ -437,7 +448,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       } else {
         if (categoryType == 'discounted_products') {
           heading = 'Special Offers';
-        } else if (categoryType == 'most_popular' || categoryType == 'popular') {
+        } else if (categoryType == 'most_popular' ||
+            categoryType == 'popular') {
           heading = 'Most Popular Products';
         } else if (categoryType == 'featured') {
           heading = 'Featured Collection';
@@ -492,7 +504,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                         : (_tabsEnabled
                             ? _buildTabbedList()
                             : _buildProductLayout(style)),
-                if (_infiniteScroll && !_hasMoreValue && displayedProducts.isNotEmpty)
+                if (_infiniteScroll &&
+                    !_hasMoreValue &&
+                    displayedProducts.isNotEmpty)
                   _buildEndOfCatalogFooter(colorScheme, textTheme),
                 const SizedBox(height: 18),
               ],
@@ -501,9 +515,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         ));
   }
 
-  Widget _buildEndOfCatalogFooter(ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildEndOfCatalogFooter(
+      ColorScheme colorScheme, TextTheme textTheme) {
     return Padding(
-      padding: const EdgeInsets.only(top: 24.0, bottom: 28.0, left: 32.0, right: 32.0),
+      padding: const EdgeInsets.only(
+          top: 24.0, bottom: 28.0, left: 32.0, right: 32.0),
       child: Row(
         children: [
           Expanded(
@@ -1335,9 +1351,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     if (loadedProducts.isEmpty) return const SizedBox.shrink();
 
     final bool isHeroCarousel =
-        widget.contentJson?['category_type'] == 'parent_category' &&
-            (widget.contentJson?['hero_categories'] != null ||
-                (widget.contentJson?['count'] ?? 0) == 0);
+        widget.contentJson?['category_type'] == 'parent_category' ||
+            widget.contentJson?['hero_categories'] != null;
 
     // If not the top hero section, render as clean boutique portrait cards
     if (!isHeroCarousel) {
@@ -1400,13 +1415,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                   .intersection(configuredIds)
                   .isNotEmpty)
               .toList();
-      final products = configuredIds.isNotEmpty &&
-              hasProductCategoryData &&
-              categoryProducts.isEmpty
-          ? <Map<String, dynamic>>[]
-          : categoryProducts.isEmpty
-              ? loadedProducts
-              : categoryProducts;
+      final products = categoryProducts.isNotEmpty
+          ? categoryProducts
+          : loadedProducts;
       for (final product in products) {
         slides.add((
           product: product,
@@ -1529,7 +1540,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             return (value['_id'] ?? value['id'] ?? '').toString();
           return value.toString();
         })
-        .where((id) => id.isNotEmpty)
+        .where((id) =>
+            id.isNotEmpty &&
+            id.toLowerCase() != 'product' &&
+            id.toLowerCase() != 'products' &&
+            id.toLowerCase() != 'all')
         .toSet();
   }
 
@@ -1591,7 +1606,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           }
           return category.toString();
         })
-        .where((id) => id.isNotEmpty)
+        .where((id) =>
+            id.isNotEmpty &&
+            id.toLowerCase() != 'product' &&
+            id.toLowerCase() != 'products' &&
+            id.toLowerCase() != 'all')
         .toSet();
   }
 
@@ -1863,15 +1882,17 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       Map<String, dynamic> product, Map<String, dynamic> priceInfo) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cardWidth = constraints.maxWidth.isFinite && constraints.maxWidth > 0
-            ? constraints.maxWidth
-            : (MediaQuery.of(context).size.width * 0.38)
-                .clamp(140.0, 160.0)
-                .toDouble();
+        final cardWidth =
+            constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                ? constraints.maxWidth
+                : (MediaQuery.of(context).size.width * 0.38)
+                    .clamp(140.0, 160.0)
+                    .toDouble();
         const imageAspectRatio = 0.75;
         final calculatedImageHeight = cardWidth / imageAspectRatio;
         // Keep image height within cell bounds leaving room for stars, title, and price
-        final imageHeight = constraints.maxHeight.isFinite && constraints.maxHeight > 120
+        final imageHeight = constraints.maxHeight.isFinite &&
+                constraints.maxHeight > 120
             ? (constraints.maxHeight - 90).clamp(60.0, calculatedImageHeight)
             : calculatedImageHeight;
 
@@ -1938,7 +1959,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final productType = priceInfo['productType'];
     final brand = product['brand'];
     final brandName = brand is Map ? brand['name'] : brand;
-    final rawStore = (product['storeName'] ?? brandName ?? '').toString().trim();
+    final rawStore =
+        (product['storeName'] ?? brandName ?? '').toString().trim();
     final bool showStore =
         rawStore.isNotEmpty && rawStore.toLowerCase() != 'store name';
 
@@ -2145,7 +2167,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final productType = priceInfo['productType'];
     final brand = product['brand'];
     final brandName = brand is Map ? brand['name'] : brand;
-    final rawStore = (product['storeName'] ?? brandName ?? '').toString().trim();
+    final rawStore =
+        (product['storeName'] ?? brandName ?? '').toString().trim();
     final bool showStore =
         rawStore.isNotEmpty && rawStore.toLowerCase() != 'store name';
 
@@ -2274,6 +2297,17 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   /// Horizontal loading indicator (for standard & overlay horizontal lists)
   Widget _buildLoadingIndicator() {
     if (!_hasMoreValue) return const SizedBox.shrink();
+    if (!_isExternal && _pageLoadFailed) {
+      return SizedBox(
+        width: 100,
+        child: Center(
+          child: TextButton(
+            onPressed: _retryFetchProducts,
+            child: Text('Retry'.tr),
+          ),
+        ),
+      );
+    }
     return const SizedBox(
       width: 60,
       child: Center(
@@ -2289,6 +2323,14 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   /// Vertical loading indicator (for horizontal-style vertical list)
   Widget _buildLoadingIndicatorVertical() {
     if (!_hasMoreValue) return const SizedBox.shrink();
+    if (!_isExternal && _pageLoadFailed) {
+      return Center(
+        child: TextButton(
+          onPressed: _retryFetchProducts,
+          child: Text('Retry'.tr),
+        ),
+      );
+    }
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 16.0),
       child: Center(
@@ -2299,6 +2341,12 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         ),
       ),
     );
+  }
+
+  void _retryFetchProducts() {
+    if (_isExternal || _isLoadingMore.value) return;
+    _pageLoadFailed = false;
+    _fetchProductsFromApi();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -2384,8 +2432,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       final isOutOfStock =
           stockStatus == 'out_of_stock' || stockStatus == 'outofstock';
       final qty = v['quantity'];
-      final inStock =
-          !isOutOfStock && (qty == null || HelperFunctions.parseAmount(qty) > 0);
+      final inStock = !isOutOfStock &&
+          (qty == null || HelperFunctions.parseAmount(qty) > 0);
       if (inStock && price < bestInStockPrice) {
         bestInStockPrice = price;
         bestInStock = v;

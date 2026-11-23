@@ -1,6 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '/components/app_image_placeholder.dart';
+import '/components/order_product_image.dart';
 import '/app/routes/app_pages.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
@@ -408,63 +407,6 @@ class _ProductTile extends StatelessWidget {
   final dynamic product;
   final String currency;
 
-  String _constructImageUrl(Map imageObj) {
-    final filepath = imageObj['filepath']?.toString() ?? '';
-    if (filepath.isNotEmpty) {
-      final cleanPath =
-          filepath.startsWith('/') ? filepath.substring(1) : filepath;
-      return 'https://mywatch.vbought.com/images/$cleanPath';
-    }
-    final url = imageObj['download_url']?.toString() ?? '';
-    return _fixImageUrl(url);
-  }
-
-  String _fixImageUrl(String url) {
-    if (url.isEmpty) return '';
-    final uri = Uri.tryParse(url);
-    if (uri == null) return url;
-    if (uri.host.endsWith('.vbought.com') &&
-        uri.host != 'mywatch.vbought.com') {
-      return url.replaceFirst(uri.host, 'mywatch.vbought.com');
-    }
-    return url;
-  }
-
-  String? _extractImageUrl(dynamic product) {
-    try {
-      final productObj = product['product_id'];
-
-      if (productObj is Map) {
-        final fi = productObj['featured_image'];
-        if (fi is Map) {
-          final url = _constructImageUrl(fi);
-          if (url.isNotEmpty) return url;
-        }
-
-        final frontImageId = productObj['front_image']?.toString() ?? '';
-        final gallery = productObj['gallery'];
-
-        if (gallery is List && frontImageId.isNotEmpty) {
-          final match = gallery.firstWhere(
-            (g) =>
-                g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
-            orElse: () => null,
-          );
-          if (match != null) return _constructImageUrl(match);
-        }
-      }
-
-      final directImage = product['image'] ?? product['featured_image'];
-      if (directImage is Map) return _constructImageUrl(directImage);
-      if (directImage is String && directImage.startsWith('http')) {
-        return _fixImageUrl(directImage);
-      }
-    } catch (e) {
-      debugPrint('Image extraction error: $e');
-    }
-    return null;
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context).colorScheme;
@@ -487,8 +429,6 @@ class _ProductTile extends StatelessWidget {
             attrs.map((a) => '${a['name']}: ${a['value']}').join('  ·  ');
       }
     }
-
-    final String? imageUrl = _extractImageUrl(product);
 
     // SKU: prefer variant sku, fall back to product_id sku
     final productObj = product['product_id'];
@@ -520,22 +460,12 @@ class _ProductTile extends StatelessWidget {
           // ── Product Image ──
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
-            child: SizedBox(
+            child: OrderProductImage(
+              orderLine: product,
               width: 62,
               height: 62,
-              child: imageUrl != null && imageUrl.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      width: 62,
-                      height: 62,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => _placeholder(theme),
-                      errorWidget: (_, __, ___) {
-                        debugPrint('Image failed to load: $imageUrl');
-                        return _placeholder(theme);
-                      },
-                    )
-                  : _placeholder(theme),
+              radius: 6,
+              fit: BoxFit.cover,
             ),
           ),
 
@@ -681,11 +611,4 @@ class _ProductTile extends StatelessWidget {
       ),
     );
   }
-
-  Widget _placeholder(ColorScheme theme) => const AppImagePlaceholder(
-        radius: 6,
-        width: 62,
-        height: 62,
-        fit: BoxFit.contain,
-      );
 }

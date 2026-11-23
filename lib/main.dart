@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,15 +10,22 @@ import 'package:get_storage/get_storage.dart';
 import 'app/routes/app_pages.dart';
 import 'constants/constants.dart';
 import 'constants/dynamic_theme.dart';
+import 'constants/firebase_notification.dart';
 import 'core/foduuStudio/register_default_widgets.dart';
 import 'core/services/cartServcie.dart';
 import 'core/services/wishlistService.dart';
 import 'core/studio_socket_routing.dart';
+import 'services/api_cache.dart';
+import 'services/api_health_service.dart';
+import 'services/local_storage_notification_service.dart';
+import 'services/notification_sync_service.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await GetStorage.init(); // ✅ storage first
+  await ApiCache.init();
 
   // Dynamic CMS sections must be registered before the homepage fetches its
   // layout, otherwise the API data arrives but no section widgets are built.
@@ -79,6 +89,23 @@ void main() async {
   final initialRoute = await _initApp();
 
   runApp(MyApp(initialRoute: initialRoute));
+  if (!kIsWeb) unawaited(_initializeFirebaseServices());
+}
+
+Future<void> _initializeFirebaseServices() async {
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      ).timeout(const Duration(seconds: 10));
+    }
+    await FirebaseHelpers.firebaseInitialise()
+        .timeout(const Duration(seconds: 10));
+    await FirebaseHelpers.getFCMToken().timeout(const Duration(seconds: 10));
+  } catch (e, stackTrace) {
+    debugPrint('Push notification startup skipped: $e');
+    debugPrintStack(stackTrace: stackTrace);
+  }
 }
 
 Future<String> _initApp() async {
@@ -123,6 +150,9 @@ class MyApp extends StatelessWidget {
       initialBinding: BindingsBuilder(() {
         Get.put(CartService(), permanent: true);
         Get.put(WishListService(), permanent: true);
+        Get.put(ApiHealthService(), permanent: true);
+        Get.put(LocalStorageNotificationService(), permanent: true);
+        Get.put(NotificationSyncService(), permanent: true);
       }),
 
       // ── Transitions ────────────────────────────────────────────

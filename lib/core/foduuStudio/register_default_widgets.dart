@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '/components/studio_widget/studio_icon_button_section.dart';
+import '/components/studio_widget/cms_form_builder_section.dart';
+import '/components/studio_widget/cms_countdown_section.dart';
 import '/app/routes/app_pages.dart';
 import '../../components/home_component/home_products.dart';
 import '../../components/home_component/home_category.dart';
@@ -100,7 +101,15 @@ void registerDefaultWidgets() {
   });
 
   r.register('countdown', (json) {
-    return const Text('Count down timeer maintendedddd ');
+    return CmsCountdownSection(content: json ?? const {});
+  });
+
+  // ─── CMS Dynamic Forms ───────────────────────────────────────
+  r.register('formbuilder', (json) {
+    return CmsFormBuilderSection(content: json ?? const {});
+  });
+  r.register('form_builder', (json) {
+    return CmsFormBuilderSection(content: json ?? const {});
   });
 
   // r.register('icon_button', (json) {

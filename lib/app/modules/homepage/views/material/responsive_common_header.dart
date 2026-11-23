@@ -14,6 +14,7 @@ class ResponsiveCommonHeader extends StatelessWidget {
   final VoidCallback? onNotificationTap;
   final int cartItemCount;
   final int wishlistItemCount;
+  final int notificationCount;
   final String brandTitle;
 
   const ResponsiveCommonHeader({
@@ -27,6 +28,7 @@ class ResponsiveCommonHeader extends StatelessWidget {
     this.onNotificationTap,
     this.cartItemCount = 0,
     this.wishlistItemCount = 0,
+    this.notificationCount = 0,
     this.brandTitle = 'Kharido',
   });
 
@@ -117,6 +119,7 @@ class ResponsiveCommonHeader extends StatelessWidget {
                       height: height,
                       width: width,
                       onTap: onNotificationTap,
+                      badgeCount: notificationCount,
                     ),
                     const SizedBox(width: 8),
                   ],

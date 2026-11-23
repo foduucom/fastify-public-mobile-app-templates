@@ -8,6 +8,8 @@ import 'package:get_storage/get_storage.dart';
 import '/constants/constants.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
+import '/constants/app_exceptions.dart';
+import '/services/product_pagination.dart';
 import '/core/foduuStudio/foduu_studio_layout_mixin.dart';
 import '/models/blog_model.dart';
 import '../services/product_service.dart';
@@ -54,6 +56,8 @@ class SearchsController extends GetxController
   // ── Loading & Pagination ──
   var isSearching = false.obs; // True during full search results fetch
   var isFetchingMore = false.obs; // True for pagination fetch
+  final searchError = ''.obs;
+  final paginationError = ''.obs;
   int currentPage = 1;
   bool hasNextPage = false;
 
@@ -71,6 +75,7 @@ class SearchsController extends GetxController
   Timer? _autocompleteDebounce;
   int _searchToken = 0;
   int _autocompleteToken = 0;
+  int _paginationRequestToken = 0;
   List<BlogModel>? _blogCache;
 
   // ── Computed Properties ──
@@ -88,6 +93,14 @@ class SearchsController extends GetxController
         .where((t) => t == 'products' || t == 'categories' || t == 'blog')
         .toList();
   }
+
+  /// Original selectedTabIndex values kept stable for the result body.
+  List<int> get visibleResultTabIndexes => [
+        0,
+        if (searchesProducts) 1,
+        if (searchesCategories) 2,
+        if (searchesBlogs) 3,
+      ];
 
   /// CMS-authored placeholder for the search bar, with parent web fallback
   String get searchPlaceholder {
@@ -138,7 +151,11 @@ class SearchsController extends GetxController
                 if (p is Map && p['data'] is List) {
                   // Pre-hydrate products for instant discovery if user enters results mode
                   searchProduct.assignAll(p['data']);
-                  hasNextPage = p['hasNextPage'] ?? false;
+                  hasNextPage = ProductPagination.hasMore(
+                    p,
+                    itemCount: (p['data'] as List).length,
+                    pageSize: 10,
+                  );
                 } else if (p is List) {
                   searchProduct.assignAll(p);
                   hasNextPage = false;
@@ -157,7 +174,7 @@ class SearchsController extends GetxController
     if (scrollController.hasClients &&
         scrollController.position.pixels >=
             scrollController.position.maxScrollExtent - 200) {
-      if (!isFetchingMore.value && hasNextPage) {
+      if (searchesProducts && !isFetchingMore.value && hasNextPage) {
         loadNextPage();
       }
     }
@@ -205,11 +222,20 @@ class SearchsController extends GetxController
     final trimmed = text.trim();
     queryText.value = text;
     _autocompleteDebounce?.cancel();
+    // Invalidate any in-flight response as soon as input changes, including
+    // while the next debounced request is waiting to start.
+    _autocompleteToken++;
+    _searchToken++;
+    _paginationRequestToken++;
+    isSearching.value = false;
+    isFetchingMore.value = false;
+    isAutocompleteLoading.value = false;
+    paginationError.value = '';
+    autocompleteProducts.clear();
+    autocompleteCategories.clear();
+    autocompleteBlogs.clear();
 
     if (trimmed.isEmpty) {
-      autocompleteProducts.clear();
-      autocompleteCategories.clear();
-      autocompleteBlogs.clear();
       if (selectedBrandSlug.isEmpty) {
         searchMode.value = SearchMode.browse;
       }
@@ -230,6 +256,9 @@ class SearchsController extends GetxController
   // queries like "a" or network drops never leave the user with an empty screen.
   void _localAutocomplete(String query) {
     final q = query.trim().toLowerCase();
+    autocompleteProducts.clear();
+    autocompleteCategories.clear();
+    autocompleteBlogs.clear();
     if (q.isEmpty) return;
 
     // Match products from pre-hydrated CMS layout
@@ -302,9 +331,14 @@ class SearchsController extends GetxController
         final data = json.decode(response.body);
         if (data is Map && data['success'] == true && data['data'] is Map) {
           final resData = data['data'];
-          final products = resData['products'] ?? [];
-          final categories = resData['categories'] ?? [];
-          final blogs = resData['blogs'] ?? [];
+          final products = resData['products'] is List
+              ? resData['products'] as List
+              : const [];
+          final categories = resData['categories'] is List
+              ? resData['categories'] as List
+              : const [];
+          final blogs =
+              resData['blogs'] is List ? resData['blogs'] as List : const [];
 
           if (products.isNotEmpty ||
               categories.isNotEmpty ||
@@ -351,6 +385,16 @@ class SearchsController extends GetxController
   }
 
   void clearSearch() {
+    _autocompleteToken++;
+    _searchToken++;
+    _paginationRequestToken++;
+    _debounce?.cancel();
+    _autocompleteDebounce?.cancel();
+    isSearching.value = false;
+    isFetchingMore.value = false;
+    isAutocompleteLoading.value = false;
+    searchError.value = '';
+    paginationError.value = '';
     searchTextController.clear();
     queryText.value = '';
     selectedBrandSlug.value = '';
@@ -393,37 +437,48 @@ class SearchsController extends GetxController
       currentPage = 1;
       hasNextPage = false;
       isSearching.value = true;
+      searchError.value = '';
+      paginationError.value = '';
       searchProduct.clear();
 
-      final params = ProductService.buildQueryParams(
-        page: 1,
-        search: text.isEmpty ? null : text,
-      );
+      if (searchesProducts) {
+        final params = ProductService.buildQueryParams(
+          page: 1,
+          search: text.isEmpty ? null : text,
+        );
 
-      if (selectedBrandSlug.value.isNotEmpty) {
-        params['brand'] = selectedBrandSlug.value;
+        if (selectedBrandSlug.value.isNotEmpty) {
+          params['brand'] = selectedBrandSlug.value;
+        }
+
+        // Add sort params
+        if (selectedSort.value == 'price_asc') {
+          params['sortBy'] = 'price';
+          params['sortOrder'] = 'asc';
+        } else if (selectedSort.value == 'price_desc') {
+          params['sortBy'] = 'price';
+          params['sortOrder'] = 'desc';
+        } else if (selectedSort.value == 'newest') {
+          params['sortBy'] = 'created_at';
+          params['sortOrder'] = 'desc';
+        }
+
+        final response = await BasicProvider('products')
+            .getRequest(queryParams: params, useCache: false);
+
+        if (token != _searchToken) return;
+        if (!_parseAndSetProducts(response, isRefresh: true)) {
+          throw const FormatException('Unexpected product search response');
+        }
+      } else {
+        searchProduct.clear();
       }
-
-      // Add sort params
-      if (selectedSort.value == 'price_asc') {
-        params['sortBy'] = 'price';
-        params['sortOrder'] = 'asc';
-      } else if (selectedSort.value == 'price_desc') {
-        params['sortBy'] = 'price';
-        params['sortOrder'] = 'desc';
-      } else if (selectedSort.value == 'newest') {
-        params['sortBy'] = 'created_at';
-        params['sortOrder'] = 'desc';
-      }
-
-      var response = await BasicProvider('products')
-          .getRequest(queryParams: params)
-          .catchError(handleError);
-
-      if (token != _searchToken) return;
-      _parseAndSetProducts(response, isRefresh: true);
     } catch (e) {
       debugPrint('❌ search error: $e');
+      if (e is UnAuthorizedException) await handleError(e);
+      if (token == _searchToken) {
+        searchError.value = 'Search could not be completed. Please try again.';
+      }
     } finally {
       await others;
       if (token == _searchToken) isSearching.value = false;
@@ -520,12 +575,21 @@ class SearchsController extends GetxController
 
   // ── Pagination Load (Page 2+) ──
   void loadNextPage() async {
-    try {
-      isFetchingMore.value = true;
-      currentPage++;
+    if (!searchesProducts ||
+        isFetchingMore.value ||
+        isSearching.value ||
+        !hasNextPage) {
+      return;
+    }
 
+    final token = _searchToken;
+    final paginationToken = ++_paginationRequestToken;
+    final requestedPage = currentPage + 1;
+    isFetchingMore.value = true;
+    paginationError.value = '';
+    try {
       final params = ProductService.buildQueryParams(
-        page: currentPage,
+        page: requestedPage,
         search: searchTextController.text.trim().isEmpty
             ? null
             : searchTextController.text.trim(),
@@ -535,22 +599,45 @@ class SearchsController extends GetxController
         params['brand'] = selectedBrandSlug.value;
       }
 
-      var response = await BasicProvider('products')
-          .getRequest(queryParams: params)
-          .catchError(handleError);
+      if (selectedSort.value == 'price_asc') {
+        params['sortBy'] = 'price';
+        params['sortOrder'] = 'asc';
+      } else if (selectedSort.value == 'price_desc') {
+        params['sortBy'] = 'price';
+        params['sortOrder'] = 'desc';
+      } else if (selectedSort.value == 'newest') {
+        params['sortBy'] = 'created_at';
+        params['sortOrder'] = 'desc';
+      }
+
+      final response = await BasicProvider('products')
+          .getRequest(queryParams: params, useCache: false);
+
+      if (token != _searchToken) return;
+      final hasPageItems =
+          response is List || (response is Map && response['data'] is List);
+      if (!hasPageItems) {
+        throw const FormatException('Unexpected product page response');
+      }
 
       _parseAndSetProducts(response, isRefresh: false);
+      currentPage = requestedPage;
     } catch (e) {
       debugPrint('❌ loadNextPage error: $e');
-      currentPage--;
+      if (e is UnAuthorizedException) await handleError(e);
+      if (token == _searchToken) {
+        paginationError.value = 'Could not load more products. Please retry.';
+      }
     } finally {
-      isFetchingMore.value = false;
+      if (paginationToken == _paginationRequestToken) {
+        isFetchingMore.value = false;
+      }
     }
   }
 
   // ── Parser ──
-  void _parseAndSetProducts(dynamic response, {required bool isRefresh}) {
-    if (response == null) return;
+  bool _parseAndSetProducts(dynamic response, {required bool isRefresh}) {
+    if (response == null) return false;
 
     if (response is Map) {
       if (response.containsKey('data') && response['data'] is List) {
@@ -558,12 +645,18 @@ class SearchsController extends GetxController
         if (isRefresh) {
           searchProduct.assignAll(newItems);
         } else {
-          searchProduct.addAll(newItems);
+          searchProduct.addAll(
+            ProductPagination.uniquePage(searchProduct, newItems),
+          );
         }
-        hasNextPage = response['hasNextPage'] ?? false;
+        hasNextPage = ProductPagination.hasMore(
+          response,
+          itemCount: newItems.length,
+          pageSize: 10,
+        );
+        return true;
       } else {
-        if (isRefresh) searchProduct.clear();
-        hasNextPage = false;
+        return false;
       }
     } else if (response is List) {
       if (isRefresh) {
@@ -572,6 +665,8 @@ class SearchsController extends GetxController
         searchProduct.addAll(response);
       }
       hasNextPage = false;
+      return true;
     }
+    return false;
   }
 }

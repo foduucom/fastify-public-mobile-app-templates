@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:foddu/app/modules/auth/auth_details.dart';
 import 'package:get/get.dart';
 import '../app/data/basic_provider.dart';
 import '../models/local_notification.dart';
@@ -30,7 +31,7 @@ class NotificationSyncService extends GetxService {
   }
 
   Future<void> syncPendingNotifications() async {
-    if (_isSyncing) return;
+    if (_isSyncing || !AuthDetails.isUserLogin()) return;
 
     final unsynced = LocalStorageNotificationService.to.notifications
         .where((n) => !n.isSynced)
@@ -80,18 +81,6 @@ class NotificationSyncService extends GetxService {
             retryCount: newRetryCount,
             lastSyncAttempt: DateTime.now(),
           );
-
-          if (newRetryCount >= 5) {
-            debugPrint(
-                'Notification ${notification.id} exceeded max retries. Mark status as synced to avoid blocking queue.');
-            // We can set as synced (even if failed) or keep it failed so it doesn't block the sync loop indefinitely
-            await LocalStorageNotificationService.to.updateSyncStatus(
-              notification.id,
-              true,
-              retryCount: newRetryCount,
-              lastSyncAttempt: DateTime.now(),
-            );
-          }
         }
       }
     } catch (e) {

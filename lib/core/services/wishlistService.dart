@@ -4,6 +4,7 @@ import '/app/data/basic_provider.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/modules/auth/auth_details.dart';
 import '/constants/helper_functions.dart';
+import '/constants/resilience_strings.dart';
 
 class WishListService extends GetxService with BaseController {
   /// Convenience accessor: CartService.to
@@ -32,11 +33,11 @@ class WishListService extends GetxService with BaseController {
           .catchError(handleError);
 
       if (response == null) {
-        wishListItems.clear();
+        loadError.value = true;
         return;
       }
 
-      parseWishListResponse(response);
+      loadError.value = !parseWishListResponse(response);
     } catch (e) {
       loadError.value = true;
       debugPrint('WishlistService.fetchWishList error: $e');
@@ -48,10 +49,20 @@ class WishListService extends GetxService with BaseController {
     required String productId,
     required String variantSlug,
     String? variantId,
+    Map<String, dynamic>? productData,
   }) async {
     if (!AuthDetails.isUserLogin()) {
       HelperFunctions().showSnackBarError("You are not authorized");
       return null;
+    }
+
+    final snapshot = List<Map<String, dynamic>>.from(wishListItems);
+    if (!_containsWishlistItem(productId, variantSlug, variantId)) {
+      wishListItems.add({
+        'product_id': productData ?? productId,
+        'variant_slug': variantSlug,
+        if (variantId != null) 'variant_id': variantId,
+      });
     }
 
     var form = {
@@ -59,13 +70,23 @@ class WishListService extends GetxService with BaseController {
       'variant_slug': variantSlug,
       if (variantId != null) 'variant_id': variantId,
     };
-    var response = await BasicProvider("wishlist/add")
-        .postRequest(form)
-        .catchError(handleError);
-    if (response != null && response is! String) {
-      parseWishListResponse(response);
+    try {
+      final response = await BasicProvider("wishlist/add")
+          .postRequest(form)
+          .catchError(handleError);
+      if (response == null) {
+        wishListItems.assignAll(snapshot);
+        HelperFunctions().showSnackBarError(ResilienceStrings.writeFailed);
+      } else {
+        parseWishListResponse(response);
+      }
+      return response;
+    } catch (e) {
+      wishListItems.assignAll(snapshot);
+      HelperFunctions().showSnackBarError(ResilienceStrings.writeFailed);
+      debugPrint('Wishlist add failed: $e');
+      return null;
     }
-    return response;
   }
 
   // ── Remove item ──────────────────────────────────────────
@@ -79,18 +100,63 @@ class WishListService extends GetxService with BaseController {
       return null;
     }
 
+    final snapshot = List<Map<String, dynamic>>.from(wishListItems);
+    wishListItems.removeWhere((item) =>
+        _matchesWishlistItem(item, productId, variantSlug, variantId));
+
     var form = {
       'product_id': productId,
       'variant_slug': variantSlug,
       if (variantId != null) 'variant_id': variantId,
     };
-    var response = await BasicProvider("wishlist/remove")
-        .postRequest(form)
-        .catchError(handleError);
-    if (response != null && response is! String) {
-      parseWishListResponse(response);
+    try {
+      final response = await BasicProvider("wishlist/remove")
+          .postRequest(form)
+          .catchError(handleError);
+      if (response == null) {
+        wishListItems.assignAll(snapshot);
+        HelperFunctions().showSnackBarError(ResilienceStrings.writeFailed);
+      } else {
+        parseWishListResponse(response);
+      }
+      return response;
+    } catch (e) {
+      wishListItems.assignAll(snapshot);
+      HelperFunctions().showSnackBarError(ResilienceStrings.writeFailed);
+      debugPrint('Wishlist remove failed: $e');
+      return null;
     }
-    return response;
+  }
+
+  bool _containsWishlistItem(
+          String productId, String variantSlug, String? variantId) =>
+      wishListItems.any((item) =>
+          _matchesWishlistItem(item, productId, variantSlug, variantId));
+
+  bool _matchesWishlistItem(
+    Map<String, dynamic> item,
+    String productId,
+    String variantSlug,
+    String? variantId,
+  ) {
+    final product = item['product_id'];
+    final itemProductId = product is Map
+        ? (product['_id'] ?? product['id'] ?? '').toString()
+        : product?.toString() ?? '';
+    if (itemProductId != productId) return false;
+
+    final itemVariant = item['variant_id'];
+    final itemVariantId = itemVariant is Map
+        ? (itemVariant['_id'] ?? itemVariant['id'] ?? '').toString()
+        : itemVariant?.toString() ?? '';
+    if (variantId != null && variantId.isNotEmpty && itemVariantId.isNotEmpty) {
+      return itemVariantId == variantId;
+    }
+    final itemSlug = (item['variant_slug'] ??
+            (itemVariant is Map ? itemVariant['slug'] : null) ??
+            '')
+        .toString();
+    return variantSlug.isEmpty || itemSlug.isEmpty || itemSlug == variantSlug;
   }
 
   bool isInWishlist(String productId) {
@@ -120,16 +186,30 @@ class WishListService extends GetxService with BaseController {
           productId: productId, variantSlug: variantSlug, variantId: variantId);
     } else {
       await addWishlist(
-          productId: productId, variantSlug: variantSlug, variantId: variantId);
+          productId: productId,
+          variantSlug: variantSlug,
+          variantId: variantId,
+          productData: productData);
     }
   }
 
-  void parseWishListResponse(dynamic data) {
-    if (data is List) {
-      wishListItems.value =
-          data.map((e) => Map<String, dynamic>.from(e)).toList();
-    } else {
-      wishListItems.clear();
+  bool parseWishListResponse(dynamic data) {
+    dynamic items = data;
+    for (var depth = 0; depth < 3 && items is Map; depth++) {
+      if (items['data'] is List) {
+        items = items['data'];
+      } else if (items['items'] is List) {
+        items = items['items'];
+      } else if (items['wishlist'] is List) {
+        items = items['wishlist'];
+      } else {
+        return false;
+      }
     }
+    if (items is! List || items.any((item) => item is! Map)) return false;
+    wishListItems.assignAll(
+      items.map((item) => Map<String, dynamic>.from(item as Map)),
+    );
+    return true;
   }
 }

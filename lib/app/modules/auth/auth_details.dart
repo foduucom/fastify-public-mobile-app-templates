@@ -4,7 +4,7 @@ import 'package:get_storage/get_storage.dart';
 
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
-import '/app/routes/app_pages.dart';
+import '/app/data/services/session_service.dart';
 
 class AuthDetails with BaseController {
   static final box = GetStorage();
@@ -216,21 +216,5 @@ class AuthDetails with BaseController {
   // ─────────────────────────────────────────────────────────────
 
   /// Full logout — clears all stored auth data and redirects
-  static Future<void> logout() async {
-    try {
-      // Optional: call logout API
-      await BasicProvider('auth/logout').postRequest({}).catchError((_) {});
-    } catch (_) {}
-
-    // Clear all stored keys
-    box.remove(_kUserData);
-    box.remove(_kIsLogin);
-    box.remove(_kToken);
-    box.remove(_kTokenExpiry);
-    box.remove(_kOtpEmail);
-    loggedIn.value = false;
-
-    debugPrint('✅ Logged out — storage cleared');
-    Get.offAllNamed(Routes.CREATE_ACCOUNT);
-  }
+  static Future<void> logout() => SessionService.signOut();
 }

@@ -5,6 +5,7 @@ import 'package:foddu/app/modules/shop/controllers/shop_attribute_filter_mixin.d
 import 'package:foddu/app/modules/shop/controllers/shop_category_filter_mixin.dart';
 import 'package:foddu/app/modules/shop/controllers/shop_category_tree_filter_mixin.dart';
 import 'package:foddu/core/foduuStudio/foduu_studio_layout_mixin.dart';
+import 'package:foddu/services/product_pagination.dart';
 import 'package:get/get.dart';
 
 enum ShopSortOption { featured, priceLowHigh, priceHighLow, newest, trending }
@@ -252,15 +253,16 @@ class ShopController extends GetxController
 
   // ─── THE CORE API FETCH ───────────────────────────────────────
   Future<void> fetchProducts({required bool isRefresh}) async {
-    final requestToken = isRefresh ? ++_fetchRequestToken : _fetchRequestToken;
+    if (!isRefresh && (isFetchingMore.value || isLoading.value)) return;
+    final requestToken = ++_fetchRequestToken;
     try {
       if (isRefresh) {
         isLoading.value = true;
+        isFetchingMore.value = false;
         currentPage = 1;
         hasNextPage = false;
         products.clear();
       } else {
-        if (isFetchingMore.value) return;
         isFetchingMore.value = true;
         currentPage++;
       }
@@ -316,8 +318,9 @@ class ShopController extends GetxController
 
       // Drop stale responses: a faster, more recent refresh may have
       // already superseded this one.
-      if (isRefresh && requestToken != _fetchRequestToken) {
-        return;
+      if (requestToken != _fetchRequestToken) return;
+      if (response == null) {
+        throw StateError('The products response was empty.');
       }
 
       // ✅ FIXED: Parse Response correctly
@@ -330,14 +333,22 @@ class ShopController extends GetxController
           if (response.containsKey('data') && response['data'] is List) {
             newProducts = response['data'] as List<dynamic>;
             totalProducts.value = response['total'] ?? products.length;
-            hasNextPage = response['hasNextPage'] ?? false;
+            hasNextPage = ProductPagination.hasMore(
+              response,
+              itemCount: newProducts.length,
+              pageSize: 10,
+            );
           }
           // If response has products directly without data wrapper
           else if (response.containsKey('products') &&
               response['products'] is List) {
             newProducts = response['products'] as List<dynamic>;
             totalProducts.value = response['total'] ?? products.length;
-            hasNextPage = response['hasNextPage'] ?? false;
+            hasNextPage = ProductPagination.hasMore(
+              response,
+              itemCount: newProducts.length,
+              pageSize: 10,
+            );
           }
           // If response is just a map but not paginated
           else {
@@ -363,7 +374,9 @@ class ShopController extends GetxController
         if (isRefresh) {
           products.assignAll(newProducts);
         } else {
-          products.addAll(newProducts);
+          products.addAll(
+            ProductPagination.uniquePage(products, newProducts),
+          );
         }
 
         debugPrint(
@@ -371,12 +384,14 @@ class ShopController extends GetxController
       }
     } catch (e) {
       debugPrint('❌ Fetch Products Error: $e');
-      if (!isRefresh && currentPage > 1) {
+      if (requestToken == _fetchRequestToken && !isRefresh && currentPage > 1) {
         currentPage--;
       }
     } finally {
-      isLoading.value = false;
-      isFetchingMore.value = false;
+      if (requestToken == _fetchRequestToken) {
+        isLoading.value = false;
+        isFetchingMore.value = false;
+      }
     }
   }
 

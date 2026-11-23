@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
@@ -13,13 +14,18 @@ import 'package:foddu/constants/dynamic_theme.dart';
 import 'package:foddu/models/local_notification.dart';
 import 'package:foddu/services/local_storage_notification_service.dart';
 import 'package:foddu/services/notification_sync_service.dart';
+import 'package:foddu/firebase_options.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 // Must be a top-level function — FCM requirement
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
   final notification = message.notification;
   if (notification != null) {
     await GetStorage.init();
@@ -57,6 +63,10 @@ class FirebaseHelpers {
 
   static final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
+  static StreamSubscription<String>? _tokenRefreshSubscription;
+  static StreamSubscription<RemoteMessage>? _openedMessageSubscription;
+  static StreamSubscription<RemoteMessage>? _foregroundMessageSubscription;
+  static bool _handlersInitialized = false;
 
   // ─── Initialisation ───────────────────────────────────────────────────────
 
@@ -64,9 +74,9 @@ class FirebaseHelpers {
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
     );
     await _localNotifications.initialize(
       const InitializationSettings(android: androidSettings, iOS: iosSettings),
@@ -117,6 +127,7 @@ class FirebaseHelpers {
 
   static Future<void> firebaseInitialise() async {
     if (kIsWeb) return;
+    if (_handlersInitialized) return;
 
     await _initAwesomeNotifications();
     await _initLocalNotifications();
@@ -149,7 +160,10 @@ class FirebaseHelpers {
     }
 
     // Handle notification tap when app is in background (resumed)
-    FirebaseMessaging.onMessageOpenedApp.listen(openAppFromNotification);
+    _openedMessageSubscription ??=
+        FirebaseMessaging.onMessageOpenedApp.listen(openAppFromNotification);
+    _tokenRefreshSubscription ??=
+        FirebaseMessaging.instance.onTokenRefresh.listen(_onTokenRefresh);
 
     // Initialize local notifications from storage
     final stored = box.read(notificationKey);
@@ -158,12 +172,14 @@ class FirebaseHelpers {
     }
 
     firebaseNotificationOnAppOpen();
+    _handlersInitialized = true;
   }
 
   // ─── Foreground notification display ──────────────────────────────────────
 
   static void firebaseNotificationOnAppOpen() {
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+    _foregroundMessageSubscription ??=
+        FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       final notification = message.notification;
       if (notification == null) return;
 
@@ -293,11 +309,12 @@ class FirebaseHelpers {
     syncService.syncPendingNotifications();
   }
 
-  static void clearLocalNotifications() {
+  static Future<void> clearLocalNotifications() async {
     localNotifications.clear();
-    box.remove(notificationKey);
     if (Get.isRegistered<LocalStorageNotificationService>()) {
-      LocalStorageNotificationService.to.clearAll();
+      await LocalStorageNotificationService.to.clearAll();
+    } else {
+      await box.remove(notificationKey);
     }
   }
 
@@ -306,32 +323,79 @@ class FirebaseHelpers {
   static Future<String?> getFCMToken() async {
     if (kIsWeb) return null;
     try {
+      if (Platform.isIOS &&
+          await FirebaseMessaging.instance.getAPNSToken() == null) {
+        debugPrint(
+            'FCM token is not available until APNs registration completes.');
+        return null;
+      }
       final token = await FirebaseMessaging.instance.getToken();
       if (token != null) {
         box.write('my_fcm_token', token);
-        debugPrint('====================================');
-        debugPrint('FCM TOKEN: $token');
-        debugPrint('====================================');
-        // Send token to backend if user is logged in
-        if (AuthDetails.isUserLogin()) {
-          try {
-            await BasicProvider('public/customer/fcm-token')
-                .postRequest({'fcm_token': token});
-          } catch (_) {}
-        }
+        await _uploadTokenForCurrentUser(token);
       }
-      // Listen for token refresh
-      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
-        box.write('my_fcm_token', newToken);
-        if (AuthDetails.isUserLogin()) {
-          BasicProvider('public/customer/fcm-token')
-              .postRequest({'fcm_token': newToken}).catchError((_) {});
-        }
-      });
+      _tokenRefreshSubscription ??=
+          FirebaseMessaging.instance.onTokenRefresh.listen(_onTokenRefresh);
       return token;
     } catch (e) {
       print('FCM token error: $e');
       return null;
+    }
+  }
+
+  static Future<bool> hasNotificationPermission() async {
+    if (kIsWeb) return false;
+    try {
+      final settings =
+          await FirebaseMessaging.instance.getNotificationSettings();
+      return settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<bool> requestNotificationPermission() async {
+    if (kIsWeb) return false;
+    try {
+      final settings = await FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      final granted =
+          settings.authorizationStatus == AuthorizationStatus.authorized ||
+              settings.authorizationStatus == AuthorizationStatus.provisional;
+      if (granted) await registerCurrentTokenForUser();
+      return granted;
+    } catch (e) {
+      debugPrint('Notification permission request failed: $e');
+      return false;
+    }
+  }
+
+  static Future<void> registerCurrentTokenForUser() async {
+    if (!AuthDetails.isUserLogin()) return;
+    var token = box.read('my_fcm_token')?.toString();
+    if (token == null || token.isEmpty) {
+      await getFCMToken(); // getFCMToken also registers a newly obtained token.
+      return;
+    }
+    await _uploadTokenForCurrentUser(token);
+  }
+
+  static Future<void> _onTokenRefresh(String token) async {
+    box.write('my_fcm_token', token);
+    await _uploadTokenForCurrentUser(token);
+  }
+
+  static Future<void> _uploadTokenForCurrentUser(String token) async {
+    if (!AuthDetails.isUserLogin()) return;
+    try {
+      await BasicProvider('public/customer/fcm-token')
+          .postRequest({'fcm_token': token});
+    } catch (e) {
+      debugPrint('FCM token registration failed: $e');
     }
   }
 
@@ -355,6 +419,11 @@ class FirebaseHelpers {
   static Future<void> _subscribeToDefaultTopics() async {
     if (kIsWeb) return;
     if (!(Platform.isAndroid || Platform.isIOS)) return;
+    if (Platform.isIOS &&
+        await FirebaseMessaging.instance.getAPNSToken() == null) {
+      debugPrint('Skipping push topics until APNs registration completes.');
+      return;
+    }
 
     // We keep the prefix if preferred by user, but plan said raw strings for backend alignment.
     // Based on question 3 in the plan, I will use raw strings for backend topics but keep prefix for user topics as suggested in Phase 2.
@@ -374,9 +443,15 @@ class FirebaseHelpers {
 
   static Future<void> _subscribeToUserTopics() async {
     if (kIsWeb) return;
+    if (Platform.isIOS &&
+        await FirebaseMessaging.instance.getAPNSToken() == null) {
+      debugPrint('Skipping account topics until APNs registration completes.');
+      return;
+    }
     final userDetails = box.read('userData');
     if (userDetails == null) return;
-    final userId = userDetails['_id']?.toString();
+    if (userDetails is! Map) return;
+    final userId = (userDetails['_id'] ?? userDetails['id'])?.toString();
     if (userId == null) return;
 
     final userTopics = [
@@ -401,7 +476,15 @@ class FirebaseHelpers {
   }
 
   static Future<void> afterLoginSubscribe() async {
-    await _subscribeToUserTopics();
+    try {
+      await _subscribeToUserTopics();
+      await registerCurrentTokenForUser();
+      if (Get.isRegistered<NotificationSyncService>()) {
+        await NotificationSyncService.to.syncPendingNotifications();
+      }
+    } catch (e) {
+      debugPrint('Post-login push registration failed: $e');
+    }
   }
 
   /// Best-effort topic cleanup. Each call is time-limited so an unreachable
@@ -414,6 +497,9 @@ class FirebaseHelpers {
       if (userDetails is Map) userId = userDetails['_id']?.toString();
     }
     if (userId == null) return;
+    customerSubscribeList.removeWhere((topic) =>
+        topic == 'foduu_ecommerce_user_$userId' ||
+        topic == 'foduu_ecommerce_orders_$userId');
     debugPrint(
         "---------------Unsubscribing from user topics for: $userId-------------------");
     for (final topic in [

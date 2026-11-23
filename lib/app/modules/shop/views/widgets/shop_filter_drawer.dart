@@ -234,7 +234,10 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
     return Obx(() {
       final loading = controller.isCategoryTreeLoading.value;
       final hasError = controller.categoryTreeErrorByType[attributeKey] == true;
-      final nodes = controller.categoryTreeByType[attributeKey] ?? [];
+      final nodes = (controller.categoryTreeByType[attributeKey] ?? [])
+          .expand((node) => node.flattened)
+          .where((node) => node.slug.trim().isNotEmpty)
+          .toList(growable: false);
 
       final selectedCount = tempSet.length;
 
@@ -343,7 +346,18 @@ class _ShopFilterDrawerState extends State<ShopFilterDrawer> {
                       children: nodes.map((node) {
                         final isSelected = tempSet.contains(node.slug);
                         return FilterChip(
-                          label: Text(node.name),
+                          label: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: MediaQuery.sizeOf(context).width * 0.55,
+                            ),
+                            child: Text(
+                              node.breadcrumb.isEmpty
+                                  ? node.name
+                                  : node.breadcrumb,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                           selected: isSelected,
                           onSelected: (checked) {
                             setState(() {

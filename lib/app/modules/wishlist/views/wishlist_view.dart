@@ -215,6 +215,10 @@ class WishlistView extends GetView<WishlistController> {
                       isLoading: controller.isLayoutLoading,
                       hasError: controller.hasError,
                       errorMessage: controller.errorMessage,
+                      isStale: controller.isStale,
+                      onRefresh: () async {
+                        await controller.fetchLayout('wishlist');
+                      },
                     ),
                   ],
                 )
@@ -285,6 +289,10 @@ class WishlistView extends GetView<WishlistController> {
                   isLoading: controller.isLayoutLoading,
                   hasError: controller.hasError,
                   errorMessage: controller.errorMessage,
+                  isStale: controller.isStale,
+                  onRefresh: () async {
+                    await controller.fetchLayout('wishlist');
+                  },
                 )
               : const SizedBox.shrink()),
 

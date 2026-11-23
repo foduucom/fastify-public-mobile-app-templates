@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 
 /// Builder function signature: takes content_json map and returns a Widget.
 typedef SectionWidgetBuilder = Widget Function(
@@ -29,14 +30,31 @@ class WidgetRegistry {
   /// Build a widget from a raw section map `{ "type": "...", "content_json": {...} }`.
   /// Returns `null` if the type is unknown.
   Widget? build(Map<String, dynamic> section) {
-    final type = section['type']?.toString();
-    final visible = section['visible'] != false;
+    final type = section['type']?.toString().trim().toLowerCase();
+    final rawVisible = section['visible'];
+    final visible = rawVisible != false &&
+        rawVisible != 0 &&
+        rawVisible?.toString().trim().toLowerCase() != 'false' &&
+        rawVisible?.toString().trim() != '0';
     final builder = type == null ? null : _builders[type];
     if (builder == null || !visible) return null;
 
-    final rawContent = section['content_json'] ?? section['contentJson'];
-    final content =
-        rawContent is Map ? Map<String, dynamic>.from(rawContent) : null;
+    dynamic rawContent =
+        section['content_json'] ?? section['contentJson'] ?? section['data'];
+    if (rawContent is String) {
+      try {
+        rawContent = jsonDecode(rawContent);
+      } catch (_) {
+        rawContent = null;
+      }
+    }
+    final content = rawContent is Map
+        ? Map<String, dynamic>.from(rawContent)
+        : <String, dynamic>{};
+    for (final key in const ['title', 'subtitle', 'id', 'slug']) {
+      if (section[key] != null) content.putIfAbsent(key, () => section[key]);
+    }
+    if (content.isEmpty) return builder(null);
     return builder(content);
   }
 

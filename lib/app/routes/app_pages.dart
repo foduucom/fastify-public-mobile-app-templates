@@ -9,6 +9,9 @@ import 'package:foddu/app/modules/reviews/views/my_reviews_view.dart';
 import 'package:foddu/app/modules/blog/binding.dart/blog_binding.dart';
 import 'package:foddu/app/modules/blog/views/blog_view.dart';
 import 'package:foddu/app/modules/blog/views/blog_details_view.dart';
+import 'package:foddu/app/modules/aboutus/bindings/aboutus_binding.dart';
+import 'package:foddu/app/modules/aboutus/views/aboutus_view.dart';
+import 'package:foddu/app/modules/contact/views/contact_view.dart';
 import 'package:foddu/app/modules/profile_legacy/contact/view/contact_us_view.dart';
 import 'package:foddu/app/modules/category_search/bindings/category_search_binding.dart';
 import 'package:foddu/app/modules/category_search/views/category_search_view.dart';
@@ -288,12 +291,6 @@ class AppPages {
     ),
 
     GetPage(
-      name: _Paths.ADDRESS_FORM,
-      page: () => const AddressListView(),
-      binding: AddressListBinding(),
-    ),
-
-    GetPage(
       name: _Paths.BOTTOMBAR,
       page: () => BottombarView(),
       binding: BottombarBinding(),
@@ -312,15 +309,14 @@ class AppPages {
     ),
 
     GetPage(
-      name: _Paths.ORDER_PRODUCTS,
-      page: () => const OrderProductsView(),
-      binding: OrderProductsBinding(),
-    ),
-
-    GetPage(
       name: _Paths.HELPANDSUPPORT,
       page: () => const HelpandsupportView(),
       binding: HelpandsupportBinding(),
+    ),
+    GetPage(
+      name: _Paths.ABOUTUS,
+      page: () => const AboutusView(),
+      binding: AboutusBinding(),
     ),
     GetPage(
       name: _Paths.TERMSANDCONDITION,
@@ -333,6 +329,10 @@ class AppPages {
     //   binding: CustomPageBinding(),
     // ),
 
+    GetPage(
+      name: _Paths.CONTACT,
+      page: () => const ContactView(),
+    ),
     GetPage(
       name: _Paths.CONTACTUS,
       page: () => const ContactUsView(),

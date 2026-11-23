@@ -20,7 +20,6 @@ import '/components/paymentGateway/Stripe.dart';
 import '/components/paymentGateway/PhonePe.dart';
 import '/components/paymentGateway/RazorPay.dart';
 import '/app/modules/address/controllers/address_list_controller.dart';
-import '/constants/app_exceptions.dart';
 
 /// 'SANDBOX' for testing, 'PRODUCTION' for a real release build.
 const String kPhonePeEnvironment = 'SANDBOX';
@@ -48,7 +47,8 @@ class CheckOutController extends GetxController with BaseController {
 
   // Add these to CheckOutController
   var selectedAddressString = "".obs; // For displaying in UI
-  var selectedAddressData = {}.obs; // For storing the full address object
+  final RxMap<String, dynamic> selectedAddressData =
+      <String, dynamic>{}.obs; // For storing the full address object
 
   var isEditingAddress = false.obs;
   var tempAddress = "".obs;
@@ -65,7 +65,8 @@ class CheckOutController extends GetxController with BaseController {
       print('Selected index: $selectedAddrIndex');
       print('Address list length: ${addressController.userAddressList.length}');
 
-      if (addressController.userAddressList.isNotEmpty &&
+      if (selectedAddrIndex >= 0 &&
+          addressController.userAddressList.isNotEmpty &&
           selectedAddrIndex < addressController.userAddressList.length) {
         // Store the full address data
         final addressData =
@@ -75,15 +76,13 @@ class CheckOutController extends GetxController with BaseController {
 
         // Make sure we're storing it as a Map
         if (addressData is Map) {
-          selectedAddressData.value = Map.from(addressData);
-        } else if (addressData is Map<String, dynamic>) {
-          selectedAddressData.value = addressData;
+          selectedAddressData.assignAll(Map<String, dynamic>.from(addressData));
         } else {
           print('Error: addressData is not a Map');
-          selectedAddressData.value = {};
+          selectedAddressData.clear();
         }
 
-        final userAddress = selectedAddressData.value;
+        final userAddress = selectedAddressData;
 
         // Build the full address string
         String fullAddress = "";
@@ -143,7 +142,7 @@ class CheckOutController extends GetxController with BaseController {
         print('Full address string: $fullAddress');
       } else {
         print('No address found');
-        selectedAddressData.value = {};
+        selectedAddressData.clear();
         selectedAddressString.value = "";
       }
     } else {
@@ -155,8 +154,14 @@ class CheckOutController extends GetxController with BaseController {
     loadSelectedAddress();
   }
 
+  String _addressId(dynamic address) {
+    if (address is! Map) return '';
+    final value = (address['_id'] ?? address['id'])?.toString().trim() ?? '';
+    return value.isEmpty || value == 'null' ? '' : value;
+  }
+
   void updateAddressFromForm(Map<String, dynamic> updatedAddress) {
-    selectedAddressData.value = updatedAddress;
+    selectedAddressData.assignAll(updatedAddress);
     loadSelectedAddress(); // This will rebuild the display string
   }
 
@@ -220,9 +225,8 @@ class CheckOutController extends GetxController with BaseController {
     paymentOptions.clear();
     for (final entry in _gatewayRegistry) {
       final key = entry['name']!;
-      final config =
-          paymentConfig[key] ?? (key == 'cod' ? paymentConfig['cash'] : null);
-      if (config is Map && config['enabled'] == true) {
+      final config = _paymentConfigFor(key);
+      if (config is Map && _isEnabled(config['enabled'])) {
         paymentOptions.add({
           "name": key,
           "method": entry['method'],
@@ -232,6 +236,31 @@ class CheckOutController extends GetxController with BaseController {
     }
   }
 
+  dynamic _paymentConfigFor(String key) {
+    if (key != 'cod') return paymentConfig[key];
+    return paymentConfig['cod'] ??
+        paymentConfig['cash'] ??
+        paymentConfig['cash_on_delivery'];
+  }
+
+  bool _isEnabled(dynamic value) =>
+      value == true ||
+      const {'true', '1', 'yes', 'enabled'}
+          .contains(value?.toString().trim().toLowerCase());
+
+  dynamic _unwrapPaymentMethods(dynamic response) {
+    dynamic methods = response;
+    for (var depth = 0; depth < 3; depth++) {
+      if (methods is! Map) return methods;
+      final nested = methods['payment_methods'] ??
+          methods['paymentMethods'] ??
+          methods['data'];
+      if (nested == null) return methods;
+      methods = nested;
+    }
+    return methods;
+  }
+
   /// Fetches payment methods from the API and rebuilds the option list.
   Future<void> getPaymentOption() async {
     isLoadingPaymentMethods.value = true;
@@ -239,27 +268,20 @@ class CheckOutController extends GetxController with BaseController {
       // Build from static defaults first so the UI isn't empty.
       _buildPaymentOptionsFromConfig();
 
-      final response = await BasicProvider("payment-methods")
-          .getRequest()
-          .catchError(handleError);
+      final response =
+          await BasicProvider("payment-methods").getRequest(useCache: false);
 
       printInfo(info: 'payment-methods response: $response');
 
-      if (response is Map) {
-        // Some API versions wrap gateway config in a `payment_methods` map.
-        final methods = response['payment_methods'] ??
-            response['paymentMethods'] ??
-            response;
-        if (methods is Map) {
-          for (final key in methods.keys) {
-            paymentConfig[key] = methods[key];
-          }
-          _buildPaymentOptionsFromConfig();
-        } else if (methods is List) {
-          _appendPaymentOptions(methods);
+      final methods = _unwrapPaymentMethods(response);
+      if (methods is Map) {
+        for (final key in methods.keys) {
+          paymentConfig[key.toString()] = methods[key];
         }
-      } else if (response is List) {
-        _appendPaymentOptions(response);
+        _syncCodAliases();
+        _buildPaymentOptionsFromConfig();
+      } else if (methods is List) {
+        _appendPaymentOptions(methods);
       }
 
       // Select the first option by default.
@@ -267,6 +289,9 @@ class CheckOutController extends GetxController with BaseController {
         deliveryOption.value = paymentOptions[0];
         selectedIndex.value = 0;
       }
+    } catch (error) {
+      printInfo(info: 'getPaymentOption error: $error');
+      await handleError(error);
     } finally {
       // An empty or unexpected response is a completed load, not an ongoing
       // request. Let the view show an empty state instead of spinning forever.
@@ -274,13 +299,36 @@ class CheckOutController extends GetxController with BaseController {
     }
   }
 
+  void _syncCodAliases() {
+    final cod = paymentConfig['cod'] ??
+        paymentConfig['cash'] ??
+        paymentConfig['cash_on_delivery'];
+    if (cod != null) paymentConfig['cod'] = cod;
+  }
+
   void _appendPaymentOptions(List options) {
     for (final opt in options) {
-      if (opt is Map &&
-          opt['name'] != null &&
-          !paymentOptions.any((e) => e['name'] == opt['name'])) {
-        paymentOptions.add(Map<String, dynamic>.from(opt));
+      if (opt is! Map || opt['name'] == null) continue;
+      final rawName = opt['name'].toString().trim().toLowerCase();
+      final key = const {'cash', 'cash_on_delivery'}.contains(rawName)
+          ? 'cod'
+          : rawName;
+      final registry = _gatewayRegistry.firstWhereOrNull(
+        (entry) => entry['name'] == key,
+      );
+      if (registry == null ||
+          (opt.containsKey('enabled') && !_isEnabled(opt['enabled'])) ||
+          paymentOptions.any((option) => option['name'] == key)) {
+        continue;
       }
+      final config = Map<String, dynamic>.from(opt);
+      paymentOptions.add({
+        ...config,
+        'name': key,
+        'method': registry['method'],
+        'image': registry['image'],
+      });
+      if (key == 'cod') paymentConfig['cod'] = config;
     }
   }
 
@@ -362,19 +410,18 @@ class CheckOutController extends GetxController with BaseController {
     try {
       // Prioritize retrieving addressId from selectedAddressData which is already in this controller
       if (selectedAddressData.isNotEmpty) {
-        addressId =
-            (selectedAddressData['_id'] ?? selectedAddressData['id'] ?? "")
-                .toString();
+        addressId = _addressId(selectedAddressData);
       }
 
       // Fallback/Validation with AddressListController if addressId is still empty
       if (addressId.isEmpty && Get.isRegistered<AddressListController>()) {
         final addressController = Get.find<AddressListController>();
         final int selectedAddrIndex = addressController.selectAddress.value;
-        if (addressController.userAddressList.isNotEmpty &&
+        if (selectedAddrIndex >= 0 &&
+            addressController.userAddressList.isNotEmpty &&
             selectedAddrIndex < addressController.userAddressList.length) {
           final addr = addressController.userAddressList[selectedAddrIndex];
-          addressId = (addr['_id'] ?? addr['id'] ?? "").toString();
+          addressId = _addressId(addr);
         }
       }
 
@@ -479,24 +526,39 @@ class CheckOutController extends GetxController with BaseController {
 
   Future<void> addNewCard() async {}
 
-  Future<void> confirmPayment(String orderId, String paymentIntentId) async {
-    try {
-      var form = {
-        "order_id": orderId,
-        "payment_intent_id": paymentIntentId,
-      };
+  Future<void> confirmPayment(
+    String orderId,
+    String paymentIntentId, {
+    String? paymentId,
+    String? razorpaySignature,
+  }) async {
+    if (orderId.isEmpty || paymentIntentId.isEmpty) {
+      throw StateError('Payment confirmation details are incomplete.');
+    }
 
-      var response = await BasicProvider("order/confirm-payment")
-          .postRequest(form)
-          .catchError(handleError);
+    final form = <String, dynamic>{
+      'order_id': orderId,
+      'payment_intent_id': paymentIntentId,
+      if (paymentId != null && paymentId.isNotEmpty)
+        'razorpay_payment_id': paymentId,
+      if (razorpaySignature != null && razorpaySignature.isNotEmpty)
+        'razorpay_signature': razorpaySignature,
+    };
 
-      if (response != null) {
-        printInfo(info: 'Payment confirmed: $response');
-      } else {
-        printInfo(info: 'Payment confirmation failed');
-      }
-    } catch (e) {
-      printInfo(info: 'Error confirming payment: $e');
+    final response = await BasicProvider('order/confirm-payment')
+        .postRequest(form)
+        .catchError(handleError);
+    if (response is! Map) {
+      throw StateError('The payment could not be confirmed by the server.');
+    }
+
+    final status = response['status']?.toString().toLowerCase();
+    final paymentStatus = response['payment_status']?.toString().toLowerCase();
+    if (status != 'success' && paymentStatus != 'paid') {
+      throw StateError(
+        response['message']?.toString() ??
+            'The payment could not be confirmed by the server.',
+      );
     }
   }
 
@@ -510,6 +572,28 @@ class CheckOutController extends GetxController with BaseController {
       HelperFunctions()
           .showSnackBarError('Please select a delivery address first');
       return;
+    }
+
+    // Revalidate the cart immediately before creating an order. Checkout must
+    // use current server quantities and pricing, never a stale cached snapshot.
+    if (isSubmittingOrder.value) return;
+    isSubmittingOrder.value = true;
+    try {
+      await CartService.to.fetchCart(useCache: false);
+      if (CartService.to.loadError.value) {
+        HelperFunctions().showSnackBarError(
+          'Unable to refresh your cart. Please try again before placing your order.',
+        );
+        return;
+      }
+      if (CartService.to.cartItems.isEmpty) {
+        HelperFunctions().showSnackBarError(
+          'Your cart is empty. Add an item before placing your order.',
+        );
+        return;
+      }
+    } finally {
+      isSubmittingOrder.value = false;
     }
 
     final String methodName = deliveryOption['name'];
@@ -620,16 +704,18 @@ class CheckOutController extends GetxController with BaseController {
     final String orderId =
         orderResponse['order_no'] ?? orderResponse['_id'] ?? "";
     final String rawOrderId = _orderDocumentId(orderResponse);
+    final double paymentAmount = _orderPaymentAmount(orderResponse, amount);
 
     // Gateway handles its own UI — no overlay needed here.
     try {
       await _processGatewayPayment(
         methodName: methodName,
-        amount: amount,
+        amount: paymentAmount,
         orderResponse: orderResponse,
         rawOrderId: rawOrderId,
       );
 
+      await cartController.fetchCart();
       // ✅ Show success dialog after successful payment
       showPaymentSuccessDialog(orderId, orderResponse: orderResponse);
     } catch (e) {
@@ -665,9 +751,17 @@ class CheckOutController extends GetxController with BaseController {
     try {
       switch (methodName) {
         case 'stripe':
-          final publicKey = paymentConfig['stripe']['publicKey'];
-          final clientSecret = orderResponse['payment_client_secret'] ?? "";
-          final paymentIntentId = orderResponse['payment_intent_id'] ?? "";
+          final stripeConfig = paymentConfig['stripe'];
+          final publicKey = stripeConfig is Map
+              ? stripeConfig['publicKey']?.toString() ?? ''
+              : '';
+          final clientSecret =
+              orderResponse['payment_client_secret']?.toString() ?? '';
+          final paymentIntentId =
+              orderResponse['payment_intent_id']?.toString() ?? '';
+          if (publicKey.isEmpty || clientSecret.isEmpty) {
+            throw StateError('Stripe payment setup is incomplete.');
+          }
 
           try {
             await StripePayment(publicKey: publicKey).processPayment(
@@ -688,10 +782,27 @@ class CheckOutController extends GetxController with BaseController {
           break;
 
         case 'razorpay':
-          final keyId = paymentConfig['razorpay']['key_id'];
-          await RazorPayPayment(keyId: keyId).processPayment(
+          final razorpayConfig = paymentConfig['razorpay'];
+          final keyId = razorpayConfig is Map
+              ? razorpayConfig['key_id']?.toString() ?? ''
+              : '';
+          if (keyId.isEmpty) {
+            throw StateError('Razorpay payment setup is incomplete.');
+          }
+          final result = await RazorPayPayment(keyId: keyId).processPayment(
             amount: amount,
             metadata: orderResponse,
+          );
+          final paymentId = result.paymentId ?? '';
+          final razorpaySignature = result.signature ?? '';
+          if (paymentId.isEmpty || razorpaySignature.isEmpty) {
+            throw StateError('Razorpay did not return valid payment details.');
+          }
+          await confirmPayment(
+            rawOrderId,
+            orderResponse['payment_intent_id']?.toString() ?? '',
+            paymentId: paymentId,
+            razorpaySignature: razorpaySignature,
           );
           break;
 
@@ -728,8 +839,7 @@ class CheckOutController extends GetxController with BaseController {
           break;
 
         default:
-          printInfo(info: 'Unknown payment method: $methodName');
-          await Future.delayed(const Duration(seconds: 1));
+          throw StateError('Unsupported payment method: $methodName');
       }
     } catch (e) {
       // Log the error for debugging
@@ -783,6 +893,32 @@ class CheckOutController extends GetxController with BaseController {
               orderResponse['order_id'] ??
               '')
           .toString();
+
+  double _orderPaymentAmount(
+    Map<String, dynamic> orderResponse,
+    double fallback,
+  ) {
+    final order = orderResponse['order'] is Map
+        ? Map<String, dynamic>.from(orderResponse['order'] as Map)
+        : orderResponse;
+    final rawAmount = order['total'] ??
+        order['grand_total'] ??
+        order['total_amount'] ??
+        order['amount'];
+    if (rawAmount is num) return rawAmount.toDouble();
+    if (rawAmount != null) {
+      final parsed = double.tryParse(
+        rawAmount
+            .toString()
+            .replaceAll(',', '')
+            .replaceAll('₹', '')
+            .replaceAll(r'$', '')
+            .trim(),
+      );
+      if (parsed != null) return parsed;
+    }
+    return fallback;
+  }
 
   bool _isOutOfStockError(dynamic err) {
     final msg = (err is AppException ? (err.message ?? '') : err.toString())

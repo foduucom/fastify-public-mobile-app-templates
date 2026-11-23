@@ -9,6 +9,7 @@ import 'package:foddu/app/modules/homepage/views/home_page_view.dart';
 import 'package:foddu/app/modules/homepage/views/material/responsive_bottom_nav.dart';
 import 'package:foddu/app/modules/homepage/views/material/responsive_common_header.dart';
 import 'package:foddu/app/modules/profile_legacy/profile/views/profile_view.dart';
+import 'package:foddu/services/local_storage_notification_service.dart';
 import 'package:foddu/app/modules/notification/controller/notification_controller.dart';
 import 'package:foddu/app/modules/wishlist/controllers/wishlist_controller.dart';
 import 'package:foddu/app/modules/wishlist/views/wishlist_view.dart';
@@ -57,8 +58,11 @@ class BottombarView extends GetView<BottombarController> {
                         Scaffold.of(scaffoldContext).openDrawer(),
                     cartItemCount: cartController.cartItems.length,
                     wishlistItemCount: wishListController.wishlistItems.length,
+                    notificationCount:
+                        Get.find<LocalStorageNotificationService>()
+                            .getUnreadCount(),
                     brandTitle: 'Kharido',
-                    //onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),
+                    onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),
                   );
                 }
                 // Hide common header outside Home.

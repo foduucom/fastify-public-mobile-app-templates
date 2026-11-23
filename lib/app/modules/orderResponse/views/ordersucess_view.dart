@@ -61,7 +61,13 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                                 height: 180)),
                                         Center(
                                             child: Text(
-                                                'Your order is successfully placed',
+                                                controller.isCashOrder ||
+                                                        controller
+                                                            .isPaymentConfirmed
+                                                    ? 'Your order is successfully placed'
+                                                    : controller.isPaymentFailed
+                                                        ? 'Your order was created, but payment needs attention'
+                                                        : 'Your order was created',
                                                 style: TextStyle(
                                                     fontWeight: FontWeight.w600,
                                                     fontFamily: 'lato',
@@ -71,7 +77,11 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                         Text(
                                             controller.isCashOrder
                                                 ? 'Your order is confirmed. Please pay for it on delivery.'
-                                                : 'Your payment is confirmed and your order is being processed.',
+                                                : controller.isPaymentConfirmed
+                                                    ? 'Your payment is confirmed and your order is being processed.'
+                                                    : controller.isPaymentFailed
+                                                        ? 'Payment was not confirmed. Check your order status before trying again.'
+                                                        : 'Payment status is awaiting confirmation. You can check for updates in your orders.',
                                             textAlign: TextAlign.center,
                                             style: TextStyle(
                                               fontFamily: 'lato',

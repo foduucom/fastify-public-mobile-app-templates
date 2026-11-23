@@ -21,6 +21,7 @@ class CreateAccountController extends GetxController with BaseController {
   late TextEditingController passwordController;
 
   final box = GetStorage();
+  Function()? _authListener;
 
   @override
   void onInit() {
@@ -30,11 +31,13 @@ class CreateAccountController extends GetxController with BaseController {
     _loadAuthSettings();
 
     // Listen for background settings changes
-    box.listenKey('auth_preference', (_) => _loadAuthSettings());
+    _authListener =
+        box.listenKey('auth_preference', (_) => _loadAuthSettings());
   }
 
   @override
   void onClose() {
+    _authListener?.call();
     emailController.dispose();
     passwordController.dispose();
     super.onClose();
@@ -82,9 +85,16 @@ class CreateAccountController extends GetxController with BaseController {
     isLoading(true);
 
     try {
+      final deviceDetails = await HelperFunctions.getDeviceDetails().catchError(
+        (_) => <String, dynamic>{
+          'type': 'unknown',
+          'mobile_name': 'unknown',
+          'version': 'unknown',
+        },
+      );
       final form = <String, dynamic>{
         'email': emailController.text.trim(),
-        'device_details': await HelperFunctions.getDeviceDetails(),
+        'device_details': deviceDetails,
       };
 
       if (!isOtpMode.value) {
@@ -96,6 +106,25 @@ class CreateAccountController extends GetxController with BaseController {
       final response = await BasicProvider('auth/login')
           .postRequest(form)
           .catchError(handleError);
+
+      if (response == null) {
+        HelperFunctions()
+            .showSnackBarError('We could not start sign-in. Please try again.');
+        return;
+      }
+      final status = response is Map
+          ? int.tryParse(
+              (response['status'] ?? response['statusCode'] ?? '').toString())
+          : null;
+      if (status != null && status >= 400) {
+        HelperFunctions().showSnackBarError(
+          (response['message'] ??
+                  response['error'] ??
+                  'Sign-in was not accepted.')
+              .toString(),
+        );
+        return;
+      }
 
       if (response != null) {
         String message = 'OTP sent successfully!';
@@ -112,11 +141,17 @@ class CreateAccountController extends GetxController with BaseController {
         // ✅ Go to OTP — socket connects AFTER OTP success in OTP controller
         Get.toNamed(
           Routes.OTP,
-          arguments: {'email': emailController.text.trim()},
+          arguments: {
+            'email': emailController.text.trim(),
+            'context': 'login',
+          },
         );
       }
-    } catch (e, stack) {
-      debugPrint('Login error: $e\n$stack');
+    } catch (e) {
+      debugPrint('Login request failed: $e');
+      HelperFunctions().showSnackBarError(
+        e.toString().replaceFirst('Exception:', '').trim(),
+      );
     } finally {
       isLoading(false);
     }

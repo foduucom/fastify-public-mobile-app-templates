@@ -4,6 +4,7 @@ import 'package:get_storage/get_storage.dart';
 import '/app/data/basic_provider.dart';
 import '/app/modules/auth/auth_details.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
+import '/constants/app_exceptions.dart';
 
 class CartService extends GetxService with BaseController {
   /// Convenience accessor: CartService.to
@@ -26,7 +27,7 @@ class CartService extends GetxService with BaseController {
   // ══════════════════════════════════════════════════════════
   //  FETCH CART
   // ══════════════════════════════════════════════════════════
-  Future<void> fetchCart() async {
+  Future<void> fetchCart({bool useCache = true}) async {
     loadError.value = false;
     if (_isGuest) {
       _loadLocalCart();
@@ -34,20 +35,27 @@ class CartService extends GetxService with BaseController {
     }
 
     try {
-      var response =
-          await BasicProvider("cart").getRequest().catchError(handleError);
+      final response =
+          await BasicProvider("cart").getRequest(useCache: useCache);
 
       if (response == null) {
-        cartItems.clear();
-        subTotal.value = 0;
-        total.value = 0;
+        // A missing response is not proof that the server cart is empty.
+        // Preserve the last known cart and let callers decide whether to retry.
+        loadError.value = true;
         return;
       }
 
-      parseCartResponse(response);
+      if (response is! Map) {
+        loadError.value = true;
+        debugPrint('CartService.fetchCart received an invalid response');
+        return;
+      }
+
+      parseCartResponse(Map<String, dynamic>.from(response));
     } catch (e) {
       loadError.value = true;
       debugPrint('CartService.fetchCart error: $e');
+      if (e is UnAuthorizedException) await handleError(e);
     }
   }
 
@@ -178,11 +186,8 @@ class CartService extends GetxService with BaseController {
     if (value == null) return 0;
     // Handles formatted API values such as "₹1,200.00" as well as numbers
     // serialized as strings.
-    final normalized = value
-        .toString()
-        .replaceAll(',', '')
-        .replaceAll('₹', '')
-        .trim();
+    final normalized =
+        value.toString().replaceAll(',', '').replaceAll('₹', '').trim();
     return double.tryParse(normalized) ?? 0;
   }
 

@@ -1,6 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '/components/order_product_image.dart';
 import '../../model/model.dart';
 import '../controller/order_details_controller.dart';
 
@@ -434,20 +434,12 @@ class _ProductRow extends StatelessWidget {
               color: const Color(0xFFF5F3F0),
               borderRadius: BorderRadius.circular(12)),
           clipBehavior: Clip.antiAlias,
-          child: product.imageUrl.isNotEmpty
-              ? CachedNetworkImage(
-                  imageUrl: product.imageUrl,
-                  fit: BoxFit.contain,
-                  placeholder: (_, __) => const Center(
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Color(0xFFD0D0D0))),
-                  errorWidget: (_, __, ___) => const Icon(
-                      Icons.inventory_2_outlined,
-                      size: 24,
-                      color: Color(0xFFD0D0D0)),
-                )
-              : const Icon(Icons.inventory_2_outlined,
-                  size: 24, color: Color(0xFFD0D0D0)),
+          child: OrderProductImage(
+            orderLine: product.rawData,
+            width: 58,
+            height: 58,
+            radius: 12,
+          ),
         ),
         const SizedBox(width: 12),
 

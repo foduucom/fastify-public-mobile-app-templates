@@ -10,35 +10,42 @@ mixin BaseController {
   final RxBool hasError = false.obs;
   final RxString errorMessage = ''.obs;
 
+  static const _friendlyApiError =
+      'We are facing some issue. Please try again in a moment.';
+
+  String _userFacingMessage(
+    String? message, {
+    String fallback = _friendlyApiError,
+  }) {
+    final value = message?.trim() ?? '';
+    if (value.isEmpty ||
+        value.toLowerCase() == 'null' ||
+        RegExp(r'<[^>]+>').hasMatch(value)) {
+      return fallback;
+    }
+    return value;
+  }
+
   Future<void> handleError(error) async {
-    // hideLoading();
     if (error is BadRequestException) {
-      var message = error.message;
-      HelperFunctions().showSnackBarError(message.toString());
+      HelperFunctions().showSnackBarError(_userFacingMessage(error.message));
     } else if (error is FetchDataException) {
-      var message = error.message;
-      HelperFunctions().showSnackBarError(message.toString());
+      HelperFunctions().showSnackBarError(_userFacingMessage(error.message));
     } else if (error is UnAuthorizedException) {
       if (AuthDetails.isUserLogin()) {
         // A 401 only expires an active authenticated session. SessionService
         // owns cleanup and navigation so simultaneous requests cannot race.
         await SessionService.expire(message: error.message);
       } else {
-        HelperFunctions().showSnackBarError(
-            (error.message != null && error.message!.isNotEmpty)
-                ? error.message!
-                : "You are not authorized");
+        HelperFunctions().showSnackBarError(_userFacingMessage(
+          error.message,
+          fallback: 'You are not authorized',
+        ));
       }
+    } else if (error is ServiceUnavailableException) {
+      // ApiHealthService and the reconnecting UI already report this state.
     } else if (error is ApiNotRespondingException) {
-      // print("------------------");
-      // print("------------------");
-      // print(error.message);
-      // print("------------------");
-      // print("------------------");
-      // HelperFunctions().showSnackBarError("Oops! It took longer to respond.");
-    } else if (error is FetchDataException) {
-      var message = error.message;
-      HelperFunctions().showSnackBarError(message.toString());
+      HelperFunctions().showSnackBarError(_userFacingMessage(error.message));
     }
   }
 }

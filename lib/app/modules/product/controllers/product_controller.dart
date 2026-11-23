@@ -150,28 +150,38 @@ class ProductController extends GetxController
     List variants = productDetials['variants'];
     int variantIndex = -1;
 
-    String? targetSize =
-        sizes.isNotEmpty ? sizes[selectedSizeIndex.value].toLowerCase() : null;
-    String? targetColor = colors.isNotEmpty
-        ? colors[selectedColorIndex.value].toLowerCase()
+    final targetSize =
+        selectedSizeIndex.value >= 0 && selectedSizeIndex.value < sizes.length
+            ? sizes[selectedSizeIndex.value].trim().toLowerCase()
+            : null;
+    final targetColor = selectedColorIndex.value >= 0 &&
+            selectedColorIndex.value < colors.length
+        ? colors[selectedColorIndex.value].trim().toLowerCase()
         : null;
 
-    print("Target Attributes - Size: $targetSize, Color: $targetColor");
+    // Clear any previous match first so an unavailable combination cannot
+    // silently add the previously selected variant to the cart.
+    selectedVariantIndex.value = -1;
 
     for (int i = 0; i < variants.length; i++) {
       var variant = variants[i];
-      var variantAttributes = variant['attributes'];
+      if (variant is! Map) continue;
+      final rawAttributes = variant['attributes'];
+      final variantAttributes = <String, String>{};
+      if (rawAttributes is Map) {
+        for (final entry in rawAttributes.entries) {
+          variantAttributes[entry.key.toString().toLowerCase()] =
+              entry.value.toString().trim().toLowerCase();
+        }
+      }
 
-      if (variantAttributes != null && variantAttributes is Map) {
+      if (variantAttributes.isNotEmpty) {
         // Match by attributes
         bool isMatch = true;
-        if (targetSize != null &&
-            variantAttributes['size']?.toString().toLowerCase() != targetSize) {
+        if (targetSize != null && variantAttributes['size'] != targetSize) {
           isMatch = false;
         }
-        if (targetColor != null &&
-            variantAttributes['color']?.toString().toLowerCase() !=
-                targetColor) {
+        if (targetColor != null && variantAttributes['color'] != targetColor) {
           isMatch = false;
         }
 
@@ -181,10 +191,10 @@ class ProductController extends GetxController
         }
       } else {
         // Fallback to name matching
-        String variantName =
-            variant['variant_name']?.toString().toLowerCase() ??
-                variant['name']?.toString().toLowerCase() ??
-                '';
+        final variantName = (variant['variant_name'] ?? variant['name'] ?? '')
+            .toString()
+            .trim()
+            .toLowerCase();
 
         if (targetSize != null && targetColor != null) {
           List<String> formats = [
@@ -210,10 +220,6 @@ class ProductController extends GetxController
     if (variantIndex != -1) {
       selectedVariantIndex.value = variantIndex;
       selectedImageIndex.value = 0;
-      print(
-          "Matched variant at index $variantIndex: ${variants[variantIndex]}");
-    } else {
-      print("No variant matched for attributes.");
     }
   }
 
@@ -288,100 +294,122 @@ class ProductController extends GetxController
 
   Future<void> getProductDetials({required String id}) async {
     isLoading.value = true;
-    var response = await BasicProvider("products/$id")
-        .getRequest()
-        .catchError(handleError);
-    if (response == null) {
+    try {
+      final response = await BasicProvider("products/$id")
+          .getRequest()
+          .catchError(handleError);
+      if (response == null || response is! Map) return;
+
+      final payload = response['data'] is Map ? response['data'] : response;
+      if (payload is! Map) return;
+      productDetials.assignAll(Map<String, dynamic>.from(payload));
+
+      final gallery = productDetials['gallery'];
+      if (gallery is List) productGallery.assignAll(gallery);
+
+      // First try to extract from attributes (more reliable)
+      if (productDetials['attributes'] is List &&
+          (productDetials['attributes'] as List).isNotEmpty) {
+        final attributes = productDetials['attributes'] as List;
+
+        for (var attr in attributes) {
+          if (attr is! Map) continue;
+          String attrName = attr['name']?.toString().toLowerCase() ?? '';
+
+          if (attrName.contains('color')) {
+            // Extract colors from attributes
+            final colorValues = _stringValues(attr['values']);
+            colors.assignAll(colorValues);
+            print("Extracted colors from attributes: $colors");
+          } else if (attrName.contains('size')) {
+            // Extract sizes from attributes
+            final sizeValues = _stringValues(attr['values']);
+            sizes.assignAll(sizeValues);
+            print("Extracted sizes from attributes: $sizes");
+          }
+        }
+      }
+
+      // If attributes didn't have data, extract from variants
+      if (sizes.isEmpty && colors.isEmpty) {
+        if (productDetials['variants'] is List) {
+          final variants = productDetials['variants'] as List;
+
+          final uniqueSizes = <String>{};
+          final uniqueColors = <String>{};
+          const knownColors = {
+            'red',
+            'blue',
+            'green',
+            'black',
+            'white',
+            'yellow',
+            'purple',
+            'pink',
+            'brown',
+            'gray',
+            'grey',
+            'orange',
+            'beige',
+            'navy',
+            'silver',
+            'gold',
+            'cream',
+            'maroon',
+            'teal',
+            'tan',
+          };
+
+          for (var variant in variants) {
+            if (variant is! Map) continue;
+            final attributes = variant['attributes'];
+            if (attributes is Map) {
+              for (final entry in attributes.entries) {
+                final key = entry.key.toString().toLowerCase();
+                final value = entry.value.toString().trim();
+                if (key.contains('size') && value.isNotEmpty) {
+                  uniqueSizes.add(value);
+                } else if (key.contains('color') && value.isNotEmpty) {
+                  uniqueColors.add(value);
+                }
+              }
+            } else {
+              final name =
+                  (variant['variant_name'] ?? variant['name'] ?? '').toString();
+              final parts = name
+                  .split(RegExp(r'\s*[/,|]\s*'))
+                  .map((part) => part.trim())
+                  .where((part) => part.isNotEmpty);
+              for (final part in parts) {
+                final normalized = part.toLowerCase();
+                if (RegExp(r'^(xxxs|xxs|xs|s|m|l|xl|xxl|xxxl|\d+)$')
+                    .hasMatch(normalized)) {
+                  uniqueSizes.add(part.toUpperCase());
+                } else if (knownColors.contains(normalized)) {
+                  uniqueColors.add(part);
+                }
+              }
+            }
+          }
+
+          sizes.assignAll(uniqueSizes.toList());
+          colors.assignAll(uniqueColors.toList());
+
+          print("Extracted sizes from variants: $sizes");
+          print("Extracted colors from variants: $colors");
+        }
+      }
+
+      // Initialize selectors with the extracted data
+      initializeSelectors();
+    } finally {
       isLoading.value = false;
-      return;
     }
-    isLoading.value = false;
-
-    productDetials.value = response;
-
-    if (productDetials['gallery'] != null) {
-      productGallery.value = productDetials['gallery'];
-    }
-
-    // First try to extract from attributes (more reliable)
-    if (productDetials['attributes'] != null &&
-        productDetials['attributes'].isNotEmpty) {
-      var attributes = productDetials['attributes'];
-
-      for (var attr in attributes) {
-        String attrName = attr['name']?.toString().toLowerCase() ?? '';
-
-        if (attrName.contains('color')) {
-          // Extract colors from attributes
-          List<String> colorValues = List<String>.from(attr['values'] ?? []);
-          colors.assignAll(colorValues);
-          print("Extracted colors from attributes: $colors");
-        } else if (attrName.contains('size')) {
-          // Extract sizes from attributes
-          List<String> sizeValues = List<String>.from(attr['values'] ?? []);
-          sizes.assignAll(sizeValues);
-          print("Extracted sizes from attributes: $sizes");
-        }
-      }
-    }
-
-    // If attributes didn't have data, extract from variants
-    if (sizes.isEmpty && colors.isEmpty) {
-      if (productDetials['variants'] != null) {
-        List<dynamic> variants = productDetials['variants'];
-
-        Set<String> uniqueSizes = {};
-        Set<String> uniqueColors = {};
-
-        for (var variant in variants) {
-          String variantName =
-              variant['variant_name']?.toString().toLowerCase() ?? '';
-
-          // Check if it's a size
-          if (variantName.contains('s') ||
-              variantName.contains('m') ||
-              variantName.contains('l') ||
-              variantName.contains('xl') ||
-              variantName.contains('xxl') ||
-              variantName.contains('xs')) {
-            uniqueSizes.add(variantName.toUpperCase());
-          }
-          // Check if it's a color (common color names)
-          else if (variantName.isNotEmpty &&
-              (variantName.contains('red') ||
-                  variantName.contains('blue') ||
-                  variantName.contains('green') ||
-                  variantName.contains('black') ||
-                  variantName.contains('white') ||
-                  variantName.contains('yellow') ||
-                  variantName.contains('purple') ||
-                  variantName.contains('pink') ||
-                  variantName.contains('brown') ||
-                  variantName.contains('gray') ||
-                  variantName.contains('grey'))) {
-            uniqueColors
-                .add(variantName[0].toUpperCase() + variantName.substring(1));
-          }
-          // If it's not clearly a size or color, check the variant's attributes if available
-          else if (variantName.isNotEmpty && variant['attributes'] != null) {
-            // You can add logic here to check variant-specific attributes
-            // For now, just add to colors
-            uniqueColors
-                .add(variantName[0].toUpperCase() + variantName.substring(1));
-          }
-        }
-
-        sizes.assignAll(uniqueSizes.toList());
-        colors.assignAll(uniqueColors.toList());
-
-        print("Extracted sizes from variants: $sizes");
-        print("Extracted colors from variants: $colors");
-      }
-    }
-
-    // Initialize selectors with the extracted data
-    initializeSelectors();
   }
+
+  List<String> _stringValues(dynamic values) => values is List
+      ? values.map((value) => value.toString()).toList()
+      : <String>[];
 
   void getVariantDetails() {
     if (productDetials['type'] == 'variable' ||
@@ -394,8 +422,14 @@ class ProductController extends GetxController
           productVariantOption = options;
         }
 
+        if (productVariantOption is! List) return;
+        labels.clear();
+        labelVariant.clear();
+        selectedVariant.clear();
+
         List<String> selectedVariantList = [];
         for (var item in productVariantOption) {
+          if (item is! Map || item['variants'] is! List) continue;
           labels.add(item['label']);
           labelVariant.add(item['variants']);
           if (item['variants'] != null && item['variants'].isNotEmpty) {
@@ -425,10 +459,15 @@ class ProductController extends GetxController
   }
 
   void updateVariantIndex() {
-    for (int i = 0; i < productDetials['variant_ids'].length; i++) {
-      if (joinedVariants.value == productDetials['variant_ids'][i]['variant']) {
-        // selectedVariant.addAll(variantsProduct[i]);
+    final variants = productDetials['variants'];
+    if (variants is! List) return;
+    selectedVariantIndex.value = -1;
+    for (int i = 0; i < variants.length; i++) {
+      final variant = variants[i];
+      if (variant is Map &&
+          joinedVariants.value == variant['variant']?.toString()) {
         selectedVariantIndex.value = i;
+        return;
       }
     }
   }
@@ -442,13 +481,28 @@ class ProductController extends GetxController
 
   Future<void> addToCart() async {
     final variants = productDetials['variants'];
-    if (variants == null || (variants as List).isEmpty) return;
+    if (variants is! List || variants.isEmpty) {
+      HelperFunctions().showSnackBarError('This product is unavailable.');
+      return;
+    }
+    final index = selectedVariantIndex.value;
+    if (index < 0 || index >= variants.length || variants[index] is! Map) {
+      HelperFunctions().showSnackBarError(
+          'Please select an available product option before adding to cart.');
+      return;
+    }
+    final variantId = variants[index]['_id']?.toString() ?? '';
+    if (variantId.isEmpty || productId == null) {
+      HelperFunctions()
+          .showSnackBarError('This product cannot be added right now.');
+      return;
+    }
 
     isLoading.value = true;
     try {
       await CartService.to.manageCart(
           productId: productId,
-          variantId: variants[selectedVariantIndex.value]['_id'],
+          variantId: variantId,
           quantity: count.value,
           product: Map<String, dynamic>.from(productDetials));
     } finally {

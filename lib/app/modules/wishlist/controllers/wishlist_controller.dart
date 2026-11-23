@@ -32,8 +32,11 @@ class WishlistController extends GetxController
 
   Future<void> fetchWishlist() async {
     isLoading.value = true;
-    await WishListService.to.fetchWishList();
-    isLoading.value = false;
+    try {
+      await WishListService.to.fetchWishList();
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> onRefresh() async {
@@ -41,7 +44,7 @@ class WishlistController extends GetxController
   }
 
   Map<String, dynamic> getProduct(int index) {
-    if (index >= wishlistItems.length) return {};
+    if (index < 0 || index >= wishlistItems.length) return {};
     final item = wishlistItems[index];
     if (item['product_id'] != null && item['product_id'] is Map) {
       return Map<String, dynamic>.from(item['product_id']);
@@ -50,7 +53,7 @@ class WishlistController extends GetxController
   }
 
   Map<String, dynamic> getVariant(int index) {
-    if (index >= wishlistItems.length) return {};
+    if (index < 0 || index >= wishlistItems.length) return {};
     final item = wishlistItems[index];
     if (item['variant_id'] != null && item['variant_id'] is Map) {
       return Map<String, dynamic>.from(item['variant_id']);
@@ -65,7 +68,7 @@ class WishlistController extends GetxController
   }
 
   String getStoreName(int index) {
-    if (index >= wishlistItems.length) return 'Store Name';
+    if (index < 0 || index >= wishlistItems.length) return 'Store Name';
     final product = getProduct(index);
     return (product['brand']?['name'] ?? 'Store Name').toString();
   }
@@ -85,7 +88,7 @@ class WishlistController extends GetxController
   }
 
   String getProductId(int index) {
-    if (index >= wishlistItems.length) return '';
+    if (index < 0 || index >= wishlistItems.length) return '';
     final item = wishlistItems[index];
     final product = item['product_id'];
 
@@ -97,7 +100,7 @@ class WishlistController extends GetxController
   }
 
   String? getVariantId(int index) {
-    if (index >= wishlistItems.length) return null;
+    if (index < 0 || index >= wishlistItems.length) return null;
     final item = wishlistItems[index];
     final variant = item['variant_id'];
 
@@ -149,8 +152,10 @@ class WishlistController extends GetxController
       if (variantId == null || variantId.isEmpty) {
         final variants = product['variants'] as List?;
         if (variants != null && variants.isNotEmpty) {
-          variantId =
-              (variants.first['_id'] ?? variants.first['id'])?.toString();
+          final firstVariant = variants.first;
+          if (firstVariant is Map) {
+            variantId = (firstVariant['_id'] ?? firstVariant['id'])?.toString();
+          }
         }
       }
 
@@ -165,12 +170,15 @@ class WishlistController extends GetxController
         return;
       }
 
-      await Get.find<CartService>().manageCart(
+      final response = await Get.find<CartService>().manageCart(
         productId: productId,
         variantId: variantId,
         quantity: quantity,
         product: product,
       );
+      if (AuthDetails.isUserLogin() && response == null) {
+        throw StateError('The cart update was not confirmed by the server.');
+      }
 
       Get.snackbar(
         "Success",

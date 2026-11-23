@@ -24,7 +24,9 @@ class ProfileController extends GetxController with BaseController {
       newPasswordController,
       comfirmPasswordController;
   final isLoading = false.obs;
+  final profileLoadError = false.obs;
   var imagePath = "".obs;
+  int _profileFetchRequest = 0;
 
   var obsecureValue = true.obs;
   var newPasswordObsecureValue = true.obs;
@@ -123,67 +125,81 @@ class ProfileController extends GetxController with BaseController {
     });
   }
 
-  Future<void> fetchDataFromServer() async {
+  Future<void> fetchDataFromServer({
+    bool useCache = true,
+    bool retry = true,
+  }) async {
     // Guest profile screens use local guest content; never call the private
     // customer endpoint without an authenticated session.
     if (!AuthDetails.isUserLogin()) {
       profiledata.clear();
       addresses.clear();
       isLoading(false);
+      profileLoadError(false);
       return;
     }
+    final requestId = ++_profileFetchRequest;
     try {
       isLoading(true);
-      // Switched from "public/customer/profile" to "auth/customer/profile" as requested
       var response = await BasicProvider("auth/customer/profile")
-          .getRequest()
+          .getRequest(useCache: useCache, retry: retry)
           .catchError(handleError);
 
-      if (response != null) {
-        profiledata.clear();
-        profiledata.addAll(response);
+      if (requestId != _profileFetchRequest || isClosed) return;
+      final profile = response is Map && response['data'] is Map
+          ? response['data'] as Map
+          : response;
+      if (profile is Map) {
+        final profileMap = Map<String, dynamic>.from(profile);
+        profiledata.assignAll(profileMap);
+        profileLoadError(false);
+        AuthDetails.box.write('userData', profileMap);
 
         // Basic Profile Data
-        nameController.text = response["name"]?.toString() ?? "";
-        emailController.text = response["email"]?.toString() ?? "";
-        phoneController.text = response["mobile"]?.toString() ?? "";
+        nameController.text = profileMap["name"]?.toString() ?? "";
+        emailController.text = profileMap["email"]?.toString() ?? "";
+        phoneController.text = profileMap["mobile"]?.toString() ?? "";
 
         // Gender syncing
         final String rawGender =
-            response["gender"]?.toString().toLowerCase() ?? 'male';
+            profileMap["gender"]?.toString().toLowerCase() ?? 'male';
         genderController.text = rawGender;
         selectedGender.value = rawGender == 'female' ? 'Female' : 'Male';
         gender.value = rawGender;
 
         // Addresses parsing
-        if (response['addresses'] != null && response['addresses'] is List) {
-          addresses.assignAll(response['addresses']);
+        if (profileMap['addresses'] is List) {
+          addresses.assignAll(profileMap['addresses'] as List);
         } else {
           addresses.clear();
         }
 
         // Profile Image — use HelperFunctions().getImage() same as ProfileView
-        if (response['featured_image'] != null) {
-          final imgUrl = HelperFunctions().getImage(response['featured_image']);
+        if (profileMap['featured_image'] != null) {
+          final imgUrl =
+              HelperFunctions().getImage(profileMap['featured_image']);
           if (imgUrl.isNotEmpty) {
             imagePath.value = imgUrl;
           }
         }
 
         // Wallet Balance parsing
-        if (response['wallet_balance'] != null) {
+        if (profileMap['wallet_balance'] != null) {
           walletBalance.value =
-              double.tryParse(response['wallet_balance'].toString()) ?? 0.0;
+              double.tryParse(profileMap['wallet_balance'].toString()) ?? 0.0;
         }
 
-        debugPrint("Profile data successfully fetched and parsed: $response");
+        debugPrint("Profile data successfully refreshed.");
       } else {
-        debugPrint("Profile data response was null.");
+        profileLoadError(true);
       }
     } catch (e) {
+      if (requestId == _profileFetchRequest && !isClosed) {
+        profileLoadError(true);
+      }
       debugPrint('Error fetching profile: $e');
     } finally {
-      isLoading(false);
+      if (requestId == _profileFetchRequest && !isClosed) isLoading(false);
     }
   }
 
@@ -271,7 +287,7 @@ class ProfileController extends GetxController with BaseController {
 
   @override
   void onClose() {
-    super.onClose();
+    _profileFetchRequest++;
     nameController.dispose();
     emailController.dispose();
     phoneController.dispose();
@@ -281,6 +297,7 @@ class ProfileController extends GetxController with BaseController {
     oldPasswordController.dispose();
     newPasswordController.dispose();
     comfirmPasswordController.dispose();
+    super.onClose();
   }
 
   List notification = [
@@ -318,11 +335,10 @@ class ProfileController extends GetxController with BaseController {
         if (imagePath.value.contains("http")) {
           await CachedNetworkImage.evictFromCache(imagePath.value);
         }
-        await fetchDataFromServer();
+        await fetchDataFromServer(useCache: false, retry: false);
         isLoading(false);
 
         Get.until((route) => Get.isDialogOpen != true);
-        await AuthDetails().updateUserDetailsFromServer();
         //Get.find<BottombarController>().authDetails.value = updatedprofile;
         // HelperFunctions().showSnackBarSuccess(response["status"]);
         Get.until((route) => Get.isDialogOpen != true);

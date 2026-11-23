@@ -144,18 +144,8 @@ class BottombarController extends GetxController with BaseController {
   }
 
   Future<void> logout() async {
-    final userData = box.read('userData');
-    final userId = userData is Map ? userData['_id']?.toString() : null;
-    final otpLogin = isOtpLogin;
-
-    // Local sign-out first; Firebase cleanup is fire-and-forget so an
-    // unreachable Firebase can never block the user from logging out.
-    await SessionService.clearLocalSession();
-    SessionService.unsubscribeFromPushInBackground(userId);
+    await SessionService.signOut();
     isLogin(false);
-    otpLogin
-        ? Get.offAllNamed(Routes.MOBILELOGIN)
-        : Get.offAllNamed(Routes.LOGIN);
   }
 
   getUserDetails() async {

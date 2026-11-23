@@ -32,6 +32,8 @@ class LocalStorageNotificationService extends GetxService {
     }
   }
 
+  void reload() => _loadNotifications();
+
   Future<void> _saveToStorage() async {
     try {
       await _box.write(
@@ -107,6 +109,12 @@ class LocalStorageNotificationService extends GetxService {
     if (updated) {
       await _saveToStorage();
     }
+  }
+
+  Future<void> deleteNotification(String id) async {
+    final originalLength = notifications.length;
+    notifications.removeWhere((notification) => notification.id == id);
+    if (notifications.length != originalLength) await _saveToStorage();
   }
 
   Future<void> updateSyncStatus(String id, bool isSynced,

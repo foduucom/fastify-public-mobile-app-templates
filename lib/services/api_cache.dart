@@ -10,6 +10,7 @@ class ApiCache {
 
   static const containerName = 'api_cache';
   static const _maxEntries = 60;
+  static const maxStaleAge = Duration(hours: 24);
 
   /// Endpoints that must never be served from cache.
   static const _deny = [
@@ -27,13 +28,55 @@ class ApiCache {
     'checkout',
   ];
 
+  /// User-owned or transaction-sensitive endpoints are never persisted for
+  /// stale fallback. This keeps offline resilience focused on public catalog
+  /// and CMS data instead of showing old account or purchase state.
+  static const _privateEndpointSegments = {
+    'cart',
+    'wishlist',
+    'order',
+    'orders',
+    'customer',
+    'address',
+    'addresses',
+    'review',
+    'reviews',
+    'notification',
+    'notifications',
+    'coupon',
+    'coupons',
+    'support-ticket',
+    'support-tickets',
+  };
+
   static final GetStorage _box = GetStorage(containerName);
 
-  static Future<void> init() => GetStorage.init(containerName);
+  static Future<void> init() async {
+    await GetStorage.init(containerName);
+    await _purgeDisallowedEntries();
+  }
+
+  static Future<void> _purgeDisallowedEntries() async {
+    for (final key in _box.getKeys<Iterable>()) {
+      if (key is! String) continue;
+      final separator = key.indexOf('|');
+      final uri =
+          separator < 0 ? null : Uri.tryParse(key.substring(separator + 1));
+      if (uri == null || !isCacheable(uri.path)) {
+        await _box.remove(key);
+      }
+    }
+  }
 
   static bool isCacheable(String path) {
-    final p = path.toLowerCase();
-    return !_deny.any(p.contains);
+    final normalizedPath = path.toLowerCase().split('?').first;
+    if (_deny.any(normalizedPath.contains)) return false;
+
+    final segments = normalizedPath
+        .split('/')
+        .where((segment) => segment.isNotEmpty)
+        .toSet();
+    return !segments.any(_privateEndpointSegments.contains);
   }
 
   /// Authenticated responses are keyed per token so one user never sees
@@ -45,6 +88,18 @@ class ApiCache {
     try {
       final entry = _box.read(key);
       if (entry is Map && entry['d'] is String) {
+        final timestamp = entry['t'];
+        if (timestamp is! int) {
+          _box.remove(key);
+          return null;
+        }
+        final age = DateTime.now().difference(
+          DateTime.fromMillisecondsSinceEpoch(timestamp),
+        );
+        if (age.isNegative || age > maxStaleAge) {
+          _box.remove(key);
+          return null;
+        }
         return jsonDecode(entry['d'] as String);
       }
     } catch (_) {}

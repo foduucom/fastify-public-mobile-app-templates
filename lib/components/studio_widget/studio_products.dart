@@ -12,6 +12,7 @@ import '/constants/product_helper.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:foddu/services/product_pagination.dart';
 
 class TrendingProductSection extends StatefulWidget {
   final Map<String, dynamic>? contentJson;
@@ -34,6 +35,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   final _currentPage = 2.obs;
   final _isLoadingMore = false.obs;
   final _hasMore = true.obs;
+  bool _pageLoadFailed = false;
   int _countPerPage = 10;
   ScrollController? _scrollController;
   ScrollPosition? _parentScrollPosition;
@@ -44,7 +46,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   void initState() {
     super.initState();
     _infiniteScroll = widget.contentJson?['infinite_scroll'] == true;
-    _countPerPage = widget.contentJson?['count'] ?? 10;
+    _countPerPage = int.tryParse(
+          widget.contentJson?['count']?.toString() ?? '',
+        ) ??
+        10;
+    if (_countPerPage <= 0) _countPerPage = 10;
 
     // Handle products and pagination from contentJson
     final productData =
@@ -52,10 +58,18 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
     if (productData != null) {
       if (productData is Map) {
-        trendingList.value = productData['data'] ?? [];
-        _hasMore.value = productData['hasNextPage'] ?? false;
-        _currentPage.value = productData['next'] ??
-            ((productData['current_page'] ?? 1) + 1).toInt();
+        final initialProducts =
+            productData['data'] is List ? productData['data'] as List : [];
+        trendingList.value = initialProducts;
+        _hasMore.value = ProductPagination.hasMore(
+          productData,
+          itemCount: initialProducts.length,
+          pageSize: _countPerPage,
+        );
+        _currentPage.value = ProductPagination.nextPage(
+          productData,
+          defaultPage: initialProducts.isEmpty ? 1 : 2,
+        );
       } else {
         trendingList.value = productData;
         _hasMore.value = false;
@@ -145,13 +159,14 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   }
 
   Future<void> _fetchProductsFromApi() async {
-    if (_isLoadingMore.value || !_hasMore.value) {
+    if (_isLoadingMore.value || !_hasMore.value || _pageLoadFailed) {
       print(
           "⏳ Skipping fetch: isLoadingMore=${_isLoadingMore.value}, hasMore=${_hasMore.value}");
       return;
     }
 
     print("🚀 Starting product fetch...");
+    final requestedPage = _currentPage.value;
     _isLoadingMore.value = true;
 
     try {
@@ -192,7 +207,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       if (response == null) {
         print("❌ API returned null response");
         _isLoadingMore.value = false;
-        _hasMore.value = false;
+        _pageLoadFailed = true;
         return;
       }
 
@@ -202,15 +217,6 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       List newProducts = [];
       if (response is Map) {
         print("📦 Response is a Map");
-
-        // Update pagination from response
-        _hasMore.value = response['hasNextPage'] ?? false;
-        if (response['next'] != null) {
-          _currentPage.value = int.parse(response['next'].toString());
-        } else if (response['current_page'] != null) {
-          _currentPage.value =
-              int.parse(response['current_page'].toString()) + 1;
-        }
 
         // Extract products - check common keys
         if (response['data'] != null && response['data'] is List) {
@@ -224,29 +230,36 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       } else if (response is List) {
         print("📦 Response is a List (deprecated structure)");
         newProducts = response;
-        _hasMore.value = false;
       }
+
+      _hasMore.value = response is Map &&
+          ProductPagination.hasMore(
+            response,
+            itemCount: newProducts.length,
+            pageSize: _countPerPage,
+          );
+      _currentPage.value = response is Map
+          ? ProductPagination.nextPage(
+              response,
+              defaultPage: requestedPage + 1,
+            )
+          : requestedPage + 1;
 
       print("🛍️ Products fetched: ${newProducts.length}");
 
       if (newProducts.isNotEmpty) {
-        trendingList.addAll(newProducts);
+        trendingList.addAll(
+          ProductPagination.uniquePage(trendingList, newProducts),
+        );
       }
 
+      _pageLoadFailed = false;
       print("➡️ Next page will be: ${_currentPage.value}");
       _isLoadingMore.value = false;
-
-      // Final fallback if hasNextPage was missing
-      if (response is Map && response['hasNextPage'] == null) {
-        if (newProducts.length < _countPerPage) {
-          _hasMore.value = false;
-          print("🛑 No more products (fallback check)");
-        }
-      }
     } catch (e) {
       print("🔥 Error fetching products: $e");
+      _pageLoadFailed = true;
       _isLoadingMore.value = false;
-      _hasMore.value = false;
     }
 
     print("🏁 Fetch completed\n");
@@ -936,6 +949,17 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   /// Horizontal loading indicator (for standard & overlay horizontal lists)
   Widget _buildLoadingIndicator() {
     if (!_hasMore.value) return const SizedBox.shrink();
+    if (_pageLoadFailed) {
+      return SizedBox(
+        width: 100,
+        child: Center(
+          child: TextButton(
+            onPressed: _retryFetchProducts,
+            child: Text('Retry'.tr),
+          ),
+        ),
+      );
+    }
     return const SizedBox(
       width: 60,
       child: Center(
@@ -951,6 +975,14 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   /// Vertical loading indicator (for horizontal-style vertical list)
   Widget _buildLoadingIndicatorVertical() {
     if (!_hasMore.value) return const SizedBox.shrink();
+    if (_pageLoadFailed) {
+      return Center(
+        child: TextButton(
+          onPressed: _retryFetchProducts,
+          child: Text('Retry'.tr),
+        ),
+      );
+    }
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 16.0),
       child: Center(
@@ -961,6 +993,12 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         ),
       ),
     );
+  }
+
+  void _retryFetchProducts() {
+    if (_isLoadingMore.value) return;
+    _pageLoadFailed = false;
+    _fetchProductsFromApi();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

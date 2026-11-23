@@ -1,5 +1,7 @@
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
+import '/app/data/models/region_model.dart';
+import '/app/data/services/region_service.dart';
 import '/app/modules/auth/auth_details.dart';
 import '/constants/helper_functions.dart';
 import '/core/services/cartServcie.dart';
@@ -15,7 +17,8 @@ class AddressListController extends GetxController with BaseController {
 
   dynamic get selectedAddress {
     if (userAddressList.isEmpty) return null;
-    if (selectAddress.value >= 0 && selectAddress.value < userAddressList.length) {
+    if (selectAddress.value >= 0 &&
+        selectAddress.value < userAddressList.length) {
       return userAddressList[selectAddress.value];
     }
     return null;
@@ -30,6 +33,8 @@ class AddressListController extends GetxController with BaseController {
   // Cache for city names mapped by cityId
   var cityNamesCache = <String, String>{}.obs;
   final Set<String> _prefetchedStates = {};
+  List<Region>? _countriesCache;
+  final Map<String, List<Region>> _statesByCountrySlug = {};
 
   void cacheCity(String id, String name) {
     if (id.isNotEmpty && name.isNotEmpty) {
@@ -49,6 +54,9 @@ class AddressListController extends GetxController with BaseController {
 
   Future<void> refreshAddresses() async {
     try {
+      final selectedId = selectedAddress is Map
+          ? (selectedAddress as Map)['_id']?.toString()
+          : null;
       isLoading.value = true;
       addressLoading.value = true;
 
@@ -64,15 +72,35 @@ class AddressListController extends GetxController with BaseController {
 
         if (response == null) return;
 
-        userAddressList.clear();
-        userAddressList.addAll(response);
+        final addresses = response is List
+            ? response
+            : response is Map && response['data'] is List
+                ? response['data'] as List
+                : response is Map && response['addresses'] is List
+                    ? response['addresses'] as List
+                    : const <dynamic>[];
+        userAddressList.assignAll(addresses.whereType<Map>());
 
-        // Find default address
+        await _resolveRegionNames(userAddressList);
+
+        // Keep the current selection through refreshes; otherwise prefer default.
         selectAddress.value = 0;
         for (var i = 0; i < userAddressList.length; i++) {
-          if (1 == userAddressList[i]['is_default']) {
+          final address = userAddressList[i];
+          if (selectedId != null && address['_id']?.toString() == selectedId) {
             selectAddress.value = i;
             break;
+          }
+        }
+        if (selectedId == null ||
+            userAddressList[selectAddress.value]['_id']?.toString() !=
+                selectedId) {
+          for (var i = 0; i < userAddressList.length; i++) {
+            final isDefault = userAddressList[i]['is_default'];
+            if (isDefault == true || isDefault == 1 || isDefault == '1') {
+              selectAddress.value = i;
+              break;
+            }
           }
         }
 
@@ -83,6 +111,47 @@ class AddressListController extends GetxController with BaseController {
       isLoading.value = false;
       addressLoading.value = false;
       print('Error fetching addresses: $e');
+    }
+  }
+
+  Future<void> _resolveRegionNames(List<dynamic> addresses) async {
+    for (final address in addresses) {
+      if (address is! Map) continue;
+
+      var country = address['country'];
+      if (country is String && country.isNotEmpty) {
+        try {
+          _countriesCache ??= await RegionService.fetchAll(
+              (page) => RegionService.fetchCountries(page: page));
+          final match =
+              _countriesCache!.firstWhereOrNull((r) => r.id == country);
+          if (match != null) {
+            country = {'_id': match.id, 'name': match.name, 'slug': match.slug};
+            address['country'] = country;
+          }
+        } catch (e) {
+          print('Could not resolve address country: $e');
+        }
+      }
+
+      var state = address['state'];
+      if (state is String && state.isNotEmpty && country is Map) {
+        final countrySlug = country['slug']?.toString() ?? '';
+        if (countrySlug.isNotEmpty) {
+          try {
+            final states = _statesByCountrySlug[countrySlug] ??=
+                await RegionService.fetchAll((page) =>
+                    RegionService.fetchStates(
+                        countrySlug: countrySlug, page: page));
+            final match = states.firstWhereOrNull((r) => r.id == state);
+            if (match != null) {
+              address['state'] = {'_id': match.id, 'name': match.name};
+            }
+          } catch (e) {
+            print('Could not resolve address state: $e');
+          }
+        }
+      }
     }
   }
 

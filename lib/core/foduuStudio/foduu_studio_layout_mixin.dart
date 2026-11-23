@@ -7,6 +7,7 @@ import '/constants/constants.dart';
 import '/constants/dynamic_theme.dart';
 import '/app/data/basic_provider.dart';
 import '/helpers/socket_helper.dart';
+import '/services/api_health_service.dart';
 import 'package:get/get.dart';
 
 import 'widget_registry.dart';
@@ -44,11 +45,16 @@ mixin FoduuStudioLayoutMixin on GetxController {
   final layoutError = ''.obs;
   final hasError = false.obs;
   final errorMessage = ''.obs;
+  final isStale = false.obs;
 
   // ─── Internal state ──────────────────────────────────────────
   List _initialComponents = [];
   List _lastSocketSections = [];
   List<String> _excludedSectionTypes = const [];
+  String? _lastFetchSlug;
+  dynamic _lastFetchBody;
+  Worker? _recoveryWorker;
+  int _layoutRequestId = 0;
 
   /// Section types present in the last fetched CMS layout (reactive).
   List<String> get sectionTypes => rxSectionTypes.toList(growable: false);
@@ -65,10 +71,18 @@ mixin FoduuStudioLayoutMixin on GetxController {
       if (section['type'] != type) continue;
       final content = section['content_json'] ?? section['contentJson'];
       if (content is Map) return Map<String, dynamic>.from(content);
+      if (section['data'] is Map) {
+        return Map<String, dynamic>.from(section['data'] as Map);
+      }
       return Map<String, dynamic>.from(section);
     }
     return null;
   }
+
+  List<Map<String, dynamic>> _sectionMaps(List sections) => sections
+      .whereType<Map>()
+      .map((section) => Map<String, dynamic>.from(section))
+      .toList(growable: false);
 
   final SocketHelper _layoutSocketHelper = SocketHelper();
   final WidgetRegistry _registry = WidgetRegistry();
@@ -99,16 +113,13 @@ mixin FoduuStudioLayoutMixin on GetxController {
   void buildLayout(List sections) {
     _updateCategoryNameMap(sections);
     _initialComponents = sections;
-    final parsedSections = sections
-        .whereType<Map>()
-        .map((s) => Map<String, dynamic>.from(s))
-        .toList(growable: false);
+    final parsedSections = _sectionMaps(sections);
     rawSections.assignAll(parsedSections);
     rxSectionTypes.assignAll(parsedSections
         .map((s) => s['type']?.toString() ?? '')
         .where((t) => t.isNotEmpty));
 
-    widgetList.clear();
+    final nextWidgets = <Widget>[];
     for (var index = 0; index < sections.length; index++) {
       final rawSection = sections[index];
       if (rawSection is! Map) {
@@ -145,7 +156,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
 
         final widget = _registry.build(section);
         if (widget != null) {
-          widgetList.add(widget);
+          nextWidgets.add(widget);
         } else {
           print('ℹ️ DynamicLayout: No visible widget built for "$type"');
         }
@@ -154,11 +165,22 @@ mixin FoduuStudioLayoutMixin on GetxController {
       }
     }
 
+    // Swap the layout once so reactive consumers never observe a half-built
+    // list while CMS sections are being replaced.
+    widgetList.assignAll(nextWidgets);
+
     final nonPromotional = {'categories', 'products', 'search'};
-    promotionalWidgets.assignAll(parsedSections
-        .where((s) => !nonPromotional.contains(s['type']?.toString()))
-        .map(_registry.build)
-        .whereType<Widget>());
+    final nextPromotionalWidgets = <Widget>[];
+    for (final section in parsedSections) {
+      if (nonPromotional.contains(section['type']?.toString())) continue;
+      try {
+        final widget = _registry.build(section);
+        if (widget != null) nextPromotionalWidgets.add(widget);
+      } catch (e) {
+        print('⚠️ DynamicLayout: Failed building promotional section: $e');
+      }
+    }
+    promotionalWidgets.assignAll(nextPromotionalWidgets);
 
     print(
         '🧱 DynamicLayout: Built ${widgetList.length}/${sections.length} sections (${promotionalWidgets.length} promotional); registered=${_registry.registeredTypes}');
@@ -166,9 +188,14 @@ mixin FoduuStudioLayoutMixin on GetxController {
 
   void _updateCategoryNameMap(List sections) {
     for (final rawSection in sections) {
-      if (rawSection is! Map || rawSection['type'] != 'categories') continue;
-      final rawContent =
-          rawSection['content_json'] ?? rawSection['contentJson'] ?? rawSection;
+      if (rawSection is! Map ||
+          rawSection['type']?.toString().toLowerCase() != 'categories') {
+        continue;
+      }
+      final rawContent = rawSection['content_json'] ??
+          rawSection['contentJson'] ??
+          rawSection['data'] ??
+          rawSection;
       if (rawContent is Map && rawContent['categories'] is List) {
         _populateCategoryMap(rawContent['categories'] as List);
       }
@@ -192,11 +219,17 @@ mixin FoduuStudioLayoutMixin on GetxController {
   /// Builds CMS sections except those rendered by the host view itself (reactive).
   List<Widget> buildWidgetsExcluding(Iterable<String> excludedTypes) {
     final excluded = excludedTypes.toSet();
-    return rawSections
-        .where((section) => !excluded.contains(section['type']?.toString()))
-        .map(_registry.build)
-        .whereType<Widget>()
-        .toList(growable: false);
+    final widgets = <Widget>[];
+    for (final section in rawSections) {
+      if (excluded.contains(section['type']?.toString())) continue;
+      try {
+        final widget = _registry.build(section);
+        if (widget != null) widgets.add(widget);
+      } catch (e) {
+        print('⚠️ DynamicLayout: Failed building section: $e');
+      }
+    }
+    return widgets;
   }
 
   /// Fetch layout JSON from the API and build widgets.
@@ -204,12 +237,17 @@ mixin FoduuStudioLayoutMixin on GetxController {
   /// - [slug] — the page slug, e.g. `'home'`, `'category'`, etc.
   /// - [requestBody] — if provided, uses POST `mobile-app/by-json` instead of GET.
   Future<dynamic> fetchLayout(String slug, {dynamic requestBody}) async {
+    final requestId = ++_layoutRequestId;
+    _lastFetchSlug = slug;
+    _lastFetchBody = requestBody;
+    _watchBackendRecovery();
     try {
       isLayoutLoading.value = true;
       layoutError.value = '';
       hasError.value = false;
       errorMessage.value = '';
       dynamic response;
+      BasicProvider? provider;
 
       // CMS changes are broadcast to the mobile app as well as the web app.
       // Register before the HTTP request so an update arriving during the
@@ -220,18 +258,25 @@ mixin FoduuStudioLayoutMixin on GetxController {
       enableSocketUpdates(domain: websiteDomain, slug: slug);
 
       if (requestBody != null) {
+        isStale.value = false;
         response = await BasicProvider("mobile-app/by-json")
             .postRequest(requestBody)
             .catchError((e, stackTrace) => _handleApiError(e, stackTrace));
       } else {
-        response = await BasicProvider("mobile-app/$slug")
+        provider = BasicProvider("mobile-app/$slug");
+        response = await provider
             .getRequest()
             .catchError((e, stackTrace) => _handleApiError(e, stackTrace));
+        isStale.value = provider.servedFromCache;
       }
+
+      // A more recent refresh or socket update owns the screen now.
+      if (requestId != _layoutRequestId || isClosed) return response;
+
+      _applyThemeColor(_extractThemeColor(response));
 
       final sections = _extractSections(response);
       if (sections == null) {
-        widgetList.clear();
         layoutError.value = response == null
             ? 'Could not load home content. Check your connection and try again.'
             : 'The home response did not contain a valid sections list.';
@@ -239,6 +284,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
         errorMessage.value = layoutError.value;
         print('⚠️ DynamicLayout: No valid sections found for "$slug"');
       } else {
+        isStale.value = provider?.servedFromCache ?? false;
         hasError.value = false;
         errorMessage.value = '';
         print(
@@ -254,12 +300,15 @@ mixin FoduuStudioLayoutMixin on GetxController {
 
       return response;
     } catch (e) {
+      if (requestId != _layoutRequestId || isClosed) return null;
       print('DynamicLayoutMixin fetchLayout error: $e');
       layoutError.value = 'Could not display home content. Please try again.';
       hasError.value = true;
       errorMessage.value = layoutError.value;
     } finally {
-      isLayoutLoading.value = false;
+      if (requestId == _layoutRequestId && !isClosed) {
+        isLayoutLoading.value = false;
+      }
     }
   }
 
@@ -268,15 +317,83 @@ mixin FoduuStudioLayoutMixin on GetxController {
     if (response is List) return response;
     if (response is! Map) return null;
 
-    final sections = response['sections'];
-    if (sections is List) return sections;
+    dynamic payload = response;
+    for (var depth = 0; depth < 4 && payload is Map; depth++) {
+      final sections = payload['sections'];
+      if (sections is List) return sections;
 
-    final data = response['data'];
-    if (data is List) return data;
-    if (data is Map && data['sections'] is List) {
-      return data['sections'] as List;
+      final contentJson = payload['content_json'] ?? payload['contentJson'];
+      if (contentJson is Map) {
+        payload = contentJson;
+        continue;
+      }
+      if (contentJson is String) {
+        try {
+          payload = json.decode(contentJson);
+          continue;
+        } catch (_) {}
+      }
+
+      final data = payload['data'];
+      if (data is List) return data;
+      if (data is Map) {
+        payload = data;
+        continue;
+      }
+      if (data is String) {
+        try {
+          payload = json.decode(data);
+          continue;
+        } catch (_) {}
+      }
+      break;
     }
     return null;
+  }
+
+  dynamic _extractThemeColor(dynamic response) {
+    if (response is! Map) return null;
+    final direct = response['theme_color'] ?? response['app_theme_color'];
+    if (direct is Map) return direct;
+
+    dynamic content = response['content_json'] ?? response['contentJson'];
+    if (content is String) {
+      try {
+        content = json.decode(content);
+      } catch (_) {}
+    }
+    if (content is Map &&
+        (content['theme_color'] is Map || content['app_theme_color'] is Map)) {
+      return content['theme_color'] ?? content['app_theme_color'];
+    }
+
+    final data = response['data'];
+    if (data is Map) {
+      return data['theme_color'] ??
+          data['app_theme_color'] ??
+          _extractThemeColor(data['content_json'] ?? data['contentJson']);
+    }
+    return null;
+  }
+
+  void _watchBackendRecovery() {
+    if (_recoveryWorker != null) return;
+    final health = ApiHealthService.maybe;
+    if (health == null) return;
+    _recoveryWorker = ever(health.recoveryTick, (_) {
+      final slug = _lastFetchSlug;
+      if (slug != null && (isStale.value || hasError.value)) {
+        fetchLayout(slug, requestBody: _lastFetchBody);
+      }
+    });
+  }
+
+  static void _applyThemeColor(dynamic themeData) {
+    if (themeData is! Map) return;
+    DynamicThemeManager().updateFromApi(Map<String, dynamic>.from(themeData));
+    if (Get.isRegistered<ThemeController>()) {
+      Get.find<ThemeController>().refreshTheme();
+    }
   }
 
   /// Enable real-time socket-driven layout updates.
@@ -368,10 +485,15 @@ mixin FoduuStudioLayoutMixin on GetxController {
     // Format 1 (new): slug, theme_color, sections at root level
     // Format 2 (legacy): nested inside decodedData['content_json']
     dynamic contentPayload;
+    if (decodedData is! Map) return;
     if (decodedData.containsKey('content_json')) {
       contentPayload = decodedData['content_json'];
       if (contentPayload is String) {
-        contentPayload = json.decode(contentPayload);
+        try {
+          contentPayload = json.decode(contentPayload);
+        } catch (_) {
+          return;
+        }
       }
     } else {
       contentPayload = decodedData;
@@ -379,6 +501,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
 
     // ── Extract slug from data ──
     // slug can be at root level or inside content_json
+    if (contentPayload is! Map) return;
     final String? rawSlug =
         decodedData['slug']?.toString() ?? contentPayload['slug']?.toString();
     final String? dataSlug =
@@ -392,11 +515,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
     var themeData = contentPayload['theme_color'];
     if (themeData != null) {
       print('🎨 DynamicLayout: Theme update detected');
-      DynamicThemeManager().updateFromApi(themeData);
-
-      if (Get.isRegistered<ThemeController>()) {
-        Get.find<ThemeController>().refreshTheme();
-      }
+      _applyThemeColor(themeData);
     }
 
     // ── Handle Section Update (slug-specific) ──
@@ -501,6 +620,8 @@ mixin FoduuStudioLayoutMixin on GetxController {
 
   @override
   void onClose() {
+    _layoutRequestId++;
+    _recoveryWorker?.dispose();
     final slug = _currentSlug;
     if (slug != null) {
       disableSocketUpdates(_currentDomain ?? websiteDomain, slug);

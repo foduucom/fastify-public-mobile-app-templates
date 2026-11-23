@@ -86,6 +86,7 @@ class ShopView extends GetView<ShopController> {
                 isLoading: controller.isLayoutLoading,
                 hasError: controller.hasError,
                 errorMessage: controller.errorMessage,
+                isStale: controller.isStale,
                 onRefresh: () =>
                     controller.fetchLayout(ShopController.pageSlug),
               );

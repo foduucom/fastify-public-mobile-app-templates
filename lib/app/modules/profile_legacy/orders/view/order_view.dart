@@ -1,6 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '/components/app_image_placeholder.dart';
+import '/components/order_product_image.dart';
 import 'package:foddu/components/buttons/appbutton.dart';
 import 'package:foddu/constants/constants.dart';
 import '/app/modules/bottomar/controllers/bottombar_controller.dart';
@@ -11,8 +11,7 @@ import 'package:shimmer/shimmer.dart';
 import '/app/modules/profile_legacy/orders/controller/orders_controller.dart';
 
 class OrdersView extends GetView<OrdersController> {
-  OrdersView({Key? key}) : super(key: key);
-  var controllerval = Get.lazyPut(() => OrdersController());
+  const OrdersView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,28 +33,69 @@ class OrdersView extends GetView<OrdersController> {
         body: RefreshIndicator(
           onRefresh: () async => controller.onRefresh(),
           child: Obx(
-            () => controller.isLoading.isFalse && controller.orderList.isEmpty
-                ? const NoOrders()
-                : ListView.separated(
-                    controller: controller.scrollController,
+            () => controller.isLoading.value && controller.orderList.isEmpty
+                ? ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.symmetric(
                         vertical: 16, horizontal: 14),
-                    itemCount: controller.isLoading.isTrue &&
-                            controller.orderList.isEmpty
-                        ? 6
-                        : controller.orderList.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) {
-                      if (controller.isLoading.isTrue &&
-                          controller.orderList.isEmpty) {
-                        return const OrderListShimmer();
-                      }
-                      return OrderCard(
-                        item: controller.orderList[index],
-                        listIndex: index,
-                      );
-                    },
-                  ),
+                    itemCount: 6,
+                    itemBuilder: (_, __) => const OrderListShimmer(),
+                  )
+                : controller.orderList.isEmpty &&
+                        controller.errorMessage.isNotEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(controller.errorMessage.value),
+                              const SizedBox(height: 12),
+                              ElevatedButton(
+                                onPressed: () =>
+                                    controller.Orders(refresh: true),
+                                child: Text('Retry'.tr),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : controller.orderList.isEmpty
+                        ? const NoOrders()
+                        : ListView.separated(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            controller: controller.scrollController,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 16, horizontal: 14),
+                            itemCount: controller.orderList.length +
+                                (controller.isLoadingMore.value ||
+                                        controller.errorMessage.isNotEmpty
+                                    ? 1
+                                    : 0),
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 10),
+                            itemBuilder: (context, index) {
+                              if (index >= controller.orderList.length) {
+                                if (controller.isLoadingMore.value) {
+                                  return const Padding(
+                                    padding: EdgeInsets.all(16),
+                                    child: Center(
+                                        child: CircularProgressIndicator()),
+                                  );
+                                }
+                                return Center(
+                                  child: TextButton(
+                                    onPressed: controller.retry,
+                                    child: Text('Retry'.tr),
+                                  ),
+                                );
+                              }
+                              return OrderCard(
+                                item: controller.orderList[index],
+                                listIndex: index,
+                              );
+                            },
+                          ),
           ),
         ),
       ),
@@ -70,63 +110,6 @@ class OrderCard extends StatelessWidget {
 
   final dynamic item;
   final int listIndex;
-
-  String _constructImageUrl(Map imageObj) {
-    final filepath = imageObj['filepath']?.toString() ?? '';
-    if (filepath.isNotEmpty) {
-      final cleanPath =
-          filepath.startsWith('/') ? filepath.substring(1) : filepath;
-      return 'https://mywatch.vbought.com/images/$cleanPath';
-    }
-    final url = imageObj['download_url']?.toString() ?? '';
-    return _fixImageUrl(url);
-  }
-
-  String _fixImageUrl(String url) {
-    if (url.isEmpty) return '';
-    final uri = Uri.tryParse(url);
-    if (uri == null) return url;
-    if (uri.host.endsWith('.vbought.com') &&
-        uri.host != 'mywatch.vbought.com') {
-      return url.replaceFirst(uri.host, 'mywatch.vbought.com');
-    }
-    return url;
-  }
-
-  String _getProductImage() {
-    try {
-      final products = item['products'];
-      if (products is! List || products.isEmpty) return '';
-
-      final first = products.first;
-      if (first == null || first is! Map) return '';
-
-      final productObj = first['product_id'];
-      if (productObj == null || productObj is! Map) return '';
-
-      final fi = productObj['featured_image'];
-      if (fi is Map) {
-        final url = _constructImageUrl(fi);
-        if (url.isNotEmpty) return url;
-      }
-
-      final frontImageId = productObj['front_image']?.toString() ?? '';
-      final gallery = productObj['gallery'];
-
-      if (gallery is List && frontImageId.isNotEmpty) {
-        final match = gallery.firstWhere(
-          (g) => g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
-          orElse: () => null,
-        );
-        if (match != null) return _constructImageUrl(match);
-      }
-
-      return '';
-    } catch (e) {
-      debugPrint('🚨 OrderCard image error: $e');
-      return '';
-    }
-  }
 
   String _getFirstProductName() {
     try {
@@ -167,7 +150,8 @@ class OrderCard extends StatelessWidget {
     final products = item['products'];
     final productCount = (products is List) ? products.length : 0;
 
-    final imageUrl = _getProductImage();
+    final firstOrderLine =
+        products is List && products.isNotEmpty ? products.first : null;
     final productName = _getFirstProductName();
 
     return GestureDetector(
@@ -191,14 +175,13 @@ class OrderCard extends StatelessWidget {
               child: SizedBox(
                 width: 68,
                 height: 68,
-                child: imageUrl.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: imageUrl,
+                child: firstOrderLine is Map
+                    ? OrderProductImage(
+                        orderLine: firstOrderLine,
                         width: 68,
                         height: 68,
+                        radius: 8,
                         fit: BoxFit.cover,
-                        placeholder: (_, __) => _imageFallback(theme),
-                        errorWidget: (_, __, ___) => _imageFallback(theme),
                       )
                     : _imageFallback(theme),
               ),

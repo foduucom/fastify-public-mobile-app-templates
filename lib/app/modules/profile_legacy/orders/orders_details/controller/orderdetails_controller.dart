@@ -1,34 +1,46 @@
 import 'dart:io';
-import 'package:foddu/app/modules/auth/token_manager.dart';
-import 'package:get_storage/get_storage.dart';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:foddu/app/controllers/api_exception_handle_controller.dart';
 import 'package:foddu/app/data/basic_provider.dart';
+import 'package:foddu/constants/constants.dart' show apiURL;
 import 'package:foddu/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
 
 class OrderdetailController extends GetxController with BaseController {
   var item = {}.obs;
   final id = '0'.obs;
   var isLoading = false.obs;
   var downloading = false.obs;
+  bool _detailRequestInFlight = false;
 
-  var box = GetStorage();
   @override
   Future<void> onInit() async {
     super.onInit();
-    if (Get.arguments != null && Get.arguments['id'] != null) {
-      id.value = Get.arguments['id'].toString();
+    final arguments = Get.arguments;
+    if (arguments is Map) {
+      id.value =
+          (arguments['id'] ?? arguments['order_id'] ?? arguments['_id'] ?? '')
+              .toString()
+              .trim();
     }
 
     await OrderDetail();
   }
 
   Future<void> OrderDetail() async {
+    if (_detailRequestInFlight) return;
+    if (id.value.isEmpty || id.value == '0' || id.value == 'null') {
+      errorMessage.value =
+          'Order could not be identified. Please reopen it from your orders.';
+      isLoading.value = false;
+      return;
+    }
+
+    _detailRequestInFlight = true;
     isLoading.value = true;
     errorMessage.value = '';
     try {
@@ -37,147 +49,55 @@ class OrderdetailController extends GetxController with BaseController {
       if (response is! Map) {
         throw const FormatException('Unexpected order detail response');
       }
-      item.value = Map<String, dynamic>.from(response);
+      final orderData = response['order'] is Map ? response['order'] : response;
+      item.value = Map<String, dynamic>.from(orderData as Map);
     } catch (error) {
       errorMessage.value = 'Unable to load order details. Please try again.';
       handleError(error);
     } finally {
       isLoading.value = false;
+      _detailRequestInFlight = false;
     }
   }
-
-  // Future<void> downloadAndSavePDF(String orderId) async {
-  //   final String apiUrl =
-  //       'http://mern.foduu.com:3016/api/public/orders/exporttopdf/$id';
-  //   // final String apiUrl = apiURL + endpiont;
-  //   final PermissionStatus permissionStatus =
-  //       await Permission.storage.request();
-  //   if (permissionStatus != PermissionStatus.granted) {
-  //     return;
-  //   }
-  //   try {
-  //     final http.Response response = await http.get(Uri.parse(apiUrl));
-  //     final appDocDir = await getExternalStorageDirectory();
-  //     final List<int> bytes = response.bodyBytes;
-  //     final String fileName = 'invoice_$orderId.pdf';
-  //     // final String filePath = '${appDocDir!.path}/$fileName';
-  //     final String filePath = '/storage/emulated/0/Download/$fileName';
-
-  //     final File file = File(filePath);
-  //     await file.writeAsBytes(bytes);
-  //     HelperFunctions()
-  //         .showSnackBarSuccess('Invoice downloaded and saved successfully');
-  //     // launchUrl(file.path);
-  //   } catch (e) {
-  //     print('Error: $e');
-  //     // Handle error
-  //   }
-  // }
 
   Future<void> downloadAndSavePDF(String id) async {
-    if (await Permission.storage.request().isGranted) {
-      try {
-        downloading.value = true;
+    final orderId = id.trim();
+    if (orderId.isEmpty) {
+      HelperFunctions().showSnackBarError('Order number is missing');
+      return;
+    }
 
-        final PermissionStatus permissionStatus =
-            await Permission.storage.request();
-        if (permissionStatus != PermissionStatus.granted) {
-          // Handle permission denied
-          return;
-        }
-        final url =
-            'http://mern.foduu.com:3016/api/public/orders/exporttopdf/$id';
-        final response = await Dio().get<List<int>>(
-          url,
-          options: Options(responseType: ResponseType.bytes),
-        );
-
-        final directory = Platform.isAndroid
-            ? await getExternalStorageDirectory()
-            : await getApplicationDocumentsDirectory();
-
-        final Uint8List bytes = Uint8List.fromList(response.data!);
-        final appDocDir = await getExternalStorageDirectory();
-        final String filePath = '/storage/emulated/0/Download/invoice_$id.pdf';
-        final pdfPath = '${appDocDir!.path}/your_file_name.pdf';
-
-        // await File(filePath).writeAsBytes(bytes);
-
-        // print(response.data);
-
-        // Use this for iOS
-        // File(filePath).writeAsBytesSync(response.data);
-        var file = File(filePath).openSync(mode: FileMode.write);
-        file.writeFromSync(bytes);
-        // final file = File(fielPath);
-        // await file.writeAsBytes(response.data ,
-        //     flush: false, mode: FileMode.writeOnly);
-        // await file.close();
-        downloading.value = false;
-        HelperFunctions()
-            .showSnackBarSuccess('Invoice downloaded and saved successfully');
-      } catch (e) {
-        print('error inn pdf downoad $e');
-        downloading.value = false;
-        HelperFunctions().showSnackBarError('Failed to download Invoice');
+    downloading.value = true;
+    try {
+      final endpoint =
+          '${apiURL}public/orders/exporttopdf/${Uri.encodeComponent(orderId)}';
+      final response = await Dio().get<List<int>>(
+        endpoint,
+        options: Options(
+          responseType: ResponseType.bytes,
+          headers: BasicProvider('').headerType(),
+        ),
+      );
+      final bytes = response.data;
+      if (response.statusCode != 200 || bytes == null || bytes.isEmpty) {
+        throw StateError('The invoice response was empty.');
       }
-    } else {
-      print('permission denied');
+
+      final directory = await getApplicationDocumentsDirectory();
+      final safeOrderId = orderId.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_');
+      final file = File('${directory.path}/invoice_$safeOrderId.pdf');
+      await file.writeAsBytes(bytes, flush: true);
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'application/pdf')],
+        text: 'Order invoice',
+      );
+    } catch (error) {
+      debugPrint('Invoice download failed: $error');
+      HelperFunctions().showSnackBarError('Failed to download invoice');
+    } finally {
+      downloading.value = false;
     }
   }
-
-  Map<String, String> headerType() {
-    // var userData = box.read("userDetails");
-
-    // print('token $userData');
-    var token = TokenManager.accessToken;
-    Map<String, String> userHeader;
-    if (token != null) {
-      userHeader = {
-        "Accept": "application/json",
-        "Authorization": "Bearer $token"
-      };
-    } else {
-      userHeader = {
-        "Accept": "application/json",
-      };
-    }
-    return userHeader;
-  }
-
-  // Future<void> downloadAndSavePDF(String orderId) async {
-  //   isLoading.value = true;
-
-  //   final String endpiont = 'orders/pdf/$orderId';
-  //   final String apiUrl = apiURL + endpiont;
-
-  //   final PermissionStatus permissionStatus =
-  //       await Permission.storage.request();
-  //   // if (permissionStatus != PermissionStatus.granted) {
-  //   //   return;
-  //   // }
-  //   try {
-  //     final http.Response response =
-  //         await http.get(Uri.parse(apiUrl), headers: headerType());
-  //     final appDocDir = await getExternalStorageDirectory();
-  //     final List<int> bytes = response.bodyBytes;
-  //     final String fileName = 'invoice_$orderId.pdf';
-  //     // final String filePath = '${appDocDir!.path}/$fileName';
-  //     final String filePath = '/storage/emulated/0/Download/$fileName';
-
-  //     final File file = File(filePath);
-  //     await file.writeAsBytes(bytes);
-  //     HelperFunctions()
-  //         .showSnackBarSuccess('Invoice downloaded and saved successfully');
-  //     // launchUrl(file.path);
-  //     isLoading.value = false;
-  //   } catch (e) {
-  //     isLoading.value = false;
-
-  //     print('Error: $e');
-  //     // Handle error
-  //   }
-  // }
 
   Future<void> postReview(
       {required String summary, required int rating}) async {

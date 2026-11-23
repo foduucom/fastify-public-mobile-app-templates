@@ -1,3 +1,5 @@
+import '/constants/helper_functions.dart';
+
 class OrderModel {
   final String id;
   final String orderNo;
@@ -5,10 +7,10 @@ class OrderModel {
   final double subtotal;
   final double discount;
   final double shippingCharges;
-  final String paymentStatus;  // "unpaid" | "paid"
-  final String paymentMethod;  // "COD" | "stripe"
+  final String paymentStatus; // "unpaid" | "paid"
+  final String paymentMethod; // "COD" | "stripe"
   final String currency;
-  final String status;         // status ObjectId or label
+  final String status; // status ObjectId or label
   final String notes;
   final OrderAddress address;
   final List<OrderProduct> products;
@@ -30,34 +32,33 @@ class OrderModel {
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> j) => OrderModel(
-    id:              j['_id']?.toString()             ?? '',
-    orderNo:         j['order_no']?.toString()         ?? '',
-    total:           (j['total']  as num?)?.toDouble() ?? 0,
-    subtotal:        (j['subtotal'] as num?)?.toDouble() ?? 0,
-    discount:        (j['discount_amount'] as num?)?.toDouble() ?? 0,
-    shippingCharges: (j['shipping_charges'] as num?)?.toDouble() ?? 0,
-    paymentStatus:   j['payment_status']?.toString() ?? 'unpaid',
-    paymentMethod:   j['payment_method']?.toString() ?? '',
-    currency:        j['currency']?.toString()        ?? '₹',
-    status:          j['status']?.toString()           ?? '',
-    notes:           j['notes']?.toString()            ?? '',
-    address: j['address'] != null
-        ? OrderAddress.fromJson(
-        Map<String, dynamic>.from(j['address'] as Map))
-        : const OrderAddress.empty(),
-    products: (j['products'] as List? ?? [])
-        .map((e) => OrderProduct.fromJson(
-        Map<String, dynamic>.from(e as Map)))
-        .toList(),
-  );
+        id: j['_id']?.toString() ?? '',
+        orderNo: j['order_no']?.toString() ?? '',
+        total: (j['total'] as num?)?.toDouble() ?? 0,
+        subtotal: (j['subtotal'] as num?)?.toDouble() ?? 0,
+        discount: (j['discount_amount'] as num?)?.toDouble() ?? 0,
+        shippingCharges: (j['shipping_charges'] as num?)?.toDouble() ?? 0,
+        paymentStatus: j['payment_status']?.toString() ?? 'unpaid',
+        paymentMethod: j['payment_method']?.toString() ?? '',
+        currency: j['currency']?.toString() ?? '₹',
+        status: j['status']?.toString() ?? '',
+        notes: j['notes']?.toString() ?? '',
+        address: j['address'] != null
+            ? OrderAddress.fromJson(
+                Map<String, dynamic>.from(j['address'] as Map))
+            : const OrderAddress.empty(),
+        products: (j['products'] as List? ?? [])
+            .map((e) =>
+                OrderProduct.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList(),
+      );
 
   // ── Helpers ────────────────────────────────────────────────
-  bool get isPaid       => paymentStatus == 'paid';
-  bool get isCompleted  => isPaid;
+  bool get isPaid => paymentStatus == 'paid';
+  bool get isCompleted => isPaid;
 
   // First product image for card thumbnail
-  String get thumbnailUrl =>
-      products.isNotEmpty ? products.first.imageUrl : '';
+  String get thumbnailUrl => products.isNotEmpty ? products.first.imageUrl : '';
 
   // First product name for card
   String get firstProductName =>
@@ -83,20 +84,19 @@ class OrderAddress {
   });
 
   const OrderAddress.empty()
-      : name        = '',
-        email       = '',
-        mobile      = '',
-        address     = '',
-        pincode     = '',
+      : name = '',
+        email = '',
+        mobile = '',
+        address = '',
+        pincode = '',
         addressType = '';
 
-  factory OrderAddress.fromJson(Map<String, dynamic> j) =>
-      OrderAddress(
-        name:        j['name']?.toString()         ?? '',
-        email:       j['email']?.toString()        ?? '',
-        mobile:      j['mobile']?.toString()       ?? '',
-        address:     j['address']?.toString()      ?? '',
-        pincode:     j['pincode']?.toString()       ?? '',
+  factory OrderAddress.fromJson(Map<String, dynamic> j) => OrderAddress(
+        name: j['name']?.toString() ?? '',
+        email: j['email']?.toString() ?? '',
+        mobile: j['mobile']?.toString() ?? '',
+        address: j['address']?.toString() ?? '',
+        pincode: j['pincode']?.toString() ?? '',
         addressType: j['address_type']?.toString() ?? '',
       );
 }
@@ -104,11 +104,12 @@ class OrderAddress {
 // ── Order Product ─────────────────────────────────────────────────
 class OrderProduct {
   final String name;
-  final int    qty;
+  final int qty;
   final double unitPrice;
   final double total;
   final String imageUrl;
   final String variantName;
+  final Map<String, dynamic> rawData;
 
   const OrderProduct({
     required this.name,
@@ -117,38 +118,26 @@ class OrderProduct {
     required this.total,
     required this.imageUrl,
     required this.variantName,
+    required this.rawData,
   });
 
   factory OrderProduct.fromJson(Map<String, dynamic> j) {
-    // ── Extract image from nested product_id.featured_image ──
-    String img = '';
-    final prod = j['product_id'];
-    if (prod is Map) {
-      final fi = prod['featured_image'];
-      if (fi is Map) {
-        final url = fi['download_url']?.toString() ?? '';
-        final path = fi['filepath']?.toString() ?? '';
-        img = url.isNotEmpty
-            ? url
-            : path.isNotEmpty
-            ? 'https://shoponline.vbought.com/images/$path'
-            : '';
-      }
-    }
+    final resolvedImage = HelperFunctions.resolveProductImage(j);
+    final img =
+        resolvedImage == HelperFunctions.getNoImage() ? '' : resolvedImage;
 
     // ── Variant name ─────────────────────────────────────────
     final variant = j['variant'];
-    final varName = variant is Map
-        ? (variant['name']?.toString() ?? '')
-        : '';
+    final varName = variant is Map ? (variant['name']?.toString() ?? '') : '';
 
     return OrderProduct(
-      name:        j['name']?.toString()               ?? '',
-      qty:         (j['qty'] as num?)?.toInt()          ?? 1,
-      unitPrice:   (j['unit_price'] as num?)?.toDouble() ?? 0,
-      total:       (j['total'] as num?)?.toDouble()      ?? 0,
-      imageUrl:    img,
+      name: j['name']?.toString() ?? '',
+      qty: (j['qty'] as num?)?.toInt() ?? 1,
+      unitPrice: (j['unit_price'] as num?)?.toDouble() ?? 0,
+      total: (j['total'] as num?)?.toDouble() ?? 0,
+      imageUrl: img,
       variantName: varName,
+      rawData: Map<String, dynamic>.from(j),
     );
   }
 }

@@ -1,7 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '/components/app_image_placeholder.dart';
+import '/components/order_product_image.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
 import '/app/modules/profile_legacy/orders/orders_details/controller/orderdetails_controller.dart';
@@ -750,31 +749,13 @@ class PriceDetails extends StatelessWidget {
                         border: Border.all(
                             color: Theme.of(context).colorScheme.outline),
                         borderRadius: BorderRadius.circular(8)),
-                    child: (HelperFunctions()
-                                .getImage(currentProduct['image'])
-                                .isNotEmpty &&
-                            HelperFunctions()
-                                    .getImage(currentProduct['image']) !=
-                                HelperFunctions.getNoImage())
-                        ? CachedNetworkImage(
-                            errorWidget: (context, url, error) =>
-                                const AppImagePlaceholder(
-                                  radius: 6,
-                                  width: 100,
-                                  height: 100,
-                                  fit: BoxFit.contain,
-                                ),
-                            height: 100,
-                            width: 100,
-                            imageUrl: HelperFunctions()
-                                .getImage(currentProduct['image']),
-                            fit: BoxFit.contain)
-                        : const AppImagePlaceholder(
-                            radius: 6,
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.contain,
-                          ),
+                    child: OrderProductImage(
+                      orderLine: currentProduct,
+                      width: 100,
+                      height: 100,
+                      radius: 6,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                   Expanded(
                     child: Column(

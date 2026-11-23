@@ -9,6 +9,7 @@ class OrderSuccessController extends GetxController with BaseController {
   var totalAmount = ''.obs;
   var address = {}.obs;
   var isLoading = false.obs;
+  final detailsRefreshFailed = false.obs;
   final RxBool wasCashOrder = false.obs;
 
   bool get isCashOrder {
@@ -16,6 +17,18 @@ class OrderSuccessController extends GetxController with BaseController {
         .toString()
         .toLowerCase();
     return wasCashOrder.value || method == 'cash' || method == 'cod';
+  }
+
+  bool get isPaymentConfirmed {
+    final status = (item['payment_status'] ?? '').toString().toLowerCase();
+    return const {'paid', 'success', 'succeeded', 'captured', 'completed'}
+        .contains(status);
+  }
+
+  bool get isPaymentFailed {
+    final status = (item['payment_status'] ?? '').toString().toLowerCase();
+    return const {'failed', 'cancelled', 'canceled', 'declined'}
+        .contains(status);
   }
 
   @override
@@ -51,25 +64,28 @@ class OrderSuccessController extends GetxController with BaseController {
   }
 
   Future<void> OrderDetail() async {
-    if (id.value == '0' || id.value.isEmpty) return;
+    if (id.value == '0' || id.value.isEmpty || id.value == 'null') return;
     isLoading.value = true;
-    var response = await BasicProvider("order/${id.value}")
-        .getRequest()
-        .catchError(handleError);
+    detailsRefreshFailed.value = false;
+    try {
+      final response =
+          await BasicProvider('order/${id.value}').getRequest(useCache: false);
+      if (response is! Map) {
+        detailsRefreshFailed.value = true;
+        return;
+      }
 
-    print('response $response');
-
-    if (response == null) {
+      final data = response['order'] is Map ? response['order'] : response;
+      final order = Map<String, dynamic>.from(data as Map);
+      item.assignAll(order);
+      address.assignAll(order['address'] is Map
+          ? Map<String, dynamic>.from(order['address'] as Map)
+          : <String, dynamic>{});
+    } catch (error) {
+      detailsRefreshFailed.value = true;
+      handleError(error);
+    } finally {
       isLoading.value = false;
-      return;
     }
-
-    if (response != null) {
-      var data = response;
-      item.clear();
-      item.value = data;
-      address.value = data['address'] is Map ? data['address'] : {};
-    }
-    isLoading.value = false;
   }
 }

@@ -245,7 +245,9 @@ class BasicProvider {
           "Please check if your internet connection is stable!");
       throw "Timeout : API is not responding!";
     } on UnAuthorizedException {
-      throw "Unauthorized!";
+      // Keep the typed exception so BaseController can expire an invalid
+      // authenticated session consistently with GET, PATCH, and DELETE.
+      rethrow;
     } catch (e) {
       print("POST request failed with error: $e");
       rethrow;

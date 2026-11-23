@@ -15,7 +15,8 @@ class OtpProvider extends BasicProvider {
       'otp': otp,
       if (email != null && email.isNotEmpty) 'email': email,
       if (mobile != null && mobile.isNotEmpty) 'mobile': mobile,
-      if (countryCode != null && countryCode.isNotEmpty) 'country_code': countryCode,
+      if (countryCode != null && countryCode.isNotEmpty)
+        'country_code': countryCode,
     };
 
     try {
@@ -27,10 +28,9 @@ class OtpProvider extends BasicProvider {
           return jsonDecode(response) as Map<String, dynamic>;
         }
       }
-      return {'statusCode': 200, 'message': 'Verified'};
-    } catch (e) {
-      // Return structured response on failure
-      return {'statusCode': 400, 'message': e.toString()};
+      return null;
+    } catch (_) {
+      rethrow;
     }
   }
 
@@ -43,7 +43,8 @@ class OtpProvider extends BasicProvider {
     final Map<String, dynamic> body = {
       if (email != null && email.isNotEmpty) 'email': email,
       if (mobile != null && mobile.isNotEmpty) 'mobile': mobile,
-      if (countryCode != null && countryCode.isNotEmpty) 'country_code': countryCode,
+      if (countryCode != null && countryCode.isNotEmpty)
+        'country_code': countryCode,
     };
 
     try {
@@ -55,10 +56,9 @@ class OtpProvider extends BasicProvider {
           return jsonDecode(response) as Map<String, dynamic>;
         }
       }
-      return {'statusCode': 200, 'message': 'OTP resent'};
-    } catch (e) {
-      return {'statusCode': 400, 'message': e.toString()};
+      return null;
+    } catch (_) {
+      rethrow;
     }
   }
 }
-

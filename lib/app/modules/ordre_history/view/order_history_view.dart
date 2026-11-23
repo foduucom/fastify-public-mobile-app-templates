@@ -1,8 +1,7 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '/components/order_product_image.dart';
 import '../../../../components/app_bar/custom_app_bar.dart';
-import '../../../../components/app_bar/custom_app_bar2.dart';
 
 import '../controller/order_controller.dart';
 import '../model/model.dart';
@@ -191,17 +190,12 @@ class _OrderCard extends StatelessWidget {
                   color: const Color(0xFFF5F3F0),
                   borderRadius: BorderRadius.circular(14)),
               clipBehavior: Clip.antiAlias,
-              child: order.thumbnailUrl.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: order.thumbnailUrl,
-                      fit: BoxFit.contain,
-                      placeholder: (_, __) => const Center(
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Color(0xFFD0D0D0))),
-                      errorWidget: (_, __, ___) => const Icon(
-                          Icons.inventory_2_outlined,
-                          size: 32,
-                          color: Color(0xFFD0D0D0)),
+              child: order.products.isNotEmpty
+                  ? OrderProductImage(
+                      orderLine: order.products.first.rawData,
+                      width: 72,
+                      height: 72,
+                      radius: 14,
                     )
                   : const Icon(Icons.inventory_2_outlined,
                       size: 32, color: Color(0xFFD0D0D0)),

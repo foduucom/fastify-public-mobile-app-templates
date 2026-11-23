@@ -48,6 +48,9 @@ class HomeView extends GetView<HomepageController> {
         return FoduuStudioLayoutView(
           widgetList: controller.widgetList,
           isLoading: controller.isLayoutLoading,
+          hasError: controller.hasError,
+          errorMessage: controller.errorMessage,
+          isStale: controller.isStale,
           onRefresh: () async {
             await controller.getDashboardDesign(controller.pageSlug);
           },

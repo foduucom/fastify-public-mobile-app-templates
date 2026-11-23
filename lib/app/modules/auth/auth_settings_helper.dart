@@ -15,10 +15,45 @@ class AuthSettingsHelper {
   /// Get auth preference from storage
   static Map<String, dynamic>? getAuthPreference() {
     try {
-      return _box.read('auth_preference');
+      final value = _box.read('auth_preference');
+      return value is Map ? Map<String, dynamic>.from(value) : null;
     } catch (e) {
       print('Error reading auth preference: $e');
       return null;
+    }
+  }
+
+  static bool _toBool(dynamic value, {required bool defaultValue}) {
+    if (value == null) return defaultValue;
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    switch (value.toString().trim().toLowerCase()) {
+      case 'true':
+      case '1':
+      case 'yes':
+        return true;
+      case 'false':
+      case '0':
+      case 'no':
+        return false;
+      default:
+        return defaultValue;
+    }
+  }
+
+  static String _normalizeMethod(dynamic value) {
+    switch (value?.toString().trim().toLowerCase()) {
+      case 'otp':
+      case 'email_otp':
+        return 'email_otp';
+      case 'password':
+      case 'email_password':
+        return 'email_password';
+      case 'mobile_otp':
+      case 'phone_otp':
+        return 'phone_otp';
+      default:
+        return '';
     }
   }
 
@@ -27,15 +62,28 @@ class AuthSettingsHelper {
   static String getAuthMethod() {
     final authPref = getAuthPreference();
     if (authPref == null) return 'email_otp';
-    return (authPref['auth_method'] as String?) ?? 'email_otp';
+    final configured = _normalizeMethod(authPref['auth_method']);
+    if (configured.isNotEmpty) return configured;
+    if (_toBool(authPref['email_otp'], defaultValue: false)) {
+      return 'email_otp';
+    }
+    if (_toBool(authPref['phone_otp'] ?? authPref['mobile_otp'],
+        defaultValue: false)) {
+      return 'phone_otp';
+    }
+    if (_toBool(authPref['email_password'], defaultValue: false)) {
+      return 'email_password';
+    }
+    return 'email_otp';
   }
 
   /// Check if email OTP authentication is enabled
   static bool isEmailOtpEnabled() {
     final authPref = getAuthPreference();
     if (authPref == null) return true; // Safe default
-    if (authPref['auth_method'] == 'email_otp') return true;
-    return authPref['email_otp'] == true;
+    final method = _normalizeMethod(authPref['auth_method']);
+    if (method.isNotEmpty) return method == 'email_otp';
+    return _toBool(authPref['email_otp'], defaultValue: false);
   }
 
   /// Check if email/password authentication is enabled
@@ -43,16 +91,21 @@ class AuthSettingsHelper {
   static bool isEmailPasswordEnabled() {
     final authPref = getAuthPreference();
     if (authPref == null) return false;
-    if (authPref['auth_method'] == 'email_password') return true;
-    return authPref['email_password'] == true;
+    final method = _normalizeMethod(authPref['auth_method']);
+    if (method.isNotEmpty) return method == 'email_password';
+    return _toBool(authPref['email_password'], defaultValue: false);
   }
 
   /// Check if mobile authentication is enabled
   static bool isMobileOtpEnabled() {
     final authPref = getAuthPreference();
     if (authPref == null) return false;
-    if (authPref['auth_method'] == 'phone_otp') return true;
-    return authPref['phone_otp'] == true || authPref['mobile_otp'] == true;
+    final method = _normalizeMethod(authPref['auth_method']);
+    if (method.isNotEmpty) return method == 'phone_otp';
+    return _toBool(
+      authPref['phone_otp'] ?? authPref['mobile_otp'],
+      defaultValue: false,
+    );
   }
 
   /// Get the current authentication type

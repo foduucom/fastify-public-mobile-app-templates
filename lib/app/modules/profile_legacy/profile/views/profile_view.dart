@@ -70,7 +70,7 @@ class ProfileView extends GetView<ProfileController> {
         color: const Color(0xFFD4AF37),
         backgroundColor: context.surfaceColor,
         onRefresh: () async {
-          await controller.fetchDataFromServer();
+          await controller.fetchDataFromServer(useCache: false, retry: false);
           await controller.fetchExtraStats();
         },
         child: ListView(
@@ -79,6 +79,36 @@ class ProfileView extends GetView<ProfileController> {
             parent: BouncingScrollPhysics(),
           ),
           children: [
+            Obx(() => controller.profileLoadError.value
+                ? Container(
+                    margin: const EdgeInsets.only(bottom: 14),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.errorContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Profile could not be refreshed. Your saved details are still shown.',
+                            style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onErrorContainer,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => controller.fetchDataFromServer(
+                              useCache: false, retry: false),
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink()),
             // 1. Digital VIP Privilege Pass Header
             _buildVipPassCard(context, isDark),
             const SizedBox(height: 14),
@@ -416,7 +446,8 @@ class ProfileView extends GetView<ProfileController> {
                 InkWell(
                   onTap: () {
                     Get.to(() => const EditprofileView())?.then((_) {
-                      controller.fetchDataFromServer();
+                      controller.fetchDataFromServer(
+                          useCache: false, retry: false);
                     });
                   },
                   borderRadius: BorderRadius.circular(20),

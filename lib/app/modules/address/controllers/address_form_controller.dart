@@ -3,6 +3,7 @@ import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
 import '/app/data/models/region_model.dart';
 import '/app/data/services/region_service.dart';
+import '/app/modules/auth/auth_details.dart';
 import '/constants/helper_functions.dart';
 import '/helpers/dialog_helper.dart';
 import 'package:get/get.dart';
@@ -107,7 +108,7 @@ class AddressFormController extends GetxController with BaseController {
   }
 
   void _initFromArgs() {
-    if (Get.arguments != null) {
+    if (Get.arguments != null && Get.arguments is Map) {
       isEditMode = Get.arguments['isEdit'] ?? false;
 
       if (isEditMode && Get.arguments['address'] != null) {
@@ -127,15 +128,22 @@ class AddressFormController extends GetxController with BaseController {
           landmark.text = addr['landmark'] ?? '';
           street.text = addr['street'] ?? '';
           addressType.value = addr['address_type'] ?? 'Home';
-          isDefault.value = (addr['is_default'] == 1);
+          final rawDefault = addr['is_default'];
+          isDefault.value =
+              rawDefault == true || rawDefault == 1 || rawDefault == '1';
 
           selectedCountry.value =
               addr['country'] is Map ? Map.from(addr['country']) : {};
           selectedState.value =
               addr['state'] is Map ? Map.from(addr['state']) : {};
-          city.text = addr['city'] is Map
+          final rawCity = addr['city'] is Map
               ? (addr['city']['name'] ?? '').toString()
               : (addr['city'] ?? '').toString();
+          // Older address records may store a city ObjectId rather than its name.
+          city.text = RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(rawCity.trim())
+              ? ''
+              : rawCity;
+          return;
         } else {
           print('Error: Address is not a Map, it is a ${addr.runtimeType}');
           // If addr is a String, try to parse it or handle the error
@@ -146,6 +154,14 @@ class AddressFormController extends GetxController with BaseController {
           );
         }
       }
+    }
+
+    // Pre-fill a new address from the signed-in profile when available.
+    final user = AuthDetails.getUserDetails();
+    if (user is Map) {
+      name.text = user['name']?.toString() ?? '';
+      email.text = user['email']?.toString() ?? '';
+      mobile.text = (user['mobile'] ?? user['phone'])?.toString() ?? '';
     }
   }
 
@@ -161,15 +177,15 @@ class AddressFormController extends GetxController with BaseController {
       HelperFunctions().showOverlayLoader();
 
       var body = {
-        'name': name.text,
-        'email': email.text,
-        'mobile': mobile.text,
-        'street': street.text,
-        'landmark': landmark.text,
+        'name': name.text.trim(),
+        'email': email.text.trim(),
+        'mobile': mobile.text.trim(),
+        'street': street.text.trim(),
+        'landmark': landmark.text.trim(),
         'country': selectedCountry['_id'],
         'state': selectedState['_id'],
         'city': city.text.trim(),
-        'postal_code': postal_code.text,
+        'postal_code': postal_code.text.trim(),
         'address_type': addressType.value,
         'is_default': isDefault.value ? 1 : 0
       };

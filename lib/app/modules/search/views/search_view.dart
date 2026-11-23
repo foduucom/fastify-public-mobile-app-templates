@@ -211,6 +211,10 @@ class SearchView extends GetView<SearchsController> {
                   isLoading: controller.isLayoutLoading,
                   hasError: controller.hasError,
                   errorMessage: controller.errorMessage,
+                  isStale: controller.isStale,
+                  onRefresh: () async {
+                    await controller.fetchLayout(SearchsController.pageSlug);
+                  },
                 );
               }
 
@@ -827,6 +831,9 @@ class SearchView extends GetView<SearchsController> {
 
             if (!controller.isSearching.value &&
                 controller.totalResultCount == 0) {
+              if (controller.searchError.isNotEmpty) {
+                return _buildSearchError(context);
+              }
               return _buildEmptyState(context);
             }
 
@@ -836,6 +843,13 @@ class SearchView extends GetView<SearchsController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (controller.searchError.isNotEmpty)
+                    _buildSearchError(context, compact: true),
+
+                  if (controller.selectedTabIndex.value != 0 &&
+                      _selectedEntityCount == 0)
+                    _buildSelectedEntityEmptyState(context),
+
                   // Tab 0: All OR Tab 1: Products
                   if (controller.selectedTabIndex.value == 0 ||
                       controller.selectedTabIndex.value == 1)
@@ -859,6 +873,13 @@ class SearchView extends GetView<SearchsController> {
                           padding: EdgeInsets.symmetric(vertical: 24),
                           child: Center(
                               child: CupertinoActivityIndicator(radius: 14)),
+                        );
+                      } else if (controller.paginationError.isNotEmpty) {
+                        return Center(
+                          child: TextButton(
+                            onPressed: controller.loadNextPage,
+                            child: Text('Retry loading products'.tr),
+                          ),
                         );
                       } else if (!controller.hasNextPage &&
                           controller.searchProduct.isNotEmpty) {
@@ -884,15 +905,93 @@ class SearchView extends GetView<SearchsController> {
     );
   }
 
+  Widget _buildSearchError(BuildContext context, {bool compact = false}) {
+    final colors = Theme.of(context).colorScheme;
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(compact ? 16 : 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.wifi_off_rounded,
+                size: compact ? 20 : 36, color: colors.error),
+            const SizedBox(height: 8),
+            Text(
+              controller.searchError.value,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: colors.onSurfaceVariant),
+            ),
+            TextButton(
+              onPressed: () => controller.submitSearch(),
+              child: Text('Retry'.tr),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  int get _selectedEntityCount {
+    switch (controller.selectedTabIndex.value) {
+      case 1:
+        return controller.searchProduct.length;
+      case 2:
+        return controller.searchCategories.length;
+      case 3:
+        return controller.searchBlogs.length;
+      default:
+        return controller.totalResultCount;
+    }
+  }
+
+  String get _selectedEntityName => switch (controller.selectedTabIndex.value) {
+        1 => 'products',
+        2 => 'categories',
+        3 => 'blogs',
+        _ => 'results',
+      };
+
+  Widget _buildSelectedEntityEmptyState(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(Icons.search_off_rounded,
+                size: 36, color: colors.onSurfaceVariant),
+            const SizedBox(height: 10),
+            Text(
+                'No $_selectedEntityName found for “${controller.queryText.value}”.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: colors.onSurfaceVariant)),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ── Entity Switcher Tabs ──
   Widget _buildEntityTabs(BuildContext context) {
     return Obx(() {
-      final tabs = [
-        {'title': 'All', 'count': controller.totalResultCount},
-        {'title': 'Products', 'count': controller.searchProduct.length},
-        {'title': 'Categories', 'count': controller.searchCategories.length},
-        {'title': 'Blogs', 'count': controller.searchBlogs.length},
+      final allTabs = [
+        {'index': 0, 'title': 'All', 'count': controller.totalResultCount},
+        {
+          'index': 1,
+          'title': 'Products',
+          'count': controller.searchProduct.length
+        },
+        {
+          'index': 2,
+          'title': 'Categories',
+          'count': controller.searchCategories.length
+        },
+        {'index': 3, 'title': 'Blogs', 'count': controller.searchBlogs.length},
       ];
+      final visibleIndexes = controller.visibleResultTabIndexes.toSet();
+      final tabs = allTabs
+          .where((tab) => visibleIndexes.contains(tab['index']))
+          .toList(growable: false);
 
       return Container(
         height: 44,
@@ -903,11 +1002,12 @@ class SearchView extends GetView<SearchsController> {
           itemCount: tabs.length,
           separatorBuilder: (_, __) => const SizedBox(width: 8),
           itemBuilder: (context, index) {
-            final isSelected = controller.selectedTabIndex.value == index;
             final tab = tabs[index];
+            final resultIndex = tab['index'] as int;
+            final isSelected = controller.selectedTabIndex.value == resultIndex;
 
             return GestureDetector(
-              onTap: () => controller.selectedTabIndex.value = index,
+              onTap: () => controller.selectedTabIndex.value = resultIndex,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
                 padding:
@@ -967,7 +1067,7 @@ class SearchView extends GetView<SearchsController> {
           // Result Count
           Obx(
             () => Text(
-              '${controller.searchProduct.length} items found',
+              '$_selectedEntityCount $_selectedEntityName found',
               style: textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: colorScheme.onSurfaceVariant,

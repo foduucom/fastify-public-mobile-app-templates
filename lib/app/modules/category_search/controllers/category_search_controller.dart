@@ -7,6 +7,7 @@ import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
 import '/app/modules/category/views/category_dialog.dart';
 import '/app/routes/app_pages.dart';
+import '/services/product_pagination.dart';
 import 'package:foddu/app/modules/shop/shop_navigation.dart';
 
 class CategorySearchController extends GetxController with BaseController {
@@ -160,7 +161,11 @@ class CategorySearchController extends GetxController with BaseController {
     List newItems = [];
     if (response is Map && response['data'] is List) {
       newItems = response['data'];
-      hasNextPage = response['hasNextPage'] ?? false;
+      hasNextPage = ProductPagination.hasMore(
+        response,
+        itemCount: newItems.length,
+        pageSize: newItems.length + 1,
+      );
       totalCount.value = response['total'] ??
           (isRefresh ? newItems.length : totalCount.value + newItems.length);
     } else if (response is List) {
@@ -173,7 +178,7 @@ class CategorySearchController extends GetxController with BaseController {
     if (isRefresh) {
       categories.assignAll(newItems);
     } else {
-      categories.addAll(newItems);
+      categories.addAll(ProductPagination.uniquePage(categories, newItems));
     }
   }
 
