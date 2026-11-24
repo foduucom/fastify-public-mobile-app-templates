@@ -42,6 +42,12 @@ class ProfileController extends GetxController with BaseController {
   final orderStatusLabel = 'No orders'.obs;
   final recentOrderNumber = ''.obs;
   final recentOrderStatus = ''.obs;
+  final recentOrderStatusColor = 'warning'.obs;
+  final recentOrderData = Rx<Map<String, dynamic>?>(null);
+  final recentOrderProductName = ''.obs;
+  final recentOrderItemCount = 1.obs;
+  final recentOrderTotal = ''.obs;
+  final recentOrderDate = ''.obs;
   final wishlistCount = 0.obs;
   final couponsCount = 0.obs;
   final featuredCouponCode = 'DAKSH15'.obs;
@@ -271,17 +277,115 @@ class ProfileController extends GetxController with BaseController {
             orderStatusLabel.value =
                 docs.isNotEmpty ? '${docs.length} orders' : 'In transit';
             if (docs.isNotEmpty && docs.first is Map) {
-              final recent = docs.first as Map;
-              recentOrderNumber.value = recent['order_id']?.toString() ??
+              final recent = Map<String, dynamic>.from(docs.first as Map);
+              recentOrderData.value = recent;
+
+              // Order ID
+              final rawId = recent['order_no']?.toString() ??
+                  recent['order_id']?.toString() ??
                   recent['_id']?.toString() ??
                   '';
-              recentOrderStatus.value = recent['order_status']?.toString() ??
-                  recent['status']?.toString() ??
-                  'In Transit';
+              recentOrderNumber.value = rawId.length > 8
+                  ? rawId.substring(rawId.length - 8).toUpperCase()
+                  : rawId.toUpperCase();
+
+              // Clean Status Name & Color
+              final rawStatus = recent['order_status'] ?? recent['status'];
+              final statusName = extractStatusName(rawStatus);
+              recentOrderStatus.value = statusName;
+              recentOrderStatusColor.value =
+                  extractStatusColor(rawStatus, statusName);
+
+              // Product Info
+              final products = recent['products'];
+              if (products is List && products.isNotEmpty) {
+                recentOrderItemCount.value = products.length;
+                final firstItem = products.first;
+                if (firstItem is Map) {
+                  final name = firstItem['name']?.toString();
+                  if (name != null && name.trim().isNotEmpty) {
+                    recentOrderProductName.value = name.trim();
+                  } else if (firstItem['product_id'] is Map) {
+                    recentOrderProductName.value =
+                        firstItem['product_id']['name']?.toString() ??
+                            'Timepiece';
+                  } else {
+                    recentOrderProductName.value = 'Timepiece';
+                  }
+                } else {
+                  recentOrderProductName.value = 'Timepiece';
+                }
+              } else {
+                recentOrderItemCount.value = 1;
+                recentOrderProductName.value = 'Order #$recentOrderNumber';
+              }
+
+              // Total & Date
+              final currency = (recent['currency'] ?? '₹').toString();
+              final total = (recent['total'] ?? recent['grand_total'] ?? '')
+                  .toString();
+              recentOrderTotal.value =
+                  total.isNotEmpty ? '$currency$total' : '';
+
+              final createdAt = recent['created_at']?.toString();
+              if (createdAt != null && createdAt.isNotEmpty) {
+                recentOrderDate.value =
+                    HelperFunctions().toCarbonToHumanDateFormat(createdAt);
+              } else {
+                recentOrderDate.value = '';
+              }
+            } else {
+              recentOrderData.value = null;
+              recentOrderNumber.value = '';
+              recentOrderStatus.value = '';
             }
           }
         }
       } catch (_) {}
+    }
+  }
+
+  static String extractStatusName(dynamic rawStatus) {
+    if (rawStatus == null) return 'Pending';
+    if (rawStatus is Map) {
+      final name = rawStatus['name']?.toString();
+      if (name != null && name.trim().isNotEmpty) {
+        return name.trim();
+      }
+    } else if (rawStatus is String) {
+      final trimmed = rawStatus.trim();
+      if (trimmed.isNotEmpty && !trimmed.startsWith('{')) {
+        return trimmed;
+      }
+    }
+    return 'Pending';
+  }
+
+  static String extractStatusColor(dynamic rawStatus, String statusName) {
+    if (rawStatus is Map && rawStatus['color'] != null) {
+      final c = rawStatus['color'].toString().trim().toLowerCase();
+      if (c.isNotEmpty) return c;
+    }
+    switch (statusName.toLowerCase()) {
+      case 'delivered':
+      case 'completed':
+      case 'paid':
+        return 'success';
+      case 'shipped':
+      case 'in transit':
+      case 'dispatched':
+      case 'out for delivery':
+        return 'primary';
+      case 'cancelled':
+      case 'canceled':
+      case 'failed':
+      case 'rejected':
+        return 'danger';
+      case 'pending':
+      case 'processing':
+      case 'unpaid':
+      default:
+        return 'warning';
     }
   }
 

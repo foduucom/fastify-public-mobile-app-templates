@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '/components/order_product_image.dart';
-import '/app/routes/app_pages.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
@@ -13,7 +12,6 @@ class OrderProductsView extends StatelessWidget {
     final dynamic order = args['order'];
 
     final orderId = (order['order_no'] ?? order['_id'] ?? '').toString();
-    final mongoId = (order['_id'] ?? order['id'] ?? '').toString();
     final paymentStatus = order['payment_status']?.toString() ?? 'pending';
     final currency = (order['currency'] ?? '₹').toString();
     final total = double.tryParse(order['total']?.toString() ?? '0') ?? 0;
@@ -52,21 +50,6 @@ class OrderProductsView extends StatelessWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () =>
-                Get.toNamed(Routes.ORDER_DETAILS, arguments: {'id': mongoId}),
-            child: Text(
-              'View Details'.tr,
-              style: TextStyle(
-                color: theme.primary,
-                fontSize: 13,
-                fontFamily: 'lato',
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),

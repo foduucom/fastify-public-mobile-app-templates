@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:foddu/components/dialogs/out_of_stock_sheet.dart';
 import 'package:foddu/core/services/wishlistService.dart';
 import 'package:foddu/core/services/cartServcie.dart';
@@ -406,6 +408,8 @@ class CheckOutController extends GetxController with BaseController {
   Future<Map<String, dynamic>?> createOrder({String currency = 'INR'}) async {
     final String methodName = deliveryOption['name'];
     String addressId = "";
+    var phase = 'validating checkout details';
+    final stopwatch = Stopwatch()..start();
 
     try {
       // Prioritize retrieving addressId from selectedAddressData which is already in this controller
@@ -454,62 +458,91 @@ class CheckOutController extends GetxController with BaseController {
         form['coupon_discount'] = num.tryParse(discount?.toString() ?? '') ?? 0;
       }
 
-      print("Order Create :$form");
+      printInfo(
+        info: 'Checkout order request prepared (cash=$isCash, '
+            'addressPresent=${addressId.isNotEmpty}, '
+            'secondaryMethod=${secondaryPaymentGateway.value.isNotEmpty})',
+      );
 
       final orderProvider = isCash
           ? BasicProvider('checkout/place-order', baseUrl: url)
           : BasicProvider('order/create');
-      final csrfHeaders = isCash ? await _fetchWebCheckoutCsrfHeaders() : null;
-      final response = await orderProvider
-          .postRequest(form, extraHeaders: csrfHeaders)
-          .catchError((error) {
-        if (_isOutOfStockError(error)) {
-          _handleOutOfStockError(error);
-          return null;
-        }
-        if (error is FetchDataException || error is BadRequestException) {
-          HelperFunctions().showSnackBarError(
-              "we’re currently experiencing issues with the payment method you selected. could you please use an alternative payment method to complete the transaction?");
-        } else {
-          handleError(error);
-        }
-        return null; // Ensure null is returned so orderResponse reflects failure
-      });
+      Map<String, String>? csrfHeaders;
+      if (isCash) {
+        phase = 'loading checkout security';
+        csrfHeaders = await _fetchWebCheckoutCsrfHeaders();
+      }
 
-      printInfo(info: 'createOrder response: $response');
+      phase = 'submitting order';
+      final orderPath = Uri.parse(orderProvider.fetchUrl()).path;
+      printInfo(info: 'Submitting checkout order to $orderPath.');
+      final response = await orderProvider.postRequest(
+        form,
+        extraHeaders: csrfHeaders,
+      );
+
+      printInfo(
+        info: 'Checkout order response received after '
+            '${stopwatch.elapsedMilliseconds}ms '
+            '(shape=${response is Map ? response.keys.join(',') : response.runtimeType})',
+      );
 
       if (response != null) {
         return Map<String, dynamic>.from(response);
       }
-    } catch (e) {
-      printInfo(info: 'Error creating order: $e');
-      Get.snackbar("Error", "Failed to create order");
+    } catch (error) {
+      final status = error is AppException && error.statusCode != null
+          ? ', httpStatus=${error.statusCode}'
+          : '';
+      printInfo(
+        info: 'Checkout order failed during "$phase" after '
+            '${stopwatch.elapsedMilliseconds}ms (${error.runtimeType}$status)',
+      );
+      if (_isOutOfStockError(error)) {
+        _handleOutOfStockError(error);
+      } else if (error is AppException) {
+        await handleError(error);
+      } else if (phase == 'loading checkout security') {
+        HelperFunctions().showSnackBarError(
+          'Could not initialize secure checkout. Please try again.',
+        );
+      } else if (error is TimeoutException) {
+        HelperFunctions().showSnackBarError(
+          'The order request timed out. Check your orders before trying again.',
+        );
+      } else {
+        HelperFunctions().showSnackBarError(
+          'The order could not be confirmed. Check your orders before retrying.',
+        );
+      }
     }
     return null;
   }
 
   Future<Map<String, String>> _fetchWebCheckoutCsrfHeaders() async {
+    final stopwatch = Stopwatch()..start();
     final provider = BasicProvider('', baseUrl: url);
     final headers = provider.headerType();
     headers['accept'] = 'text/html';
 
-    final response = await http
-        .get(Uri.parse(url), headers: headers)
-        .timeout(const Duration(seconds: 20));
+    printInfo(info: 'Checkout security bootstrap started.');
+    final response = await http.get(Uri.parse(url), headers: headers).timeout(
+          const Duration(seconds: 20),
+        );
+    printInfo(
+      info: 'Checkout security page returned HTTP ${response.statusCode} '
+          'after ${stopwatch.elapsedMilliseconds}ms.',
+    );
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw StateError(
           'Unable to initialize checkout security (HTTP ${response.statusCode}).');
     }
 
-    final csrfToken = RegExp(
-      r"""<meta\s+[^>]*name=["']csrf-token["'][^>]*content=["']([^"']+)["']""",
-      caseSensitive: false,
-    ).firstMatch(response.body)?.group(1);
-    final setCookie = response.headers['set-cookie'] ?? '';
-    final csrfCookie = RegExp(
-      r'(?:^|,\s*)_csrf=([^;,\s]+)',
-      caseSensitive: false,
-    ).firstMatch(setCookie)?.group(1);
+    final csrfToken = _csrfTokenFromHtml(response.body);
+    final cookies = _cookiesFromSetCookieHeader(
+      response.headers['set-cookie'] ?? '',
+    );
+    final csrfCookie = cookies['_csrf'];
 
     if (csrfToken == null ||
         csrfToken.isEmpty ||
@@ -518,10 +551,56 @@ class CheckOutController extends GetxController with BaseController {
       throw StateError('The checkout page did not provide its security token.');
     }
 
+    // Keep the full cookie set from the same bootstrap response. Some store
+    // deployments bind the CSRF secret to a session cookie as well as _csrf.
     return {
-      'cookie': '_csrf=$csrfCookie',
+      'cookie': cookies.entries
+          .map((entry) => '${entry.key}=${entry.value}')
+          .join('; '),
       'x-csrf-token': csrfToken,
     };
+  }
+
+  Map<String, String> _cookiesFromSetCookieHeader(String setCookieHeader) {
+    const cookieAttributes = {
+      'domain',
+      'expires',
+      'httponly',
+      'max-age',
+      'path',
+      'priority',
+      'samesite',
+      'secure',
+    };
+    final cookies = <String, String>{};
+    final cookiePattern = RegExp(r'(?:^|,\s*)([A-Za-z0-9_.-]+)=([^;,]*)');
+    for (final match in cookiePattern.allMatches(setCookieHeader)) {
+      final name = match.group(1)!.trim();
+      if (!cookieAttributes.contains(name.toLowerCase())) {
+        cookies[name] = match.group(2)!.trim();
+      }
+    }
+    return cookies;
+  }
+
+  String? _csrfTokenFromHtml(String html) {
+    final metaTags = RegExp(r'<meta\b[^>]*>', caseSensitive: false);
+    final nameAttribute = RegExp(
+      r'''\bname\s*=\s*["']([^"']+)["']''',
+      caseSensitive: false,
+    );
+    final contentAttribute = RegExp(
+      r'''\bcontent\s*=\s*["']([^"']+)["']''',
+      caseSensitive: false,
+    );
+
+    for (final match in metaTags.allMatches(html)) {
+      final tag = match.group(0)!;
+      final name = nameAttribute.firstMatch(tag)?.group(1);
+      if (name?.toLowerCase() != 'csrf-token') continue;
+      return contentAttribute.firstMatch(tag)?.group(1);
+    }
+    return null;
   }
 
   Future<void> addNewCard() async {}

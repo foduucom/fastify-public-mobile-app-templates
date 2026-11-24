@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:foddu/app/controllers/api_exception_handle_controller.dart';
 import 'package:foddu/app/data/basic_provider.dart';
 import 'package:foddu/app/routes/app_pages.dart';
@@ -16,12 +18,18 @@ class SplashScreenController extends GetxController with BaseController {
   @override
   void onInit() {
     super.onInit();
+    unawaited(_initializeSplash());
+  }
 
-    // 1. Initialize the Theme Manager (delayed from main.dart)
-    Get.find<ThemeController>().initThemeManager().then((_) {
-      // 2. Then proceed to fetch the latest settings and route
-      fetchSettings();
-    });
+  Future<void> _initializeSplash() async {
+    // Theme storage is optional. Continue to settings and route selection if
+    // cached preferences cannot be read.
+    try {
+      await Get.find<ThemeController>().initThemeManager();
+    } catch (error) {
+      Get.log('Splash theme initialization skipped: $error');
+    }
+    await fetchSettings();
   }
 
   Future<void> fetchSettings() async {
@@ -32,7 +40,11 @@ class SplashScreenController extends GetxController with BaseController {
           const Duration(milliseconds: 100)); // Small delay for visual feedback
 
       progressValue.value = 0.3;
-      var response = await BasicProvider('public-settings').getRequest();
+      // Startup configuration should not hold the splash indefinitely when the
+      // backend is offline. Other requests keep their normal retry policy.
+      final response = await BasicProvider('public-settings')
+          .getRequest(retry: false)
+          .timeout(const Duration(seconds: 8));
 
       progressValue.value = 0.6;
 

@@ -1,16 +1,18 @@
 import '/app/controllers/api_exception_handle_controller.dart';
-import '/app/data/basic_provider.dart';
+import '/core/foduuStudio/foduu_studio_layout_mixin.dart';
 import 'package:get/get.dart';
 
-class AboutusController extends GetxController with BaseController {
-  var aboutUsDetials = "".obs;
+class AboutusController extends GetxController
+    with BaseController, FoduuStudioLayoutMixin {
+  final pageSlug = 'about-us';
 
-  Future<void> aboutUsContetn() async {
-    var response =
-        await BasicProvider("page/about").getRequest().catchError(handleError);
-    if (response == null) return;
-    if (response != null) {
-      aboutUsDetials.value = response["content"];
-    }
+  @override
+  void onInit() {
+    super.onInit();
+    fetchAboutUs();
+  }
+
+  Future<void> fetchAboutUs() async {
+    await fetchLayout(pageSlug);
   }
 }

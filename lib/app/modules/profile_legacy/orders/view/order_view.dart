@@ -156,8 +156,8 @@ class OrderCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () => Get.toNamed(
-        Routes.ORDER_PRODUCTS,
-        arguments: {'order': item},
+        Routes.ORDER_DETAILS,
+        arguments: {'order': item, 'id': item['_id'] ?? item['id']},
       ),
       child: Container(
         padding: const EdgeInsets.all(12),

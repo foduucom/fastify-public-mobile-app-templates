@@ -11,7 +11,7 @@ class ResponsiveCommonHeader extends StatelessWidget {
   final VoidCallback? onCartTap;
   final VoidCallback? onWishlistTap;
   final VoidCallback? onMessageTap;
-  final VoidCallback? onNotificationTap;
+  //final VoidCallback? onNotificationTap;
   final int cartItemCount;
   final int wishlistItemCount;
   final int notificationCount;
@@ -25,7 +25,7 @@ class ResponsiveCommonHeader extends StatelessWidget {
     this.onCartTap,
     this.onWishlistTap,
     this.onMessageTap,
-    this.onNotificationTap,
+    //this.onNotificationTap,
     this.cartItemCount = 0,
     this.wishlistItemCount = 0,
     this.notificationCount = 0,
@@ -113,16 +113,16 @@ class ResponsiveCommonHeader extends StatelessWidget {
                   ],
 
                   // Notification icon
-                  if (onNotificationTap != null) ...[
-                    ResponsiveCircleIcon(
-                      icon: Icons.notifications_none_rounded,
-                      height: height,
-                      width: width,
-                      onTap: onNotificationTap,
-                      badgeCount: notificationCount,
-                    ),
-                    const SizedBox(width: 8),
-                  ],
+                  // if (onNotificationTap != null) ...[
+                  //   ResponsiveCircleIcon(
+                  //     icon: Icons.notifications_none_rounded,
+                  //     height: height,
+                  //     width: width,
+                  //     onTap: onNotificationTap,
+                  //     badgeCount: notificationCount,
+                  //   ),
+                  //   const SizedBox(width: 8),
+                  // ],
 
                   // Cart icon with reactive badge
                   if (onCartTap != null) ...[

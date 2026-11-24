@@ -26,9 +26,6 @@ class FoduuSlider extends StatefulWidget {
 
 class _FoduuSliderState extends State<FoduuSlider>
     with AutomaticKeepAliveClientMixin, BaseController {
-  late HomepageController homeController;
-  // var sliderImage = [];
-
   int _currentPage = 0;
   final PageController _pageController = PageController(
     initialPage: 0,
@@ -43,6 +40,16 @@ class _FoduuSliderState extends State<FoduuSlider>
       // For full screen, calculate height based on width with 16:9 aspect ratio
       return (Get.width * 9 / 16).clamp(210.0, 250.0);
     } else {
+      // Check if any slide has an extensive editorial description (e.g. About Us)
+      final slider = widget.sliderData['slider'];
+      final content = slider is Map ? slider['content'] : null;
+      final hasLongDesc = content is List &&
+          content.any((item) =>
+              item is Map && '${item['description']}'.trim().length > 60);
+      if (hasLongDesc) {
+        return (Get.width * 0.85).clamp(280.0, 340.0);
+      }
+
       // Use the height from content_json, default to 230 on mobile so
       // lifestyle imagery and CTA pills have ample breathing room.
       final dynamic rawHeight = widget.sliderData['height'];
@@ -81,10 +88,6 @@ class _FoduuSliderState extends State<FoduuSlider>
   @override
   void initState() {
     super.initState();
-    homeController = Get.find<HomepageController>();
-    // sliderImage.clear();
-    // initFetchSliderImage(widget.id);
-
     _resolveImageUrls();
 
     _timer = Timer.periodic(const Duration(seconds: 8), (Timer timer) {
@@ -206,6 +209,10 @@ class _FoduuSliderState extends State<FoduuSlider>
                                   'id': link,
                                 });
                               } else if (link != null && link.isNotEmpty) {
+                                if (link.trim().startsWith('<')) {
+                                  // HTML author embed, no external navigation
+                                  return;
+                                }
                                 if (link.startsWith('http')) {
                                   final Uri url = Uri.parse(link);
                                   if (await canLaunchUrl(url)) {
@@ -374,10 +381,106 @@ class _FoduuSliderState extends State<FoduuSlider>
                                                 ),
                                               ],
                                             ),
-                                            maxLines: 2,
+                                            maxLines: 3,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ],
+                                        if (link != null && link.contains('<'))
+                                          Builder(builder: (context) {
+                                            final nameMatch = RegExp(
+                                                    r"""class=["']name["'][^>]*>([^<]+)<""")
+                                                .firstMatch(link);
+                                            final posMatch = RegExp(
+                                                    r"""class=["']position["'][^>]*>([^<]+)<""")
+                                                .firstMatch(link);
+                                            final imgMatch = RegExp(
+                                                    r"""<img[^>]+src=["']([^"']+)["']""")
+                                                .firstMatch(link);
+
+                                            final authorName =
+                                                nameMatch?.group(1)?.trim() ??
+                                                    '';
+                                            final authorPos =
+                                                posMatch?.group(1)?.trim() ??
+                                                    '';
+                                            final authorImg =
+                                                imgMatch?.group(1)?.trim() ??
+                                                    '';
+
+                                            if (authorName.isEmpty) {
+                                              return const SizedBox.shrink();
+                                            }
+
+                                            return Container(
+                                              margin:
+                                                  const EdgeInsets.only(top: 8),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 5),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black
+                                                    .withOpacity(0.55),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                border: Border.all(
+                                                  color: Colors.white24,
+                                                  width: 0.8,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  if (authorImg.isNotEmpty) ...[
+                                                    ClipOval(
+                                                      child: CachedNetworkImage(
+                                                        imageUrl: authorImg,
+                                                        width: 24,
+                                                        height: 24,
+                                                        fit: BoxFit.cover,
+                                                        errorWidget:
+                                                            (_, __, ___) =>
+                                                                const Icon(
+                                                          Icons.person,
+                                                          size: 16,
+                                                          color: Colors.white,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                  ],
+                                                  Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Text(
+                                                        authorName,
+                                                        style: const TextStyle(
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          color: Colors.white,
+                                                        ),
+                                                      ),
+                                                      if (authorPos.isNotEmpty)
+                                                        Text(
+                                                          authorPos,
+                                                          style:
+                                                              const TextStyle(
+                                                            fontSize: 10,
+                                                            color:
+                                                                Colors.white70,
+                                                          ),
+                                                        ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }),
                                         if (buttonText.isNotEmpty) ...[
                                           const SizedBox(height: 12),
                                           GestureDetector(
@@ -396,23 +499,35 @@ class _FoduuSliderState extends State<FoduuSlider>
                                             },
                                             child: Builder(
                                               builder: (context) {
-                                                final slug = (widget.sliderData['slider']?['slug'] ??
-                                                        widget.sliderData['slider']?['name'] ??
-                                                        '')
-                                                    .toString()
-                                                    .toLowerCase();
-                                                final isOutline = slug.contains('left') ||
-                                                    title.toLowerCase().contains('summer 2024');
+                                                final slug =
+                                                    (widget.sliderData['slider']
+                                                                ?['slug'] ??
+                                                            widget.sliderData[
+                                                                    'slider']
+                                                                ?['name'] ??
+                                                            '')
+                                                        .toString()
+                                                        .toLowerCase();
+                                                final isOutline =
+                                                    slug.contains('left') ||
+                                                        title
+                                                            .toLowerCase()
+                                                            .contains(
+                                                                'summer 2024');
 
                                                 return Container(
-                                                  padding: const EdgeInsets.symmetric(
-                                                      horizontal: 16, vertical: 8),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 8),
                                                   decoration: BoxDecoration(
                                                     color: isOutline
-                                                        ? Colors.black.withOpacity(0.3)
+                                                        ? Colors.black
+                                                            .withOpacity(0.3)
                                                         : Colors.white,
                                                     borderRadius:
-                                                        BorderRadius.circular(24),
+                                                        BorderRadius.circular(
+                                                            24),
                                                     border: isOutline
                                                         ? Border.all(
                                                             color: Colors.white,
@@ -423,18 +538,21 @@ class _FoduuSliderState extends State<FoduuSlider>
                                                         color: Colors.black
                                                             .withOpacity(0.2),
                                                         blurRadius: 6,
-                                                        offset: const Offset(0, 2),
+                                                        offset:
+                                                            const Offset(0, 2),
                                                       ),
                                                     ],
                                                   ),
                                                   child: Row(
-                                                    mainAxisSize: MainAxisSize.min,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
                                                     children: [
                                                       Text(
                                                         buttonText,
                                                         style: TextStyle(
                                                           fontSize: 12,
-                                                          fontWeight: FontWeight.w700,
+                                                          fontWeight:
+                                                              FontWeight.w700,
                                                           color: isOutline
                                                               ? Colors.white
                                                               : Colors.black,
@@ -443,7 +561,8 @@ class _FoduuSliderState extends State<FoduuSlider>
                                                       ),
                                                       const SizedBox(width: 4),
                                                       Icon(
-                                                        Icons.arrow_forward_rounded,
+                                                        Icons
+                                                            .arrow_forward_rounded,
                                                         size: 14,
                                                         color: isOutline
                                                             ? Colors.white

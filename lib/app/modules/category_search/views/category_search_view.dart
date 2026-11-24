@@ -94,7 +94,7 @@ class _FilterChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => SingleChildScrollView(
+    return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           child: Row(
@@ -130,7 +130,7 @@ class _FilterChips extends StatelessWidget {
               ),
             ],
           ),
-        ));
+        );
   }
 }
 
@@ -161,11 +161,11 @@ class _TypeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChoiceChip(
-      label: Text(label),
-      selected: controller.selectedType.value == value,
-      onSelected: (_) => controller.setType(value),
-    );
+    return Obx(() => ChoiceChip(
+          label: Text(label),
+          selected: controller.selectedType.value == value,
+          onSelected: (_) => controller.setType(value),
+        ));
   }
 }
 

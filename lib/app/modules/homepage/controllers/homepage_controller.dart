@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_print
 
+import 'dart:async';
+
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
 import 'package:get/get.dart';
@@ -21,19 +23,16 @@ class HomepageController extends GetxController
   var pageSlug = 'home';
 
   @override
-  Future<void> onInit() async {
+  void onInit() {
     super.onInit();
-    getDrawerNavigation();
-    await getDashboardDesign(pageSlug);
+    unawaited(getDrawerNavigation());
+    unawaited(getDashboardDesign(pageSlug));
   }
 
   Future<dynamic> getDashboardDesign(String slug, {dynamic requestBody}) async {
     try {
       isLoading.value = true;
-
-      var response = await fetchLayout(slug, requestBody: requestBody);
-
-      return response;
+      return await fetchLayout(slug, requestBody: requestBody);
     } catch (e) {
       print('home page controller getDashboardDesign error $e');
     } finally {

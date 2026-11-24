@@ -122,7 +122,10 @@ class _LogoStrip extends StatelessWidget {
     if (logos.isEmpty) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.only(top: 8, bottom: 24),
+      // The preceding home section already owns its bottom spacing. Avoid
+      // stacking another top margin here, which leaves an oversized gap above
+      // the Sponsored heading on the home feed.
+      padding: const EdgeInsets.only(bottom: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -518,21 +521,120 @@ class _BadgeList extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final title = _str(contentJson['title'] ?? contentJson['heading']);
+
+    // Check if this is a stat counter / milestone metrics section (e.g. About Us)
+    final isStatCards = cards.isNotEmpty &&
+        cards.every((c) => _str(c['image'] ?? c['icon']).isEmpty) &&
+        cards.any((c) {
+          final h = _str(c['heading'] ?? c['title']);
+          return h.contains('+') ||
+              h.contains('%') ||
+              RegExp(r'^\d+').hasMatch(h);
+        });
+
+    if (isStatCards) {
+      final cols = int.tryParse('${contentJson['no_of_columns']}') ?? 2;
+      return _buildStatCards(context, title, cols);
+    }
+
     final isCollectionCards = cards.any((c) {
       final t = _str(c['title'] ?? c['heading']).toLowerCase();
       final img = _str(c['image'] ?? c['icon']);
-      return t.contains('collection') ||
-          t.contains('fashion') ||
-          img.contains('women') ||
-          img.contains('child') ||
-          img.contains('kids') ||
-          _str(c['text']).isEmpty;
+      final hasImg = img.isNotEmpty;
+      return hasImg &&
+          (t.contains('collection') ||
+              t.contains('fashion') ||
+              img.contains('women') ||
+              img.contains('child') ||
+              img.contains('kids') ||
+              _str(c['text']).isEmpty);
     });
 
     if (isCollectionCards) {
       return _buildCollectionCards(context, title);
     }
     return _buildStandardBadges(context, title);
+  }
+
+  Widget _buildStatCards(BuildContext context, String title, int cols) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title.isNotEmpty) ...[
+            Text(
+              title,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+                height: 1.25,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 18),
+          ],
+          Row(
+            children: cards.map((c) {
+              final heading = _str(c['heading'] ?? c['title']);
+              final text = _str(c['text'] ?? c['description']);
+              return Expanded(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 5),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF1E1E22)
+                        : const Color(0xFFF7F7F8),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white12
+                          : Colors.black.withValues(alpha: 0.06),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        heading,
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.5,
+                          color: isDark
+                              ? const Color(0xFFE5C07B)
+                              : const Color(0xFFD4AF37),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        text,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.2,
+                          color: isDark ? Colors.white70 : Colors.black87,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildCollectionCards(BuildContext context, String title) {

@@ -11,7 +11,11 @@ class BottombarBinding extends Bindings {
     Get.lazyPut<BottombarController>(
       () => BottombarController(),
     );
-    Get.lazyPut<HomepageController>(() => HomepageController());
+    // Create the home controller while this route's bindings are being
+    // installed. The home view lives inside the bottom bar's PageView, so a
+    // lazy controller can otherwise be first created after GetX has finished
+    // associating dependencies with the route that owns them.
+    Get.put<HomepageController>(HomepageController());
     Get.lazyPut<ShopController>(() => ShopController(), fenix: true);
     Get.lazyPut<ProfileController>(() => ProfileController());
   }

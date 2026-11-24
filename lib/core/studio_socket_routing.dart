@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:foddu/app/modules/aboutus/controllers/aboutus_controller.dart';
 import 'package:foddu/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foddu/app/modules/search/controllers/search_controller.dart';
 import 'package:foddu/app/modules/shop/controllers/shop_controller.dart';
@@ -22,7 +23,6 @@ class StudioSocketRouting extends GetxController {
     'profile': accountTabIndex,
     'shop': shopTabIndex,
     'category': shopTabIndex,
-    
     'wishlist': wishlistTabIndex,
     'cart': cartTabIndex,
   };
@@ -149,6 +149,33 @@ class StudioSocketRouting extends GetxController {
           Get.find<ShopController>().resetToPlainShop();
         }
         openShop();
+        break;
+      case 'about-us':
+      case 'about':
+      case 'aboutus':
+        if (Get.currentRoute == Routes.ABOUTUS) {
+          if (Get.isRegistered<AboutusController>()) {
+            Get.find<AboutusController>().fetchAboutUs();
+          }
+        } else {
+          if (Get.currentRoute != Routes.BOTTOMBAR) {
+            Get.until((route) => route.settings.name == Routes.BOTTOMBAR);
+          }
+          Get.toNamed(Routes.ABOUTUS);
+        }
+        break;
+      case 'contact-us':
+      case 'contact':
+      case 'contactus':
+        if (Get.currentRoute == Routes.CONTACT) {
+          // ContactView is a WebView and has no controller refresh method.
+          // It is already open, so there is nothing to reload here.
+        } else {
+          if (Get.currentRoute != Routes.BOTTOMBAR) {
+            Get.until((route) => route.settings.name == Routes.BOTTOMBAR);
+          }
+          Get.toNamed(Routes.CONTACT);
+        }
         break;
       default:
         print('⚠️ StudioSocketRouting: No specific handler for slug: $slug');

@@ -13,22 +13,32 @@ class OrderSuccessController extends GetxController with BaseController {
   final RxBool wasCashOrder = false.obs;
 
   bool get isCashOrder {
-    final method = (item['payment_method'] ?? item['primary_method'] ?? '')
-        .toString()
-        .toLowerCase();
+    final method = _normalizedValue(
+        item['payment_method'] ?? item['primary_method'] ?? '');
     return wasCashOrder.value || method == 'cash' || method == 'cod';
   }
 
   bool get isPaymentConfirmed {
-    final status = (item['payment_status'] ?? '').toString().toLowerCase();
+    final status = _normalizedValue(item['payment_status'] ?? '');
     return const {'paid', 'success', 'succeeded', 'captured', 'completed'}
         .contains(status);
   }
 
   bool get isPaymentFailed {
-    final status = (item['payment_status'] ?? '').toString().toLowerCase();
+    final status = _normalizedValue(item['payment_status'] ?? '');
     return const {'failed', 'cancelled', 'canceled', 'declined'}
         .contains(status);
+  }
+
+  String _normalizedValue(dynamic value) {
+    if (value is Map) {
+      value = value['name'] ??
+          value['label'] ??
+          value['status'] ??
+          value['method'] ??
+          value['value'];
+    }
+    return value?.toString().trim().toLowerCase() ?? '';
   }
 
   @override

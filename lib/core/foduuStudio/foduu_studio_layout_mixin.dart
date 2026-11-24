@@ -271,12 +271,25 @@ mixin FoduuStudioLayoutMixin on GetxController {
       }
 
       // A more recent refresh or socket update owns the screen now.
-      if (requestId != _layoutRequestId || isClosed) return response;
+      if (requestId != _layoutRequestId || isClosed) {
+        print(
+          '⚠️ DynamicLayout: Ignoring response for "$slug" '
+          '(request=$requestId, latest=$_layoutRequestId, closed=$isClosed)',
+        );
+        return response;
+      }
 
       _applyThemeColor(_extractThemeColor(response));
 
       final sections = _extractSections(response);
       if (sections == null) {
+        final responseShape = response is Map
+            ? response.keys.map((key) => key.toString()).toList()
+            : response.runtimeType.toString();
+        print(
+          '⚠️ DynamicLayout: Could not extract sections for "$slug" '
+          '(responseShape=$responseShape)',
+        );
         layoutError.value = response == null
             ? 'Could not load home content. Check your connection and try again.'
             : 'The home response did not contain a valid sections list.';
@@ -308,6 +321,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
     } finally {
       if (requestId == _layoutRequestId && !isClosed) {
         isLayoutLoading.value = false;
+        print('✅ DynamicLayout: Finished loading "$slug" (request=$requestId)');
       }
     }
   }

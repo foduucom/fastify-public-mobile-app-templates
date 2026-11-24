@@ -223,6 +223,37 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                   ),
                 ),
                 const SizedBox(height: 12),
+                TextField(
+                  controller: controller.faqSearchController,
+                  onChanged: controller.onFaqSearchChanged,
+                  textInputAction: TextInputAction.search,
+                  decoration: InputDecoration(
+                    hintText: 'Search questions and answers',
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    suffixIcon: Obx(() => controller.faqSearchQuery.isEmpty
+                        ? const SizedBox.shrink()
+                        : IconButton(
+                            tooltip: 'Clear FAQ search',
+                            onPressed: controller.clearFaqSearch,
+                            icon: const Icon(Icons.close_rounded),
+                          )),
+                    filled: true,
+                    fillColor: colorScheme.surface,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: colorScheme.outlineVariant),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: colorScheme.outlineVariant),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: colorScheme.primary),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Obx(() {
                   if (controller.isLoading.value) {
                     return const Padding(
@@ -254,13 +285,36 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                     );
                   }
 
+                  final matchingFaqs = controller.filteredFaqs;
+                  if (matchingFaqs.isEmpty) {
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: colorScheme.outline.withValues(alpha: 0.2)),
+                      ),
+                      child: Text(
+                        'No FAQs match “${controller.faqSearchQuery.value}”.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 13,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    );
+                  }
+
                   return ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: controller.faqs.length,
+                    itemCount: matchingFaqs.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
-                      final item = controller.faqs[index];
+                      final item = matchingFaqs[index];
                       final question = (item['question'] ??
                               item['name'] ??
                               item['title'] ??
@@ -273,9 +327,11 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                               '')
                           .toString();
 
-                      final subFaqs = item['faqs_detail'] is List
+                      final List<Map> subFaqs = item['faqs_detail'] is List
                           ? (item['faqs_detail'] as List)
-                          : [];
+                              .whereType<Map>()
+                              .toList(growable: false)
+                          : const [];
 
                       return Container(
                         decoration: BoxDecoration(
@@ -332,7 +388,7 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        '• ',
+                                        subQ,
                                         style: TextStyle(
                                           fontFamily: 'Plus Jakarta Sans',
                                           fontWeight: FontWeight.w600,

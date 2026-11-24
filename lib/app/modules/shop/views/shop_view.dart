@@ -218,55 +218,77 @@ class ShopView extends GetView<ShopController> {
           const SizedBox(width: 8),
 
           if (controller.isFeatured.value)
-            _activeChip("Featured", () {
-              controller.isFeatured.value = false;
-              controller.fetchProducts(isRefresh: true);
-            }, colorScheme),
+            _activeChip(
+                "Featured", controller.removeFeaturedFilter, colorScheme),
 
           if (controller.isHot.value)
-            _activeChip("Hot", () {
-              controller.isHot.value = false;
-              controller.fetchProducts(isRefresh: true);
-            }, colorScheme),
+            _activeChip("Hot", controller.toggleHot, colorScheme),
 
           if (controller.isTrending.value)
-            _activeChip("Trending", () {
-              controller.isTrending.value = false;
-              controller.fetchProducts(isRefresh: true);
-            }, colorScheme),
+            _activeChip(
+                "Trending", controller.removeTrendingFilter, colorScheme),
 
           if (controller.isRecommended.value)
-            _activeChip("Recommended", () {
-              controller.isRecommended.value = false;
-              controller.fetchProducts(isRefresh: true);
-            }, colorScheme),
+            _activeChip(
+                "Recommended", controller.toggleRecommended, colorScheme),
 
           if (controller.isRecentlyViewed.value)
-            _activeChip("Recently Viewed", () {
-              controller.isRecentlyViewed.value = false;
-              controller.fetchProducts(isRefresh: true);
-            }, colorScheme),
+            _activeChip("Recently Viewed", controller.toggleRecentlyViewed,
+                colorScheme),
 
-          // ...controller.selectedCategories.map((cat) => _activeChip(
-          //       controller.availableCategories
-          //               .firstWhereOrNull((c) => c['slug'] == cat)?['name']
-          //               ?.toString() ??
-          //           cat.capitalizeFirst!,
-          //       () {
-          //         controller.toggleCategory(cat);
-          //         controller.fetchProducts(isRefresh: true);
-          //       },
-          //       colorScheme,
-          //     )),
+          ...controller.selectedCategories.map((category) => _activeChip(
+                _categoryLabel(category),
+                () => controller.toggleCategory(category),
+                colorScheme,
+              )),
 
-          ...controller.selectedBrands
-              .map((brand) => _activeChip(brand.capitalizeFirst!, () {
-                    controller.toggleBrand(brand);
-                    controller.fetchProducts(isRefresh: true);
-                  }, colorScheme)),
+          ...controller.selectedBrands.map((brand) => _activeChip(
+                _brandLabel(brand),
+                () => controller.toggleBrand(brand),
+                colorScheme,
+              )),
+
+          if (controller.minPrice.value > 0 ||
+              controller.maxPrice.value < 10000)
+            _activeChip(
+              _priceLabel(),
+              controller.clearPriceFilter,
+              colorScheme,
+            ),
         ],
       ),
     );
+  }
+
+  String _categoryLabel(String slug) {
+    for (final category in controller.availableCategories) {
+      if (category is Map && category['slug']?.toString() == slug) {
+        return category['name']?.toString() ?? slug;
+      }
+    }
+    for (final root in controller.categoryTreeByType['product'] ?? []) {
+      for (final node in root.flattened) {
+        if (node.slug == slug) return node.name;
+      }
+    }
+    return slug.replaceAll('-', ' ').capitalizeFirst ?? slug;
+  }
+
+  String _brandLabel(String slug) {
+    for (final brand in controller.availableBrands) {
+      if (brand is Map && brand['slug']?.toString() == slug) {
+        return brand['name']?.toString() ?? slug;
+      }
+    }
+    return slug.replaceAll('-', ' ').capitalizeFirst ?? slug;
+  }
+
+  String _priceLabel() {
+    final minimum = controller.minPrice.value.round();
+    final maximum = controller.maxPrice.value.round();
+    if (minimum == 0) return 'Under ₹$maximum';
+    if (maximum >= 10000) return 'Over ₹$minimum';
+    return '₹$minimum – ₹$maximum';
   }
 
   Widget _activeChip(

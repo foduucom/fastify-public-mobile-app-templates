@@ -33,10 +33,11 @@ class SocketHelper {
     _socket = IO.io(
         socketUrl,
         IO.OptionBuilder()
-            .setTransports(['websocket'])
+            // Start with Socket.IO's polling transport and upgrade to WebSocket
+            // when the server/proxy supports it. Forcing WebSocket can cause
+            // repeated 502 handshake failures on proxies without WS upgrades.
             .disableAutoConnect()
-            .setExtraHeaders({'access_key': ACCESS_KEY})
-            .build());
+            .setExtraHeaders({'access_key': ACCESS_KEY}).build());
 
     _socket!.connect();
 

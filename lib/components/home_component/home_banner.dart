@@ -23,7 +23,6 @@ class HomeBanner extends StatefulWidget {
 
 class _HomeBannerState extends State<HomeBanner>
     with AutomaticKeepAliveClientMixin {
-  late var homeController;
   List banners = [];
 
   String getImage(Map<String, dynamic> bannerItem) {
@@ -33,7 +32,6 @@ class _HomeBannerState extends State<HomeBanner>
 
   @override
   void initState() {
-    homeController = Get.find<HomepageController>();
     if (widget.bannerContent['banners'] != null) {
       banners = widget.bannerContent['banners'];
     }
@@ -228,7 +226,74 @@ class _HomeBannerState extends State<HomeBanner>
   }
 
   Widget _buildCachedImage(Map<String, dynamic> item) {
+    final featuredImage = item['featured_image'];
     final imgUrl = getImage(item);
+
+    final isVideo = (featuredImage is Map &&
+            (featuredImage['file_type'] == 'video' ||
+                '${featuredImage['mimetype']}'.contains('video') ||
+                '${featuredImage['filename']}'.endsWith('.mp4'))) ||
+        imgUrl.toLowerCase().endsWith('.mp4');
+
+    if (isVideo) {
+      return Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          color: Color(0xFF16161A),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.5),
+                      Colors.black.withValues(alpha: 0.85),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.15),
+                    border: Border.all(
+                      color: const Color(0xFFD4AF37),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow_rounded,
+                    color: Colors.white,
+                    size: 34,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Watch Brand Story',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
     if (imgUrl.isEmpty || imgUrl == HelperFunctions.getNoImage()) {
       return const AppImagePlaceholder(
         radius: 0,
@@ -259,7 +324,18 @@ class _HomeBannerState extends State<HomeBanner>
     var linkType = banner['link_type'];
     var link = banner['link'];
 
-    if (link == null) return;
+    if (link == null) {
+      final featuredImage = banner['featured_image'];
+      final imgUrl = getImage(banner);
+      if (imgUrl.toLowerCase().endsWith('.mp4') ||
+          (featuredImage is Map && featuredImage['file_type'] == 'video')) {
+        final Uri url = Uri.parse(imgUrl);
+        canLaunchUrl(url).then((can) {
+          if (can) launchUrl(url, mode: LaunchMode.externalApplication);
+        });
+      }
+      return;
+    }
 
     if (linkType == 'product') {
       Get.toNamed(Routes.PRODUCTDETAILS,
@@ -271,6 +347,13 @@ class _HomeBannerState extends State<HomeBanner>
         'productId': link['value'],
         'name': link['label'] ?? link['name']
       });
+    } else if (linkType == 'mobile_page') {
+      final val = link['value']?.toString().toLowerCase() ?? '';
+      if (val == 'home') {
+        Get.until((route) => route.settings.name == Routes.BOTTOMBAR);
+      } else if (val == 'shop') {
+        openShop();
+      }
     } else if (linkType == 'url') {
       final String urlString = link['value']?.toString() ?? '';
       if (urlString.isNotEmpty) {

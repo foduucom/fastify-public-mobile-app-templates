@@ -18,14 +18,21 @@ class CreateNewPasswordController extends GetxController {
   Future<void> updatePassword() async {
     final newPass = newPasswordController.text.trim();
     final confirm = confirmPasswordController.text.trim();
-    if (newPass.isEmpty || newPass != confirm) {
-      Get.snackbar('Error', 'Passwords do not match');
+    if (newPass.length < 8) {
+      Get.snackbar('Invalid password', 'Use at least 8 characters.');
       return;
     }
-    isLoading.value = true;
-    // TODO: wire up to API service
-    await Future.delayed(const Duration(seconds: 1));
-    isLoading.value = false;
-    Get.offAllNamed('/login');
+    if (newPass != confirm) {
+      Get.snackbar('Error', 'Passwords do not match.');
+      return;
+    }
+
+    // The backend currently exposes only authenticated password changes,
+    // which require the current password. Never claim that an unauthenticated
+    // reset succeeded without a reset endpoint/token contract.
+    Get.snackbar(
+      'Password reset unavailable',
+      'This store has not configured password recovery. Please contact support.',
+    );
   }
 }

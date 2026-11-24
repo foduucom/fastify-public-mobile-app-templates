@@ -104,7 +104,8 @@ class OtpController extends GetxController with BaseController {
 
   Future<void> verifyOtp({required String otp}) async {
     if (otp.isEmpty || otp.length < 6) {
-      HelperFunctions().showSnackBarError("Please enter 4-digit OTP");
+      HelperFunctions()
+          .showSnackBarError("Please enter the complete 6-digit OTP");
       return;
     }
 
@@ -140,8 +141,17 @@ class OtpController extends GetxController with BaseController {
         otp: otp,
       );
 
-      if (response != null && response['statusCode'] == 200) {
-        await _handleSuccessResponse(response);
+      final responseStatus = response?['statusCode'];
+      final responseSuccess = response?['success'];
+      final verified = response != null &&
+          (responseStatus == null || responseStatus == 200) &&
+          responseSuccess != false;
+
+      if (verified) {
+        isLoading(false);
+        HelperFunctions().showSnackBarError(
+          'The verification code was accepted, but password recovery is not configured for this store. Please contact support.',
+        );
       } else {
         // FIX: Handle null or invalid response
         final errorMessage = response?['body']?['message']?.toString() ??

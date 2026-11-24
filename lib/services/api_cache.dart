@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:get_storage/get_storage.dart';
 
 /// Last-known-good copy of GET responses, used as a fallback while the backend
@@ -52,12 +53,22 @@ class ApiCache {
   static final GetStorage _box = GetStorage(containerName);
 
   static Future<void> init() async {
-    await GetStorage.init(containerName);
-    await _purgeDisallowedEntries();
+    try {
+      await GetStorage.init(containerName);
+      await _purgeDisallowedEntries();
+    } catch (error, stackTrace) {
+      // This cache is optional. Initialization or cleanup failures must not
+      // prevent the application from reaching its first frame.
+      debugPrint('API cache cleanup skipped: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
   }
 
   static Future<void> _purgeDisallowedEntries() async {
-    for (final key in _box.getKeys<Iterable>()) {
+    // GetStorage exposes a live key collection. Removing entries while walking
+    // it can throw Concurrent modification during startup.
+    final keys = _box.getKeys<Iterable>().toList(growable: false);
+    for (final key in keys) {
       if (key is! String) continue;
       final separator = key.indexOf('|');
       final uri =

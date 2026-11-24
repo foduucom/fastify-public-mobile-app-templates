@@ -21,11 +21,36 @@ import 'services/local_storage_notification_service.dart';
 import 'services/notification_sync_service.dart';
 import 'firebase_options.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding.instance.deferFirstFrame();
+  runApp(const StartupSplash());
+  unawaited(_initializeApplication());
+}
 
-  await GetStorage.init(); // ✅ storage first
-  await ApiCache.init();
+Future<void> _initializeApplication() async {
+  var persistentStorageAvailable = true;
+  try {
+    await GetStorage.init();
+  } catch (error, stackTrace) {
+    persistentStorageAvailable = false;
+    // GetStorage keeps an in-memory container even when its disk initialization
+    // fails. Continue into the app with empty/default state rather than leaving
+    // the user on the native launch screen; persistent writes may be unavailable
+    // for this session, so keep the failure visible in diagnostics.
+    debugPrint(
+      'Persistent storage unavailable; continuing with defaults: $error',
+    );
+    debugPrintStack(stackTrace: stackTrace);
+  }
+  try {
+    await ApiCache.init();
+  } catch (error, stackTrace) {
+    // The API cache is an optimization. A cache failure must not prevent the
+    // app from replacing the startup splash with its first usable screen.
+    debugPrint('API cache initialization skipped: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  }
 
   // Dynamic CMS sections must be registered before the homepage fetches its
   // layout, otherwise the API data arrives but no section widgets are built.
@@ -63,8 +88,15 @@ void main() async {
     Get.put(StudioSocketRouting(initialSlug: slug));
   }
 
-  // ✅ Init theme manager — loads cached colors
-  await DynamicThemeManager().init();
+  // Load cached theme colors before building MaterialApp. If persisted theme
+  // data is malformed, the manager's built-in defaults still let startup
+  // continue instead of leaving the native launch screen visible.
+  try {
+    await DynamicThemeManager().init();
+  } catch (error, stackTrace) {
+    debugPrint('Cached theme load skipped; using default theme: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  }
 
   // ✅ Register ThemeController once — available everywhere
   Get.put(ThemeController(), permanent: true);
@@ -88,8 +120,94 @@ void main() async {
   // Determine initial route
   final initialRoute = await _initApp();
 
-  runApp(MyApp(initialRoute: initialRoute));
+  // Let the first branded frame reach the display before replacing the
+  // bootstrap app, including on fast local starts.
+  await WidgetsBinding.instance.endOfFrame;
+  runApp(MyApp(
+    initialRoute: initialRoute,
+    persistentStorageAvailable: persistentStorageAvailable,
+  ));
   if (!kIsWeb) unawaited(_initializeFirebaseServices());
+}
+
+/// First Flutter frame while local startup work completes. Keeping this screen
+/// independent of GetX, storage, and dynamic themes avoids a blank frame while
+/// those services are initialized.
+class StartupSplash extends StatefulWidget {
+  const StartupSplash({super.key});
+
+  @override
+  State<StartupSplash> createState() => _StartupSplashState();
+}
+
+class _StartupSplashState extends State<StartupSplash> {
+  bool _firstFramePreparationStarted = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_firstFramePreparationStarted) return;
+    _firstFramePreparationStarted = true;
+    _prepareFirstFrame();
+  }
+
+  Future<void> _prepareFirstFrame() async {
+    try {
+      await precacheImage(
+        const AssetImage('assets/images/splash.png'),
+        context,
+      );
+    } catch (error) {
+      debugPrint('Splash image preload failed: $error');
+    } finally {
+      // Keep the native launch screen visible until the branded Flutter frame
+      // is ready, avoiding a white frame while the splash asset decodes.
+      WidgetsBinding.instance.allowFirstFrame();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Builder(
+        builder: (context) {
+          final screenHeight = MediaQuery.sizeOf(context).height;
+
+          return Scaffold(
+            backgroundColor: Colors.white,
+            body: Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                Positioned(
+                  top: screenHeight * 0.04,
+                  right: 0,
+                  left: 0,
+                  bottom: screenHeight * 0.18,
+                  child: Image.asset(
+                    'assets/images/splash.png',
+                    fit: BoxFit.fill,
+                  ),
+                ),
+                Positioned(
+                  bottom: screenHeight * 0.06,
+                  child: const SizedBox.square(
+                    dimension: 30,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Colors.black87,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
 
 Future<void> _initializeFirebaseServices() async {
@@ -126,7 +244,13 @@ Future<String> _initApp() async {
 
 class MyApp extends StatelessWidget {
   final String initialRoute;
-  const MyApp({super.key, required this.initialRoute});
+  final bool persistentStorageAvailable;
+
+  const MyApp({
+    super.key,
+    required this.initialRoute,
+    required this.persistentStorageAvailable,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -162,6 +286,31 @@ class MyApp extends StatelessWidget {
       // ── Locale ─────────────────────────────────────────────────
       locale: const Locale('en', 'US'),
       fallbackLocale: const Locale('en', 'US'),
+      builder: (context, child) => Column(
+        children: [
+          if (!persistentStorageAvailable)
+            Material(
+              color: Theme.of(context).colorScheme.errorContainer,
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      'Device storage is unavailable. Some changes may not be saved.',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          Expanded(child: child ?? const SizedBox.shrink()),
+        ],
+      ),
     );
   }
 }

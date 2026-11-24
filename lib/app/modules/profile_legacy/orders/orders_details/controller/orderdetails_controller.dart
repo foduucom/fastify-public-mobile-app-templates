@@ -22,13 +22,29 @@ class OrderdetailController extends GetxController with BaseController {
     super.onInit();
     final arguments = Get.arguments;
     if (arguments is Map) {
-      id.value =
-          (arguments['id'] ?? arguments['order_id'] ?? arguments['_id'] ?? '')
-              .toString()
-              .trim();
+      final suppliedOrder = arguments['order'];
+      id.value = (arguments['id'] ??
+              arguments['order_id'] ??
+              arguments['_id'] ??
+              (suppliedOrder is Map
+                  ? suppliedOrder['_id'] ?? suppliedOrder['id']
+                  : null) ??
+              '')
+          .toString()
+          .trim();
+      if (suppliedOrder is Map) {
+        item.value = Map<String, dynamic>.from(suppliedOrder);
+        // Show the order immediately, then refresh if a database id is available.
+        isLoading.value = false;
+      }
     }
 
-    await OrderDetail();
+    if (id.value.isNotEmpty && id.value != '0' && id.value != 'null') {
+      await OrderDetail();
+    } else if (item.isEmpty) {
+      errorMessage.value =
+          'Order could not be identified. Please reopen it from your orders.';
+    }
   }
 
   Future<void> OrderDetail() async {

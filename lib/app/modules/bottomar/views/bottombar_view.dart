@@ -62,7 +62,7 @@ class BottombarView extends GetView<BottombarController> {
                         Get.find<LocalStorageNotificationService>()
                             .getUnreadCount(),
                     brandTitle: 'Kharido',
-                    onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),
+                    //onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),
                   );
                 }
                 // Hide common header outside Home.

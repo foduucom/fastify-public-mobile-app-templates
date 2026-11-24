@@ -64,7 +64,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
             child: StudioSectionHeader(
               title: heading,
               subtitle: subheading,
-              onSeeAll: () => Get.toNamed(Routes.CATEGORY_SEARCH),
+              onSeeAll: () => openShop(),
             ),
           ),
           const SizedBox(height: 12),

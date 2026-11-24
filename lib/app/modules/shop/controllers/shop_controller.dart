@@ -470,6 +470,16 @@ class ShopController extends GetxController
     applyFiltersAndRefresh();
   }
 
+  void removeFeaturedFilter() {
+    isFeatured.value = false;
+    if (selectedSortOption.value == ShopSortOption.featured) {
+      selectedSortOption.value = ShopSortOption.newest;
+      sortBy.value = 'created_at';
+      sortOrder.value = 'desc';
+    }
+    applyFiltersAndRefresh();
+  }
+
   void toggleHot() {
     isHot.toggle();
     applyFiltersAndRefresh();
@@ -477,6 +487,16 @@ class ShopController extends GetxController
 
   void toggleTrending() {
     isTrending.toggle();
+    applyFiltersAndRefresh();
+  }
+
+  void removeTrendingFilter() {
+    isTrending.value = false;
+    if (selectedSortOption.value == ShopSortOption.trending) {
+      selectedSortOption.value = ShopSortOption.newest;
+      sortBy.value = 'created_at';
+      sortOrder.value = 'desc';
+    }
     applyFiltersAndRefresh();
   }
 
@@ -512,6 +532,13 @@ class ShopController extends GetxController
     currentPriceRange.value = values;
     minPrice.value = values.start;
     maxPrice.value = values.end;
+    applyFiltersAndRefresh();
+  }
+
+  void clearPriceFilter() {
+    currentPriceRange.value = const RangeValues(0, 10000);
+    minPrice.value = 0.0;
+    maxPrice.value = 10000.0;
     applyFiltersAndRefresh();
   }
 

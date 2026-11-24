@@ -6,6 +6,7 @@ import 'package:foddu/app/modules/auth/auth_details.dart';
 import 'package:foddu/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foddu/app/routes/app_pages.dart';
 import 'package:foddu/components/commonWidgets/user_avatar.dart';
+import 'package:foddu/components/order_product_image.dart';
 import 'package:foddu/components/support_call_sheet.dart';
 import 'package:foddu/constants/constants.dart';
 import 'package:foddu/constants/dynamic_theme.dart';
@@ -767,77 +768,299 @@ class ProfileView extends GetView<ProfileController> {
   // ── Contextual Recent Order Snapshot ─────────────────────────────────
   Widget _buildRecentOrderSnapshot(BuildContext context, bool isDark) {
     return Obx(() {
-      final orderId = controller.recentOrderNumber.value;
-      if (orderId.isEmpty) return const SizedBox.shrink();
+      final orderNumber = controller.recentOrderNumber.value;
+      if (orderNumber.isEmpty) return const SizedBox.shrink();
 
       final status = controller.recentOrderStatus.value;
+      final statusColorCategory = controller.recentOrderStatusColor.value;
+      final productName = controller.recentOrderProductName.value;
+      final itemCount = controller.recentOrderItemCount.value;
+      final total = controller.recentOrderTotal.value;
+      final orderDate = controller.recentOrderDate.value;
+      final orderData = controller.recentOrderData.value;
+      final firstOrderLine = (orderData != null &&
+              orderData['products'] is List &&
+              (orderData['products'] as List).isNotEmpty)
+          ? (orderData['products'] as List).first
+          : null;
+
+      Color statusColor;
+      switch (statusColorCategory.toLowerCase()) {
+        case 'success':
+          statusColor = const Color(0xFF10B981);
+          break;
+        case 'danger':
+        case 'error':
+          statusColor = const Color(0xFFEF4444);
+          break;
+        case 'primary':
+        case 'info':
+          statusColor = const Color(0xFF8B5CF6);
+          break;
+        case 'warning':
+        default:
+          statusColor = const Color(0xFFF59E0B);
+          break;
+      }
 
       return Container(
         margin: const EdgeInsets.only(bottom: 14),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
         decoration: BoxDecoration(
           color: context.surfaceColor,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: const Color(0xFF8B5CF6).withValues(alpha: 0.25),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.1)
+                : const Color(0xFFD4AF37).withValues(alpha: 0.3),
+            width: 1.1,
           ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF8B5CF6).withValues(alpha: 0.12),
-              ),
-              child: const Icon(
-                Icons.local_shipping_rounded,
-                color: Color(0xFF8B5CF6),
-                size: 16,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Order #${orderId.length > 8 ? orderId.substring(orderId.length - 8) : orderId} • $status",
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: context.onSurfaceColor,
-                    ),
-                  ),
-                  Text(
-                    "Track delivery progress in real time",
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 11,
-                      color: context.onSurfaceColor.withValues(alpha: 0.55),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            InkWell(
-              onTap: () => Get.toNamed(Routes.ORDERS),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                child: Text(
-                  "Track >",
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF8B5CF6),
-                  ),
-                ),
-              ),
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.35)
+                  : const Color(0xFFD4AF37).withValues(alpha: 0.06),
+              blurRadius: 14,
+              offset: const Offset(0, 3),
             ),
           ],
+        ),
+        child: InkWell(
+          onTap: () {
+            if (orderData != null) {
+              Get.toNamed(
+                Routes.ORDER_DETAILS,
+                arguments: {
+                  'order': orderData,
+                  'id': orderData['_id'] ?? orderData['id'],
+                },
+              );
+            } else {
+              Get.toNamed(Routes.ORDERS);
+            }
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top Header: Active Delivery Tag + Order Number + Status Pill
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: statusColor.withValues(alpha: 0.14),
+                          ),
+                          child: Icon(
+                            Icons.local_shipping_outlined,
+                            size: 13,
+                            color: statusColor,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          "Order #$orderNumber",
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.3,
+                            color: context.onSurfaceColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: statusColor.withValues(alpha: 0.4),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: statusColor,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            status,
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: statusColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // Middle: Product Thumbnail + Title + Meta + Track Button
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Product Image Thumbnail
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : const Color(0xFFF9FAFB),
+                        child: firstOrderLine is Map
+                            ? OrderProductImage(
+                                orderLine: firstOrderLine,
+                                width: 50,
+                                height: 50,
+                                radius: 10,
+                                fit: BoxFit.cover,
+                              )
+                            : Icon(
+                                Icons.watch_outlined,
+                                size: 24,
+                                color: context.onSurfaceColor
+                                    .withValues(alpha: 0.4),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+
+                    // Title & Details
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  productName.isNotEmpty
+                                      ? productName
+                                      : 'Order details',
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: context.onSurfaceColor,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (itemCount > 1) ...[
+                                const SizedBox(width: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFD4AF37)
+                                        .withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    '+${itemCount - 1} more',
+                                    style: const TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFFD4AF37),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 3),
+                          Row(
+                            children: [
+                              if (total.isNotEmpty) ...[
+                                Text(
+                                  total,
+                                  style: const TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFFD4AF37),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                              ],
+                              if (orderDate.isNotEmpty)
+                                Text(
+                                  orderDate,
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 11,
+                                    color: context.onSurfaceColor
+                                        .withValues(alpha: 0.5),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Track Action Pill
+                    Container(
+                      margin: const EdgeInsets.only(left: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color:
+                              const Color(0xFFD4AF37).withValues(alpha: 0.35),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "Track",
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFFD4AF37),
+                            ),
+                          ),
+                          SizedBox(width: 2),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            size: 14,
+                            color: Color(0xFFD4AF37),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
       );
     });

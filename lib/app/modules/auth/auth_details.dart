@@ -196,7 +196,10 @@ class AuthDetails with BaseController {
     if (!AuthDetails.isUserLogin()) return null;
 
     try {
-      final response = await BasicProvider('public/customer/profile')
+      // This app's authenticated profile endpoint is the same one used by
+      // ProfileController. The public endpoint is not available on the store
+      // API and responds with a 404 (which was surfacing as a snackbar).
+      final response = await BasicProvider('auth/customer/profile')
           .getRequest()
           .catchError(handleError);
 

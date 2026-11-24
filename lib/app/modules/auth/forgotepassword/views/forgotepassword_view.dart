@@ -30,7 +30,7 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Enter the email address associated with your account and we\'ll send you a reset link.',
+              'Enter the email address associated with your account and we\'ll send you a verification code.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: scheme.onSurface.withValues(alpha: 0.65),
                   ),
@@ -39,6 +39,9 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
             TextField(
               controller: controller.emailController,
               keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.done,
+              autocorrect: false,
+              enableSuggestions: false,
               decoration: InputDecoration(
                 labelText: 'Email',
                 prefixIcon: const Icon(Icons.email_outlined),
@@ -64,7 +67,7 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Send Reset Link'),
+                      : const Text('Send Verification Code'),
                 )),
           ],
         ),
