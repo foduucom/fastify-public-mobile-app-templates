@@ -19,14 +19,14 @@ const appMode = "test";
 // ZOOHI websiteDomain
 //var websiteDomain = "traditional-ecom.vbought.com";
 
-var websiteDomain = "foduu-electronics-store.foduu.store";
+var websiteDomain = "foduu-electro.foduu.store";
 var url = "https://${websiteDomain}/";
 var socketUrl = "https://studio.foduu.store/";
 
 // var ACCESS_KEY = '72a5a13ab02a20737217279980c33374f41554ec60742815';
 
 // ZOOHI ACCESS Key
-var ACCESS_KEY = '05d10194b9290dd506a530a0693b7f551a39a395989c6bb1';
+var ACCESS_KEY = 'd032b30cc2568579807cfca91ea7d85a99e099af2afe00cb';
 
 var assetURL = "${url}images/";
 var apiURL = "${url}api/";
