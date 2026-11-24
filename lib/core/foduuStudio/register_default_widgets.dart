@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/data/models/contact_sections.dart';
 import 'package:foduu_ecommerce/app/modules/contact/controller/contact_controller.dart';
+import 'package:foduu_ecommerce/components/about_components/about_widgets.dart';
 import 'package:foduu_ecommerce/components/blog_components/blog_feed_section.dart';
 import 'package:foduu_ecommerce/components/blog_components/blog_hero_card.dart';
 import 'package:foduu_ecommerce/components/blog_components/blog_search_bar.dart';
@@ -229,6 +230,16 @@ bool _isContactChannels(Map? json) {
   return false;
 }
 
+bool _isContactFaqAccordion(Map? json) {
+  if (json == null) return false;
+  final title = (json['title'] ?? '').toString().toLowerCase();
+  final eyebrow = (json['eyebrow'] ?? '').toString().toLowerCase();
+  return (title.contains('account') ||
+          title.contains('access') ||
+          eyebrow.contains('categories')) &&
+      Get.isRegistered<ContactController>();
+}
+
 void _handleContactCardTap(ContactChannelCard card) async {
   if (card.isEmail) {
     final email = card.text.trim();
@@ -293,6 +304,167 @@ bool _isBlogCategorySection(Map? json) {
   return false;
 }
 
+bool _isAboutHeroSlider(Map? json) {
+  if (json == null) return false;
+  final slider = json['slider'];
+  if (slider is Map) {
+    final slug =
+        (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
+    if (slug == 'about-us' || slug == 'about-us-slider') return true;
+    final content = slider['content'];
+    if (content is List && content.isNotEmpty && content.first is Map) {
+      final first = content.first as Map;
+      final heading = (first['heading'] ?? '').toString().toLowerCase();
+      final sub = (first['sub_heading'] ?? '').toString().toLowerCase();
+      if (heading == 'about us' || sub.contains('upgrade your world')) return true;
+    }
+  }
+  return false;
+}
+
+bool _isAboutStorySlider(Map? json) {
+  if (json == null) return false;
+  final slider = json['slider'];
+  if (slider is Map) {
+    final slug =
+        (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
+    if (slug == 'who-we-are' || slug == 'about-us-second') return true;
+    final content = slider['content'];
+    if (content is List && content.isNotEmpty && content.first is Map) {
+      final first = content.first as Map;
+      final heading = (first['heading'] ?? '').toString().toLowerCase();
+      final sub = (first['sub_heading'] ?? '').toString().toLowerCase();
+      if (heading == 'who we are' || sub.contains('home sound')) return true;
+    }
+  }
+  return false;
+}
+
+bool _isAboutBrandsSlider(Map? json) {
+  if (json == null) return false;
+  final slider = json['slider'];
+  if (slider is Map) {
+    final slug =
+        (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
+    if (slug == 'brand_slider' || slug == 'about-brands') return true;
+    final content = slider['content'];
+    if (content is List && content.isNotEmpty && content.first is Map) {
+      final first = content.first as Map;
+      final heading = (first['heading'] ?? '').toString().toLowerCase();
+      if (heading.contains('400 brands') || heading.contains('assortment')) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool _isAboutBottomCtaSlider(Map? json) {
+  if (json == null) return false;
+  final slider = json['slider'];
+  if (slider is Map) {
+    final slug =
+        (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
+    if (slug.contains('fourth-bottom') ||
+        slug.contains('coa') ||
+        slug.contains('bottom-cta')) {
+      return true;
+    }
+    final content = slider['content'];
+    if (content is List && content.isNotEmpty && content.first is Map) {
+      final first = content.first as Map;
+      final sub = (first['sub_heading'] ?? '').toString().toLowerCase();
+      if (sub.contains('redefine your acoustics') ||
+          sub.contains('elevate your soundscape')) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool _isAboutStats(Map? json) {
+  if (json == null) return false;
+  final eyebrow = (json['eyebrow'] ?? '').toString().toLowerCase();
+  final title = (json['title'] ?? '').toString().toLowerCase();
+  if (eyebrow.contains('footprint') || title.contains('footprint')) return true;
+  final cards = json['cards'] ?? json['items'];
+  if (cards is List && cards.isNotEmpty) {
+    final has120k = cards
+        .any((c) => c is Map && (c['heading'] ?? '').toString().contains('120k'));
+    if (has120k) return true;
+  }
+  return false;
+}
+
+bool _isAboutPhilosophy(Map? json) {
+  if (json == null) return false;
+  final eyebrow = (json['eyebrow'] ?? '').toString().toLowerCase();
+  final title = (json['title'] ?? '').toString().toLowerCase();
+  if (eyebrow.contains('philosophy') || title.contains('guiding principles')) {
+    return true;
+  }
+  final cards = json['cards'] ?? json['items'];
+  if (cards is List && cards.isNotEmpty) {
+    final hasPurity = cards.any((c) =>
+        c is Map &&
+        (c['title'] ?? c['heading'] ?? '')
+            .toString()
+            .toLowerCase()
+            .contains('acoustic purity'));
+    if (hasPurity) return true;
+  }
+  return false;
+}
+
+bool _isAboutWhyChoose(Map? json) {
+  if (json == null) return false;
+  final eyebrow = (json['eyebrow'] ?? '').toString().toLowerCase();
+  final title = (json['title'] ?? '').toString().toLowerCase();
+  if (eyebrow.contains('why choose') || title.contains('sound you can rely on')) {
+    return true;
+  }
+  final cards = json['cards'] ?? json['items'];
+  if (cards is List && cards.isNotEmpty) {
+    final hasRapid = cards.any((c) =>
+        c is Map &&
+        (c['title'] ?? c['heading'] ?? '')
+            .toString()
+            .toLowerCase()
+            .contains('rapid delivery'));
+    if (hasRapid) return true;
+  }
+  return false;
+}
+
+bool _isAboutConsultationBanner(Map? json) {
+  if (json == null) return false;
+  final heading = (json['heading'] ?? '').toString().toLowerCase();
+  final sub = (json['sub_heading'] ?? '').toString().toLowerCase();
+  final slug = (json['slug'] ?? '').toString().toLowerCase();
+  if (slug == 'consultation' ||
+      heading.contains('assistance') ||
+      heading.contains('consultation') ||
+      sub.contains('consultation')) {
+    return true;
+  }
+  return false;
+}
+
+bool _isAboutBottomCtaBanner(Map? json) {
+  if (json == null) return false;
+  final heading = (json['heading'] ?? '').toString().toLowerCase();
+  final sub = (json['sub_heading'] ?? '').toString().toLowerCase();
+  final slug = (json['slug'] ?? '').toString().toLowerCase();
+  if (slug == 'bottom-cta' ||
+      heading.contains('soundscape') ||
+      sub.contains('soundscape') ||
+      heading.contains('redefine your acoustics')) {
+    return true;
+  }
+  return false;
+}
+
 /// Register all default section widget builders.
 ///
 /// Call this once in `main()` before `runApp(...)`.
@@ -328,6 +500,22 @@ void registerDefaultWidgets() {
   // ─── Slider / Carousel ──────────────────────────────────────
   r.register('slider', (json) {
     if (json is Map<String, dynamic>) {
+      // About Us Hero Header
+      if (_isAboutHeroSlider(json)) {
+        return AboutHeroBannerWidget.fromMap(json);
+      }
+      // About Us K7 Audio Engineering Story Card
+      if (_isAboutStorySlider(json)) {
+        return AboutStorySectionWidget.fromMap(json);
+      }
+      // About Us Brands Showcase Grid
+      if (_isAboutBrandsSlider(json)) {
+        return AboutBrandsSectionWidget.fromMap(json);
+      }
+      // About Us Bottom CTA
+      if (_isAboutBottomCtaSlider(json)) {
+        return AboutBottomCtaWidget.fromMap(json);
+      }
       // Blog Hero Header
       if (_isBlogHeroSlider(json)) {
         return BlogHeroCard.fromMap(json);
@@ -364,6 +552,14 @@ void registerDefaultWidgets() {
 
   // ─── Categories ─────────────────────────────────────────────
   r.register('categories', (json) {
+    if (json is Map<String, dynamic>) {
+      final parentType = json['parent_type']?.toString().toLowerCase();
+      final title = (json['title'] ?? '').toString().toLowerCase();
+      // If categories section on About Us (title Shop By Category)
+      if (title.contains('shop by category') || parentType == 'product') {
+        return AboutCategoriesRailWidget.fromMap(json);
+      }
+    }
     return CategoryHome(categoryData: json ?? {});
   });
 
@@ -378,6 +574,14 @@ void registerDefaultWidgets() {
   // ─── Banner ─────────────────────────────────────────────────
   r.register('banner', (json) {
     if (json != null) {
+      if (json is Map<String, dynamic>) {
+        if (_isAboutConsultationBanner(json)) {
+          return AboutConsultationSectionWidget.fromMap(json);
+        }
+        if (_isAboutBottomCtaBanner(json)) {
+          return AboutBottomCtaWidget.fromMap(json);
+        }
+      }
       return HomeBanner(bannerContent: json);
     }
     return const SizedBox.shrink();
@@ -417,10 +621,6 @@ void registerDefaultWidgets() {
     return FlashSaleCountdownCard(sliderData: json is Map<String, dynamic> ? json : {});
   });
 
-  // r.register('icon_button', (json) {
-  //   return IconButtonComponent(contentJson: json ?? {});
-  // });
-
   // ─── Trust Badges / Testimonials ────────────────────────────
   r.register('trust_badges', (json) {
     if (json is Map<String, dynamic>) {
@@ -430,14 +630,59 @@ void registerDefaultWidgets() {
           onCardTap: _handleContactCardTap,
         );
       }
+      if (_isContactFaqAccordion(json)) {
+        final ctrl = Get.isRegistered<ContactController>()
+            ? Get.find<ContactController>()
+            : Get.put(ContactController());
+        return ContactFaqAccordionWidget(
+          data: ContactFaqSectionData.fromContentJson(json),
+          controller: ctrl,
+        );
+      }
       if (_isFaqAccordion(json)) {
         return FaqAccordionSection.fromMap(json);
       }
       if (_isFaqTopicBadges(json)) {
         return FaqTopicBadges.fromMap(json);
       }
+      // About Us Stats Grid
+      if (_isAboutStats(json)) {
+        return AboutStatsSectionWidget.fromMap(json);
+      }
+      // About Us Philosophy
+      if (_isAboutPhilosophy(json)) {
+        return AboutPhilosophySectionWidget.fromMap(json);
+      }
+      // About Us Why Choose Us
+      if (_isAboutWhyChoose(json)) {
+        return AboutWhyChooseWidget.fromMap(json);
+      }
     }
     return TrustBadgesComponent(contentJson: json ?? {});
+  });
+
+  // ─── Team Members ───────────────────────────────────────────
+  r.register('team_members', (json) {
+    if (json is Map<String, dynamic>) {
+      return AboutTeamSectionWidget.fromMap(json);
+    }
+    return const SizedBox.shrink();
+  });
+
+  // ─── FAQ ────────────────────────────────────────────────────
+  r.register('faq', (json) {
+    if (json is Map<String, dynamic>) {
+      final items = json['items'] ??
+          (json['content_json'] is Map ? json['content_json']['items'] : null);
+      if (items is List &&
+          items.isNotEmpty &&
+          items.first is Map &&
+          (items.first['question'] != null || items.first['answer'] != null)) {
+        return AboutFaqSectionWidget.fromMap(json);
+      }
+      return FaqAccordionSection.fromMap(json);
+    }
+    return const SizedBox.shrink();
   });
 
   // ─── Form Builder ───────────────────────────────────────────

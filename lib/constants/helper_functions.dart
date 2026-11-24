@@ -10,8 +10,22 @@ import '/constants/constants.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HelperFunctions {
+  Future<void> openUrl(String value) async {
+    final uri = Uri.tryParse(value);
+    if (uri == null || !await canLaunchUrl(uri)) {
+      showSnackBarError('Could not open $value');
+      return;
+    }
+
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!launched) {
+      showSnackBarError('Could not open $value');
+    }
+  }
+
   static double parseAmount(dynamic value) {
     if (value == null) return 0.0;
     if (value is num) return value.toDouble();

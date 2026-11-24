@@ -9,7 +9,6 @@ class BlogView extends GetView<BlogController> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(BlogController());
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 

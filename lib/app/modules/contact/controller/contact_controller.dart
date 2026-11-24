@@ -24,6 +24,128 @@ class ContactController extends GetxController
   static const _cacheKey = 'cms_page_contact_sections';
   static const _schemaCacheKey = 'cms_form_schema_contact';
 
+  static final List<Map<String, dynamic>> defaultCanonicalContactSections = [
+    {
+      "id": "slider",
+      "type": "slider",
+      "content_json": {
+        "height": 200,
+        "slider": {
+          "name": "contact-us-slider",
+          "slug": "contact-us-slider",
+          "content": [
+            {
+              "heading": "Contact Us",
+              "sub_heading": "Get In Touch",
+              "description":
+                  "Need assistance with an appliance order, smart setup, or hardware warranty? Reach out.",
+              "filePath": "2026/11/17/appliance-lineup-f27d481f.webp"
+            }
+          ]
+        }
+      },
+      "visible": true
+    },
+    {
+      "id": "formbuilder",
+      "type": "formbuilder",
+      "content_json": {
+        "name": "contact",
+        "slug": "contact",
+        "title": "Send a Message",
+        "description":
+            "Fill out the form below and our engineering team will get back to you within 24 hours."
+      },
+      "visible": true
+    },
+    {
+      "id": "trust_badges",
+      "type": "trust_badges",
+      "content_json": {
+        "title": "Contact Channels",
+        "no_of_columns": 2,
+        "cards": [
+          {
+            "heading": "Direct Phone Support",
+            "text": "+1 (800) 592-3829",
+            "footer": "Mon–Fri, 9am–8pm EST",
+            "image": "2026/11/17/phone-icon.svg"
+          },
+          {
+            "heading": "Technical Support",
+            "text": "support@foduuelectronics.com",
+            "footer": "Average response: 4 hours",
+            "image": "2026/11/17/email-icon.svg"
+          },
+          {
+            "heading": "Experience Store",
+            "text": "742 Evergreen Terrace, CA",
+            "footer": "Open Daily: 10am–9pm",
+            "image": "2026/11/17/store-icon.svg"
+          },
+          {
+            "heading": "Live Chat Help",
+            "text": "Available in App",
+            "footer": "Instant response",
+            "image": "2026/11/17/chat-icon.svg"
+          }
+        ]
+      },
+      "visible": true
+    },
+    {
+      "id": "trust_badges",
+      "type": "trust_badges",
+      "content_json": {
+        "eyebrow": "Categories",
+        "title": "Account & Access",
+        "no_of_columns": 1,
+        "cards": [
+          {
+            "heading": "How do I track my order in real-time?",
+            "text":
+                "Once your order ships, you will receive an SMS and email notification with an active tracking link.",
+            "footer": ""
+          },
+          {
+            "heading": "What is your return and warranty policy?",
+            "text":
+                "We offer a 30-day hassle-free return window and a minimum 2-year warranty on all certified electronics.",
+            "footer": ""
+          },
+          {
+            "heading": "Do you provide international shipping?",
+            "text":
+                "Yes, we ship to over 85 countries worldwide with duties prepaid at checkout.",
+            "footer": ""
+          }
+        ]
+      },
+      "visible": true
+    },
+    {
+      "id": "slider",
+      "type": "slider",
+      "content_json": {
+        "height": 200,
+        "slider": {
+          "name": "faq-center-slider",
+          "slug": "faq-center-slider",
+          "content": [
+            {
+              "heading": "Still Stuck?",
+              "sub_heading": "Can't find what you're looking for?",
+              "description":
+                  "Search our comprehensive knowledge base or create a ticket for dedicated 1-on-1 assistance.",
+              "filePath": "2026/11/17/cta-gear-9f7e301e.svg"
+            }
+          ]
+        }
+      },
+      "visible": true
+    }
+  ];
+
   // Server-driven sections state
   final rawSections = <dynamic>[].obs;
   final sectionsData = ContactBroadcastSectionsData.canonical().obs;
@@ -110,8 +232,12 @@ class ContactController extends GetxController
         rawSections.assignAll(cachedSections);
         sectionsData.value =
             ContactBroadcastSectionsData.fromSections(cachedSections);
+        buildLayout(cachedSections);
+        return;
       }
     } catch (_) {}
+
+    buildLayout(defaultCanonicalContactSections);
   }
 
   void _loadCachedFormSchema() {
