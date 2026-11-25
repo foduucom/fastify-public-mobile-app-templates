@@ -21,15 +21,13 @@ class ContactView extends GetView<ContactController> {
       ),
       body: GestureDetector(
         onTap: () => HelperFunctions().closeKeyboard(context),
-        child: Obx(() {
-          return FoduuStudioLayoutView(
-            widgetList: controller.widgetList,
-            isLoading: controller.isLayoutLoading,
-            hasError: controller.hasError,
-            errorMessage: controller.errorMessage,
-            onRefresh: controller.fetchContactLayout,
-          );
-        }),
+        child: FoduuStudioLayoutView(
+          widgetList: controller.widgetList,
+          isLoading: controller.isLayoutLoading,
+          hasError: controller.hasError,
+          errorMessage: controller.errorMessage,
+          onRefresh: controller.fetchContactLayout,
+        ),
       ),
     );
   }

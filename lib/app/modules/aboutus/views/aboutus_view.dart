@@ -45,15 +45,13 @@ class AboutusView extends GetView<AboutusController> {
           const SizedBox(width: 4),
         ],
       ),
-      body: Obx(() {
-        return FoduuStudioLayoutView(
-          widgetList: controller.widgetList,
-          isLoading: controller.isLayoutLoading,
-          hasError: controller.hasError,
-          errorMessage: controller.errorMessage,
-          onRefresh: controller.fetchAboutUs,
-        );
-      }),
+      body: FoduuStudioLayoutView(
+        widgetList: controller.widgetList,
+        isLoading: controller.isLayoutLoading,
+        hasError: controller.hasError,
+        errorMessage: controller.errorMessage,
+        onRefresh: controller.fetchAboutUs,
+      ),
     );
   }
 }

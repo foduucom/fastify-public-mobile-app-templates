@@ -13,7 +13,7 @@ class ResponsiveCommonHeader extends StatelessWidget {
   final VoidCallback? onSearchTap;
   final VoidCallback? onCartTap;
   final VoidCallback? onMessageTap;
-  final VoidCallback? onNotificationTap;
+  //final VoidCallback? onNotificationTap;
   final double width;
   final double height;
 
@@ -24,7 +24,7 @@ class ResponsiveCommonHeader extends StatelessWidget {
     this.onSearchTap,
     this.onCartTap,
     this.onMessageTap,
-    this.onNotificationTap,
+    //this.onNotificationTap,
   }) : super(key: key);
 
   @override
@@ -116,14 +116,14 @@ class ResponsiveCommonHeader extends StatelessWidget {
                 ),
 
               /// 🔔 Notification Icon
-              ResponsiveCircleIcon(
-                icon: Icons.notifications_none_rounded,
-                height: height,
-                width: width,
-                onTap: onNotificationTap ??
-                    () => Get.toNamed(Routes.NOTIFICATION),
-                showDot: false,
-              ),
+              // ResponsiveCircleIcon(
+              //   icon: Icons.notifications_none_rounded,
+              //   height: height,
+              //   width: width,
+              //   // onTap: onNotificationTap ??
+              //   //     () => Get.toNamed(Routes.NOTIFICATION),
+              //   showDot: false,
+              // ),
 
               const SizedBox(width: 8),
 

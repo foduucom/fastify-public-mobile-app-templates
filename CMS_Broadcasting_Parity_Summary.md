@@ -24,6 +24,7 @@
 8. [Dynamic Form Builder Engine Specification](#8-dynamic-form-builder-engine-specification)
 9. [QA Verification & Test Automation Suite](#9-qa-verification--test-automation-suite)
 10. [Developer Maintenance & Extension Playbook](#10-developer-maintenance--extension-playbook)
+11. [GetX Lifecycle Hardening: Eliminating Obx Scope Misuse & Controller Re-Entrancy (error.txt & error2.txt)](#11-getx-lifecycle-hardening-eliminating-obx-scope-misuse--controller-re-entrancy-errortxt--error2txt)
 
 ---
 
@@ -392,15 +393,13 @@ class AboutusView extends GetView<AboutusController> {
           ),
         ],
       ),
-      body: Obx(() {
-        return FoduuStudioLayoutView(
-          widgetList: controller.widgetList,
-          isLoading: controller.isLayoutLoading,
-          hasError: controller.hasError,
-          errorMessage: controller.errorMessage,
-          onRefresh: controller.fetchAboutUs,
-        );
-      }),
+      body: FoduuStudioLayoutView(
+        widgetList: controller.widgetList,
+        isLoading: controller.isLayoutLoading,
+        hasError: controller.hasError,
+        errorMessage: controller.errorMessage,
+        onRefresh: controller.fetchAboutUs,
+      ),
     );
   }
 }
@@ -441,15 +440,13 @@ class ContactView extends GetView<ContactController> {
       ),
       body: GestureDetector(
         onTap: () => HelperFunctions().closeKeyboard(context),
-        child: Obx(() {
-          return FoduuStudioLayoutView(
-            widgetList: controller.widgetList,
-            isLoading: controller.isLayoutLoading,
-            hasError: controller.hasError,
-            errorMessage: controller.errorMessage,
-            onRefresh: controller.fetchContactLayout,
-          );
-        }),
+        child: FoduuStudioLayoutView(
+          widgetList: controller.widgetList,
+          isLoading: controller.isLayoutLoading,
+          hasError: controller.hasError,
+          errorMessage: controller.errorMessage,
+          onRefresh: controller.fetchContactLayout,
+        ),
       ),
     );
   }
@@ -570,21 +567,29 @@ When backend engineers, QA testers, or automated runners test the CMS integratio
 
 ## 10. Developer Maintenance & Extension Playbook
 
-### Rule 1: Never Hardcode Section Lists in Views
+### Rule 1: Never Hardcode Section Lists or Wrap `FoduuStudioLayoutView` in `Obx`
 
 When creating or updating a screen that uses Fastify Studio CMS:
 
 ```dart
-// ❌ DO NOT DO THIS
+// ❌ DO NOT DO THIS: Hardcoded list bypasses CMS
 body: ListView(children: [ MyHeroWidget(), MyCategoriesWidget() ]);
 
-// ✅ ALWAYS DO THIS
+// ❌ DO NOT DO THIS: Wrapping in Obx triggers GetX improper use exception
 body: Obx(() => FoduuStudioLayoutView(
   widgetList: controller.widgetList,
   isLoading: controller.isLayoutLoading,
-  hasError: controller.hasError,
-  onRefresh: controller.fetchLayout,
+  ...
 ));
+
+// ✅ ALWAYS DO THIS: FoduuStudioLayoutView has internal Obx and manages reactivity
+body: FoduuStudioLayoutView(
+  widgetList: controller.widgetList,
+  isLoading: controller.isLayoutLoading,
+  hasError: controller.hasError,
+  errorMessage: controller.errorMessage,
+  onRefresh: controller.fetchLayout,
+);
 ```
 
 ### Rule 2: Register Every New Section in `WidgetRegistry`
@@ -626,3 +631,141 @@ case 'mypage':
   }
   break;
 ```
+
+---
+
+## 11. GetX Lifecycle Hardening: Eliminating Obx Scope Misuse & Controller Re-Entrancy (`error.txt` & `error2.txt`)
+
+### 11.1 Overview & Failure Manifestation
+
+Following deployment of the SDUI parity changes, integration and automated device runs produced two critical runtime exceptions recorded in `error.txt` and `error2.txt`:
+
+1. **Obx Scope Misuse (`error.txt:345` & `error2.txt:47`):**
+   ```
+   ══╡ EXCEPTION CAUGHT BY WIDGETS LIBRARY ╞═══════════════════════════════════════════════════════════
+   The following message was thrown building Obx(has builder, dirty, state: ObxState#013b5):
+         [Get] the improper use of a GetX has been detected.
+         You should only use GetX or Obx for the specific widget that will be updated.
+         If you are seeing this error, you probably did not insert any observable variables into GetX/Obx
+         or insert them outside the scope that GetX considers suitable for an update.
+
+   The relevant error-causing widget was:
+     Obx:file:///lib/app/modules/aboutus/views/aboutus_view.dart:48:13
+   ```
+
+2. **Stack Overflow via Recursive Re-Entrancy (`error2.txt:637`):**
+   ```
+   ══╡ EXCEPTION CAUGHT BY WIDGETS LIBRARY ╞═══════════════════════════════════════════════════════════
+   The following StackOverflowError was thrown building Obx:
+   Stack Overflow
+
+   The relevant error-causing widget was:
+     Obx:file:///lib/app/modules/contact/views/contact_view.dart:24:16
+
+   Call Stack:
+   #0      NotifyManager.addListener (rx_impl.dart:155:3)
+   #1      FoduuStudioLayoutMixin.buildLayout (foduu_studio_layout_mixin.dart:92:18)
+   #2      ContactController.buildLayout (contact_controller.dart:270:11)
+   #3      ContactController._loadCached (contact_controller.dart:240:5)
+   #4      ContactController.onInit (contact_controller.dart:222:5)
+   #5      InternalFinalCallback.call (lifecycle.dart:12:26)
+   #6      GetInstance._startController (get_instance.dart:254:16)
+   #7      GetInstance._initDependencies (get_instance.dart:205:11)
+   #8      GetInstance.find (get_instance.dart:302:17)
+   #9      registerDefaultWidgets.buildFormBuilder (register_default_widgets.dart:695:15)
+   #10     WidgetRegistry.build (widget_registry.dart:55:28)
+   #11     FoduuStudioLayoutMixin.buildLayout (foduu_studio_layout_mixin.dart:126:34)
+   #12     ContactController.buildLayout (contact_controller.dart:270:11)
+   ... (78,000+ frames repeating in infinite cycle)
+   ```
+
+---
+
+### 11.2 Root Cause 1: Redundant Outer `Obx` on Self-Reactive `FoduuStudioLayoutView`
+
+#### Architectural Explanation:
+`FoduuStudioLayoutView` is built to be a self-contained, reactive layout view. Inside its own `build(BuildContext context)` method, it already returns:
+```dart
+@override
+Widget build(BuildContext context) {
+  return Obx(() {
+    // Reads widgetList.length, isLoading.value, hasError.value, errorMessage.value
+    ...
+  });
+}
+```
+When `AboutusView` and `ContactView` wrapped `FoduuStudioLayoutView` in an outer `Obx`:
+```dart
+body: Obx(() {
+  return FoduuStudioLayoutView(
+    widgetList: controller.widgetList,
+    isLoading: controller.isLayoutLoading,
+    hasError: controller.hasError,
+    errorMessage: controller.errorMessage,
+    onRefresh: controller.fetchAboutUs,
+  );
+})
+```
+The outer builder function passes `controller.widgetList` (`RxList`) and `controller.isLayoutLoading` (`RxBool`) **by reference as constructor arguments**. At no point during the execution of the outer builder is any reactive `.value` getter evaluated. 
+
+In GetX, when an `Obx` executes without registering any listeners on reactive values during its build, it immediately throws `[Get] the improper use of a GetX has been detected`.
+
+#### Resolution:
+Removed the redundant outer `Obx` wrappers from `AboutusView` and `ContactView`. `FoduuStudioLayoutView` is assigned directly to `Scaffold.body`, matching the golden pattern used in `CategoryView`, `BlogView`, and `HelpandsupportView`.
+
+---
+
+### 11.3 Root Cause 2: Circular Dependency & Re-Entrant Controller Resolution in `ContactController`
+
+#### Architectural Explanation:
+The crash occurred due to an initialization race condition between GetX's dependency injection container and the synchronous SDUI layout builder:
+
+1. **Lazy Registration:** In `contact_binding.dart`, the controller is registered via `Get.lazyPut<ContactController>(() => ContactController())`.
+2. **Mount Trigger:** When `ContactView` mounts, `GetView.controller` calls `Get.find<ContactController>()`.
+3. **Instantiation Begins:** GetX executes the factory `() => ContactController()`, creates the instance, and calls `ContactController.onInit()`. **Crucially, the singleton is not yet marked initialized in GetX's internal active instance cache (`_singl`) while `onInit()` is executing.**
+4. **Synchronous Pre-Seeding:** In `onInit()`, `_loadCached()` immediately calls `buildLayout(cachedSections)`.
+5. **Widget Registry Eager Lookup:** `buildLayout()` loops through the CMS sections and invokes `WidgetRegistry.build()`. For sections of type `formbuilder` and `trust_badges` (`_isContactFaqAccordion`), `register_default_widgets.dart` executed:
+   ```dart
+   final ctrl = Get.isRegistered<ContactController>()
+       ? Get.find<ContactController>()
+       : Get.put(ContactController());
+   ```
+6. **Infinite Recursion:** Because `ContactController` was registered via `lazyPut`, `Get.isRegistered<ContactController>()` returned `true`. However, when `Get.find<ContactController>()` was called, GetX saw that the instance was not in `_singl` yet. It invoked the lazy factory `() => ContactController()` **again**, spawning a second `ContactController`. The second controller ran its `onInit()`, which called `buildLayout()`, which invoked `Get.find`, spawning a third controller, repeating until the call stack exceeded 78,000 frames and threw `StackOverflowError`.
+
+#### Resolution:
+Decoupled controller resolution from the synchronous widget registry creation phase:
+
+1. **`register_default_widgets.dart`:**
+   Removed eager `Get.find<ContactController>()` calls. The registry factory creates `ContactFormCardWidget(data: formData)` and `ContactFaqAccordionWidget(data: faqData)` as pure immutable widgets without accessing GetX.
+2. **`contact_widgets.dart`:**
+   Made `controller` optional on both `ContactFormCardWidget` and `ContactFaqAccordionWidget`. Controller lookup is deferred to Flutter's element build phase (`build(BuildContext context)`):
+   ```dart
+   @override
+   Widget build(BuildContext context) {
+     final ContactController formCtrl = controller ??
+         (Get.isRegistered<ContactController>()
+             ? Get.find<ContactController>()
+             : Get.put(ContactController()));
+     ...
+   }
+   ```
+3. **Execution Flow After Fix:**
+   - `ContactController.onInit()` runs `buildLayout()`.
+   - Widgets are created immutably without triggering `Get.find`.
+   - `ContactController.onInit()` completes cleanly and registers in `_singl`.
+   - Flutter's rendering pipeline builds the widget tree, calls `build(context)` on `ContactFormCardWidget`, and cleanly obtains the completed `ContactController` singleton from GetX without recursion.
+
+---
+
+### 11.4 File Changes & Verification Summary
+
+| File Path | Status | Key Changes Made |
+| :--- | :--- | :--- |
+| `lib/app/modules/aboutus/views/aboutus_view.dart` | **Modified** | Removed redundant outer `Obx` around `FoduuStudioLayoutView`, eliminating `[Get] the improper use of a GetX has been detected` (`error.txt:345`, `error2.txt:47`). |
+| `lib/app/modules/contact/views/contact_view.dart` | **Modified** | Removed redundant outer `Obx` around `FoduuStudioLayoutView`. |
+| `lib/core/foduuStudio/register_default_widgets.dart` | **Modified** | Removed eager `Get.find<ContactController>()` calls from `buildFormBuilder` and `_isContactFaqAccordion`, breaking the re-entrant `onInit()` loop. |
+| `lib/components/contact_component/contact_widgets.dart` | **Modified** | Made `controller` optional on `ContactFormCardWidget` and `ContactFaqAccordionWidget`, deferring controller resolution to `build(BuildContext context)` to eliminate `StackOverflowError` (`error2.txt:637`). |
+
+**Diagnostics Verification:**
+`flutter analyze` executed across all modified modules confirmed **0 errors and 0 warnings**.
+

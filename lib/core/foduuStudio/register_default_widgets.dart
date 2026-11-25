@@ -631,12 +631,8 @@ void registerDefaultWidgets() {
         );
       }
       if (_isContactFaqAccordion(json)) {
-        final ctrl = Get.isRegistered<ContactController>()
-            ? Get.find<ContactController>()
-            : Get.put(ContactController());
         return ContactFaqAccordionWidget(
           data: ContactFaqSectionData.fromContentJson(json),
-          controller: ctrl,
         );
       }
       if (_isFaqAccordion(json)) {
@@ -691,10 +687,7 @@ void registerDefaultWidgets() {
         ? json
         : (json is Map ? Map<String, dynamic>.from(json) : <String, dynamic>{});
     final formData = ContactFormBuilderData.fromContentJson(contentJson);
-    final ctrl = Get.isRegistered<ContactController>()
-        ? Get.find<ContactController>()
-        : Get.put(ContactController());
-    return ContactFormCardWidget(data: formData, controller: ctrl);
+    return ContactFormCardWidget(data: formData);
   }
 
   r.register('formbuilder', buildFormBuilder);

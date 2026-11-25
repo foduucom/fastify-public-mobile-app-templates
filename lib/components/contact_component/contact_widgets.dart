@@ -9,6 +9,14 @@ import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
+ContactController _resolveContactController(ContactController? controller) {
+  if (controller != null) return controller;
+  if (Get.isRegistered<ContactController>()) {
+    return Get.find<ContactController>();
+  }
+  return Get.put(ContactController());
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Section 1: Hero Header Banner Widget
 // ─────────────────────────────────────────────────────────────────────────────
@@ -127,11 +135,11 @@ class ContactFormCardWidget extends StatelessWidget {
   const ContactFormCardWidget({
     Key? key,
     required this.data,
-    required this.controller,
+    this.controller,
   }) : super(key: key);
 
   final ContactFormBuilderData data;
-  final ContactController controller;
+  final ContactController? controller;
 
   IconData _iconForField(String name, String type) {
     final lowerName = name.toLowerCase();
@@ -171,6 +179,7 @@ class ContactFormCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final formCtrl = _resolveContactController(controller);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
@@ -192,7 +201,7 @@ class ContactFormCardWidget extends StatelessWidget {
           ],
         ),
         child: Form(
-          key: controller.formKey,
+          key: formCtrl.formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -228,11 +237,11 @@ class ContactFormCardWidget extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               Obx(() {
-                final fields = controller.formFields;
+                final fields = formCtrl.formFields;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: fields.map((field) {
-                    final ctrl = controller.controllerForField(field);
+                    final ctrl = formCtrl.controllerForField(field);
                     final isEmail = field.type == 'email' ||
                         field.name.toLowerCase().contains('email');
                     final isTel = field.type == 'tel' ||
@@ -400,9 +409,9 @@ class ContactFormCardWidget extends StatelessWidget {
                         height: 24,
                         width: 24,
                         child: Checkbox(
-                          value: controller.agreePolicy.value,
+                          value: formCtrl.agreePolicy.value,
                           onChanged: (val) {
-                            controller.agreePolicy.value = val ?? false;
+                            formCtrl.agreePolicy.value = val ?? false;
                           },
                           activeColor: context.primaryColor,
                           shape: RoundedRectangleBorder(
@@ -414,7 +423,7 @@ class ContactFormCardWidget extends StatelessWidget {
                       Expanded(
                         child: GestureDetector(
                           onTap: () {
-                            controller.agreePolicy.toggle();
+                            formCtrl.agreePolicy.toggle();
                           },
                           child: RichText(
                             text: TextSpan(
@@ -451,7 +460,7 @@ class ContactFormCardWidget extends StatelessWidget {
                   )),
               const SizedBox(height: 22),
               // Submit Button
-              Obx(() => controller.isSubmitting.value
+              Obx(() => formCtrl.isSubmitting.value
                   ? Center(child: HelperFunctions().loadingIndicator())
                   : SizedBox(
                       width: double.infinity,
@@ -468,7 +477,7 @@ class ContactFormCardWidget extends StatelessWidget {
                         ),
                         onPressed: () {
                           HelperFunctions().closeKeyboard(context);
-                          controller.sendFormData();
+                          formCtrl.sendFormData();
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: context.primaryColor,
@@ -684,14 +693,16 @@ class ContactFaqAccordionWidget extends StatelessWidget {
   const ContactFaqAccordionWidget({
     Key? key,
     required this.data,
-    required this.controller,
+    this.controller,
   }) : super(key: key);
 
   final ContactFaqSectionData data;
-  final ContactController controller;
+  final ContactController? controller;
 
   @override
   Widget build(BuildContext context) {
+    final faqCtrl = _resolveContactController(controller);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: Column(
@@ -732,7 +743,7 @@ class ContactFaqAccordionWidget extends StatelessWidget {
             _FaqAccordionTile(
               index: i,
               item: data.items[i],
-              controller: controller,
+              controller: faqCtrl,
             ),
         ],
       ),

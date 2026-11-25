@@ -51,7 +51,7 @@ class BottombarView extends GetView<BottombarController> {
                     onCartTap: () => controller.onTabChange(cartTabIndex),
                     onMessageTap: () =>
                         Scaffold.of(scaffoldContext).openDrawer(),
-                    onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),
+                    //onNotificationTap: () => Get.toNamed(Routes.NOTIFICATION),
                   );
                 }
                 // Hide common header for Shop (1), Wishlist (2), Cart (3), Account (4)
