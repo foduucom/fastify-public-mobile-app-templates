@@ -15,8 +15,8 @@ class ProductHelper {
           ? numVal.toInt().toString()
           : numVal.toStringAsFixed(2);
       if (s.startsWith('\$')) return '\$$formatted';
-      if (s.startsWith('₹')) return '₹$formatted';
-      return '₹$formatted';
+      if (s.startsWith('₹')) return '\$$formatted';
+      return '\$$formatted';
     }
     return s;
   }
@@ -290,7 +290,7 @@ class ProductHelper {
     ColorScheme colorScheme,
   ) {
     return Text(
-      '₹${priceInfo['lowestPrice']} - ₹${priceInfo['highestPrice']}',
+      '\$${priceInfo['lowestPrice']} - \$${priceInfo['highestPrice']}',
       style: textTheme.bodyMedium!.copyWith(
         fontWeight: FontWeight.w600,
         color: colorScheme.primary,
@@ -305,7 +305,7 @@ class ProductHelper {
   ) {
     return RichText(
       text: TextSpan(
-        text: '₹${priceInfo['productPrice']}',
+        text: '\$${priceInfo['productPrice']}',
         style: textTheme.bodyMedium!.copyWith(
           fontWeight: FontWeight.w600,
           color: colorScheme.primary,
@@ -314,7 +314,7 @@ class ProductHelper {
           if (priceInfo['discountRate'].isNotEmpty) ...[
             const TextSpan(text: '  '),
             TextSpan(
-              text: '₹${priceInfo['discountPrice']}',
+              text: '\$${priceInfo['discountPrice']}',
               style: textTheme.bodySmall!.copyWith(
                 decoration: TextDecoration.lineThrough,
                 color: colorScheme.onSurfaceVariant,
@@ -359,7 +359,7 @@ class ProductHelper {
               }
               return Icon(
                 icon,
-                color: const Color(0xFFFFBA49),
+                color: colorScheme.secondary,
                 size: starSize,
               );
             }),

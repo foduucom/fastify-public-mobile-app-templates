@@ -157,6 +157,7 @@ class _HeroFlashDealBannerState extends State<HeroFlashDealBanner> {
       }
     }
 
+    final colorScheme = Theme.of(context).colorScheme;
     final days = _remaining.inDays.toString().padLeft(2, '0');
     final hours = (_remaining.inHours % 24).toString().padLeft(2, '0');
     final minutes = (_remaining.inMinutes % 60).toString().padLeft(2, '0');
@@ -167,7 +168,7 @@ class _HeroFlashDealBannerState extends State<HeroFlashDealBanner> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
-          color: const Color(0xFF0F0E13),
+          color: colorScheme.surface,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.40),
@@ -210,7 +211,7 @@ class _HeroFlashDealBannerState extends State<HeroFlashDealBanner> {
                 ),
               ),
 
-              // Ambient warm orange glow matching website banner
+              // Ambient glow
               Positioned(
                 left: -20,
                 top: -20,
@@ -221,7 +222,7 @@ class _HeroFlashDealBannerState extends State<HeroFlashDealBanner> {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        const Color(0xFFD95B14).withOpacity(0.35),
+                        colorScheme.secondary.withOpacity(0.35),
                         Colors.transparent,
                       ],
                     ),
@@ -229,7 +230,7 @@ class _HeroFlashDealBannerState extends State<HeroFlashDealBanner> {
                 ),
               ),
 
-              // 3. Content Layout (Matching Image 4)
+              // 3. Content Layout
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
                 child: Column(
@@ -245,10 +246,10 @@ class _HeroFlashDealBannerState extends State<HeroFlashDealBanner> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 9, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE65100).withOpacity(0.25),
+                            color: colorScheme.secondary.withOpacity(0.25),
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: const Color(0xFFE65100).withOpacity(0.55),
+                              color: colorScheme.secondary.withOpacity(0.55),
                               width: 0.8,
                             ),
                           ),
@@ -257,24 +258,24 @@ class _HeroFlashDealBannerState extends State<HeroFlashDealBanner> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
-                              color: const Color(0xFFFF9E66),
+                              color: colorScheme.secondary,
                               letterSpacing: 0.6,
                             ),
                           ),
                         ),
 
-                        // "Shop Sale" Action Button (Matching Image 4)
+                        // "Shop Sale" Action Button
                         GestureDetector(
                           onTap: () => _handleTap(item),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 7),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF2563EB), // Website royal blue
+                              color: colorScheme.primary,
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF2563EB).withOpacity(0.45),
+                                  color: colorScheme.primary.withOpacity(0.45),
                                   blurRadius: 8,
                                   offset: const Offset(0, 3),
                                 ),
@@ -288,14 +289,14 @@ class _HeroFlashDealBannerState extends State<HeroFlashDealBanner> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
-                                    color: Colors.white,
+                                    color: colorScheme.onPrimary,
                                   ),
                                 ),
                                 const SizedBox(width: 4),
-                                const Icon(
+                                Icon(
                                   Icons.arrow_forward_rounded,
                                   size: 13,
-                                  color: Colors.white,
+                                  color: colorScheme.onPrimary,
                                 ),
                               ],
                             ),
@@ -367,9 +368,9 @@ class _HeroFlashDealBannerState extends State<HeroFlashDealBanner> {
                         children: [
                           Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.access_time_filled_rounded,
-                                color: Color(0xFFFF9E66),
+                                color: colorScheme.secondary,
                                 size: 13,
                               ),
                               const SizedBox(width: 5),
@@ -390,13 +391,13 @@ class _HeroFlashDealBannerState extends State<HeroFlashDealBanner> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              _buildTimerCell(days, "DAYS"),
+                              _buildTimerCell(days, "DAYS", colorScheme),
                               _buildTimerSeparator(),
-                              _buildTimerCell(hours, "HOURS"),
+                              _buildTimerCell(hours, "HOURS", colorScheme),
                               _buildTimerSeparator(),
-                              _buildTimerCell(minutes, "MIN"),
+                              _buildTimerCell(minutes, "MIN", colorScheme),
                               _buildTimerSeparator(),
-                              _buildTimerCell(seconds, "SEC"),
+                              _buildTimerCell(seconds, "SEC", colorScheme),
                             ],
                           ),
                         ],
@@ -412,12 +413,12 @@ class _HeroFlashDealBannerState extends State<HeroFlashDealBanner> {
     );
   }
 
-  Widget _buildTimerCell(String value, String label) {
+  Widget _buildTimerCell(String value, String label, ColorScheme colorScheme) {
     return Container(
       width: 54,
       padding: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E24).withOpacity(0.9),
+        color: colorScheme.surfaceVariant.withOpacity(0.25),
         borderRadius: BorderRadius.circular(7),
         border: Border.all(
           color: Colors.white.withOpacity(0.15),

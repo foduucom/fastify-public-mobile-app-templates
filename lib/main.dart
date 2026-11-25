@@ -136,6 +136,10 @@ Future<void> _validateSessionAfterLaunch() async {
 }
 
 Future<void> _refreshPublicSettings(GetStorage box) async {
+  final themeController = Get.isRegistered<ThemeController>()
+      ? Get.find<ThemeController>()
+      : null;
+  themeController?.setThemeLoading(true);
   try {
     final response = await BasicProvider('public-settings').getRequest();
     print('public-settings loaded');
@@ -149,7 +153,11 @@ Future<void> _refreshPublicSettings(GetStorage box) async {
         settings = response['data']['storeSettings'];
       }
     }
-    if (settings is! Map) return;
+    if (settings is! Map) {
+      themeController?.setThemeError(
+          'Store settings missing. Unable to load backend theme.');
+      return;
+    }
 
     final authPreference = settings['auth_preference'];
     if (authPreference != null && authPreference is Map) {
@@ -159,13 +167,27 @@ Future<void> _refreshPublicSettings(GetStorage box) async {
     final storeName = settings['name'] ?? settings['store_name'];
     if (storeName != null) box.write('store_name', storeName);
 
-    if (settings['app_theme_color'] != null) {
-      final themeUpdated =
-          DynamicThemeManager().updateFromApi(settings['app_theme_color']);
-      if (themeUpdated) Get.find<ThemeController>().refreshTheme();
+    if (settings['app_theme_color'] is Map) {
+      final themeUpdated = DynamicThemeManager().updateFromApi(
+          Map<String, dynamic>.from(settings['app_theme_color']));
+      if (themeUpdated) {
+        themeController?.setThemeError(null);
+        themeController?.refreshTheme();
+      } else if (!DynamicThemeManager().hasTheme) {
+        themeController?.setThemeError(
+            'Backend returned an unusable theme palette.');
+      }
+    } else if (!DynamicThemeManager().hasTheme) {
+      themeController?.setThemeError(
+          'Backend did not return app_theme_color.');
     }
   } catch (e) {
     print('Error during initApp: $e');
+    if (!DynamicThemeManager().hasTheme) {
+      themeController?.setThemeError('Unable to reach store settings.');
+    }
+  } finally {
+    themeController?.setThemeLoading(false);
   }
 }
 
@@ -185,10 +207,82 @@ class MyApp extends StatelessWidget {
           theme: themeController.lightTheme,
           darkTheme: themeController.darkTheme,
           themeMode: themeController.themeMode,
-          builder: (context, child) =>
-              ResilienceShell(child: child ?? const SizedBox.shrink()),
+          builder: (context, child) {
+            if (!themeController.hasTheme) {
+              return _ThemeRequiredGate(
+                isLoading: themeController.isThemeLoading,
+                errorMessage: themeController.themeError,
+                onRetry: () => _refreshPublicSettings(GetStorage()),
+              );
+            }
+            return ResilienceShell(child: child ?? const SizedBox.shrink());
+          },
         );
       },
+    );
+  }
+}
+
+class _ThemeRequiredGate extends StatelessWidget {
+  final bool isLoading;
+  final String? errorMessage;
+  final VoidCallback onRetry;
+
+  const _ThemeRequiredGate({
+    required this.isLoading,
+    required this.errorMessage,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? Colors.black : Colors.white;
+    final fg = isDark ? Colors.white : Colors.black;
+
+    return Scaffold(
+      backgroundColor: bg,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isLoading) ...[
+                  CircularProgressIndicator(color: fg),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Loading store theme...',
+                    style: TextStyle(color: fg, fontSize: 15),
+                  ),
+                ] else ...[
+                  Icon(Icons.palette_outlined, size: 40, color: fg),
+                  const SizedBox(height: 12),
+                  Text(
+                    errorMessage ?? 'Store theme unavailable.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: fg,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  OutlinedButton(
+                    onPressed: onRetry,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: fg,
+                      side: BorderSide(color: fg),
+                    ),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

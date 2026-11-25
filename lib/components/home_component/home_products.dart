@@ -75,11 +75,14 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   ScrollPosition? _parentScrollPosition;
   bool _useParentScroll = false;
 
-  // ─── Category tabs (built in-app from the page's categories section) ───
+  // ─── Category tabs (built from section category_ids or page categories) ───
   List<Map<String, dynamic>> _tabs = [];
   final _selectedTab = 0.obs;
   bool get _tabsEnabled => _tabs.isNotEmpty;
   final _childCategoriesCache = <String, List<dynamic>>{}.obs;
+  final _tabProductsCache = <String, List<dynamic>>{}.obs;
+  final _isTabLoading = false.obs;
+  static const int _tabMaxItems = 8;
 
   bool get _hasMoreValue =>
       _isExternal ? widget.externalHasMore : _hasMore.value;
@@ -100,15 +103,68 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final layout = json?['layout'] ?? 'standard';
     final showTabs =
         json?['show_tabs'] ?? (layout == 'horizontal' || layout == 'standard');
-    final cats = json?['tab_categories'];
-    if (showTabs != true || _infiniteScroll || cats is! List) return;
+    final rawCats = json?['category_ids'] is List &&
+            (json?['category_ids'] as List).isNotEmpty
+        ? json!['category_ids']
+        : json?['tab_categories'];
+    if (showTabs != true || rawCats is! List) return;
     _tabs = [
-      for (final c in cats)
+      for (final c in rawCats)
         if (c is Map &&
             (c['_id'] != null || c['id'] != null) &&
             c['name'] != null)
           Map<String, dynamic>.from(c)
     ];
+    // Tabbed home sections show a bounded per-tab grid/shelf instead of
+    // infinitely paginating all store products down the home screen.
+    if (_tabs.isNotEmpty) {
+      _infiniteScroll = false;
+    }
+  }
+
+  String _tabIdAt(int index) {
+    if (index < 0 || index >= _tabs.length) return '';
+    return (_tabs[index]['_id'] ?? _tabs[index]['id'] ?? '').toString();
+  }
+
+  Future<void> _onTabSelected(int index) async {
+    _selectedTab.value = index;
+    await _fetchProductsForTab(index);
+  }
+
+  Future<void> _fetchProductsForTab(int index) async {
+    final tabId = _tabIdAt(index);
+    if (tabId.isEmpty || _tabProductsCache.containsKey(tabId)) return;
+
+    _isTabLoading.value = true;
+    try {
+      final response = await BasicProvider('products').getRequest(
+        queryParams: {
+          'page': '1',
+          'count': _tabMaxItems.toString(),
+          'specific': [tabId],
+        },
+      ).catchError(handleError);
+
+      List fetched = [];
+      if (response is Map) {
+        if (response['data'] is List) {
+          fetched = response['data'];
+        } else if (response['product'] is List) {
+          fetched = response['product'];
+        } else if (response['products'] is List) {
+          fetched = response['products'];
+        }
+      } else if (response is List) {
+        fetched = response;
+      }
+
+      _tabProductsCache[tabId] = fetched;
+    } catch (e) {
+      debugPrint('Error fetching tab products for $tabId: $e');
+    } finally {
+      _isTabLoading.value = false;
+    }
   }
 
   /// Products of the selected tab (all loaded products when tabs are off).
@@ -116,6 +172,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     if (!_tabsEnabled) return trendingList;
     final tab = _tabs[_selectedTab.value];
     final id = (tab['_id'] ?? tab['id'] ?? '').toString();
+
+    final cached = _tabProductsCache[id];
+    if (cached != null) {
+      return cached;
+    }
 
     final childIds = <String>{};
     if (tab['children'] is List) {
@@ -199,7 +260,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       }
     } else {
       _loadProducts();
-      if (trendingList.isEmpty && !_isExternal) {
+      if (_tabsEnabled) {
+        _fetchProductsForTab(0);
+      } else if (trendingList.isEmpty && !_isExternal) {
         _currentPage.value = 1;
         _fetchProductsFromApi();
       }
@@ -297,8 +360,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         if (categoryIds != null &&
             categoryIds is List &&
             categoryIds.isNotEmpty) {
-          queryParams['specific'] =
-              categoryIds.map((e) => e.toString()).toList();
+          queryParams['specific'] = categoryIds
+              .map((e) => e is Map ? (e['_id'] ?? e['id'] ?? '').toString() : e.toString())
+              .where((id) => id.isNotEmpty)
+              .toList();
         } else if (categoryId != null) {
           final id = categoryId is Map
               ? (categoryId['_id'] ?? categoryId['id'])
@@ -416,6 +481,17 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                           ? subheading
                           : null,
                       onSeeAll: () {
+                        if (_tabsEnabled && _tabs.length > _selectedTab.value) {
+                          final activeTab = _tabs[_selectedTab.value];
+                          openShop({
+                            'source': 'category',
+                            'categorySlug': activeTab['slug'],
+                            'category': activeTab['_id'] ?? activeTab['id'],
+                            'name': activeTab['name']?.toString() ??
+                                (heading.isNotEmpty ? heading : 'Products'),
+                          });
+                          return;
+                        }
                         final parentType = widget.contentJson?['parent_type'];
                         final parentSlug =
                             parentType is Map ? parentType['slug'] : null;
@@ -445,7 +521,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 if (_tabsEnabled) _buildTabBar(),
                 if (_tabsEnabled) const SizedBox(height: 12),
                 // ─── Product Cards ───
-                (_isInitialLoading.value && trendingList.isEmpty)
+                ((_isInitialLoading.value && trendingList.isEmpty) ||
+                        (_tabsEnabled &&
+                            _isTabLoading.value &&
+                            displayedProducts.isEmpty))
                     ? const SizedBox(
                         height: 260,
                         child: Padding(
@@ -482,7 +561,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           final selected = _selectedTab.value == i;
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () => _selectedTab.value = i,
+            onTap: () => _onTabSelected(i),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               alignment: Alignment.center,
@@ -534,26 +613,21 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
     return SizedBox(
       height: totalCardHeight,
-      child: DynamicHorizontalArrowScroller(
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
         itemCount: products.length,
-        scrollStep: (cardWidth + 12) * 2,
-        builder: (context, scrollController) => ListView.separated(
-          controller: scrollController,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          scrollDirection: Axis.horizontal,
-          physics: const AlwaysScrollableScrollPhysics(),
-          itemCount: products.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 12),
-          itemBuilder: (context, index) {
-            final product = products[index] as Map<String, dynamic>;
-            final priceInfo = ProductHelper.calculatePriceInfo(product);
-            if (!priceInfo['hasValidVariants']) return const SizedBox.shrink();
-            return SizedBox(
-              width: cardWidth,
-              child: _buildSiteProductCard(product, priceInfo, imageHeight),
-            );
-          },
-        ),
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          final product = products[index] as Map<String, dynamic>;
+          final priceInfo = ProductHelper.calculatePriceInfo(product);
+          if (!priceInfo['hasValidVariants']) return const SizedBox.shrink();
+          return SizedBox(
+            width: cardWidth,
+            child: _buildSiteProductCard(product, priceInfo, imageHeight),
+          );
+        },
       ),
     );
   }
@@ -718,10 +792,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(
               5,
-              (index) => const Icon(
+              (index) => Icon(
                 Icons.star_rounded,
                 size: 13,
-                color: DefaultThemeColors.alertWarninglight,
+                color: context.semanticColors.warning,
               ),
             ),
           ),
@@ -1110,7 +1184,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   }
 
   int _getDisplayLimit() {
-    if (_tabsEnabled) return 1 << 30;
+    if (_tabsEnabled) return _tabMaxItems;
     final count = int.tryParse(widget.contentJson?['count']?.toString() ?? '');
     if (count != null && count > 0) return count;
     return 10;
@@ -1158,18 +1232,23 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   Widget _buildGridView(String style) {
     final rawColumns =
         int.tryParse(widget.contentJson?['columns']?.toString() ?? '2') ?? 2;
-    // On mobile devices, clamp columns to maximum 2 regardless of desktop studio settings
-    final columns = kIsWeb ? rawColumns : rawColumns.clamp(1, 2);
+    // Drive column count by actual viewport width rather than kIsWeb so the
+    // Studio mobile web emulator renders 2 columns just like a phone.
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobileViewport = screenWidth < 600;
+    final isTabletViewport = screenWidth >= 600 && screenWidth < 1024;
+    final columns = isMobileViewport
+        ? rawColumns.clamp(1, 2)
+        : (isTabletViewport ? rawColumns.clamp(1, 3) : rawColumns);
 
     final rawRatio = double.tryParse(
             widget.contentJson?['aspect_ratio']?.toString() ?? '') ??
-        0.68;
+        0.60;
     // For 2-column portrait mobile cards (standard/parent_web), desktop ratios >= 1.0 (like 1.3 or 2.4)
-    // make the card wider than tall, leaving no height for image + title + stars + price.
-    // In that case, enforce standard portrait ratio 0.68 on mobile.
+    // make the card wider than tall, leaving no height for image + title + stars + price + CTA.
     final double defaultMobileRatio =
-        (style == 'parent_web' || style == 'standard') ? 0.68 : 0.75;
-    final aspectRatio = (!kIsWeb && columns == 2 && rawRatio >= 1.0)
+        (style == 'parent_web' || style == 'standard') ? 0.60 : 0.72;
+    final aspectRatio = (isMobileViewport && columns == 2 && rawRatio >= 1.0)
         ? defaultMobileRatio
         : (rawRatio > 0 ? rawRatio : defaultMobileRatio);
 
@@ -1177,9 +1256,20 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         double.tryParse(widget.contentJson?['spacing']?.toString() ?? '12') ??
             12;
 
-    final itemCount = _infiniteScroll
-        ? displayedProducts.length + 1
-        : displayedProducts.length;
+    final validProducts = displayedProducts.where((p) {
+      if (p is! Map<String, dynamic>) return false;
+      return ProductHelper.calculatePriceInfo(p)['hasValidVariants'] == true;
+    }).toList();
+
+    final itemCount =
+        _infiniteScroll ? validProducts.length + 1 : validProducts.length;
+
+    if (itemCount == 0) {
+      if (_tabsEnabled && _tabs.length > _selectedTab.value) {
+        return _buildEmptyTabFallback(_tabs[_selectedTab.value]);
+      }
+      return const SizedBox.shrink();
+    }
 
     return Padding(
       padding: pageSurroundingPadding,
@@ -1194,13 +1284,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         ),
         itemCount: itemCount,
         itemBuilder: (context, index) {
-          //if (index >= trendingList.length) {
-          if (index >= displayedProducts.length) {
+          if (index >= validProducts.length) {
             return _buildLoadingIndicatorVertical();
           }
-          final product = displayedProducts[index] as Map<String, dynamic>;
+          final product = validProducts[index] as Map<String, dynamic>;
           final priceInfo = ProductHelper.calculatePriceInfo(product);
-          if (!priceInfo['hasValidVariants']) return const SizedBox.shrink();
           return _buildGridItem(product, priceInfo, style);
         },
       ),
@@ -1210,8 +1298,15 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   /// Build a single grid item — uses the card style from `layout`
   Widget _buildGridItem(Map<String, dynamic> product,
       Map<String, dynamic> priceInfo, String style) {
+    final activeCategoryLabel = (_tabsEnabled && _tabs.length > _selectedTab.value)
+        ? _tabs[_selectedTab.value]['name']?.toString()
+        : null;
     if (style == 'parent_web' || style == 'standard') {
-      return ParentWebProductCard(product: product, isList: false);
+      return ParentWebProductCard(
+        product: product,
+        isList: false,
+        categoryLabel: activeCategoryLabel,
+      );
     }
 
     if (style == 'overlay') {
@@ -1283,41 +1378,36 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
     return SizedBox(
       height: totalCardHeight,
-      child: DynamicHorizontalArrowScroller(
-        controller: _scrollController,
-        itemCount: itemCount,
-        scrollStep: (cardWidth + 12) * 2,
-        builder: (context, scrollController) => ScrollConfiguration(
-          behavior: ScrollConfiguration.of(context).copyWith(
-            dragDevices: {
-              PointerDeviceKind.touch,
-              PointerDeviceKind.mouse,
-              PointerDeviceKind.trackpad,
-            },
-          ),
-          child: ListView.separated(
-            controller: scrollController,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            separatorBuilder: (context, index) => const SizedBox(width: 12),
-            shrinkWrap: false,
-            physics: const AlwaysScrollableScrollPhysics(),
-            scrollDirection: Axis.horizontal,
-            itemCount: itemCount,
-            itemBuilder: (context, index) {
-              if (index >= displayedProducts.length) {
-                return _buildLoadingIndicator();
-              }
-              final product = displayedProducts[index] as Map<String, dynamic>;
-              final priceInfo = ProductHelper.calculatePriceInfo(product);
-              if (!priceInfo['hasValidVariants']) {
-                return const SizedBox.shrink();
-              }
-              return SizedBox(
-                width: cardWidth,
-                child: ParentWebProductCard(product: product, isList: false),
-              );
-            },
-          ),
+      child: ScrollConfiguration(
+        behavior: ScrollConfiguration.of(context).copyWith(
+          dragDevices: {
+            PointerDeviceKind.touch,
+            PointerDeviceKind.mouse,
+            PointerDeviceKind.trackpad,
+          },
+        ),
+        child: ListView.separated(
+          controller: _scrollController,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          separatorBuilder: (context, index) => const SizedBox(width: 12),
+          shrinkWrap: false,
+          physics: const BouncingScrollPhysics(),
+          scrollDirection: Axis.horizontal,
+          itemCount: itemCount,
+          itemBuilder: (context, index) {
+            if (index >= displayedProducts.length) {
+              return _buildLoadingIndicator();
+            }
+            final product = displayedProducts[index] as Map<String, dynamic>;
+            final priceInfo = ProductHelper.calculatePriceInfo(product);
+            if (!priceInfo['hasValidVariants']) {
+              return const SizedBox.shrink();
+            }
+            return SizedBox(
+              width: cardWidth,
+              child: ParentWebProductCard(product: product, isList: false),
+            );
+          },
         ),
       ),
     );
@@ -1341,41 +1431,36 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
     return SizedBox(
       height: totalCardHeight,
-      child: DynamicHorizontalArrowScroller(
-        controller: _scrollController,
-        itemCount: itemCount,
-        scrollStep: (cardWidth + 12) * 2,
-        builder: (context, scrollController) => ScrollConfiguration(
-          behavior: ScrollConfiguration.of(context).copyWith(
-            dragDevices: {
-              PointerDeviceKind.touch,
-              PointerDeviceKind.mouse,
-              PointerDeviceKind.trackpad,
-            },
-          ),
-          child: ListView.separated(
-            controller: scrollController,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            separatorBuilder: (context, index) => const SizedBox(width: 12),
-            shrinkWrap: false,
-            physics: const AlwaysScrollableScrollPhysics(),
-            scrollDirection: Axis.horizontal,
-            itemCount: itemCount,
-            itemBuilder: (context, index) {
-              if (index >= displayedProducts.length) {
-                return _buildLoadingIndicator();
-              }
-              final product = displayedProducts[index] as Map<String, dynamic>;
-              final priceInfo = ProductHelper.calculatePriceInfo(product);
-              if (!priceInfo['hasValidVariants']) {
-                return const SizedBox.shrink();
-              }
-              return SizedBox(
-                width: cardWidth,
-                child: _buildSiteProductCard(product, priceInfo, imageHeight),
-              );
-            },
-          ),
+      child: ScrollConfiguration(
+        behavior: ScrollConfiguration.of(context).copyWith(
+          dragDevices: {
+            PointerDeviceKind.touch,
+            PointerDeviceKind.mouse,
+            PointerDeviceKind.trackpad,
+          },
+        ),
+        child: ListView.separated(
+          controller: _scrollController,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          separatorBuilder: (context, index) => const SizedBox(width: 12),
+          shrinkWrap: false,
+          physics: const BouncingScrollPhysics(),
+          scrollDirection: Axis.horizontal,
+          itemCount: itemCount,
+          itemBuilder: (context, index) {
+            if (index >= displayedProducts.length) {
+              return _buildLoadingIndicator();
+            }
+            final product = displayedProducts[index] as Map<String, dynamic>;
+            final priceInfo = ProductHelper.calculatePriceInfo(product);
+            if (!priceInfo['hasValidVariants']) {
+              return const SizedBox.shrink();
+            }
+            return SizedBox(
+              width: cardWidth,
+              child: _buildSiteProductCard(product, priceInfo, imageHeight),
+            );
+          },
         ),
       ),
     );
@@ -1407,40 +1492,35 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       padding: const EdgeInsets.only(left: 6.0),
       child: SizedBox(
         height: 120,
-        child: DynamicHorizontalArrowScroller(
-          controller: _scrollController,
-          itemCount: itemCount,
-          scrollStep: 310.0,
-          builder: (context, scrollController) => ScrollConfiguration(
-            behavior: ScrollConfiguration.of(context).copyWith(
-              dragDevices: {
-                PointerDeviceKind.touch,
-                PointerDeviceKind.mouse,
-                PointerDeviceKind.trackpad,
-              },
-            ),
-            child: ListView.separated(
-              controller: scrollController,
-              separatorBuilder: (_, __) => const SizedBox(width: 10),
-              physics: const AlwaysScrollableScrollPhysics(),
-              scrollDirection: Axis.horizontal,
-              itemCount: itemCount,
-              itemBuilder: (context, index) {
-                if (index >= displayedProducts.length) {
-                  return _buildLoadingIndicator();
-                }
-                final product =
-                    displayedProducts[index] as Map<String, dynamic>;
-                final priceInfo = ProductHelper.calculatePriceInfo(product);
-                if (!priceInfo['hasValidVariants']) {
-                  return const SizedBox.shrink();
-                }
-                return SizedBox(
-                  width: 300,
-                  child: _buildHorizontalItem(product, priceInfo),
-                );
-              },
-            ),
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(
+            dragDevices: {
+              PointerDeviceKind.touch,
+              PointerDeviceKind.mouse,
+              PointerDeviceKind.trackpad,
+            },
+          ),
+          child: ListView.separated(
+            controller: _scrollController,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            physics: const BouncingScrollPhysics(),
+            scrollDirection: Axis.horizontal,
+            itemCount: itemCount,
+            itemBuilder: (context, index) {
+              if (index >= displayedProducts.length) {
+                return _buildLoadingIndicator();
+              }
+              final product =
+                  displayedProducts[index] as Map<String, dynamic>;
+              final priceInfo = ProductHelper.calculatePriceInfo(product);
+              if (!priceInfo['hasValidVariants']) {
+                return const SizedBox.shrink();
+              }
+              return SizedBox(
+                width: 300,
+                child: _buildHorizontalItem(product, priceInfo),
+              );
+            },
           ),
         ),
       ),
@@ -1454,7 +1534,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final productName = ProductHelper.getProductName(product);
     final imageUrl = ProductHelper.getProductImage(product);
     final productType = priceInfo['productType'];
-    final storeName = product['storeName'] ?? 'Store Name';
+    final storeName = (product['storeName'] ??
+            (product['brand'] is Map ? product['brand']['name'] : null) ??
+            '')
+        .toString()
+        .trim();
 
     return GestureDetector(
       onTap: () => _navigateToProduct(product),
@@ -1536,15 +1620,19 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      storeName,
-                      style: textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 12,
-                        color: colorScheme.onSurfaceVariant,
+                    if (storeName.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        storeName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 12,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
+                    ],
                     const SizedBox(height: 4),
                     if (productType == 'variable')
                       _buildVariablePrice(priceInfo)
@@ -1606,38 +1694,33 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       padding: const EdgeInsets.only(left: 6.0),
       child: SizedBox(
         height: 260,
-        child: DynamicHorizontalArrowScroller(
-          controller: _scrollController,
-          itemCount: itemCount,
-          scrollStep: 280.0,
-          builder: (context, scrollController) => ScrollConfiguration(
-            behavior: ScrollConfiguration.of(context).copyWith(
-              dragDevices: {
-                PointerDeviceKind.touch,
-                PointerDeviceKind.mouse,
-                PointerDeviceKind.trackpad,
-              },
-            ),
-            child: ListView.separated(
-              controller: scrollController,
-              separatorBuilder: (_, __) => const SizedBox(width: 10),
-              shrinkWrap: false,
-              cacheExtent: 9999,
-              physics: const AlwaysScrollableScrollPhysics(),
-              scrollDirection: Axis.horizontal,
-              itemCount: itemCount,
-              itemBuilder: (context, index) {
-                if (index >= displayedProducts.length) {
-                  return _buildLoadingIndicator();
-                }
-                final product =
-                    displayedProducts[index] as Map<String, dynamic>;
-                final priceInfo = ProductHelper.calculatePriceInfo(product);
-                if (!priceInfo['hasValidVariants'])
-                  return const SizedBox.shrink();
-                return _buildOverlayItem(product, priceInfo);
-              },
-            ),
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(
+            dragDevices: {
+              PointerDeviceKind.touch,
+              PointerDeviceKind.mouse,
+              PointerDeviceKind.trackpad,
+            },
+          ),
+          child: ListView.separated(
+            controller: _scrollController,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            shrinkWrap: false,
+            cacheExtent: 9999,
+            physics: const BouncingScrollPhysics(),
+            scrollDirection: Axis.horizontal,
+            itemCount: itemCount,
+            itemBuilder: (context, index) {
+              if (index >= displayedProducts.length) {
+                return _buildLoadingIndicator();
+              }
+              final product =
+                  displayedProducts[index] as Map<String, dynamic>;
+              final priceInfo = ProductHelper.calculatePriceInfo(product);
+              if (!priceInfo['hasValidVariants'])
+                return const SizedBox.shrink();
+              return _buildOverlayItem(product, priceInfo);
+            },
           ),
         ),
       ),
@@ -1651,7 +1734,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final productName = ProductHelper.getProductName(product);
     final imageUrl = ProductHelper.getProductImage(product);
     final productType = priceInfo['productType'];
-    final storeName = product['storeName'] ?? 'Store Name';
+    final storeName = (product['storeName'] ??
+            (product['brand'] is Map ? product['brand']['name'] : null) ??
+            '')
+        .toString()
+        .trim();
 
     return GestureDetector(
       onTap: () => _navigateToProduct(product),
@@ -1717,15 +1804,19 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        storeName,
-                        style: textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 12,
-                          color: colorScheme.onSurfaceVariant,
+                      if (storeName.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          storeName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 12,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
-                      ),
+                      ],
                       const SizedBox(height: 4),
                       if (productType == 'variable')
                         _buildVariablePrice(priceInfo)
@@ -2025,7 +2116,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final textTheme = Theme.of(context).textTheme;
 
     return Text(
-      '₹${_formatPrice(priceInfo['lowestPrice'])} - ₹${_formatPrice(priceInfo['highestPrice'])}',
+      '\$${_formatPrice(priceInfo['lowestPrice'])} - \$${_formatPrice(priceInfo['highestPrice'])}',
       style: textTheme.bodyMedium?.copyWith(
         fontWeight: FontWeight.w600,
         fontSize: 11, // Reduced from 12
@@ -2045,10 +2136,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       text: TextSpan(
-        text: '₹${priceInfo['productPrice']}',
+        text: '\$${priceInfo['productPrice']}',
         style: textTheme.bodyMedium?.copyWith(
           fontWeight: FontWeight.w600,
-          fontSize: 11, // Reduced from 12
+          fontSize: 12,
           color: colorScheme.primary,
         ),
         children: [
@@ -2056,19 +2147,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
               priceInfo['discountRate'].toString().isNotEmpty) ...[
             const TextSpan(text: '  '),
             TextSpan(
-              text: '₹${priceInfo['discountPrice'] ?? priceInfo['salePrice']}',
+              text: '\$${priceInfo['discountPrice'] ?? priceInfo['salePrice']}',
               style: textTheme.bodySmall?.copyWith(
-                fontSize: 9, // Reduced from 10
+                fontSize: 10,
                 decoration: TextDecoration.lineThrough,
                 color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const TextSpan(text: ' '),
-            TextSpan(
-              text: priceInfo['discountRate'],
-              style: textTheme.bodySmall?.copyWith(
-                fontSize: 9, // Reduced from 10
-                color: colorScheme.error,
               ),
             ),
           ],

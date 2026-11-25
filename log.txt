@@ -1,89 +1,689 @@
-When we git below api:
-"https://foduu-electronics-store.foduu.store/api/public-settings"
+flutterdev@Flutters-Mac-mini-93 fastify-public-mobile-app-templates % flutter
+ clean
+Deleting build...                                                  640ms
+Deleting .dart_tool...                                             142ms
+Deleting ephemeral...                                                0ms
+Deleting Generated.xcconfig...                                       0ms
+Deleting flutter_export_environment.sh...                            0ms
+Deleting Flutter.podspec...                                          0ms
+Deleting ephemeral...                                                0ms
+Deleting .flutter-plugins-dependencies...                            0ms
+flutterdev@Flutters-Mac-mini-93 fastify-public-mobile-app-templates % flutter build web --base-href "/owner/emulator/"
+Resolving dependencies... 
+Downloading packages... 
+  _flutterfire_internals 1.3.59 (1.4.0 available)
+  archive 3.6.1 (4.7.1 available)
+  awesome_notifications 0.10.1 (0.12.1 available)
+  badges 3.2.0 (4.0.1 available)
+  cached_network_image 3.4.1 (4.0.7 available)
+  cached_network_image_platform_interface 4.1.1 (5.0.4 available)
+  cached_network_image_web 1.3.1 (2.0.5 available)
+  chewie 1.13.1 (1.18.1 available)
+  cli_util 0.4.2 (0.6.1 available)
+  clipboard 0.1.3 (3.0.14 available)
+  connectivity_plus 7.3.1 (7.3.2 available)
+  cross_file 0.3.5+5 (0.4.0 available)
+  cupertino_icons 1.0.9 (2.0.0 available)
+  dbus 0.7.15 (0.8.1 available)
+  device_info_plus 9.1.2 (13.3.0 available)
+  device_info_plus_platform_interface 7.0.3 (8.1.0 available)
+  dotted_border 2.1.0 (3.1.0 available)
+  file_picker 8.3.7 (13.4.1 available)
+  firebase_core 3.15.2 (5.2.0 available)
+  firebase_core_platform_interface 6.0.3 (8.2.0 available)
+  firebase_core_web 2.24.1 (4.2.0 available)
+  firebase_messaging 15.2.10 (17.1.0 available)
+  firebase_messaging_platform_interface 4.6.10 (4.12.0 available)
+  firebase_messaging_web 3.10.10 (4.4.0 available)
+  flutter_launcher_icons 0.13.1 (0.14.4 available)
+  flutter_lints 2.0.3 (6.0.0 available)
+  flutter_local_notifications 17.2.4 (23.0.4 available)
+  flutter_local_notifications_linux 4.0.1 (9.0.0 available)
+  flutter_local_notifications_platform_interface 7.2.0 (13.0.0 available)
+  flutter_staggered_grid_view 0.6.2 (0.7.0 available)
+  flutter_stripe 12.6.0 (15.0.0 available)
+  fluttertoast 8.2.14 (10.0.3 available)
+  google_fonts 6.3.3 (9.0.0 available)
+! html 0.15.6 (overridden) (0.15.7 available)
+  image 4.3.0 (4.13.1 available)
+  js 0.6.7 (discontinued)
+  lints 2.1.1 (6.1.0 available)
+  lottie 1.4.3 (3.8.2 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  nm 0.5.0 (0.6.0 available)
+  open_filex 4.7.0 (5.0.0 available)
+  package_info_plus 9.0.1 (10.2.2 available)
+  package_info_plus_platform_interface 3.2.1 (4.1.0 available)
+  permission_handler 11.4.0 (13.0.2 available)
+  permission_handler_android 12.1.0 (14.1.1 available)
+  photo_view 0.14.0 (0.15.0 available)
+  pin_code_fields 8.0.1 (10.1.2 available)
+  share_plus 10.1.4 (13.3.1 available)
+  share_plus_platform_interface 5.0.2 (7.2.0 available)
+  shimmer 3.0.0 (4.0.0 available)
+  stripe_android 12.6.0 (15.0.0 available)
+  stripe_ios 12.6.0 (15.0.0 available)
+  stripe_platform_interface 12.6.0 (15.0.0 available)
+  test_api 0.7.14 (0.7.15 available)
+  timezone 0.9.4 (0.11.2 available)
+  vector_graphics_compiler 1.3.4 (1.3.7 available)
+  wakelock_plus 1.5.2 (1.8.2 available)
+  win32 5.15.0 (6.4.0 available)
+  win32_registry 1.1.5 (3.0.3 available)
+  xml 6.6.1 (7.1.0 available)
+Got dependencies!
+1 package is discontinued.
+60 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Wasm dry run findings:
+Found incompatibilities with WebAssembly.
 
-SO ON RESPONSE We got Below Things:
-{
-    "status": "success",
-    "data": {
-        "coreSettings": {
-            "footersections": [
-                {
-                    "title": "about",
-                    "slug": "about",
-                    "content": "<img alt=\"\" src=\"assets/images/logo.png\" style=\"width: 175px;\"/>\n<p class=\"mt-20\">Aurexz Consulting delivers Project Management, Agile, and Technology Enablement\n                            solutions,\n                            helping organizations transition from project-based execution to scalable, product-centric\n                            ways of\n                            working.\n                        </p>\n<ul class=\"styled-icons icon-sm icon-dark icon-theme-colored2 icon-circled clearfix mt-10\">\n<li><a href=\"https://www.youtube.com/@agiletransformationminds\"><i class=\"fa fa-youtube\"></i></a></li>\n<li><a href=\"https://www.linkedin.com/company/aurexzconsulting/\"><i class=\"fa fa-linkedin\"></i></a></li>\n<li><a href=\"https://www.meetup.com/atminds/\"><i class=\"fa fa-meetup\"></i></a></li>\n</ul>"
-                },
-                {
-                    "title": "useful-links",
-                    "slug": "useful-links",
-                    "content": "<h4 class=\"widget-title line-bottom-theme-colored2\">Useful Links</h4>\n<div class=\"row clearfix\">\n<div class=\"col-xs-12 col-sm-6 col-md-6\">\n<ul class=\"footer-link\">\n<li><a href=\"https://html.foduu.com/aurexz/index.html\">Home</a></li>\n<li><a href=\"https://html.foduu.com/aurexz/about-us.html\">About Us</a></li>\n<li><a href=\"/our-courses\">Our Mentorship\n                                            Program</a></li>\n<!-- <li><a href=\"#\">Latest Works</a></li> -->\n<li><a href=\"/meet-up\">Enrol to our Meetup</a></li>\n<li><a href=\"https://html.foduu.com/aurexz/about-us.html\">Contact Us</a></li>\n</ul>\n</div>\n</div>"
-                },
-                {
-                    "title": "address",
-                    "slug": "address",
-                    "content": "<h4 class=\"widget-title line-bottom-theme-colored2\">Address</h4>\n<div class=\"\">\n<ul class=\"footer-address-list\">\n<li>\n<i class=\"fa fa-envelope-o\"></i>\n<a href=\"#\">[email]</a>\n</li>\n<li>\n<i class=\"fa fa-map-marker\"></i>\n<div>\n<a href=\"#\">Toronto, Canada</a><br/>\n<a href=\"#\">Dubai, UAE</a><br/>\n<a href=\"#\">Bangalore, India</a>\n</div>\n</li>\n<li>\n<i class=\"fa fa-phone\"></i>\n<div>\n<a href=\"#\">UAE: +971 5885 34215</a><br/>\n<a href=\"#\">Canada: +1 98206 32575</a><br/>\n<a href=\"#\">India: +91 98206 32575</a>\n</div>\n</li>\n</ul>\n</div>"
-                },
-                {
-                    "title": "Contact Info",
-                    "slug": "contact-info",
-                    "content": "<ul class=\"widget-address\">\n<li>\n<p><span>Address</span> : 451 Wall Street, UK, London</p>\n</li>\n<li>\n<p><span>E-mail</span> : <a href=\"mailto:info@example.com\">info@example.com</a></p>\n</li>\n<li>\n<p><span>Phone</span> : (064) 332-1233</p>\n</li>\n</ul>"
-                }
-            ]
-        },
-        "storeSettings": {
-            "app_theme_color": {
-                "light": {
-                    "primary": "#111111",
-                    "onPrimary": "#ffffff",
-                    "secondary": "#d4af37",
-                    "onSecondary": "#111111",
-                    "background": "#ffffff",
-                    "onBackground": "#111111",
-                    "surface": "#fafafb",
-                    "onSurface": "#111111"
-                },
-                "dark": {
-                    "primary": "#e5c07b",
-                    "onPrimary": "#111111",
-                    "secondary": "#ffffff",
-                    "onSecondary": "#111111",
-                    "background": "#121212",
-                    "onBackground": "#ffffff",
-                    "surface": "#1e1e1e",
-                    "onSurface": "#ffffff"
-                }
-            },
-            "auth_preference": {
-                "auth_method": "email_otp",
-                "email_otp": true,
-                "email_password": false,
-                "mobile_otp": false,
-                "provider": "smtp"
-            },
-            "comment_settings": {
-                "allow_product_comments": "false",
-                "allow_blog_comments": "false",
-                "allow_blog_reviews": "false",
-                "allow_product_reviews": "true"
-            },
-            "contact": {
-                "whatsapp_number": "+917656554543"
-            }
-        },
-        "currency": {
-            "id": "6a1944c755515975110921f6",
-            "name": "Russian Ruble",
-            "code": "RUB",
-            "symbol": "₽",
-            "is_owner_currency": false
-        },
-        "currencies": [
-            {
-                "id": "6a1944c755515975110921f6",
-                "name": "Russian Ruble",
-                "code": "RUB",
-                "symbol": "₽",
-                "is_owner_currency": false
-            }
-        ]
-    }
-}
+package:device_info_plus/src/device_info_plus_web.dart 2:1 - dart:html
+unsupported (0)
+package:get_storage/src/storage/html.dart 4:1 - dart:html unsupported (0)
+package:device_info_plus/src/device_info_plus_windows.dart 4:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:ffi/src/allocation.dart 5:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:ffi/src/arena.dart 8:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:ffi/src/utf16.dart 5:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:ffi/src/utf8.dart 6:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/bstr.dart 3:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/callbacks.dart 5:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/constants.dart 6:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/constants_nodoc.dart 19:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/dispatcher.dart 1:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/exceptions.dart 3:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/functions.dart 3:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/guid.dart 18:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/inline.dart 5:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/macros.dart 5:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/propertykey.dart 12:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/structs.dart 3:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/structs.g.dart 10:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/types.dart 15:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/utils.dart 5:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/variant.dart 6:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/winrt_helpers.dart 3:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/extensions/dialogs.dart 3:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/extensions/filetime.dart 1:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/extensions/list_to_blob.dart 3:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/extensions/set_ansi.dart 1:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/extensions/set_string.dart 3:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/extensions/set_string_array.dart 1:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/extensions/unpack_utf16.dart 4:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/win32/advapi32.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/bluetoothapis.g.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/win32/bthprops.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/comctl32.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/comdlg32.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/crypt32.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/dbghelp.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/dwmapi.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/dxva2.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/gdi32.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/iphlpapi.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/kernel32.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/magnification.g.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/win32/netapi32.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/ntdll.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/ole32.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/oleaut32.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/powrprof.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/propsys.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/rometadata.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/scarddlg.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/setupapi.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/shell32.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/shlwapi.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/user32.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/uxtheme.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/version.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/wevtapi.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/winmm.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/winscard.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/winspool.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/wlanapi.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/wtsapi32.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/xinput1_4.g.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/win32/api_ms_win_core_apiquery_l2_1_0.g.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/win32/api_ms_win_core_comm_l1_1_1.g.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/win32/api_ms_win_core_comm_l1_1_2.g.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/win32/api_ms_win_core_handle_l1_1_0.g.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/win32/api_ms_win_core_path_l1_1_0.g.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/win32/api_ms_win_core_sysinfo_l1_2_3.g.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/win32/api_ms_win_core_winrt_l1_1_0.g.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/win32/api_ms_win_core_winrt_error_l1_1_0.g.dart 9:1 -
+dart:ffi unsupported without --enable-experimental-ffi (16)
+package:win32/src/win32/api_ms_win_core_winrt_string_l1_1_0.g.dart 9:1 -
+dart:ffi unsupported without --enable-experimental-ffi (16)
+package:win32/src/win32/api_ms_win_ro_typeresolution_l1_1_0.g.dart 9:1 -
+dart:ffi unsupported without --enable-experimental-ffi (16)
+package:win32/src/win32/api_ms_win_ro_typeresolution_l1_1_1.g.dart 9:1 -
+dart:ffi unsupported without --enable-experimental-ffi (16)
+package:win32/src/win32/api_ms_win_shcore_scaling_l1_1_1.g.dart 9:1 -
+dart:ffi unsupported without --enable-experimental-ffi (16)
+package:win32/src/win32/api_ms_win_wsl_api_l1_1_0.g.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/combase.dart 3:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iagileobject.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iapplicationactivationmanager.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iappxfactory.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iappxfile.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iappxfilesenumerator.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iappxmanifestapplication.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iappxmanifestapplicationsenumerator.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iappxmanifestospackagedependency.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iappxmanifestpackagedependenciesenumerator.dart 9:1 -
+dart:ffi unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iappxmanifestpackagedependency.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iappxmanifestpackageid.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iappxmanifestproperties.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iappxmanifestreader.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iappxmanifestreader2.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iappxmanifestreader3.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iappxmanifestreader4.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iappxmanifestreader5.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iappxmanifestreader6.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iappxmanifestreader7.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iappxpackagereader.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iaudiocaptureclient.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iaudioclient.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iaudioclient2.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iaudioclient3.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iaudioclientduckingcontrol.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iaudioclock.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iaudioclock2.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iaudioclockadjustment.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iaudiorenderclient.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iaudiosessioncontrol.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iaudiosessioncontrol2.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iaudiosessionenumerator.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iaudiosessionmanager.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iaudiosessionmanager2.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iaudiostreamvolume.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ibindctx.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ichannelaudiovolume.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iclassfactory.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iconnectionpoint.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iconnectionpointcontainer.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/idesktopwallpaper.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/idispatch.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ienumidlist.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ienummoniker.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ienumnetworkconnections.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ienumnetworks.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ienumresources.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ienumspellingerror.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ienumstring.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ienumvariant.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ienumwbemclassobject.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ierrorinfo.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ifiledialog.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ifiledialog2.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ifiledialogcustomize.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ifileisinuse.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ifileopendialog.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ifilesavedialog.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iinitializewithwindow.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iinspectable.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iknownfolder.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iknownfoldermanager.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/imetadataassemblyimport.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/imetadatadispenser.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/imetadatadispenserex.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/imetadataimport.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/imetadataimport2.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/imetadatatables.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/imetadatatables2.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/immdevice.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/immdevicecollection.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/immdeviceenumerator.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/immendpoint.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/immnotificationclient.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/imodalwindow.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/imoniker.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/inetwork.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/inetworkconnection.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/inetworklistmanager.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/inetworklistmanagerevents.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/ipersist.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ipersistfile.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ipersistmemory.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ipersiststream.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ipropertystore.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iprovideclassinfo.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/irestrictederrorinfo.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/irunningobjecttable.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/isensor.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/isensorcollection.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/isensordatareport.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/isensormanager.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/isequentialstream.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ishellfolder.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ishellitem.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ishellitem2.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ishellitemarray.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ishellitemfilter.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ishellitemimagefactory.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ishellitemresources.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ishelllink.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ishelllinkdatalist.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ishelllinkdual.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ishellservice.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/isimpleaudiovolume.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ispeechaudioformat.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ispeechbasestream.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ispeechobjecttoken.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ispeechobjecttokens.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ispeechvoice.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ispeechvoicestatus.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ispeechwaveformatex.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ispellchecker.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ispellchecker2.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ispellcheckerchangedeventhandler.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/ispellcheckerfactory.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/ispellingerror.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ispeventsource.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ispnotifysource.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ispvoice.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/istream.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/isupporterrorinfo.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/itypeinfo.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iuiautomation.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iuiautomation2.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iuiautomation3.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iuiautomation4.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iuiautomation5.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iuiautomation6.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationandcondition.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationannotationpattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationboolcondition.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationcacherequest.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationcondition.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationcustomnavigationpattern.dart 9:1 -
+dart:ffi unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationdockpattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationdragpattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationdroptargetpattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationelement.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationelement2.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationelement3.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationelement4.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationelement5.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationelement6.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationelement7.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationelement8.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationelement9.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationelementarray.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationexpandcollapsepattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationgriditempattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationgridpattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationinvokepattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationitemcontainerpattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationlegacyiaccessiblepattern.dart 9:1 -
+dart:ffi unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationmultipleviewpattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationnotcondition.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationobjectmodelpattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationorcondition.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationpropertycondition.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationproxyfactory.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationproxyfactoryentry.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationproxyfactorymapping.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationrangevaluepattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationscrollitempattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationscrollpattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationselectionitempattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationselectionpattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationselectionpattern2.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationspreadsheetitempattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationspreadsheetpattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationstylespattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationsynchronizedinputpattern.dart 9:1 -
+dart:ffi unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationtableitempattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationtablepattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationtextchildpattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationtexteditpattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationtextpattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationtextpattern2.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationtextrange.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationtextrange2.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationtextrange3.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationtextrangearray.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationtogglepattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationtransformpattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationtransformpattern2.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationtreewalker.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationvaluepattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationvirtualizeditempattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iuiautomationwindowpattern.dart 9:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iunknown.dart 5:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iuri.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/ivirtualdesktopmanager.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iwbemclassobject.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iwbemconfigurerefresher.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iwbemcontext.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iwbemhiperfenum.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iwbemlocator.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iwbemobjectaccess.dart 9:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/com/iwbemrefresher.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iwbemservices.dart 9:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32/src/com/iwebauthenticationcoremanagerinterop.dart 9:1 -
+dart:ffi unsupported without --enable-experimental-ffi (16)
+package:win32/src/com/iwinhttprequest.dart 7:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32_registry/src/registry.dart 1:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+package:win32_registry/src/registry_key.dart 1:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32_registry/src/registry_value.dart 1:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32/src/extensions/_internal.dart 1:1 - dart:ffi unsupported
+without --enable-experimental-ffi (16)
+package:win32_registry/src/models/pointer_data.dart 1:1 - dart:ffi
+unsupported without --enable-experimental-ffi (16)
+package:win32_registry/src/utils.dart 1:1 - dart:ffi unsupported without
+--enable-experimental-ffi (16)
+file:///Users/flutterdev/.pub-cache/hosted/pub.dev/image-4.3.0/lib/src/exif/i
+fd_directory.dart 174:26 - avoid_double_and_int_checks lint violation:
+Explicit check for double or int. (13)
+file:///Users/flutterdev/.pub-cache/hosted/pub.dev/image-4.3.0/lib/src/exif/i
+fd_directory.dart 183:26 - avoid_double_and_int_checks lint violation:
+Explicit check for double or int. (13)
+file:///Users/flutterdev/.pub-cache/hosted/pub.dev/socket_io_common-3.1.1/lib
+/src/util/js_interop_type_adapter.dart 7:10 -
+invalid_runtime_check_with_js_interop_types lint violation: Runtime check
+between 'Object' and 'JSString' checks whether a Dart value is a JS interop
+type, which might not be platform-consistent. (7)
+
+
+Consider addressing these issues to enable wasm builds. dart:html, dart:js,
+and legacy JS interop libraries are deprecated and planned for removal from
+the Dart SDK in a future release. Migrate your project to package:web and
+dart:js_interop.
+See docs for more info:
+https://docs.flutter.dev/platform-integration/web/wasm
+
+
+Note: WebAssembly compilation failed due to legacy web imports.
+dart:html, dart:js, and legacy JS interop libraries are deprecated and
+planned for removal from the Dart SDK in a future release. Migrate your
+project to package:web and dart:js_interop.
+See https://flutter.dev/to/wasm-errors for diagnostic and migration guidance.
+Use --no-wasm-dry-run to disable these warnings.
+Font asset "CupertinoIcons.ttf" was tree-shaken, reducing it from 257628 to
+1752 bytes (99.3% reduction). Tree-shaking can be disabled by providing the
+--no-tree-shake-icons flag when building your app.
+Font asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from
+1645184 to 29896 bytes (98.2% reduction). Tree-shaking can be disabled by
+providing the --no-tree-shake-icons flag when building your app.
+Compiling lib/main.dart for the Web...                             36.0s
+✓ Built build/web
+flutterdev@Flutters-Mac-mini-93 fastify-public-mobile-app-templates % 

@@ -15,7 +15,7 @@ class AppImagePlaceholder extends StatelessWidget {
     this.width,
     this.height,
     this.colorFilter,
-    this.imageAsset = 'assets/images/app_launcher_icon.png',
+    this.imageAsset = 'assets/images/foduu_electro_launcher.png',
   });
 
   /// Specialized constructor for circular avatars (e.g. round category chips)
@@ -29,7 +29,7 @@ class AppImagePlaceholder extends StatelessWidget {
     double? width,
     double? height,
     this.colorFilter,
-    this.imageAsset = 'assets/images/app_launcher_icon.png',
+    this.imageAsset = 'assets/images/foduu_electro_launcher.png',
   })  : radius = 0,
         shape = BoxShape.circle,
         width = size ?? width,

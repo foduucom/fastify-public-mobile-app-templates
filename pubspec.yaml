@@ -79,12 +79,12 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   remove_alpha_ios: true
-  image_path: "assets/images/app_launcher_icon.png"
+  image_path: "assets/images/foduu_electro_launcher.png"
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/images/app_launcher_foreground.png"
+  adaptive_icon_foreground: "assets/images/foduu_electro_launcher_foreground.png"
   web:
     generate: true
-    image_path: "assets/images/app_launcher_icon.png"
+    image_path: "assets/images/foduu_electro_launcher.png"
 
 flutter:
   uses-material-design: true

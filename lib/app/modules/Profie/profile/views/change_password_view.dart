@@ -96,8 +96,8 @@ class ChangePasswordView extends GetView<ProfileController> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: Color(0xFFDDDDDD),
+                              borderSide: BorderSide(
+                                color: Theme.of(context).colorScheme.outline,
                                 width: 1,
                               ),
                               borderRadius: BorderRadius.circular(8),
@@ -188,8 +188,8 @@ class ChangePasswordView extends GetView<ProfileController> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: Color(0xFFDDDDDD),
+                              borderSide: BorderSide(
+                                color: Theme.of(context).colorScheme.outline,
                                 width: 1,
                               ),
                               borderRadius: BorderRadius.circular(8),
@@ -280,8 +280,8 @@ class ChangePasswordView extends GetView<ProfileController> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: Color(0xFFDDDDDD),
+                              borderSide: BorderSide(
+                                color: Theme.of(context).colorScheme.outline,
                                 width: 1,
                               ),
                               borderRadius: BorderRadius.circular(8),

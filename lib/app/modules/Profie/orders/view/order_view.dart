@@ -4,6 +4,7 @@ import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import '/app/modules/bottomar/controllers/bottombar_controller.dart';
 import '/app/routes/app_pages.dart';
+import '/constants/dynamic_theme.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
@@ -282,13 +283,13 @@ class _StatusBadge extends StatelessWidget {
       case 'delivered':
       case 'paid':
       case 'completed':
-        color = const Color(0xFF3BC24F);
+        color = context.semanticColors.success;
         break;
       case 'cod - pending':
       case 'pending':
       case 'unpaid':
       case 'processing':
-        color = const Color(0xFFF9A825);
+        color = context.semanticColors.warning;
         break;
       case 'cancelled':
       case 'failed':

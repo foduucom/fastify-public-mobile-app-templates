@@ -129,7 +129,7 @@ Future<void> showOutOfStockBottomSheet({
               decoration: BoxDecoration(
                 color: isDark
                     ? Colors.white.withOpacity(0.06)
-                    : const Color(0xFFF7F8FA),
+                    : colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: Colors.red.withOpacity(0.25),

@@ -143,10 +143,10 @@ class _ProductQuickViewModalState extends State<ProductQuickViewModal> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 5,
-                (index) => const Icon(
+                (index) => Icon(
                   Icons.star_rounded,
                   size: 18,
-                  color: DefaultThemeColors.alertWarninglight,
+                  color: context.semanticColors.warning,
                 ),
               ),
             ),
@@ -213,7 +213,7 @@ class _ProductQuickViewModalState extends State<ProductQuickViewModal> {
                 inStock ? 'In Stock' : 'Out of Stock',
                 style: TextStyle(
                   color: inStock
-                      ? DefaultThemeColors.alertSuccessLight
+                      ? context.semanticColors.success
                       : colorScheme.error,
                   fontWeight: FontWeight.w600,
                   fontSize: 13,

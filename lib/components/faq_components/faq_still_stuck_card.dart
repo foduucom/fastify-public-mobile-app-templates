@@ -39,7 +39,7 @@ class FaqStillStuckCard extends StatelessWidget {
                     colorScheme.surface,
                   ]
                 : [
-                    const Color(0xFFF1F5F9),
+                    colorScheme.surfaceVariant,
                     colorScheme.surface,
                   ],
             begin: Alignment.topLeft,

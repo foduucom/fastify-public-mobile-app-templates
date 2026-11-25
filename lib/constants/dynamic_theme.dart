@@ -4,50 +4,73 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class DefaultThemeColors {
-  DefaultThemeColors._(); // Private constructor - prevents instantiation
-  // ============ STILIFY ANIKET COLORS ============
-  static const Color lightSecondary = Color(0xFFFA9571);
-  static const Color lighterSecondary = Color(0xFFFBAF95);
-  static const Color lightDarker = Color(0xFFC2C2C2); //It's Original Color
-  static const Color mainprimary = Color(0xFF702F6E);
-  static const Color darklighter = Color(0xFFA3A3A3);
-  static const Color darkmain = Color(0xFF666666);
-  static const Color alertSuccessLight = Color(0xFF3BC24F);
-  static const Color alertErrorLighter = Color(0xFFFF6766);
-  static const Color darklight = Color(0xFFE0E0E0);
-  static const Color secondarymain = Color(0xFFF97A4E);
-  static const Color darkdark = Color(0xFF4C4C4C);
-  static const Color alertWarninglight = Color(0xFFF9A825);
+/// Semantic e-commerce colors derived strictly from the backend theme payload.
+class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
+  final Color success;
+  final Color onSuccess;
+  final Color warning;
+  final Color onWarning;
+  final Color price;
+  final Color discountPrice;
+  final Color mutedText;
 
-  // ============ LIGHT THEME DEFAULTS ============
-  static const Color lightPrimary = Color(0xFF6200EE);
-  static const Color lightOnPrimary = Color(0xFFFFFFFF);
-  //static const Color lightSecondary = Color(0xFF03DAC6);
-  static const Color lightOnSecondary = Color(0xFF000000);
-  static const Color lightBackground = Color(0xFFFFFFFF);
-  static const Color lightOnBackground = Color(0xFF000000);
-  static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightOnSurface = Color(0xFF000000);
-  static const Color lightError = Color(0xFFB00020);
-  static const Color lightOnError = Color(0xFFFFFFFF);
-  static const Color lightOutline = Color(0xFFDDDDDD);
-  static const Color lightSurfaceVariant = Color(0xFFF5F5F5);
-  static const Color lightOnSurfaceVariant = Color(0xFF666666);
-  // ============ DARK THEME DEFAULTS ============
-  static const Color darkPrimary = Color(0xFFBB86FC);
-  static const Color darkOnPrimary = Color(0xFF000000);
-  static const Color darkSecondary = Color(0xFF03DAC6);
-  static const Color darkOnSecondary = Color(0xFF000000);
-  static const Color darkBackground = Color(0xFF121212);
-  static const Color darkOnBackground = Color(0xFFFFFFFF);
-  static const Color darkSurface = Color(0xFF1E1E1E);
-  static const Color darkOnSurface = Color(0xFFFFFFFF);
-  static const Color darkError = Color(0xFFCF6679);
-  static const Color darkOnError = Color(0xFF000000);
-  static const Color darkOutline = Color(0xFF444444);
-  static const Color darkSurfaceVariant = Color(0xFF2C2C2C);
-  static const Color darkOnSurfaceVariant = Color(0xFFAAAAAA);
+  const AppSemanticColors({
+    required this.success,
+    required this.onSuccess,
+    required this.warning,
+    required this.onWarning,
+    required this.price,
+    required this.discountPrice,
+    required this.mutedText,
+  });
+
+  factory AppSemanticColors.fromColorScheme(ColorScheme scheme) {
+    return AppSemanticColors(
+      success: scheme.secondary,
+      onSuccess: scheme.onSecondary,
+      warning: scheme.secondary,
+      onWarning: scheme.onSecondary,
+      price: scheme.primary,
+      discountPrice: scheme.secondary,
+      mutedText: scheme.onSurfaceVariant,
+    );
+  }
+
+  @override
+  AppSemanticColors copyWith({
+    Color? success,
+    Color? onSuccess,
+    Color? warning,
+    Color? onWarning,
+    Color? price,
+    Color? discountPrice,
+    Color? mutedText,
+  }) {
+    return AppSemanticColors(
+      success: success ?? this.success,
+      onSuccess: onSuccess ?? this.onSuccess,
+      warning: warning ?? this.warning,
+      onWarning: onWarning ?? this.onWarning,
+      price: price ?? this.price,
+      discountPrice: discountPrice ?? this.discountPrice,
+      mutedText: mutedText ?? this.mutedText,
+    );
+  }
+
+  @override
+  AppSemanticColors lerp(ThemeExtension<AppSemanticColors>? other, double t) {
+    if (other is! AppSemanticColors) return this;
+    return AppSemanticColors(
+      success: Color.lerp(success, other.success, t) ?? success,
+      onSuccess: Color.lerp(onSuccess, other.onSuccess, t) ?? onSuccess,
+      warning: Color.lerp(warning, other.warning, t) ?? warning,
+      onWarning: Color.lerp(onWarning, other.onWarning, t) ?? onWarning,
+      price: Color.lerp(price, other.price, t) ?? price,
+      discountPrice:
+          Color.lerp(discountPrice, other.discountPrice, t) ?? discountPrice,
+      mutedText: Color.lerp(mutedText, other.mutedText, t) ?? mutedText,
+    );
+  }
 }
 
 class AppThemeColors {
@@ -67,6 +90,14 @@ class AppThemeColors {
   final Color surfaceVariant;
   final Color onSurfaceVariant;
 
+  final Color success;
+  final Color onSuccess;
+  final Color warning;
+  final Color onWarning;
+  final Color price;
+  final Color discountPrice;
+  final Color mutedText;
+
   AppThemeColors._({
     required this.primary,
     required this.secondary,
@@ -81,6 +112,13 @@ class AppThemeColors {
     required this.outline,
     required this.surfaceVariant,
     required this.onSurfaceVariant,
+    required this.success,
+    required this.onSuccess,
+    required this.warning,
+    required this.onWarning,
+    required this.price,
+    required this.discountPrice,
+    required this.mutedText,
   });
 
   factory AppThemeColors.fromCoreColors({
@@ -98,7 +136,16 @@ class AppThemeColors {
     required Color outline,
     required Color surfaceVariant,
     required Color onSurfaceVariant,
+    Color? success,
+    Color? onSuccess,
+    Color? warning,
+    Color? onWarning,
+    Color? price,
+    Color? discountPrice,
+    Color? mutedText,
   }) {
+    final resolvedSuccess = success ?? secondary;
+    final resolvedWarning = warning ?? secondary;
     return AppThemeColors._(
       primary: primary,
       secondary: secondary,
@@ -113,110 +160,113 @@ class AppThemeColors {
       outline: outline,
       surfaceVariant: surfaceVariant,
       onSurfaceVariant: onSurfaceVariant,
+      success: resolvedSuccess,
+      onSuccess: onSuccess ?? _contrastOn(resolvedSuccess),
+      warning: resolvedWarning,
+      onWarning: onWarning ?? _contrastOn(resolvedWarning),
+      price: price ?? primary,
+      discountPrice: discountPrice ?? secondary,
+      mutedText: mutedText ?? onSurfaceVariant,
     );
   }
 
-  /// Default LIGHT theme colors (fallback)
-  factory AppThemeColors.defaultsLight() {
-    debugPrint('🎨 Using default LIGHT theme colors');
+  /// Neutral monochrome shell used ONLY before the backend supplies a theme.
+  factory AppThemeColors.neutralShell({required bool isDark}) {
+    const white = Colors.white;
+    const black = Colors.black;
+    final bg = isDark ? black : white;
+    final fg = isDark ? white : black;
     return AppThemeColors.fromCoreColors(
-      primary: DefaultThemeColors.lightPrimary,
-      secondary: DefaultThemeColors.lightSecondary,
-      background: DefaultThemeColors.lightBackground,
-      error: DefaultThemeColors.lightError,
-      isDark: false,
-      onPrimary: DefaultThemeColors.lightOnPrimary,
-      onSecondary: DefaultThemeColors.lightOnSecondary,
-      onBackground: DefaultThemeColors.lightOnBackground,
-      surface: DefaultThemeColors.lightSurface,
-      onSurface: DefaultThemeColors.lightOnSurface,
-      onError: DefaultThemeColors.lightOnError,
-      outline: DefaultThemeColors.lightOutline,
-      surfaceVariant: DefaultThemeColors.lightSurfaceVariant,
-      onSurfaceVariant: DefaultThemeColors.lightOnSurfaceVariant,
+      primary: fg,
+      secondary: fg,
+      background: bg,
+      error: fg,
+      isDark: isDark,
+      onPrimary: bg,
+      onSecondary: bg,
+      onBackground: fg,
+      surface: bg,
+      onSurface: fg,
+      onError: bg,
+      outline: fg.withOpacity(0.18),
+      surfaceVariant: Color.lerp(bg, fg, 0.06) ?? bg,
+      onSurfaceVariant: fg.withOpacity(0.65),
     );
   }
 
-  /// Default DARK theme colors (fallback)
-  factory AppThemeColors.defaultsDark() {
-    debugPrint('🎨 Using default DARK theme colors');
-    return AppThemeColors.fromCoreColors(
-      primary: DefaultThemeColors.darkPrimary,
-      secondary: DefaultThemeColors.darkSecondary,
-      background: DefaultThemeColors.darkBackground,
-      error: DefaultThemeColors.darkError,
-      isDark: true,
-      onPrimary: DefaultThemeColors.darkOnPrimary,
-      onSecondary: DefaultThemeColors.darkOnSecondary,
-      onBackground: DefaultThemeColors.darkOnBackground,
-      surface: DefaultThemeColors.darkSurface,
-      onSurface: DefaultThemeColors.darkOnSurface,
-      onError: DefaultThemeColors.darkOnError,
-      outline: DefaultThemeColors.darkOutline,
-      surfaceVariant: DefaultThemeColors.darkSurfaceVariant,
-      onSurfaceVariant: DefaultThemeColors.darkOnSurfaceVariant,
-    );
+  static Color _contrastOn(Color color) {
+    return ThemeData.estimateBrightnessForColor(color) == Brightness.dark
+        ? Colors.white
+        : Colors.black;
   }
 
-  /// Parse from API response
-  factory AppThemeColors.fromThemeMap(
+  /// Parse strictly from API response. Returns null if required core tokens
+  /// are missing or unparseable (no hardcoded brand fallback).
+  static AppThemeColors? tryFromThemeMap(
       Map<String, dynamic> themeMap, bool isDark) {
     debugPrint('🌐 Parsing ${isDark ? "DARK" : "LIGHT"} theme colors');
 
+    final primary = _hexToColor(themeMap['primary']?.toString());
+    final secondary = _hexToColor(themeMap['secondary']?.toString());
+    final background = _hexToColor(themeMap['background']?.toString());
+    final surface = _hexToColor(themeMap['surface']?.toString()) ?? background;
+
+    if (primary == null ||
+        secondary == null ||
+        background == null ||
+        surface == null) {
+      debugPrint('⚠️ Missing required backend theme colors for '
+          '${isDark ? "DARK" : "LIGHT"} theme');
+      return null;
+    }
+
+    // Studio's 8-key Theme Colors UI omits `error`; derive from `secondary`
+    // when absent rather than rejecting an otherwise valid backend palette.
+    final error = _hexToColor(themeMap['error']?.toString()) ?? secondary;
+
+    final onBackground =
+        _hexToColor(themeMap['onBackground']?.toString()) ??
+            _contrastOn(background);
+    final onSurface =
+        _hexToColor(themeMap['onSurface']?.toString()) ?? _contrastOn(surface);
+    final onPrimary =
+        _hexToColor(themeMap['onPrimary']?.toString()) ?? _contrastOn(primary);
+    final onSecondary =
+        _hexToColor(themeMap['onSecondary']?.toString()) ??
+            _contrastOn(secondary);
+    final onError =
+        _hexToColor(themeMap['onError']?.toString()) ?? _contrastOn(error);
+    final surfaceVariant =
+        _hexToColor(themeMap['surfaceVariant']?.toString()) ??
+            (Color.lerp(surface, onSurface, 0.05) ?? surface);
+    final onSurfaceVariant =
+        _hexToColor(themeMap['onSurfaceVariant']?.toString()) ??
+            onSurface.withOpacity(0.68);
+    final outline = _hexToColor(themeMap['outline']?.toString()) ??
+        onSurface.withOpacity(0.16);
+
     return AppThemeColors.fromCoreColors(
-      primary: _hexToColor(themeMap['primary']) ??
-          (isDark
-              ? DefaultThemeColors.darkPrimary
-              : DefaultThemeColors.lightPrimary),
-      secondary: _hexToColor(themeMap['secondary']) ??
-          (isDark
-              ? DefaultThemeColors.darkSecondary
-              : DefaultThemeColors.lightSecondary),
-      background: _hexToColor(themeMap['background']) ??
-          (isDark
-              ? DefaultThemeColors.darkBackground
-              : DefaultThemeColors.lightBackground),
-      error: _hexToColor(themeMap['error']) ??
-          (isDark
-              ? DefaultThemeColors.darkError
-              : DefaultThemeColors.lightError),
+      primary: primary,
+      secondary: secondary,
+      background: background,
+      error: error,
       isDark: isDark,
-      onPrimary: _hexToColor(themeMap['onPrimary']) ??
-          (isDark
-              ? DefaultThemeColors.darkOnPrimary
-              : DefaultThemeColors.lightOnPrimary),
-      onSecondary: _hexToColor(themeMap['onSecondary']) ??
-          (isDark
-              ? DefaultThemeColors.darkOnSecondary
-              : DefaultThemeColors.lightOnSecondary),
-      onBackground: _hexToColor(themeMap['onBackground']) ??
-          (isDark
-              ? DefaultThemeColors.darkOnBackground
-              : DefaultThemeColors.lightOnBackground),
-      surface: _hexToColor(themeMap['surface']) ??
-          (isDark
-              ? DefaultThemeColors.darkSurface
-              : DefaultThemeColors.lightSurface),
-      onSurface: _hexToColor(themeMap['onSurface']) ??
-          (isDark
-              ? DefaultThemeColors.darkOnSurface
-              : DefaultThemeColors.lightOnSurface),
-      onError: _hexToColor(themeMap['onError']) ??
-          (isDark
-              ? DefaultThemeColors.darkOnError
-              : DefaultThemeColors.lightOnError),
-      outline: _hexToColor(themeMap['outline']) ??
-          (isDark
-              ? DefaultThemeColors.darkOutline
-              : DefaultThemeColors.lightOutline),
-      surfaceVariant: _hexToColor(themeMap['surfaceVariant']) ??
-          (isDark
-              ? DefaultThemeColors.darkSurfaceVariant
-              : DefaultThemeColors.lightSurfaceVariant),
-      onSurfaceVariant: _hexToColor(themeMap['onSurfaceVariant']) ??
-          (isDark
-              ? DefaultThemeColors.darkOnSurfaceVariant
-              : DefaultThemeColors.lightOnSurfaceVariant),
+      onPrimary: onPrimary,
+      onSecondary: onSecondary,
+      onBackground: onBackground,
+      surface: surface,
+      onSurface: onSurface,
+      onError: onError,
+      outline: outline,
+      surfaceVariant: surfaceVariant,
+      onSurfaceVariant: onSurfaceVariant,
+      success: _hexToColor(themeMap['success']?.toString()),
+      onSuccess: _hexToColor(themeMap['onSuccess']?.toString()),
+      warning: _hexToColor(themeMap['warning']?.toString()),
+      onWarning: _hexToColor(themeMap['onWarning']?.toString()),
+      price: _hexToColor(themeMap['price']?.toString()),
+      discountPrice: _hexToColor(themeMap['discountPrice']?.toString()),
+      mutedText: _hexToColor(themeMap['mutedText']?.toString()),
     );
   }
 
@@ -225,7 +275,7 @@ class AppThemeColors {
       return null;
     }
 
-    hexString = hexString.replaceAll('#', '');
+    hexString = hexString.trim().replaceAll('#', '');
 
     if (hexString.length == 6) {
       hexString = 'FF$hexString';
@@ -257,6 +307,13 @@ class AppThemeColors {
       'outline': _colorToHex(outline),
       'surfaceVariant': _colorToHex(surfaceVariant),
       'onSurfaceVariant': _colorToHex(onSurfaceVariant),
+      'success': _colorToHex(success),
+      'onSuccess': _colorToHex(onSuccess),
+      'warning': _colorToHex(warning),
+      'onWarning': _colorToHex(onWarning),
+      'price': _colorToHex(price),
+      'discountPrice': _colorToHex(discountPrice),
+      'mutedText': _colorToHex(mutedText),
     };
   }
 
@@ -266,7 +323,7 @@ class AppThemeColors {
 }
 
 /// Theme Manager using GetX for reactive updates
-/// Supports both light and dark themes from API
+/// Strictly driven by backend API colors with no hardcoded brand fallback.
 class DynamicThemeManager {
   static final DynamicThemeManager _instance = DynamicThemeManager._internal();
   factory DynamicThemeManager() => _instance;
@@ -276,21 +333,26 @@ class DynamicThemeManager {
   static const String _lightThemeKey = 'app_theme_colors_light';
   static const String _darkThemeKey = 'app_theme_colors_dark';
 
-  AppThemeColors _lightColors = AppThemeColors.defaultsLight();
-  AppThemeColors _darkColors = AppThemeColors.defaultsDark();
+  AppThemeColors? _lightColors;
+  AppThemeColors? _darkColors;
 
   ThemeData? _cachedLightTheme;
   ThemeData? _cachedDarkTheme;
 
-  AppThemeColors get lightColors => _lightColors;
-  AppThemeColors get darkColors => _darkColors;
+  /// True once at least a valid backend light theme has been loaded.
+  bool get hasTheme => _lightColors != null;
+
+  AppThemeColors get lightColors =>
+      _lightColors ?? AppThemeColors.neutralShell(isDark: false);
+  AppThemeColors get darkColors =>
+      _darkColors ?? _lightColors ?? AppThemeColors.neutralShell(isDark: true);
 
   /// Get colors based on current brightness
   AppThemeColors getColors(Brightness brightness) {
-    return brightness == Brightness.dark ? _darkColors : _lightColors;
+    return brightness == Brightness.dark ? darkColors : lightColors;
   }
 
-  /// Initialize theme from storage or use defaults
+  /// Initialize theme from storage (strictly backend-cached, no brand fallback)
   Future<void> init() async {
     debugPrint('📦 Initializing DynamicThemeManager');
 
@@ -299,16 +361,19 @@ class DynamicThemeManager {
     if (storedLight != null) {
       debugPrint('💾 Light theme found in storage, loading...');
       final storedColors = Map<String, dynamic>.from(storedLight);
-      if (_isUsableThemeMap(storedColors)) {
-        _lightColors = AppThemeColors.fromThemeMap(storedColors, false);
+      final parsed = _isUsableThemeMap(storedColors)
+          ? AppThemeColors.tryFromThemeMap(storedColors, false)
+          : null;
+      if (parsed != null) {
+        _lightColors = parsed;
       } else {
-        debugPrint('⚠️ Stored light theme is unusable; restoring defaults');
-        _lightColors = AppThemeColors.defaultsLight();
-        _box.write(_lightThemeKey, _lightColors.toJson());
+        debugPrint('⚠️ Stored light theme is unusable; removing cached entry');
+        _lightColors = null;
+        _box.remove(_lightThemeKey);
       }
       _cachedLightTheme = null;
     } else {
-      debugPrint('ℹ️ No stored light theme found, using defaults');
+      debugPrint('ℹ️ No stored light theme found; waiting for backend theme');
     }
 
     // Load dark theme
@@ -316,16 +381,19 @@ class DynamicThemeManager {
     if (storedDark != null) {
       debugPrint('💾 Dark theme found in storage, loading...');
       final storedColors = Map<String, dynamic>.from(storedDark);
-      if (_isUsableThemeMap(storedColors)) {
-        _darkColors = AppThemeColors.fromThemeMap(storedColors, true);
+      final parsed = _isUsableThemeMap(storedColors)
+          ? AppThemeColors.tryFromThemeMap(storedColors, true)
+          : null;
+      if (parsed != null) {
+        _darkColors = parsed;
       } else {
-        debugPrint('⚠️ Stored dark theme is unusable; restoring defaults');
-        _darkColors = AppThemeColors.defaultsDark();
-        _box.write(_darkThemeKey, _darkColors.toJson());
+        debugPrint('⚠️ Stored dark theme is unusable; removing cached entry');
+        _darkColors = null;
+        _box.remove(_darkThemeKey);
       }
       _cachedDarkTheme = null;
     } else {
-      debugPrint('ℹ️ No stored dark theme found, using defaults');
+      debugPrint('ℹ️ No stored dark theme found');
     }
   }
 
@@ -339,10 +407,13 @@ class DynamicThemeManager {
     final lightTheme = appThemeColor['light'];
     if (lightTheme is Map) {
       final lightColors = Map<String, dynamic>.from(lightTheme);
-      if (_isUsableThemeMap(lightColors)) {
-        _lightColors = AppThemeColors.fromThemeMap(lightColors, false);
+      final parsed = _isUsableThemeMap(lightColors)
+          ? AppThemeColors.tryFromThemeMap(lightColors, false)
+          : null;
+      if (parsed != null) {
+        _lightColors = parsed;
         _cachedLightTheme = null;
-        _box.write(_lightThemeKey, _lightColors.toJson());
+        _box.write(_lightThemeKey, _lightColors!.toJson());
         debugPrint('✅ Light theme updated & saved successfully');
         updated = true;
       } else {
@@ -356,10 +427,13 @@ class DynamicThemeManager {
     final darkTheme = appThemeColor['dark'];
     if (darkTheme is Map) {
       final darkColors = Map<String, dynamic>.from(darkTheme);
-      if (_isUsableThemeMap(darkColors)) {
-        _darkColors = AppThemeColors.fromThemeMap(darkColors, true);
+      final parsed = _isUsableThemeMap(darkColors)
+          ? AppThemeColors.tryFromThemeMap(darkColors, true)
+          : null;
+      if (parsed != null) {
+        _darkColors = parsed;
         _cachedDarkTheme = null;
-        _box.write(_darkThemeKey, _darkColors.toJson());
+        _box.write(_darkThemeKey, _darkColors!.toJson());
         debugPrint('✅ Dark theme updated & saved successfully');
         updated = true;
       } else {
@@ -387,7 +461,7 @@ class DynamicThemeManager {
     ];
     final providedTokens =
         coreTokens.where(themeMap.containsKey).toList(growable: false);
-    if (providedTokens.length < 3) return true;
+    if (providedTokens.length < 3) return false;
 
     final parsedColors = <Color>[];
     for (final token in providedTokens) {
@@ -401,26 +475,32 @@ class DynamicThemeManager {
     return parsedColors.map((color) => color.value).toSet().length > 1;
   }
 
-  /// Clear stored themes (reset to defaults)
+  /// Clear stored themes
   void clearTheme() {
-    debugPrint('♻️ Clearing stored themes & resetting to defaults');
+    debugPrint('♻️ Clearing stored themes');
     _box.remove(_lightThemeKey);
     _box.remove(_darkThemeKey);
-    _lightColors = AppThemeColors.defaultsLight();
-    _darkColors = AppThemeColors.defaultsDark();
+    _lightColors = null;
+    _darkColors = null;
     _cachedLightTheme = null;
     _cachedDarkTheme = null;
   }
 
   /// Build LIGHT ThemeData
   ThemeData buildLightTheme() {
-    _cachedLightTheme ??= _buildTheme(_lightColors, Brightness.light);
+    _cachedLightTheme ??= _buildTheme(
+      lightColors,
+      _lightColors == null ? Brightness.light : Brightness.light,
+    );
     return _cachedLightTheme!;
   }
 
-  /// Build DARK ThemeData
+  /// Build DARK ThemeData (falls back to backend lightTheme if backend omitted dark)
   ThemeData buildDarkTheme() {
-    _cachedDarkTheme ??= _buildTheme(_darkColors, Brightness.dark);
+    if (_darkColors == null && _lightColors != null) {
+      return buildLightTheme();
+    }
+    _cachedDarkTheme ??= _buildTheme(darkColors, Brightness.dark);
     return _cachedDarkTheme!;
   }
 
@@ -450,6 +530,17 @@ class DynamicThemeManager {
       ),
       fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
       scaffoldBackgroundColor: colors.background,
+      extensions: [
+        AppSemanticColors(
+          success: colors.success,
+          onSuccess: colors.onSuccess,
+          warning: colors.warning,
+          onWarning: colors.onWarning,
+          price: colors.price,
+          discountPrice: colors.discountPrice,
+          mutedText: colors.mutedText,
+        ),
+      ],
       colorScheme: ColorScheme(
         brightness: brightness,
         primary: colors.primary,
@@ -702,6 +793,25 @@ class ThemeController extends GetxController {
   final _box = GetStorage();
   static const String _themeModeKey = 'theme_mode';
 
+  bool _isThemeLoading = false;
+  String? _themeError;
+
+  bool get hasTheme => _themeManager.hasTheme;
+  bool get isThemeLoading => _isThemeLoading;
+  String? get themeError => _themeError;
+
+  void setThemeLoading(bool loading) {
+    if (_isThemeLoading == loading) return;
+    _isThemeLoading = loading;
+    update();
+  }
+
+  void setThemeError(String? error) {
+    if (_themeError == error) return;
+    _themeError = error;
+    update();
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -811,6 +921,11 @@ extension ThemeColorExtension on BuildContext {
   // 👇 ADD THESE TWO LINES 👇
   Color get surfaceVariantColor => colorScheme.surfaceVariant;
   Color get onSurfaceVariantColor => colorScheme.onSurfaceVariant;
+
+  /// Semantic e-commerce colors derived from the backend theme
+  AppSemanticColors get semanticColors =>
+      Theme.of(this).extension<AppSemanticColors>() ??
+      AppSemanticColors.fromColorScheme(colorScheme);
 
   /// Check if current theme is dark
   bool get isDarkMode => Theme.of(this).brightness == Brightness.dark;

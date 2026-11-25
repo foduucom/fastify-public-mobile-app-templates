@@ -414,7 +414,7 @@ SPEC CHECKSUMS:
   StripeUICore: bfe8754c2d78eeb0fc4ce147316a7e5129b58423
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
-  video_player_avfoundation: bc5f800d1e1c4f389bc5d51778a4f89dd1bf4a77
+  video_player_avfoundation: a0f7b0f7f7d91c3d33f7a746bc3fbb57a6fae803
   wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556
   webview_flutter_wkwebview: 8ebf4fded22593026f7dbff1fbff31ea98573c8d
 

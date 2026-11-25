@@ -154,18 +154,18 @@ class AboutusView extends GetView<AboutusController> {
               imageUrl: _imageUrl(header.backgroundImage),
               fit: BoxFit.cover,
               errorWidget: (_, __, ___) =>
-                  Container(color: const Color(0xFF0F172A)),
+                  Container(color: Theme.of(context).colorScheme.primary),
             )
           else
-            Container(color: const Color(0xFF0F172A)),
+            Container(color: Theme.of(context).colorScheme.primary),
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  const Color(0xFF0F172A).withValues(alpha: 0.78),
-                  const Color(0xFF1E293B).withValues(alpha: 0.92),
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.78),
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.92),
                 ],
               ),
             ),
@@ -1276,11 +1276,7 @@ class AboutusView extends GetView<AboutusController> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: Theme.of(context).colorScheme.primary,
           borderRadius: BorderRadius.circular(16),
           boxShadow: _cardShadow(context),
         ),

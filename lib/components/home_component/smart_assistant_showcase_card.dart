@@ -65,9 +65,10 @@ class SmartAssistantShowcaseCard extends StatelessWidget {
 
     final imageUrl = HelperFunctions().getImage(item);
 
-    // Deep slate/navy card container matching parent website (.showcase-banner bg-dark: #0F172A)
-    const cardBgColor = Color(0xFF0F172A);
-    final borderColor = Colors.white.withOpacity(0.08);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final cardBgColor = colorScheme.surface;
+    final borderColor = colorScheme.outline.withOpacity(0.25);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -108,8 +109,8 @@ class SmartAssistantShowcaseCard extends StatelessWidget {
                           shape: BoxShape.circle,
                           gradient: RadialGradient(
                             colors: [
-                              const Color(0xFF3B82F6).withOpacity(0.30),
-                              const Color(0xFF2563EB).withOpacity(0.12),
+                              colorScheme.secondary.withOpacity(0.30),
+                              colorScheme.primary.withOpacity(0.12),
                               Colors.transparent,
                             ],
                             stops: const [0.0, 0.45, 1.0],
@@ -150,19 +151,19 @@ class SmartAssistantShowcaseCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 5),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF2563EB).withOpacity(0.18),
+                              color: colorScheme.primary.withOpacity(0.12),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: const Color(0xFF3B82F6).withOpacity(0.35),
+                                color: colorScheme.primary.withOpacity(0.35),
                                 width: 0.8,
                               ),
                             ),
                             child: Text(
                               badges.first,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF60A5FA),
+                                color: colorScheme.primary,
                                 letterSpacing: 0.6,
                               ),
                             ),
@@ -172,10 +173,10 @@ class SmartAssistantShowcaseCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 5),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.08),
+                              color: colorScheme.surfaceVariant,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.15),
+                                color: colorScheme.outline.withOpacity(0.35),
                                 width: 0.8,
                               ),
                             ),
@@ -184,7 +185,7 @@ class SmartAssistantShowcaseCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white.withOpacity(0.9),
+                                color: colorScheme.onSurface,
                                 letterSpacing: 0.5,
                               ),
                             ),
@@ -197,11 +198,11 @@ class SmartAssistantShowcaseCard extends StatelessWidget {
                     // Main Headline (H2)
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Lato',
                         fontSize: 23,
                         fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                        color: colorScheme.onSurface,
                         height: 1.2,
                         letterSpacing: -0.4,
                       ),
@@ -215,7 +216,7 @@ class SmartAssistantShowcaseCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
-                        color: const Color(0xFF94A3B8),
+                        color: colorScheme.onSurfaceVariant,
                         height: 1.45,
                       ),
                     ),
@@ -226,12 +227,14 @@ class SmartAssistantShowcaseCard extends StatelessWidget {
                     Column(
                       children: [
                         _buildSpecTile(
+                          colorScheme: colorScheme,
                           eyebrow: 'SMART HOME HUB',
                           title: 'Premium Automation',
                           status: 'Enabled',
                         ),
                         const SizedBox(height: 10),
                         _buildSpecTile(
+                          colorScheme: colorScheme,
                           eyebrow: 'VOICE ASSISTANT',
                           title: 'Multi-Room Audio',
                           status: 'Enabled',
@@ -258,15 +261,11 @@ class SmartAssistantShowcaseCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 26, vertical: 12.5),
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
+                              color: colorScheme.primary,
                               borderRadius: BorderRadius.circular(30),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF2563EB).withOpacity(0.40),
+                                  color: colorScheme.primary.withOpacity(0.30),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -277,18 +276,18 @@ class SmartAssistantShowcaseCard extends StatelessWidget {
                               children: [
                                 Text(
                                   buttonText,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.w700,
-                                    color: Colors.white,
+                                    color: colorScheme.onPrimary,
                                     letterSpacing: 0.2,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                const Icon(
+                                Icon(
                                   Icons.arrow_forward_rounded,
                                   size: 15,
-                                  color: Colors.white,
+                                  color: colorScheme.onPrimary,
                                 ),
                               ],
                             ),
@@ -307,6 +306,7 @@ class SmartAssistantShowcaseCard extends StatelessWidget {
   }
 
   Widget _buildSpecTile({
+    required ColorScheme colorScheme,
     required String eyebrow,
     required String title,
     required String status,
@@ -316,10 +316,10 @@ class SmartAssistantShowcaseCard extends StatelessWidget {
       children: [
         Text(
           eyebrow,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 9.5,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF93C5FD),
+            color: colorScheme.secondary,
             letterSpacing: 0.7,
           ),
         ),
@@ -328,10 +328,10 @@ class SmartAssistantShowcaseCard extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B).withOpacity(0.65),
+            color: colorScheme.surfaceVariant,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: Colors.white.withOpacity(0.10),
+              color: colorScheme.outline.withOpacity(0.25),
               width: 0.8,
             ),
           ),
@@ -341,10 +341,10 @@ class SmartAssistantShowcaseCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: colorScheme.onSurface,
                   ),
                 ),
               ),

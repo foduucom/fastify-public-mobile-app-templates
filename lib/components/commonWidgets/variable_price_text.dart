@@ -12,7 +12,7 @@ class VariablePriceText extends StatelessWidget {
     required this.lowestPrice,
     required this.highestPrice,
     this.style,
-    this.currencySymbol = '₹',
+    this.currencySymbol = '\$',
     this.separator = ' - ',
   });
 

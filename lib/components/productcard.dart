@@ -167,7 +167,7 @@ class _ProductCardState extends State<ProductCard>
                               decoration: TextDecoration.lineThrough)),
                       TextSpan(
                           text: ' ${widget.discountRate}',
-                          style: const TextStyle(color: Color(0xFFFF4C3B)))
+                          style: TextStyle(color: Theme.of(context).colorScheme.error))
                     ]))
         ],
       ),

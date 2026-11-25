@@ -76,7 +76,7 @@ class _TextBlockComponentState extends State<TextBlockComponent> {
     final String text = widget.contentJson['text']?.toString() ?? '';
     if (text.trim().isEmpty) return const SizedBox.shrink();
 
-    final cardBg = isDark ? colorScheme.surface : const Color(0xFFF8FAFC);
+    final cardBg = isDark ? colorScheme.surface : colorScheme.surfaceVariant;
     final borderColor = colorScheme.outline.withOpacity(0.12);
 
     final lower = text.toLowerCase();
@@ -99,6 +99,16 @@ class _TextBlockComponentState extends State<TextBlockComponent> {
     if (lower.contains('about foduu store') ||
         lower.contains('smarter way to shop') ||
         (lower.contains('about') && lower.contains('foduu'))) {
+      return const SizedBox.shrink();
+    }
+
+    // Suppress placeholder Lorem ipsum copy and redundant divider headings
+    // that duplicate the StudioSectionHeader of the following section.
+    final trimmedLower = lower.trim();
+    if (trimmedLower.contains('lorem ipsum') ||
+        trimmedLower == 'trending deals' ||
+        trimmedLower == 'bestsellers' ||
+        trimmedLower == 'from our blog') {
       return const SizedBox.shrink();
     }
 
@@ -320,12 +330,12 @@ class _TextBlockComponentState extends State<TextBlockComponent> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Section Eyebrow Tag
-          const Text(
+          Text(
             'ABOUT FODUU STORE',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF2563EB),
+              color: colorScheme.primary,
               letterSpacing: 1.2,
             ),
           ),
@@ -411,9 +421,7 @@ class _TextBlockComponentState extends State<TextBlockComponent> {
                 color: Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isDark
-                      ? colorScheme.outline.withOpacity(0.3)
-                      : const Color(0xFFD1D5DB),
+                  color: colorScheme.outline.withOpacity(isDark ? 0.3 : 0.6),
                   width: 1,
                 ),
               ),
@@ -455,7 +463,13 @@ class StudioSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = title?.trim() ?? '';
-    final s = subtitle?.trim() ?? '';
+    final rawSub = subtitle?.trim() ?? '';
+    final subLower = rawSub.toLowerCase();
+    final s = (subLower.contains('lorem ipsum') ||
+            subLower.contains('phasellus') ||
+            subLower.contains('consectetur adipiscing'))
+        ? ''
+        : rawSub;
 
     // Only show if title is non-empty
     if (t.isEmpty) {

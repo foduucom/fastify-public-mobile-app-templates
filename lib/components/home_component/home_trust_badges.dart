@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/foduuCachedImageNetwork.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 
@@ -200,8 +201,7 @@ class _TestimonialCarouselState extends State<_TestimonialCarousel> {
     );
   }
 
-  Widget _buildCardContent(
-      _Testimonial s, ThemeData theme, String? iconUrl) {
+  Widget _buildCardContent(_Testimonial s, ThemeData theme, String? iconUrl) {
     final isDark = theme.brightness == Brightness.dark;
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -219,8 +219,7 @@ class _TestimonialCarouselState extends State<_TestimonialCarousel> {
                     : null,
               )
             : Icon(Icons.format_quote_rounded,
-                size: 32,
-                color: theme.colorScheme.primary.withOpacity(0.75)),
+                size: 32, color: theme.colorScheme.primary.withOpacity(0.75)),
         const SizedBox(height: 12),
         Text(
           '"${s.quote}"',
@@ -238,10 +237,10 @@ class _TestimonialCarouselState extends State<_TestimonialCarousel> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
             s.rating,
-            (_) => const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 1.5),
+            (_) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 1.5),
               child: Icon(Icons.star_rounded,
-                  size: 17, color: Color(0xFFFF9800)),
+                  size: 17, color: context.semanticColors.warning),
             ),
           ),
         ),
@@ -347,8 +346,7 @@ class _TestimonialCarouselState extends State<_TestimonialCarousel> {
                   );
                 }),
                 const SizedBox(width: 16),
-                _arrow(
-                    Icons.chevron_right,
+                _arrow(Icons.chevron_right,
                     _page < widget.slides.length - 1 ? () => _go(1) : null),
               ],
             ),
@@ -367,8 +365,8 @@ class _TestimonialCarouselState extends State<_TestimonialCarousel> {
         height: 36,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(
-              color: Theme.of(context).colorScheme.outlineVariant),
+          border:
+              Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         ),
         child: Icon(icon,
             size: 20,
@@ -441,23 +439,13 @@ class _PromoCardList extends StatelessWidget {
                 final imageUrl =
                     image != null ? HelperFunctions().getImage(image) : '';
 
-                Color cardBg;
-                if (isDark) {
-                  cardBg = colorScheme.surface;
-                } else {
-                  switch (i % 3) {
-                    case 0:
-                      cardBg = const Color(0xFFF1F5F9);
-                      break;
-                    case 1:
-                      cardBg = const Color(0xFFFDF2F8);
-                      break;
-                    case 2:
-                    default:
-                      cardBg = const Color(0xFFF0FDF4);
-                      break;
-                  }
-                }
+                final Color cardBg = isDark
+                    ? colorScheme.surface
+                    : (i % 3 == 0
+                        ? colorScheme.surfaceVariant
+                        : i % 3 == 1
+                            ? colorScheme.secondary.withOpacity(0.08)
+                            : colorScheme.primary.withOpacity(0.05));
 
                 return GestureDetector(
                   onTap: () {
@@ -497,7 +485,8 @@ class _PromoCardList extends StatelessWidget {
                                       horizontal: 8, vertical: 2.5),
                                   margin: const EdgeInsets.only(bottom: 5),
                                   decoration: BoxDecoration(
-                                    color: colorScheme.primary.withOpacity(0.14),
+                                    color:
+                                        colorScheme.primary.withOpacity(0.14),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
@@ -600,6 +589,145 @@ class _BadgeList extends StatelessWidget {
     final bool isBrandRow =
         cards.every((c) => _str(c['text'] ?? c['description']).isEmpty);
 
+    IconData getServiceFallbackIcon(String name) {
+      final lower = name.toLowerCase();
+      if (lower.contains('return')) return Icons.replay_rounded;
+      if (lower.contains('ship') || lower.contains('delivery')) {
+        return Icons.local_shipping_outlined;
+      }
+      if (lower.contains('support') || lower.contains('24/7')) {
+        return Icons.support_agent_rounded;
+      }
+      if (lower.contains('gift')) return Icons.card_giftcard_rounded;
+      if (lower.contains('secure') || lower.contains('payment')) {
+        return Icons.security_rounded;
+      }
+      if (lower.contains('online') || lower.contains('service')) {
+        return Icons.headset_mic_outlined;
+      }
+      return Icons.verified_user_outlined;
+    }
+
+    final bool isServiceGrid = cards.length >= 2 &&
+        cards.every((c) =>
+            _str(c['heading'] ?? c['title']).isNotEmpty &&
+            _str(c['text'] ?? c['description']).isNotEmpty);
+
+    if (isServiceGrid) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (title.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(title,
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(height: 8),
+            ],
+            SizedBox(
+              height: 60,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: cards.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (context, i) {
+                  final c = cards[i];
+                  final image = c['image'] ?? c['icon'];
+                  final heading = _str(c['heading'] ?? c['title']);
+                  final text = _str(c['text'] ?? c['description']);
+                  final imageUrl =
+                      image != null ? HelperFunctions().getImage(image) : '';
+
+                  return Container(
+                    width: 235,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? colorScheme.surface
+                          : colorScheme.surfaceVariant,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: colorScheme.outline.withOpacity(0.12),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 34,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: imageUrl.isNotEmpty
+                                ? FoduuCachedNetworkImage(
+                                    image: imageUrl,
+                                    height: 20,
+                                    width: 20,
+                                    fit: BoxFit.contain,
+                                    colorFilter: isDark
+                                        ? ColorFilter.mode(
+                                            colorScheme.onSurface,
+                                            BlendMode.srcIn)
+                                        : null,
+                                  )
+                                : Icon(
+                                    getServiceFallbackIcon(heading),
+                                    size: 18,
+                                    color: colorScheme.primary,
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                heading.toUpperCase(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: colorScheme.onSurface,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                              const SizedBox(height: 1),
+                              Text(
+                                text,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     if (isBrandRow) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -665,7 +793,8 @@ class _BadgeList extends StatelessWidget {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                            color:
+                                Colors.black.withOpacity(isDark ? 0.2 : 0.04),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -750,8 +879,7 @@ class _BadgeList extends StatelessWidget {
                             width: 32,
                             fit: BoxFit.contain,
                             colorFilter: theme.brightness == Brightness.dark
-                                ? ColorFilter.mode(
-                                    theme.colorScheme.onSurface,
+                                ? ColorFilter.mode(theme.colorScheme.onSurface,
                                     BlendMode.srcIn)
                                 : null),
                       const SizedBox(height: 10),

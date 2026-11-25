@@ -58,8 +58,8 @@ class customerReview extends StatelessWidget {
                     (index) => Icon(
                       index < ratingValue ? Icons.star : Icons.star,
                       color: index < ratingValue
-                          ? const Color(0xFFFFBA49)
-                          : Color.fromRGBO(237, 239, 244, 1),
+                          ? Theme.of(context).colorScheme.secondary
+                          : Theme.of(context).colorScheme.surfaceVariant,
                       size: 16,
                     ),
                   ),

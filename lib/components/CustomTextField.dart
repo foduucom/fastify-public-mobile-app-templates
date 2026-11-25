@@ -50,10 +50,10 @@ class CartTextField extends StatelessWidget {
             filled: false,
             focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
-                borderSide: const BorderSide(color: Color(0xffDDDDDD))),
+                borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),
             enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
-                borderSide: const BorderSide(color: Color(0xffDDDDDD))),
+                borderSide: BorderSide(color: Theme.of(context).colorScheme.outline)),
             label: Text(
               title,
               style: TextStyle(

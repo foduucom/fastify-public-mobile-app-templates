@@ -95,7 +95,7 @@ class NotificationsView extends GetView<NotificationsController> {
                             Expanded(
                               child: Divider(
                                 thickness: 1,
-                                color: const Color(0xFFE0E0E0),
+                                color: Theme.of(context).colorScheme.outline,
                               ),
                             ),
                             SizedBox(width: width * 0.03),
@@ -106,14 +106,14 @@ class NotificationsView extends GetView<NotificationsController> {
                                 fontSize: height * 0.018, // ≈ 14
                                 fontWeight: FontWeight.w600,
                                 height: 1.4,
-                                color: const Color(0xFFA3A3A3),
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
                             SizedBox(width: width * 0.03),
                             Expanded(
                               child: Divider(
                                 thickness: 1,
-                                color: const Color(0xFFE0E0E0),
+                                color: Theme.of(context).colorScheme.outline,
                               ),
                             ),
                           ],
@@ -145,7 +145,7 @@ class NotificationsView extends GetView<NotificationsController> {
                             Expanded(
                               child: Divider(
                                 thickness: 1,
-                                color: const Color(0xFFE0E0E0),
+                                color: Theme.of(context).colorScheme.outline,
                               ),
                             ),
                             SizedBox(width: width * 0.03),
@@ -156,14 +156,14 @@ class NotificationsView extends GetView<NotificationsController> {
                                 fontSize: height * 0.018,
                                 fontWeight: FontWeight.w600,
                                 height: 1.4,
-                                color: const Color(0xFFA3A3A3),
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
                             SizedBox(width: width * 0.03),
                             Expanded(
                               child: Divider(
                                 thickness: 1,
-                                color: const Color(0xFFE0E0E0),
+                                color: Theme.of(context).colorScheme.outline,
                               ),
                             ),
                           ],
@@ -201,7 +201,7 @@ class NotificationsView extends GetView<NotificationsController> {
       padding: EdgeInsets.all(width * 0.026), // ≈ 10
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(height * 0.015), // ≈ 12
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        border: Border.all(color: Get.theme.colorScheme.outline),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,14 +210,14 @@ class NotificationsView extends GetView<NotificationsController> {
             width: height * 0.062, // ≈ 50
             height: height * 0.062,
             decoration: BoxDecoration(
-              color: const Color(0xFF5A2658),
+              color: Get.theme.colorScheme.primary,
               borderRadius: BorderRadius.circular(height * 0.012), // ≈ 10
             ),
             child: Center(
               child: Icon(
                 Icons.check_circle,
                 size: height * 0.03, // ≈ 24
-                color: Colors.white,
+                color: Get.theme.colorScheme.onPrimary,
               ),
             ),
           ),
@@ -234,7 +234,7 @@ class NotificationsView extends GetView<NotificationsController> {
                     fontSize: height * 0.018,
                     fontWeight: FontWeight.w600,
                     height: 1.4,
-                    color: const Color(0xFF4C4C4C),
+                    color: Get.theme.colorScheme.onSurface,
                   ),
                 ),
                 SizedBox(height: height * 0.004),
@@ -247,7 +247,7 @@ class NotificationsView extends GetView<NotificationsController> {
                     fontSize: height * 0.015,
                     fontWeight: FontWeight.w400,
                     height: 2,
-                    color: const Color(0xFF858585),
+                    color: Get.theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -261,7 +261,7 @@ class NotificationsView extends GetView<NotificationsController> {
               fontSize: height * 0.01, // ≈ 10
               fontWeight: FontWeight.w500,
               height: 2.2, // ≈ 22
-              color: const Color(0xFF858585),
+              color: Get.theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../controllers/ordersucess_controller.dart';
 import '/app/routes/app_pages.dart';
 import 'package:get/get.dart';
+import '/constants/dynamic_theme.dart';
 import '/constants/helper_functions.dart';
 
 class OrdersucessView extends GetView<OrderSuccessController> {
@@ -9,10 +10,6 @@ class OrdersucessView extends GetView<OrderSuccessController> {
 
   @override
   final controller = Get.put(OrderSuccessController());
-
-  static const _blue = Color(0xFF20558A);
-  static const _green = Color(0xFF16845B);
-  static const _orange = Color(0xFFB45309);
 
   Widget _statusBadge(String text, Color background, Color foreground,
       {Color? border}) {
@@ -34,7 +31,7 @@ class OrdersucessView extends GetView<OrderSuccessController> {
 
   Widget _sectionTitle(BuildContext context, String title, IconData icon) {
     return Row(children: [
-      Icon(icon, size: 19, color: _blue),
+      Icon(icon, size: 19, color: Theme.of(context).colorScheme.primary),
       const SizedBox(width: 9),
       Text(title,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -261,8 +258,10 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                     ])),
                                 const SizedBox(width: 8),
                                 Flexible(
-                                    child: _statusBadge(orderStatus,
-                                        _blue.withValues(alpha: .1), _blue)),
+                                    child: _statusBadge(
+                                        orderStatus,
+                                        colors.primary.withValues(alpha: .1),
+                                        colors.primary)),
                               ]),
                               const SizedBox(height: 14),
                               const Divider(height: 1),
@@ -280,13 +279,17 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                     isCod && pending > 0
                                         ? 'Pending'
                                         : paymentStatus,
+                                    (isCod && pending > 0
+                                            ? context.semanticColors.warning
+                                            : context.semanticColors.success)
+                                        .withValues(alpha: 0.14),
                                     isCod && pending > 0
-                                        ? const Color(0xFFFFF7DB)
-                                        : const Color(0xFFE9F7F0),
-                                    isCod && pending > 0 ? _orange : _green,
-                                    border: isCod && pending > 0
-                                        ? const Color(0xFFF5D98A)
-                                        : const Color(0xFFB8E4CD)),
+                                        ? context.semanticColors.warning
+                                        : context.semanticColors.success,
+                                    border: (isCod && pending > 0
+                                            ? context.semanticColors.warning
+                                            : context.semanticColors.success)
+                                        .withValues(alpha: 0.4)),
                               ]),
                             ])),
                     const SizedBox(height: 14),
@@ -348,14 +351,16 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                               if (discount > 0)
                                 _priceRow(context, 'Discount',
                                     '-$currency${discount.toStringAsFixed(2)}',
-                                    valueColor: _green),
+                                    valueColor: context.semanticColors.success),
                               _priceRow(
                                   context,
                                   'Shipping',
                                   shipping > 0
                                       ? '$currency${shipping.toStringAsFixed(2)}'
                                       : 'FREE',
-                                  valueColor: shipping == 0 ? _green : null),
+                                  valueColor: shipping == 0
+                                      ? context.semanticColors.success
+                                      : null),
                               const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 6),
                                   child: Divider(height: 1)),
@@ -365,11 +370,13 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                               if (isCod) ...[
                                 _priceRow(context, 'Amount paid',
                                     '$currency${paid.toStringAsFixed(2)}',
-                                    valueColor: _green),
+                                    valueColor: context.semanticColors.success),
                                 _priceRow(context, 'Payable on delivery',
                                     '$currency${pending.toStringAsFixed(2)}',
                                     strong: true,
-                                    valueColor: pending > 0 ? _orange : _green),
+                                    valueColor: pending > 0
+                                        ? context.semanticColors.warning
+                                        : context.semanticColors.success),
                               ],
                             ])),
                   ]),
@@ -415,7 +422,8 @@ class OrdersucessView extends GetView<OrderSuccessController> {
         width: 76,
         height: 76,
         decoration: BoxDecoration(
-            color: _green.withValues(alpha: .12), shape: BoxShape.circle),
-        child: const Icon(Icons.check_rounded, color: _green, size: 42),
+            color: colors.secondary.withValues(alpha: .12),
+            shape: BoxShape.circle),
+        child: Icon(Icons.check_rounded, color: colors.secondary, size: 42),
       );
 }

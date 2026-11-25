@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '/components/app_image_placeholder.dart';
 import '/app/routes/app_pages.dart';
+import '/constants/dynamic_theme.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 
@@ -238,7 +239,7 @@ class OrderProductsView extends StatelessWidget {
                     context,
                     'Discount'.tr,
                     '-$currency ${discount.toStringAsFixed(2)}',
-                    valueColor: const Color(0xFF3BC24F),
+                    valueColor: context.semanticColors.success,
                   ),
                 if (tax > 0)
                   _amountRow(
@@ -284,17 +285,17 @@ class OrderProductsView extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF9A825).withValues(alpha: 0.08),
+                color: context.semanticColors.warning.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                    color: const Color(0xFFF9A825).withValues(alpha: 0.3)),
+                    color: context.semanticColors.warning.withValues(alpha: 0.3)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(Icons.sticky_note_2_outlined,
                       size: 14,
-                      color: const Color(0xFFF9A825).withValues(alpha: 0.8)),
+                      color: context.semanticColors.warning.withValues(alpha: 0.8)),
                   const SizedBox(width: 7),
                   Expanded(
                     child: Text(
@@ -355,12 +356,12 @@ class OrderProductsView extends StatelessWidget {
       case 'delivered':
       case 'paid':
       case 'completed':
-        color = const Color(0xFF3BC24F);
+        color = context.semanticColors.success;
         break;
       case 'pending':
       case 'unpaid':
       case 'processing':
-        color = const Color(0xFFF9A825);
+        color = context.semanticColors.warning;
         break;
       case 'cancelled':
       case 'failed':
@@ -577,11 +578,9 @@ class _ProductTile extends StatelessWidget {
   Widget _typeBadge(String type, ColorScheme theme) {
     // Each type maps to a universally recognisable icon + vivid colour
     // so the user understands at a glance — no jargon needed.
-    const Color digitalColor = Color(0xFF6366F1); // indigo  → "cloud/digital"
-    const Color variableColor =
-        Color(0xFF0891B2); // cyan    → "customisable options"
-    const Color simpleColor =
-        Color(0xFF059669); // emerald → "ready / straightforward"
+    final Color digitalColor = theme.primary;
+    final Color variableColor = theme.secondary;
+    final Color simpleColor = theme.primary;
 
     final Color color;
     final IconData icon;

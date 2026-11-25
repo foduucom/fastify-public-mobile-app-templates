@@ -12,6 +12,9 @@ import 'package:foduu_ecommerce/components/faq_components/faq_still_stuck_card.d
 import 'package:foduu_ecommerce/components/faq_components/faq_topic_badges.dart';
 import 'package:foduu_ecommerce/components/home_component/hero_flash_deal_banner.dart';
 import 'package:foduu_ecommerce/components/home_component/flash_sale_countdown_card.dart';
+import 'package:foduu_ecommerce/components/home_component/hero_side_promo_card.dart';
+import 'package:foduu_ecommerce/components/home_component/dual_promo_cards.dart';
+import 'package:foduu_ecommerce/components/home_component/dual_promotional_deals.dart';
 import 'package:foduu_ecommerce/components/home_component/smart_assistant_showcase_card.dart';
 import 'package:foduu_ecommerce/components/search_bar_rounded.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -30,6 +33,83 @@ import 'package:get/get.dart';
 
 import 'widget_registry.dart';
 
+/// Checks for Parent Website Hero Side Promo Card (foduu-electro: Apple iPad Mini)
+bool _isHeroSidePromoSlider(Map? json) {
+  if (json == null) return false;
+  final slider = json['slider'];
+  if (slider is Map) {
+    final slug =
+        (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
+    if (slug == 'home-parent-leftside-slider' || slug.contains('parent-leftside')) {
+      return true;
+    }
+    final content = slider['content'];
+    if (content is List && content.isNotEmpty && content.first is Map) {
+      final first = content.first as Map;
+      final heading = (first['heading'] ?? '').toString();
+      final sub = (first['sub_heading'] ?? '').toString();
+      if (heading.contains('hero-side-top-badge') ||
+          sub.contains('iPad') ||
+          sub.contains('Apple iPad') ||
+          heading.contains('badge-save')) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/// Checks for Section 4 (Parent Website Dual Promo Banners: Smart Camera & Smart Watch)
+bool _isDualPromoCards(Map? json) {
+  if (json == null) return false;
+  final slider = json['slider'];
+  if (slider is Map) {
+    final slug =
+        (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
+    if (slug == 'home-second-left-slider' || slug.contains('second-left')) {
+      return true;
+    }
+    final content = slider['content'];
+    if (content is List && content.isNotEmpty && content.first is Map) {
+      final first = content.first as Map;
+      final heading = (first['heading'] ?? '').toString().toLowerCase();
+      final sub = (first['sub_heading'] ?? '').toString().toLowerCase();
+      if (heading.contains('best camera') ||
+          sub.contains('smart camera') ||
+          heading.contains('best watches')) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/// Checks for Section 8 (Parent Website Dual Promotional Deals: EOS Rebel Creator Kit & Weekend Sale)
+bool _isDualPromotionalDeals(Map? json) {
+  if (json == null) return false;
+  final slider = json['slider'];
+  if (slider is Map) {
+    final slug =
+        (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
+    if (slug == 'home-third-left-slider' || slug.contains('third-left')) {
+      return true;
+    }
+    final content = slider['content'];
+    if (content is List && content.isNotEmpty && content.first is Map) {
+      final first = content.first as Map;
+      final heading = (first['heading'] ?? '').toString().toLowerCase();
+      final sub = (first['sub_heading'] ?? '').toString().toLowerCase();
+      if (heading.contains('creator deal') ||
+          sub.contains('rebel') ||
+          sub.contains('eos') ||
+          heading.contains('weekend sale')) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /// Checks for Component 1 (Parent Website Hero Sidebar: iPhone 15 Pro, Image 3)
 bool _isFlashSaleSlider(Map? json) {
   if (json == null) return false;
@@ -37,7 +117,11 @@ bool _isFlashSaleSlider(Map? json) {
   if (slider is Map) {
     final slug =
         (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
-    if (slug == 'home-side-slider' || slug.contains('side-slider')) {
+    // Exclude parent-leftside-slider so it routes to HeroSidePromoCard
+    if (slug == 'home-parent-leftside-slider' || slug.contains('parent-leftside')) {
+      return false;
+    }
+    if (slug == 'home-side-slider') {
       return true;
     }
     final content = slider['content'];
@@ -344,6 +428,18 @@ void registerDefaultWidgets() {
       // FAQ Still Stuck Support CTA Card
       if (_isFaqStillStuckSlider(json)) {
         return FaqStillStuckCard.fromMap(json);
+      }
+      // Parent Web Hero Side Banner (foduu-electro iPad Mini Promo)
+      if (_isHeroSidePromoSlider(json)) {
+        return HeroSidePromoCard(sliderData: json);
+      }
+      // Section 4: Dual Promo Banners (Smart Camera & Smart Watch)
+      if (_isDualPromoCards(json)) {
+        return DualPromoCardsWidget(sliderData: json);
+      }
+      // Section 8: Dual Promotional Deals (EOS Rebel Kit & Weekend Sale)
+      if (_isDualPromotionalDeals(json)) {
+        return DualPromotionalDealsWidget(sliderData: json);
       }
       // 1. Image 3: Hero Sidebar Flash Sale Card (iPhone 15 Pro)
       if (_isFlashSaleSlider(json)) {

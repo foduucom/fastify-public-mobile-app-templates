@@ -403,11 +403,7 @@ class _VideoAttachmentTileState extends State<_VideoAttachmentTile> {
           height: 140,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: Theme.of(context).colorScheme.primary,
           ),
           child: Stack(
             children: [
@@ -633,10 +629,10 @@ class _DocumentAttachmentTileState extends State<_DocumentAttachmentTile> {
           width: double.infinity,
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+              color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
               width: 1,
             ),
             boxShadow: [
@@ -656,20 +652,20 @@ class _DocumentAttachmentTileState extends State<_DocumentAttachmentTile> {
                 width: 44,
                 decoration: BoxDecoration(
                   color: _isPdf
-                      ? const Color(0xFFFFEBEE)
-                      : const Color(0xFFE3F2FD),
+                      ? Theme.of(context).colorScheme.error.withOpacity(0.12)
+                      : Theme.of(context).colorScheme.primary.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(
                   child: _isPdf
-                      ? const Icon(
+                      ? Icon(
                           Icons.picture_as_pdf_rounded,
-                          color: Color(0xFFE53935),
+                          color: Theme.of(context).colorScheme.error,
                           size: 26,
                         )
-                      : const Icon(
+                      : Icon(
                           Icons.description_rounded,
-                          color: Color(0xFF1E88E5),
+                          color: Theme.of(context).colorScheme.primary,
                           size: 26,
                         ),
                 ),

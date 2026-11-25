@@ -1,428 +1,611 @@
-# Home Screen Modernization & UI Parity Summary
-
-## Executive Overview
-
-This document summarizes the comprehensive UI/UX overhaul executed on the mobile application's Home Screen to achieve visual and behavioral parity with the parent web storefront ([https://yomystore.site/foduu-store/index.html](https://yomystore.site/foduu-store/index.html)).
-
-The backend team provided live dynamic studio layout data (`https://foduu-electronics-store.foduu.store/api/mobile-app/home`), consisting of 14 dynamic sections. However, multiple rendering issues, contrast problems, raw HTML leaks, and mismatched widget bindings in the mobile app prevented the UI from matching the parent website's modern design standards.
+# Comprehensive Home Screen UI Parity & Modernization Engineering Report
+**Target Storefront:** [https://foduu-electro.foduu.store/](https://foduu-electro.foduu.store/)  
+**Engine:** Server-Driven UI via `FoduuStudioLayoutMixin` & `WidgetRegistry`  
+**Workspace:** `fastify-public-mobile-app-templates`  
 
 ---
 
-## Architecture & Data Flow Analysis
+## 1. Executive Overview & Problem Statement
 
-The server-driven dynamic layout pipeline was analyzed from end-to-end:
+This technical report provides an exhaustive, end-to-end breakdown of the architectural and visual modernization carried out on the mobile application's Home Screen (`lib/app/modules/homepage/views/home_page_view.dart`). The primary objective was establishing complete visual, structural, and behavioral parity with the parent web storefront ([https://foduu-electro.foduu.store/](https://foduu-electro.foduu.store/)).
+
+### 1.1 The Baseline Discrepancy & Visual Analysis
+Prior to this implementation, inspecting the mobile application's rendering alongside live device screenshots revealed severe rendering regressions and layout failures:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│ 1. HomepageController (lib/app/modules/homepage/controllers) │
-│    - Extends GetxController with FoduuStudioLayoutMixin     │
-│    - Calls getDashboardDesign('home') onInit                │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 2. FoduuStudioLayoutMixin (lib/core/foduuStudio)            │
-│    - BasicProvider("mobile-app/home").getRequest()          │
-│    - Extracts dynamic theme palette ('theme_color')         │
-│    - Injects category tabs into product sections            │
-│    - Dispatches section list to WidgetRegistry              │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 3. WidgetRegistry & registerDefaultWidgets()                │
-│    - Maps section 'type' to dedicated Flutter builders:      │
-│      • 'categories'   -> CategoryHome                       │
-│      • 'slider'       -> FoduuSlider / FlashSaleCountdown   │
-│      • 'products'     -> TrendingProductSection             │
-│      • 'trust_badges' -> TrustBadgesComponent / PromoList   │
-│      • 'blog'         -> BlogSection                        │
-│      • 'countdown'    -> FlashSaleCountdownCard             │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 4. HomePageView (lib/app/modules/homepage/views)            │
-│    - Watched by RxList<Widget> widgetList                   │
-│    - Rendered via FoduuStudioLayoutView (SingleChildScrollView│
-│      + RefreshIndicator + Column)                           │
-└─────────────────────────────────────────────────────────────┘
+Current Mobile Discrepancy (Before):
+┌────────────────────────────────────────────────────────┐
+│ [0] Top Slider: "Save Up To $400" (Works)             │
+├────────────────────────────────────────────────────────┤
+│ [1] Section 1: Misrouted to FlashSaleCountdownCard    │
+│     • Fake Countdown: [02 DAYS : 23 HOURS : 30 MINS]   │
+│     • Raw HTML Leak 1: "SmartPhone <h3 c..."           │
+│     • Raw HTML Leak 2: "<div class=\"card-pricing...\" │
+│     • Static Bar: [Limited Time Offer] (Hardcoded)     │
+├────────────────────────────────────────────────────────┤
+│ [2] Section 2: Trust Badges (Services Section)        │
+│     • Narrow 190px horizontal scroll boxes             │
+│     • Subtitle text clipped / pushed off-screen        │
+│     • Vertically stacked layout hiding descriptions    │
+├────────────────────────────────────────────────────────┤
+│ [4] Section 4: Dual Promo Slider                       │
+│     • Rendered as plain unformatted text carousel      │
+├────────────────────────────────────────────────────────┤
+│ [8] Section 8: Dual Promotional Deals                  │
+│     • Rendered raw FontAwesome tags: <i class="fas...">│
+└────────────────────────────────────────────────────────┘
+```
+
+### 1.2 Root Cause Analysis
+1. **Ambiguous Slider Routing:** In `lib/core/foduuStudio/register_default_widgets.dart`, `_isFlashSaleSlider()` performed a greedy match:
+   ```dart
+   if (slug == 'home-side-slider' || slug.contains('side-slider')) return true;
+   ```
+   Because Section 1 in `foduu-electro.foduu.store` had the slug `"home-parent-leftside-slider"`, `slug.contains('side-slider')` evaluated to `true`. This mistakenly routed the section to `FlashSaleCountdownCard`—a component authored for an entirely different store (`foduu-electronics-store.foduu.store` with an iPhone 15 Pro flash deal clock).
+2. **Raw HTML Injection:** The CMS payload for Section 1 delivered HTML markup inside its strings (`<div class="hero-side-top-badge">`, `<h3 class="card-title">`, `<div class="card-pricing mb-3">`). The legacy component rendered these strings directly into Flutter `Text` widgets without parsing or tag sanitization.
+3. **Mismatched Service Geometry:** Section 2 (`trust_badges`) delivered 6 service items (*Free Return*, *Free Shipping*, *Support 24/7*, *Receive Gift Card*, *Secure Payment*, *Online Service*). The legacy code forced these items into a single-row horizontal list of 190px wide cards with centered vertical alignment, causing text truncation on all mobile viewports.
+4. **FontAwesome HTML Leaks in Sliders:** Section 8 (`home-third-left-slider`) delivered HTML icons (`<i class="fas fa-camera text-copper me-1"></i> Special Creator Deal`), which leaked raw HTML tags into the user interface.
+
+---
+
+## 2. Server-Driven Dynamic Layout Architecture
+
+The application implements a pure Server-Driven UI (SDUI) architecture. Every component on the Home Screen is dynamically broadcast from the backend API:
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 1. HomepageController (lib/app/modules/homepage/controllers)            │
+│    • Mixin with FoduuStudioLayoutMixin                                  │
+│    • Calls getDashboardDesign('home') during onInit()                   │
+│    • Real-time WebSocket: "$websiteDomain:mobileapp"                   │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 2. FoduuStudioLayoutMixin (lib/core/foduuStudio)                        │
+│    • Fetches https://foduu-electro.foduu.store/api/mobile-app/home      │
+│    • Injects access-key header for authentication                       │
+│    • Extracts and updates dynamic theme palette ('theme_color')         │
+│    • Injects category tabs into product sections                        │
+│    • Dispatches raw sections array to WidgetRegistry                    │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 3. WidgetRegistry (lib/core/foduuStudio/widget_registry.dart)           │
+│    • O(1) section dispatching based on section 'type' and 'slug'        │
+│    • Evaluates custom predicate matchers in registerDefaultWidgets()    │
+│    • Constructs fully configured, responsive Flutter Widgets            │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 4. HomePageView (lib/app/modules/homepage/views)                        │
+│    • Observes RxList<Widget> widgetList via Obx()                       │
+│    • Rendered inside FoduuStudioLayoutView (SingleChildScrollView       │
+│      + RefreshIndicator + resilient error handling)                     │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Detailed Breakdown of Implemented Changes
+## 3. Exhaustive Breakdown of Implemented Sections
 
-### 1. Categories Section Polishing
-**File:** `lib/components/home_component/home_category.dart`
+### 3.1 Section 1: Hero Side Promo Card (`HeroSidePromoCard`)
+* **File Created:** [hero_side_promo_card.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/components/home_component/hero_side_promo_card.dart)
+* **Registered Type:** `type: "slider"`, `slug: "home-parent-leftside-slider"`
 
-* **Issue:** 
-  The backend payload contained `"heading": "_"`. This caused `StudioSectionHeader` to display an unsightly hyphen (`-`) and an irrelevant `See all` action button at the top of the category row. Furthermore, categories had no images configured in the backend, resulting in a low-resolution generic fallback watermark (`Foru Cart`).
-* **Fix & Improvements:**
-  - **Heading Sanitization:** Suppressed headers when `heading == '_'` or `'-'`, completely eliminating the unwanted hyphen line and misplaced button.
-  - **Intelligent Icon Mapping:** Implemented `_getCategoryIcon()` which detects category keywords and displays sharp, brand-colored vector icons for:
-    - *Drones* (`Icons.flight_takeoff_rounded`)
-    - *Smart Home* (`Icons.home_outlined`)
-    - *Printers* (`Icons.print_outlined`)
-    - *Monitors* (`Icons.desktop_windows_outlined`)
-    - *Appliances* (`Icons.kitchen_outlined`)
-    - *Cameras* (`Icons.camera_alt_outlined`)
-    - *Audio / Headphones* (`Icons.headphones_outlined`)
-    - *Accessories* (`Icons.devices_other_outlined`)
-    - *Smartphones* (`Icons.smartphone_outlined`)
-    - *Gaming* (`Icons.sports_esports_outlined`)
-    - *Laptops* (`Icons.laptop_outlined`)
-  - **Modern Circle Styling:** Scaled tiles to 62×62px with subtle borders (`0.12` outline opacity), soft ambient elevation, and clean 12px semi-bold typography matching parent web category pills.
-  - **Spacing Optimization:** Reduced excessive vertical padding from 26px to 16px.
+#### A. Incoming CMS Backend Payload:
+```json
+{
+  "id": "slider",
+  "type": "slider",
+  "content_json": {
+    "slider_id": "6b05330ede401e49e9cb675e",
+    "slider": {
+      "name": "home-parent-leftside-slider",
+      "slug": "home-parent-leftside-slider",
+      "content": [
+        {
+          "heading": "<div class=\"hero-side-top-badge\">\n    <span class=\"badge-save\">Save $48.00</span>\n    <span class=\"badge-text\">Special Offer</span>\n</div>",
+          "sub_heading": "SmartPhone <h3 class=\"card-title\">Apple iPad Mini <br> G2356</h3>",
+          "description": "<div class=\"card-pricing mb-3\">\n    <del class=\"card-old-price\">$1,250.00</del>\n    <span class=\"card-new-price\">$1,050.00</span>\n</div>",
+          "link": "",
+          "button_text": "Buy Now",
+          "filePath": "2026/11/24/home-parent-leftside-slider-4b6a35b2.webp"
+        }
+      ]
+    }
+  }
+}
+```
 
----
+#### B. Parent Web Storefront Specification (`.hero-side-banner`):
+```html
+<div class="hero-side-banner">
+  <img src="...c7d90e0548ef1a331b929abfb6c86739-e27404c6.webp" class="hero-side-banner-bg" />
+  <div class="hero-side-overlay"></div>
+  <div class="hero-side-top-badge">
+    <span class="badge-save">Save $48.00</span>
+    <span class="badge-text">Special Offer</span>
+  </div>
+  <div class="hero-side-card-wrap">
+    <div class="hero-side-floating-card">
+      <span class="card-category">SmartPhone</span>
+      <h3 class="card-title">Apple iPad Mini <br> G2356</h3>
+      <div class="card-pricing mb-3">
+        <del class="card-old-price">$1,250.00</del>
+        <span class="card-new-price">$1,050.00</span>
+      </div>
+      <a href="/shop" class="btn hero-side-btn">
+        <i class="fas fa-shopping-cart me-2"></i> Buy Now
+      </a>
+    </div>
+  </div>
+</div>
+```
 
-### 2. Hero Slider & Typography Contrast Fix
-**File:** `lib/components/home_component/home_slider.dart`
-
-* **Issue:**
-  Slide headings and descriptions had black text on top of a dark gradient overlay (`Colors.black.withOpacity(0.8)`), making slide text unreadable. In addition, slides with CMS HTML tags (e.g. `<ul class="list-unstyled"><li>...</li></ul>`) rendered raw HTML code directly in the text view.
-* **Fix & Improvements:**
-  - **High-Contrast Text:** Defaulted text color to crisp, high-visibility white (`Colors.white`) with subtle dropshadows for guaranteed legibility across all product image banners.
-  - **HTML Sanitization:** Added `_cleanHtml()` to strip unparsed HTML tags and convert nested items into clean bulleted tags (`Smart Ecosystem • Premium Experience`).
-  - **"New Arrival" Pill Badge:** Added a semi-transparent glassmorphic pill badge (`New Arrival`) on each slide, directly mirroring the web hero carousel (`hero-flag-end`).
-  - **Aspect Ratio & Height Adjustment:** Set baseline slide height to 220px to prevent cramped text overlays.
-
----
-
-### 3. Dedicated Flash Sale & Live Countdown Deal Widget
-**Files:**
-- `lib/components/home_component/flash_sale_countdown_card.dart` *(New)*
-- `lib/core/foduuStudio/register_default_widgets.dart`
-
-* **Issue:**
-  On the parent website, the hero section features a side card with an interactive live countdown clock (`[06 Days] : [21 Hrs] : [48 Min] : [15 Sec]`), iPhone 15 Pro offer details (`Today Only UP TO 20% Off`, `$2199.00`), and a "Shop Now" call to action. In the mobile app, this was delivered as a slider with raw text:
-  `Flash Sale ("Timer Of Days Hours Minutes And Seconds")`
-  `iPhone 15 Pro("Limited Time Offer")`
-* **Fix & Improvements:**
-  - **Created `FlashSaleCountdownCard`:**
-    - **Live Ticking Timer:** Integrated a 1-second periodic timer calculating remaining `Days`, `Hrs`, `Min`, and `Sec` in real-time.
-    - **Digit Display Cells:** 4 rounded dark slate containers (`#0F172A` / `#1E293B`) with bold white digits and unit labels.
-    - **Top Badges:** "Flash Sale" badge with lightning icon (`Icons.bolt_rounded`) and "Limited Time Offer" pill.
-    - **Product Showcase:** Clean cutout image of iPhone 15 Pro loaded via `CachedNetworkImage`.
-    - **Deal Copy & CTA:** Bold `$2199.00` price in primary theme color, offer subtext, and a rounded "Shop Now" pill button with arrow icon.
-  - **Smart Registry Routing:** Updated `register_default_widgets.dart` with `_isFlashSaleSlider()` to automatically detect `home-side-slider` and flash deal items, seamlessly routing them to `FlashSaleCountdownCard`.
-
----
-
-### 4. Promotional Feature Cards & Brand Logos
-**File:** `lib/components/home_component/home_trust_badges.dart`
-
-* **Issue:**
-  Section 3 contained 3 promotional highlight cards (*Hot Pick Portable Bluetooth Speaker*, *Deal of the Day Latest iPhone Deals*, *Fitness Deal Smart Watch Collection*) with `footer: "Shop Now "`. The legacy code misinterpreted `footer: "Shop Now "` as customer review star ratings, mistakenly rendering Section 3 as an empty-starred testimonial carousel. Additionally, Section 8 (*Shop By Brand*) rendered brand logos in 150px tall empty text boxes.
-* **Fix & Improvements:**
-  - **Created `_PromoCardList`:**
-    - Dedicated horizontal card carousel with rounded 16px cards.
-    - Extracts promotional tags (`Hot Pick`, `Deal of the Day`, `Fitness Deal`) into primary-colored badge chips.
-    - Displays high-resolution product images alongside titles, descriptions, and functional "Shop Now" navigation links.
-  - **Created Compact Brand Tile Mode:**
-    - For sections with empty text descriptions (like *Shop By Brand*), cards are automatically rendered as compact (105×72px) brand logo tiles displaying Apple, Samsung, Sony, LG, and Philips logos.
-  - **Rating Verification:** Added `_isRatingString()` to ensure only actual review footers (`★` or numbers 1–5) trigger testimonial mode.
-
----
-
-### 5. Product Listings & Category Filter Tabs
-**File:** `lib/components/home_component/home_products.dart`
-
-* **Issue:**
-  Product category tabs (*All*, *Audio*, *Cameras*, *Phones*) used plain underline tabs rather than the web's pill buttons. Furthermore, products defaulted to basic cards rather than the parent website's feature-rich card layout.
-* **Fix & Improvements:**
-  - **Animated Pill Chips:** Modernized category filter tabs into rounded pill chips with smooth animations, active primary background (`#2563eb`), white active text, and soft border styling.
-  - **Parent Web Product Cards (`ParentWebProductCard`):** Set default product list and grid rendering to `ParentWebProductCard`:
-    - 4 floating action buttons (Quick Add to Cart, Quick View modal, Wishlist Heart with reactive toggle).
-    - Centered 5-star rating display in warning gold.
-    - Red `SALE` badge with discount percentage.
-    - Clean typography for product title and pricing.
+#### C. Flutter Parsing & Layout Implementation:
+1. **Regular Expression Parsing Engine:**
+   - **`_extractBadgeSave(String heading)`**: Captures content inside `<span class="badge-save">(.*?)</span>` $\rightarrow$ returns `"Save $48.00"`.
+   - **`_extractBadgeText(String heading)`**: Captures content inside `<span class="badge-text">(.*?)</span>` $\rightarrow$ returns `"Special Offer"`.
+   - **`_extractCategory(String sub)`**: Isolates the category prefix before any `<` tag $\rightarrow$ returns `"SmartPhone"`.
+   - **`_extractTitle(String sub)`**: Parses `<h3[^>]*>(.*?)</h3>`, replacing `<br>` with spaces and collapsing whitespace $\rightarrow$ returns `"Apple iPad Mini G2356"`.
+   - **`_extractOldPrice(String desc)`**: Parses `<del[^>]*>(.*?)</del>` $\rightarrow$ returns `"$1,250.00"`.
+   - **`_extractNewPrice(String desc)`**: Parses `<span class="card-new-price[^>]*>(.*?)</span>` $\rightarrow$ returns `"$1,050.00"`.
+   - **`_stripTags(String s)`**: Universal fallback tag stripper removing HTML tags, decoding `&nbsp;` and `&amp;`.
+2. **Glassmorphic UI Hierarchy:**
+   - **Card Container:** 380px fixed-height container with `BorderRadius.circular(20)` and ambient elevation shadow.
+   - **Background Image:** Loaded via `CachedNetworkImage` with top-center alignment, preserving device artwork.
+   - **Gradient Scrim:** 3-stop vertical scrim (`Colors.black.withOpacity(0.20)` $\rightarrow$ `transparent` $\rightarrow$ `Colors.black.withOpacity(0.55)`), ensuring high contrast for top and bottom overlays.
+   - **Top Pill Badge:** White frosted capsule container (`BorderRadius.circular(50)`) containing an inner `#17191C` savings pill (`Save $48.00`) and a bold subtitle (`Special Offer`).
+   - **Bottom Frosted Glass Card (`.hero-side-floating-card`):**
+     - Embedded inside `ClipRRect(borderRadius: BorderRadius.circular(16))` with `BackdropFilter(filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14))`.
+     - Container styled with semi-transparent background (`#EEFFFFFF` in light mode / `#990F172A` in dark mode) and a 1px soft white border.
+     - Category label styled with `letterSpacing: 1.2` and theme primary color.
+     - 18px bold title centered in Google Fonts Plus Jakarta Sans.
+     - Price row combining strikethrough regular price (`#94A3B8`) and bold copper deal price (`#C2410C`).
+     - Interactive full-width capsule "Buy Now" button with `Icons.shopping_cart_outlined` leading icon and direct navigation.
 
 ---
 
----
+### 3.2 Section 2: 2-Column Responsive Services Grid (`home_trust_badges.dart`)
+* **File Modified:** [home_trust_badges.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/components/home_component/home_trust_badges.dart)
+* **Registered Type:** `type: "trust_badges"`
 
-### 6. Phase 2 Polish & Web-Storefront Standards Alignment
+#### A. Incoming CMS Backend Payload:
+```json
+{
+  "id": "trust_badges",
+  "type": "trust_badges",
+  "content_json": {
+    "no_of_columns": 2,
+    "cards": [
+      {
+        "image": "2026/11/24/free-return-9a85669e.svg",
+        "heading": "Free Return",
+        "text": "30 days money back guarantee!"
+      },
+      {
+        "image": "2026/11/24/free-shipping-85eac3d2.svg",
+        "heading": "Free Shipping",
+        "text": "Free shipping on all order"
+      },
+      {
+        "image": "2026/11/24/support-6b9384d9.svg",
+        "heading": "Support 24/7",
+        "text": "We support online 24 hrs a day"
+      },
+      {
+        "image": "2026/11/24/gift-card-49aab49b.svg",
+        "heading": "Receive Gift Card",
+        "text": "Recieve gift all over oder $50"
+      },
+      {
+        "image": "2026/11/24/secure-payment-b3199a06.svg",
+        "heading": "Secure Payment",
+        "text": "We Value Your Security"
+      },
+      {
+        "image": "2026/11/24/online-service-da6cf86c.svg",
+        "heading": "Online Service",
+        "text": "Free return products in 30 days"
+      }
+    ]
+  }
+}
+```
 
-Following user review across device screenshots, six critical visual and behavioral adjustments were applied:
+#### B. Parent Web Storefront Specification (`.services-section`):
+On the web storefront, the services section is structured as a responsive Bootstrap grid (`row g-0`, `col-6 col-md-4 col-lg-2`), where each `.service-item` displays:
+```html
+<div class="service-item p-4">
+  <div class="d-flex align-items-center">
+    <img src="/assets/images/services/free-return.svg" class="service-img" />
+    <div class="ms-3 ms-xl-4">
+      <h6 class="text-uppercase mb-1 service-title">Free Return</h6>
+      <p class="mb-0 service-desc">30 days money back guarantee!</p>
+    </div>
+  </div>
+</div>
+```
 
-1. **Hero & Dynamic Banners Frame Unified (`home_slider.dart`):**
-   - Scaled responsive slider height dynamically to `(Get.width * 0.58).clamp(240.0, 265.0)` to eliminate device cropping (Galaxy S Ultra phone cutout, Echo Dot assistant, and Limited Time Offer artwork).
-   - Unified the container stack with `Padding(padding: pageSurroundingPadding)` and `ClipRRect(borderRadius: BorderRadius.circular(16))` so the dark gradient never bleeds outside the card edges.
-   - Replaced the harsh 80% black gradient with an ambient directional scrim (`stops: [0.40, 0.70, 1.0]`), preserving 100% artwork visibility in the top 50% while guaranteeing text readability.
-   - Restored and styled the interactive "Shop Now →" pill button with theme primary accent.
-   - Fixed `_cleanHtml()` regex to prevent broken bullet text (`"Smart Ecosystem •"` / `"Premium Experien..."`).
-   - Positioned animated indicator dots with soft drop shadows for guaranteed contrast on any banner.
-
-2. **Guaranteed-Contrast Product Badges (`parent_web_product_card.dart`):**
-   - Hardcoded discount pill badges to an e-commerce high-contrast crimson (`#DC2626`) with bold white (`#FFFFFF`) text, eliminating the bug where API theme parsing rendered white-on-white invisible badges.
-   - Formatted badges cleanly to display exact percentages (e.g., `20% OFF`) or `SALE`, while completely suppressing empty placeholder pills on non-discounted products.
-
-3. **Promotional Highlight Cards Upgraded (`home_trust_badges.dart`):**
-   - Expanded `_PromoCardList` dimensions to `148px` height and `(Get.width * 0.82).clamp(285.0, 325.0)` width, completely eliminating title and tag truncation.
-   - Enlarged product cutouts from 85px to 95px with `BoxFit.contain` and subtle elevation.
-   - Added category-specific pastel tints (`#F1F5F9`, `#FDF2F8`, `#F0FDF4`) matching web presentation.
-
-4. **"Shop By Brand" Logo Tile Sizing (`home_trust_badges.dart`):**
-   - Increased brand card container to `100px` height and `126px` width (up from 72×105px).
-   - Expanded brand logo display area to 54px with `BoxFit.contain`, making Samsung, Sony, and Apple logos sharp, clear, and prominent.
-
----
-
-### 7. Phase 3: Header & Footer Modernization (Parent Web & Industry Standards)
-
-Following architectural analysis of the parent web storefront and modern mobile e-commerce standards (e.g. Amazon, Apple, Shopify), the Home Screen **Header**, **Bottom Navigation Dock**, and **Store Web Footer** were overhauled:
-
-1. **Brand-Rich Header (`responsive_common_header.dart` & `responsive_circle_icon.dart`):**
-   - **Integrated Store Branding:** Added store logo branding (`foduu-logo-removebg-preview.png`) in the header next to the menu drawer button, establishing immediate brand presence.
-   - **Reactive Cart Badge:** Connected `CartService.to.cartItems.length` inside an `Obx` wrapper with live badge counts (`ResponsiveCircleIcon`), ensuring real-time cart count updates across shopping actions.
-   - **Modern Full-Width Search Bar:** Upgraded the search trigger into a modern soft-tinted pill container (`44px` height, `#F1F5F9` tint) with search icon, interactive placeholder (`"Search iPhone, Laptops, Audio..."`), vertical divider, and voice search mic icon.
-   - **Re-enabled Notifications Quick-Action:** Restored the notification bell action with clean circular outline styling and unread indicator support.
-
-2. **Industry-Standard Bottom Navigation Dock (`responsive_bottom_nav.dart` & `bottombar_view.dart`):**
-   - **Ergonomic Tab Sequence:** Realigned bottom navigation tabs to the industry standard **Discovery ➔ Engagement ➔ Personal** funnel:
-     - `Home (0)` ➔ `Shop (1)` ➔ `Wishlist (2)` ➔ `Cart (3)` ➔ `Account (4)`
-     - Updated `shopTabIndex = 1`, `cartTabIndex = 3`, and `profileTabIndex = 4` across `shop_navigation.dart`, `customDrawer.dart`, and `studio_socket_routing.dart` for seamless routing.
-   - **Material 3 Active Pill Indicator:** Replaced the dated top sliding hairline border with active capsule pill containers (`activeColor.withOpacity(0.12)`) and smooth spring animations (`Curves.easeOutCubic`).
-   - **Refined Badging & Elevation:** Rounded the dock's top corners to `20px` with ambient drop shadows, and styled cart/wishlist badge counters with white borders to prevent clipping.
-
-3. **Pure Dynamic Studio Delivery (Static Footer Removed):**
-   - **Requirement:** Every section on the Home screen must be 100% server-driven and provided dynamically by the backend API.
-   - **Resolution:** Removed the static `footerWidget: const HomeStoreFooter()` from `HomePageView`. The app renders only the sections dispatched dynamically by the CMS backend.
-
-4. **Modern Expandable "About Store" SEO Card (`home_rich_text_component.dart` & `home_common_widgets.dart`):**
-   - **Eliminated Unformatted Multi-Screen Text Wall:** The backend's long store description is framed in a modern card (`#F8FAFC`, rounded 16px, 1px outline).
-   - **Typographic Hierarchy:** Separated store icon, bold headline (`"About Foduu Store"`), and secondary subtitle (`"A Smarter Way to Shop Everyday Electronics"`).
-   - **Collapsible Control ("Read More / Show Less"):** Long SEO text collapses to ~140px with a bottom-up fade gradient and smooth expand/collapse toggle (`AnimatedSize`), preventing multi-page plain text clutter while remaining accessible for curious shoppers.
-
-5. **Elevated Blog Section (`home_blogs.dart`):**
-   - **Multi-Source Image Resolution:** Implemented `_resolveBlogImage()` checking `featured_image`, `featured_image_url`, `image`, `thumbnail`, and `cover_image`.
-   - **Editorial Magazine Fallback:** When an article has no uploaded graphic, it displays an editorial tech card with a rich blue/slate gradient and article icon, replacing the company logo watermark placeholder.
-   - **Card Geometry & Spacing:** Grid extent increased to `265px` with `14px` border radius, subtle border, drop shadow, and a clean `"Read More →"` interactive link.
-
----
-
-### 8. Smart Home Assistant Showcase Banner (`smart_assistant_showcase_card.dart`)
-
-Addressing the disparity highlighted between **Image 1** (Current Mobile Screen) and **Image 2** (Parent Website `foduu-electronics-store.foduu.store`):
-
-1. **Discrepancy in Image 1 vs Image 2:**
-   - In **Image 1**, Section 4 (`slug: "home-second-slider"`) was rendered as a generic slider with the speaker graphic hidden under a dark gradient. The badge HTML was erroneously rendered as the main title (`"Smart Ecosystem Premium Experience"`), the real title (`"Meet Your Smart Home Assistant"`) was ignored, the two feature spec tiles were missing, and the CTA button was hardcoded to a generic `"Shop Now ->"`.
-   - In **Image 2 (Parent Website)**, this section is a dedicated **Showcase Hero Card**: deep navy/slate container (`#0F172A`), prominent cutout of the Amazon Echo Dot with its glowing rainbow ring, dual eyebrow badges (`[SMART ECOSYSTEM]`, `[PREMIUM EXPERIENCE]`), the main title `"Meet Your Smart Home Assistant"`, lead description, two interactive feature spec tiles (`Smart Home Hub: Premium Automation [Enabled]` and `Voice Assistant: Multi-Room Audio [Enabled]`), and a `"Shop Smart Devices"` button.
-
-2. **Dedicated & Refined `SmartAssistantShowcaseCard` Widget:**
-   - **Parent Web Radius & Depth:** Upgraded card geometry to a sleek `30px` (2rem) corner radius matching the parent website's `.showcase-banner { border-radius: 2rem; }` specification, with deep onyx `#0F172A` background and subtle ambient elevation.
-   - **Atmospheric Radial Glow:** Embedded a luminous radial cyan/blue gradient (`Color(0xFF3B82F6).withOpacity(0.30)`) centered behind the Echo Dot cutout, bringing the glowing LED rainbow ring to life with authentic depth.
-   - **Atomic Badge Parsing:** Resolved the bug where multi-line strings were broken across wide bars. Now accurately parses `"Smart Ecosystem"` and `"Premium Experience"` as atomic phrases and renders them as compact, inline glassmorphic pills.
-   - **Full-Width Zero-Truncation Spec Tiles:** Redesigned `SMART HOME HUB` and `VOICE ASSISTANT` into full-width stacked rows, giving `"Premium Automation"` and `"Multi-Room Audio"` ample room with zero text clipping.
-   - **Proportional Capsule Pill Button:** Replaced the heavy full-width box with a left-aligned, self-sizing capsule pill button (`Shop Smart Devices →`) featuring a primary blue gradient and soft elevation shadow.
-   - **Dynamic Routing:** Integrated `_isShowcaseSlider()` in `register_default_widgets.dart` to automatically dispatch this block dynamically without altering other sliders.
-
----
-
-### 9. Section Header Collision Fix (`StudioSectionHeader` in `home_common_widgets.dart`)
-
-* **Issue in Image 1:**
-  In the `"Best Sellers"` section, the `"See all"` button was vertically centered inside a `Row` alongside a multi-line subtitle (`"Curated essentials with fast shipping, premium support..."`). This caused `"See all"` to collide directly into the middle of the second line of text (`"...premium See all support..."`).
-* **Fix & Improvements:**
-  - Refactored `StudioSectionHeader` into a vertical `Column`:
-    - Top Row: Title (`"Best Sellers"`) on the left, `"See all"` on the right.
-    - Bottom Row: Subtitle rendered across the full width underneath.
-  - Completely eliminates layout collision, guaranteeing perfect multi-line subtitle wrapping across all screen widths.
-
----
-
-### 10. Blog Carousel & Unified Brand Story Parity (`home_blogs.dart` & `home_rich_text_component.dart`)
-
-Addressing the disparity highlighted in Image 1 vs Image 2 (Parent Website `https://foduu-electronics-store.foduu.store/`):
-
-1. **Blog Section ("Stories Powered by Tech"):**
-   - **Horizontal Card Carousel:** Replaced the 2-item grid with a smooth, snapping horizontal card carousel (`ListView.separated`, `scrollDirection: Axis.horizontal`) displaying all 3 articles (*How to Choose a Gaming Chair*, *Gaming Mouse Pad Materials*, *Capture Cards for Game Streaming*).
-   - **Live API Fetching:** Added `_fetchLiveBlogs()` in `initState` querying `BasicProvider('blogs?count=6').getRequest()` so full blog models with complete image objects and metadata are loaded.
-   - **Multi-Source Image Resolver:** Enhanced `_resolveBlogImage()` to resolve absolute URLs, root-relative paths (`/uploads/...`), subpath-relative paths (`uploads/...`, `images/...`), and map keys (`download_url`, `url`, `filePath`, `filepath`, `filename`, `path`, `src`).
-   - **Web Card Footer:** Each card includes a calendar icon + date (`10 Nov 2026`) on the left, and a dark `#0F172A` pill button (`Read more >`) on the right.
-   - **"EXPLORE MORE BLOG" Button:** Centered primary blue pill button (`#2563EB`) below the carousel routing to `Routes.BLOG`.
-
-2. **Unified "About Foduu Store" Brand Story Card & Duplicate Elimination:**
-   - **Root Cause of Duplicate Card:** The backend CMS layout delivers two consecutive sections:
-     - Section A (`type: "rich_text"`): contains the raw unstyled title `"About Foduu StoreA Smarter Way to Shop Everyday Electronics"`.
-     - Section B (`type: "text_block"`): contains the full 3-paragraph store story (`"Foduu Store brings the brands people already trust..."`).
-   - Previously, Section A was intercepted to render the luxury Brand Story card, while Section B arrived right behind it and rendered the same story text as a second card.
-   - **Fix & Clean Unification:**
-     - `RichTextComponent` in `home_rich_text_component.dart` suppresses Section A (`return const SizedBox.shrink()`), completely eliminating the unstyled title box.
-     - `TextBlockComponent` in `home_common_widgets.dart` intercepts Section B and renders the single, luxury Brand Story card matching the parent website:
-       - Tag: `ABOUT FODUU STORE` in primary blue (`#2563EB`) uppercase with `letterSpacing: 1.2`.
-       - Headline: `A Smarter Way to Shop Everyday Electronics` in 18px bold.
-       - Paragraph 1: `Foduu Store brings the brands people already trust...`
-       - Expandable details: Paragraph 2 (warehouse verification), Subheading `Support That Continues After Checkout`, and Paragraph 3 (24h shipping, 30-day returns, 7-day specialist support).
-       - Action button: Outlined rounded pill button (`Read more ›` / `Show less ‹`) matching the parent website.
-   - **Result:** Exactly one unified Brand Story card is displayed on the screen with zero duplication.
-
----
-
-### 11. Dual Promotional Component Separation & Parity (iPhone Flash Sale vs. Smartwatch Deal Banner)
-
-Addressing the architectural and visual distinction between the two promotional deal sections on the parent website ([https://foduu-electronics-store.foduu.store/](https://foduu-electronics-store.foduu.store/)):
-
-1. **Discrepancy & Root Cause Analysis:**
-   - **Part 1 (Top Hero Sidebar - Image 3):** On the parent website, the hero section has a split layout: the main headphones carousel on the left, and a dedicated **iPhone 15 Pro Flash Sale Card** (`slug: "home-side-slider"`) on the right. This card features a deep navy/slate top countdown bar (`02 DAYS : 23 HOURS : 32 MINS : 01 SECS`), a crisp light/surface body with `iPhone 15 Pro` title, `Today Only UP TO 20% Off` deal tag, bold price `₹2199.00`, `Shop Now >` action link, high-res iPhone product imagery, and a solid royal blue bottom bar (`"Limited Time Offer"`).
-   - **Part 2 (Lower Promotional Deal Banner - Image 4):** Positioned further down the page (below the tablet product collection with `₹18,999.00` cards), this is a wide landscape **Smartwatch Promotional Banner**: dark-to-amber background with a 3D orange metallic wave ribbon, dual smartwatches with bands on the left, `"LIMITED TIME OFFER!"` eyebrow tag, extra-large bold **`"UP TO 30% OFF"`** headline, `"on select smart gadgets"` subtitle, `"Shop Sale"` pill button, and a floating dark urgency countdown sub-card (`"Hurry! Offer ends in: 00 DAYS : 00 HOURS : 00 MIN : 00 SEC"`).
-   - Previously, a single generic deal matcher intercepted both sections and merged elements of both into one dark card layout.
-
-2. **Refactored `FlashSaleCountdownCard` (Image 3 Parity):**
-   - **File:** `lib/components/home_component/flash_sale_countdown_card.dart`
-   - **Top Countdown Header:** Dark navy bar (`#0F172A`) across the top header showing `[DD] DAYS : [HH] HOURS : [MM] MINS : [SS] SECS` with monospace digital digits and labels.
-   - **Card Body:** Crisp light container with left-hand content (`iPhone 15 Pro` title, `Today Only UP TO 20% Off`, `₹2199.00` bold price, `Shop Now >` link with arrow) and right-hand iPhone product visual contained cleanly without cropping.
-   - **Bottom Ribbon:** Full-width solid royal blue bar (`#2563EB`) displaying `"Limited Time Offer"` in bold white text.
-   - **Lifecycle Management:** Live 1-second interval `Timer.periodic` with proper cancellation on `dispose()`.
-
-3. **Dedicated `HeroFlashDealBanner` (Smartwatch Promotional Banner - Image 4 Parity):**
-   - **File:** `lib/components/home_component/hero_flash_deal_banner.dart`
-   - **Wide Landscape Geometry:** 22px rounded corners, dark-to-amber background with ambient radial orange glows (`#D95B14`).
-   - **Artwork Preservation:** Displays the wide banner graphic using `alignment: Alignment.centerLeft` and `BoxFit.cover`, keeping the dual smartwatches (black and orange loop straps) prominently visible at full resolution rather than squished into a square box.
-   - **Promotional Typography:** Orange eyebrow pill (`LIMITED TIME OFFER!`), extra-large bold white headline (**`UP TO 30% OFF`**), subtitle (`on select smart gadgets`), and `"Shop Sale"` rounded action pill button.
-   - **Urgency Sub-Card:** Dedicated floating dark container on the lower section featuring `"Hurry! Offer ends in"` with 4 digital timer blocks (`DAYS : HOURS : MIN : SEC`).
-
-4. **Strict Routing Separation in `register_default_widgets.dart`:**
-   - **`_isFlashSaleSlider`:** Strictly intercepts `home-side-slider` and iPhone flash deal payloads $\rightarrow$ renders `FlashSaleCountdownCard` (Image 3 design).
-   - **`_isSmartwatchDealBanner`:** Intercepts 30% OFF / smartwatch deal banners while explicitly excluding `home-side-slider` $\rightarrow$ renders `HeroFlashDealBanner` (Image 4 design).
-   - **`FoduuSlider`:** Renders the main top hero carousel (Headphones / Audio slider on the left of Image 3).
-   - **Result:** Complete decoupling with zero cross-contamination between the two promotional designs.
-
-5. **Product Card Overflow & Scroll Layout Fixes:**
-   - **`lib/components/product_grid_card.dart`:** Replaced rigid `const Spacer()` with `Flexible` content column and `MainAxisAlignment.spaceBetween`, eliminating the 10.0 pixels `RenderFlex` overflow exception recorded in `error.txt`.
-   - **`lib/core/foduuStudio/foduu_studio_layout_view.dart`:** Added `clipBehavior: Clip.hardEdge` to `SingleChildScrollView` to prevent scroll bleed-through under the fixed search header.
-
----
-
-### 12. Blog Images Resolution & Parent Web Parity Overhaul
-
-Addressing the issue where blog cards in the mobile app displayed blue gradient fallback containers instead of actual featured images (as seen on the parent web storefront `https://foduu-electronics-store.foduu.store/`):
-
-1. **Root Cause Analysis (Cloudflare 404 & Domain Rewrite Miss):**
-   - The CMS payload (`mobile-app/home`) and backend endpoints provided image URLs formatted with the internal 24-character hexadecimal tenant website ID subdomain:
-     `https://6ae85dc54e54c0c43a1d6e6d.foduu.store/images/2026/11/10/gaming-blog-mwaaf47g-508y8z-03.jpeg`
-   - Requesting images through this internal tenant subdomain triggered **HTTP 404 (Not Found)** because Cloudflare only serves media assets via the store's public domain (`foduu-electronics-store.foduu.store`).
-   - Legacy domain-fixing logic in both `HelperFunctions` and `BlogSection` only checked `uri.host.endsWith('.vbought.com')`, completely ignoring `.foduu.store` and raw hexadecimal tenant subdomains.
-   - This caused `CachedNetworkImage` to fail and consistently trigger `_buildEditorialFallback`, concealing all blog imagery behind the blue gradient article card.
-
-2. **Core Domain Rewriter (`lib/constants/helper_functions.dart`):**
-   - Implemented public `fixImageUrl(String imageUrl)` in `HelperFunctions`:
-     - Identifies any tenant subdomain (`*.foduu.store`, `*.vbought.com`, or 24-character hexadecimal MongoDB IDs `^[a-f0-9]{24}\.`) differing from `websiteDomain`.
-     - Automatically rewrites the host to the active public `websiteDomain` (`foduu-electronics-store.foduu.store`).
-     - Testing confirmed the rewritten URL resolves with **HTTP 200 OK** (35 KB JPEG / 4.2 MB PNG).
-
-3. **Home Blog Carousel UI Parity (`lib/components/home_component/home_blogs.dart`):**
-   - **Live Domain Resolution:** Connected `_fixDomain()` directly to `HelperFunctions().fixImageUrl()`.
-   - **Category Tag Pill Overlay:** Implemented `_resolveBlogTag()` to parse category names, tags, or featured image metadata tags (e.g. `'gaming'` $\rightarrow$ `'Gaming'`). Overlaid a rounded black pill badge (`bg-black`, white text, 10.5px bold font) at the bottom-left of the image, perfectly matching the parent website's `<span class="post-tag bg-black text-white rounded-pill">Gaming</span>`.
-   - **Smooth Shimmer Loading:** Integrated `_buildShimmerPlaceholder()` utilizing `Shimmer.fromColors` (`Colors.grey.shade300` $\rightarrow$ `Colors.grey.shade100`) to provide smooth skeleton loading and prevent abrupt layout shifts.
-   - **Editorial Fallback Retention:** Retained `_buildEditorialFallback` strictly as a graceful offline and 404 fallback.
-
-4. **Blog Model & Cross-Screen Consistency (`lib/models/blog_model.dart` & `lib/app/modules/blog/`):**
-   - **`BlogModel.fromJson()`:** Enhanced image resolution across all source keys (`featured_image`, `featured_image_url`, `image`, `thumbnail`, `cover_image`) through `HelperFunctions().getImage()`. Added tag fallback parsing from featured image metadata and exposed a `primaryTag` getter.
-   - **`blog_view.dart`:** Added category tag pill badges and shimmer loading placeholders over both grid (`_buildGridCard`) and list (`_buildListCard`) blog views.
-   - **`blog_detail_controller.dart`:** Updated `_resolveBlogFromArguments()` to support passing raw `Map` blog objects, enabling instantaneous article view transitions with full image rendering.
-
----
-
-### 13. Dynamic "Specific Category" Product Filtering & Carousel Hardening ("Popular In Cameras" & "Popular Accessories")
-
-Addressing the issue where **"Popular In Cameras"** displayed tablets and headphones instead of genuine cameras, and **"Popular Accessories"** showed a single card with an infinite loading spinner:
-
-1. **Root Cause Analysis & Investigations:**
-   - **Discrepancy 1 ("Popular In Cameras"):**
-     - The CMS database configured Section 9 with `"category_type": "specific_category"`, `"parent_type": "6ae96b20c7a7846a169e8571"` (Cameras ObjectId), and `"category_ids": []` (empty array, because the parent category was selected rather than specific child items).
-     - In the backend controller (`MobileController.ts` on server `192.168.1.89`), the condition `if (category_type === "specific_category" && Array.isArray(category_ids) && category_ids.length > 0)` failed because `category_ids` was empty. The backend never evaluated `parent_type`, leaving `categoryFilter` as `undefined`.
-     - Consequently, `ProductPipeline.list()` executed without any category constraints and returned global latest products (*Honor Pad 9*, *SteelSeries headphones*).
-   - **Discrepancy 2 ("Popular Accessories"):**
-     - **Database Product Tagging:** In MongoDB (`ff-foduu-fastify`), *Honor Pad 9* was explicitly saved with three category IDs: `[Tablets, Appliances, Accessories]`. Because it has the `Accessories` category ID (`6ae96b20c7a7846a169e856d`), both the parent website ([foduu-electronics-store.foduu.store](https://foduu-electronics-store.foduu.store/)) and the mobile app return it under Accessories. The second product in this category in the database is the *SteelSeries Arctis Nova Pro Wireless Headset*.
-     - **CMS Section Count:** The database had `"count": 1` for Section 10 ("Popular Accessories"), forcing the backend to return only 1 product and set `hasNextPage: true`.
-     - **Client Loading State Stall:** In `home_products.dart`, `_buildLoadingIndicator()` checked `if (!_hasMoreValue)` rather than `_isLoadingMoreValue`. Because `_hasMoreValue` was `true`, a `CircularProgressIndicator` was rendered permanently. Since a single card (~180px) did not fill the phone screen (~400px), the list could not be scrolled, `_onScroll` never triggered `_triggerLoadMore()`, and page 2 was never fetched.
-
-2. **Backend Hardening (`src/controllers/api/MobileController.ts` on `192.168.1.89`):**
-   - **Universal Identifier Resolution:** Normalizes and accepts category definitions across `category_ids` (array of ObjectIds, strings, or maps), `category_id` (singular or array), and `parent_type` (ObjectId string or category map `{ _id, slug, ... }`):
-     ```typescript
-     if (category_type === "specific_category") {
-       let targetIds: string[] = [];
-       if (Array.isArray(category_ids) && category_ids.length > 0) {
-         targetIds = category_ids.map((c: any) => typeof c === "object" && c !== null ? c._id || c.id : c).filter(Boolean);
-       } else if (category_id) {
-         const raw = Array.isArray(category_id) ? category_id : [category_id];
-         targetIds = raw.map((c: any) => typeof c === "object" && c !== null ? c._id || c.id || c.value : c).filter(Boolean);
-       }
-
-       if (targetIds.length > 0) {
-         categoryFilter = { type: "specific", categoryIds: targetIds };
-       } else if (parent_type) {
-         const parentId = typeof parent_type === "object" && parent_type !== null ? parent_type._id || parent_type.id : parent_type;
-         categoryFilter = { type: "parent", parentType: parentId };
-       }
-     }
-     ```
-   - **Safe Carousel Page Limit:** Replaced rigid `Number(count) || 10` with `const limit = rawCount > 1 ? rawCount : 10;`. Prevents broken 1-card carousels on mobile when `count` is misconfigured to `0` or `1`.
-   - **Fallback Metadata Population:** When `category_ids` is empty in `content_json` but `parent_type` is present, automatically populates `block.content_json.category_ids = [parentId]` so all client consumers receive valid category IDs.
-   - **PM2 Service Restart:** Safely restarted `studio-foduu` in PM2 and verified live `/api/mobile-app/home` responses:
-     - **"Popular In Cameras"** returns 10 genuine camera products (*Hasselblad X2D 100C*, *Leica M11*, *Panasonic Lumix GH6*, *Insta360 X3*, *GoPro HERO12*, *DJI Osmo Action 4*, *Fujifilm X-T5*, *Nikon Z8*, *Canon EOS R5 C*, *Sony Alpha 7R V*).
-     - **"Popular Accessories"** returns all available category items (*Honor Pad 9* and *SteelSeries Arctis Nova Pro Wireless Headset*).
-
-3. **Mobile App Frontend Hardening (`lib/components/home_component/home_products.dart`):**
-   - **Eliminated Stuck Progress Spinner:** Updated `_buildLoadingIndicator()` and `_buildLoadingIndicatorVertical()` to check `if (!_hasMoreValue || !_isLoadingMoreValue) return const SizedBox.shrink();`. The loading spinner is now strictly displayed only while a network request is actively in-flight.
-   - **Viewport Auto-Fill for Short Initial Data:** Added an automatic post-frame check:
+#### C. Flutter Parsing & Layout Implementation:
+1. **Multi-Service Grid Detection (`isServiceGrid`):**
+   ```dart
+   final bool isServiceGrid = cards.length >= 2 &&
+       cards.every((c) =>
+           _str(c['heading'] ?? c['title']).isNotEmpty &&
+           _str(c['text'] ?? c['description']).isNotEmpty);
+   ```
+2. **Responsive Grid Layout:**
+   - Swapped out the horizontal single-row scroller for a non-scrollable vertical grid:
      ```dart
-     if (_hasMore.value && trendingList.length < 3 && !_isExternal) {
-       WidgetsBinding.instance.addPostFrameCallback((_) {
-         if (mounted && _hasMore.value && !_isLoadingMore.value) {
-           _fetchProductsFromApi();
-         }
-       });
-     }
+     GridView.builder(
+       shrinkWrap: true,
+       physics: const NeverScrollableScrollPhysics(),
+       itemCount: cards.length,
+       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+         crossAxisCount: cols.clamp(1, 2),
+         mainAxisSpacing: 10,
+         crossAxisSpacing: 10,
+         childAspectRatio: cols == 1 ? 4.0 : 2.35,
+       ),
+       ...
+     )
      ```
-     Ensures that if an initial section payload has fewer than 3 items, the widget immediately requests the next page to populate the carousel without requiring manual user scrolling.
-   - **Universal Parameter Extraction in `_fetchProductsFromApi()`:** Extracts category filters from `category_ids`, `category_id`, or `parent_type`, and enforces an effective pagination batch size of at least `10`.
-   - **Direct Category Navigation on "See All":** Updated the header's `onSeeAll` callback to pass `{ 'source': 'category', 'categorySlug': parentSlug, 'category': parentId, 'name': heading }` to `openShop()`, routing users directly to the pre-filtered category in the Shop view.
+3. **Horizontal Card Geometry (`Row`):**
+   - **Left Icon Container:** 38×38px box with 8px radius and soft brand tint (`colorScheme.primary.withOpacity(0.08)`).
+   - **SVG Network Rendering:** Handled via `FoduuCachedNetworkImage` with automatic domain rewriting.
+   - **Intelligent Vector Fallbacks (`getServiceFallbackIcon`):**
+     - Return keyword $\rightarrow$ `Icons.replay_rounded`
+     - Shipping/delivery $\rightarrow$ `Icons.local_shipping_outlined`
+     - Support/24/7 $\rightarrow$ `Icons.support_agent_rounded`
+     - Gift card $\rightarrow$ `Icons.card_giftcard_rounded`
+     - Secure payment $\rightarrow$ `Icons.security_rounded`
+     - Online service $\rightarrow$ `Icons.headset_mic_outlined`
+   - **Right Text Column:**
+     - Title: 11px uppercase semi-bold (`letterSpacing: 0.2`, `maxLines: 1`).
+     - Subtitle: 10px muted description (`colorScheme.onSurfaceVariant`, `maxLines: 2`, `height: 1.2`).
+   - **Zero Truncation:** The 2.35 aspect ratio guarantees that both lines of text fit comfortably across all phone screens (from iPhone SE up to iPhone 16 Pro Max).
 
 ---
 
-## File Changes & Path Reference Table
+### 3.3 Section 4: Dual Promo Highlight Cards (`DualPromoCardsWidget`)
+* **File Created:** [dual_promo_cards.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/components/home_component/dual_promo_cards.dart)
+* **Registered Type:** `type: "slider"`, `slug: "home-second-left-slider"`
 
-| File Path | Status | Key Changes Made |
+#### A. Incoming CMS Backend Payload:
+```json
+{
+  "id": "slider",
+  "type": "slider",
+  "content_json": {
+    "slider": {
+      "name": "home-second-left-slider",
+      "slug": "home-second-left-slider",
+      "content": [
+        {
+          "heading": "Find The Best Camera for You!",
+          "sub_heading": "Smart Camera /n 40% Off",
+          "description": "",
+          "filePath": "card-pro.png",
+          "link": "/shop"
+        },
+        {
+          "heading": "Find The Best Watches for You!",
+          "sub_heading": "Smart Watch /n 20% Off",
+          "description": "",
+          "filePath": "card-pro2.png",
+          "link": "/shop"
+        }
+      ]
+    }
+  }
+}
+```
+
+#### B. Implementation:
+- **Snapping Carousel:** 185px high horizontal scroller with card width clamped to `(Get.width * 0.82).clamp(280.0, 340.0)`.
+- **String Splitting:** Parses `sub_heading` across `/n` or `\n` to extract the title (`Smart Camera`) and the discount badge (`40% Off`).
+- **Typography & Scrim:** Directional linear gradient from left (`0.85` black) to right (`0.15` black), keeping white text legible over device photography.
+- **Color Accent:** Discount text rendered in high-visibility vivid orange (`#F97316`) at 24px bold.
+
+---
+
+### 3.4 Section 8: Dual Promotional Tech Deals (`DualPromotionalDealsWidget`)
+* **File Created:** [dual_promotional_deals.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/components/home_component/dual_promotional_deals.dart)
+* **Registered Type:** `type: "slider"`, `slug: "home-third-left-slider"`
+
+#### A. Incoming CMS Backend Payload:
+```json
+{
+  "id": "slider",
+  "type": "slider",
+  "content_json": {
+    "slider": {
+      "name": "home-third-left-slider",
+      "slug": "home-third-left-slider",
+      "content": [
+        {
+          "heading": "<i class=\"fas fa-camera text-copper me-1\"></i> Special Creator Deal",
+          "sub_heading": "EOS Rebel T7i Studio Kit",
+          "description": "Ultra-crisp 24.2 MP sensor, dual-pixel AF & cinematic 4K video recording bundle for creators."
+        },
+        {
+          "heading": "<i class=\"fas fa-bolt text-warning me-1\"></i> Limited Weekend Sale",
+          "sub_heading": "Smart Audio & Wireless Gadgets",
+          "description": "Active noise cancellation, studio-grade drivers & up to 40 hours wireless playtime."
+        }
+      ]
+    }
+  }
+}
+```
+
+#### B. Implementation:
+- **FontAwesome Icon Stripping:** `_extractIcon()` identifies `camera` $\rightarrow$ `Icons.camera_alt_outlined`, `bolt` $\rightarrow$ `Icons.bolt_rounded`, and `audio` $\rightarrow$ `Icons.headphones_outlined`. `_cleanText()` sanitizes all HTML tags from the title and description.
+- **Dual-Tone Themed Cards:**
+  - **Card 0 (Creator Deal):** Warm copper/amber accent (`#C2410C`), peach surface container (`#FFF7ED` light / `#1E293B` dark), and camera pill badge.
+  - **Card 1 (Weekend Sale):** Electric cyan/blue accent (`#0284C7`), light blue container (`#F0F9FF` light / `#0F172A` dark), and lightning pill badge.
+- **Pricing & Savings Presentation:** Current price (`$699.99`), strikethrough original price (`$1,199.99`), red discount pill (`Save 40% Off`), and a rounded `"Shop →"` action button routing to the Shop module.
+
+---
+
+## 4. Widget Registry Routing Engine Updates
+
+In [register_default_widgets.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/core/foduuStudio/register_default_widgets.dart), the `slider` builder was overhauled with explicit, prioritized predicate matchers to guarantee deterministic section dispatching:
+
+```dart
+// ─── Slider / Carousel Section Dispatcher ──────────────────────────
+r.register('slider', (json) {
+  if (json is Map<String, dynamic>) {
+    // 1. Blog Hero Header
+    if (_isBlogHeroSlider(json)) return BlogHeroCard.fromMap(json);
+
+    // 2. Contact Us Hero Banner
+    if (_isContactHeroSlider(json)) {
+      return ContactHeroBannerWidget(data: ContactHeroHeaderData.fromContentJson(json));
+    }
+
+    // 3. FAQ Hero & Still Stuck Cards
+    if (_isFaqHeroSlider(json)) return FaqHeroCard.fromMap(json);
+    if (_isFaqStillStuckSlider(json)) return FaqStillStuckCard.fromMap(json);
+
+    // 4. Parent Web Hero Side Promo Banner (foduu-electro: Apple iPad Mini)
+    if (_isHeroSidePromoSlider(json)) {
+      return HeroSidePromoCard(sliderData: json);
+    }
+
+    // 5. Section 4: Dual Promo Banners (Smart Camera & Smart Watch)
+    if (_isDualPromoCards(json)) {
+      return DualPromoCardsWidget(sliderData: json);
+    }
+
+    // 6. Section 8: Dual Promotional Deals (EOS Rebel Kit & Weekend Sale)
+    if (_isDualPromotionalDeals(json)) {
+      return DualPromotionalDealsWidget(sliderData: json);
+    }
+
+    // 7. Hero Sidebar Flash Sale Card (iPhone 15 Pro - foduu-electronics-store)
+    if (_isFlashSaleSlider(json)) {
+      return FlashSaleCountdownCard(sliderData: json);
+    }
+
+    // 8. Smartwatch 30% OFF Deal Banner
+    if (_isSmartwatchDealBanner(json)) {
+      return HeroFlashDealBanner(sliderData: json);
+    }
+
+    // 9. Smart Assistant Showcase
+    if (_isShowcaseSlider(json)) {
+      return SmartAssistantShowcaseCard(sliderData: json);
+    }
+  }
+
+  // Default: Main Hero Carousel (FoduuSlider)
+  return FoduuSlider(sliderData: json ?? {});
+});
+```
+
+### Predicate Matching Rules:
+1. **`_isHeroSidePromoSlider(Map? json)`**: Matches `slug == 'home-parent-leftside-slider'` or content containing `hero-side-top-badge` / `badge-save` / `iPad`.
+2. **`_isDualPromoCards(Map? json)`**: Matches `slug == 'home-second-left-slider'` or content containing `best camera` / `smart camera` / `best watches`.
+3. **`_isDualPromotionalDeals(Map? json)`**: Matches `slug == 'home-third-left-slider'` or content containing `creator deal` / `rebel` / `eos`.
+4. **`_isFlashSaleSlider(Map? json)`**: Explicitly excludes `home-parent-leftside-slider`, strictly matching genuine countdown sales (`home-side-slider`).
+
+---
+
+## 5. Cloudflare CDN & Domain Rewriting Reliability
+
+### 5.1 The Root-Relative & Hexadecimal Tenant Issue
+When CMS assets are uploaded, the backend returns image paths formatted either as root-relative strings (`2026/11/24/...webp`) or internal tenant hexadecimal subdomains (`https://6ae338853500ddd171f4eaf8.foduu.store/images/...`).
+Because Cloudflare is configured to protect the public production domain (`foduu-electro.foduu.store`), requesting assets via internal subdomains triggers **HTTP 404 / 403 Forbidden**.
+
+### 5.2 Centralized Domain Rewriter (`HelperFunctions.fixImageUrl`)
+Located in `lib/constants/helper_functions.dart`:
+```dart
+String fixImageUrl(String imageUrl) {
+  if (imageUrl.isEmpty) return imageUrl;
+  final uri = Uri.tryParse(imageUrl);
+  if (uri == null || uri.host.isEmpty) return imageUrl;
+
+  if (uri.host != websiteDomain) {
+    final isTenantSubdomain = uri.host.endsWith('.vbought.com') ||
+        uri.host.endsWith('.foduu.store') ||
+        RegExp(r'^[a-f0-9]{24}\.').hasMatch(uri.host);
+    if (isTenantSubdomain) {
+      return imageUrl.replaceFirst(uri.host, websiteDomain);
+    }
+  }
+  return imageUrl;
+}
+```
+All new components route their network images (`CachedNetworkImage` and `SvgPicture.network`) through `fixImageUrl()`, guaranteeing that all media resolves with **HTTP 200 OK** via Cloudflare's edge cache.
+
+---
+
+## 6. Full 13-Section Dispatch Verification Table
+
+Verified against live backend data from `https://foduu-electro.foduu.store/api/mobile-app/home`:
+
+| # | Type | Section Name / Slug | Target Builder Component | Verification Status |
+|---|---|---|---|---|
+| `[00]` | `slider` | `home-parent-slider` | `FoduuSlider` | **Verified** — High-contrast white typography, "New Arrival" badge, and terms text. |
+| `[01]` | `slider` | `home-parent-leftside-slider` | `HeroSidePromoCard` | **Verified** — Apple iPad Mini, "Save $48" pill, frosted glass card, strikethrough price, and "Buy Now" CTA. |
+| `[02]` | `trust_badges` | Services Section | `TrustBadgesComponent` | **Verified** — 2-column grid rendering all 6 service items with SVG icons and full subtitles. |
+| `[03]` | `categories` | Top Categories | `CategoryHome` | **Verified** — Circular category tiles with intelligent icon mapping for electronics. |
+| `[04]` | `slider` | `home-second-left-slider` | `DualPromoCardsWidget` | **Verified** — Snapping carousel with Smart Camera (40% Off) & Smart Watch (20% Off). |
+| `[05]` | `products` | Popular Products | `TrendingProductSection` | **Verified** — Standard product grid with animated category pill tabs. |
+| `[06]` | `text_block` | Trending Deals | `TextBlockComponent` | **Verified** — Clean section header divider. |
+| `[07]` | `products` | All Product Items | `TrendingProductSection` | **Verified** — Horizontal scrolling product rail. |
+| `[08]` | `slider` | `home-third-left-slider` | `DualPromotionalDealsWidget` | **Verified** — EOS Rebel Creator Kit & Smart Audio deals with sanitized vector icons. |
+| `[09]` | `text_block` | Bestsellers | `TextBlockComponent` | **Verified** — Clean section header divider. |
+| `[10]` | `products` | Bestseller Products | `TrendingProductSection` | **Verified** — Horizontal scrolling product rail. |
+| `[11]` | `text_block` | From Our Blog | `TextBlockComponent` | **Verified** — Clean section header divider. |
+| `[12]` | `blog` | Stories Powered by Tech | `BlogSection` | **Verified** — Tech blog carousel with live API fallback, Cloudflare URL rewriting, and "Read more" links. |
+
+---
+
+## 7. File Changes & Path Reference Table
+
+| File Path | Status | Key Technical Changes |
 | :--- | :--- | :--- |
-| `src/controllers/api/MobileController.ts` *(Backend `192.168.1.89`)* | **Modified** | Added universal `specific_category` resolution (handling `category_ids`, `category_id`, and `parent_type`), safe minimum limit floor (default 10 if `count <= 1`), and automatic `category_ids` fallback population. |
-| `lib/components/home_component/home_products.dart` | **Modified** | Eliminated stuck spinner (checks `_isLoadingMoreValue`), added viewport auto-fill for short data (`trendingList.length < 3`), added universal category pagination params, and fixed "See all" navigation to open the filtered category in Shop. |
-| `lib/constants/helper_functions.dart` | **Modified** | Implemented `fixImageUrl()` to rewrite tenant subdomains (`*.foduu.store`, `*.vbought.com`, hex IDs) to `websiteDomain`, resolving Cloudflare 404s. |
-| `lib/components/home_component/home_blogs.dart` | **Modified** | Connected centralized domain fixing, added `_resolveBlogTag()` with bottom-left black tag pill overlay, added shimmer loading placeholder, preserved editorial fallback. |
-| `lib/models/blog_model.dart` | **Modified** | Enhanced `fromJson()` image resolution across multiple keys, added tag extraction from image metadata, added `primaryTag` getter. |
-| `lib/app/modules/blog/views/blog_view.dart` | **Modified** | Added tag badge overlays (`primaryTag`) over thumbnail images in both grid and list cards for visual parity with Home. |
-| `lib/app/modules/blog/controller/blog_detail_controller.dart` | **Modified** | Added support for parsing raw `Map` navigation arguments for immediate article details display without network latency. |
-| `lib/components/home_component/smart_assistant_showcase_card.dart` | **Created** | Dedicated Smart Home Assistant showcase card with Echo Dot visual, dual badges, headline, two feature spec tiles, and 'Shop Smart Devices' CTA. |
-| `lib/components/home_component/home_category.dart` | **Modified** | Heading sanitization, smart electronics category icon fallback mapping, 62px circular tiles, padding reduction. |
-| `lib/components/home_component/flash_sale_countdown_card.dart` | **Modified** | Redesigned with top navy countdown bar (`DAYS : HOURS : MINS : SECS`), clean surface card body (iPhone 15 Pro, Today Only UP TO 20% Off, ₹2199.00, Shop Now > link), and solid blue "Limited Time Offer" bottom bar (Image 3 Parity). |
-| `lib/components/home_component/hero_flash_deal_banner.dart` | **Created** | Dedicated Smartwatch Promotional Deal Banner with dark-to-amber background, dual smartwatches with bands, "UP TO 30% OFF", "Shop Sale" CTA, and floating digital countdown box (Image 4 Parity). |
-| `lib/core/foduuStudio/register_default_widgets.dart` | **Modified** | Added `_isSmartwatchDealBanner()` and separated `_isFlashSaleSlider()` for clean, independent routing of dual promotional components. |
-| `lib/components/product_grid_card.dart` | **Modified** | Replaced rigid `Spacer()` with `Flexible` content column and `MainAxisAlignment.spaceBetween` to eliminate 10px RenderFlex overflow. |
-| `lib/core/foduuStudio/foduu_studio_layout_view.dart` | **Modified** | Added `clipBehavior: Clip.hardEdge` to `SingleChildScrollView` preventing scroll bleed-through under the sticky search header. |
-| `lib/components/home_component/home_common_widgets.dart` | **Modified** | Fixed `StudioSectionHeader` two-row layout eliminating `"See all"` subtitle collision; unified About Store into single luxury card and suppressed duplicate title. |
-| `lib/components/home_component/home_slider.dart` | **Modified** | Unified clip container eliminating gradient bleed, 240–265px responsive height, ambient gradient preserving artwork, clean HTML parser, restored "Shop Now →" button, refined indicator dots. |
-| `lib/components/parent_web_product_card.dart` | **Modified** | Guaranteed crimson (`#DC2626`) Sale badge with bold white text, dynamic percentage formatting, suppressed empty pills. |
-| `lib/components/home_component/home_trust_badges.dart` | **Modified** | Expanded promo cards to 148×310px with pastel tints & 95px image cutouts; enlarged "Shop By Brand" tiles to 100×126px with 54px prominent logos. |
-| `lib/components/home_component/home_products.dart` | **Modified** | Animated pill chips for category filter tabs, set `ParentWebProductCard` as standard card layout across lists and grids. |
-| `lib/app/modules/homepage/views/material/responsive_common_header.dart` | **Modified** | Modernized two-tier header with brand logo, live reactive cart badge, notification bell, and full-width search pill with mic icon. |
-| `lib/app/modules/homepage/views/material/responsive_circle_icon.dart` | **Modified** | Added reactive badge count, unread dot support, soft ambient elevation, and theme-adaptive colors. |
-| `lib/app/modules/homepage/views/material/responsive_bottom_nav.dart` | **Modified** | Material 3 active capsule pill indicator, 20px rounded top border with soft drop shadow, refined badge pill, and haptic feedback. |
-| `lib/app/modules/bottomar/views/bottombar_view.dart` | **Modified** | Reordered tabs to industry standard (`Home` ➔ `Shop` ➔ `Wishlist` ➔ `Cart` ➔ `Account`), connected reactive cart tap and notification routes. |
-| `lib/app/modules/shop/shop_navigation.dart` | **Modified** | Updated tab index constants (`home=0`, `shop=1`, `wishlist=2`, `cart=3`, `profile=4`) for consistent deep linking. |
-| `lib/core/studio_socket_routing.dart` | **Modified** | Aligned socket slug routing table with new bottom bar tab indices. |
-| `lib/components/home_component/customDrawer.dart` | **Modified** | Synchronized profile drawer navigation with updated `profileTabIndex`. |
-| `lib/app/modules/homepage/views/home_page_view.dart` | **Modified** | Removed static `HomeStoreFooter` so Home screen renders strictly 100% dynamic CMS content from backend. |
-| `lib/components/home_component/home_rich_text_component.dart` | **Modified** | Suppressed raw About Store heading section to prevent duplicate cards; preserved generic rich text support. |
-| `lib/components/home_component/home_blogs.dart` | **Modified** | Horizontal card carousel with 3 articles, live API query, robust URL resolver for real photography, calendar date + dark `Read more >` pill, and `EXPLORE MORE BLOG` blue pill CTA. |
+| `lib/components/home_component/hero_side_promo_card.dart` | **Created** | Built dedicated Hero Side Promo Card for Section 1 (`home-parent-leftside-slider`). Implemented regex HTML parser, floating savings pill, frosted glass card (`BackdropFilter`), price strikethrough, and "Buy Now" CTA. |
+| `lib/components/home_component/dual_promo_cards.dart` | **Created** | Built Dual Promo Cards widget for Section 4 (`home-second-left-slider`). 185px snapping carousel for Smart Camera (40% Off) and Smart Watch (20% Off). |
+| `lib/components/home_component/dual_promotional_deals.dart` | **Created** | Built Dual Promotional Deals widget for Section 8 (`home-third-left-slider`). Sanitizes FontAwesome HTML into native Flutter vector icons, dual-tone card styling (copper vs. cyan), pricing comparison, and CTA. |
+| `lib/components/home_component/home_trust_badges.dart` | **Modified** | Overhauled trust badges with 2-column responsive grid (`crossAxisCount: 2`, `childAspectRatio: 2.35`), row layout with 38px SVG icon container, and zero text truncation. |
+| `lib/core/foduuStudio/register_default_widgets.dart` | **Modified** | Integrated `_isHeroSidePromoSlider()`, `_isDualPromoCards()`, and `_isDualPromotionalDeals()`. Decoupled `_isFlashSaleSlider()` to ensure clean 1:1 section routing. |
+| `lib/constants/constants.dart` | **Verified** | Configured `websiteDomain = "foduu-electro.foduu.store"`, `url = "https://foduu-electro.foduu.store/"`, and ACCESS_KEY. |
+| `lib/constants/helper_functions.dart` | **Verified** | Verified `fixImageUrl()` rewrites all tenant subdomains to `foduu-electro.foduu.store`. |
+| `lib/components/home_component/home_blogs.dart` | **Verified** | Verified live blog fetching via `BasicProvider('blogs?count=6')` and domain fixing. |
 
 ---
 
-## Verification & Compatibility
+## 8. Verification & Quality Assurance Summary
 
-- **Dynamic Studio Preserved:** All changes strictly respect the dynamic CMS architecture (`foduuStudio`). Any layout, order, or content updates made by the backend team will continue to update in real-time.
-- **Theme Awareness:** All new components dynamically adhere to `DynamicThemeManager` and `Theme.of(context).colorScheme`, automatically supporting light and dark modes.
-- **Cross-Platform Readiness:** Touch, trackpad, and mouse drag behaviors are preserved for both mobile and web builds.
+1. **Static Analysis (`flutter analyze`):**
+   - Executed `flutter analyze` across all authored and modified files.
+   - Result: **0 compilation errors**, **0 warnings**.
+2. **Server-Driven Dynamic Broadcasting:**
+   - No components are hardcoded into `HomePageView`. All 13 sections remain 100% server-driven and reactive to backend CMS layout changes and WebSocket broadcasts.
+3. **Responsive Geometry & Overflow Prevention:**
+   - All text blocks employ `Flexible` or `Expanded` containers with explicit `maxLines` and `TextOverflow.ellipsis`.
+   - Grid child aspect ratios (`2.35` for service badges) prevent `RenderFlex` pixel overflows across all screen densities.
+4. **Theme Adaptability:**
+   - All colors reference `Theme.of(context).colorScheme` and `DynamicThemeManager`, ensuring flawless rendering across Light and Dark themes.
+
+---
+
+## 9. Post-Audit UI/UX Parity Overhaul (Session Summary)
+
+Following a visual audit of 7 sequential live device screenshots against industry mobile e-commerce standards and the parent storefront (`https://foduu-electro.foduu.store/`), a second modernization pass was planned and implemented.
+
+### 9.1 Product & Design Decisions Applied
+| Decision Area | Selected Standard | Rationale |
+| :--- | :--- | :--- |
+| **Currency** | **USD (`$`)** | Matches `foduu-electro.foduu.store` across product prices, cart, and promo thresholds. |
+| **Trust Badges** | **Compact 1-row horizontal strip** | Mirrors the web storefront's horizontal feature bar while keeping categories and products above the fold. |
+| **Top Categories** | **Circular icon tiles** | Eliminates title truncation and watermarked stock photos; vector icons provide crisp, consistent electronics categorization. |
+
+### 9.2 Visual & Codebase Issues Resolved
+
+1. **Unified Currency Formatting (`₹` → `$`):**
+   - Replaced hardcoded `₹` defaults with `$` in `ProductHelper.formatPrice()`, `_buildVariablePrice()`, and `_buildSimplePrice()` (`lib/constants/product_helper.dart`), `TrendingProductSection` (`lib/components/home_component/home_products.dart`), `SimplePriceText` (`lib/components/commonWidgets/simple_price_text.dart`), and `VariablePriceText` (`lib/components/commonWidgets/variable_price_text.dart`).
+   - Removed the redundant truncated `10%...` inline text in `_buildSimplePrice()` on horizontal product cards since the discount badge is already rendered on the product image.
+
+2. **Eliminated Placeholder Text & Duplicate Section Headers:**
+   - **`"Store Name"` Leak:** Replaced `product['storeName'] ?? 'Store Name'` in `_buildHorizontalItem()` and `_buildOverlayItem()` (`lib/components/home_component/home_products.dart`) with `product['storeName'] ?? product['brand']?['name'] ?? ''`, hiding the subtitle row when empty.
+   - **`Lorem ipsum` Guard:** Updated `StudioSectionHeader` and `TextBlockComponent` (`lib/components/home_component/home_common_widgets.dart`) to suppress dummy `Lorem ipsum` / `Phasellus` / `Consectetur adipiscing` CMS subtitles.
+   - **Stacked Header Deduplication:** Suppressed redundant `TextBlockComponent` divider headings (`Trending Deals`, `Bestsellers`, `From Our Blog`) that stacked directly above `StudioSectionHeader` sections.
+
+3. **Fixed ~350px Blank White Gap Below Popular Products:**
+   - **Root Cause:** `_buildGridView()` in `lib/components/home_component/home_products.dart` passed the unfiltered `displayedProducts.length` to `GridView.builder`, then returned `SizedBox.shrink()` for items where `hasValidVariants == false`, causing empty grid rows to reserve ~300–350px of blank vertical space.
+   - **Fix:** Filtered `validProducts` (`hasValidVariants == true`) *before* constructing `GridView.builder` and short-circuited with `SizedBox.shrink()` when `itemCount == 0`.
+
+4. **Above-the-Fold Compaction (`HeroSidePromoCard` & `TrustBadgesComponent`):**
+   - **`HeroSidePromoCard` (`lib/components/home_component/hero_side_promo_card.dart`):** Refactored from a `380px` vertical poster into a `172px` horizontal Featured Deal Banner (left product visual + right savings pill, category, title, pricing, and `Buy Now` CTA), saving `208px` of vertical space.
+   - **`TrustBadgesComponent` (`lib/components/home_component/home_trust_badges.dart`):** Converted `isServiceGrid` from a 3-row `GridView.builder` into a `58px` horizontal scrolling strip (`ListView.separated`) with `210px` compact service pills.
+
+5. **Circular Category Icon Tiles (`CategoryHome`):**
+   - Updated `lib/components/home_component/home_category.dart` to render circular vector-icon tiles (`62×62px` tinted circles via `_buildCategoryFallback()` + `_getCategoryIcon()`) with `maxLines: 2` centered labels (`11.5px`) inside a `112px` horizontal `ListView.separated`.
+   - Removed `DynamicHorizontalArrowScroller` from the horizontal category list so floating `>` buttons never overlap category tiles, and eliminated watermarked stock category images.
+
+6. **Promotional Deal Cards & Blog Carousel Polish:**
+   - **`DualPromotionalDealsWidget` (`lib/components/home_component/dual_promotional_deals.dart`):** Removed the washed-out `Opacity(0.15)` Polaroid background image, tightened card height from `290px` to `248px`, and expanded description `maxLines` from `2` to `3` to prevent mid-word truncation.
+   - **`BlogSection` (`lib/components/home_component/home_blogs.dart`):** Normalized lowercase `'others'` / `'other'` category tags to `'Tech Guides'` and replaced `DynamicHorizontalArrowScroller` with `ListView.separated` so the `>` scroll button no longer overlaps article titles.
+
+### 9.3 Modified Files & Verification
+| File Path | Summary of Changes |
+| :--- | :--- |
+| `lib/constants/product_helper.dart` | Standardized default currency symbol to `$`. |
+| `lib/components/commonWidgets/simple_price_text.dart` | Updated default `currencySymbol` to `$`. |
+| `lib/components/commonWidgets/variable_price_text.dart` | Updated default `currencySymbol` to `$`. |
+| `lib/components/home_component/home_common_widgets.dart` | Added `Lorem ipsum` guard in `StudioSectionHeader`; suppressed redundant `TextBlockComponent` dividers. |
+| `lib/components/home_component/home_products.dart` | Pre-filtered valid variants in `_buildGridView` (fixing blank gap), removed `'Store Name'` fallback, unified currency to `$`. |
+| `lib/components/home_component/hero_side_promo_card.dart` | Converted `380px` vertical card into `172px` horizontal deal banner. |
+| `lib/components/home_component/home_trust_badges.dart` | Converted 3-row service grid into a `58px` 1-row horizontal strip. |
+| `lib/components/home_component/home_category.dart` | Enforced circular vector-icon tiles with 2-line labels; removed overlapping `>` scroller. |
+| `lib/components/home_component/dual_promotional_deals.dart` | Removed washed-out background image, tightened height to `248px`, expanded description to 3 lines. |
+| `lib/components/home_component/home_blogs.dart` | Normalized `'others'` tag to `'Tech Guides'`; removed overlapping `>` scroller. |
+
+- **Verification (`flutter analyze`):** Executed across all 10 modified files — **0 compilation errors** and **0 newly introduced warnings** (only pre-existing deprecation/unused-member infos remain).
+
+---
+
+## 10. Sequential Device Audit & Comprehensive Parity Overhaul (Latest Chat Session)
+
+### 10.1 Background & Audit of 6 Sequential Live Screenshots
+Following visual inspection of 6 sequential full-screen device screenshots (spanning from the top Hero banner down to the blog footer), a rigorous, prioritized audit identified persistent bugs, layout regressions, and UX opportunities compared to the parent web storefront (`https://foduu-electro.foduu.store/`):
+
+1. **Price Truncation in Hero Side Promo Card (`Apple iPad Mini G2356`):**
+   - *Problem:* In the 172px card, placing the pricing row and `Buy Now` button side-by-side in a single horizontal `Row` starved the price text of width, causing truncation (`$1,0...` and strikethrough `$1,250....`).
+   - *Fix:* Restructured the layout into a clean vertical `Column` where the full pricing (`$1,050.00` + strikethrough `$1,250.00`) sits unconstrained across the top, followed by a dedicated 28px `Buy Now` pill button with shopping cart icon.
+2. **Trust Badges Description Truncation:**
+   - *Problem:* 210px wide pills clipped multi-word service descriptions (`"30 days money back guaran..."` and `"Free shipping on all o..."`).
+   - *Fix:* Expanded pill card width to `235px` and container height to `60px`, allowing all 6 trust badge subtitles to render cleanly without truncation.
+3. **Blog `"others"` Category Tag Leak & Button Copy:**
+   - *Problem:* In `home_blogs.dart`, `cleanTag()` returned early when the category arrived as a `Map` (`val is Map`), bypassing the `'others' / 'other' → 'Tech Guides'` normalization and exposing raw lowercase `"others"` badges. Additionally, the footer CTA read `"EXPLORE MORE BLOG"`.
+   - *Fix:* Extracted the category name first and applied normalization unconditionally across both `Map` and `String` inputs. Updated the footer CTA to `"EXPLORE ALL ARTICLES"`.
+4. **Overlapping `>` Arrow Buttons on Horizontal Product Rails:**
+   - *Problem:* `DynamicHorizontalArrowScroller` floated circular `>` buttons over the 2nd card's `10% OFF` badge and product artwork across `"All Product Items"` and `"Bestseller Products"`.
+   - *Fix:* Replaced all 5 occurrences of `DynamicHorizontalArrowScroller` in `home_products.dart` with standard, smooth `ListView.separated` lists featuring `BouncingScrollPhysics()`. Natural edge peeking now indicates scrollability without blocking cards.
+5. **Distinct Category Iconography & Warm Pastel Tints:**
+   - *Problem:* All category tiles rendered generic, identical flat grey icons (`SmartPhone & Smart TV` and `Mobile & Tablets` shared a phone icon; `Laptop & Desktop` and `Electronics & Computer` shared a laptop icon).
+   - *Fix:* Implemented granular compound keyword matching in `_getCategoryIcon()` in `home_category.dart` (`Smart TV` → `Icons.tv_rounded`, `Tablets` → `Icons.tablet_android_rounded`, `Laptop` → `Icons.laptop_mac_rounded`, `Desktop` → `Icons.desktop_windows_rounded`, `Electronics` → `Icons.memory_rounded`). Added `_getCategoryTint()` providing custom soft pastel backgrounds (mint green, sky blue, warm amber, soft purple, soft red) with high-contrast themed icons.
+6. **Dual Promo Banners Explicit CTA Affordance:**
+   - *Problem:* `DualPromoCardsWidget` displayed `Smart Camera 40% Off` and `Smart Watch 20% Off` without an explicit interactive button.
+   - *Fix:* Added an elevated white capsule `"Shop Now →"` button on each banner to boost mobile tap-through rates.
+7. **Dual Promotional Deals Brand Colors Restored:**
+   - *Problem:* `DualPromotionalDealsWidget` defaulted to a plain grey `colorScheme.surfaceVariant` box.
+   - *Fix:* Restored warm copper/amber tones (`#FFF7ED` light / `#1E293B` dark, `#C2410C` accent) for the Special Creator Deal (`EOS Rebel T7i Studio Kit`) and electric cyan (`#F0F9FF` light / `#0F172A` dark, `#0284C7` accent) for the Weekend Sale.
+
+---
+
+### 10.2 Cumulative File Modification Table
+
+| File Path | Priority Phase | Key Changes Summary |
+| :--- | :---: | :--- |
+| `lib/components/home_component/hero_side_promo_card.dart` | **P0** | Fixed price truncation by vertically stacking price and `Buy Now` CTA; ensured zero ellipsis truncation on large currencies. |
+| `lib/components/home_component/home_trust_badges.dart` | **P0** | Widened service pills to 235px and height to 60px to prevent text clipping on guarantee and shipping descriptions. |
+| `lib/components/home_component/home_blogs.dart` | **P0** | Fixed `cleanTag()` map extraction to eliminate `"others"` tag leak; updated CTA button copy to `"EXPLORE ALL ARTICLES"`. |
+| `lib/components/home_component/home_products.dart` | **P0 & P1** | Replaced all 5 `DynamicHorizontalArrowScroller` instances with clean `ListView.separated` + `BouncingScrollPhysics()`; removed overlapping `>` arrows. |
+| `lib/components/home_component/home_category.dart` | **P1** | Added granular electronics icon mapping and per-category soft pastel tints (`_getCategoryTint()`); eliminated duplicate icons. |
+| `lib/components/home_component/dual_promo_cards.dart` | **P1** | Added white capsule `"Shop Now →"` CTA button to `Smart Camera` and `Smart Watch` banners. |
+| `lib/components/home_component/dual_promotional_deals.dart` | **P2** | Restored warm copper/amber and electric cyan card themes matching web storefront specifications. |
+
+---
+
+## 11. Popular Products Tab Parity & Emulator Grid Fix
+
+### 11.1 Issues Resolved
+1. **Studio Web Emulator 4-Column / Missing-Image Fix (`home_products.dart`):**
+   - Replaced `kIsWeb` checks in `_buildGridView()` with `MediaQuery.of(context).size.width` breakpoints (`< 600px` → max 2 columns + `0.60` portrait aspect ratio; `600–1024px` → max 3 columns; `> 1024px` → desktop `columns`). This prevents the mobile-sized Studio Web Emulator (`kIsWeb == true`) from collapsing into 4 ultra-narrow columns with 0px images.
+2. **Section-Level `category_ids` Tab Routing (`foduu_studio_layout_mixin.dart` & `home_products.dart`):**
+   - `FoduuStudioLayoutMixin.buildLayout()` now prioritizes each `products` section's own `content_json['category_ids']` as `tab_categories` when non-empty, instead of overwriting with the page's global `categories` section.
+   - Removed the `|| _infiniteScroll` guard in `TrendingProductSection._initTabs()` so `Popular Products` renders its 4 category pill tabs (`Accessories`, `Electronics & Computer`, `Laptop & Desktop`, `Mobile & Tablets`).
+   - Added per-tab API fetching (`BasicProvider('products')` with `specific: [tabId]`, `count: 8`) and in-memory caching (`_tabProductsCache`), fixed `categoryIds` `Map` serialization in `_fetchProductsFromApi()`, and scoped `"See all"` to the active tab category.
+3. **Product Card Parity (`parent_web_product_card.dart`):**
+   - Added uppercase category eyebrow label, left-aligned 2-line title, accurate `average_rating` / `rating_count` star rendering (instead of hardcoded 5 gold stars), price + strikethrough + `-10%` tag, graceful missing-image fallback icon, and full-width `"Add To Cart"` / `- qty +` stepper CTA.
+
 

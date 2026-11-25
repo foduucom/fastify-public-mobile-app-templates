@@ -12,12 +12,14 @@ class ParentWebProductCard extends StatelessWidget {
   final Map<String, dynamic> product;
   final bool isList;
   final VoidCallback? onTap;
+  final String? categoryLabel;
 
   const ParentWebProductCard({
     Key? key,
     required this.product,
     this.isList = false,
     this.onTap,
+    this.categoryLabel,
   }) : super(key: key);
 
   String get _productId => ProductHelper.getProductId(product);
@@ -128,8 +130,26 @@ class ParentWebProductCard extends StatelessWidget {
     return _buildGridCard(context);
   }
 
+  String _resolveCategoryLabel() {
+    if (categoryLabel != null && categoryLabel!.trim().isNotEmpty) {
+      return categoryLabel!.trim().toUpperCase();
+    }
+    final cats = product['categories'];
+    if (cats is List && cats.isNotEmpty) {
+      final first = cats.first;
+      if (first is Map && first['name'] != null) {
+        return first['name'].toString().trim().toUpperCase();
+      }
+    }
+    final brand = product['brand'];
+    if (brand is Map && brand['name'] != null) {
+      return brand['name'].toString().trim().toUpperCase();
+    }
+    return '';
+  }
+
   // ─────────────────────────────────────────────────────────────
-  // 1. GRID CARD (Portrait 2-column fashion card)
+  // 1. GRID CARD (Parent-website parity 2-column electronics card)
   // ─────────────────────────────────────────────────────────────
   Widget _buildGridCard(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -137,192 +157,212 @@ class ParentWebProductCard extends StatelessWidget {
     final priceInfo = ProductHelper.calculatePriceInfo(product);
 
     final imageUrl = ProductHelper.getProductImage(product);
+    final hasValidImage =
+        imageUrl.isNotEmpty && imageUrl != HelperFunctions.getNoImage();
     final productName = ProductHelper.getProductName(product);
     final priceStr = priceInfo['productPrice']?.toString() ?? '0';
     final regularPriceStr = priceInfo['salePrice']?.toString() ?? '';
     final discountRateStr = priceInfo['discountRate']?.toString() ?? '';
     final hasDiscount = discountRateStr.trim().isNotEmpty;
     final badgeText = discountRateStr.trim().isNotEmpty
-        ? discountRateStr.trim().toUpperCase()
+        ? '-${discountRateStr.trim().replaceAll(RegExp(r'[^0-9.]'), '')}%'
         : (regularPriceStr.isNotEmpty ? 'SALE' : '');
+    final categoryText = _resolveCategoryLabel();
+
+    final avgRating =
+        double.tryParse((product['average_rating'] ?? 0).toString()) ?? 0.0;
+    final ratingCount =
+        int.tryParse((product['rating_count'] ?? 0).toString()) ?? 0;
 
     return GestureDetector(
       onTap: _navigateToDetail,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          // Image with Floating Wishlist and Bag
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.contain,
-                        progressIndicatorBuilder: (_, __, ___) =>
-                            HelperFunctions().loadingIndicator(),
-                        errorWidget: (_, __, ___) => const Center(
-                          child: Icon(Icons.image_outlined,
-                              color: Colors.grey, size: 36),
-                        ),
-                      ),
-                    ),
-
-                    // Sale badge (top-left) - crimson rounded pill
-                    if (badgeText.isNotEmpty)
-                      Positioned(
-                        left: 8,
-                        top: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE11D48),
-                            borderRadius: BorderRadius.circular(6),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x33000000),
-                                blurRadius: 4,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          child: Text(
-                            badgeText,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 10,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: context.surfaceColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: colorScheme.outline.withOpacity(0.12),
+          ),
+        ),
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            // Image with Discount Badge & Wishlist Heart
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceVariant.withOpacity(0.28),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: hasValidImage
+                            ? CachedNetworkImage(
+                                imageUrl: imageUrl,
+                                fit: BoxFit.contain,
+                                progressIndicatorBuilder: (_, __, ___) =>
+                                    HelperFunctions().loadingIndicator(),
+                                errorWidget: (_, __, ___) => _imageFallback(
+                                    colorScheme),
+                              )
+                            : _imageFallback(colorScheme),
                       ),
 
-                    // Floating Wishlist Heart (top-right) - dark circle with white heart
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Obx(() {
-                        final isFav = WishListService.to.isInWishlist(_productId);
-                        return GestureDetector(
-                          onTap: _handleToggleWishlist,
+                      // Sale badge (top-left) - crimson rounded pill
+                      if (badgeText.isNotEmpty)
+                        Positioned(
+                          left: 6,
+                          top: 6,
                           child: Container(
-                            width: 32,
-                            height: 32,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 3),
                             decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: const Color(0xFF1E293B),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.18),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
+                              color: colorScheme.error,
+                              borderRadius: BorderRadius.circular(5),
                             ),
-                            child: Icon(
-                              isFav
-                                  ? Icons.favorite_rounded
-                                  : Icons.favorite_border_rounded,
-                              size: 16,
-                              color: isFav ? Colors.redAccent : Colors.white,
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
-
-                    // Floating Quick Add to Bag (bottom-right) - vibrant blue with shopping bag
-                    Positioned(
-                      right: 8,
-                      bottom: 8,
-                      child: GestureDetector(
-                        onTap: () => _handleAddToCart(context),
-                        child: Container(
-                          width: 34,
-                          height: 34,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Color(0xFF2563EB),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0x402563EB),
-                                blurRadius: 6,
-                                offset: Offset(0, 2),
+                            child: Text(
+                              badgeText,
+                              style: TextStyle(
+                                color: colorScheme.onError,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 10,
+                                letterSpacing: 0.2,
                               ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.shopping_bag_outlined,
-                            size: 17,
-                            color: Colors.white,
+                            ),
                           ),
                         ),
+
+                      // Floating Wishlist Heart (top-right)
+                      Positioned(
+                        right: 6,
+                        top: 6,
+                        child: Obx(() {
+                          final isFav =
+                              WishListService.to.isInWishlist(_productId);
+                          return GestureDetector(
+                            onTap: _handleToggleWishlist,
+                            child: Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: colorScheme.surface.withOpacity(0.92),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.10),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                isFav
+                                    ? Icons.favorite_rounded
+                                    : Icons.favorite_border_rounded,
+                                size: 15,
+                                color: isFav
+                                    ? colorScheme.error
+                                    : colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          );
+                        }),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 4),
+            const SizedBox(height: 8),
 
-          // Rating Stars (5 gold stars centered)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              5,
-              (index) => const Icon(
-                Icons.star_rounded,
-                size: 13,
-                color: DefaultThemeColors.alertWarninglight,
+            // Category Eyebrow
+            if (categoryText.isNotEmpty) ...[
+              Text(
+                categoryText,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.labelSmall?.copyWith(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                  color: context.onSurfaceVariantColor,
+                ),
+              ),
+              const SizedBox(height: 2),
+            ],
+
+            // Product Title (left-aligned, fixed 2-line box for uniform rows)
+            SizedBox(
+              height: 32,
+              child: Text(
+                productName,
+                textAlign: TextAlign.left,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.bodyMedium?.copyWith(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: context.onSurfaceColor,
+                  height: 1.25,
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 3),
+            const SizedBox(height: 4),
 
-          // Product Title (centered)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              productName,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.bodyMedium?.copyWith(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600,
-                color: context.onSurfaceColor,
-                height: 1.25,
-              ),
+            // Rating Stars (accurate rating + count)
+            Row(
+              children: [
+                ...List.generate(5, (index) {
+                  final filled = avgRating >= index + 1;
+                  final half = !filled && avgRating >= index + 0.5;
+                  return Icon(
+                    half
+                        ? Icons.star_half_rounded
+                        : (filled
+                            ? Icons.star_rounded
+                            : Icons.star_outline_rounded),
+                    size: 13,
+                    color: (filled || half)
+                        ? context.semanticColors.warning
+                        : colorScheme.outline.withOpacity(0.45),
+                  );
+                }),
+                const SizedBox(width: 4),
+                Text(
+                  avgRating > 0
+                      ? '(${avgRating.toStringAsFixed(1)})'
+                      : '($ratingCount)',
+                  style: textTheme.labelSmall?.copyWith(
+                    fontSize: 10.5,
+                    color: context.onSurfaceVariantColor,
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 3),
+            const SizedBox(height: 5),
 
-          // Product Price (centered)
-          Center(
-            child: FittedBox(
+            // Product Price (left-aligned)
+            FittedBox(
               fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     ProductHelper.formatPrice(priceStr),
                     style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: colorScheme.primary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: context.onSurfaceColor,
                     ),
                     maxLines: 1,
                   ),
@@ -338,13 +378,133 @@ class ParentWebProductCard extends StatelessWidget {
                       maxLines: 1,
                     ),
                   ],
+                  if (badgeText.startsWith('-')) ...[
+                    const SizedBox(width: 5),
+                    Text(
+                      badgeText,
+                      style: textTheme.labelSmall?.copyWith(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.error,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+
+            // Full-Width Add To Cart / Quantity Stepper CTA
+            SizedBox(
+              width: double.infinity,
+              height: 32,
+              child: _buildGridCartCta(context),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _imageFallback(ColorScheme colorScheme) {
+    return Center(
+      child: Icon(
+        Icons.devices_other_outlined,
+        color: colorScheme.onSurfaceVariant.withOpacity(0.45),
+        size: 36,
+      ),
+    );
+  }
+
+  Widget _buildGridCartCta(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final inStock = ProductHelper.isInStock(product);
+    final variantId = _resolveDefaultVariantId();
+
+    if (!inStock) {
+      return Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceVariant.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          'Out of Stock',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+      );
+    }
+
+    return Obx(() {
+      final cartItem = CartService.to.cartItems.firstWhereOrNull((item) {
+        final p = item['product_id'];
+        final pid = (p is Map ? (p['_id'] ?? p['id']) : p)?.toString();
+        return pid == _productId &&
+            (variantId.isEmpty || item['variant_id'] == variantId);
+      });
+
+      if (cartItem != null) {
+        final qty = cartItem['quantity'] ?? 1;
+        return Container(
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: colorScheme.primary, width: 1.2),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              GestureDetector(
+                onTap: () => _updateCartQuantity(context, -1),
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  child: Icon(Icons.remove, size: 15, color: colorScheme.primary),
+                ),
+              ),
+              Text(
+                '$qty',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: context.onSurfaceColor,
+                ),
+              ),
+              GestureDetector(
+                onTap: () => _updateCartQuantity(context, 1),
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  child: Icon(Icons.add, size: 15, color: colorScheme.primary),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return ElevatedButton.icon(
+        onPressed: () => _handleAddToCart(context),
+        icon: const Icon(Icons.shopping_bag_outlined, size: 13),
+        label: const Text(
+          'Add To Cart',
+          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+      );
+    });
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -417,7 +577,7 @@ class ParentWebProductCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2.5),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFDC2626),
+                          color: colorScheme.error,
                           borderRadius: BorderRadius.circular(5),
                           boxShadow: const [
                             BoxShadow(
@@ -429,8 +589,8 @@ class ParentWebProductCard extends StatelessWidget {
                         ),
                         child: Text(
                           badgeText,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: colorScheme.onError,
                             fontSize: 9.5,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.2,
@@ -506,10 +666,10 @@ class ParentWebProductCard extends StatelessWidget {
                     children: [
                       ...List.generate(
                         5,
-                        (index) => const Icon(
+                        (index) => Icon(
                           Icons.star_rounded,
                           size: 13,
-                          color: DefaultThemeColors.alertWarninglight,
+                          color: context.semanticColors.warning,
                         ),
                       ),
                       const SizedBox(width: 4),
@@ -577,7 +737,7 @@ class ParentWebProductCard extends StatelessWidget {
                         inStock ? 'In Stock' : 'Out of Stock',
                         style: textTheme.labelSmall?.copyWith(
                           color: inStock
-                              ? const Color(0xFF16A34A)
+                              ? context.semanticColors.success
                               : colorScheme.error,
                           fontWeight: FontWeight.w600,
                           fontSize: 11,

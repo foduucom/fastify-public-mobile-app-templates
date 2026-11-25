@@ -73,7 +73,7 @@ class ResponsiveCommonHeader extends StatelessWidget {
                 child: Row(
                   children: [
                     Image.asset(
-                      'assets/icon/foduu-logo-removebg-preview.png',
+                      'assets/images/foduu_electro_logo.webp',
                       height: 32,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {

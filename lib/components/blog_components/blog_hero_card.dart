@@ -17,14 +17,15 @@ class BlogHeroCard extends StatelessWidget {
     final imageUrl = data.imagePath.isNotEmpty
         ? HelperFunctions().getImage(data.imagePath)
         : '';
-    const deepNavy = Color(0xFF0F172A);
+    final colorScheme = Theme.of(context).colorScheme;
+    final heroSurface = colorScheme.primary;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: deepNavy,
+          color: heroSurface,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -45,15 +46,15 @@ class BlogHeroCard extends StatelessWidget {
                     fit: BoxFit.cover,
                   ),
                 ),
-              const Positioned.fill(
+              Positioned.fill(
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Color(0xB80F172A),
-                        Color(0xE60F172A),
+                        heroSurface.withValues(alpha: 0.72),
+                        heroSurface.withValues(alpha: 0.90),
                       ],
                     ),
                   ),

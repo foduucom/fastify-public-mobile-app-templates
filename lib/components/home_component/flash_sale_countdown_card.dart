@@ -153,10 +153,10 @@ class _FlashSaleCountdownCardState extends State<FlashSaleCountdownCard> {
       padding: pageSurroundingPadding,
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? colorScheme.surface : Colors.white,
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: colorScheme.outline.withOpacity(0.12),
+            color: colorScheme.outline.withOpacity(0.18),
             width: 1,
           ),
           boxShadow: [
@@ -172,23 +172,23 @@ class _FlashSaleCountdownCardState extends State<FlashSaleCountdownCard> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ─── 1. TOP DARK COUNTDOWN HEADER (Matching Image 3) ───
+              // ─── 1. TOP DARK COUNTDOWN HEADER ───
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 16),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF0F172A), // Deep navy / charcoal matching parent site
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildHeaderDigit(days, 'DAYS'),
-                    _buildHeaderSeparator(),
-                    _buildHeaderDigit(hours, 'HOURS'),
-                    _buildHeaderSeparator(),
-                    _buildHeaderDigit(minutes, 'MINS'),
-                    _buildHeaderSeparator(),
-                    _buildHeaderDigit(seconds, 'SECS'),
+                    _buildHeaderDigit(days, 'DAYS', colorScheme.onPrimary),
+                    _buildHeaderSeparator(colorScheme.onPrimary),
+                    _buildHeaderDigit(hours, 'HOURS', colorScheme.onPrimary),
+                    _buildHeaderSeparator(colorScheme.onPrimary),
+                    _buildHeaderDigit(minutes, 'MINS', colorScheme.onPrimary),
+                    _buildHeaderSeparator(colorScheme.onPrimary),
+                    _buildHeaderDigit(seconds, 'SECS', colorScheme.onPrimary),
                   ],
                 ),
               ),
@@ -211,7 +211,7 @@ class _FlashSaleCountdownCardState extends State<FlashSaleCountdownCard> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              color: colorScheme.onSurface,
                               letterSpacing: -0.4,
                               height: 1.2,
                             ),
@@ -224,9 +224,7 @@ class _FlashSaleCountdownCardState extends State<FlashSaleCountdownCard> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w500,
-                              color: isDark
-                                  ? Colors.white.withOpacity(0.7)
-                                  : const Color(0xFF64748B),
+                              color: colorScheme.onSurfaceVariant,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -237,7 +235,7 @@ class _FlashSaleCountdownCardState extends State<FlashSaleCountdownCard> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 21,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              color: colorScheme.onSurface,
                               letterSpacing: -0.3,
                             ),
                           ),
@@ -255,14 +253,14 @@ class _FlashSaleCountdownCardState extends State<FlashSaleCountdownCard> {
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF2563EB), // Website action blue
+                                      color: colorScheme.primary,
                                     ),
                                   ),
                                   const SizedBox(width: 4),
-                                  const Icon(
+                                  Icon(
                                     Icons.arrow_forward_ios_rounded,
                                     size: 11,
-                                    color: Color(0xFF2563EB),
+                                    color: colorScheme.primary,
                                   ),
                                 ],
                               ),
@@ -287,23 +285,23 @@ class _FlashSaleCountdownCardState extends State<FlashSaleCountdownCard> {
                                 placeholder: (_, __) =>
                                     const AppImagePlaceholder(radius: 8),
                                 errorWidget: (_, __, ___) =>
-                                    _buildIPhoneFallback(),
+                                    _buildIPhoneFallback(colorScheme),
                               )
-                            : _buildIPhoneFallback(),
+                            : _buildIPhoneFallback(colorScheme),
                       ),
                     ),
                   ],
                 ),
               ),
 
-              // ─── 3. BOTTOM SOLID BLUE RIBBON: "Limited Time Offer" (Matching Image 3) ───
+              // ─── 3. BOTTOM RIBBON: "Limited Time Offer" ───
               InkWell(
                 onTap: () => _handleTap(item),
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF2563EB), // Vibrant website royal blue
+                  decoration: BoxDecoration(
+                    color: colorScheme.secondary,
                   ),
                   child: Center(
                     child: Text(
@@ -311,7 +309,7 @@ class _FlashSaleCountdownCardState extends State<FlashSaleCountdownCard> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                        color: colorScheme.onSecondary,
                         letterSpacing: 0.3,
                       ),
                     ),
@@ -325,7 +323,7 @@ class _FlashSaleCountdownCardState extends State<FlashSaleCountdownCard> {
     );
   }
 
-  Widget _buildHeaderDigit(String value, String label) {
+  Widget _buildHeaderDigit(String value, String label, Color textColor) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -334,7 +332,7 @@ class _FlashSaleCountdownCardState extends State<FlashSaleCountdownCard> {
           style: GoogleFonts.jetBrainsMono(
             fontSize: 14,
             fontWeight: FontWeight.w800,
-            color: Colors.white,
+            color: textColor,
             letterSpacing: 0.5,
           ),
         ),
@@ -343,7 +341,7 @@ class _FlashSaleCountdownCardState extends State<FlashSaleCountdownCard> {
           style: GoogleFonts.plusJakartaSans(
             fontSize: 7.5,
             fontWeight: FontWeight.w700,
-            color: Colors.white.withOpacity(0.55),
+            color: textColor.withOpacity(0.65),
             letterSpacing: 0.4,
           ),
         ),
@@ -351,7 +349,7 @@ class _FlashSaleCountdownCardState extends State<FlashSaleCountdownCard> {
     );
   }
 
-  Widget _buildHeaderSeparator() {
+  Widget _buildHeaderSeparator(Color textColor) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
       child: Text(
@@ -359,23 +357,23 @@ class _FlashSaleCountdownCardState extends State<FlashSaleCountdownCard> {
         style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.bold,
-          color: Colors.white.withOpacity(0.4),
+          color: textColor.withOpacity(0.5),
         ),
       ),
     );
   }
 
-  Widget _buildIPhoneFallback() {
+  Widget _buildIPhoneFallback(ColorScheme colorScheme) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.08),
+        color: colorScheme.surfaceVariant,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Center(
+      child: Center(
         child: Icon(
           Icons.phone_iphone_rounded,
           size: 60,
-          color: Color(0xFF64748B),
+          color: colorScheme.onSurfaceVariant,
         ),
       ),
     );

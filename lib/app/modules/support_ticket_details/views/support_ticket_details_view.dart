@@ -266,10 +266,10 @@ class _InputArea extends StatelessWidget {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final colorScheme = Theme.of(context).colorScheme;
         return Container(
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            color: colorScheme.surface,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -308,7 +308,7 @@ class _InputArea extends StatelessWidget {
                     _PickerOption(
                       icon: Icons.camera_alt_rounded,
                       label: 'Camera',
-                      color: const Color(0xFFE91E63),
+                      color: colorScheme.primary,
                       onTap: () {
                         Navigator.pop(ctx);
                         controller.pickImageFromCamera();
@@ -317,7 +317,7 @@ class _InputArea extends StatelessWidget {
                     _PickerOption(
                       icon: Icons.photo_library_rounded,
                       label: 'Gallery',
-                      color: const Color(0xFF9C27B0),
+                      color: colorScheme.secondary,
                       onTap: () {
                         Navigator.pop(ctx);
                         controller.pickImageFromGallery();
@@ -326,7 +326,7 @@ class _InputArea extends StatelessWidget {
                     _PickerOption(
                       icon: Icons.videocam_rounded,
                       label: 'Video',
-                      color: const Color(0xFFFF9800),
+                      color: colorScheme.primary,
                       onTap: () {
                         Navigator.pop(ctx);
                         controller.pickVideoFromGallery();
@@ -335,7 +335,7 @@ class _InputArea extends StatelessWidget {
                     _PickerOption(
                       icon: Icons.insert_drive_file_rounded,
                       label: 'Document',
-                      color: const Color(0xFF2196F3),
+                      color: colorScheme.secondary,
                       onTap: () {
                         Navigator.pop(ctx);
                         controller.pickDocument();
@@ -397,8 +397,8 @@ class _InputArea extends StatelessWidget {
                           height: 44,
                           decoration: BoxDecoration(
                             color: isPdf
-                                ? const Color(0xFFFFEBEE)
-                                : (isVideo ? const Color(0xFFFFF3E0) : const Color(0xFFE3F2FD)),
+                                ? colorScheme.error.withOpacity(0.12)
+                                : colorScheme.primary.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Icon(
@@ -406,8 +406,8 @@ class _InputArea extends StatelessWidget {
                                 ? Icons.picture_as_pdf_rounded
                                 : (isVideo ? Icons.videocam_rounded : Icons.description_rounded),
                             color: isPdf
-                                ? const Color(0xFFE53935)
-                                : (isVideo ? const Color(0xFFFF9800) : const Color(0xFF1E88E5)),
+                                ? colorScheme.error
+                                : (isVideo ? colorScheme.secondary : colorScheme.primary),
                             size: 24,
                           ),
                         ),

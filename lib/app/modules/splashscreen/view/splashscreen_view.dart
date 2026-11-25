@@ -33,7 +33,7 @@ class SplashscreenView extends GetView<SplashScreenController> {
               width: width * 0.55,
               height: width * 0.55,
               child: Image.asset(
-                'assets/images/app_launcher_icon.png',
+                'assets/images/foduu_electro_logo.webp',
                 fit: BoxFit.contain,
               ),
             ),

@@ -8,7 +8,6 @@ import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'home_common_widgets.dart';
-import 'package:foduu_ecommerce/components/commonWidgets/dynamic_horizontal_arrow_scroller.dart';
 
 class BlogSection extends StatefulWidget {
   final dynamic blogData;
@@ -162,17 +161,20 @@ class _BlogSectionState extends State<BlogSection>
 
     String? cleanTag(dynamic val) {
       if (val == null) return null;
+      String raw = '';
       if (val is Map) {
-        final name = (val['name'] ?? val['title'])?.toString().trim();
-        if (name != null && name.isNotEmpty) return name;
+        raw = (val['name'] ?? val['title'])?.toString().trim() ?? '';
       } else if (val is String) {
-        final str = val.trim();
-        if (str.isNotEmpty) {
-          if (str == str.toLowerCase()) {
-            return str[0].toUpperCase() + str.substring(1);
-          }
-          return str;
+        raw = val.trim();
+      }
+      if (raw.isNotEmpty) {
+        if (raw.toLowerCase() == 'others' || raw.toLowerCase() == 'other') {
+          return 'Tech Guides';
         }
+        if (raw == raw.toLowerCase()) {
+          return raw[0].toUpperCase() + raw.substring(1);
+        }
+        return raw;
       }
       return null;
     }
@@ -263,7 +265,7 @@ class _BlogSectionState extends State<BlogSection>
           colors: [
             colorScheme.primary.withOpacity(0.85),
             colorScheme.primary,
-            const Color(0xFF1E293B),
+            colorScheme.secondary,
           ],
         ),
       ),
@@ -357,17 +359,13 @@ class _BlogSectionState extends State<BlogSection>
           // Horizontal Snapping Carousel
           SizedBox(
             height: 335,
-            child: DynamicHorizontalArrowScroller(
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
               itemCount: _blogs.length,
-              scrollStep: cardWidth + 14.0,
-              builder: (context, scrollController) => ListView.separated(
-                controller: scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                itemCount: _blogs.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 14),
-                itemBuilder: (context, index) {
+              separatorBuilder: (context, index) => const SizedBox(width: 14),
+              itemBuilder: (context, index) {
                 final blog = _blogs[index];
                 if (blog is! Map) return const SizedBox.shrink();
 
@@ -533,25 +531,25 @@ class _BlogSectionState extends State<BlogSection>
                                         vertical: 6,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF0F172A),
+                                        color: colorScheme.primary,
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
-                                        children: const [
+                                        children: [
                                           Text(
                                             'Read more',
                                             style: TextStyle(
-                                              color: Colors.white,
+                                              color: colorScheme.onPrimary,
                                               fontSize: 11,
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
-                                          SizedBox(width: 3),
+                                          const SizedBox(width: 3),
                                           Icon(
                                             Icons.chevron_right_rounded,
                                             size: 13,
-                                            color: Colors.white,
+                                            color: colorScheme.onPrimary,
                                           ),
                                         ],
                                       ),
@@ -569,7 +567,6 @@ class _BlogSectionState extends State<BlogSection>
               },
             ),
           ),
-        ),
           const SizedBox(height: 18),
 
           // "EXPLORE MORE BLOG" Blue Pill CTA Button matching parent website
@@ -579,8 +576,8 @@ class _BlogSectionState extends State<BlogSection>
                 Get.toNamed(Routes.BLOG);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
-                foregroundColor: Colors.white,
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -589,7 +586,7 @@ class _BlogSectionState extends State<BlogSection>
                 elevation: 0,
               ),
               child: const Text(
-                'EXPLORE MORE BLOG',
+                'EXPLORE ALL ARTICLES',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,

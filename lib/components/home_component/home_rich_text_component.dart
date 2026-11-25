@@ -35,7 +35,7 @@ class _RichTextComponentState extends State<RichTextComponent> {
 
     final cardBg = isDark
         ? colorScheme.surface
-        : const Color(0xFFF8FAFC);
+        : colorScheme.surfaceVariant;
     final borderColor = colorScheme.outline.withOpacity(0.12);
 
     final lower = htmlContent.toLowerCase();

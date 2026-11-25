@@ -13,7 +13,6 @@ import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 import 'home_common_widgets.dart';
 import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
-import 'package:foduu_ecommerce/components/commonWidgets/dynamic_horizontal_arrow_scroller.dart';
 
 class CategoryHome extends StatefulWidget {
   final dynamic categoryData;
@@ -45,11 +44,14 @@ class _TopCategoryHomeState extends State<CategoryHome>
     String orientation = contentJson['list_view_type'] ?? 'horizontal';
     // 'columns': 2 (default)
     int columns = int.tryParse(contentJson['columns'].toString()) ?? 2;
-    String heading =
-        (contentJson['heading'] ?? contentJson['title'] ?? '').toString().trim();
+    String heading = (contentJson['heading'] ?? contentJson['title'] ?? '')
+        .toString()
+        .trim();
     if (heading == '_' || heading == '-' || heading == '--') heading = '';
     String subheading =
-        (contentJson['subheading'] ?? contentJson['subtitle'] ?? '').toString().trim();
+        (contentJson['subheading'] ?? contentJson['subtitle'] ?? '')
+            .toString()
+            .trim();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,7 +62,7 @@ class _TopCategoryHomeState extends State<CategoryHome>
             child: StudioSectionHeader(
               title: heading,
               subtitle: subheading,
-              onSeeAll: () => Get.toNamed(Routes.CATEGORY_SEARCH),
+              onSeeAll: () => openShop(),
             ),
           ),
           const SizedBox(height: 12),
@@ -85,37 +87,31 @@ class _TopCategoryHomeState extends State<CategoryHome>
           physics: const NeverScrollableScrollPhysics(),
           itemCount: categories.length,
           separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) =>
-              _buildCategoryItem(categories[index], style, isVerticalList: true),
+          itemBuilder: (context, index) => _buildCategoryItem(
+              categories[index], style,
+              isVerticalList: true),
         ),
       );
     } else {
-      final isOverlay = style == 'overlay';
-      final listHeight = isOverlay
-          ? _overlayCardHeight
-          : (style == 'circular' ? 106.0 : 140.0);
+      final listHeight = 112.0;
       return SizedBox(
         height: listHeight,
-        child: DynamicHorizontalArrowScroller(
-          itemCount: categories.length,
-          scrollStep: 180.0,
-          builder: (context, scrollController) => ScrollConfiguration(
-            behavior: ScrollConfiguration.of(context).copyWith(
-              dragDevices: {
-                PointerDeviceKind.touch,
-                PointerDeviceKind.mouse,
-                PointerDeviceKind.trackpad,
-              },
-            ),
-            child: ListView.separated(
-              controller: scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              scrollDirection: Axis.horizontal,
-              itemCount: categories.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemBuilder: (context, index) =>
-                  _buildCategoryItem(categories[index], style),
-            ),
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(
+            dragDevices: {
+              PointerDeviceKind.touch,
+              PointerDeviceKind.mouse,
+              PointerDeviceKind.trackpad,
+            },
+          ),
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: categories.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 14),
+            itemBuilder: (context, index) =>
+                _buildCategoryItem(categories[index], 'circular'),
           ),
         ),
       );
@@ -163,7 +159,8 @@ class _TopCategoryHomeState extends State<CategoryHome>
             _showCategoryDialog(Get.context!, category);
           } else {
             // If no children, navigate directly to product list
-            openShop({
+            openShop(
+              {
                 'productId': category['_id'],
                 'categorySlug': category['slug'],
                 'name': category['name'],
@@ -186,7 +183,6 @@ class _TopCategoryHomeState extends State<CategoryHome>
   // Compact ~168px height, ~130px width to distinctively differentiate from product cards.
   static const double _overlayGridAspectRatio = 0.82;
   double get _overlayCardWidth => (Get.width * 0.33).clamp(124.0, 140.0);
-  double get _overlayCardHeight => 168.0;
 
   Widget _buildOverlayItem(dynamic category, {bool isGrid = false}) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -197,11 +193,14 @@ class _TopCategoryHomeState extends State<CategoryHome>
         fit: StackFit.expand,
         children: [
           (HelperFunctions().getImage(category['featured_image']).isNotEmpty &&
-                  HelperFunctions().getImage(category['featured_image']) != HelperFunctions.getNoImage())
+                  HelperFunctions().getImage(category['featured_image']) !=
+                      HelperFunctions.getNoImage())
               ? CachedNetworkImage(
                   fit: BoxFit.cover,
-                  imageUrl: HelperFunctions().getImage(category['featured_image']),
-                  errorWidget: (_, __, ___) => const AppImagePlaceholder(radius: 10),
+                  imageUrl:
+                      HelperFunctions().getImage(category['featured_image']),
+                  errorWidget: (_, __, ___) =>
+                      const AppImagePlaceholder(radius: 10),
                   progressIndicatorBuilder: (_, __, ___) =>
                       HelperFunctions().loadingIndicator(),
                 )
@@ -265,35 +264,88 @@ class _TopCategoryHomeState extends State<CategoryHome>
 
   IconData _getCategoryIcon(String name) {
     final lower = name.toLowerCase();
+    if (lower.contains('smart tv') || lower.contains('television') || lower.contains('smarttv')) {
+      return Icons.tv_rounded;
+    }
+    if (lower.contains('tablet') || lower.contains('ipad')) {
+      return Icons.tablet_android_rounded;
+    }
+    if (lower.contains('laptop')) {
+      return Icons.laptop_mac_rounded;
+    }
+    if (lower.contains('desktop') || lower.contains('monitor') || lower.contains('display')) {
+      return Icons.desktop_windows_rounded;
+    }
+    if (lower.contains('computer') || lower.contains('electronic')) {
+      return Icons.memory_rounded;
+    }
+    if (lower.contains('phone') || lower.contains('smartphone') || lower.contains('mobile')) {
+      return Icons.smartphone_rounded;
+    }
     if (lower.contains('drone')) return Icons.flight_takeoff_rounded;
-    if (lower.contains('smart home') || lower.contains('home')) return Icons.home_outlined;
+    if (lower.contains('smart home') || lower.contains('home')) {
+      return Icons.home_outlined;
+    }
     if (lower.contains('print')) return Icons.print_outlined;
-    if (lower.contains('monitor') || lower.contains('display')) return Icons.desktop_windows_outlined;
     if (lower.contains('appliance')) return Icons.kitchen_outlined;
     if (lower.contains('camera')) return Icons.camera_alt_outlined;
-    if (lower.contains('audio') || lower.contains('headphone') || lower.contains('sound')) return Icons.headphones_outlined;
+    if (lower.contains('audio') ||
+        lower.contains('headphone') ||
+        lower.contains('sound')) return Icons.headphones_outlined;
     if (lower.contains('accessor')) return Icons.devices_other_outlined;
-    if (lower.contains('phone') || lower.contains('smartphone') || lower.contains('mobile')) return Icons.smartphone_outlined;
-    if (lower.contains('tablet') || lower.contains('ipad')) return Icons.tablet_mac_outlined;
-    if (lower.contains('watch') || lower.contains('smartwatch')) return Icons.watch_outlined;
-    if (lower.contains('tv') || lower.contains('television')) return Icons.tv_outlined;
-    if (lower.contains('game') || lower.contains('gaming')) return Icons.sports_esports_outlined;
-    if (lower.contains('laptop') || lower.contains('computer')) return Icons.laptop_outlined;
+    if (lower.contains('watch') || lower.contains('smartwatch')) {
+      return Icons.watch_outlined;
+    }
+    if (lower.contains('tv')) return Icons.tv_rounded;
+    if (lower.contains('game') || lower.contains('gaming')) {
+      return Icons.sports_esports_outlined;
+    }
     if (lower.contains('speaker')) return Icons.speaker_outlined;
     return Icons.category_outlined;
   }
 
+  Color _getCategoryTint(String name, ColorScheme colorScheme) {
+    final lower = name.toLowerCase();
+    if (lower.contains('smart tv') || lower.contains('tv')) {
+      return const Color(0xFFE8F5E9); // soft green
+    }
+    if (lower.contains('tablet') || lower.contains('ipad')) {
+      return const Color(0xFFE3F2FD); // soft blue
+    }
+    if (lower.contains('laptop') || lower.contains('desktop')) {
+      return const Color(0xFFFFF3E0); // soft amber
+    }
+    if (lower.contains('computer') || lower.contains('electronic')) {
+      return const Color(0xFFF3E5F5); // soft purple
+    }
+    if (lower.contains('phone') || lower.contains('mobile')) {
+      return const Color(0xFFFFEBEE); // soft red
+    }
+    if (lower.contains('camera')) {
+      return const Color(0xFFE0F2F1); // soft teal
+    }
+    if (lower.contains('audio') || lower.contains('headphone')) {
+      return const Color(0xFFEDE7F6); // soft indigo
+    }
+    return colorScheme.primary.withOpacity(0.08);
+  }
+
   Widget _buildCategoryFallback(String name, ColorScheme colorScheme) {
+    final tint = _getCategoryTint(name, colorScheme);
+    final iconColor = colorScheme.brightness == Brightness.dark
+        ? colorScheme.primary
+        : Color.lerp(tint, Colors.black87, 0.65) ?? colorScheme.primary;
+
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: colorScheme.primary.withOpacity(0.08),
+        color: tint,
       ),
       child: Center(
         child: Icon(
           _getCategoryIcon(name),
           size: 26,
-          color: colorScheme.primary,
+          color: iconColor,
         ),
       ),
     );
@@ -303,13 +355,10 @@ class _TopCategoryHomeState extends State<CategoryHome>
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final catName = category['name']?.toString() ?? '';
-    final imageUrl = HelperFunctions().getImage(category['featured_image']);
-    final hasValidImage = imageUrl.isNotEmpty &&
-        imageUrl != HelperFunctions.getNoImage() &&
-        !imageUrl.contains('app_logo');
+    final tint = _getCategoryTint(catName, colorScheme);
 
     return Container(
-      constraints: BoxConstraints(maxWidth: isGrid ? double.infinity : 76),
+      constraints: BoxConstraints(maxWidth: isGrid ? double.infinity : 82),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -319,31 +368,20 @@ class _TopCategoryHomeState extends State<CategoryHome>
             height: 62,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: colorScheme.surface,
+              color: tint,
               border: Border.all(
                 color: colorScheme.outline.withOpacity(0.12),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
+                  color: Colors.black.withOpacity(0.04),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: ClipOval(
-              child: hasValidImage
-                  ? CachedNetworkImage(
-                      fit: BoxFit.cover,
-                      imageUrl: imageUrl,
-                      errorWidget: (_, __, ___) =>
-                          _buildCategoryFallback(catName, colorScheme),
-                      progressIndicatorBuilder: (_, __, ___) =>
-                          HelperFunctions().loadingIndicator(),
-                    )
-                  : _buildCategoryFallback(catName, colorScheme),
-            ),
+            child: _buildCategoryFallback(catName, colorScheme),
           ),
           const SizedBox(height: 6),
           Flexible(
@@ -352,8 +390,8 @@ class _TopCategoryHomeState extends State<CategoryHome>
               style: textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
-                fontSize: 12,
-                height: 1.15,
+                fontSize: 11.5,
+                height: 1.2,
               ),
               textAlign: TextAlign.center,
               maxLines: 2,
@@ -390,15 +428,16 @@ class _TopCategoryHomeState extends State<CategoryHome>
             onTap: () => widget.onCategoryTap != null
                 ? widget.onCategoryTap!(category)
                 : category['children'] != null &&
-                    (category['children'] as List).isNotEmpty
-                ? _showCategoryDialog(context, category)
-                : openShop({
-                      'productId': category['_id'],
-                      'categorySlug': category['slug'],
-                      'name': category['name'],
-                      'source': 'category',
-                    },
-                  ),
+                        (category['children'] as List).isNotEmpty
+                    ? _showCategoryDialog(context, category)
+                    : openShop(
+                        {
+                          'productId': category['_id'],
+                          'categorySlug': category['slug'],
+                          'name': category['name'],
+                          'source': 'category',
+                        },
+                      ),
             borderRadius: BorderRadius.circular(Get.height * 0.015),
             splashColor: colorScheme.primary.withOpacity(0.25),
             highlightColor: colorScheme.primary.withOpacity(0.1),

@@ -18,7 +18,7 @@ class SimplePriceText extends StatelessWidget {
     this.priceStyle,
     this.originalPriceStyle,
     this.discountStyle,
-    this.currencySymbol = '₹',
+    this.currencySymbol = '\$',
     this.spacing = 6, // logical pixels now
   });
 

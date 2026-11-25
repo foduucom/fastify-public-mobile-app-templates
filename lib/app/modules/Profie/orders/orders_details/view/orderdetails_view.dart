@@ -6,6 +6,7 @@ import 'package:flutter_svg/svg.dart';
 import '/app/modules/Profie/orders/orders_details/controller/orderdetails_controller.dart';
 import '/app/routes/app_pages.dart';
 import '/constants/constants.dart';
+import '/constants/dynamic_theme.dart';
 import '/constants/helper_functions.dart';
 import '/constants/theme.dart';
 import 'package:get/get.dart';
@@ -124,23 +125,26 @@ class OrderdetailView extends GetView<OrderdetailController> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFDCFCE7),
+                                color: context.semanticColors.success
+                                    .withValues(alpha: 0.14),
                                 borderRadius: BorderRadius.circular(20),
-                                border:
-                                    Border.all(color: const Color(0xFF86EFAC)),
+                                border: Border.all(
+                                    color: context.semanticColors.success
+                                        .withValues(alpha: 0.45)),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(Icons.check,
-                                      size: 12, color: Color(0xFF166534)),
-                                  SizedBox(width: 4),
+                                      size: 12,
+                                      color: context.semanticColors.success),
+                                  const SizedBox(width: 4),
                                   Text(
                                     'PAID',
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
-                                      color: Color(0xFF166534),
+                                      color: context.semanticColors.success,
                                       fontFamily: 'lato',
                                     ),
                                   ),
@@ -169,13 +173,15 @@ class OrderdetailView extends GetView<OrderdetailController> {
                                 horizontal: 10, vertical: 3),
                             decoration: BoxDecoration(
                               color: isCompletedOrder
-                                  ? const Color(0xFFDCFCE7)
+                                  ? context.semanticColors.success
+                                      .withValues(alpha: 0.14)
                                   : colorScheme.primaryContainer
                                       .withValues(alpha: 0.5),
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(
                                 color: isCompletedOrder
-                                    ? const Color(0xFF86EFAC)
+                                    ? context.semanticColors.success
+                                        .withValues(alpha: 0.45)
                                     : colorScheme.primary
                                         .withValues(alpha: 0.3),
                               ),
@@ -186,7 +192,7 @@ class OrderdetailView extends GetView<OrderdetailController> {
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
                                 color: isCompletedOrder
-                                    ? const Color(0xFF166534)
+                                    ? context.semanticColors.success
                                     : colorScheme.primary,
                                 fontFamily: 'lato',
                               ),
@@ -254,7 +260,7 @@ class OrderdetailView extends GetView<OrderdetailController> {
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: isCompletedOrder
-                                  ? const Color(0xFF16A34A)
+                                  ? context.semanticColors.success
                                   : colorScheme.primary,
                               fontFamily: 'lato',
                             ),
@@ -584,33 +590,36 @@ class PaymentTransactionsCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF0FDF4),
+                    color: context.semanticColors.success.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFF86EFAC)),
+                    border: Border.all(
+                        color: context.semanticColors.success
+                            .withValues(alpha: 0.4)),
                   ),
                   child: Row(
                     children: [
                       Container(
                         width: 30,
                         height: 30,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFDCFCE7),
+                        decoration: BoxDecoration(
+                          color: context.semanticColors.success
+                              .withValues(alpha: 0.16),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.check,
-                            color: Color(0xFF16A34A), size: 16),
+                        child: Icon(Icons.check,
+                            color: context.semanticColors.success, size: 16),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'AMOUNT PAID',
                               style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF166534),
+                                color: context.semanticColors.success,
                                 fontFamily: 'lato',
                                 letterSpacing: 0.5,
                               ),
@@ -618,10 +627,10 @@ class PaymentTransactionsCard extends StatelessWidget {
                             const SizedBox(height: 2),
                             Text(
                               '$symbol$amountPaidStr',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF16A34A),
+                                color: context.semanticColors.success,
                                 fontFamily: 'lato',
                               ),
                               maxLines: 1,
@@ -640,13 +649,14 @@ class PaymentTransactionsCard extends StatelessWidget {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: pendingAmount > 0
-                        ? const Color(0xFFFEF2F2)
-                        : const Color(0xFFF0FDF4),
+                        ? colorScheme.error.withValues(alpha: 0.08)
+                        : context.semanticColors.success.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: pendingAmount > 0
-                          ? const Color(0xFFFCA5A5)
-                          : const Color(0xFF86EFAC),
+                          ? colorScheme.error.withValues(alpha: 0.4)
+                          : context.semanticColors.success
+                              .withValues(alpha: 0.4),
                     ),
                   ),
                   child: Row(
@@ -656,8 +666,9 @@ class PaymentTransactionsCard extends StatelessWidget {
                         height: 30,
                         decoration: BoxDecoration(
                           color: pendingAmount > 0
-                              ? const Color(0xFFFEE2E2)
-                              : const Color(0xFFDCFCE7),
+                              ? colorScheme.error.withValues(alpha: 0.16)
+                              : context.semanticColors.success
+                                  .withValues(alpha: 0.16),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -665,8 +676,8 @@ class PaymentTransactionsCard extends StatelessWidget {
                               ? Icons.access_time_rounded
                               : Icons.check,
                           color: pendingAmount > 0
-                              ? const Color(0xFFDC2626)
-                              : const Color(0xFF16A34A),
+                              ? colorScheme.error
+                              : context.semanticColors.success,
                           size: 16,
                         ),
                       ),
@@ -683,8 +694,8 @@ class PaymentTransactionsCard extends StatelessWidget {
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
                                 color: pendingAmount > 0
-                                    ? const Color(0xFF991B1B)
-                                    : const Color(0xFF166534),
+                                    ? colorScheme.error
+                                    : context.semanticColors.success,
                                 fontFamily: 'lato',
                                 letterSpacing: 0.5,
                               ),
@@ -696,8 +707,8 @@ class PaymentTransactionsCard extends StatelessWidget {
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: pendingAmount > 0
-                                    ? const Color(0xFFDC2626)
-                                    : const Color(0xFF16A34A),
+                                    ? colorScheme.error
+                                    : context.semanticColors.success,
                                 fontFamily: 'lato',
                               ),
                               maxLines: 1,
@@ -719,22 +730,23 @@ class PaymentTransactionsCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: const Color(0xFFF0FDF4),
+                color: context.semanticColors.success.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF86EFAC)),
+                border: Border.all(
+                    color: context.semanticColors.success.withValues(alpha: 0.4)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.check_circle,
-                      size: 16, color: Color(0xFF16A34A)),
+                  Icon(Icons.check_circle,
+                      size: 16, color: context.semanticColors.success),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Payment of $symbol$amountPaidStr completed ($paymentMethod).',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF166534),
+                        color: context.semanticColors.success,
                         fontFamily: 'lato',
                       ),
                     ),
@@ -842,7 +854,7 @@ class PaymentTransactionsCard extends StatelessWidget {
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: isPayPaid
-                                ? const Color(0xFF16A34A)
+                                ? context.semanticColors.success
                                 : colorScheme.onSurface,
                             fontFamily: 'lato',
                           ),
@@ -852,9 +864,10 @@ class PaymentTransactionsCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: isPayPaid
-                                ? const Color(0xFFDCFCE7)
-                                : const Color(0xFFFEF3C7),
+                            color: (isPayPaid
+                                    ? context.semanticColors.success
+                                    : context.semanticColors.warning)
+                                .withValues(alpha: 0.14),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -863,8 +876,8 @@ class PaymentTransactionsCard extends StatelessWidget {
                               fontSize: 9,
                               fontWeight: FontWeight.bold,
                               color: isPayPaid
-                                  ? const Color(0xFF166534)
-                                  : const Color(0xFF92400E),
+                                  ? context.semanticColors.success
+                                  : context.semanticColors.warning,
                               fontFamily: 'lato',
                             ),
                           ),
@@ -952,12 +965,12 @@ class ShippingAddress extends StatelessWidget {
     final pStatus = paymentStatus.toUpperCase();
     final bool isPaid =
         pStatus == 'PAID' || pStatus == 'SUCCESS' || pStatus == 'COMPLETED';
-    final Color statusBg =
-        isPaid ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7);
-    final Color statusTextColor =
-        isPaid ? const Color(0xFF166534) : const Color(0xFF92400E);
-    final Color statusBorder =
-        isPaid ? const Color(0xFF86EFAC) : const Color(0xFFFCD34D);
+    final Color statusColor = isPaid
+        ? context.semanticColors.success
+        : context.semanticColors.warning;
+    final Color statusBg = statusColor.withValues(alpha: 0.14);
+    final Color statusTextColor = statusColor;
+    final Color statusBorder = statusColor.withValues(alpha: 0.45);
 
     return Padding(
       padding: pageSurroundingPadding,
@@ -1407,14 +1420,14 @@ reviewModal(OrderdetailController controller) {
                   // .text = value;
                 },
                 // cursorColor: themePrimaryColor,
-                decoration: const InputDecoration(
-                  contentPadding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
                   focusedBorder: OutlineInputBorder(
                       borderSide:
-                          BorderSide(color: Color(0xFFDDDDDD), width: 1)),
+                          BorderSide(color: Get.theme.colorScheme.primary, width: 1)),
                   enabledBorder: OutlineInputBorder(
                       borderSide:
-                          BorderSide(color: Color(0xFFDDDDDD), width: 1)),
+                          BorderSide(color: Get.theme.colorScheme.outline, width: 1)),
                 ),
                 minLines: 1,
                 keyboardType: TextInputType.multiline,

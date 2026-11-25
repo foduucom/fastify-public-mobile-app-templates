@@ -31,7 +31,7 @@ class ContactHeroBannerWidget extends StatelessWidget {
               imageUrl: data.imageUrl,
               fit: BoxFit.cover,
               errorWidget: (_, __, ___) => Container(
-                color: const Color(0xFF0F172A),
+                color: context.primaryColor,
               ),
             ),
           Container(
@@ -40,8 +40,8 @@ class ContactHeroBannerWidget extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  const Color(0xFF0F172A).withValues(alpha: 0.55),
-                  const Color(0xFF0F172A).withValues(alpha: 0.92),
+                  context.primaryColor.withValues(alpha: 0.55),
+                  context.primaryColor.withValues(alpha: 0.92),
                 ],
               ),
             ),
@@ -329,7 +329,8 @@ class ContactFormCardWidget extends StatelessWidget {
                               hintText: placeholder,
                               hintStyle: TextStyle(
                                 fontSize: 13.5,
-                                color: context.onSurfaceColor.withValues(alpha: 0.4),
+                                color: context.onSurfaceColor
+                                    .withValues(alpha: 0.4),
                               ),
                               prefixIcon: isMessage
                                   ? Padding(
@@ -614,7 +615,8 @@ class _ContactChannelTile extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: isDark ? Colors.white12 : Colors.grey.withValues(alpha: 0.18),
+              color:
+                  isDark ? Colors.white12 : Colors.grey.withValues(alpha: 0.18),
               width: 1,
             ),
           ),
@@ -766,7 +768,9 @@ class _FaqAccordionTile extends StatelessWidget {
           border: Border.all(
             color: isExpanded
                 ? context.primaryColor.withValues(alpha: 0.5)
-                : (isDark ? Colors.white12 : Colors.grey.withValues(alpha: 0.2)),
+                : (isDark
+                    ? Colors.white12
+                    : Colors.grey.withValues(alpha: 0.2)),
             width: isExpanded ? 1.5 : 1,
           ),
           boxShadow: [
@@ -862,7 +866,7 @@ class ContactFaqCtaWidget extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF0F172A),
+          color: context.primaryColor,
           borderRadius: BorderRadius.circular(16),
           boxShadow: const [
             BoxShadow(

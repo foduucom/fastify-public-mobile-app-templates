@@ -110,18 +110,30 @@ mixin FoduuStudioLayoutMixin on GetxController {
       if (section is Map<String, dynamic>) {
         if (excludeSectionTypes.contains(section['type'])) continue;
         var toBuild = section;
-        if (tabCategories != null &&
-            !tabsInjected &&
-            section['type'] == 'products') {
-          tabsInjected = true;
-          toBuild = {
-            ...section,
-            'content_json': {
-              ...Map<String, dynamic>.from(
-                  section['content_json'] as Map? ?? {}),
-              'tab_categories': tabCategories,
-            },
-          };
+        if (section['type'] == 'products') {
+          final cj = Map<String, dynamic>.from(
+              section['content_json'] as Map? ?? {});
+          final sectionCatIds = cj['category_ids'];
+          if (sectionCatIds is List && sectionCatIds.isNotEmpty) {
+            // Section specifies its own category_ids (e.g. Popular Products
+            // with specific_category); use them directly as tab_categories.
+            toBuild = {
+              ...section,
+              'content_json': {
+                ...cj,
+                'tab_categories': sectionCatIds,
+              },
+            };
+          } else if (tabCategories != null && !tabsInjected) {
+            tabsInjected = true;
+            toBuild = {
+              ...section,
+              'content_json': {
+                ...cj,
+                'tab_categories': tabCategories,
+              },
+            };
+          }
         }
         final widget = _registry.build(toBuild);
         if (widget != null) nextWidgets.add(widget);

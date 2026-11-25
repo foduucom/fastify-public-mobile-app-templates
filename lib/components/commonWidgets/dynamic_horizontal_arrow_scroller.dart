@@ -170,8 +170,7 @@ class _DynamicHorizontalArrowScrollerState
             ? theme.colorScheme.surface.withValues(alpha: 0.92)
             : Colors.white.withValues(alpha: 0.95));
 
-    final defaultIconColor = widget.iconColor ??
-        (isDark ? theme.colorScheme.onSurface : const Color(0xFF1E293B));
+    final defaultIconColor = widget.iconColor ?? theme.colorScheme.onSurface;
 
     return AnimatedOpacity(
       opacity: isVisible ? 1.0 : 0.0,
