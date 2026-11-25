@@ -38,7 +38,7 @@ class ContactController extends GetxController
               "heading": "Contact Us",
               "sub_heading": "Get In Touch",
               "description":
-                  "Need assistance with an appliance order, smart setup, or hardware warranty? Reach out.",
+                  "Have questions or need assistance? Our team is here to help.",
               "filePath": "2026/11/17/appliance-lineup-f27d481f.webp"
             }
           ]
@@ -53,8 +53,7 @@ class ContactController extends GetxController
         "name": "contact",
         "slug": "contact",
         "title": "Send a Message",
-        "description":
-            "Fill out the form below and our engineering team will get back to you within 24 hours."
+        "description": ""
       },
       "visible": true
     },

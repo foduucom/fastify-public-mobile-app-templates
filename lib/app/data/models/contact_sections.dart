@@ -97,17 +97,21 @@ class ContactHeroHeaderData {
 // ─────────────────────────────────────────────────────────────────────────────
 class ContactFormBuilderData {
   final String title;
+  final String description;
   final String formSlug;
   final String formId;
 
   const ContactFormBuilderData({
     required this.title,
+    this.description = '',
     required this.formSlug,
     required this.formId,
   });
 
   factory ContactFormBuilderData.fromContentJson(Map<String, dynamic> json) {
     final title = _s(json, 'title', 'Send a Message');
+    final desc = _s(
+        json, 'description', _s(json, 'sub_title', _s(json, 'sub_heading', '')));
     String slug = 'contact';
     String id = '6afc23c408a059f9a214f5d5';
 
@@ -121,6 +125,7 @@ class ContactFormBuilderData {
 
     return ContactFormBuilderData(
       title: title,
+      description: desc,
       formSlug: slug,
       formId: id,
     );
@@ -128,6 +133,7 @@ class ContactFormBuilderData {
 
   factory ContactFormBuilderData.canonical() => const ContactFormBuilderData(
         title: 'Send a Message',
+        description: '',
         formSlug: 'contact',
         formId: '6afc23c408a059f9a214f5d5',
       );

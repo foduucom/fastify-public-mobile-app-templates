@@ -29,7 +29,7 @@ class ContactHeroBannerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: data.height.clamp(170, 230).toDouble(),
+      height: data.height.clamp(200, 260).toDouble(),
       decoration: BoxDecoration(color: context.surfaceColor),
       child: Stack(
         fit: StackFit.expand,
@@ -119,6 +119,19 @@ class ContactHeroBannerWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
+                if (data.description.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    data.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      height: 1.45,
+                      color: Colors.white.withValues(alpha: 0.85),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -226,16 +239,20 @@ class ContactFormCardWidget extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
-              Text(
-                'Have questions or need assistance? Fill out the details below and our team will get back to you promptly.',
-                style: TextStyle(
-                  fontSize: 12.5,
-                  height: 1.45,
-                  color: context.onSurfaceColor.withValues(alpha: 0.65),
+              if (data.description.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  data.description,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    height: 1.45,
+                    color: context.onSurfaceColor.withValues(alpha: 0.65),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
+                const SizedBox(height: 16),
+              ] else ...[
+                const SizedBox(height: 18),
+              ],
               Obx(() {
                 final fields = formCtrl.formFields;
                 return Column(
