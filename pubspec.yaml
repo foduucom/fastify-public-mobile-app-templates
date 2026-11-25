@@ -68,6 +68,7 @@ dependencies:
   flutter_paypal_payment: ^1.0.8
 
   # ── Media & Files ──────────────────────────────────────────────────────────
+  video_player: ^2.11.1
   image_picker: ^1.0.4
   file_picker: ^8.1.4
   open_filex: ^4.3.4

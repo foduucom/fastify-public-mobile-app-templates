@@ -23,9 +23,13 @@ import 'firebase_options.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  WidgetsBinding.instance.deferFirstFrame();
-  runApp(const StartupSplash());
-  unawaited(_initializeApplication());
+  if (kIsWeb) {
+    _initializeApplication();
+  } else {
+    WidgetsBinding.instance.deferFirstFrame();
+    runApp(const StartupSplash());
+    unawaited(_initializeApplication());
+  }
 }
 
 Future<void> _initializeApplication() async {
@@ -122,7 +126,9 @@ Future<void> _initializeApplication() async {
 
   // Let the first branded frame reach the display before replacing the
   // bootstrap app, including on fast local starts.
-  await WidgetsBinding.instance.endOfFrame;
+  if (!kIsWeb) {
+    await WidgetsBinding.instance.endOfFrame;
+  }
   runApp(MyApp(
     initialRoute: initialRoute,
     persistentStorageAvailable: persistentStorageAvailable,

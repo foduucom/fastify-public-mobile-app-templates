@@ -13,11 +13,9 @@ import '/app/routes/app_pages.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
 import '/constants/helper_functions.dart';
-import '/constants/constants.dart' show url;
 import '/app/modules/cart/controllers/cart_controller.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:http/http.dart' as http;
 import '/components/paymentGateway/Stripe.dart';
 import '/components/paymentGateway/PhonePe.dart';
 import '/components/paymentGateway/RazorPay.dart';
@@ -406,7 +404,7 @@ class CheckOutController extends GetxController with BaseController {
   }
 
   Future<Map<String, dynamic>?> createOrder({String currency = 'INR'}) async {
-    final String methodName = deliveryOption['name'];
+    final String methodName = deliveryOption['name'] ?? 'cod';
     String addressId = "";
     var phase = 'validating checkout details';
     final stopwatch = Stopwatch()..start();
@@ -434,21 +432,27 @@ class CheckOutController extends GetxController with BaseController {
         return null;
       }
 
-      // Build the order form.
-      final isCash = methodName == 'cod' || methodName == 'cash';
+      final bool isCod = methodName == 'cod' || methodName == 'cash';
+
+      // Build the order form matching reference template for universal Web, Android, iOS compatibility.
       final form = <String, dynamic>{
         "address_id": addressId,
-        "primary_method": isCash ? 'cash' : methodName,
-        "secondary_method": isCash && secondaryPaymentGateway.value.isNotEmpty
-            ? secondaryPaymentGateway.value
-            : null,
+        "primary_method": isCod ? 'cod' : methodName,
+        "payment_method": isCod ? 'cod' : methodName,
+        "currency": currency,
         "notes": "",
         "coupon_code": null,
         "coupon_discount": 0,
       };
 
-      if (!isCash) {
-        form['currency'] = currency;
+      if (isCod) {
+        form['cod'] = 'true';
+        form['cash'] = 'true';
+
+        // Include the secondary gateway when COD prepayment applies.
+        if (secondaryPaymentGateway.value.isNotEmpty) {
+          form['secondary_method'] = secondaryPaymentGateway.value;
+        }
       }
 
       if (cartController.couponDetails.isNotEmpty &&
@@ -459,27 +463,13 @@ class CheckOutController extends GetxController with BaseController {
       }
 
       printInfo(
-        info: 'Checkout order request prepared (cash=$isCash, '
+        info: 'Checkout order request prepared (cash=$isCod, '
             'addressPresent=${addressId.isNotEmpty}, '
             'secondaryMethod=${secondaryPaymentGateway.value.isNotEmpty})',
       );
 
-      final orderProvider = isCash
-          ? BasicProvider('checkout/place-order', baseUrl: url)
-          : BasicProvider('order/create');
-      Map<String, String>? csrfHeaders;
-      if (isCash) {
-        phase = 'loading checkout security';
-        csrfHeaders = await _fetchWebCheckoutCsrfHeaders();
-      }
-
       phase = 'submitting order';
-      final orderPath = Uri.parse(orderProvider.fetchUrl()).path;
-      printInfo(info: 'Submitting checkout order to $orderPath.');
-      final response = await orderProvider.postRequest(
-        form,
-        extraHeaders: csrfHeaders,
-      );
+      final response = await BasicProvider('order/create').postRequest(form);
 
       printInfo(
         info: 'Checkout order response received after '
@@ -500,105 +490,27 @@ class CheckOutController extends GetxController with BaseController {
       );
       if (_isOutOfStockError(error)) {
         _handleOutOfStockError(error);
-      } else if (error is AppException) {
-        await handleError(error);
-      } else if (phase == 'loading checkout security') {
-        HelperFunctions().showSnackBarError(
-          'Could not initialize secure checkout. Please try again.',
-        );
-      } else if (error is TimeoutException) {
-        HelperFunctions().showSnackBarError(
-          'The order request timed out. Check your orders before trying again.',
-        );
       } else {
-        HelperFunctions().showSnackBarError(
-          'The order could not be confirmed. Check your orders before retrying.',
-        );
+        final msg = error.toString().toLowerCase();
+        if (msg.contains('cart is empty')) {
+          HelperFunctions().showSnackBarError(
+            'Your cart is empty. Please add items to proceed.',
+          );
+          Get.offAllNamed(Routes.CART);
+          return null;
+        }
+        if (error is AppException) {
+          await handleError(error);
+        } else if (error is TimeoutException) {
+          HelperFunctions().showSnackBarError(
+            'The order request timed out. Check your orders before trying again.',
+          );
+        } else {
+          HelperFunctions().showSnackBarError(
+            'The order could not be confirmed. Check your orders before retrying.',
+          );
+        }
       }
-    }
-    return null;
-  }
-
-  Future<Map<String, String>> _fetchWebCheckoutCsrfHeaders() async {
-    final stopwatch = Stopwatch()..start();
-    final provider = BasicProvider('', baseUrl: url);
-    final headers = provider.headerType();
-    headers['accept'] = 'text/html';
-
-    printInfo(info: 'Checkout security bootstrap started.');
-    final response = await http.get(Uri.parse(url), headers: headers).timeout(
-          const Duration(seconds: 20),
-        );
-    printInfo(
-      info: 'Checkout security page returned HTTP ${response.statusCode} '
-          'after ${stopwatch.elapsedMilliseconds}ms.',
-    );
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw StateError(
-          'Unable to initialize checkout security (HTTP ${response.statusCode}).');
-    }
-
-    final csrfToken = _csrfTokenFromHtml(response.body);
-    final cookies = _cookiesFromSetCookieHeader(
-      response.headers['set-cookie'] ?? '',
-    );
-    final csrfCookie = cookies['_csrf'];
-
-    if (csrfToken == null ||
-        csrfToken.isEmpty ||
-        csrfCookie == null ||
-        csrfCookie.isEmpty) {
-      throw StateError('The checkout page did not provide its security token.');
-    }
-
-    // Keep the full cookie set from the same bootstrap response. Some store
-    // deployments bind the CSRF secret to a session cookie as well as _csrf.
-    return {
-      'cookie': cookies.entries
-          .map((entry) => '${entry.key}=${entry.value}')
-          .join('; '),
-      'x-csrf-token': csrfToken,
-    };
-  }
-
-  Map<String, String> _cookiesFromSetCookieHeader(String setCookieHeader) {
-    const cookieAttributes = {
-      'domain',
-      'expires',
-      'httponly',
-      'max-age',
-      'path',
-      'priority',
-      'samesite',
-      'secure',
-    };
-    final cookies = <String, String>{};
-    final cookiePattern = RegExp(r'(?:^|,\s*)([A-Za-z0-9_.-]+)=([^;,]*)');
-    for (final match in cookiePattern.allMatches(setCookieHeader)) {
-      final name = match.group(1)!.trim();
-      if (!cookieAttributes.contains(name.toLowerCase())) {
-        cookies[name] = match.group(2)!.trim();
-      }
-    }
-    return cookies;
-  }
-
-  String? _csrfTokenFromHtml(String html) {
-    final metaTags = RegExp(r'<meta\b[^>]*>', caseSensitive: false);
-    final nameAttribute = RegExp(
-      r'''\bname\s*=\s*["']([^"']+)["']''',
-      caseSensitive: false,
-    );
-    final contentAttribute = RegExp(
-      r'''\bcontent\s*=\s*["']([^"']+)["']''',
-      caseSensitive: false,
-    );
-
-    for (final match in metaTags.allMatches(html)) {
-      final tag = match.group(0)!;
-      final name = nameAttribute.firstMatch(tag)?.group(1);
-      if (name?.toLowerCase() != 'csrf-token') continue;
-      return contentAttribute.firstMatch(tag)?.group(1);
     }
     return null;
   }

@@ -2,6 +2,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foddu/components/app_image_placeholder.dart';
+import 'package:foddu/components/common/looping_video_banner.dart';
 import 'package:foddu/components/home_component/home_common_widgets.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:foddu/app/modules/homepage/controllers/homepage_controller.dart';
@@ -206,26 +207,33 @@ class _HomeBannerState extends State<HomeBanner>
 
   // Single Banner
   Widget _buildSingleBanner(List items, Map<String, dynamic> config) {
-    final height = config['height']?.toDouble() ?? 150.0;
+    final item = items[0];
+    final featuredImage = item['featured_image'];
+    final imgUrl = getImage(item);
+    final isVideo = (featuredImage is Map &&
+            (featuredImage['file_type'] == 'video' ||
+                '${featuredImage['mimetype']}'.contains('video') ||
+                '${featuredImage['filename']}'.endsWith('.mp4'))) ||
+        imgUrl.toLowerCase().endsWith('.mp4');
+
+    final double defaultHeight = isVideo ? 210.0 : 150.0;
+    final height = config['height']?.toDouble() ?? defaultHeight;
     final borderRadius = config['border_radius']?.toDouble() ?? 12.0;
 
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 6.0, bottom: 16.0),
-      child: GestureDetector(
-        onTap: () => handleBannerTap(items[0]),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(borderRadius),
-          child: SizedBox(
-            height: height,
-            width: double.infinity,
-            child: _buildCachedImage(items[0]),
-          ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: SizedBox(
+          height: height,
+          width: double.infinity,
+          child: _buildCachedImage(item, borderRadius: borderRadius),
         ),
       ),
     );
   }
 
-  Widget _buildCachedImage(Map<String, dynamic> item) {
+  Widget _buildCachedImage(Map<String, dynamic> item, {double borderRadius = 0.0}) {
     final featuredImage = item['featured_image'];
     final imgUrl = getImage(item);
 
@@ -236,61 +244,11 @@ class _HomeBannerState extends State<HomeBanner>
         imgUrl.toLowerCase().endsWith('.mp4');
 
     if (isVideo) {
-      return Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          color: Color(0xFF16161A),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.5),
-                      Colors.black.withValues(alpha: 0.85),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.15),
-                    border: Border.all(
-                      color: const Color(0xFFD4AF37),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.play_arrow_rounded,
-                    color: Colors.white,
-                    size: 34,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Watch Brand Story',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+      return LoopingVideoBanner(
+        videoUrl: imgUrl,
+        borderRadius: borderRadius,
+        fit: BoxFit.cover,
+        onTap: () => handleBannerTap(item),
       );
     }
 
@@ -458,40 +416,56 @@ class _CarouselBannerState extends State<CarouselBanner> {
               },
               itemCount: widget.items.length,
               itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () => widget.onTap(widget.items[index]),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(borderRadius),
-                      child: (widget.getImage(widget.items[index]).isNotEmpty &&
-                              widget.getImage(widget.items[index]) !=
-                                  HelperFunctions.getNoImage())
-                          ? CachedNetworkImage(
-                              fit: BoxFit.cover,
-                              imageUrl: widget.getImage(widget.items[index]),
-                              progressIndicatorBuilder:
-                                  (context, url, progress) {
-                                return Container(
-                                  decoration:
-                                      BoxDecoration(color: Colors.grey.shade100),
-                                  child: HelperFunctions().loadingIndicator(),
-                                );
-                              },
-                              errorWidget: (context, url, error) {
-                                return AppImagePlaceholder(
-                                  radius: borderRadius,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                );
-                              },
-                            )
-                          : AppImagePlaceholder(
-                              radius: borderRadius,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
-                    ),
+                final item = widget.items[index];
+                final featuredImage = item['featured_image'];
+                final imgUrl = widget.getImage(item);
+                final isVideo = (featuredImage is Map &&
+                        (featuredImage['file_type'] == 'video' ||
+                            '${featuredImage['mimetype']}'.contains('video') ||
+                            '${featuredImage['filename']}'.endsWith('.mp4'))) ||
+                    imgUrl.toLowerCase().endsWith('.mp4');
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    child: isVideo
+                        ? LoopingVideoBanner(
+                            videoUrl: imgUrl,
+                            borderRadius: borderRadius,
+                            fit: BoxFit.cover,
+                            onTap: () => widget.onTap(item),
+                          )
+                        : GestureDetector(
+                            onTap: () => widget.onTap(item),
+                            child: (imgUrl.isNotEmpty &&
+                                    imgUrl != HelperFunctions.getNoImage())
+                                ? CachedNetworkImage(
+                                    fit: BoxFit.cover,
+                                    imageUrl: imgUrl,
+                                    progressIndicatorBuilder:
+                                        (context, url, progress) {
+                                      return Container(
+                                        decoration: BoxDecoration(
+                                            color: Colors.grey.shade100),
+                                        child:
+                                            HelperFunctions().loadingIndicator(),
+                                      );
+                                    },
+                                    errorWidget: (context, url, error) {
+                                      return AppImagePlaceholder(
+                                        radius: borderRadius,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                      );
+                                    },
+                                  )
+                                : AppImagePlaceholder(
+                                    radius: borderRadius,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
+                          ),
                   ),
                 );
               },
