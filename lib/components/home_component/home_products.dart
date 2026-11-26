@@ -19,6 +19,8 @@ import 'package:shimmer/shimmer.dart';
 import 'home_common_widgets.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/components/product_quick_view_modal.dart';
+import 'package:foduu_ecommerce/components/commonWidgets/arrow_tooltip.dart';
+import 'package:foduu_ecommerce/components/commonWidgets/dynamic_horizontal_arrow_scroller.dart';
 import 'package:foduu_ecommerce/components/parent_web_product_card.dart';
 import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
@@ -100,9 +102,8 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   void _initTabs() {
     final json = widget.contentJson;
-    final layout = json?['layout'] ?? 'standard';
-    final showTabs =
-        json?['show_tabs'] ?? (layout == 'horizontal' || layout == 'standard');
+    final categoryType = (json?['category_type'] ?? '').toString();
+    final showTabs = json?['show_tabs'] ?? (categoryType == 'specific_category');
     final rawCats = json?['category_ids'] is List &&
             (json?['category_ids'] as List).isNotEmpty
         ? json!['category_ids']
@@ -263,6 +264,37 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       if (_tabsEnabled) {
         _fetchProductsForTab(0);
       } else if (trendingList.isEmpty && !_isExternal) {
+        _currentPage.value = 1;
+        _fetchProductsFromApi();
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant TrendingProductSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_isExternal) return;
+
+    if (widget.contentJson != oldWidget.contentJson) {
+      _infiniteScroll = widget.contentJson?['infinite_scroll'] == true;
+      _countPerPage = widget.contentJson?['count'] ?? 10;
+      _tabs = [];
+      _initTabs();
+
+      final productData =
+          widget.contentJson?['product'] ?? widget.contentJson?['products'];
+      if (productData != null) {
+        if (productData is Map) {
+          trendingList.assignAll(productData['data'] ?? []);
+          _hasMore.value = productData['hasNextPage'] ?? false;
+          _currentPage.value = productData['next'] ??
+              ((productData['current_page'] ?? 1) + 1).toInt();
+        } else if (productData is List) {
+          trendingList.assignAll(productData);
+          _hasMore.value = false;
+        }
+        _isInitialLoading.value = false;
+      } else {
         _currentPage.value = 1;
         _fetchProductsFromApi();
       }
@@ -480,40 +512,37 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                       subtitle: heading.isNotEmpty && subheading.isNotEmpty
                           ? subheading
                           : null,
-                      onSeeAll: () {
-                        if (_tabsEnabled && _tabs.length > _selectedTab.value) {
-                          final activeTab = _tabs[_selectedTab.value];
-                          openShop({
-                            'source': 'category',
-                            'categorySlug': activeTab['slug'],
-                            'category': activeTab['_id'] ?? activeTab['id'],
-                            'name': activeTab['name']?.toString() ??
-                                (heading.isNotEmpty ? heading : 'Products'),
-                          });
-                          return;
-                        }
-                        final parentType = widget.contentJson?['parent_type'];
-                        final parentSlug =
-                            parentType is Map ? parentType['slug'] : null;
-                        final parentId =
-                            parentType is Map ? parentType['_id'] : parentType;
+                      onSeeAll: _tabsEnabled
+                          ? null
+                          : () {
+                              final parentType =
+                                  widget.contentJson?['parent_type'];
+                              final parentSlug =
+                                  parentType is Map ? parentType['slug'] : null;
+                              final parentId = parentType is Map
+                                  ? parentType['_id']
+                                  : parentType;
 
-                        if (parentSlug != null || parentId != null) {
-                          openShop({
-                            'source': 'category',
-                            'categorySlug': parentSlug,
-                            'category': parentId,
-                            'name': heading.isNotEmpty ? heading : 'Products',
-                          });
-                        } else {
-                          openShop({
-                            'filterType': categoryType,
-                            'filterValue': true,
-                            'name': heading.isNotEmpty ? heading : 'Products',
-                            'source': 'dashboard',
-                          });
-                        }
-                      },
+                              if (parentSlug != null || parentId != null) {
+                                openShop({
+                                  'source': 'category',
+                                  'categorySlug': parentSlug,
+                                  'category': parentId,
+                                  'name': heading.isNotEmpty
+                                      ? heading
+                                      : 'Products',
+                                });
+                              } else {
+                                openShop({
+                                  'filterType': categoryType,
+                                  'filterValue': true,
+                                  'name': heading.isNotEmpty
+                                      ? heading
+                                      : 'Products',
+                                  'source': 'dashboard',
+                                });
+                              }
+                            },
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -532,16 +561,65 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                           child: TrendingProductsShimmer(),
                         ),
                       )
-                    : trendingList.isEmpty
+                    : (trendingList.isEmpty && !_tabsEnabled)
                         ? const SizedBox.shrink()
-                        : (_tabsEnabled
-                            ? _buildTabbedList()
-                            : _buildProductLayout(style)),
+                        : _buildProductLayout(style),
+                if (_tabsEnabled &&
+                    _tabs.length > _selectedTab.value &&
+                    displayedProducts.isNotEmpty)
+                  _buildExploreTabButton(_tabs[_selectedTab.value]),
                 const SizedBox(height: 26),
               ],
             )
           ],
         ));
+  }
+
+  Widget _buildExploreTabButton(Map<String, dynamic> activeTab) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final tabName = activeTab['name']?.toString() ?? 'Products';
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: SizedBox(
+        width: double.infinity,
+        height: 40,
+        child: OutlinedButton(
+          onPressed: () {
+            openShop({
+              'source': 'category',
+              'categorySlug': activeTab['slug'],
+              'category': activeTab['_id'] ?? activeTab['id'],
+              'name': tabName,
+            });
+          },
+          style: OutlinedButton.styleFrom(
+            foregroundColor: colorScheme.primary,
+            side: BorderSide(color: colorScheme.outline.withOpacity(0.28)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Explore All $tabName',
+                style: textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(Icons.arrow_forward_rounded,
+                  size: 16, color: colorScheme.primary),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -552,12 +630,20 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final textTheme = Theme.of(context).textTheme;
     return SizedBox(
       height: 36,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        scrollDirection: Axis.horizontal,
+      child: DynamicHorizontalArrowScroller(
+        arrowSize: 28,
+        iconSize: 17,
+        scrollStep: 180,
+        edgePadding: 4,
         itemCount: _tabs.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, i) {
+        builder: (context, scrollController) => ListView.separated(
+          controller: scrollController,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          itemCount: _tabs.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (context, i) {
           final selected = _selectedTab.value == i;
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -590,6 +676,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             ),
           );
         },
+        ),
       ),
     );
   }
@@ -865,8 +952,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     required VoidCallback onTap,
     Color? iconColor,
   }) {
-    return Tooltip(
+    return ArrowTooltip(
       message: tooltip,
+      direction: ArrowDirection.bottom,
       child: GestureDetector(
         onTap: onTap,
         child: Container(
@@ -1230,27 +1318,26 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   // GRID VIEW
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildGridView(String style) {
-    final rawColumns =
+    final columns =
         int.tryParse(widget.contentJson?['columns']?.toString() ?? '2') ?? 2;
-    // Drive column count by actual viewport width rather than kIsWeb so the
-    // Studio mobile web emulator renders 2 columns just like a phone.
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobileViewport = screenWidth < 600;
-    final isTabletViewport = screenWidth >= 600 && screenWidth < 1024;
-    final columns = isMobileViewport
-        ? rawColumns.clamp(1, 2)
-        : (isTabletViewport ? rawColumns.clamp(1, 3) : rawColumns);
 
     final rawRatio = double.tryParse(
             widget.contentJson?['aspect_ratio']?.toString() ?? '') ??
         0.60;
-    // For 2-column portrait mobile cards (standard/parent_web), desktop ratios >= 1.0 (like 1.3 or 2.4)
-    // make the card wider than tall, leaving no height for image + title + stars + price + CTA.
-    final double defaultMobileRatio =
-        (style == 'parent_web' || style == 'standard') ? 0.60 : 0.72;
-    final aspectRatio = (isMobileViewport && columns == 2 && rawRatio >= 1.0)
-        ? defaultMobileRatio
-        : (rawRatio > 0 ? rawRatio : defaultMobileRatio);
+    // Vertical portrait cards (parent_web/standard/horizontal) require aspect ratios <= 0.85.
+    // When CMS sends desktop ratios >= 1.0 (e.g. 1.3 or 2.4), use portrait mobile ratios:
+    // 3+ columns -> 0.50, 2 columns -> 0.60, 1 column -> 0.65.
+    final double defaultRatio = columns >= 3
+        ? 0.50
+        : (columns == 1
+            ? 0.65
+            : ((style == 'parent_web' ||
+                    style == 'standard' ||
+                    style == 'horizontal')
+                ? 0.60
+                : 0.72));
+    final aspectRatio =
+        (rawRatio > 0 && rawRatio <= 0.85) ? rawRatio : defaultRatio;
 
     final spacing =
         double.tryParse(widget.contentJson?['spacing']?.toString() ?? '12') ??
@@ -1301,7 +1388,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final activeCategoryLabel = (_tabsEnabled && _tabs.length > _selectedTab.value)
         ? _tabs[_selectedTab.value]['name']?.toString()
         : null;
-    if (style == 'parent_web' || style == 'standard') {
+    if (style == 'parent_web' || style == 'standard' || style == 'horizontal') {
       return ParentWebProductCard(
         product: product,
         isList: false,
@@ -1313,9 +1400,6 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       return _buildOverlayItem(product, priceInfo);
     }
 
-    if (style == 'horizontal') {
-      return _buildHorizontalItem(product, priceInfo);
-    }
     // default: standard card style for grid
     return _buildStandardItem(product, priceInfo);
   }
@@ -1386,15 +1470,22 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             PointerDeviceKind.trackpad,
           },
         ),
-        child: ListView.separated(
+        child: DynamicHorizontalArrowScroller(
           controller: _scrollController,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          separatorBuilder: (context, index) => const SizedBox(width: 12),
-          shrinkWrap: false,
-          physics: const BouncingScrollPhysics(),
-          scrollDirection: Axis.horizontal,
+          arrowSize: 34,
+          iconSize: 20,
+          scrollStep: 260,
+          edgePadding: 6,
           itemCount: itemCount,
-          itemBuilder: (context, index) {
+          builder: (context, _) => ListView.separated(
+            controller: _scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            separatorBuilder: (context, index) => const SizedBox(width: 12),
+            shrinkWrap: false,
+            physics: const BouncingScrollPhysics(),
+            scrollDirection: Axis.horizontal,
+            itemCount: itemCount,
+            itemBuilder: (context, index) {
             if (index >= displayedProducts.length) {
               return _buildLoadingIndicator();
             }
@@ -1408,6 +1499,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
               child: ParentWebProductCard(product: product, isList: false),
             );
           },
+          ),
         ),
       ),
     );
@@ -1439,15 +1531,22 @@ class _TrendingProductCardState extends State<TrendingProductSection>
             PointerDeviceKind.trackpad,
           },
         ),
-        child: ListView.separated(
+        child: DynamicHorizontalArrowScroller(
           controller: _scrollController,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          separatorBuilder: (context, index) => const SizedBox(width: 12),
-          shrinkWrap: false,
-          physics: const BouncingScrollPhysics(),
-          scrollDirection: Axis.horizontal,
+          arrowSize: 34,
+          iconSize: 20,
+          scrollStep: 260,
+          edgePadding: 6,
           itemCount: itemCount,
-          itemBuilder: (context, index) {
+          builder: (context, _) => ListView.separated(
+            controller: _scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            separatorBuilder: (context, index) => const SizedBox(width: 12),
+            shrinkWrap: false,
+            physics: const BouncingScrollPhysics(),
+            scrollDirection: Axis.horizontal,
+            itemCount: itemCount,
+            itemBuilder: (context, index) {
             if (index >= displayedProducts.length) {
               return _buildLoadingIndicator();
             }
@@ -1461,6 +1560,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
               child: _buildSiteProductCard(product, priceInfo, imageHeight),
             );
           },
+          ),
         ),
       ),
     );
@@ -1500,13 +1600,20 @@ class _TrendingProductCardState extends State<TrendingProductSection>
               PointerDeviceKind.trackpad,
             },
           ),
-          child: ListView.separated(
+          child: DynamicHorizontalArrowScroller(
             controller: _scrollController,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            physics: const BouncingScrollPhysics(),
-            scrollDirection: Axis.horizontal,
+            arrowSize: 32,
+            iconSize: 19,
+            scrollStep: 260,
+            edgePadding: 6,
             itemCount: itemCount,
-            itemBuilder: (context, index) {
+            builder: (context, _) => ListView.separated(
+              controller: _scrollController,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              physics: const BouncingScrollPhysics(),
+              scrollDirection: Axis.horizontal,
+              itemCount: itemCount,
+              itemBuilder: (context, index) {
               if (index >= displayedProducts.length) {
                 return _buildLoadingIndicator();
               }
@@ -1521,6 +1628,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 child: _buildHorizontalItem(product, priceInfo),
               );
             },
+            ),
           ),
         ),
       ),

@@ -165,7 +165,15 @@ Future<void> _refreshPublicSettings(GetStorage box) async {
     }
 
     final storeName = settings['name'] ?? settings['store_name'];
-    if (storeName != null) box.write('store_name', storeName);
+    if (storeName != null && storeName.toString().trim().isNotEmpty) {
+      box.write('store_name', storeName.toString().trim());
+    }
+    final storeLogo = settings['logo'] ??
+        settings['app_logo'] ??
+        settings['store_logo'];
+    if (storeLogo != null && storeLogo.toString().trim().isNotEmpty) {
+      box.write('store_logo', storeLogo.toString().trim());
+    }
 
     if (settings['app_theme_color'] is Map) {
       final themeUpdated = DynamicThemeManager().updateFromApi(

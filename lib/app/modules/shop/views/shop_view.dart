@@ -4,8 +4,10 @@ import 'package:get/get.dart';
 
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_controller.dart';
 import 'package:foduu_ecommerce/app/modules/shop/views/widgets/shop_filter_drawer.dart';
+import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/home_component/home_category.dart';
 import 'package:foduu_ecommerce/components/parent_web_product_card.dart';
+import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
 
 class ShopView extends GetView<ShopController> {
   const ShopView({Key? key}) : super(key: key);
@@ -43,13 +45,20 @@ class ShopView extends GetView<ShopController> {
           ),
         ),
         title: Obx(() {
+          final isPlain = controller.isPlainShopEntry.value;
+          final name = controller.collectionName.value;
           return Text(
-            controller.collectionName.value == "All Products"
-                ? "Shop"
-                : controller.collectionName.value,
+            isPlain || name == "All Products" ? "Shop" : name,
             style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           );
         }),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search_rounded),
+            tooltip: 'Search products',
+            onPressed: () => Get.toNamed(Routes.SEARCH),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(56),
           child: _ShopHeaderToolbar(
@@ -70,6 +79,28 @@ class ShopView extends GetView<ShopController> {
           controller.goUpFilterCategory();
         },
         child: Obx(() {
+          // ── CMS CANVAS MODE (plain tab entry, grid mode, no active filters) ──
+          // Renders the full CMS layout from api/mobile-app/shop (and live
+          // Studio socket broadcasts) via FoduuStudioLayoutView.
+          if (controller.isPlainShopEntry.value &&
+              !controller.isListView.value &&
+              !controller.hasActiveFilters) {
+            return FoduuStudioLayoutView(
+              widgetList: controller.widgetList,
+              isLoading: controller.isLayoutLoading,
+              hasError: controller.hasError,
+              errorMessage: controller.errorMessage,
+              scrollController: controller.scrollController,
+              loadingWidget: _buildGridShimmer(),
+              footerWidget: const SizedBox(height: 88),
+              onRefresh: () => controller.fetchLayout(
+                ShopController.pageSlug,
+                useCache: false,
+              ),
+            );
+          }
+
+          // ── FILTERED / LIST CATALOG MODE ──
           final isList = controller.isListView.value;
           final totalCount = controller.totalProducts.value > 0
               ? controller.totalProducts.value
@@ -126,31 +157,47 @@ class ShopView extends GetView<ShopController> {
                     ),
                   )
                 else
-                  SliverPadding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    sliver: SliverGrid(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 0.68,
+                  Builder(builder: (context) {
+                    final cmsJson = controller.contentJsonFor('products');
+                    final cols = int.tryParse(
+                            cmsJson?['columns']?.toString() ?? '2') ??
+                        2;
+                    final spacing = double.tryParse(
+                            cmsJson?['spacing']?.toString() ?? '10') ??
+                        10;
+                    final rawRatio = double.tryParse(
+                            cmsJson?['aspect_ratio']?.toString() ?? '') ??
+                        0.60;
+                    final aspectRatio = (rawRatio > 0 && rawRatio <= 0.85)
+                        ? rawRatio
+                        : (cols >= 3 ? 0.50 : 0.60);
+
+                    return SliverPadding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      sliver: SliverGrid(
+                        gridDelegate:
+                            SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: cols,
+                          crossAxisSpacing: spacing,
+                          mainAxisSpacing: spacing,
+                          childAspectRatio: aspectRatio,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final p = controller.products[index];
+                            return ParentWebProductCard(
+                              product: p is Map<String, dynamic>
+                                  ? p
+                                  : Map<String, dynamic>.from(p),
+                              isList: false,
+                            );
+                          },
+                          childCount: controller.products.length,
+                        ),
                       ),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final p = controller.products[index];
-                          return ParentWebProductCard(
-                            product: p is Map<String, dynamic>
-                                ? p
-                                : Map<String, dynamic>.from(p),
-                            isList: false,
-                          );
-                        },
-                        childCount: controller.products.length,
-                      ),
-                    ),
-                  ),
+                    );
+                  }),
 
                 // 4. INFINITE SCROLL LOADING INDICATOR / END OF LIST
                 if (controller.hasNextPage)
@@ -384,15 +431,49 @@ class ShopView extends GetView<ShopController> {
     );
   }
 
+  Widget _buildGridShimmer() {
+    final cmsJson = controller.contentJsonFor('products');
+    final cols =
+        int.tryParse(cmsJson?['columns']?.toString() ?? '2') ?? 2;
+    final spacing =
+        double.tryParse(cmsJson?['spacing']?.toString() ?? '10') ?? 10;
+    return GridView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: cols,
+        crossAxisSpacing: spacing,
+        mainAxisSpacing: spacing,
+        childAspectRatio: cols >= 3 ? 0.50 : 0.60,
+      ),
+      itemCount: cols * 3,
+      itemBuilder: (_, __) => Shimmer.fromColors(
+        baseColor: Colors.grey.shade300,
+        highlightColor: Colors.grey.shade100,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSliverShimmerGrid() {
+    final cmsJson = controller.contentJsonFor('products');
+    final cols =
+        int.tryParse(cmsJson?['columns']?.toString() ?? '2') ?? 2;
+    final spacing =
+        double.tryParse(cmsJson?['spacing']?.toString() ?? '10') ?? 10;
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       sliver: SliverGrid(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 12,
-          childAspectRatio: 0.68,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: cols,
+          crossAxisSpacing: spacing,
+          mainAxisSpacing: spacing,
+          childAspectRatio: cols >= 3 ? 0.50 : 0.60,
         ),
         delegate: SliverChildBuilderDelegate(
           (context, index) {
@@ -402,12 +483,12 @@ class ShopView extends GetView<ShopController> {
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
             );
           },
-          childCount: 6,
+          childCount: cols * 3,
         ),
       ),
     );

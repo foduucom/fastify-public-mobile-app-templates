@@ -27,31 +27,31 @@ class ResponsiveBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    final barHeight = 66.0 + bottomPadding;
+    final barHeight = 68.0 + bottomPadding;
 
     return Container(
       height: barHeight,
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(20),
+          top: Radius.circular(22),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 22,
+            offset: const Offset(0, -5),
           ),
         ],
         border: Border(
           top: BorderSide(
-            color: borderColor.withOpacity(0.2),
-            width: 0.5,
+            color: borderColor.withOpacity(0.18),
+            width: 0.75,
           ),
         ),
       ),
       child: Padding(
-        padding: EdgeInsets.only(bottom: bottomPadding, top: 6),
+        padding: EdgeInsets.only(bottom: bottomPadding, top: 2),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: List.generate(
@@ -110,64 +110,90 @@ class _NavItem extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          // Signature top active brand indicator bar
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 240),
+            curve: Curves.easeOutCubic,
+            width: isActive ? 26 : 0,
+            height: 3,
+            margin: const EdgeInsets.only(bottom: 5),
+            decoration: BoxDecoration(
+              color: isActive ? activeColor : Colors.transparent,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
           Stack(
             clipBehavior: Clip.none,
             children: [
               AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
+                duration: const Duration(milliseconds: 240),
                 curve: Curves.easeOutCubic,
                 padding: EdgeInsets.symmetric(
-                  horizontal: isActive ? 16 : 8,
+                  horizontal: isActive ? 14 : 8,
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
                   color: isActive
-                      ? activeColor.withOpacity(0.12)
+                      ? activeColor.withOpacity(0.09)
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(
-                  isActive ? item.activeIcon : item.inactiveIcon,
-                  size: 23,
-                  color: isActive ? activeColor : inactiveColor,
+                child: AnimatedScale(
+                  scale: isActive ? 1.08 : 1.0,
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOutBack,
+                  child: Icon(
+                    isActive ? item.activeIcon : item.inactiveIcon,
+                    size: 22,
+                    color: isActive ? activeColor : inactiveColor,
+                  ),
                 ),
               ),
               if (item.badgeCount != null && item.badgeCount! > 0)
                 Positioned(
-                  right: isActive ? 6 : -2,
+                  right: isActive ? 4 : -2,
                   top: -3,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                    constraints: const BoxConstraints(
-                      minWidth: 16,
-                      minHeight: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.white, width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.redAccent.withOpacity(0.3),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Text(
-                        item.badgeCount! > 99
-                            ? '99+'
-                            : item.badgeCount.toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          height: 1,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 220),
+                    transitionBuilder: (child, anim) =>
+                        ScaleTransition(scale: anim, child: child),
+                    child: Container(
+                      key: ValueKey<int>(item.badgeCount!),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 2),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.error,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white, width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .error
+                                .withOpacity(0.32),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          item.badgeCount! > 99
+                              ? '99+'
+                              : item.badgeCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            height: 1,
+                          ),
                         ),
                       ),
                     ),
@@ -182,9 +208,13 @@ class _NavItem extends StatelessWidget {
               fontSize: 10.5,
               fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
               color: isActive ? activeColor : inactiveColor,
-              letterSpacing: isActive ? 0.2 : 0,
+              letterSpacing: isActive ? 0.15 : 0,
             ),
-            child: Text(item.label),
+            child: Text(
+              item.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),

@@ -107,13 +107,13 @@ class ShopController extends GetxController
       maxPrice.value = values.end;
     });
 
-    // When opened plainly (bottom-tab, no filter args), show the full
-    // CMS canvas from api/mobile-app/shop.
-    // When opened with filter/category args, load the filtered catalog grid.
+    // Always fetch layout to connect socket updates for the shop slug
+    // and load promotional CMS banners/widgets.
+    fetchLayout(pageSlug);
+
     if (isPlainShopEntry.value) {
       ensureFilterDataLoaded();
       ensureCategoryTreeLoaded();
-      fetchLayout(pageSlug);
     } else {
       fetchBrands();
       fetchCategories();
@@ -121,11 +121,32 @@ class ShopController extends GetxController
     }
   }
 
+  /// Resets the controller back to plain CMS Canvas mode.
+  void resetToPlainShop() {
+    isPlainShopEntry.value = true;
+    isListView.value = false;
+    collectionName.value = "Shop";
+    filterCurrentCategories.clear();
+    filterCategoryStack.clear();
+    clearAllFilters(refresh: false);
+    fetchLayout(pageSlug);
+  }
+
+  @override
+  void buildLayout(List sections) {
+    super.buildLayout(sections);
+    _syncCmsProductMetadata();
+  }
+
   @override
   Future<dynamic> fetchLayout(String slug,
-      {dynamic requestBody, bool silent = false}) async {
-    final response = await super
-        .fetchLayout(slug, requestBody: requestBody, silent: silent);
+      {dynamic requestBody, bool silent = false, bool useCache = true}) async {
+    final response = await super.fetchLayout(
+      slug,
+      requestBody: requestBody,
+      silent: silent,
+      useCache: useCache,
+    );
     _syncCmsProductMetadata();
     return response;
   }
@@ -143,6 +164,7 @@ class ShopController extends GetxController
         final dataList = prodData['data'];
         if (dataList is List && dataList.isNotEmpty && products.isEmpty) {
           products.assignAll(dataList);
+          hasNextPage = prodData['hasNextPage'] == true;
           isLoading.value = false;
         }
       }
@@ -596,10 +618,15 @@ class ShopController extends GetxController
 
     isListView.value = isList;
 
-    if (isPlainShopEntry.value) {
+    if (isList && isPlainShopEntry.value) {
       isPlainShopEntry.value = false;
       ensureFilterDataLoaded();
       fetchProducts(isRefresh: true);
+    } else if (!isList &&
+        !hasActiveFilters &&
+        (collectionName.value == "All Products" ||
+            collectionName.value == "Shop")) {
+      isPlainShopEntry.value = true;
     } else if (products.isEmpty && !isLoading.value) {
       fetchProducts(isRefresh: true);
     }
@@ -701,7 +728,7 @@ class ShopController extends GetxController
     applyFiltersAndRefresh();
   }
 
-  void clearAllFilters() {
+  void clearAllFilters({bool refresh = true}) {
     searchQuery.value = "";
     productSearchController.clear();
     isFeatured.value = false;
@@ -718,7 +745,15 @@ class ShopController extends GetxController
     sortBy.value = "created_at";
     sortOrder.value = "desc";
     selectedSortOption.value = ShopSortOption.newest;
-    applyFiltersAndRefresh();
+    if (!refresh) return;
+    if (!isListView.value &&
+        (collectionName.value == "All Products" ||
+            collectionName.value == "Shop")) {
+      isPlainShopEntry.value = true;
+      fetchLayout(pageSlug);
+    } else {
+      applyFiltersAndRefresh();
+    }
   }
 
   bool get hasActiveFilters {

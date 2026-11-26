@@ -48,6 +48,17 @@ class SplashScreenController extends GetxController with BaseController {
           }
         }
 
+        final storeName = storeSettings?['name'] ?? storeSettings?['store_name'];
+        if (storeName != null && storeName.toString().trim().isNotEmpty) {
+          box.write('store_name', storeName.toString().trim());
+        }
+        final storeLogo = storeSettings?['logo'] ??
+            storeSettings?['app_logo'] ??
+            storeSettings?['store_logo'];
+        if (storeLogo != null && storeLogo.toString().trim().isNotEmpty) {
+          box.write('store_logo', storeLogo.toString().trim());
+        }
+
         var authPreference = storeSettings?['auth_preference'];
 
         // Save auth preference for use throughout the app

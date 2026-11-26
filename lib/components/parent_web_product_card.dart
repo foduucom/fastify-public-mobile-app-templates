@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/commonWidgets/arrow_tooltip.dart';
+import 'package:foduu_ecommerce/components/product_quick_view_modal.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/product_helper.dart';
@@ -174,249 +176,338 @@ class ParentWebProductCard extends StatelessWidget {
     final ratingCount =
         int.tryParse((product['rating_count'] ?? 0).toString()) ?? 0;
 
-    return GestureDetector(
-      onTap: _navigateToDetail,
-      child: Container(
-        decoration: BoxDecoration(
-          color: context.surfaceColor,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: colorScheme.outline.withOpacity(0.12),
-          ),
-        ),
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            // Image with Discount Badge & Wishlist Heart
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceVariant.withOpacity(0.28),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: hasValidImage
-                            ? CachedNetworkImage(
-                                imageUrl: imageUrl,
-                                fit: BoxFit.contain,
-                                progressIndicatorBuilder: (_, __, ___) =>
-                                    HelperFunctions().loadingIndicator(),
-                                errorWidget: (_, __, ___) => _imageFallback(
-                                    colorScheme),
-                              )
-                            : _imageFallback(colorScheme),
-                      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 130;
+        final isUltraCompact = constraints.maxWidth < 100;
+        final cardPadding = isUltraCompact ? 4.0 : (isCompact ? 6.0 : 8.0);
+        final actionSize = isUltraCompact ? 20.0 : (isCompact ? 24.0 : 28.0);
+        final actionIconSize = isUltraCompact ? 11.0 : (isCompact ? 13.0 : 15.0);
 
-                      // Sale badge (top-left) - crimson rounded pill
-                      if (badgeText.isNotEmpty)
-                        Positioned(
-                          left: 6,
-                          top: 6,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 7, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: colorScheme.error,
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                            child: Text(
-                              badgeText,
-                              style: TextStyle(
-                                color: colorScheme.onError,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 10,
-                                letterSpacing: 0.2,
+        return GestureDetector(
+          onTap: _navigateToDetail,
+          child: Container(
+            decoration: BoxDecoration(
+              color: context.surfaceColor,
+              borderRadius: BorderRadius.circular(isCompact ? 10 : 14),
+              border: Border.all(
+                color: colorScheme.outline.withOpacity(0.12),
+              ),
+            ),
+            padding: EdgeInsets.all(cardPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                // Image with Discount Badge & Wishlist Heart
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceVariant.withOpacity(0.28),
+                      borderRadius: BorderRadius.circular(isCompact ? 8 : 10),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(isCompact ? 8 : 10),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.all(isCompact ? 4.0 : 10.0),
+                            child: hasValidImage
+                                ? CachedNetworkImage(
+                                    imageUrl: imageUrl,
+                                    fit: BoxFit.contain,
+                                    progressIndicatorBuilder: (_, __, ___) =>
+                                        HelperFunctions().loadingIndicator(),
+                                    errorWidget: (_, __, ___) =>
+                                        _imageFallback(colorScheme),
+                                  )
+                                : _imageFallback(colorScheme),
+                          ),
+
+                          // Sale badge (top-left)
+                          if (badgeText.isNotEmpty)
+                            Positioned(
+                              left: isCompact ? 3 : 6,
+                              top: isCompact ? 3 : 6,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: isCompact ? 4 : 7,
+                                    vertical: isCompact ? 2 : 3),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.error,
+                                  borderRadius: BorderRadius.circular(
+                                      isCompact ? 4 : 5),
+                                ),
+                                child: Text(
+                                  badgeText,
+                                  style: TextStyle(
+                                    color: colorScheme.onError,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: isCompact ? 8.0 : 10,
+                                    letterSpacing: 0.2,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
 
-                      // Floating Wishlist Heart (top-right)
-                      Positioned(
-                        right: 6,
-                        top: 6,
-                        child: Obx(() {
-                          final isFav =
-                              WishListService.to.isInWishlist(_productId);
-                          return GestureDetector(
-                            onTap: _handleToggleWishlist,
-                            child: Container(
-                              width: 28,
-                              height: 28,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: colorScheme.surface.withOpacity(0.92),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.10),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 1),
+                          // Floating Wishlist & Quick View Actions (top-right)
+                          Positioned(
+                            right: isCompact ? 3 : 6,
+                            top: isCompact ? 3 : 6,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Obx(() {
+                                  final isFav = WishListService.to
+                                      .isInWishlist(_productId);
+                                  return ArrowTooltip(
+                                    message: isFav
+                                        ? 'Remove from Wishlist'
+                                        : 'Add to Wishlist',
+                                    direction: ArrowDirection.bottom,
+                                    child: GestureDetector(
+                                      onTap: _handleToggleWishlist,
+                                      child: Container(
+                                        width: actionSize,
+                                        height: actionSize,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: colorScheme.surface
+                                              .withOpacity(0.92),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black
+                                                  .withOpacity(0.10),
+                                              blurRadius: 4,
+                                              offset: const Offset(0, 1),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Icon(
+                                          isFav
+                                              ? Icons.favorite_rounded
+                                              : Icons.favorite_border_rounded,
+                                          size: actionIconSize,
+                                          color: isFav
+                                              ? colorScheme.error
+                                              : colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                                if (!isUltraCompact) ...[
+                                  SizedBox(height: isCompact ? 4 : 6),
+                                  ArrowTooltip(
+                                    message: 'Quick View',
+                                    direction: ArrowDirection.bottom,
+                                    child: GestureDetector(
+                                      onTap: () => ProductQuickViewModal.show(
+                                          context, product),
+                                      child: Container(
+                                        width: actionSize,
+                                        height: actionSize,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: colorScheme.surface
+                                              .withOpacity(0.92),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black
+                                                  .withOpacity(0.10),
+                                              blurRadius: 4,
+                                              offset: const Offset(0, 1),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Icon(
+                                          Icons.visibility_outlined,
+                                          size: actionIconSize,
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ],
-                              ),
-                              child: Icon(
-                                isFav
-                                    ? Icons.favorite_rounded
-                                    : Icons.favorite_border_rounded,
-                                size: 15,
-                                color: isFav
-                                    ? colorScheme.error
-                                    : colorScheme.onSurfaceVariant,
-                              ),
+                              ],
                             ),
-                          );
-                        }),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: isCompact ? 4 : 8),
+
+                // Category Eyebrow
+                if (categoryText.isNotEmpty && !isUltraCompact) ...[
+                  Text(
+                    categoryText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.labelSmall?.copyWith(
+                      fontSize: isCompact ? 8.5 : 9.5,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                      color: context.onSurfaceVariantColor,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                ],
+
+                // Product Title
+                SizedBox(
+                  height: isUltraCompact ? 24 : (isCompact ? 28 : 32),
+                  child: Text(
+                    productName,
+                    textAlign: TextAlign.left,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontSize: isUltraCompact ? 9.5 : (isCompact ? 11 : 12.5),
+                      fontWeight: FontWeight.w700,
+                      color: context.onSurfaceColor,
+                      height: 1.2,
+                    ),
+                  ),
+                ),
+                SizedBox(height: isCompact ? 2 : 4),
+
+                // Rating Stars
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    children: [
+                      ...List.generate(5, (index) {
+                        final filled = avgRating >= index + 1;
+                        final half = !filled && avgRating >= index + 0.5;
+                        return Icon(
+                          half
+                              ? Icons.star_half_rounded
+                              : (filled
+                                  ? Icons.star_rounded
+                                  : Icons.star_outline_rounded),
+                          size: isCompact ? 10 : 13,
+                          color: (filled || half)
+                              ? context.semanticColors.warning
+                              : colorScheme.outline.withOpacity(0.45),
+                        );
+                      }),
+                      const SizedBox(width: 3),
+                      Text(
+                        avgRating > 0
+                            ? '(${avgRating.toStringAsFixed(1)})'
+                            : '($ratingCount)',
+                        style: textTheme.labelSmall?.copyWith(
+                          fontSize: isCompact ? 9 : 10.5,
+                          color: context.onSurfaceVariantColor,
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 8),
+                SizedBox(height: isCompact ? 3 : 5),
 
-            // Category Eyebrow
-            if (categoryText.isNotEmpty) ...[
-              Text(
-                categoryText,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.labelSmall?.copyWith(
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                  color: context.onSurfaceVariantColor,
+                // Product Price
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        ProductHelper.formatPrice(priceStr),
+                        style: textTheme.titleSmall?.copyWith(
+                          fontSize: isUltraCompact ? 11 : (isCompact ? 12.5 : 14),
+                          fontWeight: FontWeight.w800,
+                          color: context.onSurfaceColor,
+                        ),
+                        maxLines: 1,
+                      ),
+                      if (hasDiscount && regularPriceStr.isNotEmpty) ...[
+                        const SizedBox(width: 4),
+                        Text(
+                          ProductHelper.formatPrice(regularPriceStr),
+                          style: textTheme.bodySmall?.copyWith(
+                            fontSize: isCompact ? 9.5 : 11,
+                            decoration: TextDecoration.lineThrough,
+                            color: context.onSurfaceVariantColor,
+                          ),
+                          maxLines: 1,
+                        ),
+                      ],
+                      if (badgeText.startsWith('-') && !isUltraCompact) ...[
+                        const SizedBox(width: 4),
+                        Text(
+                          badgeText,
+                          style: textTheme.labelSmall?.copyWith(
+                            fontSize: isCompact ? 9 : 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: colorScheme.error,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-            ],
+                SizedBox(height: isCompact ? 4 : 8),
 
-            // Product Title (left-aligned, fixed 2-line box for uniform rows)
-            SizedBox(
-              height: 32,
-              child: Text(
-                productName,
-                textAlign: TextAlign.left,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.bodyMedium?.copyWith(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                  color: context.onSurfaceColor,
-                  height: 1.25,
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-
-            // Rating Stars (accurate rating + count)
-            Row(
-              children: [
-                ...List.generate(5, (index) {
-                  final filled = avgRating >= index + 1;
-                  final half = !filled && avgRating >= index + 0.5;
-                  return Icon(
-                    half
-                        ? Icons.star_half_rounded
-                        : (filled
-                            ? Icons.star_rounded
-                            : Icons.star_outline_rounded),
-                    size: 13,
-                    color: (filled || half)
-                        ? context.semanticColors.warning
-                        : colorScheme.outline.withOpacity(0.45),
-                  );
-                }),
-                const SizedBox(width: 4),
-                Text(
-                  avgRating > 0
-                      ? '(${avgRating.toStringAsFixed(1)})'
-                      : '($ratingCount)',
-                  style: textTheme.labelSmall?.copyWith(
-                    fontSize: 10.5,
-                    color: context.onSurfaceVariantColor,
+                // Full-Width Add To Cart / Quantity Stepper CTA
+                SizedBox(
+                  width: double.infinity,
+                  height: isCompact ? 26 : 32,
+                  child: _buildGridCartCta(
+                    context,
+                    isCompact: isCompact,
+                    isUltraCompact: isUltraCompact,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 5),
+          ),
+        );
+      },
+    );
+  }
 
-            // Product Price (left-aligned)
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    ProductHelper.formatPrice(priceStr),
-                    style: textTheme.titleSmall?.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: context.onSurfaceColor,
-                    ),
-                    maxLines: 1,
-                  ),
-                  if (hasDiscount && regularPriceStr.isNotEmpty) ...[
-                    const SizedBox(width: 5),
-                    Text(
-                      ProductHelper.formatPrice(regularPriceStr),
-                      style: textTheme.bodySmall?.copyWith(
-                        fontSize: 11,
-                        decoration: TextDecoration.lineThrough,
-                        color: context.onSurfaceVariantColor,
-                      ),
-                      maxLines: 1,
-                    ),
-                  ],
-                  if (badgeText.startsWith('-')) ...[
-                    const SizedBox(width: 5),
-                    Text(
-                      badgeText,
-                      style: textTheme.labelSmall?.copyWith(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.error,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // Full-Width Add To Cart / Quantity Stepper CTA
-            SizedBox(
-              width: double.infinity,
-              height: 32,
-              child: _buildGridCartCta(context),
-            ),
+  Widget _imageFallback(ColorScheme colorScheme) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colorScheme.primary.withOpacity(0.05),
+            colorScheme.surfaceVariant.withOpacity(0.35),
           ],
+        ),
+      ),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: colorScheme.surface.withOpacity(0.75),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.devices_other_outlined,
+            color: colorScheme.primary.withOpacity(0.55),
+            size: 28,
+          ),
         ),
       ),
     );
   }
 
-  Widget _imageFallback(ColorScheme colorScheme) {
-    return Center(
-      child: Icon(
-        Icons.devices_other_outlined,
-        color: colorScheme.onSurfaceVariant.withOpacity(0.45),
-        size: 36,
-      ),
-    );
-  }
-
-  Widget _buildGridCartCta(BuildContext context) {
+  Widget _buildGridCartCta(
+    BuildContext context, {
+    bool isCompact = false,
+    bool isUltraCompact = false,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     final inStock = ProductHelper.isInStock(product);
     final variantId = _resolveDefaultVariantId();
@@ -429,9 +520,9 @@ class ParentWebProductCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
-          'Out of Stock',
+          isUltraCompact ? 'Out' : 'Out of Stock',
           style: TextStyle(
-            fontSize: 11,
+            fontSize: isCompact ? 9.5 : 11,
             fontWeight: FontWeight.w600,
             color: colorScheme.onSurfaceVariant,
           ),
@@ -462,14 +553,16 @@ class ParentWebProductCard extends StatelessWidget {
                 onTap: () => _updateCartQuantity(context, -1),
                 behavior: HitTestBehavior.opaque,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  child: Icon(Icons.remove, size: 15, color: colorScheme.primary),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: isCompact ? 4 : 10, vertical: 2),
+                  child: Icon(Icons.remove,
+                      size: isCompact ? 12 : 15, color: colorScheme.primary),
                 ),
               ),
               Text(
                 '$qty',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: isCompact ? 10.5 : 12,
                   fontWeight: FontWeight.bold,
                   color: context.onSurfaceColor,
                 ),
@@ -478,8 +571,10 @@ class ParentWebProductCard extends StatelessWidget {
                 onTap: () => _updateCartQuantity(context, 1),
                 behavior: HitTestBehavior.opaque,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  child: Icon(Icons.add, size: 15, color: colorScheme.primary),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: isCompact ? 4 : 10, vertical: 2),
+                  child: Icon(Icons.add,
+                      size: isCompact ? 12 : 15, color: colorScheme.primary),
                 ),
               ),
             ],
@@ -489,16 +584,20 @@ class ParentWebProductCard extends StatelessWidget {
 
       return ElevatedButton.icon(
         onPressed: () => _handleAddToCart(context),
-        icon: const Icon(Icons.shopping_bag_outlined, size: 13),
-        label: const Text(
-          'Add To Cart',
-          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600),
+        icon: Icon(Icons.shopping_bag_outlined, size: isCompact ? 11 : 13),
+        label: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            isUltraCompact ? 'Add' : 'Add To Cart',
+            style: TextStyle(
+                fontSize: isCompact ? 10 : 11.5, fontWeight: FontWeight.w600),
+          ),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          padding: EdgeInsets.symmetric(horizontal: isCompact ? 4 : 10),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),

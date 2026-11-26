@@ -596,16 +596,79 @@ Following visual inspection of 6 sequential full-screen device screenshots (span
 
 ---
 
-## 11. Popular Products Tab Parity & Emulator Grid Fix
+## 11. Popular Products Tab Parity, Bestseller Isolation & Emulator Grid Fix
 
-### 11.1 Issues Resolved
-1. **Studio Web Emulator 4-Column / Missing-Image Fix (`home_products.dart`):**
-   - Replaced `kIsWeb` checks in `_buildGridView()` with `MediaQuery.of(context).size.width` breakpoints (`< 600px` → max 2 columns + `0.60` portrait aspect ratio; `600–1024px` → max 3 columns; `> 1024px` → desktop `columns`). This prevents the mobile-sized Studio Web Emulator (`kIsWeb == true`) from collapsing into 4 ultra-narrow columns with 0px images.
-2. **Section-Level `category_ids` Tab Routing (`foduu_studio_layout_mixin.dart` & `home_products.dart`):**
-   - `FoduuStudioLayoutMixin.buildLayout()` now prioritizes each `products` section's own `content_json['category_ids']` as `tab_categories` when non-empty, instead of overwriting with the page's global `categories` section.
-   - Removed the `|| _infiniteScroll` guard in `TrendingProductSection._initTabs()` so `Popular Products` renders its 4 category pill tabs (`Accessories`, `Electronics & Computer`, `Laptop & Desktop`, `Mobile & Tablets`).
-   - Added per-tab API fetching (`BasicProvider('products')` with `specific: [tabId]`, `count: 8`) and in-memory caching (`_tabProductsCache`), fixed `categoryIds` `Map` serialization in `_fetchProductsFromApi()`, and scoped `"See all"` to the active tab category.
-3. **Product Card Parity (`parent_web_product_card.dart`):**
-   - Added uppercase category eyebrow label, left-aligned 2-line title, accurate `average_rating` / `rating_count` star rendering (instead of hardcoded 5 gold stars), price + strikethrough + `-10%` tag, graceful missing-image fallback icon, and full-width `"Add To Cart"` / `- qty +` stepper CTA.
+### 11.1 Root Cause Analysis (Mobile vs. Studio Web Emulator vs. Parent Website)
+Comparing live device screenshots, Studio Web Emulator (`studio.foduu.store`), and the parent storefront (`https://foduu-electro.foduu.store/`) against `/api/mobile-app/home` payloads (`error.txt` and `log.txt`) uncovered four distinct defects:
+
+1. **Studio Web Emulator 4-Column & 0px-Image Collapse:**
+   - `_buildGridView()` in `lib/components/home_component/home_products.dart` gated column count and aspect ratio on `kIsWeb`.
+   - When compiled via `flutter build web --base-href "/owner/emulator/"` and embedded inside the ~320px Studio mobile iframe, `kIsWeb == true` applied desktop settings (`columns: 4`, `aspect_ratio: 1.3`), shrinking each card to ~70×54px and collapsing `Expanded` product images to 0px height.
+2. **Missing Category Pill Tabs on `Popular Products`:**
+   - `FoduuStudioLayoutMixin.buildLayout()` ignored each `products` section's own `content_json['category_ids']` (`Accessories`, `Electronics & Computer`, `Laptop & Desktop`, `Mobile & Tablets`) and instead injected the page's global `categories` section into `tab_categories`.
+   - `TrendingProductSection._initTabs()` aborted whenever `_infiniteScroll == true`, and `categoryIds` serialization in `_fetchProductsFromApi()` called `.toString()` on `Map` objects instead of extracting `_id`.
+3. **Tabbed Sections Bypassing `ParentWebProductCard` Grid & `Bestseller Products` Tab Leak:**
+   - `TrendingProductSection.build()` branched on `_tabsEnabled ? _buildTabbedList() : _buildProductLayout(style)`, forcing `Popular Products` (`view: "grid"`, `layout: "standard"`) into the legacy horizontal `_buildSiteProductCard()` list (red `Sale` badge, 3 vertical floating icons, 5 hardcoded gold stars, no `"Add To Cart"` CTA).
+   - Meanwhile, `FoduuStudioLayoutMixin.buildLayout()` fell through and injected global `categories` into Section 10 (`Bestseller Products`, `category_type: "popular_products"`, `category_ids: []`, `view: "list"`), causing `Bestseller Products` to wrongly render category tabs.
+4. **Product Card & Rating Mismatches:**
+   - `ParentWebProductCard` hardcoded 5 solid gold stars regardless of `average_rating`/`rating_count`, lacked the uppercase category eyebrow (`ACCESSORIES`), used centered metadata, and placed a floating bag icon over the product image instead of a full-width `"Add To Cart"` CTA.
+
+---
+
+### 11.2 Implemented Fixes
+
+| File | Key Changes |
+| :--- | :--- |
+| [foduu_studio_layout_mixin.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/core/foduuStudio/foduu_studio_layout_mixin.dart) | • Updated `buildLayout()` so `products` sections only receive `tab_categories` from their own `content_json['category_ids']` when it contains category `Map` objects.<br>• Removed the fallback that injected the global `categories` section into `popular_products` / `parent_category` sections (`Bestseller Products`, `All Product Items`). |
+| [home_products.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/components/home_component/home_products.dart) | • **Viewport-Based Grid (`_buildGridView`):** Replaced `kIsWeb` checks with `MediaQuery.of(context).size.width` breakpoints (`< 600px` → max 2 columns + `0.60` portrait aspect ratio; `600–1024px` → max 3 columns; `> 1024px` → desktop `columns`).<br>• **CMS-Strict Tabs (`_initTabs`):** Enabled tabs only when `category_type == 'specific_category'` (or `show_tabs: true`) and category `Map`s exist; capped tabbed home sections to `_tabMaxItems = 8` items per tab.<br>• **Per-Tab Server Fetch & Cache (`_fetchProductsForTab`, `_onTabSelected`):** Fetched `BasicProvider('products')` with `specific: [tabId]` and `count: 8`, cached per tab in `_tabProductsCache`, and fixed `categoryIds` `Map` `_id` extraction in `_fetchProductsFromApi()`.<br>• **Layout & Header/Footer UX (`build`, `_buildExploreTabButton`):** Routed all sections through `_buildProductLayout(style)` so `Popular Products` renders the 2-column `ParentWebProductCard` grid; removed redundant `"See all"` from tabbed headers and added an `"Explore All <Active Category> →"` button below the grid. |
+| [parent_web_product_card.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/components/parent_web_product_card.dart) | • Added `categoryLabel` support & `_resolveCategoryLabel()` uppercase eyebrow.<br>• Left-aligned 2-line fixed-height title, accurate `average_rating` / `rating_count` star rendering (amber filled/half stars + muted unfilled stars + count), and price + strikethrough + `-10%` tag.<br>• Removed overlapping bottom-right bag icon; added full-width `"Add To Cart"` pill button (with reactive `- qty +` stepper when in cart) and graceful `Icons.devices_other_outlined` fallback for missing product images. |
+
+---
+
+### 11.3 Verification & Server Deployment
+1. **Static Analysis:** Executed `flutter analyze` on `foduu_studio_layout_mixin.dart`, `home_products.dart`, and `parent_web_product_card.dart` — **0 compilation errors** (only pre-existing deprecation/unused infos).
+2. **Flutter Web Emulator Build:** Executed `flutter build web --base-href "/owner/emulator/"` — completed cleanly (`✓ Built build/web`).
+3. **Server Deployment (`192.168.1.89`):** Synced `build/web/` via `rsync` to `/root/public_html/private/mobileapps/web_release/foduu-electro/` and verified `index.html` (`4.6K`, `<base href="/owner/emulator/">`) and `main.dart.js` (`5.9M`).
+
+---
+
+## 12. Brand Identity, Slider Parity & `ArrowTooltip` Modernization (Current Chat Session)
+
+### 12.1 Visual Audit & Identified Issues
+Comparing 6 sequential mobile screenshots against the parent storefront (`https://foduu-electro.foduu.store/`, 7th screenshot) and `public-settings` backend configuration identified three core gaps:
+
+1. **Generic Header & Footer Lacking Brand Identity:**
+   - **Header (`ResponsiveCommonHeader`):** Rendered a boxy off-white `assets/images/foduu_electro_logo.webp` sticker on a white bar instead of dynamic store branding from `public-settings`, and displayed a non-functional microphone icon in the search pill.
+   - **Footer (`ResponsiveBottomNav`):** Used a generic Material 3 grey oval pill with no distinctive brand signature.
+2. **Unprofessional Hardcoded Slider Colors (`DualPromotionalDealsWidget`):**
+   - `home-third-left-slider` hardcoded peach/orange (`#FFF7ED`, `#C2410C`, `#FDBA74`) and sky/cyan (`#F0F9FF`, `#0284C7`, `#BAE6FD`) instead of `Theme.of(context).colorScheme` tokens from `public-settings`, omitted product imagery, and hardcoded `$699.99` / `$149.99` pricing—diverging sharply from the parent website's Light + Dark editorial cards.
+3. **Discoverability, Contrast & Truncation Gaps:**
+   - Missing directional tooltips (`ArrowTooltip`) on header actions, product quick-view/wishlist controls, and action buttons.
+   - `TrustBadgesComponent` clipped `"Free shipping on all order"` at `235px` pill width.
+   - `DualPromoCardsWidget` used low-contrast `colorScheme.secondary` for `"40% Off"` over dark gradients.
+   - `ParentWebProductCard` lacked a Quick View modal trigger and used a plain grey fallback icon for missing images.
+
+---
+
+### 12.2 Implemented Changes
+
+| File Path | Status | Key Changes Summary |
+| :--- | :--- | :--- |
+| [arrow_tooltip.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/components/commonWidgets/arrow_tooltip.dart) | **Created** | Built reusable `ArrowTooltip` widget (`ArrowDirection.top/bottom/left/right`) with custom-painted `_ArrowPainter` triangle pointer, viewport edge clamping, `FadeTransition`/`ScaleTransition`, long-press discovery, and optional one-time `GetStorage` coachmark persistence. |
+| [main.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/main.dart) & [splash_screen_controller.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/app/modules/splashscreen/controller/splash_screen_controller.dart) | **Modified** | Persisted `store_name` and `store_logo` (`logo` / `app_logo` / `store_logo`) from `public-settings` into `GetStorage`. |
+| [responsive_common_header.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/app/modules/homepage/views/material/responsive_common_header.dart) | **Modified** | Replaced the boxy `.webp` logo with `_BrandIdentityLockup` (dynamic backend logo via `CachedNetworkImage` + `fixImageUrl()`, or primary icon badge + dynamic store wordmark + `"OFFICIAL STORE"` micro-subtitle); added `ArrowTooltip` to menu, notifications, cart, and search filter pill. |
+| [responsive_bottom_nav.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/app/modules/homepage/views/material/responsive_bottom_nav.dart) | **Modified** | Added top-aligned animated brand indicator bar (`26×3px`), `AnimatedScale` active icon emphasis, refined pill highlight, and `AnimatedSwitcher` badge transitions. |
+| [dual_promotional_deals.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/components/home_component/dual_promotional_deals.dart) | **Modified** | Removed all hardcoded orange/cyan hex colors and hardcoded prices; implemented the parent site's Light + Dark editorial pairing driven by `colorScheme` tokens, right-anchored product imagery with directional gradient fade, and `"Shop Collection →"` / `"Explore Deals →"` pill CTAs. |
+| [dual_promo_cards.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/components/home_component/dual_promo_cards.dart) | **Modified** | Replaced low-contrast `colorScheme.secondary` discount text with a high-contrast translucent white badge over the dark gradient scrim. |
+| [home_trust_badges.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/components/home_component/home_trust_badges.dart) | **Modified** | Widened service pills from `235px` to `268px` so `"Free shipping on all order"` and guarantee descriptions render without ellipsis clipping. |
+| [parent_web_product_card.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/components/parent_web_product_card.dart) | **Modified** | Added Quick View (`Icons.visibility_outlined` → `ProductQuickViewModal.show`) alongside Wishlist, wrapped both in `ArrowTooltip`, and upgraded `_imageFallback` to a tonal circular icon container. |
+| [home_products.dart](file:///Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/components/home_component/home_products.dart) | **Modified** | Upgraded `_actionCircleBtn` from standard `Tooltip` to `ArrowTooltip`. |
+
+---
+
+### 12.3 Verification
+* **Static Analysis (`flutter analyze`):** Executed across all 10 modified/created files — **0 compilation errors** (only pre-existing deprecation `info` notices and 3 pre-existing unused-declaration/import warnings).
+
+
 
 

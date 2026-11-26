@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/commonWidgets/dynamic_horizontal_arrow_scroller.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'home_common_widgets.dart';
@@ -359,13 +360,21 @@ class _BlogSectionState extends State<BlogSection>
           // Horizontal Snapping Carousel
           SizedBox(
             height: 335,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
+            child: DynamicHorizontalArrowScroller(
+              arrowSize: 34,
+              iconSize: 20,
+              scrollStep: 290,
+              edgePadding: 6,
               itemCount: _blogs.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 14),
-              itemBuilder: (context, index) {
+              builder: (context, scrollController) => ListView.separated(
+                controller: scrollController,
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: _blogs.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(width: 14),
+                itemBuilder: (context, index) {
                 final blog = _blogs[index];
                 if (blog is! Map) return const SizedBox.shrink();
 
@@ -565,6 +574,7 @@ class _BlogSectionState extends State<BlogSection>
                   ),
                 );
               },
+              ),
             ),
           ),
           const SizedBox(height: 18),

@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/components/commonWidgets/dynamic_horizontal_arrow_scroller.dart';
 import '/components/app_image_placeholder.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/modules/category/views/category_dialog.dart';
@@ -104,14 +105,22 @@ class _TopCategoryHomeState extends State<CategoryHome>
               PointerDeviceKind.trackpad,
             },
           ),
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
+          child: DynamicHorizontalArrowScroller(
+            arrowSize: 32,
+            iconSize: 19,
+            scrollStep: 220,
+            edgePadding: 4,
             itemCount: categories.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 14),
-            itemBuilder: (context, index) =>
-                _buildCategoryItem(categories[index], 'circular'),
+            builder: (context, scrollController) => ListView.separated(
+              controller: scrollController,
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: categories.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 14),
+              itemBuilder: (context, index) =>
+                  _buildCategoryItem(categories[index], 'circular'),
+            ),
           ),
         ),
       );

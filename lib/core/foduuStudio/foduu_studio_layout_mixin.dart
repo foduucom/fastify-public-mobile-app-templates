@@ -2,7 +2,6 @@
 
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
@@ -94,43 +93,25 @@ mixin FoduuStudioLayoutMixin on GetxController {
         .map((s) => s['type'])
         .whereType<String>());
 
-    // The products section builds its category tabs from the categories
-    // section of the same page, so hand the category list over to it.
-    List? tabCategories;
-    for (var section in sections) {
-      if (section is Map && section['type'] == 'categories') {
-        final cats = (section['content_json'] as Map?)?['categories'];
-        if (cats is List && cats.isNotEmpty) tabCategories = cats;
-        break;
-      }
-    }
-
-    var tabsInjected = false;
     for (var section in sections) {
       if (section is Map<String, dynamic>) {
+        if (section['visible'] == false) continue;
         if (excludeSectionTypes.contains(section['type'])) continue;
         var toBuild = section;
         if (section['type'] == 'products') {
           final cj = Map<String, dynamic>.from(
               section['content_json'] as Map? ?? {});
           final sectionCatIds = cj['category_ids'];
-          if (sectionCatIds is List && sectionCatIds.isNotEmpty) {
-            // Section specifies its own category_ids (e.g. Popular Products
-            // with specific_category); use them directly as tab_categories.
+          if (sectionCatIds is List &&
+              sectionCatIds.isNotEmpty &&
+              sectionCatIds.any((c) => c is Map)) {
+            // Section specifies its own category objects (e.g. Popular Products
+            // with specific_category); pass them as tab_categories.
             toBuild = {
               ...section,
               'content_json': {
                 ...cj,
                 'tab_categories': sectionCatIds,
-              },
-            };
-          } else if (tabCategories != null && !tabsInjected) {
-            tabsInjected = true;
-            toBuild = {
-              ...section,
-              'content_json': {
-                ...cj,
-                'tab_categories': tabCategories,
               },
             };
           }
@@ -152,6 +133,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
     final result = <Widget>[];
     for (var section in _initialComponents) {
       if (section is Map<String, dynamic>) {
+        if (section['visible'] == false) continue;
         if (excludeTypes.contains(section['type'])) continue;
         final widget = _registry.build(section);
         if (widget != null) result.add(widget);
@@ -181,7 +163,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
   /// With [silent] the current content stays on screen (no loading state);
   /// used to refresh quietly once the backend recovers.
   Future<dynamic> fetchLayout(String slug,
-      {dynamic requestBody, bool silent = false}) async {
+      {dynamic requestBody, bool silent = false, bool useCache = true}) async {
     _lastFetchSlug = slug;
     _lastFetchBody = requestBody;
     _watchBackendRecovery();
@@ -193,13 +175,11 @@ mixin FoduuStudioLayoutMixin on GetxController {
       }
       dynamic response;
 
-      // Ensure socket is connected and listener is enabled on web
-      if (kIsWeb) {
-        if (!_layoutSocketHelper.isConnected) {
-          _layoutSocketHelper.connect();
-        }
-        enableSocketUpdates(domain: websiteDomain, slug: slug);
+      // Connect socket and register live layout updates on both mobile and web.
+      if (!_layoutSocketHelper.isConnected) {
+        _layoutSocketHelper.connect();
       }
+      enableSocketUpdates(domain: websiteDomain, slug: slug);
 
       if (requestBody != null) {
         response = await BasicProvider("mobile-app/by-json")
@@ -209,7 +189,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
       } else {
         final provider = BasicProvider("mobile-app/$slug");
         response = await provider
-            .getRequest()
+            .getRequest(useCache: useCache)
             .catchError((e, stackTrace) => _handleApiError(e, stackTrace));
         isStale.value = provider.servedFromCache;
       }
@@ -233,6 +213,10 @@ mixin FoduuStudioLayoutMixin on GetxController {
         var list = response['sections'];
         if (list != null && list is List) {
           _initialComponents = list;
+          if (_lastSocketSections.isEmpty) {
+            _lastSocketSections =
+                List.from(list.map((e) => json.decode(json.encode(e))));
+          }
           buildLayout(list);
         }
       }
@@ -263,6 +247,9 @@ mixin FoduuStudioLayoutMixin on GetxController {
 
   @override
   void onClose() {
+    if (_currentDomain != null && _currentSlug != null) {
+      disableSocketUpdates(_currentDomain!, _currentSlug!);
+    }
     _recoveryWorker?.dispose();
     super.onClose();
   }

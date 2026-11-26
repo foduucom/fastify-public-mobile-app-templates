@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
+import 'package:foduu_ecommerce/components/commonWidgets/dynamic_horizontal_arrow_scroller.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/foduuCachedImageNetwork.dart';
@@ -630,13 +631,20 @@ class _BadgeList extends StatelessWidget {
             ],
             SizedBox(
               height: 60,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
+              child: DynamicHorizontalArrowScroller(
+                arrowSize: 28,
+                iconSize: 18,
+                scrollStep: 240,
+                edgePadding: 4,
                 itemCount: cards.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (context, i) {
+                builder: (context, scrollController) => ListView.separated(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: cards.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 10),
+                  itemBuilder: (context, i) {
                   final c = cards[i];
                   final image = c['image'] ?? c['icon'];
                   final heading = _str(c['heading'] ?? c['title']);
@@ -645,9 +653,9 @@ class _BadgeList extends StatelessWidget {
                       image != null ? HelperFunctions().getImage(image) : '';
 
                   return Container(
-                    width: 235,
+                    width: 268,
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: isDark
                           ? colorScheme.surface
@@ -721,6 +729,7 @@ class _BadgeList extends StatelessWidget {
                     ),
                   );
                 },
+              ),
               ),
             ),
           ],
