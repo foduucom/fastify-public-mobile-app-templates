@@ -9,7 +9,7 @@ class ContactView extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppWebViewScreen(
       title: "Contact Us",
-      url: "${url}contact",
+      url: "${url}contact-us",
     );
   }
 }

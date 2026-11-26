@@ -128,6 +128,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
       }
       try {
         final section = Map<String, dynamic>.from(rawSection);
+        if (section['visible'] == false) continue;
         final type = section['type']?.toString() ?? '';
         if (_excludedSectionTypes.contains(type)) continue;
 
@@ -153,6 +154,19 @@ mixin FoduuStudioLayoutMixin on GetxController {
             section['content_json'] = content;
           }
         }
+        if (type == 'products') {
+          final rawContent = section['content_json'] ?? section['contentJson'];
+          if (rawContent is Map) {
+            final cj = Map<String, dynamic>.from(rawContent);
+            final sectionCatIds = cj['category_ids'];
+            if (sectionCatIds is List &&
+                sectionCatIds.isNotEmpty &&
+                sectionCatIds.any((c) => c is Map)) {
+              cj['tab_categories'] = sectionCatIds;
+              section['content_json'] = cj;
+            }
+          }
+        }
 
         final widget = _registry.build(section);
         if (widget != null) {
@@ -172,6 +186,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
     final nonPromotional = {'categories', 'products', 'search'};
     final nextPromotionalWidgets = <Widget>[];
     for (final section in parsedSections) {
+      if (section['visible'] == false) continue;
       if (nonPromotional.contains(section['type']?.toString())) continue;
       try {
         final widget = _registry.build(section);
@@ -221,6 +236,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
     final excluded = excludedTypes.toSet();
     final widgets = <Widget>[];
     for (final section in rawSections) {
+      if (section['visible'] == false) continue;
       if (excluded.contains(section['type']?.toString())) continue;
       try {
         final widget = _registry.build(section);
@@ -236,7 +252,8 @@ mixin FoduuStudioLayoutMixin on GetxController {
   ///
   /// - [slug] — the page slug, e.g. `'home'`, `'category'`, etc.
   /// - [requestBody] — if provided, uses POST `mobile-app/by-json` instead of GET.
-  Future<dynamic> fetchLayout(String slug, {dynamic requestBody}) async {
+  Future<dynamic> fetchLayout(String slug,
+      {dynamic requestBody, bool useCache = true}) async {
     final requestId = ++_layoutRequestId;
     _lastFetchSlug = slug;
     _lastFetchBody = requestBody;
@@ -265,7 +282,7 @@ mixin FoduuStudioLayoutMixin on GetxController {
       } else {
         provider = BasicProvider("mobile-app/$slug");
         response = await provider
-            .getRequest()
+            .getRequest(useCache: useCache)
             .catchError((e, stackTrace) => _handleApiError(e, stackTrace));
         isStale.value = provider.servedFromCache;
       }

@@ -74,7 +74,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   ScrollPosition? _parentScrollPosition;
   bool _useParentScroll = false;
 
-  // ─── Category tabs (built in-app from the page's categories section) ───
+  // ─── Category tabs (built from section category_ids or page categories) ───
   List<Map<String, dynamic>> _tabs = [];
   final _selectedTab = 0.obs;
   final _selectedFeaturedProduct = 0.obs;
@@ -82,6 +82,9 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       PageController(viewportFraction: 0.94);
   bool get _tabsEnabled => _tabs.isNotEmpty;
   final _childCategoriesCache = <String, List<dynamic>>{}.obs;
+  final _tabProductsCache = <String, List<dynamic>>{}.obs;
+  final _isTabLoading = false.obs;
+  static const int _tabMaxItems = 8;
 
   bool get _hasMoreValue =>
       _isExternal ? widget.externalHasMore : _hasMore.value;
@@ -99,18 +102,69 @@ class _TrendingProductCardState extends State<TrendingProductSection>
 
   void _initTabs() {
     final json = widget.contentJson;
-    final layout = json?['layout'] ?? 'standard';
+    final categoryType = (json?['category_type'] ?? '').toString();
     final showTabs =
-        json?['show_tabs'] ?? (layout == 'horizontal' || layout == 'standard');
-    final cats = json?['tab_categories'];
-    if (showTabs != true || _infiniteScroll || cats is! List) return;
+        json?['show_tabs'] ?? (categoryType == 'specific_category');
+    final rawCats = json?['category_ids'] is List &&
+            (json?['category_ids'] as List).isNotEmpty
+        ? json!['category_ids']
+        : json?['tab_categories'];
+    if (showTabs != true || rawCats is! List) return;
     _tabs = [
-      for (final c in cats)
+      for (final c in rawCats)
         if (c is Map &&
             (c['_id'] != null || c['id'] != null) &&
             c['name'] != null)
           Map<String, dynamic>.from(c)
     ];
+    if (_tabs.isNotEmpty) {
+      _infiniteScroll = false;
+    }
+  }
+
+  String _tabIdAt(int index) {
+    if (index < 0 || index >= _tabs.length) return '';
+    return (_tabs[index]['_id'] ?? _tabs[index]['id'] ?? '').toString();
+  }
+
+  Future<void> _onTabSelected(int index) async {
+    _selectedTab.value = index;
+    await _fetchProductsForTab(index);
+  }
+
+  Future<void> _fetchProductsForTab(int index) async {
+    final tabId = _tabIdAt(index);
+    if (tabId.isEmpty || _tabProductsCache.containsKey(tabId)) return;
+
+    _isTabLoading.value = true;
+    try {
+      final response = await BasicProvider('products').getRequest(
+        queryParams: {
+          'page': '1',
+          'count': _tabMaxItems.toString(),
+          'specific': [tabId],
+        },
+      ).catchError(handleError);
+
+      List fetched = [];
+      if (response is Map) {
+        if (response['data'] is List) {
+          fetched = response['data'];
+        } else if (response['product'] is List) {
+          fetched = response['product'];
+        } else if (response['products'] is List) {
+          fetched = response['products'];
+        }
+      } else if (response is List) {
+        fetched = response;
+      }
+
+      _tabProductsCache[tabId] = fetched;
+    } catch (e) {
+      debugPrint('Error fetching tab products for $tabId: $e');
+    } finally {
+      _isTabLoading.value = false;
+    }
   }
 
   /// Products of the selected tab (all loaded products when tabs are off).
@@ -118,6 +172,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     if (!_tabsEnabled) return trendingList;
     final tab = _tabs[_selectedTab.value];
     final id = (tab['_id'] ?? tab['id'] ?? '').toString();
+
+    final cached = _tabProductsCache[id];
+    if (cached != null) {
+      return cached;
+    }
 
     final childIds = <String>{};
     if (tab['children'] is List) {
@@ -207,7 +266,52 @@ class _TrendingProductCardState extends State<TrendingProductSection>
       }
     } else {
       _loadProducts();
-      if (trendingList.isEmpty && !_isExternal) {
+      if (_tabsEnabled) {
+        _fetchProductsForTab(0);
+      } else if (trendingList.isEmpty && !_isExternal) {
+        _currentPage.value = 1;
+        _fetchProductsFromApi();
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant TrendingProductSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_isExternal) return;
+
+    if (widget.contentJson != oldWidget.contentJson) {
+      _infiniteScroll = widget.contentJson?['infinite_scroll'] == true;
+      final rawCount = widget.contentJson?['count'];
+      _countPerPage = (rawCount is int && rawCount > 0)
+          ? rawCount
+          : int.tryParse(rawCount?.toString() ?? '') ?? 10;
+      if (_countPerPage <= 0) _countPerPage = 10;
+      _tabs = [];
+      _initTabs();
+
+      final productData =
+          widget.contentJson?['product'] ?? widget.contentJson?['products'];
+      if (productData != null) {
+        if (productData is Map) {
+          final initialProducts =
+              productData['data'] is List ? productData['data'] as List : [];
+          trendingList.assignAll(initialProducts);
+          _hasMore.value = ProductPagination.hasMore(
+            productData,
+            itemCount: initialProducts.length,
+            pageSize: _countPerPage,
+          );
+          _currentPage.value = ProductPagination.nextPage(
+            productData,
+            defaultPage: initialProducts.isEmpty ? 1 : 2,
+          );
+        } else if (productData is List) {
+          trendingList.assignAll(productData);
+          _hasMore.value = false;
+        }
+        _isInitialLoading.value = false;
+      } else {
         _currentPage.value = 1;
         _fetchProductsFromApi();
       }
@@ -329,7 +433,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
           categoryIds != null &&
           categoryIds is List &&
           categoryIds.isNotEmpty) {
-        queryParams['specific'] = categoryIds.map((e) => e.toString()).toList();
+        queryParams['specific'] = categoryIds
+            .map((e) =>
+                e is Map ? (e['_id'] ?? e['id'] ?? '').toString() : e.toString())
+            .where((id) => id.isNotEmpty)
+            .toList();
       }
 
       final response = await BasicProvider('products')
@@ -476,14 +584,16 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                     child: StudioSectionHeader(
                       title: heading,
                       subtitle: subheading.isNotEmpty ? subheading : null,
-                      onSeeAll: () {
-                        openShop({
-                          'filterType': categoryType,
-                          'filterValue': true,
-                          'name': heading,
-                          'source': 'dashboard'
-                        });
-                      },
+                      onSeeAll: _tabsEnabled
+                          ? null
+                          : () {
+                              openShop({
+                                'filterType': categoryType,
+                                'filterValue': true,
+                                'name': heading,
+                                'source': 'dashboard'
+                              });
+                            },
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -491,7 +601,10 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                 if (_tabsEnabled) _buildTabBar(),
                 if (_tabsEnabled) const SizedBox(height: 12),
                 // ─── Product Cards ───
-                (_isInitialLoading.value && trendingList.isEmpty)
+                ((_isInitialLoading.value && trendingList.isEmpty) ||
+                        (_tabsEnabled &&
+                            _isTabLoading.value &&
+                            displayedProducts.isEmpty))
                     ? const SizedBox(
                         height: 260,
                         child: Padding(
@@ -499,11 +612,13 @@ class _TrendingProductCardState extends State<TrendingProductSection>
                           child: TrendingProductsShimmer(),
                         ),
                       )
-                    : trendingList.isEmpty
+                    : (trendingList.isEmpty && !_tabsEnabled)
                         ? const SizedBox.shrink()
-                        : (_tabsEnabled
-                            ? _buildTabbedList()
-                            : _buildProductLayout(style)),
+                        : _buildProductLayout(style),
+                if (_tabsEnabled &&
+                    _tabs.length > _selectedTab.value &&
+                    displayedProducts.isNotEmpty)
+                  _buildExploreTabButton(_tabs[_selectedTab.value]),
                 if (_infiniteScroll &&
                     !_hasMoreValue &&
                     displayedProducts.isNotEmpty)
@@ -561,6 +676,53 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     );
   }
 
+  Widget _buildExploreTabButton(Map<String, dynamic> activeTab) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final tabName = activeTab['name']?.toString() ?? 'Products';
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: SizedBox(
+        width: double.infinity,
+        height: 40,
+        child: OutlinedButton(
+          onPressed: () {
+            openShop({
+              'source': 'category',
+              'categorySlug': activeTab['slug'],
+              'category': activeTab['_id'] ?? activeTab['id'],
+              'name': tabName,
+            });
+          },
+          style: OutlinedButton.styleFrom(
+            foregroundColor: colorScheme.primary,
+            side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.28)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Explore All $tabName',
+                style: textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(Icons.arrow_forward_rounded,
+                  size: 16, color: colorScheme.primary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // CATEGORY TABS (mirrors the website's "Favorite Style Product")
   // ═══════════════════════════════════════════════════════════════════════════
@@ -568,34 +730,39 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return SizedBox(
-      height: 38,
+      height: 36,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         scrollDirection: Axis.horizontal,
         itemCount: _tabs.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 16),
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
           final selected = _selectedTab.value == i;
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () => _selectedTab.value = i,
-            child: Container(
+            onTap: () => _onTabSelected(i),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               alignment: Alignment.center,
-              padding: const EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: selected ? colorScheme.primary : Colors.transparent,
-                    width: 2.5,
-                  ),
+                color: selected
+                    ? colorScheme.primary
+                    : colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: selected
+                      ? colorScheme.primary
+                      : colorScheme.outline.withValues(alpha: 0.15),
                 ),
               ),
               child: Text(
                 _tabs[i]['name']?.toString() ?? '',
-                style: textTheme.titleSmall?.copyWith(
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                style: textTheme.labelLarge?.copyWith(
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  fontSize: 12.5,
                   color: selected
-                      ? colorScheme.primary
+                      ? colorScheme.onPrimary
                       : colorScheme.onSurfaceVariant,
                 ),
               ),
@@ -1167,7 +1334,7 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   }
 
   int _getDisplayLimit() {
-    if (_tabsEnabled) return 1 << 30;
+    if (_tabsEnabled) return _tabMaxItems;
     final count = int.tryParse(widget.contentJson?['count']?.toString() ?? '');
     if (count != null && count > 0) return count;
     return 10;
@@ -1216,37 +1383,37 @@ class _TrendingProductCardState extends State<TrendingProductSection>
     final columns =
         int.tryParse(widget.contentJson?['columns']?.toString() ?? '2') ?? 2;
 
-    // Determine safe aspect ratio:
-    // Vertical portrait cards (parent_web, standard, overlay) require childAspectRatio <= 0.85.
-    // If the CMS passes a squat ratio (like 2.4), clamp to proper vertical ratios:
-    // 2 columns -> ~0.58 (matching boutique portrait card standards)
-    // 3+ columns -> ~0.52
-    // 1 column -> ~0.65
-    double resolvedAspectRatio;
-    if (style == 'horizontal') {
-      resolvedAspectRatio = double.tryParse(
-              widget.contentJson?['aspect_ratio']?.toString() ?? '2.4') ??
-          2.4;
+    final configuredRatio = double.tryParse(
+        widget.contentJson?['aspect_ratio']?.toString() ?? '');
+    final double resolvedAspectRatio;
+    if (configuredRatio != null &&
+        configuredRatio > 0 &&
+        configuredRatio <= 0.85) {
+      resolvedAspectRatio = configuredRatio;
     } else {
-      final configuredRatio = double.tryParse(
-          widget.contentJson?['aspect_ratio']?.toString() ?? '');
-      if (configuredRatio != null &&
-          configuredRatio > 0 &&
-          configuredRatio <= 0.85) {
-        resolvedAspectRatio = configuredRatio;
-      } else {
-        resolvedAspectRatio =
-            columns >= 3 ? 0.52 : (columns == 1 ? 0.65 : 0.58);
-      }
+      resolvedAspectRatio =
+          columns >= 3 ? 0.50 : (columns == 1 ? 0.65 : 0.60);
     }
 
     final spacing =
         double.tryParse(widget.contentJson?['spacing']?.toString() ?? '12') ??
             12;
 
+    final validProducts = displayedProducts.where((p) {
+      if (p is! Map<String, dynamic>) return false;
+      return ProductHelper.calculatePriceInfo(p)['hasValidVariants'] == true;
+    }).toList();
+
     final itemCount = (_infiniteScroll && _hasMoreValue)
-        ? displayedProducts.length + 1
-        : displayedProducts.length;
+        ? validProducts.length + 1
+        : validProducts.length;
+
+    if (itemCount == 0) {
+      if (_tabsEnabled && _tabs.length > _selectedTab.value) {
+        return _buildEmptyTabFallback(_tabs[_selectedTab.value]);
+      }
+      return const SizedBox.shrink();
+    }
 
     return Padding(
       padding: pageSurroundingPadding,
@@ -1261,13 +1428,11 @@ class _TrendingProductCardState extends State<TrendingProductSection>
         ),
         itemCount: itemCount,
         itemBuilder: (context, index) {
-          //if (index >= trendingList.length) {
-          if (index >= displayedProducts.length) {
+          if (index >= validProducts.length) {
             return _buildLoadingIndicatorVertical();
           }
-          final product = displayedProducts[index] as Map<String, dynamic>;
+          final product = validProducts[index] as Map<String, dynamic>;
           final priceInfo = ProductHelper.calculatePriceInfo(product);
-          if (!priceInfo['hasValidVariants']) return const SizedBox.shrink();
           return _buildGridItem(product, priceInfo, style);
         },
       ),
@@ -1277,17 +1442,22 @@ class _TrendingProductCardState extends State<TrendingProductSection>
   /// Build a single grid item — uses the card style from `layout`
   Widget _buildGridItem(Map<String, dynamic> product,
       Map<String, dynamic> priceInfo, String style) {
-    if (style == 'parent_web') {
-      return ParentWebProductCard(product: product, isList: false);
+    final activeCategoryLabel =
+        (_tabsEnabled && _tabs.length > _selectedTab.value)
+            ? _tabs[_selectedTab.value]['name']?.toString()
+            : null;
+    if (style == 'parent_web' || style == 'standard' || style == 'horizontal') {
+      return ParentWebProductCard(
+        product: product,
+        isList: false,
+        categoryLabel: activeCategoryLabel,
+      );
     }
 
     if (style == 'overlay') {
       return _buildOverlayItem(product, priceInfo);
     }
 
-    if (style == 'horizontal') {
-      return _buildHorizontalItem(product, priceInfo);
-    }
     // default: standard card style for grid
     return _buildStandardItem(product, priceInfo);
   }

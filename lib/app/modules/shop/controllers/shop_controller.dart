@@ -122,8 +122,19 @@ class ShopController extends GetxController
   }
 
   @override
-  Future<dynamic> fetchLayout(String slug, {dynamic requestBody}) async {
-    final response = await super.fetchLayout(slug, requestBody: requestBody);
+  void buildLayout(List sections) {
+    super.buildLayout(sections);
+    _syncCmsProductMetadata();
+  }
+
+  @override
+  Future<dynamic> fetchLayout(String slug,
+      {dynamic requestBody, bool useCache = true}) async {
+    final response = await super.fetchLayout(
+      slug,
+      requestBody: requestBody,
+      useCache: useCache,
+    );
     _syncCmsProductMetadata();
     return response;
   }

@@ -31,6 +31,14 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
   bool _hasError = false;
   String _errorMessage = '';
 
+  static const _nativeLoadTimeout = Duration(seconds: 30);
+
+  String _urlForDiagnostics(Object? value) {
+    final uri = Uri.tryParse(value?.toString() ?? '');
+    if (uri == null) return value?.toString() ?? '<unknown URL>';
+    return uri.replace(query: '', fragment: '').toString();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -45,8 +53,8 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
   }
 
   void _initWebFallbackTimer() {
+    _webTimeoutTimer?.cancel();
     if (kIsWeb) {
-      _webTimeoutTimer?.cancel();
       // Browsers often don't fire granular progress events for cross-origin iframes.
       // A fallback timer guarantees the loading overlay is dismissed so the iframe view displays.
       _webTimeoutTimer = Timer(const Duration(milliseconds: 2500), () {
@@ -57,7 +65,27 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
           });
         }
       });
+    } else {
+      // A native navigation can fail without a useful callback on some WebKit errors.
+      // Bound the loading state so the user can retry instead of seeing a spinner forever.
+      _webTimeoutTimer = Timer(_nativeLoadTimeout, () {
+        if (mounted && _isLoading && !_hasError) {
+          debugPrint('WebView load timed out: ${widget.url}');
+          _showLoadError('The page took too long to load. Please try again.');
+        }
+      });
     }
+  }
+
+  void _showLoadError(String message) {
+    _webTimeoutTimer?.cancel();
+    _pullToRefreshController?.endRefreshing();
+    if (!mounted) return;
+    setState(() {
+      _hasError = true;
+      _isLoading = false;
+      _errorMessage = message;
+    });
   }
 
   void _initPullToRefresh() {
@@ -69,6 +97,8 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
         onRefresh: () async {
           _hasError = false;
           _isLoading = true;
+          _progress = 0;
+          _initWebFallbackTimer();
           setState(() {});
           if (_webViewController != null) {
             _webViewController!.reload();
@@ -353,6 +383,7 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
                                   _isLoading = true;
                                   _progress = 0;
                                 });
+                                _initWebFallbackTimer();
                                 _webViewController?.reload();
                               },
                               icon: const Icon(Icons.refresh_rounded),
@@ -406,10 +437,17 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
       pullToRefreshController: _pullToRefreshController,
       onWebViewCreated: (controller) {
         _webViewController = controller;
+        debugPrint(
+          'WebView created; loading ${_urlForDiagnostics(widget.url)}',
+        );
       },
       onLoadStart: (controller, url) {
+        debugPrint('WebView load started: ${_urlForDiagnostics(url)}');
+        _initWebFallbackTimer();
         setState(() {
           _hasError = false;
+          _isLoading = true;
+          _progress = 0;
         });
         if (!kIsWeb) {
           _applyThemeStyling(isDark);
@@ -418,19 +456,16 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
       onProgressChanged: (controller, progress) {
         setState(() {
           _progress = progress / 100.0;
-          if (progress >= 70) {
-            _isLoading = false;
-          }
         });
         if (!kIsWeb && progress > 30) {
           _applyThemeStyling(isDark);
         }
         if (progress == 100) {
-          _webTimeoutTimer?.cancel();
           _pullToRefreshController?.endRefreshing();
         }
       },
       onLoadStop: (controller, url) async {
+        debugPrint('WebView load finished: ${_urlForDiagnostics(url)}');
         _webTimeoutTimer?.cancel();
         _pullToRefreshController?.endRefreshing();
         if (kIsWeb) {
@@ -446,15 +481,41 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
         }
       },
       onReceivedError: (controller, request, error) {
-        _webTimeoutTimer?.cancel();
-        _pullToRefreshController?.endRefreshing();
+        debugPrint(
+          'WebView resource error: ${_urlForDiagnostics(request.url)} '
+          'mainFrame=${request.isForMainFrame} type=${error.type}: '
+          '${error.description}',
+        );
         if (request.isForMainFrame ?? true) {
-          setState(() {
-            _hasError = true;
-            _isLoading = false;
-            _errorMessage = error.description;
-          });
+          _showLoadError(error.description);
         }
+      },
+      onReceivedHttpError: (controller, request, response) {
+        debugPrint(
+          'WebView HTTP response: ${_urlForDiagnostics(request.url)} '
+          'mainFrame=${request.isForMainFrame} status=${response.statusCode}',
+        );
+        if ((request.isForMainFrame ?? true) &&
+            (response.statusCode ?? 0) >= 400) {
+          _showLoadError(
+            'The page returned an error (${response.statusCode}). Please try again.',
+          );
+        }
+      },
+      shouldOverrideUrlLoading: (controller, navigationAction) async {
+        final request = navigationAction.request;
+        debugPrint(
+          'WebView navigation: ${_urlForDiagnostics(request.url)} '
+          'mainFrame=${navigationAction.isForMainFrame} '
+          'redirect=${navigationAction.isRedirect} policy=ALLOW',
+        );
+        return NavigationActionPolicy.ALLOW;
+      },
+      onUpdateVisitedHistory: (controller, url, isReload) {
+        debugPrint(
+          'WebView history updated: ${_urlForDiagnostics(url)} '
+          'reload=$isReload',
+        );
       },
     );
 
