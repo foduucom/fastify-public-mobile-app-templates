@@ -8,6 +8,7 @@ import 'package:zouhi/app/modules/helpandsupport/controllers/policy_controller.d
 import 'package:zouhi/constants/constants.dart';
 import 'package:zouhi/constants/helper_functions.dart';
 import 'package:zouhi/constants/theme_ext.dart';
+import 'package:zouhi/core/foduuStudio/foduu_studio_layout_view.dart';
 
 class PolicyDetailView extends GetView<PolicyController> {
   const PolicyDetailView({Key? key}) : super(key: key);
@@ -53,13 +54,18 @@ class PolicyDetailView extends GetView<PolicyController> {
                 );
               }),
       ),
-      body: Obx(() {
-        if (controller.policyType == 'terms') {
-          return _buildTermsBody(context);
-        }
-        if (controller.policyType == 'privacy') {
-          return _buildPrivacyBody(context);
-        }
+      body: isDocumentStyle
+          ? FoduuStudioLayoutView(
+              widgetList: controller.widgetList,
+              isLoading: controller.isLayoutLoading,
+              hasError: controller.hasError,
+              errorMessage: controller.errorMessage,
+              onRefresh: () => controller.fetchPolicy(
+                controller.policyType,
+                forceRefresh: true,
+              ),
+            )
+          : Obx(() {
 
         if (controller.isLoading.value && controller.pageData.value == null) {
           return Center(child: HelperFunctions().loadingIndicator());

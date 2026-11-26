@@ -205,7 +205,7 @@ class ContactInfoBadgesData {
           ContactInfoCard(
             image: '2026/10/23/svgviewer-png-output-1-650a0ab8.webp',
             heading: 'Phone Number',
-            text: '+91 98765 43210',
+            text: '+519744555',
           ),
         ],
       );
@@ -419,7 +419,7 @@ class ContactBroadcastSectionsData {
             text: email,
           ));
         }
-        final phone = _s(f, 'phone_number', '+91 98765 43210');
+        final phone = _s(f, 'phone_number', '+519744555');
         if (phone.isNotEmpty) {
           infoCards.add(ContactInfoCard(
             image: '2026/10/23/svgviewer-png-output-1-650a0ab8.webp',

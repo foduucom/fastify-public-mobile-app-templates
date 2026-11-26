@@ -138,8 +138,60 @@ class CableAssembliesController extends GetxController
     super.onInit();
     _prefillUserDetails();
     _loadCachedLayout();
+    if (widgetList.isEmpty) {
+      buildLayout(_canonicalSections);
+    }
+    isLayoutLoading.value = false;
     fetchCableAssembliesLayout();
   }
+
+  List<Map<String, dynamic>> get _canonicalSections => [
+        {
+          'type': 'banner',
+          'id': 'cable-assemblies-banner',
+          'content_json': {
+            '_page_slug': 'cable-assemblies',
+            'banners': [
+              {
+                'config': {'border_radius': 12, 'height': 200},
+                'items': [
+                  {
+                    'link': {'value': 'cable-assemblies'},
+                    'featured_image': {
+                      'download_url':
+                          CableAssembliesBannerData.canonical().imageUrl,
+                      'alt_text':
+                          CableAssembliesBannerData.canonical().altText,
+                    },
+                  }
+                ],
+              }
+            ],
+          },
+        },
+        {
+          'type': 'formbuilder',
+          'id': 'cable-assemblies-form',
+          'content_json': {
+            '_page_slug': 'cable-assemblies',
+            'title': CableAssembliesFormBuilderData.canonical().title,
+            'form_id': {
+              'value': CableAssembliesFormBuilderData.canonical().formId,
+              'slug': CableAssembliesFormBuilderData.canonical().formSlug,
+              'label': CableAssembliesFormBuilderData.canonical().formLabel,
+            },
+          },
+        },
+        {
+          'type': 'rich_text',
+          'id': 'cable-assemblies-notes',
+          'content_json': {
+            '_page_slug': 'cable-assemblies',
+            'html_content':
+                CableAssembliesRichTextData.canonical().htmlContent,
+          },
+        },
+      ];
 
   void _prefillUserDetails() {
     try {
@@ -166,6 +218,7 @@ class CableAssembliesController extends GetxController
       final cached = box.read(_cacheKey);
       if (cached is List && cached.isNotEmpty) {
         sectionsData.value = CableAssembliesSectionsData.fromSections(cached);
+        buildLayout(cached);
       }
     } catch (_) {}
   }

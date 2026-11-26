@@ -71,8 +71,58 @@ class MtpSolutionController extends GetxController
     super.onInit();
     _prefillUserDetails();
     _loadCachedLayout();
+    if (widgetList.isEmpty) {
+      buildLayout(_canonicalSections);
+    }
+    isLayoutLoading.value = false;
     fetchMtpSolutionLayout();
   }
+
+  List<Map<String, dynamic>> get _canonicalSections => [
+        {
+          'type': 'banner',
+          'id': 'mtp-solution-banner',
+          'content_json': {
+            '_page_slug': 'mtp-solution',
+            'banners': [
+              {
+                'config': {'border_radius': 8, 'height': 200},
+                'items': [
+                  {
+                    'link': {'value': 'mtp-solution'},
+                    'featured_image': {
+                      'download_url':
+                          MtpSolutionBannerData.canonical().imageUrl,
+                      'alt_text': MtpSolutionBannerData.canonical().altText,
+                    },
+                  }
+                ],
+              }
+            ],
+          },
+        },
+        {
+          'type': 'formbuilder',
+          'id': 'mtp-solution-form',
+          'content_json': {
+            '_page_slug': 'mtp-solution',
+            'title': MtpSolutionFormBuilderData.canonical().title,
+            'form_id': {
+              'value': MtpSolutionFormBuilderData.canonical().formId,
+              'slug': MtpSolutionFormBuilderData.canonical().formSlug,
+              'label': MtpSolutionFormBuilderData.canonical().formLabel,
+            },
+          },
+        },
+        {
+          'type': 'rich_text',
+          'id': 'mtp-solution-notes',
+          'content_json': {
+            '_page_slug': 'mtp-solution',
+            'html_content': MtpSolutionRichTextData.canonical().htmlContent,
+          },
+        },
+      ];
 
   void _prefillUserDetails() {
     try {
@@ -99,6 +149,7 @@ class MtpSolutionController extends GetxController
       final cached = box.read(_cacheKey);
       if (cached is List && cached.isNotEmpty) {
         sectionsData.value = MtpSolutionSectionsData.fromSections(cached);
+        buildLayout(cached);
       }
     } catch (_) {}
   }

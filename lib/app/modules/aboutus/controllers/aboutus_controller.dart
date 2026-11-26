@@ -31,8 +31,84 @@ class AboutusController extends GetxController
   void onInit() {
     super.onInit();
     _initDefaults();
+    buildLayout(_canonicalSections);
+    isLayoutLoading.value = false;
     fetchAboutUs();
   }
+
+  List<Map<String, dynamic>> get _canonicalSections => [
+        {
+          'type': 'slider',
+          'id': 'about-us-header',
+          'content_json': {
+            '_page_slug': 'about-us',
+            'slider': {
+              'slug': 'about-us-slider',
+              'name': 'about-us-slider',
+              'content': [
+                {
+                  'heading': 'About Us',
+                  'filePath': '/images/2026/08/31/3-9d37ade8.webp',
+                }
+              ],
+            },
+          },
+        },
+        {
+          'type': 'slider',
+          'id': 'about-us-story',
+          'content_json': {
+            '_page_slug': 'about-us',
+            'slider': {
+              'slug': 'about-us-main-banner',
+              'name': 'about-us-main-banner',
+              'content': [
+                {
+                  'heading': 'About Vision Infrastructure',
+                  'description': AboutHeroStory.defaultDescription,
+                  'filePath': '/images/2026/08/29/3-aaed866d.webp',
+                }
+              ],
+            },
+          },
+        },
+        {
+          'type': 'trust_badges',
+          'id': 'why_choose',
+          'content_json': {
+            '_page_slug': 'about-us',
+            'eyebrow': 'Why Choose Us',
+            'title': 'Why Choose Vision Infrastructure',
+            'subtitle':
+                'Built for performance, reliability, and scale across enterprise networks.',
+            'cards': AboutWhyChooseSection.defaultFeatures
+                .map((f) => {
+                      'heading': f.title,
+                      'text': f.description,
+                      'icon': f.iconKey,
+                    })
+                .toList(),
+          },
+        },
+        {
+          'type': 'trust_badges',
+          'id': 'our_process',
+          'content_json': {
+            '_page_slug': 'about-us',
+            'eyebrow': 'How We Work',
+            'title': 'Our Process',
+            'subtitle':
+                "From first consultation to post-deployment support, here's how we work with you.",
+            'cards': AboutProcessSection.defaultSteps
+                .map((s) => {
+                      'heading': s.title,
+                      'text': s.description,
+                      'image': s.imageUrl,
+                    })
+                .toList(),
+          },
+        },
+      ];
 
   void _initDefaults() {
     header = AboutHeroHeader.fromComponent(null).obs;

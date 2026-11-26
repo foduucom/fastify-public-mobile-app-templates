@@ -106,18 +106,34 @@ mixin FoduuStudioLayoutMixin on GetxController {
     }
 
     var tabsInjected = false;
+    final activePageSlug = _lastFetchSlug ?? _currentSlug ?? '';
     for (var section in sections) {
       if (section is Map<String, dynamic>) {
+        if (section['visible'] == false) continue;
         if (excludeSectionTypes.contains(section['type'])) continue;
-        var toBuild = section;
+        final existingCj = section['content_json'] is Map
+            ? Map<String, dynamic>.from(section['content_json'] as Map)
+            : <String, dynamic>{};
+        if (activePageSlug.isNotEmpty &&
+            !existingCj.containsKey('_page_slug')) {
+          existingCj['_page_slug'] = activePageSlug;
+        }
+        if (section['type'] != null &&
+            !existingCj.containsKey('_section_type')) {
+          existingCj['_section_type'] = section['type'];
+        }
+        var toBuild = {
+          ...section,
+          'content_json': existingCj,
+        };
         if (tabCategories != null &&
             !tabsInjected &&
             section['type'] == 'products') {
           tabsInjected = true;
           toBuild = {
-            ...section,
+            ...toBuild,
             'content_json': {
-              ...Map<String, dynamic>.from(section['content_json'] as Map? ?? {}),
+              ...existingCj,
               'tab_categories': tabCategories,
             },
           };

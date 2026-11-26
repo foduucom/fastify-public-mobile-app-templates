@@ -27,8 +27,108 @@ class SolutionsController extends GetxController
     super.onInit();
     data = SolutionsSectionsData.canonical().obs;
     loadCached();
+    if (widgetList.isEmpty) {
+      buildLayout(_canonicalSections);
+    }
+    isLayoutLoading.value = false;
     fetchSolutions();
   }
+
+  List<Map<String, dynamic>> get _canonicalSections => [
+        {
+          'type': 'banner',
+          'id': 'solutions-header',
+          'content_json': {
+            '_page_slug': 'solution',
+            'banners': [
+              {
+                'items': [
+                  {
+                    'featured_image': {
+                      'download_url': SolutionsBannerHeader.canonical().imageUrl,
+                      'alt_text': SolutionsBannerHeader.canonical().altText,
+                    }
+                  }
+                ]
+              }
+            ],
+          },
+        },
+        {
+          'type': 'slider',
+          'id': 'solutions-intro',
+          'content_json': {
+            '_page_slug': 'solution',
+            'slider': {
+              'slug': 'solutions-main-intro',
+              'content': [
+                {
+                  'heading': 'What We Deliver["${SolutionsIntroSection.canonical().title}"]',
+                  'description':
+                      '${SolutionsIntroSection.canonical().description}\n\n${SolutionsIntroSection.canonical().statItem}',
+                  'button_text': SolutionsIntroSection.canonical().buttonText,
+                  'filePath': SolutionsIntroSection.canonical().imageUrl,
+                }
+              ],
+            },
+          },
+        },
+        {
+          'type': 'trust_badges',
+          'id': 'solutions-by-industry',
+          'content_json': {
+            '_page_slug': 'solution',
+            'eyebrow': SolutionsByIndustrySection.canonical().eyebrow,
+            'title': SolutionsByIndustrySection.canonical().title,
+            'subtitle': SolutionsByIndustrySection.canonical().subtitle,
+            'cards': SolutionsByIndustrySection.canonical()
+                .cards
+                .map((c) => {
+                      'heading': c.title,
+                      'text': c.description,
+                      'icon': c.iconUrl,
+                      'cover': c.coverImageUrl,
+                    })
+                .toList(),
+          },
+        },
+        {
+          'type': 'trust_badges',
+          'id': 'solutions-by-need',
+          'content_json': {
+            '_page_slug': 'solution',
+            'eyebrow': SolutionsByNeedSection.canonical().eyebrow,
+            'title': SolutionsByNeedSection.canonical().title,
+            'subtitle': SolutionsByNeedSection.canonical().subtitle,
+            'cards': SolutionsByNeedSection.canonical()
+                .cards
+                .map((c) => {
+                      'heading': c.title,
+                      'text': c.description,
+                      'icon': c.imageUrl,
+                    })
+                .toList(),
+          },
+        },
+        {
+          'type': 'slider',
+          'id': 'solutions-cta',
+          'content_json': {
+            '_page_slug': 'solution',
+            'slider': {
+              'slug': 'solutions-consultation-cta',
+              'content': [
+                {
+                  'heading': SolutionsConsultationCta.canonical().heading,
+                  'description': SolutionsConsultationCta.canonical().description,
+                  'button_text': SolutionsConsultationCta.canonical().buttonText,
+                  'filePath': SolutionsConsultationCta.canonical().imageUrl,
+                }
+              ],
+            },
+          },
+        },
+      ];
 
   void loadCached() {
     try {
@@ -36,6 +136,7 @@ class SolutionsController extends GetxController
       if (cached != null && cached is List && cached.isNotEmpty) {
         rawSections.assignAll(cached);
         data.value = SolutionsSectionsData.fromSections(cached);
+        buildLayout(cached);
       }
     } catch (_) {}
   }

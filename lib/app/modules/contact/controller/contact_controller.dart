@@ -100,10 +100,81 @@ class ContactController extends GetxController
     newsletterController = TextEditingController();
 
     _loadCached();
+    if (widgetList.isEmpty) {
+      buildLayout(_canonicalSections);
+    }
+    isLayoutLoading.value = false;
     _loadCachedFormSchema();
 
     fetchContactLayout();
   }
+
+  List<Map<String, dynamic>> get _canonicalSections => [
+        {
+          'type': 'slider',
+          'id': 'contact-hero',
+          'content_json': {
+            '_page_slug': 'contact-us',
+            'slider': {
+              'slug': 'contact-us-slider',
+              'content': [
+                {
+                  'heading': 'Contact Us',
+                  'filePath': ContactHeroSliderData.canonical().imageUrl,
+                }
+              ],
+            },
+          },
+        },
+        {
+          'type': 'trust_badges',
+          'id': 'contact-info-badges',
+          'content_json': {
+            '_page_slug': 'contact-us',
+            'eyebrow': ContactInfoBadgesData.canonical().eyebrow,
+            'title': ContactInfoBadgesData.canonical().title,
+            'subtitle': ContactInfoBadgesData.canonical().subtitle,
+            'cards': ContactInfoBadgesData.canonical()
+                .cards
+                .map((c) => {
+                      'image': c.image,
+                      'heading': c.heading,
+                      'text': c.text,
+                    })
+                .toList(),
+          },
+        },
+        {
+          'type': 'banner',
+          'id': 'contact-promo-banner',
+          'content_json': {
+            '_page_slug': 'contact-us',
+            'banners': [
+              {
+                'items': [
+                  {
+                    'featured_image': {
+                      'download_url':
+                          ContactPromoBannerData.canonical().imageUrl,
+                    },
+                    'link': ContactPromoBannerData.canonical().link,
+                  }
+                ],
+              }
+            ],
+          },
+        },
+        {
+          'type': 'formbuilder',
+          'id': 'contact-form',
+          'content_json': {
+            '_page_slug': 'contact-us',
+            'title': ContactFormBuilderData.canonical().title,
+            'form_slug': ContactFormBuilderData.canonical().formSlug,
+            'form_id': ContactFormBuilderData.canonical().formId,
+          },
+        },
+      ];
 
   void _loadCached() {
     try {
@@ -112,6 +183,7 @@ class ContactController extends GetxController
         rawSections.assignAll(cachedSections);
         sectionsData.value =
             ContactBroadcastSectionsData.fromSections(cachedSections);
+        buildLayout(cachedSections);
         return;
       }
     } catch (_) {}

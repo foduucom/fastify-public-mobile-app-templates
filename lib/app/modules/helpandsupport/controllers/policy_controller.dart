@@ -45,11 +45,96 @@ class PolicyController extends GetxController
     if (policyType == 'terms') {
       // Pre-seed canonical defaults for instant render (zero blank screen)
       termsData.value = TermsPageData.canonical();
+      buildLayout(_canonicalTermsSections);
     } else if (policyType == 'privacy') {
       privacyData.value = PrivacyPageData.canonical();
+      buildLayout(_canonicalPrivacySections);
     }
+    isLayoutLoading.value = false;
 
     fetchPolicy(policyType);
+  }
+
+  List<Map<String, dynamic>> get _canonicalPrivacySections {
+    final canonical = PrivacyPageData.canonical();
+    final sections = <Map<String, dynamic>>[
+      {
+        'type': 'rich_text',
+        'id': 'privacy_header',
+        'content_json': {
+          '_page_slug': 'privacy-policy',
+          '_section_type': 'rich_text',
+          'html_content': '<h1>Privacy Policy</h1><p>Vision Infrastructure Solutions</p>',
+        },
+      },
+    ];
+    for (final b in canonical.blocks) {
+      if (b.type == PrivacyBlockType.heading) {
+        sections.add({
+          'type': 'rich_text',
+          'id': b.id,
+          'content_json': {
+            '_page_slug': 'privacy-policy',
+            '_section_type': 'rich_text',
+            'html_content': '<h3>${b.text}</h3>',
+          },
+        });
+      } else {
+        sections.add({
+          'type': 'text_block',
+          'id': b.id,
+          'content_json': {
+            '_page_slug': 'privacy-policy',
+            '_section_type': 'text_block',
+            'text': b.type == PrivacyBlockType.bulletList
+                ? '${b.introText ?? ''}\n${b.listItems.map((e) => '  $e').join('\n')}\n${b.outroText ?? ''}'
+                : (b.type == PrivacyBlockType.contact
+                    ? '${b.text}\n${b.companyName ?? ''}\nEmail: ${b.email ?? ''}\nWebsite: ${b.website ?? ''}'
+                    : b.text),
+          },
+        });
+      }
+    }
+    return sections;
+  }
+
+  List<Map<String, dynamic>> get _canonicalTermsSections {
+    final canonical = TermsPageData.canonical();
+    final sections = <Map<String, dynamic>>[
+      {
+        'type': 'rich_text',
+        'id': 'terms_header',
+        'content_json': {
+          '_page_slug': 'terms-and-conditions',
+          '_section_type': 'rich_text',
+          'html_content': '<h1>Terms & Conditions</h1>',
+        },
+      },
+    ];
+    for (final b in canonical.blocks) {
+      if (b.type == TermsBlockType.heading) {
+        sections.add({
+          'type': 'rich_text',
+          'id': b.id,
+          'content_json': {
+            '_page_slug': 'terms-and-conditions',
+            '_section_type': 'rich_text',
+            'html_content': '<h3>${b.text}</h3>',
+          },
+        });
+      } else {
+        sections.add({
+          'type': 'text_block',
+          'id': b.id,
+          'content_json': {
+            '_page_slug': 'terms-and-conditions',
+            '_section_type': 'text_block',
+            'text': b.text,
+          },
+        });
+      }
+    }
+    return sections;
   }
 
   /// Maps a CMS slug to a known policy type, or keeps the raw slug.
@@ -105,6 +190,7 @@ class PolicyController extends GetxController
               (cachedJson['data'] is Map ? cachedJson['data']['sections'] : null);
           if (sections is List && sections.isNotEmpty) {
             privacyData.value = PrivacyPageData.fromSections(sections);
+            buildLayout(sections);
             isLoading(false);
             _checkAndFetchPrivacyInBackground();
             return;
@@ -201,6 +287,7 @@ class PolicyController extends GetxController
           final sections = cachedJson['sections'] ?? (cachedJson['data'] is Map ? cachedJson['data']['sections'] : null);
           if (sections is List && sections.isNotEmpty) {
             termsData.value = TermsPageData.fromSections(sections);
+            buildLayout(sections);
             isLoading(false);
             _checkAndFetchTermsInBackground();
             return;

@@ -75,7 +75,8 @@ dev_dependencies:
 
 dependency_overrides:
   intl: ^0.19.0
-  html: ^0.15.4
+  # flutter_html 3.0.0 uses html's internal matches() API, removed in 0.15.7.
+  html: 0.15.6
 
 flutter_launcher_icons:
   android: "launcher_icon"

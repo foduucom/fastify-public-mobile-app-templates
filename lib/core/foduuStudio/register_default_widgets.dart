@@ -4,8 +4,10 @@ import 'package:zouhi/app/data/models/home_sections.dart';
 import 'package:zouhi/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:zouhi/app/modules/homepage/controllers/homepage_controller.dart';
 import 'package:zouhi/app/routes/app_pages.dart';
+import 'package:zouhi/components/about_components/about_widgets.dart';
+import 'package:zouhi/components/cable_assemblies_components/cable_assemblies_widgets.dart';
+import 'package:zouhi/components/contact_component/contact_widgets.dart';
 import 'package:zouhi/components/home_component/category_home.dart';
-import 'package:zouhi/components/home_component/home_banner.dart';
 import 'package:zouhi/components/home_component/home_blogs.dart';
 import 'package:zouhi/components/home_component/home_common_widgets.dart';
 import 'package:zouhi/components/home_component/home_price_filter.dart';
@@ -13,7 +15,10 @@ import 'package:zouhi/components/home_component/home_products.dart';
 import 'package:zouhi/components/home_component/home_rich_text_component.dart';
 import 'package:zouhi/components/home_component/parent_sections.dart';
 import 'package:zouhi/components/home_component/vision_hero_slider.dart';
+import 'package:zouhi/components/mtp_solution_components/mtp_solution_widgets.dart';
+import 'package:zouhi/components/policy_components/policy_widgets.dart';
 import 'package:zouhi/components/search_bar_rounded.dart';
+import 'package:zouhi/components/solutions_components/solutions_widgets.dart';
 import 'package:zouhi/constants/constants.dart';
 
 import 'widget_registry.dart';
@@ -21,15 +26,13 @@ import 'widget_registry.dart';
 HomepageController? get _homepageController =>
     Get.isRegistered<HomepageController>() ? Get.find<HomepageController>() : null;
 
-/// Intelligent Slider & Banner Dispatcher:
-/// In Fastify Studio CMS, multiple banners are sent as type `slider` or `banner`.
-/// This dispatcher inspects the slug, metadata, and slide content to render the
-/// specific client-approved widget instead of defaulting everything to the Top Hero Slider.
-Widget _buildSliderOrBanner(Map<String, dynamic>? json) {
-  if (json == null) return const SizedBox.shrink();
+String _pageSlug(Map<String, dynamic>? json) =>
+    (json?['_page_slug'] ?? '').toString().toLowerCase();
 
+String _sectionSlug(Map<String, dynamic>? json) {
+  if (json == null) return '';
   final sliderObj = json['slider'] is Map ? json['slider'] as Map : json;
-  final slug = (sliderObj['slug'] ??
+  return (sliderObj['slug'] ??
           sliderObj['name'] ??
           json['slug'] ??
           json['id'] ??
@@ -37,13 +40,102 @@ Widget _buildSliderOrBanner(Map<String, dynamic>? json) {
           '')
       .toString()
       .toLowerCase();
+}
 
+String _formSlug(Map<String, dynamic>? json) {
+  if (json == null) return '';
+  final formIdObj = json['form_id'];
+  if (formIdObj is Map && formIdObj['slug'] != null) {
+    return formIdObj['slug'].toString().toLowerCase();
+  }
+  return (json['form_slug'] ?? json['slug'] ?? json['id'] ?? '')
+      .toString()
+      .toLowerCase();
+}
+
+/// Intelligent Slider & Banner Dispatcher:
+/// In Fastify Studio CMS, multiple banners are sent as type `slider` or `banner`.
+/// This dispatcher inspects page context (`_page_slug`), slug, and metadata
+/// to render the exact approved widget with zero visual regression.
+Widget _buildSliderOrBanner(Map<String, dynamic>? json) {
+  if (json == null) return const SizedBox.shrink();
+
+  final page = _pageSlug(json);
+  final slug = _sectionSlug(json);
+  final sectionType = (json['_section_type'] ?? '').toString().toLowerCase();
+  final sliderObj = json['slider'] is Map ? json['slider'] as Map : json;
   final contentList = sliderObj['content'] is List && (sliderObj['content'] as List).isNotEmpty
       ? (sliderObj['content'] as List)
       : (json['content'] is List && (json['content'] as List).isNotEmpty
           ? (json['content'] as List)
           : []);
 
+  // ── Page-Scoped Module Dispatchers ───────────────────────────────
+  // 1. About Us
+  if (page == 'about-us' ||
+      slug.contains('about-us-slider') ||
+      slug.contains('about-us-main-banner') ||
+      slug == 'about-us-header' ||
+      slug == 'about-us-story') {
+    if (slug.contains('main-banner') ||
+        slug.contains('story') ||
+        slug == 'about-us-story') {
+      return AboutStorySectionWidget.fromContentJson(json);
+    }
+    if (slug.contains('about-us-slider') ||
+        slug == 'about-us-header' ||
+        slug == 'about-us') {
+      return AboutHeroBannerWidget.fromContentJson(json);
+    }
+  }
+
+  // 2. Solutions
+  if (page == 'solution' ||
+      page == 'solutions' ||
+      slug.startsWith('solutions-')) {
+    if (sectionType == 'banner' || slug == 'solutions-header') {
+      return SolutionsHeaderWidget.fromContentJson(json);
+    }
+    if (slug.contains('main') || slug.contains('intro')) {
+      return SolutionsIntroWidget.fromContentJson(json);
+    }
+    if (slug.contains('cta') || slug.contains('consultation')) {
+      return SolutionsCtaWidget.fromContentJson(json);
+    }
+    // Disambiguate by first slide heading
+    if (contentList.isNotEmpty && contentList.first is Map) {
+      final heading = (contentList.first['heading'] ?? '').toString();
+      if (heading.contains('What We Deliver') ||
+          heading.contains('Industries Served')) {
+        return SolutionsIntroWidget.fromContentJson(json);
+      }
+    }
+    return SolutionsCtaWidget.fromContentJson(json);
+  }
+
+  // 3. Contact Us
+  if (page == 'contact-us' ||
+      page == 'contact' ||
+      slug.contains('contact-us-slider') ||
+      slug == 'contact-hero' ||
+      slug == 'contact-promo-banner') {
+    if (sectionType == 'banner' || slug.contains('promo')) {
+      return ContactIllustrationBannerWidget.fromContentJson(json);
+    }
+    return ContactHeroBannerWidget.fromContentJson(json);
+  }
+
+  // 4. Cable Assemblies
+  if (page == 'cable-assemblies' || slug == 'cable-assemblies-banner') {
+    return CableSchematicBannerWidget.fromContentJson(json);
+  }
+
+  // 5. MTP Solution
+  if (page == 'mtp-solution' || slug == 'mtp-solution-banner') {
+    return MtpSchematicBannerWidget.fromContentJson(json);
+  }
+
+  // ── Home Page Dispatchers (Golden Standard) ──────────────────────
   // 1. Top Main Hero Carousel Banner (Home Hero Slider)
   if (slug == 'home-slider' || slug == 'slider' || slug.contains('hero')) {
     return Obx(() {
@@ -144,26 +236,94 @@ void registerDefaultWidgets() {
   // ─── 1. Unified Slider & Banner Dispatchers ─────────────────────
   r.register('slider', _buildSliderOrBanner);
   r.register('banner', _buildSliderOrBanner);
+  r.register('header', (json) {
+    if (_pageSlug(json) == 'about-us') {
+      return AboutHeroBannerWidget.fromContentJson(json ?? {});
+    }
+    return _buildSliderOrBanner(json);
+  });
   r.register('category_banners', _buildSliderOrBanner);
   r.register('promo_strip', _buildSliderOrBanner);
 
-  // ─── 2. Trust Badges / Value Strip ─────────────────────────────
+  // ─── 2. Trust Badges / Value Strip / Module Cards ───────────────
   r.register('trust_badges', (json) {
+    final map = json ?? <String, dynamic>{};
+    final page = _pageSlug(map);
+    final id = (map['id'] ?? '').toString().toLowerCase();
+    final eyebrow = (map['eyebrow'] ?? '').toString().toLowerCase();
+    final title = (map['title'] ?? '').toString().toLowerCase();
+
+    // About Us
+    if (page == 'about-us' ||
+        id == 'why_choose' ||
+        id == 'our_process' ||
+        eyebrow.contains('why choose') ||
+        title.contains('why choose')) {
+      if (id == 'our_process' ||
+          eyebrow.contains('how we work') ||
+          title.contains('our process')) {
+        return AboutProcessSectionWidget.fromContentJson(map);
+      }
+      return AboutWhyChooseWidget.fromContentJson(map);
+    }
+
+    // Solutions
+    if (page == 'solution' ||
+        page == 'solutions' ||
+        id.startsWith('solutions-')) {
+      if (id == 'solutions-by-industry' ||
+          eyebrow.contains('industry') ||
+          title.contains('environment')) {
+        return SolutionsIndustryGridWidget.fromContentJson(map);
+      }
+      return SolutionsCapabilitiesWidget.fromContentJson(map);
+    }
+
+    // Contact Us
+    if (page == 'contact-us' ||
+        page == 'contact' ||
+        id == 'contact-info-badges' ||
+        title.contains('contact information')) {
+      return ContactInfoBadgesWidget.fromContentJson(map);
+    }
+
+    // Home Page Default
     return Obx(() {
       final ctrl = _homepageController;
       final badgesData = ctrl != null
           ? ctrl.trustBadges.value
-          : (json != null
-              ? HomeTrustBadgesData.fromSections([
-                  {'type': 'trust_badges', 'content_json': json}
-                ])
-              : HomeTrustBadgesData.fallback());
+          : HomeTrustBadgesData.fromSections([
+              {'type': 'trust_badges', 'content_json': map}
+            ]);
       return Padding(
         padding: const EdgeInsets.only(top: 12),
         child: FeatureStrip(data: badgesData),
       );
     });
   });
+
+  // ─── 2b. Testimonials (About Us) ────────────────────────────────
+  r.register('testimonials', (json) {
+    return AboutTestimonialsWidget.fromContentJson(json ?? {});
+  });
+
+  // ─── 2c. Dynamic FormBuilder Dispatcher (Contact, Cable, MTP) ───
+  Widget buildFormBuilder(Map<String, dynamic>? json) {
+    final map = json ?? <String, dynamic>{};
+    final page = _pageSlug(map);
+    final fSlug = _formSlug(map);
+
+    if (page == 'cable-assemblies' || fSlug == 'cable-form') {
+      return CableConfiguratorFormWidget.fromContentJson(map);
+    }
+    if (page == 'mtp-solution' || fSlug == 'mtp-solution') {
+      return MtpConfiguratorFormWidget.fromContentJson(map);
+    }
+    return ContactFormCardWidget.fromContentJson(map);
+  }
+
+  r.register('formbuilder', buildFormBuilder);
+  r.register('form_builder', buildFormBuilder);
 
   // ─── 3. Top Categories of The Month ────────────────────────────
   r.register('categories', (json) {
@@ -212,7 +372,7 @@ void registerDefaultWidgets() {
           HomeBannersData.fallback().fiberOpticAccessories;
       return BestSellerSection(
         data: bestSellersData,
-        bannerItem: bannerItem, // Positioned between Heading and Products Rail
+        bannerItem: bannerItem,
       );
     });
   });
@@ -253,7 +413,7 @@ void registerDefaultWidgets() {
             HomeBannersData.fallback().fiberOpticAccessories;
         return BestSellerSection(
           data: bestData,
-          bannerItem: bannerItem, // Positioned between Heading and Products Rail
+          bannerItem: bannerItem,
         );
       });
     }
@@ -289,19 +449,56 @@ void registerDefaultWidgets() {
   });
 
   r.register('text_block', (json) {
-    final text = (json?['text'] ?? json?['content'] ?? json?['title'] ?? '').toString().toLowerCase();
-    if (text.contains('best seller')) {
-      return const SizedBox.shrink(); // BestSellerSection already has its branded _SectionTitle
+    final map = json ?? <String, dynamic>{};
+    final page = _pageSlug(map);
+
+    if (page == 'privacy-policy' || page == 'privacy') {
+      return PolicySectionWidget.fromContentJson(map, isPrivacy: true);
     }
-    return TextBlockComponent(contentJson: json ?? {});
+    if (page == 'terms-and-conditions' ||
+        page == 'terms-conditions' ||
+        page == 'terms') {
+      return PolicySectionWidget.fromContentJson(map, isPrivacy: false);
+    }
+    if (page == 'cable-assemblies' || page == 'mtp-solution') {
+      // Inspection caption is rendered inside the schematic banner card
+      return const SizedBox.shrink();
+    }
+    if (page == 'about-us') {
+      return AboutStorySectionWidget.fromContentJson(map);
+    }
+
+    final text = (map['text'] ?? map['content'] ?? map['title'] ?? '').toString().toLowerCase();
+    if (text.contains('best seller')) {
+      return const SizedBox.shrink();
+    }
+    return TextBlockComponent(contentJson: map);
   });
 
   r.register('rich_text', (json) {
-    final html = (json?['html_content'] ?? json?['content'] ?? '').toString().toLowerCase();
-    final heading = (json?['heading'] ?? json?['title'] ?? '').toString().toLowerCase();
-    if (html.contains('best seller') || heading.contains('best seller')) {
-      return const SizedBox.shrink(); // BestSellerSection already has its branded _SectionTitle
+    final map = json ?? <String, dynamic>{};
+    final page = _pageSlug(map);
+
+    if (page == 'privacy-policy' || page == 'privacy') {
+      return PolicySectionWidget.fromContentJson(map, isPrivacy: true);
     }
-    return RichTextComponent(contentJson: json ?? {});
+    if (page == 'terms-and-conditions' ||
+        page == 'terms-conditions' ||
+        page == 'terms') {
+      return PolicySectionWidget.fromContentJson(map, isPrivacy: false);
+    }
+    if (page == 'cable-assemblies') {
+      return CableEngineeringNotesWidget.fromContentJson(map);
+    }
+    if (page == 'mtp-solution') {
+      return MtpEngineeringNotesWidget.fromContentJson(map);
+    }
+
+    final html = (map['html_content'] ?? map['content'] ?? '').toString().toLowerCase();
+    final heading = (map['heading'] ?? map['title'] ?? '').toString().toLowerCase();
+    if (html.contains('best seller') || heading.contains('best seller')) {
+      return const SizedBox.shrink();
+    }
+    return RichTextComponent(contentJson: map);
   });
 }

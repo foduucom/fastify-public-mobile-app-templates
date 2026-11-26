@@ -1,23 +1,21 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
-import 'package:zouhi/constants/helper_functions.dart';
+import 'package:get/get.dart';
 import 'package:zouhi/constants/theme.dart';
 import 'package:zouhi/constants/theme_ext.dart';
-import 'package:get/get.dart';
-import '../../../../../constants/constants.dart';
+import 'package:zouhi/core/foduuStudio/foduu_studio_layout_view.dart';
 import '../controllers/termsandcondition_controller.dart';
 
 class TermsandconditionView extends GetView<TermsandconditionController> {
-  const TermsandconditionView({Key? key}) : super(key: key);
+  const TermsandconditionView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        backgroundColor: const Color(0xFFF7F8FA),
         appBar: AppBar(
           title: Text(
-            "Terms & Condition",
+            'Terms & Conditions',
             style: txtTheme()
                 .headlineMedium!
                 .copyWith(fontWeight: FontWeight.bold, fontFamily: 'Poppins'),
@@ -28,38 +26,12 @@ class TermsandconditionView extends GetView<TermsandconditionController> {
           backgroundColor: Colors.transparent,
           elevation: 0,
         ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Obx(() {
-                  if (controller.termsAndConditinDetails.isEmpty) {
-                    return Center(
-                      child: HelperFunctions().loadingIndicator(),
-                    );
-                  } else {
-                    return Html(
-                      data: controller.termsAndConditinDetails.toString(),
-                      style: {
-                        "body": Style(
-                          // padding: EdgeInsets.zero,
-                          fontFamily: 'Poppins',
-                        ),
-                        "div": Style(
-                            // padding: EdgeInsets.zero,
-                            ),
-                        "p": Style(
-                            // padding: EdgeInsets.zero,
-                            ),
-                      },
-                    );
-                  }
-                }),
-              ],
-            ),
-          ),
+        body: FoduuStudioLayoutView(
+          widgetList: controller.widgetList,
+          isLoading: controller.isLayoutLoading,
+          hasError: controller.hasError,
+          errorMessage: controller.errorMessage,
+          onRefresh: controller.termsAndCondition,
         ),
       ),
     );
