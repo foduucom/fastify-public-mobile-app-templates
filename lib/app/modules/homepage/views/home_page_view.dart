@@ -14,9 +14,9 @@ class HomePageView extends GetView<HomepageController> {
       body: Obx(() {
         // After a few seconds of an unreachable backend the layout view
         // swaps the skeleton for a friendly retry state.
-        final backendDown = ApiHealthService.maybe?.status.value ==
-                ApiHealth.down &&
-            controller.widgetList.isEmpty;
+        final backendDown =
+            ApiHealthService.maybe?.status.value == ApiHealth.down &&
+                controller.widgetList.isEmpty;
         if (controller.isLoading.value && !backendDown) {
           return const HomeShimmer();
         }
@@ -26,6 +26,7 @@ class HomePageView extends GetView<HomepageController> {
           isLoading: controller.isLoading,
           hasError: controller.hasError,
           errorMessage: controller.errorMessage,
+          isStale: controller.isStale,
           onRefresh: () async {
             await controller.getDashboardDesign(controller.pageSlug);
           },

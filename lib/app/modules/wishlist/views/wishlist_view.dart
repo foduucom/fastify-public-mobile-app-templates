@@ -19,7 +19,6 @@ import '../controllers/wishlist_controller.dart';
 
 class WishlistView extends GetView<WishlistController> {
   WishlistView({Key? key}) : super(key: key);
-  final wishlist = Get.put(WishlistController());
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +43,8 @@ class WishlistView extends GetView<WishlistController> {
               if (count > 0) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: colors.primary.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
@@ -208,6 +208,7 @@ class WishlistView extends GetView<WishlistController> {
                       isLoading: controller.isLayoutLoading,
                       hasError: controller.hasError,
                       errorMessage: controller.errorMessage,
+                      isStale: controller.isStale,
                     ),
                   ],
                 )
@@ -278,6 +279,7 @@ class WishlistView extends GetView<WishlistController> {
                   isLoading: controller.isLayoutLoading,
                   hasError: controller.hasError,
                   errorMessage: controller.errorMessage,
+                  isStale: controller.isStale,
                 )
               : const SizedBox.shrink()),
 

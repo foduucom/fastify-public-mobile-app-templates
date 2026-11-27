@@ -5,6 +5,7 @@ import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_attribute_filt
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_category_filter_mixin.dart';
 import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_category_tree_filter_mixin.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_mixin.dart';
+import 'package:foduu_ecommerce/services/product_pagination.dart';
 import 'package:get/get.dart';
 
 enum ShopSortOption { featured, priceLowHigh, priceHighLow, newest, trending }
@@ -33,6 +34,8 @@ class ShopController extends GetxController
   var isBrandsLoading = false.obs;
   var isCategoriesLoading = false.obs;
   var totalProducts = 0.obs;
+  final productsError = ''.obs;
+  final paginationError = ''.obs;
 
   var availableBrands = [].obs;
   var availableCategories = [].obs;
@@ -98,9 +101,11 @@ class ShopController extends GetxController
       maxPrice.value = values.end;
     });
 
-    if (isPlainShopEntry.value) {
-      fetchLayout(pageSlug);
-    } else {
+    // Load the CMS shop sections for both plain Shop entry and filtered
+    // collections. ShopView keeps promotional sections above the product list.
+    fetchLayout(pageSlug);
+
+    if (!isPlainShopEntry.value) {
       fetchBrands();
       fetchCategories();
       fetchProducts(isRefresh: true);
@@ -114,6 +119,53 @@ class ShopController extends GetxController
     if (availableCategories.isEmpty && !isCategoriesLoading.value) {
       fetchCategories();
     }
+  }
+
+  /// Restore the CMS Shop tab after Studio routes back to the Shop tab.
+  void resetToPlainShop() {
+    clearAllFilters();
+    // clearAllFilters refreshes the filtered catalog; override its mode switch
+    // after clearing so the Studio Shop canvas is the visible destination.
+    isPlainShopEntry.value = true;
+    isListView.value = false;
+    collectionName.value = 'Shop';
+    filterCategoryStack.clear();
+    filterRootCategories.clear();
+    filterCurrentCategories.clear();
+    fetchLayout(pageSlug);
+  }
+
+  void _syncCmsProductMetadata() {
+    if (!isPlainShopEntry.value) return;
+    final cmsJson = contentJsonFor('products');
+    if (cmsJson == null) return;
+    final raw = cmsJson['products'] ?? cmsJson['product'];
+    if (raw is! Map) return;
+    final total = raw['total'];
+    if (total != null) {
+      totalProducts.value =
+          int.tryParse(total.toString()) ?? totalProducts.value;
+    }
+    final data = raw['data'];
+    if (products.isEmpty && data is List && data.isNotEmpty) {
+      products.assignAll(data);
+      isLoading.value = false;
+    }
+  }
+
+  @override
+  void buildLayout(List sections) {
+    super.buildLayout(sections);
+    _syncCmsProductMetadata();
+  }
+
+  @override
+  Future<dynamic> fetchLayout(String slug,
+      {dynamic requestBody, bool silent = false}) async {
+    final result =
+        await super.fetchLayout(slug, requestBody: requestBody, silent: silent);
+    _syncCmsProductMetadata();
+    return result;
   }
 
   void _parseArguments() {
@@ -138,6 +190,8 @@ class ShopController extends GetxController
     selectedCategories.clear();
     selectedBrands.clear();
     selectedAttributes.clear();
+    filterCategoryStack.clear();
+    filterRootCategories.clear();
     filterCurrentCategories.clear();
     minPrice.value = 0.0;
     maxPrice.value = 10000.0;
@@ -155,17 +209,14 @@ class ShopController extends GetxController
         selectedCategories.add(args['categorySlug']);
       }
       final rawChildren = args['children'];
-      filterCurrentCategories.assignAll(rawChildren is List ? rawChildren : []);
+      seedCategoryContext({'children': rawChildren});
     } else if (args['source'] == 'category' &&
         args['categorySlug'] != null &&
         args['children'] == null) {
       selectedCategories.add(args['categorySlug']);
       fetchCategoryBySlug(args['categorySlug']).then((cat) {
         if (cat != null) {
-          final children = cat['children'];
-          if (children is List && children.isNotEmpty) {
-            filterCurrentCategories.assignAll(children);
-          }
+          seedCategoryContext(cat);
         }
       });
     } else if (args['source'] == 'brand' && args['brandId'] != null) {
@@ -200,8 +251,11 @@ class ShopController extends GetxController
   }
 
   void _scrollListener() {
-    if (scrollController.position.pixels >=
-        scrollController.position.maxScrollExtent - 200) {
+    if (!scrollController.hasClients) return;
+    final position = scrollController.position;
+    if (position.maxScrollExtent > 200 &&
+        position.pixels > 80 &&
+        position.pixels >= position.maxScrollExtent - 250) {
       if (!isFetchingMore.value && hasNextPage && !isLoading.value) {
         fetchProducts(isRefresh: false);
       }
@@ -210,22 +264,26 @@ class ShopController extends GetxController
 
   // ─── THE CORE API FETCH ───────────────────────────────────────
   Future<void> fetchProducts({required bool isRefresh}) async {
+    if (!isRefresh && (isFetchingMore.value || isLoading.value)) return;
     final requestToken = isRefresh ? ++_fetchRequestToken : _fetchRequestToken;
+    final requestedPage = isRefresh ? 1 : currentPage;
     try {
       if (isRefresh) {
         isLoading.value = true;
+        isFetchingMore.value = false;
+        productsError.value = '';
+        paginationError.value = '';
         currentPage = 1;
         hasNextPage = false;
         products.clear();
       } else {
-        if (isFetchingMore.value) return;
         isFetchingMore.value = true;
-        currentPage++;
+        paginationError.value = '';
       }
 
       // Build Query Parameters
       Map<String, dynamic> queryParams = {
-        'page': currentPage.toString(),
+        'page': requestedPage.toString(),
         'count': '10',
       };
 
@@ -274,67 +332,80 @@ class ShopController extends GetxController
 
       // Drop stale responses: a faster, more recent refresh may have
       // already superseded this one.
-      if (isRefresh && requestToken != _fetchRequestToken) {
-        return;
+      if (requestToken != _fetchRequestToken) return;
+
+      if (response == null) {
+        throw StateError('The products response was empty.');
       }
 
-      // ✅ FIXED: Parse Response correctly
-      if (response != null) {
-        List<dynamic> newProducts = [];
-
-        // Check if response is a Map (paginated response)
-        if (response is Map<String, dynamic>) {
-          // Extract data array from the response map
-          if (response.containsKey('data') && response['data'] is List) {
-            newProducts = response['data'] as List<dynamic>;
-            totalProducts.value = response['total'] ?? products.length;
-            hasNextPage = response['hasNextPage'] ?? false;
-          }
-          // If response has products directly without data wrapper
-          else if (response.containsKey('products') &&
-              response['products'] is List) {
-            newProducts = response['products'] as List<dynamic>;
-            totalProducts.value = response['total'] ?? products.length;
-            hasNextPage = response['hasNextPage'] ?? false;
-          }
-          // If response is just a map but not paginated
-          else {
-            // Try to find any List in the response
-            final listKey = response.keys.firstWhere(
-              (k) => response[k] is List,
-              orElse: () => '',
-            );
-            if (listKey.isNotEmpty) {
-              newProducts = response[listKey] as List<dynamic>;
-            }
-            hasNextPage = false;
-          }
-        }
-        // If response is directly a List
-        else if (response is List<dynamic>) {
-          newProducts = response;
-          hasNextPage = false;
-          totalProducts.value = response.length;
-        }
-
-        // ✅ Apply products to the list
-        if (isRefresh) {
-          products.assignAll(newProducts);
+      List<dynamic> newProducts = [];
+      if (response is Map) {
+        final candidate = response['data'] ??
+            response['products'] ??
+            response['product'] ??
+            response['docs'];
+        if (candidate is List) {
+          newProducts = candidate;
+          totalProducts.value = int.tryParse(
+                '${response['total'] ?? response['totalDocs'] ?? ''}',
+              ) ??
+              (isRefresh
+                  ? newProducts.length
+                  : products.length + newProducts.length);
+          hasNextPage = ProductPagination.hasMore(
+            response,
+            itemCount: newProducts.length,
+            pageSize: 10,
+          );
+          currentPage = ProductPagination.nextPage(
+            response,
+            defaultPage: requestedPage + 1,
+          );
         } else {
-          products.addAll(newProducts);
+          final listKey = response.keys.cast<dynamic>().firstWhere(
+                (key) => response[key] is List,
+                orElse: () => null,
+              );
+          if (listKey != null) newProducts = response[listKey] as List;
+          hasNextPage = false;
+          currentPage = requestedPage + 1;
+          totalProducts.value = isRefresh
+              ? newProducts.length
+              : products.length + newProducts.length;
         }
-
-        debugPrint(
-            '✅ Loaded ${newProducts.length} products, total: ${products.length}, hasNextPage: $hasNextPage');
+      } else if (response is List) {
+        newProducts = response;
+        hasNextPage = false;
+        currentPage = requestedPage + 1;
+        totalProducts.value =
+            isRefresh ? response.length : products.length + response.length;
+      } else {
+        throw StateError('The products response has an unsupported shape.');
       }
+
+      if (isRefresh) {
+        products.assignAll(ProductPagination.uniquePage([], newProducts));
+      } else {
+        products.addAll(ProductPagination.uniquePage(products, newProducts));
+      }
+
+      debugPrint(
+          '✅ Loaded ${newProducts.length} products, total: ${products.length}, hasNextPage: $hasNextPage');
     } catch (e) {
       debugPrint('❌ Fetch Products Error: $e');
-      if (!isRefresh && currentPage > 1) {
-        currentPage--;
+      if (requestToken == _fetchRequestToken) {
+        if (isRefresh) {
+          productsError.value = e.toString();
+          hasNextPage = false;
+        } else {
+          paginationError.value = e.toString();
+        }
       }
     } finally {
-      isLoading.value = false;
-      isFetchingMore.value = false;
+      if (requestToken == _fetchRequestToken) {
+        isLoading.value = false;
+        isFetchingMore.value = false;
+      }
     }
   }
 
@@ -387,15 +458,16 @@ class ShopController extends GetxController
 
   // ─── VIEW MODE CONTROLS ───────────────────────────────────────
   void setViewMode(bool isList) {
-    if (isListView.value == isList && !isPlainShopEntry.value) return;
-
+    if (isListView.value == isList) return;
+    final wasPlainShop = isPlainShopEntry.value;
     isListView.value = isList;
-
-    if (isPlainShopEntry.value) {
-      isPlainShopEntry.value = false;
+    if (wasPlainShop && isList) {
+      // CMS product sections may contain only a preloaded slice. Fetch the
+      // catalog API on list entry so regular pagination is available.
       ensureFilterDataLoaded();
       fetchProducts(isRefresh: true);
     } else if (products.isEmpty && !isLoading.value) {
+      ensureFilterDataLoaded();
       fetchProducts(isRefresh: true);
     }
   }
@@ -414,6 +486,16 @@ class ShopController extends GetxController
     applyFiltersAndRefresh();
   }
 
+  void removeFeaturedFilter() {
+    isFeatured.value = false;
+    if (selectedSortOption.value == ShopSortOption.featured) {
+      selectedSortOption.value = ShopSortOption.newest;
+      sortBy.value = 'created_at';
+      sortOrder.value = 'desc';
+    }
+    applyFiltersAndRefresh();
+  }
+
   void toggleHot() {
     isHot.toggle();
     applyFiltersAndRefresh();
@@ -421,6 +503,16 @@ class ShopController extends GetxController
 
   void toggleTrending() {
     isTrending.toggle();
+    applyFiltersAndRefresh();
+  }
+
+  void removeTrendingFilter() {
+    isTrending.value = false;
+    if (selectedSortOption.value == ShopSortOption.trending) {
+      selectedSortOption.value = ShopSortOption.newest;
+      sortBy.value = 'created_at';
+      sortOrder.value = 'desc';
+    }
     applyFiltersAndRefresh();
   }
 
@@ -456,6 +548,13 @@ class ShopController extends GetxController
     currentPriceRange.value = values;
     minPrice.value = values.start;
     maxPrice.value = values.end;
+    applyFiltersAndRefresh();
+  }
+
+  void clearPriceFilter() {
+    currentPriceRange.value = const RangeValues(0, 10000);
+    minPrice.value = 0;
+    maxPrice.value = 10000;
     applyFiltersAndRefresh();
   }
 

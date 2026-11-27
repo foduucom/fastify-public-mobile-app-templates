@@ -32,15 +32,16 @@ class CartService extends GetxService with BaseController {
   // ══════════════════════════════════════════════════════════
   //  FETCH CART
   // ══════════════════════════════════════════════════════════
-  Future<void> fetchCart() async {
+  Future<void> fetchCart({bool useCache = true}) async {
     if (_isGuest) {
+      loadError.value = false;
       _loadLocalCart();
       return;
     }
 
     try {
       var response = await BasicProvider("cart")
-          .getRequest(queryParams: {'populate': '*'}).catchError(handleError);
+          .getRequest(queryParams: {'populate': '*'}, useCache: useCache);
 
       if (response == null) {
         // Keep what we have: a failed fetch must not look like an empty cart.
@@ -51,7 +52,9 @@ class CartService extends GetxService with BaseController {
       loadError.value = false;
       parseCartResponse(response);
     } catch (e) {
+      loadError.value = true;
       debugPrint('CartService.fetchCart error: $e');
+      await handleError(e);
     }
   }
 
@@ -162,9 +165,14 @@ class CartService extends GetxService with BaseController {
   void parseCartResponse(Map<String, dynamic> data) {
     final items = data['items'] as List? ?? [];
     cartItems.value = items.map((e) => Map<String, dynamic>.from(e)).toList();
-    subTotal.value = (data['sub_total'] ?? 0).toDouble();
-    total.value = (data['total'] ?? 0).toDouble();
+    subTotal.value = _asDouble(data['sub_total']);
+    total.value = _asDouble(data['total']);
     cartItems.refresh();
+  }
+
+  double _asDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '') ?? 0;
   }
 
   // ══════════════════════════════════════════════════════════
@@ -249,8 +257,9 @@ class CartService extends GetxService with BaseController {
         regularPrice = salePrice;
       }
 
-      final effectivePrice =
-          (salePrice > 0 && salePrice <= regularPrice) ? salePrice : regularPrice;
+      final effectivePrice = (salePrice > 0 && salePrice <= regularPrice)
+          ? salePrice
+          : regularPrice;
 
       sub += regularPrice * qty;
       tot += effectivePrice * qty;

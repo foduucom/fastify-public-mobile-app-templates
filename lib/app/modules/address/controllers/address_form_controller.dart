@@ -71,7 +71,7 @@ class AddressFormController extends GetxController with BaseController {
       final india = page.items.firstWhereOrNull((r) => r.slug == 'india');
       if (india != null && selectedCountry.isEmpty) onCountryChanged(india);
     } catch (e) {
-      print('Error defaulting country: $e');
+      debugPrint('Could not load default country: $e');
     }
   }
 
@@ -84,6 +84,7 @@ class AddressFormController extends GetxController with BaseController {
 
   @override
   void onInit() {
+    super.onInit();
     name = TextEditingController();
     email = TextEditingController();
     mobile = TextEditingController();
@@ -95,16 +96,15 @@ class AddressFormController extends GetxController with BaseController {
     try {
       _initFromArgs();
     } catch (e) {
-      print('Error in _initFromArgs: $e');
+      debugPrint('Failed to initialize address form: $e');
       Get.snackbar(
         "Error",
-        "Failed to load address data: $e",
+        "Failed to load address data. Please try again.",
         snackPosition: SnackPosition.BOTTOM,
       );
     }
 
     _defaultCountry();
-    super.onInit();
   }
 
   void _initFromArgs() {
@@ -115,8 +115,6 @@ class AddressFormController extends GetxController with BaseController {
         var addr = Get.arguments['address'];
 
         // Debug print to see what we're getting
-        print('Address in _initFromArgs: $addr');
-        print('Address type: ${addr.runtimeType}');
 
         // Make sure addr is a Map
         if (addr is Map) {
@@ -130,9 +128,8 @@ class AddressFormController extends GetxController with BaseController {
           addressType.value = addr['address_type'] ?? 'Home';
           isDefault.value = (addr['is_default'] == 1);
 
-          selectedCountry.value = addr['country'] is Map
-              ? Map.from(addr['country'])
-              : {};
+          selectedCountry.value =
+              addr['country'] is Map ? Map.from(addr['country']) : {};
           selectedState.value =
               addr['state'] is Map ? Map.from(addr['state']) : {};
           final rawCity = addr['city'] is Map
@@ -144,7 +141,6 @@ class AddressFormController extends GetxController with BaseController {
             city.text = rawCity;
           }
         } else {
-          print('Error: Address is not a Map, it is a ${addr.runtimeType}');
           // If addr is a String, try to parse it or handle the error
           Get.snackbar(
             "Error",
@@ -185,7 +181,9 @@ class AddressFormController extends GetxController with BaseController {
           : (user != null ? (user['email']?.toString() ?? '') : '');
       final addressMobile = mobile.text.trim().isNotEmpty
           ? mobile.text.trim()
-          : (user != null ? (user['mobile'] ?? user['phone'])?.toString() ?? '' : '');
+          : (user != null
+              ? (user['mobile'] ?? user['phone'])?.toString() ?? ''
+              : '');
 
       var body = {
         'name': addressName,
@@ -201,52 +199,24 @@ class AddressFormController extends GetxController with BaseController {
         'is_default': isDefault.value ? 1 : 0
       };
 
-      print('postman body ${body}');
-
-      bool isSuccess = false;
-
       if (isEditMode) {
-        try {
-          var response =
-              await BasicProvider('customer/addresses/$editAddressId')
-                  .patchRequest(body);
-          print('address update response ${response}');
-          isSuccess = true;
-        } catch (e) {
-          print('Error caught: $e');
-          // Check if this is a format exception (HTML response)
-          if (e.toString().contains('FormatException') ||
-              e.toString().contains('<!DOCTYPE')) {
-            // The API likely succeeded despite the error
-            print('API likely succeeded despite format error');
-            isSuccess = true;
-          } else {
-            rethrow;
-          }
-        }
+        final response =
+            await BasicProvider('customer/addresses/$editAddressId')
+                .patchRequest(body);
+        if (response == null)
+          throw Exception('Address update was not confirmed by the server');
       } else {
-        try {
-          var response =
-              await BasicProvider('customer/addresses/add').postRequest(body);
-          print('address update response 1: ${response}');
-          isSuccess = true;
-        } catch (e) {
-          print('Error caught: $e');
-          if (e.toString().contains('FormatException') ||
-              e.toString().contains('<!DOCTYPE')) {
-            print('API likely succeeded despite format error');
-            isSuccess = true;
-          } else {
-            rethrow;
-          }
-        }
+        final response =
+            await BasicProvider('customer/addresses/add').postRequest(body);
+        if (response == null)
+          throw Exception('Address save was not confirmed by the server');
       }
 
       // Hide loader before dialog or route navigation
       HelperFunctions().hideOverlayLoader();
       isLoading.value = false;
 
-      if (isSuccess) {
+      {
         if (Get.isRegistered<AddressListController>()) {
           Get.find<AddressListController>().refreshAddresses();
         }
@@ -282,8 +252,9 @@ class AddressFormController extends GetxController with BaseController {
     } catch (e) {
       HelperFunctions().hideOverlayLoader();
       isLoading.value = false;
-      print('Error saving address: $e');
-      HelperFunctions().showSnackBarError("Failed to save address: $e");
+      debugPrint('Address save failed: $e');
+      HelperFunctions()
+          .showSnackBarError("Failed to save address. Please try again.");
     } finally {
       HelperFunctions().hideOverlayLoader();
       isLoading.value = false;

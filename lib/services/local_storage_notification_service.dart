@@ -32,6 +32,13 @@ class LocalStorageNotificationService extends GetxService {
     }
   }
 
+  Future<void> reload() async => _loadNotifications();
+
+  Future<void> deleteNotification(String id) async {
+    notifications.removeWhere((notification) => notification.id == id);
+    await _saveToStorage();
+  }
+
   Future<void> _saveToStorage() async {
     try {
       await _box.write(

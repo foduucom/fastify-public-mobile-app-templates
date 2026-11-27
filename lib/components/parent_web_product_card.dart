@@ -12,15 +12,40 @@ class ParentWebProductCard extends StatelessWidget {
   final Map<String, dynamic> product;
   final bool isList;
   final VoidCallback? onTap;
+  final String? categoryLabel;
 
   const ParentWebProductCard({
     Key? key,
     required this.product,
     this.isList = false,
     this.onTap,
+    this.categoryLabel,
   }) : super(key: key);
 
   String get _productId => ProductHelper.getProductId(product);
+
+  String _resolveCategoryLabel() {
+    final explicit = categoryLabel?.trim();
+    if (explicit != null && explicit.isNotEmpty) return explicit;
+    final raw = product['categories'] ?? product['category'];
+    final categories = raw is List
+        ? raw
+        : raw == null
+            ? const []
+            : [raw];
+    for (final category in categories) {
+      if (category is Map) {
+        final name = (category['name'] ?? category['title'])?.toString().trim();
+        if (name != null && name.isNotEmpty) return name;
+      }
+    }
+    final brand = product['brand'];
+    if (brand is Map) {
+      final name = brand['name']?.toString().trim();
+      if (name != null && name.isNotEmpty) return name;
+    }
+    return '';
+  }
 
   String _resolveDefaultVariantId() {
     final variants = product['variants'];
@@ -42,8 +67,13 @@ class ParentWebProductCard extends StatelessWidget {
         bestOverall = v;
       }
 
-      final stockStatus = (v['stock_status'] ?? '').toString();
-      final inStock = stockStatus.isEmpty || stockStatus == 'in_stock';
+      final stockStatus =
+          (v['stock_status'] ?? '').toString().toLowerCase().trim();
+      final isOutOfStock =
+          stockStatus == 'out_of_stock' || stockStatus == 'outofstock';
+      final quantity = v['quantity'];
+      final inStock = !isOutOfStock &&
+          (quantity == null || HelperFunctions.parseAmount(quantity) > 0);
       if (inStock && price < bestInStockPrice) {
         bestInStockPrice = price;
         bestInStock = v;
@@ -52,6 +82,47 @@ class ParentWebProductCard extends StatelessWidget {
 
     final chosen = bestInStock ?? bestOverall;
     return (chosen?['_id'] ?? chosen?['id'] ?? '').toString();
+  }
+
+  Widget _buildRating(
+      BuildContext context, ColorScheme colorScheme, TextTheme textTheme,
+      {bool centered = false}) {
+    final rating = double.tryParse(
+            (product['average_rating'] ?? product['rating'] ?? 0).toString()) ??
+        0;
+    final count = int.tryParse(
+            (product['rating_count'] ?? product['review_count'] ?? 0)
+                .toString()) ??
+        0;
+    return Row(
+      mainAxisAlignment:
+          centered ? MainAxisAlignment.center : MainAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ...List.generate(5, (index) {
+          final full = rating >= index + 1;
+          final half = !full && rating >= index + 0.5;
+          return Icon(
+            half
+                ? Icons.star_half_rounded
+                : full
+                    ? Icons.star_rounded
+                    : Icons.star_outline_rounded,
+            size: 13,
+            color: full || half
+                ? const Color(0xFFFFB800)
+                : colorScheme.outline.withValues(alpha: 0.45),
+          );
+        }),
+        const SizedBox(width: 4),
+        Text(
+          rating > 0 ? rating.toStringAsFixed(1) : '($count)',
+          style: textTheme.labelSmall?.copyWith(
+            color: context.onSurfaceVariantColor,
+          ),
+        ),
+      ],
+    );
   }
 
   void _navigateToDetail() {
@@ -138,6 +209,7 @@ class ParentWebProductCard extends StatelessWidget {
 
     final imageUrl = ProductHelper.getProductImage(product);
     final productName = ProductHelper.getProductName(product);
+    final categoryText = _resolveCategoryLabel();
     final priceStr = priceInfo['productPrice']?.toString() ?? '0';
     final regularPriceStr = priceInfo['salePrice']?.toString() ?? '';
     final discountRateStr = priceInfo['discountRate']?.toString() ?? '';
@@ -247,7 +319,8 @@ class ParentWebProductCard extends StatelessWidget {
                           color: colorScheme.primary,
                           boxShadow: [
                             BoxShadow(
-                              color: colorScheme.primary.withValues(alpha: 0.35),
+                              color:
+                                  colorScheme.primary.withValues(alpha: 0.35),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
@@ -267,19 +340,27 @@ class ParentWebProductCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
 
-          // Rating Stars (5 gold stars centered)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              5,
-              (index) => const Icon(
-                Icons.star_rounded,
-                size: 13,
-                color: DefaultThemeColors.alertWarninglight,
+          // Rating stars reflect the product's actual review data.
+          _buildRating(context, colorScheme, textTheme, centered: true),
+          const SizedBox(height: 3),
+
+          if (categoryText.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                categoryText.toUpperCase(),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.labelSmall?.copyWith(
+                  fontSize: 9,
+                  letterSpacing: 0.4,
+                  color: context.onSurfaceVariantColor,
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 3),
+            const SizedBox(height: 2),
+          ],
 
           // Product Title (centered)
           Padding(
@@ -485,28 +566,7 @@ class ParentWebProductCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
 
-                  // Rating Stars + Score
-                  Row(
-                    children: [
-                      ...List.generate(
-                        5,
-                        (index) => const Icon(
-                          Icons.star_rounded,
-                          size: 13,
-                          color: DefaultThemeColors.alertWarninglight,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '5.0',
-                        style: textTheme.bodySmall?.copyWith(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: context.onSurfaceVariantColor,
-                        ),
-                      ),
-                    ],
-                  ),
+                  _buildRating(context, colorScheme, textTheme),
                   const SizedBox(height: 8),
 
                   // Pricing Block

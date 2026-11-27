@@ -8,27 +8,79 @@ import 'package:get/get.dart';
 class OrderProductsView extends StatelessWidget {
   const OrderProductsView({super.key});
 
+  double _amount(dynamic value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(
+            value?.toString().replaceAll(',', '').replaceAll('₹', '').trim() ??
+                '') ??
+        0;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final args = Get.arguments as Map? ?? {};
-    final dynamic order = args['order'];
+    final rawArguments = Get.arguments;
+    final args = rawArguments is Map ? rawArguments : const {};
+    final rawOrder = args['order'] ?? args['data'] ?? rawArguments;
+    final orderValue = rawOrder is Map && rawOrder['order'] is Map
+        ? rawOrder['order']
+        : rawOrder;
+    final Map order = orderValue is Map ? orderValue : const {};
+
+    if (order.isEmpty) {
+      final colors = Theme.of(context).colorScheme;
+      return Scaffold(
+        appBar: AppBar(title: Text('OrderDetails'.tr)),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.receipt_long_outlined, size: 44),
+                const SizedBox(height: 12),
+                Text(
+                  'Order details are unavailable. Open this order from order history.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: colors.onSurfaceVariant),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  onPressed: Get.back,
+                  child: Text('Back'.tr),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     final orderId = (order['order_no'] ?? order['_id'] ?? '').toString();
     final mongoId = (order['_id'] ?? order['id'] ?? '').toString();
-    final paymentStatus = order['payment_status']?.toString() ?? 'pending';
-    final currency = (order['currency'] ?? '₹').toString();
-    final total = double.tryParse(order['total']?.toString() ?? '0') ?? 0;
-    final subtotal = double.tryParse(order['subtotal']?.toString() ?? '0') ?? 0;
-    final discount = double.tryParse(order['discount']?.toString() ?? '0') ?? 0;
-    final tax = double.tryParse(order['tax']?.toString() ?? '0') ?? 0;
-    final shipping =
-        double.tryParse(order['shipping_charges']?.toString() ?? '0') ?? 0;
+    final rawPaymentStatus = order['payment_status']?.toString() ?? 'pending';
     final paymentMethod =
-        (order['payment_method'] ?? '').toString().toUpperCase();
+        (order['payment_method'] ?? order['primary_method'] ?? '')
+            .toString()
+            .toLowerCase();
+    final paymentStatus = (paymentMethod == 'cod' || paymentMethod == 'cash') &&
+            rawPaymentStatus.toLowerCase() == 'pending'
+        ? 'COD - Pending'
+        : rawPaymentStatus;
+    final currency = (order['currency'] ?? '₹').toString();
+    final total = _amount(
+        order['total'] ?? order['grand_total'] ?? order['total_amount']);
+    final subtotal = _amount(order['subtotal'] ?? order['sub_total']);
+    final discount = _amount(order['discount'] ?? order['coupon_discount']);
+    final tax = _amount(order['tax'] ?? order['tax_amount']);
+    final shippingValue = order['shipping_charges'] ??
+        order['shipping'] ??
+        order['delivery_charge'];
+    final shipping = _amount(shippingValue);
+    final displayPaymentMethod = paymentMethod.toUpperCase();
     final notes = (order['notes'] ?? '').toString();
-    final orderDate = order['created_at'] != null
-        ? HelperFunctions()
-            .toCarbonToHumanDateFormat(order['created_at'].toString())
+    final orderDate = (order['created_at'] ?? order['createdAt']) != null
+        ? HelperFunctions().toCarbonToHumanDateFormat(
+            (order['created_at'] ?? order['createdAt']).toString())
         : '';
 
     final address = order['address'] is Map ? order['address'] as Map : null;
@@ -55,8 +107,12 @@ class OrderProductsView extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () =>
-                Get.toNamed(Routes.ORDER_DETAILS, arguments: {'id': mongoId}),
+            onPressed: mongoId.isEmpty
+                ? null
+                : () => Get.toNamed(
+                      Routes.ORDER_DETAILS,
+                      arguments: {'id': mongoId, 'order': order},
+                    ),
             child: Text(
               'View Details'.tr,
               style: TextStyle(
@@ -119,7 +175,7 @@ class OrderProductsView extends StatelessWidget {
                     ],
                   ),
                 ],
-                if (paymentMethod.isNotEmpty) ...[
+                if (displayPaymentMethod.isNotEmpty) ...[
                   const SizedBox(height: 5),
                   Row(
                     children: [
@@ -128,7 +184,7 @@ class OrderProductsView extends StatelessWidget {
                           color: theme.onSurface.withValues(alpha: 0.4)),
                       const SizedBox(width: 5),
                       Text(
-                        paymentMethod,
+                        displayPaymentMethod,
                         style: textTheme.bodySmall?.copyWith(
                           color: theme.onSurface.withValues(alpha: 0.45),
                           fontSize: 11,
@@ -243,9 +299,13 @@ class OrderProductsView extends StatelessWidget {
                 if (tax > 0)
                   _amountRow(
                       context, 'Tax'.tr, '$currency ${tax.toStringAsFixed(2)}'),
-                if (shipping > 0)
-                  _amountRow(context, 'Shipping'.tr,
-                      '$currency ${shipping.toStringAsFixed(2)}'),
+                if (shippingValue != null)
+                  _amountRow(
+                      context,
+                      'Shipping'.tr,
+                      shipping == 0
+                          ? 'FREE'.tr
+                          : '$currency ${shipping.toStringAsFixed(2)}'),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Divider(
@@ -408,37 +468,29 @@ class _ProductTile extends StatelessWidget {
   final dynamic product;
   final String currency;
 
-  String _constructImageUrl(Map imageObj) {
-    final filepath = imageObj['filepath']?.toString() ?? '';
-    if (filepath.isNotEmpty) {
-      final cleanPath =
-          filepath.startsWith('/') ? filepath.substring(1) : filepath;
-      return 'https://mywatch.vbought.com/images/$cleanPath';
-    }
-    final url = imageObj['download_url']?.toString() ?? '';
-    return _fixImageUrl(url);
-  }
-
-  String _fixImageUrl(String url) {
-    if (url.isEmpty) return '';
-    final uri = Uri.tryParse(url);
-    if (uri == null) return url;
-    if (uri.host.endsWith('.vbought.com') &&
-        uri.host != 'mywatch.vbought.com') {
-      return url.replaceFirst(uri.host, 'mywatch.vbought.com');
-    }
-    return url;
-  }
-
   String? _extractImageUrl(dynamic product) {
     try {
-      final productObj = product['product_id'];
+      if (product is! Map) return null;
+      final productObj = product['product_id'] ?? product['product'];
+      final directImage = product['image'] ?? product['featured_image'];
+      if (directImage is Map || directImage is List) {
+        return HelperFunctions().getImage(directImage);
+      }
+      if (directImage is String &&
+          directImage.isNotEmpty &&
+          !RegExp(r'^[a-f0-9]{24}$').hasMatch(directImage)) {
+        return HelperFunctions().getImage(directImage);
+      }
 
       if (productObj is Map) {
         final fi = productObj['featured_image'];
-        if (fi is Map) {
-          final url = _constructImageUrl(fi);
-          if (url.isNotEmpty) return url;
+        if (fi is Map || fi is List) {
+          return HelperFunctions().getImage(fi);
+        }
+        if (fi is String &&
+            fi.isNotEmpty &&
+            !RegExp(r'^[a-f0-9]{24}$').hasMatch(fi)) {
+          return HelperFunctions().getImage(fi);
         }
 
         final frontImageId = productObj['front_image']?.toString() ?? '';
@@ -450,17 +502,11 @@ class _ProductTile extends StatelessWidget {
                 g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
             orElse: () => null,
           );
-          if (match != null) return _constructImageUrl(match);
+          if (match != null) return HelperFunctions().getImage(match);
         }
       }
-
-      final directImage = product['image'] ?? product['featured_image'];
-      if (directImage is Map) return _constructImageUrl(directImage);
-      if (directImage is String && directImage.startsWith('http')) {
-        return _fixImageUrl(directImage);
-      }
     } catch (e) {
-      debugPrint('Image extraction error: $e');
+      debugPrint('Order product image resolution failed: ${e.runtimeType}');
     }
     return null;
   }
@@ -470,12 +516,23 @@ class _ProductTile extends StatelessWidget {
     final theme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final name = (product['name'] ?? '').toString();
-    final qty = (product['qty'] ?? 1).toString();
-    final unitPrice = (product['unit_price'] ?? 0).toString();
-    final lineTotal = (product['total'] ?? 0).toString();
+    final line = product is Map ? product as Map : const {};
+    final productObj = line['product_id'] ?? line['product'];
+    final name = (line['name'] ??
+            (productObj is Map ? productObj['name'] : null) ??
+            'Product')
+        .toString();
+    final qty = (line['qty'] ?? line['quantity'] ?? 1).toString();
+    final unitAmount = line['unit_price'] ?? line['price'] ?? 0;
+    final parsedUnitAmount = unitAmount is num
+        ? unitAmount.toDouble()
+        : double.tryParse(unitAmount.toString()) ?? 0;
+    final unitPrice = parsedUnitAmount.toStringAsFixed(2);
+    final lineTotal = line['total'] ??
+        line['line_total'] ??
+        (parsedUnitAmount * (double.tryParse(qty) ?? 1));
 
-    final variant = product['variant'];
+    final variant = line['variant'] ?? line['variant_id'];
     String variantLabel = '';
     if (variant is Map) {
       final attrs = variant['attributes'];
@@ -483,20 +540,18 @@ class _ProductTile extends StatelessWidget {
         variantLabel =
             attrs.entries.map((e) => '${e.key}: ${e.value}').join('  ·  ');
       } else if (attrs is List) {
-        variantLabel =
-            attrs.map((a) => '${a['name']}: ${a['value']}').join('  ·  ');
+        variantLabel = attrs
+            .whereType<Map>()
+            .map((a) => '${a['name'] ?? 'Option'}: ${a['value'] ?? ''}')
+            .join('  ·  ');
       }
     }
 
     final String? imageUrl = _extractImageUrl(product);
 
     // SKU: prefer variant sku, fall back to product_id sku
-    final productObj = product['product_id'];
     final variantSku =
-        (product['variant'] is Map ? product['variant']['sku'] : null)
-                ?.toString()
-                .trim() ??
-            '';
+        (variant is Map ? variant['sku'] : null)?.toString().trim() ?? '';
     final productSku =
         (productObj is Map ? productObj['sku'] : null)?.toString().trim() ?? '';
     final sku = variantSku.isNotEmpty ? variantSku : productSku;
@@ -608,7 +663,7 @@ class _ProductTile extends StatelessWidget {
           // ── Line Total ──
           const SizedBox(width: 8),
           Text(
-            '$currency $lineTotal',
+            '$currency ${_formatAmount(lineTotal)}',
             style: textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w700,
               fontSize: 13,
@@ -619,6 +674,12 @@ class _ProductTile extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatAmount(dynamic value) {
+    if (value is num) return value.toStringAsFixed(2);
+    final parsed = double.tryParse(value.toString());
+    return parsed?.toStringAsFixed(2) ?? value.toString();
   }
 
   Widget _typeBadge(String type, ColorScheme theme) {

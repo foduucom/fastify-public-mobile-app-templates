@@ -6,11 +6,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:foduu_ecommerce/components/buttons/primary_action_button.dart';
 import 'package:foduu_ecommerce/components/commonWidgets/secondary_app_header.dart';
-import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
-import 'package:foduu_ecommerce/helpers/dialog_helper.dart';
 import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
 import '../controllers/checkout_controllers.dart';
-import '/constants/constants.dart';
 import '/constants/theme.dart';
 
 class CheckoutViews extends GetView<CheckOutController> {
@@ -126,6 +123,10 @@ class CheckoutViews extends GetView<CheckOutController> {
           // Edit icon - opens address form for editing
           GestureDetector(
             onTap: () {
+              if (controller.isPreparingCheckout.value ||
+                  controller.isSubmittingOrder.value) {
+                return;
+              }
               if (controller.selectedAddressString.value.isNotEmpty) {
                 _showEditAddressBottomSheet(width, height, context);
               } else {
@@ -158,11 +159,7 @@ class CheckoutViews extends GetView<CheckOutController> {
   void _showEditAddressBottomSheet(
       double width, double height, BuildContext context) {
     // Get the selected address data from controller
-    final selectedAddressMap = controller.selectedAddressData.value;
-
-    print('Selected Address Map: $selectedAddressMap'); // Debug print
-    print(
-        'Selected Address Map Type: ${selectedAddressMap.runtimeType}'); // Debug print
+    final selectedAddressMap = controller.selectedAddressData;
 
     if (selectedAddressMap.isEmpty) {
       Get.snackbar(
@@ -177,8 +174,6 @@ class CheckoutViews extends GetView<CheckOutController> {
 
     // Make sure we're passing the address as a Map
     final addressData = Map<String, dynamic>.from(selectedAddressMap);
-
-    print('Address Data to pass: $addressData'); // Debug print
 
     // Navigate to AddressFormView in edit mode
     Get.toNamed(
@@ -259,8 +254,7 @@ class CheckoutViews extends GetView<CheckOutController> {
             }
 
             return ListView.separated(
-              separatorBuilder: (_, __) =>
-                  SizedBox(height: height * 0.012),
+              separatorBuilder: (_, __) => SizedBox(height: height * 0.012),
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               padding: EdgeInsets.zero,
@@ -295,7 +289,10 @@ class CheckoutViews extends GetView<CheckOutController> {
     }
     return GestureDetector(
       onTap: () {
-        print('Tapped: ${option['method']} at index $index');
+        if (controller.isPreparingCheckout.value ||
+            controller.isSubmittingOrder.value) {
+          return;
+        }
         controller.selectedIndex.value = index;
         controller.deliveryOption.value = option;
       },
@@ -642,7 +639,23 @@ class CheckoutViews extends GetView<CheckOutController> {
               )
             : const SizedBox.shrink()),
         const SizedBox(height: 8),
-        _buildSummaryRow('Delivery', '₹0.00', textTheme, width, height),
+        Obx(() => _buildSummaryRow(
+              'Applied coupon',
+              cartController.appliedCouponCode.value.isNotEmpty
+                  ? cartController.appliedCouponCode.value
+                  : 'None',
+              textTheme,
+              width,
+              height,
+            )),
+        const SizedBox(height: 8),
+        _buildSummaryRow(
+          'Delivery',
+          'Calculated by store',
+          textTheme,
+          width,
+          height,
+        ),
         const SizedBox(height: 12),
         Divider(color: Colors.grey.withValues(alpha: 0.3)),
         const SizedBox(height: 12),
@@ -710,26 +723,16 @@ class CheckoutViews extends GetView<CheckOutController> {
           SizedBox(
             width: width * 0.90,
             height: height * 0.075,
-            child: PrimaryActionButton(
-              text: "Pay Now",
-              onPressed: () {
-                // Remove the immediate success dialog
-                // The success dialog should only show after payment is successful
-                controller.processOrder();
-
-                // ❌ REMOVE THIS - it's causing the issue
-                // DialogHelper.showSuccessDialog(
-                //   title: "Payment Successfully Processed",
-                //   description:
-                //       "Thank you for your purchase! Your payment has been successfully processed. Sit back, relax, and enjoy your new items.",
-                //   imagePath: "assets/images/success.png",
-                //   buttonText: "Continue",
-                //   onPressed: () {
-                //     Get.back();
-                //   },
-                // );
-              },
-            ),
+            child: Obx(() {
+              final isLoading = controller.isPaymentLoading.value ||
+                  controller.isPreparingCheckout.value ||
+                  controller.isSubmittingOrder.value;
+              return PrimaryActionButton(
+                text: "Pay Now",
+                isLoading: isLoading,
+                onPressed: controller.processOrder,
+              );
+            }),
           ),
         ],
       ),

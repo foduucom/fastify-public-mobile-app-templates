@@ -14,7 +14,6 @@ import 'package:foduu_ecommerce/components/commonWidgets/simple_price_text.dart'
 import 'package:foduu_ecommerce/components/commonWidgets/variable_price_text.dart';
 import 'package:foduu_ecommerce/components/shimmer_effects.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
-import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/product_helper.dart';
 import 'package:foduu_ecommerce/constants/theme.dart';
@@ -53,27 +52,23 @@ class ProductView extends GetView<ProductController> {
                   onPressed: () => controller.shareContent(context),
                 ),
               ],
-              rightIcon: isInWishlist
-                  ? Icons.favorite
-                  : Icons.favorite_outline,
+              rightIcon: isInWishlist ? Icons.favorite : Icons.favorite_outline,
               onRightIconTap: () async {
                 String? variantId;
                 if (controller.productDetials['type'] == 'variable') {
-                  final variants =
-                      controller.productDetials['variants'];
+                  final variants = controller.productDetials['variants'];
                   if (variants != null &&
                       variants is List &&
-                      controller.selectedVariantIndex.value <
-                          variants.length) {
-                    variantId = variants[
-                        controller.selectedVariantIndex.value]['_id'];
+                      controller.selectedVariantIndex.value >= 0 &&
+                      controller.selectedVariantIndex.value < variants.length) {
+                    variantId =
+                        variants[controller.selectedVariantIndex.value]['_id'];
                   }
                 }
 
                 await WishListService.to.toggleWishlist(
                   productId: controller.productId,
-                  variantSlug:
-                      controller.productDetials['variant_slug'] ?? '',
+                  variantSlug: controller.productDetials['variant_slug'] ?? '',
                   variantId: variantId,
                 );
               },
@@ -102,6 +97,7 @@ class ProductView extends GetView<ProductController> {
 
                           if (variants != null &&
                               variants is List &&
+                              selectedIdx >= 0 &&
                               selectedIdx < variants.length) {
                             var variant = variants[selectedIdx];
 
@@ -145,6 +141,7 @@ class ProductView extends GetView<ProductController> {
 
                         if (variants != null &&
                             variants is List &&
+                            selectedIdx >= 0 &&
                             selectedIdx < variants.length) {
                           var variant = variants[selectedIdx];
                           var variantGallery =
@@ -247,11 +244,14 @@ class ProductView extends GetView<ProductController> {
                                           final variants = controller
                                                   .productDetials['variants']
                                               as List?;
+                                          final selectedIndex = controller
+                                              .selectedVariantIndex.value;
                                           if (variants != null &&
-                                              variants.isNotEmpty) {
-                                            final selectedVariant = variants[
-                                                controller.selectedVariantIndex
-                                                    .value];
+                                              selectedIndex >= 0 &&
+                                              selectedIndex < variants.length &&
+                                              variants[selectedIndex] is Map) {
+                                            final selectedVariant =
+                                                variants[selectedIndex] as Map;
 
                                             String discountRate = '';
                                             final priceStr =
@@ -530,16 +530,29 @@ class ProductView extends GetView<ProductController> {
                               Obx(() {
                                 final variants = controller
                                     .productDetials['variants'] as List?;
-                                final v =
-                                    (variants != null && variants.isNotEmpty)
-                                        ? variants[controller
-                                            .selectedVariantIndex.value] as Map?
-                                        : null;
+                                final selectedIndex =
+                                    controller.selectedVariantIndex.value;
+                                final v = (variants != null &&
+                                        selectedIndex >= 0 &&
+                                        selectedIndex < variants.length)
+                                    ? variants[selectedIndex] as Map?
+                                    : null;
                                 final qty = v?['quantity'];
-                                final inStock = qty == null ||
-                                    (qty != 0 &&
-                                        qty != false &&
-                                        qty.toString() != '0');
+                                final inStock = v != null &&
+                                    (qty == null ||
+                                        (qty != 0 &&
+                                            qty != false &&
+                                            qty.toString() != '0'));
+                                final status = v == null
+                                    ? 'Select options'
+                                    : inStock
+                                        ? 'In Stock'
+                                        : 'Out of Stock';
+                                final statusColor = v == null
+                                    ? colorScheme.onSurfaceVariant
+                                    : inStock
+                                        ? Colors.green
+                                        : Colors.redAccent;
                                 return Padding(
                                   padding: EdgeInsets.only(top: height * 0.008),
                                   child: Row(
@@ -548,24 +561,19 @@ class ProductView extends GetView<ProductController> {
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 8, vertical: 3),
                                         decoration: BoxDecoration(
-                                          color: inStock
-                                              ? Colors.green.withOpacity(0.15)
-                                              : Colors.red.withOpacity(0.15),
+                                          color: statusColor.withOpacity(0.15),
                                           borderRadius:
                                               BorderRadius.circular(4),
                                           border: Border.all(
-                                              color: inStock
-                                                  ? Colors.green.withOpacity(0.5)
-                                                  : Colors.red.withOpacity(0.5)),
+                                              color:
+                                                  statusColor.withOpacity(0.5)),
                                         ),
                                         child: Text(
-                                          inStock ? 'In Stock' : 'Out of Stock',
+                                          status,
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.w600,
-                                            color: inStock
-                                                ? Colors.green
-                                                : Colors.redAccent,
+                                            color: statusColor,
                                           ),
                                         ),
                                       ),
@@ -578,11 +586,13 @@ class ProductView extends GetView<ProductController> {
                               Obx(() {
                                 final variants = controller
                                     .productDetials['variants'] as List?;
-                                final v =
-                                    (variants != null && variants.isNotEmpty)
-                                        ? variants[controller
-                                            .selectedVariantIndex.value] as Map?
-                                        : null;
+                                final selectedIndex =
+                                    controller.selectedVariantIndex.value;
+                                final v = (variants != null &&
+                                        selectedIndex >= 0 &&
+                                        selectedIndex < variants.length)
+                                    ? variants[selectedIndex] as Map?
+                                    : null;
                                 final sku = v?['sku']?.toString() ?? '';
                                 final barcode = v?['barcode']?.toString() ?? '';
                                 if (sku.isEmpty && barcode.isEmpty)
@@ -595,14 +605,16 @@ class ProductView extends GetView<ProductController> {
                                         Text('SKU: $sku',
                                             style: TextStyle(
                                                 fontSize: 11,
-                                                color: colorScheme.onSurfaceVariant)),
+                                                color: colorScheme
+                                                    .onSurfaceVariant)),
                                       if (sku.isNotEmpty && barcode.isNotEmpty)
                                         const SizedBox(width: 16),
                                       if (barcode.isNotEmpty)
                                         Text('Barcode: $barcode',
                                             style: TextStyle(
                                                 fontSize: 11,
-                                                color: colorScheme.onSurfaceVariant)),
+                                                color: colorScheme
+                                                    .onSurfaceVariant)),
                                     ],
                                   ),
                                 );
@@ -966,11 +978,14 @@ class ProductView extends GetView<ProductController> {
                                             name,
                                             style: TextStyle(
                                                 fontSize: 12,
-                                                color: colorScheme.onSurfaceVariant),
+                                                color: colorScheme
+                                                    .onSurfaceVariant),
                                           ),
-                                          backgroundColor: colorScheme.surfaceVariant,
+                                          backgroundColor:
+                                              colorScheme.surfaceVariant,
                                           side: BorderSide(
-                                              color: colorScheme.outlineVariant),
+                                              color:
+                                                  colorScheme.outlineVariant),
                                           padding: EdgeInsets.zero,
                                           materialTapTargetSize:
                                               MaterialTapTargetSize.shrinkWrap,
@@ -1086,9 +1101,11 @@ class ProductView extends GetView<ProductController> {
                   onPressed: () async {
                     HelperFunctions().showOverlayLoader();
                     try {
-                      await controller.addToCart();
+                      final added = await controller.addToCart();
                       HelperFunctions().hideOverlayLoader();
-                      _showAddedToCartBottomSheet(Get.context!, controller);
+                      if (added) {
+                        _showAddedToCartBottomSheet(Get.context!, controller);
+                      }
                     } catch (e) {
                       HelperFunctions().hideOverlayLoader();
                       HelperFunctions().showSnackBarError(
@@ -1205,14 +1222,17 @@ class ProductView extends GetView<ProductController> {
                   final productDetails = controller.productDetials;
                   if (productDetails.isEmpty) return const SizedBox.shrink();
                   final details = Map<String, dynamic>.from(productDetails);
+                  final selectedIndex = controller.selectedVariantIndex.value;
+                  final variantIndex =
+                      selectedIndex >= 0 ? selectedIndex : null;
                   final imgUrl = ProductHelper.getProductImage(
                     details,
-                    variantIndex: controller.selectedVariantIndex.value,
+                    variantIndex: variantIndex,
                   );
                   final name = details['name']?.toString() ?? '';
                   final priceInfo = ProductHelper.calculatePriceInfo(
                     details,
-                    variantIndex: controller.selectedVariantIndex.value,
+                    variantIndex: variantIndex,
                   );
                   final displayPrice = priceInfo['productPrice'] ?? '0';
 

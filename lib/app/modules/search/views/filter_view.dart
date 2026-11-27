@@ -6,14 +6,14 @@ import '../models/filter_model.dart';
 /// Opens the filter bottom sheet and returns the applied [FilterModel],
 /// or `null` if dismissed without applying.
 Future<FilterModel?> showFilterBottomSheet(
-  BuildContext context,
-  FilterModel currentFilter,
-) {
+    BuildContext context, FilterModel currentFilter,
+    {List<Map<String, String>> brandOptions = const []}) {
   return showModalBottomSheet<FilterModel>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => _FilterSheet(initial: currentFilter),
+    builder: (_) =>
+        _FilterSheet(initial: currentFilter, brandOptions: brandOptions),
   );
 }
 
@@ -36,7 +36,8 @@ const _sortOptions = [
 // ── Filter Sheet ────────────────────────────────────────────────────────────
 class _FilterSheet extends StatefulWidget {
   final FilterModel initial;
-  const _FilterSheet({required this.initial});
+  final List<Map<String, String>> brandOptions;
+  const _FilterSheet({required this.initial, required this.brandOptions});
 
   @override
   State<_FilterSheet> createState() => _FilterSheetState();
@@ -169,10 +170,10 @@ class _FilterSheetState extends State<_FilterSheet> {
                     colorScheme,
                     textTheme,
                   ),
-                  _buildListSection(
+                  _buildChoiceSection(
                     'Brands',
                     _brands,
-                    [],
+                    widget.brandOptions,
                     (updated) => setState(() => _brands = updated),
                     colorScheme,
                     textTheme,
@@ -233,8 +234,7 @@ class _FilterSheetState extends State<_FilterSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Sort By',
-            style: textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.w600)),
+            style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
         const SizedBox(height: 10),
         Wrap(
           spacing: 8,
@@ -307,8 +307,8 @@ class _FilterSheetState extends State<_FilterSheet> {
                   value: _priceRange.start,
                   onChanged: (v) {
                     if (v >= _priceMin && v <= _priceRange.end) {
-                      setState(() =>
-                          _priceRange = RangeValues(v, _priceRange.end));
+                      setState(
+                          () => _priceRange = RangeValues(v, _priceRange.end));
                     }
                   },
                 ),
@@ -341,8 +341,7 @@ class _FilterSheetState extends State<_FilterSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Product Type',
-            style:
-                textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+            style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         _flagTile('Featured', _featured, (v) => setState(() => _featured = v),
             Icons.star, Colors.amber.shade700, colorScheme),
@@ -394,8 +393,7 @@ class _FilterSheetState extends State<_FilterSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(title,
-            style:
-                textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+            style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
         const SizedBox(height: 10),
         Wrap(
           spacing: 8,
@@ -413,10 +411,8 @@ class _FilterSheetState extends State<_FilterSheet> {
               selectedColor: colorScheme.primary.withOpacity(0.15),
               checkmarkColor: colorScheme.primary,
               labelStyle: TextStyle(
-                color:
-                    isSelected ? colorScheme.primary : colorScheme.onSurface,
-                fontWeight:
-                    isSelected ? FontWeight.w600 : FontWeight.normal,
+                color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -426,6 +422,46 @@ class _FilterSheetState extends State<_FilterSheet> {
                       : colorScheme.outline.withOpacity(0.3),
                 ),
               ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _buildChoiceSection(
+    String title,
+    List<String> selected,
+    List<Map<String, String>> options,
+    ValueChanged<List<String>> onChanged,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    if (options.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title,
+            style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: options.map((option) {
+            final value = option['value'] ?? '';
+            final label = option['label'] ?? value;
+            final isSelected = selected.contains(value);
+            return FilterChip(
+              label: Text(label),
+              selected: isSelected,
+              onSelected: (checked) {
+                final updated = List<String>.from(selected);
+                checked ? updated.add(value) : updated.remove(value);
+                onChanged(updated);
+              },
+              selectedColor: colorScheme.primary.withValues(alpha: 0.15),
+              checkmarkColor: colorScheme.primary,
             );
           }).toList(),
         ),
@@ -522,13 +558,11 @@ class _PriceField extends StatelessWidget {
               const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide:
-                BorderSide(color: colorScheme.outline.withOpacity(0.3)),
+            borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.3)),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide:
-                BorderSide(color: colorScheme.outline.withOpacity(0.3)),
+            borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.3)),
           ),
         ),
         onChanged: (text) {

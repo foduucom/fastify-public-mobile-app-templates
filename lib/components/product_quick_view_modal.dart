@@ -39,11 +39,27 @@ class _ProductQuickViewModalState extends State<ProductQuickViewModal> {
   String get _productId => ProductHelper.getProductId(product);
 
   String get _currentVariantId {
-    if (hasVariants && _selectedVariantIndex < variants.length) {
+    if (hasVariants &&
+        _selectedVariantIndex >= 0 &&
+        _selectedVariantIndex < variants.length &&
+        variants[_selectedVariantIndex] is Map) {
       final v = variants[_selectedVariantIndex];
       return (v['_id'] ?? v['id'] ?? '').toString();
     }
     return '';
+  }
+
+  int? get _selectedVariantStock {
+    final selected = hasVariants &&
+            _selectedVariantIndex >= 0 &&
+            _selectedVariantIndex < variants.length
+        ? variants[_selectedVariantIndex]
+        : product;
+    if (selected is! Map || selected['quantity'] == null) return null;
+    return HelperFunctions.parseAmount(selected['quantity'])
+        .toInt()
+        .clamp(0, 1 << 30)
+        .toInt();
   }
 
   @override
@@ -237,6 +253,7 @@ class _ProductQuickViewModalState extends State<ProductQuickViewModal> {
                 runSpacing: 8,
                 children: List.generate(variants.length, (idx) {
                   final v = variants[idx];
+                  if (v is! Map) return const SizedBox.shrink();
                   final label = (v['title'] ?? v['name'] ?? 'Option ${idx + 1}')
                       .toString();
                   final isSelected = _selectedVariantIndex == idx;
@@ -245,7 +262,13 @@ class _ProductQuickViewModalState extends State<ProductQuickViewModal> {
                     selected: isSelected,
                     onSelected: (selected) {
                       if (selected) {
-                        setState(() => _selectedVariantIndex = idx);
+                        setState(() {
+                          _selectedVariantIndex = idx;
+                          final stock = _selectedVariantStock;
+                          if (stock != null && _quantity > stock) {
+                            _quantity = stock.clamp(1, _quantity).toInt();
+                          }
+                        });
                       }
                     },
                     selectedColor: colorScheme.primary,
@@ -288,7 +311,9 @@ class _ProductQuickViewModalState extends State<ProductQuickViewModal> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.add, size: 18),
-                        onPressed: inStock
+                        onPressed: inStock &&
+                                (_selectedVariantStock == null ||
+                                    _quantity < _selectedVariantStock!)
                             ? () => setState(() => _quantity++)
                             : null,
                       ),
@@ -359,6 +384,23 @@ class _ProductQuickViewModalState extends State<ProductQuickViewModal> {
   }
 
   Future<void> _addToCart(BuildContext context) async {
+    final inStock = ProductHelper.isInStock(
+      product,
+      variantIndex: hasVariants ? _selectedVariantIndex : null,
+    );
+    if (!inStock || (hasVariants && _currentVariantId.isEmpty)) {
+      Get.snackbar(
+        'Unavailable option',
+        'Select an in-stock option before adding this product.',
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+      );
+      return;
+    }
+    final availableStock = _selectedVariantStock;
+    if (availableStock != null && _quantity > availableStock) {
+      setState(() => _quantity = availableStock);
+    }
     setState(() => _isAddingToCart = true);
     final primaryColor = Theme.of(context).colorScheme.primary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
@@ -387,6 +429,10 @@ class _ProductQuickViewModalState extends State<ProductQuickViewModal> {
       }
     } catch (e) {
       debugPrint('Quick view add to cart error: $e');
+      if (mounted) {
+        HelperFunctions()
+            .showSnackBarError('Could not add this product to your cart.');
+      }
     } finally {
       if (mounted) setState(() => _isAddingToCart = false);
     }

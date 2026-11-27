@@ -10,6 +10,7 @@ class SupportTicketController extends GetxController with BaseController {
   var isLoading = false.obs;
   var supportTickets = [].obs;
   var pagination = {}.obs;
+  final loadError = false.obs;
 
   @override
   void onInit() {
@@ -20,9 +21,9 @@ class SupportTicketController extends GetxController with BaseController {
   Future<void> getSupportTickets() async {
     try {
       isLoading.value = true;
-      var response = await BasicProvider("customer/support-tickets")
-          .getRequest(queryParams: {'page': 1, 'limit': 10})
-          .catchError(handleError);
+      loadError.value = false;
+      var response = await BasicProvider("customer/support-tickets").getRequest(
+          queryParams: {'page': 1, 'limit': 10}).catchError(handleError);
 
       List rawTickets = [];
       Map<String, dynamic> rawPagination = {};
@@ -30,13 +31,15 @@ class SupportTicketController extends GetxController with BaseController {
       if (response is List) {
         rawTickets = response;
       } else if (response is Map) {
-        final ticketsData = response['tickets'] ?? response['data'] ?? response['docs'];
+        final ticketsData =
+            response['tickets'] ?? response['data'] ?? response['docs'];
         if (ticketsData is List) {
           rawTickets = ticketsData;
         } else if (ticketsData is Map && ticketsData['tickets'] is List) {
           rawTickets = ticketsData['tickets'];
           if (ticketsData['pagination'] is Map) {
-            rawPagination = Map<String, dynamic>.from(ticketsData['pagination']);
+            rawPagination =
+                Map<String, dynamic>.from(ticketsData['pagination']);
           }
         }
         if (response['pagination'] is Map) {
@@ -44,11 +47,17 @@ class SupportTicketController extends GetxController with BaseController {
         }
       }
 
+      if (response == null) {
+        loadError.value = true;
+        return;
+      }
+
       supportTickets
         ..clear()
         ..addAll(rawTickets);
       pagination.value = rawPagination;
     } catch (e) {
+      loadError.value = true;
       debugPrint('getSupportTickets error: $e');
       HelperFunctions().showSnackBarError('Failed to load support tickets');
     } finally {
@@ -109,17 +118,26 @@ class SupportTicketController extends GetxController with BaseController {
     }
   }
 
-  Future<bool> closeSupportTicket(String id, int index) async {
+  Future<bool> closeSupportTicket(String id) async {
     try {
-      await BasicProvider("customer/support-tickets/$id/close")
-          .postRequest({})
-          .catchError(handleError);
+      final response = await BasicProvider("customer/support-tickets/$id/close")
+          .postRequest({}).catchError(handleError);
+      if (response == null ||
+          (response is Map &&
+              (response['success'] == false ||
+                  response['status'] == false ||
+                  const {'error', 'failed', 'failure'}.contains(
+                      response['status']?.toString().toLowerCase())))) {
+        throw Exception('Ticket closure was not confirmed');
+      }
 
-      if (index >= 0 && index < supportTickets.length) {
-        final ticket = Map<String, dynamic>.from(supportTickets[index]);
+      final actualIndex = supportTickets.indexWhere((item) =>
+          item is Map && (item['id'] ?? item['_id']).toString() == id);
+      if (actualIndex >= 0 && actualIndex < supportTickets.length) {
+        final ticket = Map<String, dynamic>.from(supportTickets[actualIndex]);
         ticket['status'] = 'closed';
         ticket['can_reply'] = false;
-        supportTickets[index] = ticket;
+        supportTickets[actualIndex] = ticket;
       }
       HelperFunctions()
           .showSnackBarSuccess('Support ticket closed successfully');

@@ -2,11 +2,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
-import 'package:foduu_ecommerce/components/home_component/home_common_widgets.dart';
+import 'package:foduu_ecommerce/components/common/looping_video_banner.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/controllers/homepage_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
-import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
@@ -212,7 +211,8 @@ class _HomeBannerState extends State<HomeBanner>
     final borderRadius = config['border_radius']?.toDouble() ?? 12.0;
 
     return Padding(
-      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 6.0, bottom: 16.0),
+      padding: const EdgeInsets.only(
+          left: 16.0, right: 16.0, top: 6.0, bottom: 16.0),
       child: GestureDetector(
         onTap: () => handleBannerTap(items[0]),
         child: ClipRRect(
@@ -229,6 +229,24 @@ class _HomeBannerState extends State<HomeBanner>
 
   Widget _buildCachedImage(Map<String, dynamic> item) {
     final imgUrl = getImage(item);
+    final featuredImage = item['featured_image'];
+    final isVideo = (featuredImage is Map &&
+            (featuredImage['file_type'] == 'video' ||
+                '${featuredImage['mimetype']}'.contains('video') ||
+                '${featuredImage['filename']}'
+                    .toLowerCase()
+                    .endsWith('.mp4'))) ||
+        imgUrl.toLowerCase().split('?').first.endsWith('.mp4');
+    if (isVideo) {
+      return LoopingVideoBanner(
+        videoUrl: imgUrl,
+        autoPlay: true,
+        looping: true,
+        initialMuted: true,
+        showSoundToggle: true,
+        onTap: () => handleBannerTap(item),
+      );
+    }
     if (imgUrl.isEmpty || imgUrl == HelperFunctions.getNoImage()) {
       return const AppImagePlaceholder(
         radius: 0,
@@ -360,7 +378,8 @@ class _CarouselBannerState extends State<CarouselBanner> {
     final showIndicators = widget.config['show_indicators'] ?? true;
 
     return Padding(
-      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 6.0, bottom: 12.0),
+      padding: const EdgeInsets.only(
+          left: 16.0, right: 16.0, top: 6.0, bottom: 12.0),
       child: Column(
         children: [
           // Text('data' , style:  Theme.of(context).textTheme.tit,)
@@ -390,8 +409,8 @@ class _CarouselBannerState extends State<CarouselBanner> {
                               progressIndicatorBuilder:
                                   (context, url, progress) {
                                 return Container(
-                                  decoration:
-                                      BoxDecoration(color: Colors.grey.shade100),
+                                  decoration: BoxDecoration(
+                                      color: Colors.grey.shade100),
                                   child: HelperFunctions().loadingIndicator(),
                                 );
                               },

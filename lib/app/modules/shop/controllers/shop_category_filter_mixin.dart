@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 /// a breadcrumb stack for navigating back up, and per-category product counts.
 mixin ShopCategoryFilterMixin on GetxController {
   final allCategories = <dynamic>[].obs;
+  final filterRootCategories = <dynamic>[].obs;
   final filterCurrentCategories = <dynamic>[].obs;
   final filterCategoryStack = <Map<String, dynamic>>[].obs;
   final categorySearchController = TextEditingController();
@@ -27,6 +28,7 @@ mixin ShopCategoryFilterMixin on GetxController {
   void seedCategoryContext(dynamic category) {
     filterCategoryStack.clear();
     final rawChildren = category['children'];
+    filterRootCategories.assignAll(rawChildren is List ? rawChildren : []);
     filterCurrentCategories.assignAll(rawChildren is List ? rawChildren : []);
   }
 
@@ -41,9 +43,7 @@ mixin ShopCategoryFilterMixin on GetxController {
     if (filterCategoryStack.isEmpty) return;
     filterCategoryStack.removeLast();
     if (filterCategoryStack.isEmpty) {
-      // Back to the root category passed in via navigation arguments.
-      final rawChildren = Get.arguments is Map ? Get.arguments['children'] : null;
-      filterCurrentCategories.assignAll(rawChildren is List ? rawChildren : []);
+      filterCurrentCategories.assignAll(filterRootCategories);
     } else {
       final parent = filterCategoryStack.last['cat'] as Map;
       final rawChildren = parent['children'];
@@ -54,8 +54,8 @@ mixin ShopCategoryFilterMixin on GetxController {
   List<Map<String, dynamic>> getSearchedCategories(String query) {
     final lower = query.toLowerCase();
     return allCategories
-        .where((c) =>
-            (c['name']?.toString().toLowerCase() ?? '').contains(lower))
+        .where(
+            (c) => (c['name']?.toString().toLowerCase() ?? '').contains(lower))
         .map((e) => Map<String, dynamic>.from(e))
         .toList();
   }

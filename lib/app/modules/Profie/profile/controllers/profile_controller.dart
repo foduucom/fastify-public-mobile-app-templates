@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 import '/app/controllers/api_exception_handle_controller.dart';
 import '/app/data/basic_provider.dart';
 import '/app/modules/auth/auth_details.dart';
-import '/app/modules/bottomar/controllers/bottombar_controller.dart';
 import '/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:intl/intl.dart';
 
 class ProfileController extends GetxController with BaseController {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -87,12 +85,10 @@ class ProfileController extends GetxController with BaseController {
         "new_password": newPasswordController.text,
         "confirm_password": comfirmPasswordController.text
       };
-      print(form);
       var response = await BasicProvider("public/customer/change/password")
           .postRequest(form)
           .catchError(handleError);
       if (response == null) return;
-      print('passowrd 111 $response');
       Get.back();
       newPasswordController.text = '';
       oldPasswordController.text = '';
@@ -102,7 +98,7 @@ class ProfileController extends GetxController with BaseController {
       comfirmPasswordObsecureValue.value = true;
       HelperFunctions().showSnackBarSuccess('Password Change successfully');
     } catch (e) {
-      print('profile update error $e');
+      debugPrint('Password change failed: $e');
     }
   }
 
@@ -151,7 +147,7 @@ class ProfileController extends GetxController with BaseController {
           }
         }
 
-        debugPrint("Profile data successfully fetched and parsed: $response");
+        debugPrint("Profile data successfully fetched and parsed.");
       } else {
         debugPrint("Profile data response was null.");
       }
@@ -204,7 +200,6 @@ class ProfileController extends GetxController with BaseController {
         var response = await BasicProvider("auth/customer/profile/update")
             .postRequest(form)
             .catchError(handleError);
-        Get.until((route) => !Get.isDialogOpen!);
 
         if (response == null) return;
         // Evict old cached image so the updated one loads fresh
@@ -212,20 +207,14 @@ class ProfileController extends GetxController with BaseController {
           await CachedNetworkImage.evictFromCache(imagePath.value);
         }
         await fetchDataFromServer();
-        isLoading(false);
-
-        Get.until((route) => !Get.isDialogOpen!);
-        var updatedprofile = AuthDetails().updateUserDetailsFromServer();
-        //Get.find<BottombarController>().authDetails.value = updatedprofile;
-        // HelperFunctions().showSnackBarSuccess(response["status"]);
-        Get.until((route) => !Get.isDialogOpen!);
-        // Get.back();
-        // Get.back();
+        await AuthDetails().updateUserDetailsFromServer();
 
         HelperFunctions().showSnackBarSuccess('Profile update successfully');
       } catch (e) {
-        print('profile update error $e');
-        rethrow;
+        debugPrint('Profile update failed: $e');
+        HelperFunctions().showSnackBarError('Failed to update profile. Please try again.');
+      } finally {
+        isLoading(false);
       }
     }
   }

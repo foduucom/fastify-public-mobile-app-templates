@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:foduu_ecommerce/components/home_component/icon_button_section.dart';
+import '/components/home_component/cms_countdown_section.dart';
+import '/components/home_component/cms_form_builder_section.dart';
 import 'package:foduu_ecommerce/components/search_bar_rounded.dart';
 import '/app/routes/app_pages.dart';
 import '/components/home_component/home_products.dart';
@@ -95,7 +96,14 @@ void registerDefaultWidgets() {
   });
 
   r.register('countdown', (json) {
-    return Text('Count down timeer maintendedddd ');
+    return CmsCountdownSection(content: json ?? const {});
+  });
+
+  r.register('formbuilder', (json) {
+    return CmsFormBuilderSection(content: json ?? const {});
+  });
+  r.register('form_builder', (json) {
+    return CmsFormBuilderSection(content: json ?? const {});
   });
 
   // r.register('icon_button', (json) {

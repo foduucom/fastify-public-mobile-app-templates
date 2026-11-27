@@ -1,61 +1,60 @@
-import 'package:flutter/cupertino.dart';
-import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
-import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/constants/firebase_notification.dart';
+import 'package:foduu_ecommerce/models/local_notification.dart';
+import 'package:foduu_ecommerce/services/local_storage_notification_service.dart';
 import 'package:get/get.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
-class NotificationsController extends GetxController with BaseController {
-  var isLoading = true.obs;
-  var allnotificationList = List<dynamic>.empty().obs;
-  var currentPage = 1.obs;
-  var maxPage = 1.obs;
-  late ScrollController scrollController;
+class NotificationsController extends GetxController {
+  late final LocalStorageNotificationService storage;
+  final isLoading = false.obs;
+  final permissionGranted = Rxn<bool>();
+
+  List<LocalNotification> get notifications => storage.notifications;
+  int get unreadCount => storage.getUnreadCount();
 
   @override
-  Future<void> onInit() async {
+  void onInit() {
     super.onInit();
-    scrollController = ScrollController();
-    // await fetchallnotificationlist();
-    // await fetchMoreDataOnScroll();
+    storage = Get.isRegistered<LocalStorageNotificationService>()
+        ? Get.find<LocalStorageNotificationService>()
+        : Get.put(LocalStorageNotificationService());
+    checkPermission();
   }
 
-  // Future<void> fetchallnotificationlist() async {
-  //   isLoading.value = true;
-  //   var response = await BasicProvider(
-  //           "frontend/notifications/show/65f1a6b0d69a713e76c17af5?count=10&page=${currentPage.value}")
-  //       .getRequest()
-  //       .catchError(handleError);
-  //   if (response == null) return;
-  //   allnotificationList.addAll(response["data"]);
-  //   maxPage(response["last_page"]);
-  //   isLoading.value = false;
-  // }
-
-  // Future<void> fetchMoreDataOnScroll() async {
-  //   scrollController.addListener(() async {
-  //     if (scrollController.position.pixels >=
-  //         scrollController.position.maxScrollExtent - 50.0) {
-  //       if (!isLoading.value && currentPage.value < maxPage.value) {
-  //         currentPage(currentPage.value + 1);
-  //         await fetchallnotificationlist();
-  //       }
-  //     }
-  //   });
-  // }
-
-  Future<void> onPullToRefresh() async {
-    currentPage.value = 1;
-    maxPage.value = 1;
-    allnotificationList.clear();
-    // await fetchallnotificationlist();
+  Future<void> checkPermission() async {
+    try {
+      final settings =
+          await FirebaseMessaging.instance.getNotificationSettings();
+      permissionGranted.value =
+          settings.authorizationStatus == AuthorizationStatus.authorized ||
+              settings.authorizationStatus == AuthorizationStatus.provisional;
+    } catch (_) {
+      permissionGranted.value = null;
+    }
   }
 
-  @override
-  void onReady() {
-    super.onReady();
+  Future<void> requestPermission() async {
+    try {
+      await FirebaseMessaging.instance
+          .requestPermission(alert: true, badge: true, sound: true);
+      await checkPermission();
+    } catch (_) {
+      permissionGranted.value = false;
+    }
   }
 
-  @override
-  void onClose() {
-    super.onClose();
+  Future<void> onPullToRefresh() async => checkPermission();
+
+  Future<void> markAllAsRead() async => storage.markAllAsRead();
+
+  Future<void> openNotification(LocalNotification notification) async {
+    await storage.markAsRead(notification.id);
+    FirebaseHelpers.navigateOnNotificationClick(notification.metadata);
   }
+
+  Future<void> deleteNotification(String id) async {
+    await storage.deleteNotification(id);
+  }
+
+  Future<void> clearNotifications() => FirebaseHelpers.clearLocalNotifications();
 }

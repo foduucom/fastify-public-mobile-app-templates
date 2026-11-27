@@ -41,7 +41,7 @@ class WishlistController extends GetxController
   }
 
   Map<String, dynamic> getProduct(int index) {
-    if (index >= wishlistItems.length) return {};
+    if (index < 0 || index >= wishlistItems.length) return {};
     final item = wishlistItems[index];
     if (item['product_id'] != null && item['product_id'] is Map) {
       return Map<String, dynamic>.from(item['product_id']);
@@ -50,7 +50,7 @@ class WishlistController extends GetxController
   }
 
   Map<String, dynamic> getVariant(int index) {
-    if (index >= wishlistItems.length) return {};
+    if (index < 0 || index >= wishlistItems.length) return {};
     final item = wishlistItems[index];
     if (item['variant_id'] != null && item['variant_id'] is Map) {
       return Map<String, dynamic>.from(item['variant_id']);
@@ -71,10 +71,18 @@ class WishlistController extends GetxController
   }
 
   int getQuantity(int index) {
+    if (index < 0 || index >= wishlistItems.length) return 1;
     return wishlistItems[index]['quantity'] ?? 1;
   }
 
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
+  }
+
   String getVariantSlug(int index) {
+    if (index < 0 || index >= wishlistItems.length) return '';
     final item = wishlistItems[index];
     return (item['variant_slug'] ??
             item['variant_id']?['slug'] ??
@@ -165,12 +173,23 @@ class WishlistController extends GetxController
         return;
       }
 
-      await Get.find<CartService>().manageCart(
+      final response = await Get.find<CartService>().manageCart(
         productId: productId,
         variantId: variantId,
         quantity: quantity,
         product: product,
       );
+
+      if (AuthDetails.isUserLogin() && response == null) {
+        Get.snackbar(
+          'Error',
+          'Could not add this item to your cart. Please try again.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.withOpacity(0.7),
+          colorText: Colors.white,
+        );
+        return;
+      }
 
       Get.snackbar(
         "Success",

@@ -1,8 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import '/components/app_image_placeholder.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '/components/app_image_placeholder.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
 import '/app/modules/Profie/orders/orders_details/controller/orderdetails_controller.dart';
@@ -58,258 +55,338 @@ class OrderdetailView extends GetView<OrderdetailController> {
               : controller.item;
 
           if (orderData == null || (orderData is Map && orderData.isEmpty)) {
-            return const Center(child: Text('Order not found'));
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      controller.errorMessage.value.isNotEmpty
+                          ? controller.errorMessage.value
+                          : 'Order not found',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: controller.OrderDetail,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
 
           final currentStage = controller.getCurrentStage();
           final paymentStatus =
               (orderData['payment_status'] ?? '').toString().toLowerCase();
-          final isPaid = paymentStatus == 'paid';
+          final isPaid =
+              const {'paid', 'success', 'completed'}.contains(paymentStatus);
 
-          return ListView(
-            children: [
-              const SizedBox(height: 12),
-
-              // ── Dynamic Order Tracking Timeline ─────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Order Status',
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'lato',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ListView.builder(
-                      itemCount: controller.stages.length,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        final isCompleted = (index + 1) <= currentStage;
-                        final isLast = index == controller.stages.length - 1;
-
-                        return TimelineTile(
-                          isFirst: index == 0,
-                          isLast: isLast,
-                          indicatorStyle: IndicatorStyle(
-                            width: 28,
-                            height: 28,
-                            indicator: Container(
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: isCompleted
-                                    ? colorScheme.primary
-                                    : colorScheme.surfaceContainerHighest,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isCompleted
-                                      ? colorScheme.primary
-                                      : colorScheme.outline
-                                          .withValues(alpha: 0.3),
-                                  width: 2,
+          return RefreshIndicator(
+            onRefresh: controller.OrderDetail,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 12),
+                if (controller.errorMessage.value.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Material(
+                      color: colorScheme.errorContainer,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Showing saved order details. Refresh to try again.',
+                                style: TextStyle(
+                                  color: colorScheme.onErrorContainer,
+                                  fontSize: 12,
                                 ),
-                              ),
-                              child: Icon(
-                                isCompleted ? Icons.check : Icons.circle,
-                                color: isCompleted
-                                    ? colorScheme.onPrimary
-                                    : colorScheme.outline,
-                                size: isCompleted ? 16 : 8,
                               ),
                             ),
+                            TextButton(
+                              onPressed: controller.OrderDetail,
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // ── Dynamic Order Tracking Timeline ─────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Order Status',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'lato',
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      if (currentStage == 0)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: colorScheme.errorContainer,
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          beforeLineStyle: LineStyle(
-                            color: isCompleted
-                                ? colorScheme.primary
-                                : colorScheme.outline.withValues(alpha: 0.3),
-                            thickness: 2,
+                          child: Text(
+                            'Order ${controller.currentOrderStatus}',
+                            style: TextStyle(
+                              color: colorScheme.onErrorContainer,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                          afterLineStyle: LineStyle(
-                            color: (index + 1) < currentStage
-                                ? colorScheme.primary
-                                : colorScheme.outline.withValues(alpha: 0.3),
-                            thickness: 2,
-                          ),
-                          endChild: Padding(
-                            padding: const EdgeInsets.only(
-                                left: 16, top: 12, bottom: 20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  controller.stages[index],
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: isCompleted
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                    fontFamily: 'lato',
+                        )
+                      else
+                        ListView.builder(
+                          itemCount: controller.stages.length,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemBuilder: (context, index) {
+                            final isCompleted = (index + 1) <= currentStage;
+                            final isLast =
+                                index == controller.stages.length - 1;
+
+                            return TimelineTile(
+                              isFirst: index == 0,
+                              isLast: isLast,
+                              indicatorStyle: IndicatorStyle(
+                                width: 28,
+                                height: 28,
+                                indicator: Container(
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
                                     color: isCompleted
-                                        ? colorScheme.onSurface
-                                        : colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                                if (index + 1 == currentStage) ...[
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'In Progress',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: colorScheme.primary,
-                                      fontFamily: 'lato',
+                                        ? colorScheme.primary
+                                        : colorScheme.surfaceContainerHighest,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: isCompleted
+                                          ? colorScheme.primary
+                                          : colorScheme.outline
+                                              .withValues(alpha: 0.3),
+                                      width: 2,
                                     ),
                                   ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-
-              Divider(
-                thickness: 8,
-                color: colorScheme.surfaceContainerHighest,
-              ),
-
-              // ── Payment Transactions Card ───────────────────────
-              PaymentTransactionsCard(item: orderData),
-
-              Divider(
-                thickness: 8,
-                color: colorScheme.surfaceContainerHighest,
-              ),
-
-              // ── Price Details ───────────────────────────────────
-              PriceDetails(item: orderData),
-
-              Divider(
-                thickness: 8,
-                color: colorScheme.surfaceContainerHighest,
-              ),
-
-              // ── Shipping Address ────────────────────────────────
-              if (orderData['address'] != null)
-                ShippingAddress(
-                  mobileNo: orderData['customer'] is Map
-                      ? (orderData['customer']['mobile']?.toString() ?? '')
-                      : '',
-                  address: orderData['address'],
-                ),
-
-              const SizedBox(height: 16),
-
-              // ── Download Invoice Button (Paid only) ─────────────
-              if (isPaid)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    onPressed: () => controller
-                        .downloadAndSavePDF(orderData['_id'] ?? controller.id.value),
-                    child: controller.downloading.value
-                        ? HelperFunctions().loadingIndicator(
-                            color: colorScheme.onPrimary,
-                          )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.download_rounded,
-                                  size: 20, color: colorScheme.onPrimary),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Download Invoice'.tr,
-                                style: TextStyle(
-                                  color: colorScheme.onPrimary,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'lato',
+                                  child: Icon(
+                                    isCompleted ? Icons.check : Icons.circle,
+                                    color: isCompleted
+                                        ? colorScheme.onPrimary
+                                        : colorScheme.outline,
+                                    size: isCompleted ? 16 : 8,
+                                  ),
                                 ),
                               ),
-                            ],
-                          ),
+                              beforeLineStyle: LineStyle(
+                                color: isCompleted
+                                    ? colorScheme.primary
+                                    : colorScheme.outline
+                                        .withValues(alpha: 0.3),
+                                thickness: 2,
+                              ),
+                              afterLineStyle: LineStyle(
+                                color: (index + 1) < currentStage
+                                    ? colorScheme.primary
+                                    : colorScheme.outline
+                                        .withValues(alpha: 0.3),
+                                thickness: 2,
+                              ),
+                              endChild: Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 16, top: 12, bottom: 20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      controller.stages[index],
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: isCompleted
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                        fontFamily: 'lato',
+                                        color: isCompleted
+                                            ? colorScheme.onSurface
+                                            : colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    if (index + 1 == currentStage) ...[
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'In Progress',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: colorScheme.primary,
+                                          fontFamily: 'lato',
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                    ],
                   ),
-                )
-              else
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest
-                          .withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(8),
+                ),
+
+                Divider(
+                  thickness: 8,
+                  color: colorScheme.surfaceContainerHighest,
+                ),
+
+                // ── Payment Transactions Card ───────────────────────
+                PaymentTransactionsCard(item: orderData),
+
+                Divider(
+                  thickness: 8,
+                  color: colorScheme.surfaceContainerHighest,
+                ),
+
+                // ── Price Details ───────────────────────────────────
+                PriceDetails(item: orderData),
+
+                Divider(
+                  thickness: 8,
+                  color: colorScheme.surfaceContainerHighest,
+                ),
+
+                // ── Shipping Address ────────────────────────────────
+                if (orderData['address'] is Map)
+                  ShippingAddress(
+                    mobileNo: orderData['customer'] is Map
+                        ? (orderData['customer']['mobile']?.toString() ??
+                            (orderData['address']['mobile']?.toString() ?? ''))
+                        : (orderData['address']['mobile']?.toString() ?? ''),
+                    address: orderData['address'],
+                  ),
+
+                const SizedBox(height: 16),
+
+                // ── Download Invoice Button (Paid only) ─────────────
+                if (isPaid)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: controller.downloading.value
+                          ? null
+                          : () => controller.downloadAndSavePDF(
+                                (orderData['_id'] ?? controller.id.value)
+                                    .toString(),
+                              ),
+                      child: controller.downloading.value
+                          ? HelperFunctions().loadingIndicator(
+                              color: colorScheme.onPrimary,
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.download_rounded,
+                                    size: 20, color: colorScheme.onPrimary),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Download Invoice'.tr,
+                                  style: TextStyle(
+                                    color: colorScheme.onPrimary,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'lato',
+                                  ),
+                                ),
+                              ],
+                            ),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.info_outline,
-                            size: 18, color: colorScheme.onSurfaceVariant),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'Invoice will be available for download once order payment is completed.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: colorScheme.onSurfaceVariant,
-                              fontFamily: 'lato',
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline,
+                              size: 18, color: colorScheme.onSurfaceVariant),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Invoice will be available for download once order payment is completed.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colorScheme.onSurfaceVariant,
+                                fontFamily: 'lato',
+                              ),
                             ),
                           ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                const SizedBox(height: 16),
+
+                // ── Need Help Section ────────────────────────────────
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: GestureDetector(
+                    onTap: () {
+                      Get.toNamed(Routes.HELPANDSUPPORT);
+                    },
+                    child: Row(
+                      children: [
+                        SvgPicture.asset(
+                          'assets/images/helpcircle.svg',
+                          height: 20,
+                          width: 20,
                         ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'need help'.tr,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            fontFamily: 'lato',
+                          ),
+                        ),
+                        const Spacer(),
+                        const Icon(Icons.arrow_forward_ios, size: 14),
                       ],
                     ),
                   ),
                 ),
 
-              const SizedBox(height: 16),
-
-              // ── Need Help Section ────────────────────────────────
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                child: GestureDetector(
-                  onTap: () {
-                    Get.toNamed(Routes.HELPANDSUPPORT);
-                  },
-                  child: Row(
-                    children: [
-                      SvgPicture.asset(
-                        'assets/images/helpcircle.svg',
-                        height: 20,
-                        width: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'need help'.tr,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                          fontFamily: 'lato',
-                        ),
-                      ),
-                      const Spacer(),
-                      const Icon(Icons.arrow_forward_ios, size: 14),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 40),
-            ],
+                const SizedBox(height: 40),
+              ],
+            ),
           );
         }),
       ),
@@ -327,17 +404,26 @@ class PaymentTransactionsCard extends StatelessWidget {
 
     double parseDouble(dynamic value) {
       if (value == null) return 0.0;
-      return double.tryParse(value.toString()) ?? 0.0;
+      return double.tryParse(value
+              .toString()
+              .replaceAll(',', '')
+              .replaceAll('₹', '')
+              .replaceAll(r'$', '')
+              .trim()) ??
+          0.0;
     }
 
     final symbol = (item['currency'] ?? '₹').toString();
-    final double totalVal = parseDouble(item['total']);
-    final payments = item['payments'] as List?;
+    final double totalVal = parseDouble(
+        item['total'] ?? item['grand_total'] ?? item['total_amount']);
+    final payments = item['payments'] is List ? item['payments'] as List : null;
     final paymentStatus =
         (item['payment_status'] ?? '').toString().toUpperCase();
     final paymentMethod =
-        (item['payment_method'] ?? 'COD').toString().toUpperCase();
-    final isCod = paymentMethod.toLowerCase() == 'cod';
+        (item['payment_method'] ?? item['primary_method'] ?? '')
+            .toString()
+            .toUpperCase();
+    final isCod = const {'cod', 'cash'}.contains(paymentMethod.toLowerCase());
 
     double amountPaid = 0.0;
     if (payments != null && payments.isNotEmpty) {
@@ -489,7 +575,7 @@ class PaymentTransactionsCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'DUE ON DELIVERY',
+                              isCod ? 'DUE ON DELIVERY' : 'UNPAID BALANCE',
                               style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
@@ -536,7 +622,8 @@ class PaymentTransactionsCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, size: 16, color: Colors.amber.shade800),
+                  Icon(Icons.info_outline,
+                      size: 16, color: Colors.amber.shade800),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -571,6 +658,27 @@ class ShippingAddress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final data = address is Map ? address as Map : const {};
+    String label(dynamic value) {
+      if (value is Map) {
+        return (value['name'] ?? value['label'] ?? '').toString().trim();
+      }
+      return value?.toString().trim() ?? '';
+    }
+
+    final lines = <String>[
+      label(data['name']),
+      label(data['house_no']),
+      label(data['street']),
+      label(data['address']),
+      label(data['landmark']),
+      [label(data['city']), label(data['state']), label(data['country'])]
+          .where((value) => value.isNotEmpty)
+          .join(', '),
+      label(data['postal_code'] ?? data['pincode']),
+      mobileNo.trim(),
+    ].where((value) => value.isNotEmpty).toList();
+
     return Padding(
       padding: pageSurroundingPadding,
       child: Column(
@@ -582,38 +690,21 @@ class ShippingAddress extends StatelessWidget {
                   fontWeight: FontWeight.w400,
                   fontSize: 14)),
           const Divider(),
-          // address != null
-          //     ? Text(address.toString(),
-          //         style: const TextStyle(
-          //             fontWeight: FontWeight.w600, fontSize: 16))
-          //     : const SizedBox(),
-          // const SizedBox(height: 6),
-          Text(
-              '${address['house_no']}  ${address['address'].toString().capitalize},',
-              style: const TextStyle(
-                  // color: themeTextColor,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 14)),
-          const SizedBox(height: 6),
-          Text('${address['city']['name']},',
-              style: const TextStyle(
-                  // color: themeTextColor,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 14)),
-          const SizedBox(height: 6),
-          Text('${address['state']['name']}, ${address['pincode']}',
-              style: const TextStyle(
-                  // color: themeTextColor,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 14)),
-          const SizedBox(height: 6),
-          Text(
-            '${mobileNo}',
-            style: const TextStyle(
-                // color: themeTextColor,
-                fontWeight: FontWeight.w400,
-                fontSize: 14),
-          )
+          if (lines.isEmpty)
+            Text('Shipping address unavailable'.tr)
+          else
+            ...lines.map(
+              (line) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(
+                  line,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w400,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -684,8 +775,47 @@ class PriceDetails extends StatelessWidget {
   const PriceDetails({super.key, required this.item});
   final dynamic item;
 
+  double _number(dynamic value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString().replaceAll(',', '') ?? '') ?? 0;
+  }
+
+  String _money(dynamic value) => '₹${_number(value).toStringAsFixed(2)}';
+
+  Map _productData(Map line) {
+    final product = line['product_id'] ?? line['product'];
+    return product is Map ? product : line;
+  }
+
+  double _unitPrice(Map line, Map product) {
+    final variant = line['variant'] ?? line['variant_id'];
+    return _number(line['unit_price'] ??
+        line['price'] ??
+        (variant is Map ? variant['sale_price'] ?? variant['price'] : null) ??
+        product['sale_price'] ??
+        product['price']);
+  }
+
+  double _originalPrice(Map line, Map product, double unitPrice) {
+    final variant = line['variant'] ?? line['variant_id'];
+    final original = _number(line['regular_price'] ??
+        (variant is Map
+            ? variant['regular_price'] ?? variant['original_price']
+            : null) ??
+        product['regular_price'] ??
+        product['original_price'] ??
+        unitPrice);
+    return original > 0 ? original : unitPrice;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final products = item['products'] is List ? item['products'] as List : [];
+    final subtotal = item['subtotal'] ?? item['sub_total'];
+    final discount = item['discount'] ?? item['coupon_discount'];
+    final shipping =
+        item['shipping_charges'] ?? item['shipping'] ?? item['delivery_charge'];
+    final total = item['total'] ?? item['grand_total'] ?? item['total_amount'];
     return Padding(
       padding: pageSurroundingPadding,
       child: Column(
@@ -704,17 +834,26 @@ class PriceDetails extends StatelessWidget {
                 height: 10,
               );
             },
-            itemCount: item['products'].length,
+            itemCount: products.length,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
-              final currentProduct = products[index];
-              final unitPrice = _getUnitPrice(currentProduct);
+              final line = products[index] is Map
+                  ? Map<String, dynamic>.from(products[index] as Map)
+                  : <String, dynamic>{};
+              final currentProduct = _productData(line);
+              final unitPrice = _unitPrice(line, currentProduct);
               final originalPrice =
-                  _getOriginalPrice(currentProduct, unitPrice);
+                  _originalPrice(line, currentProduct, unitPrice);
               final hasDiscount = originalPrice > unitPrice && unitPrice > 0;
-              final quantity =
-                  (currentProduct['qty'] ?? currentProduct['quantity'] ?? 1);
+              final quantity = line['qty'] ?? line['quantity'] ?? 1;
+              final productName =
+                  (line['name'] ?? currentProduct['name'] ?? 'Product')
+                      .toString();
+              final image = line['image'] ??
+                  line['featured_image'] ??
+                  currentProduct['featured_image'] ??
+                  currentProduct['image'];
 
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -736,8 +875,7 @@ class PriceDetails extends StatelessWidget {
                             ),
                         height: 100,
                         width: 100,
-                        imageUrl: HelperFunctions()
-                            .getImage(currentProduct['image']),
+                        imageUrl: HelperFunctions().getImage(image),
                         fit: BoxFit.contain),
                   ),
                   Expanded(
@@ -746,7 +884,7 @@ class PriceDetails extends StatelessWidget {
                       children: [
                         SizedBox(
                             width: Get.width * 0.6,
-                            child: Text(item['products'][index]['name'],
+                            child: Text(productName,
                                 style: const TextStyle(fontSize: 12))),
                         const SizedBox(height: 6),
                         Container(
@@ -760,7 +898,7 @@ class PriceDetails extends StatelessWidget {
                                   'Quantity:'.tr,
                                   style: const TextStyle(fontSize: 12),
                                 ),
-                                Text('${item['products'][index]['qty']}',
+                                Text('$quantity',
                                     style: const TextStyle(fontSize: 12)),
                               ],
                             )),
@@ -771,8 +909,19 @@ class PriceDetails extends StatelessWidget {
                             Text("price".tr,
                                 style: const TextStyle(fontSize: 12)),
                             const Text(" : ", style: TextStyle(fontSize: 12)),
-                            Text("₹${item['products'][index]['unit_price']}",
+                            Text(_money(unitPrice),
                                 style: const TextStyle(fontSize: 12)),
+                            if (hasDiscount) ...[
+                              const SizedBox(width: 8),
+                              Text(
+                                _money(originalPrice),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  decoration: TextDecoration.lineThrough,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                         const SizedBox(height: 14),
@@ -786,43 +935,47 @@ class PriceDetails extends StatelessWidget {
                         //   ],
                         // )
                       ],
-                    )
-                  ],
-                ),
+                    ),
+                  ),
+                ],
               );
             },
           ),
           const SizedBox(height: 5),
           const Divider(),
-          // OrderDetail(
-          //     title: 'sub total'.tr,
-          //     amount: Text('\u{20B9}${item['subtotal'].toStringAsFixed(2)}',
-          //         style: txtTheme().displaySmall)),
-          // item['discount'] != 0 && item['discount'] != null
-          //     ? OrderDetail(
-          //         title: 'coupon Discount'.tr,
-          //         amount: Text(
-          //             '- \u{20B9}${item['discount'].toStringAsFixed(2)}',
-          //             style: const TextStyle(
-          //                 color: Colors.green,
-          //                 fontWeight: FontWeight.w400,
-          //                 fontSize: 14)))
-          //     : Container(),
-          // OrderDetail(
-          //     title: "Tax".tr + "",
-          //     amount: Text('\u{20B9} ${19.toStringAsFixed(2)}',
-          //         style: txtTheme().displaySmall)),
-          // OrderDetail(
-          //     title: 'Delivery'.tr,
-          //     amount: Text('\u{20B9}${item['shipping'].toStringAsFixed(2)}',
-          //         style: txtTheme().displaySmall)),
           const Divider(thickness: 1.5),
           const SizedBox(height: 10),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('discount'.tr, style: txtTheme().displayMedium),
-            Text('\u{20B9}${item['discount'].toStringAsFixed(2)}',
-                style: txtTheme().displayMedium)
-          ]),
+          if (subtotal != null)
+            OrderDetail(
+              title: 'Subtotal'.tr,
+              amount: Text(_money(subtotal), style: txtTheme().displayMedium),
+            ),
+          if (_number(discount) > 0)
+            OrderDetail(
+              title: 'Discount'.tr,
+              amount: Text(
+                '-${_money(discount)}',
+                style: txtTheme().displayMedium?.copyWith(color: Colors.green),
+              ),
+            ),
+          if (shipping != null)
+            OrderDetail(
+              title: 'Shipping'.tr,
+              amount: Text(
+                _number(shipping) == 0 ? 'FREE' : _money(shipping),
+                style: txtTheme().displayMedium,
+              ),
+            ),
+          if (total != null)
+            OrderDetail(
+              title: 'Total'.tr,
+              amount: Text(
+                _money(total),
+                style: txtTheme().displayMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ),
           const SizedBox(height: 15),
         ],
       ),
@@ -950,13 +1103,14 @@ reviewModal(OrderdetailController controller) {
                     }
                   },
                   style: themeButton,
-                  child: Builder(builder: (ctx) => Text('Submit'.toUpperCase(),
-                      style: TextStyle(
-                        color: Theme.of(ctx).colorScheme.onPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        // fontFamily: 'Lato'
-                      ))),
+                  child: Builder(
+                      builder: (ctx) => Text('Submit'.toUpperCase(),
+                          style: TextStyle(
+                            color: Theme.of(ctx).colorScheme.onPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            // fontFamily: 'Lato'
+                          ))),
                 ),
               ),
             ),

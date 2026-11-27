@@ -7,9 +7,7 @@ import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 
 class OrdersucessView extends GetView<OrderSuccessController> {
-  OrdersucessView({Key? key}) : super(key: key);
-  @override
-  final controller = Get.put(OrderSuccessController());
+  const OrdersucessView({super.key});
 
   Widget _buildStatusBadge({
     required String text,
@@ -144,32 +142,85 @@ class OrdersucessView extends GetView<OrderSuccessController> {
               );
             }
 
-            final paymentMethod = (orderData['payment_method'] ?? 'COD')
+            if (!hasItem) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.receipt_long_outlined,
+                        size: 48,
+                        color: colorScheme.primary,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Order placed, but its details could not be loaded.',
+                        textAlign: TextAlign.center,
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (controller.orderNo.value.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text('Order #${controller.orderNo.value}'),
+                      ],
+                      const SizedBox(height: 16),
+                      if (controller.id.value != '0' &&
+                          controller.id.value.isNotEmpty)
+                        OutlinedButton.icon(
+                          onPressed: controller.OrderDetail,
+                          icon: const Icon(Icons.refresh),
+                          label: Text('Retry'.tr),
+                        ),
+                      TextButton(
+                        onPressed: () => Get.offAllNamed(Routes.ORDERS),
+                        child: Text('View orders'.tr),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            final paymentMethod =
+                (orderData['payment_method'] ?? 'COD').toString().toUpperCase();
+            final isCod =
+                const {'cod', 'cash'}.contains(paymentMethod.toLowerCase());
+            final paymentStatus = (orderData['payment_status'] ?? 'PENDING')
                 .toString()
                 .toUpperCase();
-            final isCod = paymentMethod.toLowerCase() == 'cod';
-            final paymentStatus =
-                (orderData['payment_status'] ?? (isCod ? 'PENDING' : 'PAID'))
-                    .toString()
-                    .toUpperCase();
             final currency = (orderData['currency'] ?? '₹').toString();
 
             double parseDouble(dynamic value) {
               if (value == null) return 0.0;
-              return double.tryParse(value.toString()) ?? 0.0;
+              return double.tryParse(value
+                      .toString()
+                      .replaceAll(',', '')
+                      .replaceAll('₹', '')
+                      .replaceAll(r'$', '')
+                      .trim()) ??
+                  0.0;
             }
 
-            final double totalVal = parseDouble(orderData['total']);
-            final double subtotalVal = parseDouble(orderData['subtotal']) > 0
-                ? parseDouble(orderData['subtotal'])
-                : totalVal;
-            final double discountVal = parseDouble(orderData['discount']);
-            final double shippingVal =
-                parseDouble(orderData['shipping_charges'] ?? orderData['shipping']);
+            final double totalVal = parseDouble(orderData['total'] ??
+                orderData['grand_total'] ??
+                orderData['total_amount']);
+            final double subtotalVal =
+                parseDouble(orderData['subtotal'] ?? orderData['sub_total']) > 0
+                    ? parseDouble(
+                        orderData['subtotal'] ?? orderData['sub_total'])
+                    : totalVal;
+            final double discountVal = parseDouble(
+                orderData['discount'] ?? orderData['coupon_discount']);
+            final double shippingVal = parseDouble(
+                orderData['shipping_charges'] ??
+                    orderData['shipping'] ??
+                    orderData['delivery_charge']);
 
-            final List? payments = orderData['payments'] is List
-                ? orderData['payments']
-                : null;
+            final List? payments =
+                orderData['payments'] is List ? orderData['payments'] : null;
 
             double amountPaid = 0.0;
             if (payments != null && payments.isNotEmpty) {
@@ -179,12 +230,15 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                       (pay['status'] ?? '').toString().toLowerCase();
                   if (pStatus == 'paid' ||
                       pStatus == 'success' ||
-                      pStatus == 'completed') {
+                      pStatus == 'completed' ||
+                      pStatus == 'captured') {
                     amountPaid += parseDouble(pay['amount']);
                   }
                 }
               }
-            } else if (paymentStatus == 'PAID' && !isCod) {
+            } else if (const {'PAID', 'SUCCESS', 'COMPLETED', 'CAPTURED'}
+                    .contains(paymentStatus) &&
+                !isCod) {
               amountPaid = totalVal;
             }
 
@@ -227,7 +281,14 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                 child: Text(
                                   isCod
                                       ? 'Your order has been confirmed and will be delivered soon.'
-                                      : 'Payment is successfully processed and your order is on the way.',
+                                      : const {
+                                          'PAID',
+                                          'SUCCESS',
+                                          'COMPLETED',
+                                          'CAPTURED',
+                                        }.contains(paymentStatus)
+                                          ? 'Payment is successfully processed and your order is on the way.'
+                                          : 'Your order is placed. Payment status: $paymentStatus.',
                                   textAlign: TextAlign.center,
                                   style: textTheme.bodyMedium?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
@@ -235,6 +296,35 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                   ),
                                 ),
                               ),
+                              if (controller.detailsError.value) ...[
+                                const SizedBox(height: 12),
+                                Material(
+                                  color: colorScheme.errorContainer,
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 8),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            'Showing the order information available right now.',
+                                            style: TextStyle(
+                                              color:
+                                                  colorScheme.onErrorContainer,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                        TextButton(
+                                          onPressed: controller.OrderDetail,
+                                          child: Text('Retry'.tr),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
 
                               // COD Advisory Notice Box
                               if (isCod && pendingAmount > 0) ...[
@@ -246,7 +336,8 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                     color: Colors.amber.withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(10),
                                     border: Border.all(
-                                        color: Colors.amber.withValues(alpha: 0.4)),
+                                        color: Colors.amber
+                                            .withValues(alpha: 0.4)),
                                   ),
                                   child: Row(
                                     children: [
@@ -441,9 +532,8 @@ class OrdersucessView extends GetView<OrderSuccessController> {
                                 value: shippingVal > 0
                                     ? '$currency${shippingVal.toStringAsFixed(2)}'
                                     : 'FREE',
-                                textColor: shippingVal == 0
-                                    ? Colors.green
-                                    : null,
+                                textColor:
+                                    shippingVal == 0 ? Colors.green : null,
                               ),
                               const Divider(height: 20),
                               _buildPriceRow(

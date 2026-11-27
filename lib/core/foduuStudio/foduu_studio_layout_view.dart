@@ -38,6 +38,7 @@ class FoduuStudioLayoutView extends StatelessWidget {
 
   /// Observable error message from [DynamicLayoutMixin.errorMessage].
   final RxString errorMessage;
+  final RxBool? isStale;
 
   /// Callback for pull-to-refresh. Required only in full-page mode.
   final Future<void> Function()? onRefresh;
@@ -60,6 +61,7 @@ class FoduuStudioLayoutView extends StatelessWidget {
     required this.onRefresh,
     this.embedded = false,
     this.loadingWidget,
+    this.isStale,
   });
 
   /// Embedded constructor — no scroll wrapper, safe inside Column/ListView.
@@ -69,6 +71,7 @@ class FoduuStudioLayoutView extends StatelessWidget {
     required this.isLoading,
     required this.hasError,
     required this.errorMessage,
+    this.isStale,
   })  : onRefresh = null,
         embedded = true,
         loadingWidget = null;
@@ -108,13 +111,44 @@ class FoduuStudioLayoutView extends StatelessWidget {
       }
 
       if (widgetList.isEmpty) {
-        return const SizedBox.shrink();
+        if (embedded) return const SizedBox.shrink();
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  errorMessage.value.isNotEmpty
+                      ? errorMessage.value
+                      : 'No content is available right now.',
+                  textAlign: TextAlign.center,
+                ),
+                if (onRefresh != null) ...[
+                  const SizedBox(height: 12),
+                  TextButton.icon(
+                    onPressed: onRefresh,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Try again'),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
       }
 
       // ── Embedded mode: just a shrinkWrap list, no scroll wrapper ──
       if (embedded) {
         return Column(
-          children: widgetList.toList(),
+          children: [
+            if (_shouldShowRecoveryNotice)
+              _RecoveryNotice(
+                message: _recoveryMessage,
+                onRetry: onRefresh,
+              ),
+            ...widgetList.toList(),
+          ],
         );
       }
 
@@ -124,10 +158,58 @@ class FoduuStudioLayoutView extends StatelessWidget {
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
-            children: widgetList.toList(),
+            children: [
+              if (_shouldShowRecoveryNotice)
+                _RecoveryNotice(
+                  message: _recoveryMessage,
+                  onRetry: onRefresh,
+                ),
+              ...widgetList.toList(),
+            ],
           ),
         ),
       );
     });
+  }
+
+  bool get _shouldShowRecoveryNotice =>
+      isStale?.value == true || (hasError.value && widgetList.isNotEmpty);
+
+  String get _recoveryMessage => isStale?.value == true
+      ? 'Showing saved content while reconnecting.'
+      : errorMessage.value.isNotEmpty
+          ? errorMessage.value
+          : 'Content could not be refreshed. Saved content is still shown.';
+}
+
+class _RecoveryNotice extends StatelessWidget {
+  const _RecoveryNotice({required this.message, this.onRetry});
+
+  final String message;
+  final Future<void> Function()? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.cloud_off_outlined,
+              size: 18, color: scheme.onSurfaceVariant),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(message, style: Theme.of(context).textTheme.bodySmall),
+          ),
+          if (onRetry != null)
+            TextButton(onPressed: onRetry, child: const Text('Retry')),
+        ],
+      ),
+    );
   }
 }

@@ -36,6 +36,19 @@ class AddressListView extends GetView<AddressListController> {
             return HelperFunctions().loadingIndicator();
           }
 
+          if (controller.loadError.value &&
+              controller.userAddressList.isEmpty) {
+            return Center(
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.wifi_off_outlined, size: 44),
+              const SizedBox(height: 12),
+              const Text('Could not load saved addresses.'),
+              TextButton(
+                  onPressed: controller.refreshAddresses,
+                  child: const Text('Try again')),
+            ]));
+          }
+
           if (controller.userAddressList.isEmpty) {
             return _buildEmptyState(context);
           }
@@ -601,7 +614,7 @@ class AddressListView extends GetView<AddressListController> {
           ElevatedButton(
             onPressed: () {
               Get.back();
-              controller.removeAddress(id, index);
+              controller.removeAddress(id);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.error,

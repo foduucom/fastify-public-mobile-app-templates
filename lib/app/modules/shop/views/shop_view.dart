@@ -8,7 +8,6 @@ import 'package:foduu_ecommerce/app/modules/shop/views/widgets/shop_filter_drawe
 import 'package:foduu_ecommerce/components/home_component/home_category.dart';
 import 'package:foduu_ecommerce/components/home_component/home_products.dart';
 import 'package:foduu_ecommerce/components/parent_web_product_card.dart';
-import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
 
 class ShopView extends GetView<ShopController> {
@@ -16,7 +15,9 @@ class ShopView extends GetView<ShopController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.lazyPut(() => ShopController());
+    if (!Get.isRegistered<ShopController>()) {
+      Get.lazyPut(() => ShopController());
+    }
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final scaffoldKey = GlobalKey<ScaffoldState>();
@@ -30,7 +31,8 @@ class ShopView extends GetView<ShopController> {
         elevation: 0,
         centerTitle: true,
         title: Obx(() {
-          if (controller.isPlainShopEntry.value) {
+          if (controller.isPlainShopEntry.value &&
+              !controller.isListView.value) {
             return Text(
               "Shop",
               style:
@@ -45,7 +47,7 @@ class ShopView extends GetView<ShopController> {
                     textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               Text(
-                "${controller.totalProducts.value} items",
+                "${controller.totalProducts.value > 0 ? controller.totalProducts.value : controller.products.length} items",
                 style: textTheme.bodySmall
                     ?.copyWith(color: colorScheme.onSurfaceVariant),
               ),
@@ -78,6 +80,7 @@ class ShopView extends GetView<ShopController> {
               isLoading: controller.isLayoutLoading,
               hasError: controller.hasError,
               errorMessage: controller.errorMessage,
+              isStale: controller.isStale,
             );
           }
           // ── FILTERED / DASHBOARD ENTRY ──
@@ -97,8 +100,12 @@ class ShopView extends GetView<ShopController> {
                 child: controller.isLoading.value
                     ? _buildGridShimmer()
                     : RefreshIndicator(
-                        onRefresh: () =>
+                        onRefresh: () async {
+                          await Future.wait([
                             controller.fetchProducts(isRefresh: true),
+                            controller.fetchLayout(ShopController.pageSlug),
+                          ]);
+                        },
                         child: _buildProductGrid(colorScheme, textTheme),
                       ),
               ),
@@ -179,6 +186,7 @@ class ShopView extends GetView<ShopController> {
         controller.isRecentlyViewed.value ||
         controller.selectedCategories.isNotEmpty ||
         controller.selectedBrands.isNotEmpty ||
+        controller.selectedAttributes.isNotEmpty ||
         controller.minPrice.value > 0 ||
         controller.maxPrice.value < 10000;
   }
@@ -201,10 +209,8 @@ class ShopView extends GetView<ShopController> {
           const SizedBox(width: 8),
 
           if (controller.isFeatured.value)
-            _activeChip("Featured", () {
-              controller.isFeatured.value = false;
-              controller.fetchProducts(isRefresh: true);
-            }, colorScheme),
+            _activeChip(
+                "Featured", controller.removeFeaturedFilter, colorScheme),
 
           if (controller.isHot.value)
             _activeChip("Hot", () {
@@ -213,10 +219,8 @@ class ShopView extends GetView<ShopController> {
             }, colorScheme),
 
           if (controller.isTrending.value)
-            _activeChip("Trending", () {
-              controller.isTrending.value = false;
-              controller.fetchProducts(isRefresh: true);
-            }, colorScheme),
+            _activeChip(
+                "Trending", controller.removeTrendingFilter, colorScheme),
 
           if (controller.isRecommended.value)
             _activeChip("Recommended", () {
@@ -230,23 +234,32 @@ class ShopView extends GetView<ShopController> {
               controller.fetchProducts(isRefresh: true);
             }, colorScheme),
 
-          // ...controller.selectedCategories.map((cat) => _activeChip(
-          //       controller.availableCategories
-          //               .firstWhereOrNull((c) => c['slug'] == cat)?['name']
-          //               ?.toString() ??
-          //           cat.capitalizeFirst!,
-          //       () {
-          //         controller.toggleCategory(cat);
-          //         controller.fetchProducts(isRefresh: true);
-          //       },
-          //       colorScheme,
-          //     )),
+          ...controller.selectedCategories.map((category) {
+            final item = controller.availableCategories
+                .where((c) => c is Map && c['slug']?.toString() == category)
+                .firstOrNull;
+            final label = item is Map
+                ? item['name']?.toString() ?? _categoryLabel(category)
+                : _categoryLabel(category);
+            return _activeChip(
+                label, () => controller.toggleCategory(category), colorScheme);
+          }),
 
-          ...controller.selectedBrands
-              .map((brand) => _activeChip(brand.capitalizeFirst!, () {
-                    controller.toggleBrand(brand);
-                    controller.fetchProducts(isRefresh: true);
-                  }, colorScheme)),
+          ...controller.selectedBrands.map((brand) => _activeChip(
+              _brandLabel(brand),
+              () => controller.toggleBrand(brand),
+              colorScheme)),
+          ...controller.selectedAttributes.entries
+              .expand((entry) => entry.value.map(
+                    (value) => _activeChip('${entry.key}: $value', () {
+                      controller.toggleAttribute(entry.key, value);
+                      controller.fetchProducts(isRefresh: true);
+                    }, colorScheme),
+                  )),
+          if (controller.minPrice.value > 0 ||
+              controller.maxPrice.value < 10000)
+            _activeChip(
+                _priceLabel(), controller.clearPriceFilter, colorScheme),
         ],
       ),
     );
@@ -267,6 +280,37 @@ class ShopView extends GetView<ShopController> {
     );
   }
 
+  String _categoryLabel(String slug) {
+    for (final category in controller.availableCategories) {
+      if (category is Map && category['slug']?.toString() == slug) {
+        return category['name']?.toString() ?? slug;
+      }
+    }
+    for (final root in controller.categoryTreeByType['product'] ?? []) {
+      for (final node in root.flattened) {
+        if (node.slug == slug) return node.name;
+      }
+    }
+    return slug.replaceAll('-', ' ').capitalizeFirst ?? slug;
+  }
+
+  String _brandLabel(String slug) {
+    for (final brand in controller.availableBrands) {
+      if (brand is Map && brand['slug']?.toString() == slug) {
+        return brand['name']?.toString() ?? slug;
+      }
+    }
+    return slug.replaceAll('-', ' ').capitalizeFirst ?? slug;
+  }
+
+  String _priceLabel() {
+    final minimum = controller.minPrice.value.round();
+    final maximum = controller.maxPrice.value.round();
+    if (minimum == 0) return 'Under ₹$maximum';
+    if (maximum >= 10000) return 'Over ₹$minimum';
+    return '₹$minimum – ₹$maximum';
+  }
+
   // ── MAIN PRODUCT GRID (shared TrendingProductSection, externally driven) ──
   Widget _buildProductGrid(ColorScheme colorScheme, TextTheme textTheme) {
     if (controller.products.isEmpty) {
@@ -274,12 +318,32 @@ class ShopView extends GetView<ShopController> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inventory_2_outlined,
-                size: 80, color: colorScheme.outline.withOpacity(0.5)),
+            Icon(
+              controller.productsError.value.isEmpty
+                  ? Icons.inventory_2_outlined
+                  : Icons.cloud_off_outlined,
+              size: 72,
+              color: colorScheme.outline.withOpacity(0.5),
+            ),
             const SizedBox(height: 16),
-            Text("No products match your filters",
+            Text(
+                controller.productsError.value.isEmpty
+                    ? "No products match your filters"
+                    : "Couldn't load products",
                 style: textTheme.titleLarge
                     ?.copyWith(fontWeight: FontWeight.bold)),
+            if (controller.productsError.value.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text('Check your connection and try again.',
+                  style: textTheme.bodyMedium
+                      ?.copyWith(color: colorScheme.onSurfaceVariant)),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: () => controller.fetchProducts(isRefresh: true),
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Retry'),
+              ),
+            ],
           ],
         ),
       );
@@ -287,15 +351,44 @@ class ShopView extends GetView<ShopController> {
 
     return Obx(() {
       final isList = controller.isListView.value;
+      final cmsJson = controller.contentJsonFor('products');
+      final columns = int.tryParse(cmsJson?['columns']?.toString() ?? '2') ?? 2;
+      final spacing =
+          double.tryParse(cmsJson?['spacing']?.toString() ?? '12') ?? 12;
+      final layout = cmsJson?['layout']?.toString() ?? 'parent_web';
+      final aspectRatio =
+          double.tryParse(cmsJson?['aspect_ratio']?.toString() ?? '0.58') ??
+              0.58;
       if (isList) {
         return ListView.builder(
           controller: controller.scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(vertical: 8),
-          itemCount:
-              controller.products.length + (controller.hasNextPage ? 1 : 0),
+          itemCount: controller.products.length +
+              (controller.hasNextPage || controller.products.isNotEmpty
+                  ? 1
+                  : 0),
           itemBuilder: (context, index) {
             if (index >= controller.products.length) {
+              if (!controller.hasNextPage && !controller.isFetchingMore.value) {
+                return Padding(
+                  padding: const EdgeInsets.all(22),
+                  child: Center(
+                      child: Text(
+                          "You've viewed all ${controller.products.length} items",
+                          style: textTheme.bodySmall
+                              ?.copyWith(color: colorScheme.onSurfaceVariant))),
+                );
+              }
+              if (controller.paginationError.value.isNotEmpty) {
+                return Center(
+                  child: TextButton.icon(
+                    onPressed: () => controller.fetchProducts(isRefresh: false),
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Retry loading products'),
+                  ),
+                );
+              }
               if (!controller.isFetchingMore.value) {
                 controller.fetchProducts(isRefresh: false);
               }
@@ -319,37 +412,57 @@ class ShopView extends GetView<ShopController> {
       return SingleChildScrollView(
         controller: controller.scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
-        child: TrendingProductSection(
-          externalProducts: controller.products,
-          externalHasMore: controller.hasNextPage,
-          externalIsLoadingMore: controller.isFetchingMore.value,
-          onLoadMore: () => controller.fetchProducts(isRefresh: false),
-          hideHeader: true,
-          contentJson: const {
-            'view': 'grid',
-            'layout': 'parent_web',
-            'columns': '2',
-            'spacing': '12',
-            'aspect_ratio': '0.58',
-          },
+        child: Column(
+          children: [
+            TrendingProductSection(
+              externalProducts: controller.products,
+              externalHasMore: controller.hasNextPage,
+              externalIsLoadingMore: controller.isFetchingMore.value,
+              onLoadMore: () => controller.fetchProducts(isRefresh: false),
+              hideHeader: true,
+              contentJson: {
+                'view': 'grid',
+                'layout': layout,
+                'columns': columns.toString(),
+                'spacing': spacing.toString(),
+                'aspect_ratio': aspectRatio.toString(),
+              },
+            ),
+            if (controller.paginationError.value.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: TextButton.icon(
+                  onPressed: () => controller.fetchProducts(isRefresh: false),
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('Retry loading products'),
+                ),
+              ),
+          ],
         ),
       );
     });
   }
 
   Widget _buildGridShimmer() {
+    final cmsJson = controller.contentJsonFor('products');
+    final columns =
+        (int.tryParse(cmsJson?['columns']?.toString() ?? '2') ?? 2).clamp(1, 4);
+    final spacing =
+        (double.tryParse(cmsJson?['spacing']?.toString() ?? '12') ?? 12)
+            .clamp(0, 40)
+            .toDouble();
     return Shimmer.fromColors(
       baseColor: Colors.grey.shade300,
       highlightColor: Colors.grey.shade100,
       child: GridView.builder(
         padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 0.58,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns,
+          crossAxisSpacing: spacing,
+          mainAxisSpacing: spacing,
+          childAspectRatio: columns >= 3 ? 0.52 : 0.58,
         ),
-        itemCount: 6,
+        itemCount: columns * 2,
         itemBuilder: (_, __) => Container(
             decoration: BoxDecoration(
                 color: Colors.white, borderRadius: BorderRadius.circular(16))),
@@ -416,8 +529,8 @@ class _ShopHeaderToolbar extends StatelessWidget {
                   // List icon
                   InkWell(
                     onTap: () => controller.setViewMode(true),
-                    borderRadius: const BorderRadius.horizontal(
-                        left: Radius.circular(8)),
+                    borderRadius:
+                        const BorderRadius.horizontal(left: Radius.circular(8)),
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       color: isList

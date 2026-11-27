@@ -11,8 +11,7 @@ import 'package:shimmer/shimmer.dart';
 import '/app/modules/Profie/orders/controller/orders_controller.dart';
 
 class OrdersView extends GetView<OrdersController> {
-  OrdersView({Key? key}) : super(key: key);
-  var controllerval = Get.lazyPut(() => OrdersController());
+  const OrdersView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -33,30 +32,85 @@ class OrdersView extends GetView<OrdersController> {
         ),
         body: RefreshIndicator(
           onRefresh: () async => controller.onRefresh(),
-          child: Obx(
-            () => controller.isLoading.isFalse && controller.orderList.isEmpty
-                ? const NoOrders()
-                : ListView.separated(
-                    controller: controller.scrollController,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 16, horizontal: 14),
-                    itemCount: controller.isLoading.isTrue &&
-                            controller.orderList.isEmpty
-                        ? 6
-                        : controller.orderList.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) {
-                      if (controller.isLoading.isTrue &&
-                          controller.orderList.isEmpty) {
-                        return const OrderListShimmer();
-                      }
-                      return OrderCard(
-                        item: controller.orderList[index],
-                        listIndex: index,
-                      );
-                    },
+          child: Obx(() {
+            if (controller.isLoading.value && controller.orderList.isEmpty) {
+              return ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
+                itemCount: 6,
+                itemBuilder: (_, __) => const OrderListShimmer(),
+              );
+            }
+            if (controller.orderList.isEmpty &&
+                controller.errorMessage.value.isNotEmpty) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(
+                    height: Get.height * 0.55,
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              controller.errorMessage.value,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 12),
+                            ElevatedButton(
+                              onPressed: controller.retry,
+                              child: Text('Retry'.tr),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-          ),
+                ],
+              );
+            }
+            if (controller.orderList.isEmpty) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(height: Get.height * 0.12),
+                  const NoOrders()
+                ],
+              );
+            }
+            final hasFooter = controller.isLoadingMore.value ||
+                controller.errorMessage.value.isNotEmpty;
+            return ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              controller: controller.scrollController,
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
+              itemCount: controller.orderList.length + (hasFooter ? 1 : 0),
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                if (index == controller.orderList.length) {
+                  if (controller.isLoadingMore.value) {
+                    return const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+                  return Center(
+                    child: TextButton(
+                      onPressed: controller.retry,
+                      child: Text('Retry'.tr),
+                    ),
+                  );
+                }
+                return OrderCard(
+                  item: controller.orderList[index],
+                  listIndex: index,
+                );
+              },
+            );
+          }),
         ),
       ),
     );
@@ -71,28 +125,6 @@ class OrderCard extends StatelessWidget {
   final dynamic item;
   final int listIndex;
 
-  String _constructImageUrl(Map imageObj) {
-    final filepath = imageObj['filepath']?.toString() ?? '';
-    if (filepath.isNotEmpty) {
-      final cleanPath =
-          filepath.startsWith('/') ? filepath.substring(1) : filepath;
-      return 'https://mywatch.vbought.com/images/$cleanPath';
-    }
-    final url = imageObj['download_url']?.toString() ?? '';
-    return _fixImageUrl(url);
-  }
-
-  String _fixImageUrl(String url) {
-    if (url.isEmpty) return '';
-    final uri = Uri.tryParse(url);
-    if (uri == null) return url;
-    if (uri.host.endsWith('.vbought.com') &&
-        uri.host != 'mywatch.vbought.com') {
-      return url.replaceFirst(uri.host, 'mywatch.vbought.com');
-    }
-    return url;
-  }
-
   String _getProductImage() {
     try {
       final products = item['products'];
@@ -101,13 +133,25 @@ class OrderCard extends StatelessWidget {
       final first = products.first;
       if (first == null || first is! Map) return '';
 
-      final productObj = first['product_id'];
-      if (productObj == null || productObj is! Map) return '';
-
-      final fi = productObj['featured_image'];
-      if (fi is Map) {
-        final url = _constructImageUrl(fi);
-        if (url.isNotEmpty) return url;
+      final candidate = first['image'] ?? first['featured_image'];
+      if (candidate is Map || candidate is List) {
+        return HelperFunctions().getImage(candidate);
+      }
+      if (candidate is String &&
+          candidate.isNotEmpty &&
+          !RegExp(r'^[a-f0-9]{24}$').hasMatch(candidate)) {
+        return HelperFunctions().getImage(candidate);
+      }
+      final productObj = first['product_id'] ?? first['product'];
+      if (productObj is! Map) return '';
+      final featuredImage = productObj['featured_image'];
+      if (featuredImage is Map || featuredImage is List) {
+        return HelperFunctions().getImage(featuredImage);
+      }
+      if (featuredImage is String &&
+          featuredImage.isNotEmpty &&
+          !RegExp(r'^[a-f0-9]{24}$').hasMatch(featuredImage)) {
+        return HelperFunctions().getImage(featuredImage);
       }
 
       final frontImageId = productObj['front_image']?.toString() ?? '';
@@ -118,12 +162,12 @@ class OrderCard extends StatelessWidget {
           (g) => g is Map && (g['_id'] ?? g['id'])?.toString() == frontImageId,
           orElse: () => null,
         );
-        if (match != null) return _constructImageUrl(match);
+        if (match != null) return HelperFunctions().getImage(match);
       }
 
       return '';
     } catch (e) {
-      debugPrint('🚨 OrderCard image error: $e');
+      debugPrint('Order card image resolution failed: ${e.runtimeType}');
       return '';
     }
   }
@@ -139,7 +183,7 @@ class OrderCard extends StatelessWidget {
       final directName = first['name']?.toString();
       if (directName != null && directName.isNotEmpty) return directName;
 
-      final productObj = first['product_id'];
+      final productObj = first['product_id'] ?? first['product'];
       if (productObj is Map) {
         return productObj['name']?.toString() ?? 'Order';
       }
@@ -158,7 +202,7 @@ class OrderCard extends StatelessWidget {
     final orderId =
         (item['order_no'] ?? item['_id'] ?? item['id'] ?? '').toString();
     final paymentMethod = (item['payment_method'] ?? '').toString();
-    final isCod = paymentMethod.toLowerCase() == 'cod';
+    final isCod = const {'cod', 'cash'}.contains(paymentMethod.toLowerCase());
     final rawPaymentStatus = (item['payment_status'] ?? 'Pending').toString();
     final paymentStatus = (isCod && rawPaymentStatus.toLowerCase() == 'pending')
         ? 'COD - Pending'
@@ -192,171 +236,173 @@ class OrderCard extends StatelessWidget {
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // ── Product Image ──────────────────────────────
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                width: 68,
-                height: 68,
-                child: imageUrl.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        width: 68,
-                        height: 68,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => _imageFallback(theme),
-                        errorWidget: (_, __, ___) => _imageFallback(theme),
-                      )
-                    : _imageFallback(theme),
-              ),
-            ),
-            const SizedBox(width: 12),
+              children: [
+                // ── Product Image ──────────────────────────────
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: 68,
+                    height: 68,
+                    child: imageUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            width: 68,
+                            height: 68,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => _imageFallback(theme),
+                            errorWidget: (_, __, ___) => _imageFallback(theme),
+                          )
+                        : _imageFallback(theme),
+                  ),
+                ),
+                const SizedBox(width: 12),
 
-            // ── Order Info ─────────────────────────────────
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
+                // ── Order Info ─────────────────────────────────
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Expanded(
-                        child: Text(
-                          productName,
-                          style: textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              productName,
+                              style: textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                fontFamily: 'lato',
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (productCount > 1)
+                            Container(
+                              margin: const EdgeInsets.only(left: 6),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: theme.primary.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                '+${productCount - 1} more',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                  color: theme.primary,
+                                  fontFamily: 'lato',
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        'Order #$orderId',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: theme.onSurface.withValues(alpha: 0.4),
+                          fontSize: 11,
+                          fontFamily: 'lato',
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (orderDate.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          orderDate,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: theme.onSurface.withValues(alpha: 0.35),
+                            fontSize: 11,
                             fontFamily: 'lato',
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      if (productCount > 1)
-                        Container(
-                          margin: const EdgeInsets.only(left: 6),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 7, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: theme.primary.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            '+${productCount - 1} more',
+                      ],
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '$currency$total',
                             style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w700,
                               color: theme.primary,
+                              fontSize: 14,
                               fontFamily: 'lato',
                             ),
                           ),
-                        ),
+                          Flexible(
+                            child: _StatusBadge(status: paymentStatus),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    'Order #$orderId',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: theme.onSurface.withValues(alpha: 0.4),
-                      fontSize: 11,
-                      fontFamily: 'lato',
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Get.toNamed(
+                      Routes.ORDER_PRODUCTS,
+                      arguments: {'order': item},
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (orderDate.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      orderDate,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: theme.onSurface,
+                      side: BorderSide(
+                          color: theme.outline.withValues(alpha: 0.5)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                    child: Text(
+                      'Details',
                       style: textTheme.bodySmall?.copyWith(
-                        color: theme.onSurface.withValues(alpha: 0.35),
-                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: theme.onSurface,
                         fontFamily: 'lato',
                       ),
                     ),
-                  ],
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '$currency$total',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: theme.primary,
-                          fontSize: 14,
-                          fontFamily: 'lato',
-                        ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      final rawId =
+                          (item['_id'] ?? item['id'] ?? '').toString();
+                      if (rawId.isNotEmpty) {
+                        Get.toNamed(Routes.ORDER_DETAILS,
+                            arguments: {'id': rawId});
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.primary,
+                      foregroundColor: theme.onPrimary,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      Flexible(
-                        child: _StatusBadge(status: paymentStatus),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                    child: Text(
+                      'Tracking',
+                      style: textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.onPrimary,
+                        fontFamily: 'lato',
                       ),
-                    ],
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () => Get.toNamed(
-                  Routes.ORDER_PRODUCTS,
-                  arguments: {'order': item},
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.onSurface,
-                  side: BorderSide(color: theme.outline.withValues(alpha: 0.5)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                ),
-                child: Text(
-                  'Details',
-                  style: textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.onSurface,
-                    fontFamily: 'lato',
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () {
-                  final rawId = (item['_id'] ?? item['id'] ?? '').toString();
-                  if (rawId.isNotEmpty) {
-                    Get.toNamed(Routes.ORDER_DETAILS, arguments: {'id': rawId});
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.primary,
-                  foregroundColor: theme.onPrimary,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                ),
-                child: Text(
-                  'Tracking',
-                  style: textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.onPrimary,
-                    fontFamily: 'lato',
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
           ],
         ),
       ),

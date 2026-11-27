@@ -151,13 +151,15 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                   color: colorScheme.surface,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: colorScheme.outline.withOpacity(0.2)),
+                    side:
+                        BorderSide(color: colorScheme.outline.withOpacity(0.2)),
                   ),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(16),
                     onTap: () => Get.toNamed(Routes.SUPPORT_TICKET),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
                       child: Row(
                         children: [
                           Container(
@@ -201,7 +203,8 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                           Icon(
                             Icons.arrow_forward_ios_rounded,
                             size: 14,
-                            color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+                            color:
+                                colorScheme.onSurfaceVariant.withOpacity(0.6),
                           ),
                         ],
                       ),
@@ -220,6 +223,17 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                   ),
                 ),
                 const SizedBox(height: 12),
+                TextField(
+                  onChanged: (value) => controller.searchQuery.value = value,
+                  decoration: InputDecoration(
+                    hintText: 'Search questions',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+                const SizedBox(height: 10),
                 Obx(() {
                   if (controller.isLoading.value) {
                     return const Padding(
@@ -228,18 +242,32 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                     );
                   }
 
-                  if (controller.faqs.isEmpty) {
+                  if (controller.loadError.value && controller.faqs.isEmpty) {
+                    return Center(
+                        child:
+                            Column(mainAxisSize: MainAxisSize.min, children: [
+                      const Text('Could not load FAQs.'),
+                      TextButton(
+                          onPressed: controller.getFaqs,
+                          child: const Text('Try again')),
+                    ]));
+                  }
+
+                  if (controller.filteredFaqs.isEmpty) {
                     return Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: colorScheme.surface,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                        border: Border.all(
+                            color: colorScheme.outline.withOpacity(0.2)),
                       ),
                       child: Center(
                         child: Text(
-                          'No FAQs currently available.',
+                          controller.faqs.isEmpty
+                              ? 'No FAQs currently available.'
+                              : 'No matching questions found.',
                           style: TextStyle(
                             fontFamily: 'Plus Jakarta Sans',
                             fontSize: 13,
@@ -253,10 +281,10 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                   return ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: controller.faqs.length,
+                    itemCount: controller.filteredFaqs.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
-                      final item = controller.faqs[index];
+                      final item = controller.filteredFaqs[index];
                       final question = (item['question'] ??
                               item['name'] ??
                               item['title'] ??
@@ -277,7 +305,8 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                         decoration: BoxDecoration(
                           color: colorScheme.surface,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                          border: Border.all(
+                              color: colorScheme.outline.withOpacity(0.2)),
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: ExpansionTile(
@@ -313,21 +342,20 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                             if (subFaqs.isNotEmpty) ...[
                               if (answer.isNotEmpty) const SizedBox(height: 10),
                               ...subFaqs.map((sub) {
-                                final subQ = (sub['name'] ??
-                                        sub['question'] ??
-                                        'Detail')
-                                    .toString();
-                                final subA = (sub['answer'] ??
-                                        sub['description'] ??
-                                        '')
-                                    .toString();
+                                final subQ =
+                                    (sub['name'] ?? sub['question'] ?? 'Detail')
+                                        .toString();
+                                final subA =
+                                    (sub['answer'] ?? sub['description'] ?? '')
+                                        .toString();
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 8),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        '• ',
+                                        '• $subQ',
                                         style: TextStyle(
                                           fontFamily: 'Plus Jakarta Sans',
                                           fontWeight: FontWeight.w600,
@@ -344,7 +372,8 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                                             style: TextStyle(
                                               fontFamily: 'Plus Jakarta Sans',
                                               fontSize: 12.5,
-                                              color: colorScheme.onSurfaceVariant,
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
                                               height: 1.4,
                                             ),
                                           ),
@@ -376,7 +405,8 @@ class HelpandsupportView extends GetView<HelpandsupportController> {
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                    border:
+                        Border.all(color: colorScheme.outline.withOpacity(0.2)),
                   ),
                   child: Column(
                     children: [

@@ -18,6 +18,7 @@ class SupportTicketDetailsController extends GetxController
   var supportTicketDetails = {}.obs;
   var chatMessages = [].obs;
   var isChatLoading = false.obs;
+  final chatLoadError = false.obs;
   var isMessageSendLoading = false.obs;
   var selectedFiles = <File>[].obs;
 
@@ -25,9 +26,12 @@ class SupportTicketDetailsController extends GetxController
   void onInit() {
     super.onInit();
     final arguments = Get.arguments;
-    supportTicketId = (arguments != null ? arguments['id'] : '').toString();
-    if (supportTicketId.isNotEmpty) {
+    final rawId = arguments is Map ? arguments['id'] : null;
+    supportTicketId = rawId?.toString() ?? '';
+    if (supportTicketId.isNotEmpty && supportTicketId != 'null') {
       fetchChatsMessages(supportTicketId);
+    } else {
+      chatLoadError.value = true;
     }
   }
 
@@ -44,10 +48,10 @@ class SupportTicketDetailsController extends GetxController
       final str = attachment.trim();
       if (str.isEmpty) return '';
       if (str.startsWith('http://') || str.startsWith('https://')) return str;
-      if (str.startsWith('/images/')) return "\$url\${str.substring(1)}";
-      if (str.startsWith('images/')) return "\$url\$str";
-      if (str.startsWith('/')) return "\$url\${str.substring(1)}";
-      return "\$assetURL\$str";
+      if (str.startsWith('/images/')) return "${url}${str.substring(1)}";
+      if (str.startsWith('images/')) return "${url}$str";
+      if (str.startsWith('/')) return "${url}${str.substring(1)}";
+      return "${assetURL}$str";
     }
     if (attachment is Map) {
       final raw = attachment['url'] ??
@@ -206,7 +210,8 @@ class SupportTicketDetailsController extends GetxController
         final file = File(video.path);
         final size = await file.length();
         if (size > 30 * 1024 * 1024) {
-          HelperFunctions().showSnackBarError('Video size must be less than 30MB');
+          HelperFunctions()
+              .showSnackBarError('Video size must be less than 30MB');
           return;
         }
         selectedFiles.value = [file];
@@ -216,7 +221,7 @@ class SupportTicketDetailsController extends GetxController
     }
   }
 
-    Future<void> pickDocument() async {
+  Future<void> pickDocument() async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -226,7 +231,8 @@ class SupportTicketDetailsController extends GetxController
         final file = File(result.files.single.path!);
         final size = await file.length();
         if (size > 25 * 1024 * 1024) {
-          HelperFunctions().showSnackBarError('File size must be less than 25MB');
+          HelperFunctions()
+              .showSnackBarError('File size must be less than 25MB');
           return;
         }
         selectedFiles.value = [file];
@@ -239,16 +245,22 @@ class SupportTicketDetailsController extends GetxController
   Future<void> fetchChatsMessages(String id) async {
     try {
       isChatLoading.value = true;
-      var response = await BasicProvider("customer/support-tickets/\$id")
+      chatLoadError.value = false;
+      var response = await BasicProvider("customer/support-tickets/$id")
           .getRequest()
           .catchError(handleError);
 
-      if (response == null || response is! Map) return;
+      if (response == null || response is! Map) {
+        chatLoadError.value = true;
+        return;
+      }
 
       Map<String, dynamic> ticket = {};
       List replies = [];
 
-      final rawTicket = response['ticket'] ?? (response['data'] is Map ? response['data']['ticket'] : null) ?? response['data'];
+      final rawTicket = response['ticket'] ??
+          (response['data'] is Map ? response['data']['ticket'] : null) ??
+          response['data'];
       if (rawTicket is Map) {
         if (rawTicket['ticket'] is Map) {
           ticket = Map<String, dynamic>.from(rawTicket['ticket']);
@@ -257,7 +269,8 @@ class SupportTicketDetailsController extends GetxController
         }
       }
 
-      final rawReplies = response['replies'] ?? (response['data'] is Map ? response['data']['replies'] : null);
+      final rawReplies = response['replies'] ??
+          (response['data'] is Map ? response['data']['replies'] : null);
       if (rawReplies is List) {
         replies = rawReplies;
       }
@@ -286,6 +299,7 @@ class SupportTicketDetailsController extends GetxController
       // Detail view renders reverse=true (newest first), so keep newest-last order reversed.
       chatMessages.value = newMessages.reversed.toList();
     } catch (e) {
+      chatLoadError.value = true;
       debugPrint('fetchChatsMessages error: $e');
       HelperFunctions().showSnackBarError('Failed to load ticket thread');
     } finally {
@@ -299,6 +313,10 @@ class SupportTicketDetailsController extends GetxController
   }) async {
     final text = message.trim();
     if (text.isEmpty && files.isEmpty) return;
+    if (supportTicketId.isEmpty || supportTicketId == 'null') {
+      HelperFunctions().showSnackBarError('This support ticket could not be loaded');
+      return;
+    }
     if (supportTicketDetails['can_reply'] == false) {
       HelperFunctions().showSnackBarError('This ticket is closed');
       return;
@@ -307,7 +325,9 @@ class SupportTicketDetailsController extends GetxController
       isMessageSendLoading.value = true;
 
       final Map<String, dynamic> formMap = {
-        'message': text.isNotEmpty ? text : (files.isNotEmpty ? files.first.path.split('/').last : ''),
+        'message': text.isNotEmpty
+            ? text
+            : (files.isNotEmpty ? files.first.path.split('/').last : ''),
       };
 
       if (files.isNotEmpty) {
@@ -315,16 +335,17 @@ class SupportTicketDetailsController extends GetxController
         final name = file.path.split('/').last;
         final mimeType = mimeTypeFor(name);
 
-        final multipart = MultipartFile(file, filename: name, contentType: mimeType);
+        final multipart =
+            MultipartFile(file, filename: name, contentType: mimeType);
         formMap['attachment'] = multipart;
         formMap['image'] = multipart;
       }
 
       var form = FormData(formMap);
-      var response =
-          await BasicProvider("customer/support-tickets/\$supportTicketId/replies")
-              .postRequest(form)
-              .catchError(handleError);
+      var response = await BasicProvider(
+              "customer/support-tickets/$supportTicketId/replies")
+          .postRequest(form)
+          .catchError(handleError);
 
       if (response == null) return;
 

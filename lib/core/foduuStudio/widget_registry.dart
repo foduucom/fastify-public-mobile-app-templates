@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 
 /// Builder function signature: takes content_json map and returns a Widget.
 typedef SectionWidgetBuilder = Widget Function(
@@ -23,32 +24,46 @@ class WidgetRegistry {
   /// Register a widget builder for [type].
   /// Call this once at app startup (e.g. in `main.dart`).
   void register(String type, SectionWidgetBuilder builder) {
-    _builders[type] = builder;
+    _builders[type.trim().toLowerCase()] = builder;
   }
 
   /// Build a widget from a raw section map `{ "type": "...", "content_json": {...} }`.
   /// Returns `null` if the type is unknown.
   Widget? build(Map<String, dynamic> section) {
-    final type = section['type'] as String?;
-    final visible = section['visible'] as bool? ?? true;
-    if (type == null || !_builders.containsKey(type) || !visible) return null;
+    final type = section['type']?.toString().trim().toLowerCase();
+    final rawVisible = section['visible'];
+    final visible = rawVisible != false &&
+        rawVisible != 0 &&
+        rawVisible?.toString().trim().toLowerCase() != 'false' &&
+        rawVisible?.toString().trim() != '0';
+    final builder = type == null ? null : _builders[type];
+    if (builder == null || !visible) return null;
 
-    final contentJson =
-        Map<String, dynamic>.from(section['content_json'] as Map? ?? {});
+    dynamic rawContent =
+        section['content_json'] ?? section['contentJson'] ?? section['data'];
+    if (rawContent is String) {
+      try {
+        rawContent = jsonDecode(rawContent);
+      } catch (_) {
+        rawContent = null;
+      }
+    }
+    final contentJson = rawContent is Map
+        ? Map<String, dynamic>.from(rawContent)
+        : <String, dynamic>{};
 
     // Merge top-level title/subtitle into contentJson if they exist
-    if (section['title'] != null) {
-      contentJson['title'] = section['title'];
-    }
-    if (section['subtitle'] != null) {
-      contentJson['subtitle'] = section['subtitle'];
+    for (final key in const ['title', 'subtitle', 'id', 'slug']) {
+      if (section[key] != null) {
+        contentJson.putIfAbsent(key, () => section[key]);
+      }
     }
 
-    return _builders[type]!(contentJson);
+    return builder(contentJson.isEmpty ? null : contentJson);
   }
 
   /// Check whether a builder exists for [type].
-  bool hasType(String type) => _builders.containsKey(type);
+  bool hasType(String type) => _builders.containsKey(type.trim().toLowerCase());
 
   /// List all registered type names (useful for debugging).
   List<String> get registeredTypes => _builders.keys.toList();

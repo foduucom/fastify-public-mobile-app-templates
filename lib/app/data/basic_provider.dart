@@ -364,6 +364,8 @@ class BasicProvider {
           }
         }
         return responseBody;
+      case 204:
+        return {'status': response.statusCode};
       case 400:
         throw BadRequestException(message ?? response.request!.url.toString());
       case 401:

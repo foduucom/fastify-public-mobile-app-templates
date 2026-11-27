@@ -5,6 +5,7 @@ import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/helpers/socket_helper.dart';
 import 'package:get/get.dart';
 import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
+import 'package:foduu_ecommerce/app/modules/shop/controllers/shop_controller.dart';
 
 class StudioSocketRouting extends GetxController {
   final String? initialSlug;
@@ -108,6 +109,9 @@ class StudioSocketRouting extends GetxController {
     // Check if the slug corresponds to a bottom bar tab
     final tabIndex = _bottomBarTabs[normalizedSlug];
     if (tabIndex != null) {
+      if (tabIndex == 2 && Get.isRegistered<ShopController>()) {
+        Get.find<ShopController>().resetToPlainShop();
+      }
       print(
           '🔄 StudioSocketRouting: Switching to bottom bar tab $tabIndex for slug: $slug');
       _navigateToBottomBarTab(tabIndex);

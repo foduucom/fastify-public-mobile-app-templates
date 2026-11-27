@@ -294,11 +294,11 @@ class FirebaseHelpers {
     syncService.syncPendingNotifications();
   }
 
-  static void clearLocalNotifications() {
+  static Future<void> clearLocalNotifications() async {
     localNotifications.clear();
-    box.remove(notificationKey);
+    await box.remove(notificationKey);
     if (Get.isRegistered<LocalStorageNotificationService>()) {
-      LocalStorageNotificationService.to.clearAll();
+      await LocalStorageNotificationService.to.clearAll();
     }
   }
 

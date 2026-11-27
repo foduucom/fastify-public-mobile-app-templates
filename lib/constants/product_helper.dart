@@ -40,11 +40,14 @@ class ProductHelper {
   /// Calculate prices for a specific variant
   static Map<String, dynamic> _calculateVariantPrice(
       Map<String, dynamic> product, int variantIndex) {
-    final variants = product['variants'] ?? [];
-    if (variants.isEmpty || variantIndex >= variants.length) {
-      return _calculateSimpleProductPrice(product);
+    final rawVariants = product['variants'];
+    if (rawVariants is! List ||
+        variantIndex < 0 ||
+        variantIndex >= rawVariants.length) {
+      return _calculateVariableProductPrice(product);
     }
 
+    final variants = rawVariants;
     final variant = variants[variantIndex];
     final salePrice =
         HelperFunctions.parseAmount(variant['sale_price'] ?? variant['price']);
@@ -236,7 +239,13 @@ class ProductHelper {
 
   /// Check if product is in stock
   static bool isInStock(Map<String, dynamic> product, {int? variantIndex}) {
-    bool qtyInStock(dynamic qty) {
+    bool recordInStock(Map record) {
+      final status = (record['stock_status'] ?? '')
+          .toString()
+          .toLowerCase()
+          .replaceAll(RegExp(r'[\s-]+'), '_');
+      if (status == 'out_of_stock' || status == 'outofstock') return false;
+      final qty = record['quantity'];
       if (qty == null) return true;
       return HelperFunctions.parseAmount(qty) > 0;
     }
@@ -247,16 +256,19 @@ class ProductHelper {
 
     if (productType == 'variable' || hasVariants) {
       final List variantList = hasVariants ? variants : [];
-      if (variantIndex != null && variantIndex < variantList.length) {
-        return qtyInStock(variantList[variantIndex]['quantity']);
+      if (variantIndex != null &&
+          variantIndex >= 0 &&
+          variantIndex < variantList.length) {
+        final variant = variantList[variantIndex];
+        return variant is Map && recordInStock(variant);
       }
       for (var variant in variantList) {
-        if (qtyInStock(variant['quantity'])) return true;
+        if (variant is Map && recordInStock(variant)) return true;
       }
       return false;
     }
 
-    return qtyInStock(product['quantity']);
+    return recordInStock(product);
   }
 
   /// Get product name

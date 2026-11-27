@@ -1,7 +1,6 @@
 import 'package:foduu_ecommerce/components/dialogs/out_of_stock_sheet.dart';
 import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import 'package:foduu_ecommerce/core/services/cartServcie.dart';
-import 'package:foduu_ecommerce/constants/app_exceptions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -42,10 +41,17 @@ class CheckOutController extends GetxController with BaseController {
   /// (e.g. "stripe", "razorpay"). Empty when not applicable.
   var secondaryPaymentGateway = ''.obs;
   var isPaymentLoading = true.obs;
+  final isPreparingCheckout = false.obs;
+  final isSubmittingOrder = false.obs;
+  final isChoosingCodPrepayment = false.obs;
+  final isChoosingCodConfirmation = false.obs;
+  Worker? _selectedAddressWorker;
+  Worker? _addressListWorker;
 
   // Add these to CheckOutController
   var selectedAddressString = "".obs; // For displaying in UI
-  var selectedAddressData = {}.obs; // For storing the full address object
+  final RxMap<String, dynamic> selectedAddressData =
+      <String, dynamic>{}.obs; // Full currently selected delivery address
 
   var isEditingAddress = false.obs;
   var tempAddress = "".obs;
@@ -53,34 +59,23 @@ class CheckOutController extends GetxController with BaseController {
   // Method to load selected address from AddressListController
   // In CheckOutController, make sure loadSelectedAddress is properly setting selectedAddressData
   void loadSelectedAddress() {
-    print('Loading selected address...'); // Debug print
-
     if (Get.isRegistered<AddressListController>()) {
       final addressController = Get.find<AddressListController>();
       final int selectedAddrIndex = addressController.selectAddress.value;
-
-      print('Selected index: $selectedAddrIndex');
-      print('Address list length: ${addressController.userAddressList.length}');
-
-      if (addressController.userAddressList.isNotEmpty &&
+      if (selectedAddrIndex >= 0 &&
+          addressController.userAddressList.isNotEmpty &&
           selectedAddrIndex < addressController.userAddressList.length) {
         // Store the full address data
         final addressData =
             addressController.userAddressList[selectedAddrIndex];
-        print('Address data type: ${addressData.runtimeType}');
-        print('Address data: $addressData');
-
         // Make sure we're storing it as a Map
         if (addressData is Map) {
-          selectedAddressData.value = Map.from(addressData);
-        } else if (addressData is Map<String, dynamic>) {
-          selectedAddressData.value = addressData;
+          selectedAddressData.assignAll(Map<String, dynamic>.from(addressData));
         } else {
-          print('Error: addressData is not a Map');
-          selectedAddressData.value = {};
+          selectedAddressData.clear();
         }
 
-        final userAddress = selectedAddressData.value;
+        final userAddress = selectedAddressData;
 
         // Build the full address string
         String fullAddress = "";
@@ -95,11 +90,11 @@ class CheckOutController extends GetxController with BaseController {
         List<String> addressParts = [];
         if (userAddress['street'] != null &&
             userAddress['street'].toString().isNotEmpty) {
-          addressParts.add(userAddress['street']);
+          addressParts.add(userAddress['street'].toString());
         }
         if (userAddress['landmark'] != null &&
             userAddress['landmark'].toString().isNotEmpty) {
-          addressParts.add(userAddress['landmark']);
+          addressParts.add(userAddress['landmark'].toString());
         }
 
         if (addressParts.isNotEmpty) {
@@ -112,12 +107,12 @@ class CheckOutController extends GetxController with BaseController {
         if (userAddress['state'] != null &&
             userAddress['state'] is Map &&
             userAddress['state']['name'] != null) {
-          locationParts.add(userAddress['state']['name']);
+          locationParts.add(userAddress['state']['name'].toString());
         }
         if (userAddress['country'] != null &&
             userAddress['country'] is Map &&
             userAddress['country']['name'] != null) {
-          locationParts.add(userAddress['country']['name']);
+          locationParts.add(userAddress['country']['name'].toString());
         }
 
         if (locationParts.isNotEmpty) {
@@ -129,22 +124,21 @@ class CheckOutController extends GetxController with BaseController {
         if (userAddress['postal_code'] != null &&
             userAddress['postal_code'].toString().isNotEmpty) {
           if (fullAddress.isNotEmpty) fullAddress += " - ";
-          fullAddress += userAddress['postal_code'];
+          fullAddress += userAddress['postal_code'].toString();
         } else if (userAddress['pincode'] != null &&
             userAddress['pincode'].toString().isNotEmpty) {
           if (fullAddress.isNotEmpty) fullAddress += " - ";
-          fullAddress += userAddress['pincode'];
+          fullAddress += userAddress['pincode'].toString();
         }
 
         selectedAddressString.value = fullAddress;
-        print('Full address string: $fullAddress');
       } else {
-        print('No address found');
-        selectedAddressData.value = {};
+        selectedAddressData.clear();
         selectedAddressString.value = "";
       }
     } else {
-      print('AddressListController not registered');
+      selectedAddressData.clear();
+      selectedAddressString.value = "";
     }
   }
 
@@ -152,9 +146,31 @@ class CheckOutController extends GetxController with BaseController {
     loadSelectedAddress();
   }
 
+  String _addressId(dynamic address) {
+    if (address is! Map) return '';
+    final id = (address['_id'] ?? address['id'])?.toString().trim() ?? '';
+    return id.isEmpty || id == 'null' ? '' : id;
+  }
+
+  String get selectedAddressId {
+    if (Get.isRegistered<AddressListController>()) {
+      final current = Get.find<AddressListController>().selectedAddress;
+      if (current != null) return _addressId(current);
+      return '';
+    }
+    return _addressId(selectedAddressData);
+  }
+
   void updateAddressFromForm(Map<String, dynamic> updatedAddress) {
-    selectedAddressData.value = updatedAddress;
-    loadSelectedAddress(); // This will rebuild the display string
+    selectedAddressData.assignAll(updatedAddress);
+    final index = Get.isRegistered<AddressListController>()
+        ? Get.find<AddressListController>().selectAddress.value
+        : -1;
+    if (Get.isRegistered<AddressListController>() && index >= 0) {
+      final addresses = Get.find<AddressListController>().userAddressList;
+      if (index < addresses.length) addresses[index] = updatedAddress;
+    }
+    loadSelectedAddress();
   }
 
   final box = GetStorage();
@@ -188,25 +204,24 @@ class CheckOutController extends GetxController with BaseController {
   // ── Lifecycle ─────────────────────────────────────────────────────────
 
   @override
-  void onInit() async {
+  void onInit() {
     super.onInit();
-    await getPaymentOption();
-    // Use a short delay to ensure AddressListController has loaded data
-    Future.delayed(Duration(milliseconds: 100), () {
+    getPaymentOption();
+    if (Get.isRegistered<AddressListController>()) {
+      final addressController = Get.find<AddressListController>();
+      _selectedAddressWorker =
+          ever(addressController.selectAddress, (_) => loadSelectedAddress());
+      _addressListWorker =
+          ever(addressController.userAddressList, (_) => loadSelectedAddress());
       loadSelectedAddress();
-
-      // Reactively listen to address changes if controller is available
-      if (Get.isRegistered<AddressListController>()) {
-        final addressController = Get.find<AddressListController>();
-        ever(addressController.selectAddress, (_) => loadSelectedAddress());
-        ever(addressController.userAddressList, (_) => loadSelectedAddress());
-      }
-    });
+    }
   }
 
   @override
   void onClose() {
     secondaryPaymentGateway.value = '';
+    _selectedAddressWorker?.dispose();
+    _addressListWorker?.dispose();
     super.onClose();
   }
 
@@ -217,18 +232,8 @@ class CheckOutController extends GetxController with BaseController {
     paymentOptions.clear();
     for (final entry in _gatewayRegistry) {
       final key = entry['name']!;
-      dynamic cfg = paymentConfig[key];
-      // Support COD aliases (backend can return 'cash', 'cod', or 'cash_on_delivery')
-      if (cfg == null && (key == 'cod' || key == 'cash')) {
-        cfg = paymentConfig['cod'] ??
-            paymentConfig['cash'] ??
-            paymentConfig['cash_on_delivery'];
-      }
-      final bool isEnabled = cfg != null &&
-          (cfg['enabled'] == true ||
-              cfg['enabled']?.toString().toLowerCase() == 'true' ||
-              cfg['enabled']?.toString() == '1');
-      if (isEnabled) {
+      final config = _paymentConfigFor(key);
+      if (config is Map && _isEnabled(config['enabled'])) {
         paymentOptions.add({
           "name": key,
           "method": entry['method'],
@@ -238,49 +243,85 @@ class CheckOutController extends GetxController with BaseController {
     }
   }
 
+  dynamic _paymentConfigFor(String key) {
+    if (key != 'cod') return paymentConfig[key];
+    return paymentConfig['cod'] ??
+        paymentConfig['cash'] ??
+        paymentConfig['cash_on_delivery'];
+  }
+
+  bool _isEnabled(dynamic value) =>
+      value == true ||
+      const {'true', '1', 'yes', 'enabled'}
+          .contains(value?.toString().trim().toLowerCase());
+
+  dynamic _unwrapPaymentMethods(dynamic response) {
+    dynamic methods = response;
+    for (var depth = 0; depth < 3; depth++) {
+      if (methods is! Map) return methods;
+      final nested = methods['payment_methods'] ??
+          methods['paymentMethods'] ??
+          methods['data'];
+      if (nested == null) return methods;
+      methods = nested;
+    }
+    return methods;
+  }
+
+  void _syncCodAliases() {
+    final cod = paymentConfig['cod'] ??
+        paymentConfig['cash'] ??
+        paymentConfig['cash_on_delivery'];
+    if (cod != null) paymentConfig['cod'] = cod;
+  }
+
+  void _appendPaymentOptions(List options) {
+    for (final option in options) {
+      if (option is! Map || option['name'] == null) continue;
+      final rawName = option['name'].toString().trim().toLowerCase();
+      final key = const {'cash', 'cash_on_delivery'}.contains(rawName)
+          ? 'cod'
+          : rawName;
+      final registry = _gatewayRegistry.firstWhereOrNull(
+        (entry) => entry['name'] == key,
+      );
+      if (registry == null ||
+          (option.containsKey('enabled') && !_isEnabled(option['enabled'])) ||
+          paymentOptions.any((existing) => existing['name'] == key)) {
+        continue;
+      }
+      final config = Map<String, dynamic>.from(option);
+      paymentOptions.add({
+        ...config,
+        'name': key,
+        'method': registry['method'],
+        'image': registry['image'],
+      });
+      if (key == 'cod') paymentConfig['cod'] = config;
+    }
+  }
+
   /// Fetches payment methods from the API and rebuilds the option list.
   Future<void> getPaymentOption() async {
     isPaymentLoading.value = true;
     try {
-      // Build from static defaults first so the UI isn't empty.
       _buildPaymentOptionsFromConfig();
 
-      var response = await BasicProvider("payment-methods")
-          .getRequest()
-          .catchError(handleError);
+      final response =
+          await BasicProvider("payment-methods").getRequest(useCache: false);
 
-      printInfo(info: 'payment-methods response: $response');
-
-      if (response != null && response is Map) {
-        final Map actualData =
-            response.containsKey('data') && response['data'] is Map
-                ? response['data']
-                : response;
-
-        // Merge API data into local config.
-        actualData.forEach((key, value) {
-          paymentConfig[key] = value;
-        });
-
-        // Ensure COD aliases are synchronized
-        if (paymentConfig.containsKey('cash')) {
-          paymentConfig['cod'] = paymentConfig['cash'];
+      printInfo(
+          info:
+              'Loaded payment method configuration (${paymentOptions.length} options).');
+      final methods = _unwrapPaymentMethods(response);
+      if (methods is Map) {
+        for (final key in methods.keys) {
+          paymentConfig[key.toString()] = methods[key];
         }
-        if (paymentConfig.containsKey('cod')) {
-          paymentConfig['cash'] = paymentConfig['cod'];
-        }
-
-        // Rebuild options with the updated config.
+        _syncCodAliases();
         _buildPaymentOptionsFromConfig();
-      } else if (response != null && response is List) {
-        for (var opt in response) {
-          if (opt is Map && opt['name'] != null) {
-            paymentConfig[opt['name']] = opt;
-          }
-          if (!paymentOptions.any((e) => e['name'] == opt['name'])) {
-            paymentOptions.add(opt);
-          }
-        }
+      } else if (methods is List) {
+        _appendPaymentOptions(methods);
       }
 
       // Select the first option by default.
@@ -290,6 +331,7 @@ class CheckOutController extends GetxController with BaseController {
       }
     } catch (e) {
       printInfo(info: 'getPaymentOption error: $e');
+      await handleError(e);
     } finally {
       isPaymentLoading.value = false;
     }
@@ -354,18 +396,24 @@ class CheckOutController extends GetxController with BaseController {
         ),
         actions: [
           TextButton(
-            onPressed: () => Get.back(),
+            onPressed: () {
+              isChoosingCodPrepayment.value = false;
+              Get.back();
+            },
             child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
         ],
       ),
-    );
+    ).then((_) {
+      isChoosingCodPrepayment.value = false;
+    });
   }
 
   /// Shows confirmation dialog matching design when COD option is clicked
   void showCodConfirmationDialog({required VoidCallback onConfirm}) {
     final BuildContext? context = Get.context;
     if (context == null) {
+      isChoosingCodConfirmation.value = false;
       onConfirm();
       return;
     }
@@ -398,7 +446,10 @@ class CheckOutController extends GetxController with BaseController {
                     ),
                   ),
                   InkWell(
-                    onTap: () => Get.back(),
+                    onTap: () {
+                      isChoosingCodConfirmation.value = false;
+                      Get.back();
+                    },
                     borderRadius: BorderRadius.circular(20),
                     child: Padding(
                       padding: const EdgeInsets.all(4),
@@ -464,7 +515,10 @@ class CheckOutController extends GetxController with BaseController {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () {
+                        isChoosingCodConfirmation.value = false;
+                        Get.back();
+                      },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
@@ -485,6 +539,7 @@ class CheckOutController extends GetxController with BaseController {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
+                        isChoosingCodConfirmation.value = false;
                         Get.back();
                         onConfirm();
                       },
@@ -511,34 +566,19 @@ class CheckOutController extends GetxController with BaseController {
           ),
         ),
       ),
-    );
+    ).then((_) {
+      isChoosingCodConfirmation.value = false;
+    });
   }
 
   Future<Map<String, dynamic>?> createOrder({String currency = 'INR'}) async {
-    final String methodName = deliveryOption['name'];
-    String addressId = "";
+    final String methodName = deliveryOption['name']?.toString() ?? '';
+    final String addressId = selectedAddressId;
 
     try {
-      // Prioritize retrieving addressId from selectedAddressData which is already in this controller
-      if (selectedAddressData.isNotEmpty) {
-        addressId =
-            (selectedAddressData['_id'] ?? selectedAddressData['id'] ?? "")
-                .toString();
-      }
-
-      // Fallback/Validation with AddressListController if addressId is still empty
-      if (addressId.isEmpty && Get.isRegistered<AddressListController>()) {
-        final addressController = Get.find<AddressListController>();
-        final int selectedAddrIndex = addressController.selectAddress.value;
-        if (addressController.userAddressList.isNotEmpty &&
-            selectedAddrIndex < addressController.userAddressList.length) {
-          final addr = addressController.userAddressList[selectedAddrIndex];
-          addressId = (addr['_id'] ?? addr['id'] ?? "").toString();
-        }
-      }
-
       if (addressId.isEmpty) {
-        Get.snackbar("Error", "Selected address not found");
+        HelperFunctions().showSnackBarError(
+            'Selected address is unavailable. Please select it again.');
         return null;
       }
 
@@ -553,6 +593,18 @@ class CheckOutController extends GetxController with BaseController {
             currency, // ✅ tells backend which currency to use for payment gateway
       };
 
+      final couponCode = cartController.appliedCouponCode.value.trim();
+      if (couponCode.isNotEmpty && cartController.couponDetails.isNotEmpty) {
+        form['coupon_code'] = couponCode;
+        final discount = cartController.couponDetails['discount_amount'];
+        final parsedDiscount = discount is num
+            ? discount
+            : num.tryParse(discount?.toString() ?? '');
+        if (parsedDiscount != null) {
+          form['coupon_discount'] = parsedDiscount.toString();
+        }
+      }
+
       if (isCod) {
         form['cod'] = 'true';
         form['cash'] = 'true';
@@ -563,7 +615,7 @@ class CheckOutController extends GetxController with BaseController {
         }
       }
 
-      print("Order Create :$form");
+      printInfo(info: 'Creating order with payment method: $methodName');
 
       var response = await BasicProvider("order/create")
           .postRequest(form)
@@ -581,7 +633,7 @@ class CheckOutController extends GetxController with BaseController {
         return null; // Ensure null is returned so orderResponse reflects failure
       });
 
-      printInfo(info: 'createOrder response: $response');
+      printInfo(info: 'Order create response received: ${response != null}');
 
       if (response != null) {
         return Map<String, dynamic>.from(response);
@@ -595,28 +647,87 @@ class CheckOutController extends GetxController with BaseController {
 
   Future<void> addNewCard() async {}
 
-  Future<void> confirmPayment(String orderId, String paymentIntentId) async {
-    try {
-      var form = {
-        "order_id": orderId,
-        "payment_intent_id": paymentIntentId,
-      };
+  Future<void> confirmPayment(
+    String orderId,
+    String paymentIntentId, {
+    String? paymentId,
+    String? razorpaySignature,
+  }) async {
+    if (orderId.isEmpty || paymentIntentId.isEmpty) {
+      throw StateError('Payment confirmation details are incomplete.');
+    }
 
-      var response = await BasicProvider("order/confirm-payment")
-          .postRequest(form)
-          .catchError(handleError);
+    final form = <String, dynamic>{
+      'order_id': orderId,
+      'payment_intent_id': paymentIntentId,
+      if (paymentId != null && paymentId.isNotEmpty)
+        'razorpay_payment_id': paymentId,
+      if (razorpaySignature != null && razorpaySignature.isNotEmpty)
+        'razorpay_signature': razorpaySignature,
+    };
+    final response = await BasicProvider('order/confirm-payment')
+        .postRequest(form)
+        .catchError(handleError);
+    if (response is! Map) {
+      throw StateError('The payment could not be confirmed by the server.');
+    }
 
-      if (response != null) {
-        printInfo(info: 'Payment confirmed: $response');
-      } else {
-        printInfo(info: 'Payment confirmation failed');
-      }
-    } catch (e) {
-      printInfo(info: 'Error confirming payment: $e');
+    final status = response['status']?.toString().toLowerCase();
+    final paymentStatus = response['payment_status']?.toString().toLowerCase();
+    if (status != 'success' && paymentStatus != 'paid') {
+      throw StateError(
+        response['message']?.toString() ??
+            'The payment could not be confirmed by the server.',
+      );
     }
   }
 
+  Map<String, dynamic> _orderRecord(Map<String, dynamic> response) {
+    dynamic record = response['data'] ?? response;
+    if (record is Map && record['order'] is Map) record = record['order'];
+    return record is Map ? Map<String, dynamic>.from(record) : response;
+  }
+
+  String _orderDocumentId(Map<String, dynamic> order) =>
+      (order['_id'] ?? order['id'] ?? order['order_id'] ?? '').toString();
+
+  double _orderPaymentAmount(
+    Map<String, dynamic> response,
+    double fallback,
+  ) {
+    final order = _orderRecord(response);
+    final value = order['total'] ??
+        order['grand_total'] ??
+        order['total_amount'] ??
+        order['amount'];
+    if (value is num) return value.toDouble();
+    if (value != null) {
+      final parsed = double.tryParse(value
+          .toString()
+          .replaceAll(',', '')
+          .replaceAll('₹', '')
+          .replaceAll(r'$', '')
+          .trim());
+      if (parsed != null) return parsed;
+    }
+    return fallback;
+  }
+
   Future<void> _executeOrderPlacement({
+    required String methodName,
+    required double amount,
+  }) async {
+    if (isSubmittingOrder.value) return;
+    isSubmittingOrder.value = true;
+    try {
+      await _runOrderPlacement(methodName: methodName, amount: amount);
+    } finally {
+      isSubmittingOrder.value = false;
+      secondaryPaymentGateway.value = '';
+    }
+  }
+
+  Future<void> _runOrderPlacement({
     required String methodName,
     required double amount,
   }) async {
@@ -627,29 +738,39 @@ class CheckOutController extends GetxController with BaseController {
       orderResponse = await createOrder(
         currency: methodName == 'paypal' ? 'USD' : 'INR',
       );
-      printInfo(info: 'orderResponse: $orderResponse');
+      printInfo(info: 'Order response received: ${orderResponse != null}');
     } finally {
       HelperFunctions().hideOverlayLoader();
     }
 
     if (orderResponse == null) return;
 
-    final String rawOrderId =
-        (orderResponse['_id'] ?? orderResponse['id'] ?? "").toString();
-    final String orderNo =
-        (orderResponse['order_no'] ?? rawOrderId).toString();
+    final order = _orderRecord(orderResponse);
+    final String rawOrderId = _orderDocumentId(order);
+    final String orderNo = (order['order_no'] ?? rawOrderId).toString();
+    if (rawOrderId.isEmpty) {
+      HelperFunctions().showSnackBarError(
+        'The order was created, but its confirmation number is missing. Check your orders before trying again.',
+      );
+      return;
+    }
 
     try {
       await _processGatewayPayment(
         methodName: methodName,
-        amount: amount,
-        orderResponse: orderResponse,
+        amount: _orderPaymentAmount(orderResponse, amount),
+        orderResponse: order,
         rawOrderId: rawOrderId,
       );
 
       Get.offAllNamed(
         Routes.ORDERSUCCESS,
-        arguments: {'id': rawOrderId, 'order_no': orderNo},
+        arguments: {
+          'id': rawOrderId,
+          'order_no': orderNo,
+          'order': order,
+          'is_cash_order': methodName == 'cod' || methodName == 'cash',
+        },
       );
     } catch (e) {
       if (e.toString().contains('cancelled') ||
@@ -663,15 +784,64 @@ class CheckOutController extends GetxController with BaseController {
     }
   }
 
+  Future<bool> _refreshCheckoutPrerequisites() async {
+    isPreparingCheckout.value = true;
+    try {
+      if (Get.isRegistered<AddressListController>()) {
+        final addressController = Get.find<AddressListController>();
+        await addressController.refreshAddresses(useCache: false);
+        if (addressController.loadError.value) {
+          HelperFunctions().showSnackBarError(
+            'Unable to refresh your delivery address. Please retry before placing your order.',
+          );
+          return false;
+        }
+        loadSelectedAddress();
+      }
+      if (selectedAddressId.isEmpty) {
+        HelperFunctions().showSnackBarError(
+          'Please select a valid delivery address before placing your order.',
+        );
+        return false;
+      }
+
+      await cartController.fetchCart(useCache: false);
+      if (CartService.to.loadError.value) {
+        HelperFunctions().showSnackBarError(
+          'Unable to refresh your cart. Please try again before placing your order.',
+        );
+        return false;
+      }
+      if (CartService.to.cartItems.isEmpty) {
+        HelperFunctions().showSnackBarError(
+          'Your cart is empty. Add an item before placing your order.',
+        );
+        return false;
+      }
+      return true;
+    } catch (error) {
+      HelperFunctions().showSnackBarError(
+        'Unable to prepare checkout. Please review your address and cart, then retry.',
+      );
+      return false;
+    } finally {
+      isPreparingCheckout.value = false;
+    }
+  }
+
   Future<void> processOrder() async {
+    if (isPreparingCheckout.value ||
+        isSubmittingOrder.value ||
+        isChoosingCodPrepayment.value ||
+        isChoosingCodConfirmation.value) {
+      return;
+    }
     if (deliveryOption.isEmpty) {
       HelperFunctions().showSnackBarError('Please select a payment method');
       return;
     }
 
-    if (selectedAddressData.isEmpty) {
-      HelperFunctions()
-          .showSnackBarError('Please select a delivery address first');
+    if (!await _refreshCheckoutPrerequisites()) {
       return;
     }
 
@@ -689,13 +859,34 @@ class CheckOutController extends GetxController with BaseController {
           codConfig['cod_prepayment_ammount'].toString().isNotEmpty;
 
       if (needsPrepayment) {
+        final onlineOptions = paymentOptions
+            .where(
+                (option) => option['name'] != 'cod' && option['name'] != 'cash')
+            .toList();
+        if (onlineOptions.isEmpty) {
+          HelperFunctions().showSnackBarError(
+            'COD prepayment is required, but no online payment method is available.',
+          );
+          return;
+        }
+        isChoosingCodPrepayment.value = true;
         final double prepaymentAmount =
             double.tryParse(codConfig['cod_prepayment_ammount'].toString()) ??
                 0.0;
+        if (prepaymentAmount <= 0 || prepaymentAmount > amount) {
+          isChoosingCodPrepayment.value = false;
+          HelperFunctions().showSnackBarError(
+            'The configured COD prepayment amount is invalid. Please contact the store.',
+          );
+          return;
+        }
 
         showCodPrepaymentDialog(
           amount: prepaymentAmount,
           onMethodSelected: (selectedOnlineMethod) async {
+            isChoosingCodPrepayment.value = false;
+            if (isSubmittingOrder.value) return;
+            isSubmittingOrder.value = true;
             secondaryPaymentGateway.value = selectedOnlineMethod;
 
             HelperFunctions().showOverlayLoader();
@@ -711,19 +902,27 @@ class CheckOutController extends GetxController with BaseController {
 
             if (orderResponse == null) {
               secondaryPaymentGateway.value = '';
+              isSubmittingOrder.value = false;
               return;
             }
 
-            final String rawOrderId =
-                (orderResponse['_id'] ?? orderResponse['id'] ?? "").toString();
-            final String orderNo =
-                (orderResponse['order_no'] ?? rawOrderId).toString();
+            final order = _orderRecord(orderResponse);
+            final String rawOrderId = _orderDocumentId(order);
+            final String orderNo = (order['order_no'] ?? rawOrderId).toString();
+            if (rawOrderId.isEmpty) {
+              secondaryPaymentGateway.value = '';
+              isSubmittingOrder.value = false;
+              HelperFunctions().showSnackBarError(
+                'The order was created, but its confirmation number is missing. Check your orders before trying again.',
+              );
+              return;
+            }
 
             try {
               await _processGatewayPayment(
                 methodName: selectedOnlineMethod,
                 amount: prepaymentAmount,
-                orderResponse: orderResponse,
+                orderResponse: order,
                 rawOrderId: rawOrderId,
               );
 
@@ -731,7 +930,12 @@ class CheckOutController extends GetxController with BaseController {
 
               Get.offAllNamed(
                 Routes.ORDERSUCCESS,
-                arguments: {'id': rawOrderId, 'order_no': orderNo},
+                arguments: {
+                  'id': rawOrderId,
+                  'order_no': orderNo,
+                  'order': order,
+                  'is_cash_order': true,
+                },
               );
             } catch (e) {
               if (e.toString().contains('cancelled') ||
@@ -744,6 +948,7 @@ class CheckOutController extends GetxController with BaseController {
               }
             } finally {
               secondaryPaymentGateway.value = '';
+              isSubmittingOrder.value = false;
             }
           },
         );
@@ -751,6 +956,7 @@ class CheckOutController extends GetxController with BaseController {
       }
 
       // Show COD confirmation dialog when user clicks Place Order
+      isChoosingCodConfirmation.value = true;
       showCodConfirmationDialog(
         onConfirm: () async {
           await _executeOrderPlacement(methodName: methodName, amount: amount);
@@ -772,9 +978,17 @@ class CheckOutController extends GetxController with BaseController {
     try {
       switch (methodName) {
         case 'stripe':
-          final publicKey = paymentConfig['stripe']['publicKey'];
-          final clientSecret = orderResponse['payment_client_secret'] ?? "";
-          final paymentIntentId = orderResponse['payment_intent_id'] ?? "";
+          final stripeConfig = paymentConfig['stripe'];
+          final publicKey = stripeConfig is Map
+              ? stripeConfig['publicKey']?.toString() ?? ''
+              : '';
+          final clientSecret =
+              orderResponse['payment_client_secret']?.toString() ?? '';
+          final paymentIntentId =
+              orderResponse['payment_intent_id']?.toString() ?? '';
+          if (publicKey.isEmpty || clientSecret.isEmpty) {
+            throw StateError('Stripe payment setup is incomplete.');
+          }
 
           try {
             await StripePayment(publicKey: publicKey).processPayment(
@@ -795,15 +1009,37 @@ class CheckOutController extends GetxController with BaseController {
           break;
 
         case 'razorpay':
-          final keyId = paymentConfig['razorpay']['key_id'];
-          await RazorPayPayment(keyId: keyId).processPayment(
+          final razorpayConfig = paymentConfig['razorpay'];
+          final keyId = razorpayConfig is Map
+              ? razorpayConfig['key_id']?.toString() ?? ''
+              : '';
+          if (keyId.isEmpty) {
+            throw StateError('Razorpay payment setup is incomplete.');
+          }
+          final result = await RazorPayPayment(keyId: keyId).processPayment(
             amount: amount,
             metadata: orderResponse,
+          );
+          final paymentId = result.paymentId ?? '';
+          final signature = result.signature ?? '';
+          if (paymentId.isEmpty || signature.isEmpty) {
+            throw StateError('Razorpay did not return valid payment details.');
+          }
+          await confirmPayment(
+            rawOrderId,
+            orderResponse['payment_intent_id']?.toString() ?? '',
+            paymentId: paymentId,
+            razorpaySignature: signature,
           );
           break;
 
         case 'phonepe':
           final phonepeConfig = paymentConfig['phonepe'];
+          if (phonepeConfig is! Map ||
+              phonepeConfig['client_id'] == null ||
+              phonepeConfig['client_secret'] == null) {
+            throw StateError('PhonePe payment setup is incomplete.');
+          }
           final result = await PhonePePayment(
             clientId: phonepeConfig['client_id'],
             clientSecret: phonepeConfig['client_secret'],
@@ -822,8 +1058,16 @@ class CheckOutController extends GetxController with BaseController {
           break;
 
         case 'paypal':
-          final clientId = paymentConfig['paypal']['client_id'];
-          final secretKey = paymentConfig['paypal']['client_secret'];
+          final paypalConfig = paymentConfig['paypal'];
+          final clientId = paypalConfig is Map
+              ? paypalConfig['client_id']?.toString() ?? ''
+              : '';
+          final secretKey = paypalConfig is Map
+              ? paypalConfig['client_secret']?.toString() ?? ''
+              : '';
+          if (clientId.isEmpty || secretKey.isEmpty) {
+            throw StateError('PayPal payment setup is incomplete.');
+          }
           await PayPalPayment(
             clientId: clientId,
             secretKey: secretKey,
@@ -840,8 +1084,7 @@ class CheckOutController extends GetxController with BaseController {
           break;
 
         default:
-          printInfo(info: 'Unknown payment method: $methodName');
-          await Future.delayed(const Duration(seconds: 1));
+          throw StateError('Unsupported payment method: $methodName');
       }
     } catch (e) {
       // Log the error for debugging
@@ -867,7 +1110,8 @@ class CheckOutController extends GetxController with BaseController {
   }
 
   bool _isOutOfStockError(dynamic err) {
-    final msg = (err is AppException ? (err.message ?? '') : err.toString()).toLowerCase();
+    final msg = (err is AppException ? (err.message ?? '') : err.toString())
+        .toLowerCase();
     return msg.contains('out of stock') ||
         msg.contains('sold out') ||
         msg.contains('insufficient stock');
@@ -876,7 +1120,8 @@ class CheckOutController extends GetxController with BaseController {
   Future<void> _handleOutOfStockError(dynamic err) async {
     if (Get.isDialogOpen ?? false) Get.back();
 
-    final rawMessage = err is AppException ? (err.message ?? '') : err.toString();
+    final rawMessage =
+        err is AppException ? (err.message ?? '') : err.toString();
     String detectedName = '';
 
     final match = RegExp(r'"([^"]+)"').firstMatch(rawMessage);
@@ -884,20 +1129,33 @@ class CheckOutController extends GetxController with BaseController {
       detectedName = match.group(1)?.trim() ?? '';
     }
 
-    final cartCtrl = Get.isRegistered<CartController>() ? Get.find<CartController>() : null;
+    final cartCtrl =
+        Get.isRegistered<CartController>() ? Get.find<CartController>() : null;
     final found = cartCtrl?.findCartItem(productName: detectedName);
     final cartItem = found?['item'] as Map<String, dynamic>?;
 
     final productObj = cartItem?['product_id'] is Map
         ? cartItem!['product_id'] as Map
         : (cartItem?['product'] is Map ? cartItem!['product'] as Map : null);
-    final productId = (productObj?['_id'] ?? productObj?['id'] ?? cartItem?['product_id'])?.toString() ?? '';
+    final productId =
+        (productObj?['_id'] ?? productObj?['id'] ?? cartItem?['product_id'])
+                ?.toString() ??
+            '';
     final variantObj = cartItem?['variant_id'] is Map
         ? cartItem!['variant_id'] as Map
         : (cartItem?['variant'] is Map ? cartItem!['variant'] as Map : null);
-    final variantSlug = (variantObj?['slug'] ?? variantObj?['name'] ?? cartItem?['variant_slug'] ?? cartItem?['variant_name'] ?? '')?.toString() ?? '';
-    final variantId = (variantObj?['_id'] ?? variantObj?['id'] ?? cartItem?['variant_id'])?.toString();
-    final displayName = productObj?['name']?.toString() ?? (detectedName.isNotEmpty ? detectedName : 'This product');
+    final variantSlug = (variantObj?['slug'] ??
+                variantObj?['name'] ??
+                cartItem?['variant_slug'] ??
+                cartItem?['variant_name'] ??
+                '')
+            ?.toString() ??
+        '';
+    final variantId =
+        (variantObj?['_id'] ?? variantObj?['id'] ?? cartItem?['variant_id'])
+            ?.toString();
+    final displayName = productObj?['name']?.toString() ??
+        (detectedName.isNotEmpty ? detectedName : 'This product');
 
     await showOutOfStockBottomSheet(
       productName: displayName,
@@ -921,7 +1179,8 @@ class CheckOutController extends GetxController with BaseController {
         );
       },
       onReturnToCart: () {
-        Get.until((route) => route.settings.name == Routes.CART || route.isFirst);
+        Get.until(
+            (route) => route.settings.name == Routes.CART || route.isFirst);
       },
     );
   }
@@ -971,5 +1230,4 @@ class CheckOutController extends GetxController with BaseController {
       );
     }
   }
-
 }

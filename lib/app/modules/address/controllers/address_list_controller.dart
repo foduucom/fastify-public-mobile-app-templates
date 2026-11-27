@@ -41,10 +41,12 @@ class AddressListController extends GetxController with BaseController {
         }
 
         final stateVal = address['state'];
-        if (stateVal is String && stateVal.isNotEmpty && countrySlug.isNotEmpty) {
+        if (stateVal is String &&
+            stateVal.isNotEmpty &&
+            countrySlug.isNotEmpty) {
           final states = _statesByCountrySlug[countrySlug] ??=
-              await RegionService.fetchAll((p) => RegionService.fetchStates(
-                  countrySlug: countrySlug, page: p));
+              await RegionService.fetchAll((p) =>
+                  RegionService.fetchStates(countrySlug: countrySlug, page: p));
           final match = states.firstWhereOrNull((r) => r.id == stateVal);
           if (match != null) {
             address['state'] = {'_id': match.id, 'name': match.name};
@@ -55,15 +57,18 @@ class AddressListController extends GetxController with BaseController {
       debugPrint('Error resolving address names: $e');
     }
   }
+
   var isLoading = false.obs;
   var addressLoading = false.obs;
+  final loadError = false.obs;
   var selectAddress = 0.obs;
   var shippingDetails = {}.obs;
   var firstloading = 0.obs;
 
   dynamic get selectedAddress {
     if (userAddressList.isEmpty) return null;
-    if (selectAddress.value >= 0 && selectAddress.value < userAddressList.length) {
+    if (selectAddress.value >= 0 &&
+        selectAddress.value < userAddressList.length) {
       return userAddressList[selectAddress.value];
     }
     return null;
@@ -91,14 +96,15 @@ class AddressListController extends GetxController with BaseController {
 
   @override
   void onInit() {
-    refreshAddresses();
     super.onInit();
+    refreshAddresses();
   }
 
-  Future<void> refreshAddresses() async {
+  Future<void> refreshAddresses({bool useCache = true}) async {
     try {
       String? currentSelectedId;
       if (userAddressList.isNotEmpty &&
+          selectAddress.value >= 0 &&
           selectAddress.value < userAddressList.length) {
         currentSelectedId =
             userAddressList[selectAddress.value]['_id']?.toString();
@@ -106,18 +112,19 @@ class AddressListController extends GetxController with BaseController {
 
       isLoading.value = true;
       addressLoading.value = true;
+      loadError.value = false;
 
-      print('isLogin ${AuthDetails.isUserLogin()}');
       if (AuthDetails.isUserLogin()) {
         var response = await BasicProvider('customer/addresses')
-            .getRequest()
+            .getRequest(useCache: useCache)
             .catchError(handleError);
         addressLoading.value = false;
         isLoading.value = false;
 
-        print('respsen addressssssssss--- --- -- - - -$response');
-
-        if (response == null) return;
+        if (response == null) {
+          loadError.value = true;
+          return;
+        }
 
         userAddressList.clear();
 
@@ -156,11 +163,16 @@ class AddressListController extends GetxController with BaseController {
 
         userAddressList.refresh();
         _prefetchMissingCityNames();
+      } else {
+        userAddressList.clear();
+        selectAddress.value = 0;
       }
     } catch (e) {
+      loadError.value = true;
+      debugPrint('Address refresh failed: $e');
+    } finally {
       isLoading.value = false;
       addressLoading.value = false;
-      print('Error fetching addresses: $e');
     }
   }
 
@@ -197,26 +209,43 @@ class AddressListController extends GetxController with BaseController {
     }
   }
 
-  void removeAddress(String id, int index) async {
+  Future<void> removeAddress(String id) async {
     try {
       HelperFunctions().showOverlayLoader();
 
       var response = await BasicProvider('customer/addresses/$id')
           .postRequest({}).catchError(handleError);
-      HelperFunctions().hideOverlayLoader();
-      print('remove address $response');
-
-      if (response != null) {
-        userAddressList.removeAt(index);
-        if (selectAddress.value >= userAddressList.length) {
-          selectAddress.value = 0;
-        }
-
-        update();
+      if (response == null ||
+          (response is Map &&
+              (response['success'] == false ||
+                  response['status'] == false ||
+                  const {'error', 'failed', 'failure'}.contains(
+                      response['status']?.toString().toLowerCase())))) {
+        throw Exception('Address removal was not confirmed');
       }
+
+      final actualIndex = userAddressList.indexWhere(
+          (address) => address is Map && address['_id']?.toString() == id);
+      if (actualIndex == -1) return;
+      final selectedId =
+          selectedAddress is Map ? selectedAddress['_id']?.toString() : null;
+      userAddressList.removeAt(actualIndex);
+      if (userAddressList.isEmpty) {
+        selectAddress.value = 0;
+      } else if (selectedId != id) {
+        final preservedIndex = userAddressList.indexWhere((address) =>
+            address is Map && address['_id']?.toString() == selectedId);
+        selectAddress.value = preservedIndex >= 0 ? preservedIndex : 0;
+      } else {
+        selectAddress.value = actualIndex.clamp(0, userAddressList.length - 1);
+      }
+      HelperFunctions().showSnackBarSuccess('Address removed successfully');
     } catch (e) {
+      debugPrint('Address removal failed: $e');
+      HelperFunctions()
+          .showSnackBarError('Failed to remove address. Please try again.');
+    } finally {
       HelperFunctions().hideOverlayLoader();
-      print('Error removing address: $e');
     }
   }
 

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/foduuCachedImageNetwork.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
+import 'package:foduu_ecommerce/components/home_component/home_common_widgets.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 
 /// Renders the `trust_badges` studio section.
 ///
@@ -23,6 +25,59 @@ class TrustBadgesComponent extends StatelessWidget {
     final hasCardText = cards.any((c) =>
         _str(c['heading'] ?? c['title']).isNotEmpty ||
         _str(c['text'] ?? c['description']).isNotEmpty);
+
+    // Image-only CMS cards represent sponsored brand logos in the reference.
+    if (cards.isNotEmpty && !hasCardText && subtitle.isEmpty) {
+      final logos = cards
+          .map((card) => _str(card['image'] ?? card['icon']))
+          .where((image) => image.isNotEmpty)
+          .map(HelperFunctions().getImage)
+          .toList(growable: false);
+      if (logos.isNotEmpty) {
+        final title = _str(contentJson['title'] ?? contentJson['heading']);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (title.isNotEmpty) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: StudioSectionHeader(
+                    title: title,
+                    onSeeAll: () => openShop({'source': 'sponsored'}),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              SizedBox(
+                height: 56,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: logos.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) => Container(
+                    width: 104,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF1E1E22)
+                          : const Color(0xFF18181B),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: FoduuCachedNetworkImage(
+                      image: logos[index],
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    }
 
     if (!hasCardText && subtitle.isNotEmpty) {
       final slides = [

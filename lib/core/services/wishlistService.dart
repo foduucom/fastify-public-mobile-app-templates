@@ -37,7 +37,8 @@ class WishListService extends GetxService with BaseController {
 
       loadError.value = false;
       parseWishListResponse(response);
-    } catch (e, stackTrack) {
+    } catch (e) {
+      loadError.value = true;
       debugPrint('WishlistService.fetchWishList error: $e');
     }
   }
@@ -53,7 +54,6 @@ class WishListService extends GetxService with BaseController {
       'variant_slug': variantSlug,
       if (variantId != null) 'variant_id': variantId,
     };
-    print("add wishlist form === $form");
     var response = await BasicProvider("wishlist/add")
         .postRequest(form)
         .catchError(handleError);
@@ -74,7 +74,6 @@ class WishListService extends GetxService with BaseController {
       'variant_slug': variantSlug,
       if (variantId != null) 'variant_id': variantId,
     };
-    print("remove wishlist form === $form");
     var response = await BasicProvider("wishlist/remove")
         .postRequest(form)
         .catchError(handleError);
@@ -132,7 +131,11 @@ class WishListService extends GetxService with BaseController {
               productId: productId,
               variantSlug: variantSlug,
               variantId: variantId);
-      if (response == null) _rollback(snapshot);
+      if (response == null ||
+          (response is Map &&
+              (response['success'] == false || response['status'] == false))) {
+        _rollback(snapshot);
+      }
     } catch (e) {
       debugPrint('Wishlist toggle failed, reverting... $e');
       _rollback(snapshot);

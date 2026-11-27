@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 
 class SpacerComponent extends StatelessWidget {
   final Map<String, dynamic> contentJson;
@@ -59,7 +60,63 @@ class TextBlockComponent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String text = contentJson['text'] ?? '';
+    String text = (contentJson['text'] ?? '').toString();
+    final lines = text
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList(growable: false);
+    if (lines.isEmpty) return const SizedBox.shrink();
+    final deals = <({String title, String discount})>[];
+    for (var i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      if (line.toLowerCase().contains('up to') &&
+          line.toLowerCase().contains('% off')) {
+        deals.add((title: i > 0 ? lines[i - 1] : 'Special Deal', discount: line));
+      }
+    }
+    if (deals.isNotEmpty) {
+      final theme = Theme.of(context);
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('HOT PICKS', style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1,
+            )),
+            const SizedBox(height: 10),
+            for (final deal in deals)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Material(
+                  color: theme.colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => openShop({'name': deal.title, 'source': 'deals_widget'}),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      child: Row(children: [
+                        Expanded(child: Text(deal.title, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                        const SizedBox(width: 8),
+                        Text(deal.discount.toUpperCase(), style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.error,
+                          fontWeight: FontWeight.bold,
+                        )),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.chevron_right, size: 18),
+                      ]),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    }
     double size = double.tryParse(contentJson['size'].toString()) ?? 14.0;
     String weightStr = contentJson['weight'] ?? 'normal';
     String alignStr = contentJson['alignment'] ?? 'left';

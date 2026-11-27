@@ -13,6 +13,9 @@ class SearchViewHeader extends StatelessWidget {
     required this.height,
     required this.searchTextController,
     required this.onSearchChanged,
+    this.onSubmitted,
+    this.onClear,
+    this.showClear = false,
     this.hintText = "Search products, categories...",
     this.onCartTap,
     //this.onMessageTap,
@@ -23,6 +26,9 @@ class SearchViewHeader extends StatelessWidget {
   final double height;
   final TextEditingController searchTextController;
   final Function(String) onSearchChanged;
+  final Function(String)? onSubmitted;
+  final VoidCallback? onClear;
+  final bool showClear;
   final String hintText;
   final VoidCallback? onCartTap;
   //final VoidCallback? onMessageTap;
@@ -30,8 +36,6 @@ class SearchViewHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: width * 0.05,
@@ -73,6 +77,8 @@ class SearchViewHeader extends StatelessWidget {
                     child: TextFormField(
                       controller: searchTextController,
                       onChanged: onSearchChanged,
+                      onFieldSubmitted: onSubmitted,
+                      textInputAction: TextInputAction.search,
                       decoration: InputDecoration(
                         hintText: hintText,
                         filled: true,
@@ -84,6 +90,14 @@ class SearchViewHeader extends StatelessWidget {
                         disabledBorder: InputBorder.none,
                         isDense: true,
                         contentPadding: EdgeInsets.zero,
+                        suffixIcon: showClear
+                            ? IconButton(
+                                tooltip: 'Clear search',
+                                visualDensity: VisualDensity.compact,
+                                onPressed: onClear,
+                                icon: const Icon(Icons.close, size: 18),
+                              )
+                            : null,
                       ),
                       style: TextStyle(
                         fontSize: height * 0.018,

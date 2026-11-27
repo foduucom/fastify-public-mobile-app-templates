@@ -6,9 +6,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
-import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
-import 'package:foduu_ecommerce/app/modules/cart/controllers/cart_controller.dart';
-import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/constants/product_helper.dart';
 import 'package:foduu_ecommerce/core/services/cartServcie.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -28,10 +26,10 @@ class ProductController extends GetxController
   var offerCode = 'FODUUKART10';
   var isCopied = false.obs;
   var productDetials = {}.obs;
-  var pinCodeController;
+  late final TextEditingController pinCodeController;
   var box = GetStorage();
   var productGallery = List.empty().obs;
-  var pageController = PageController();
+  late final PageController pageController;
   int _currentPage = 0;
   var similarProduct = [].obs;
   var selectedPageIndex = 0.obs;
@@ -51,13 +49,14 @@ class ProductController extends GetxController
   Map<String, String> selectedVariants = {};
   var selectedVariantIndex = 0.obs;
   var selectedVariant = {}.obs;
-  var productVariantOption = List<dynamic>.empty();
+  dynamic productVariantOption = <dynamic>[];
 
   // var pinCodeController;
   final count = 1.obs;
   final checkController = TextEditingController();
   late AnimationController controller;
   late Animation<double> scaleAnimation;
+  bool _animationInitialized = false;
 
   // Add these to your controller
   RxList<String> colors = <String>[].obs;
@@ -86,15 +85,21 @@ class ProductController extends GetxController
     }
 
     await getProductDetials(id: productId);
+    if (isClosed) return;
 
     if (productDetials.containsKey('categories') &&
         productDetials['categories'] != null) {
       categoriesId.addAll(productDetials['categories']);
     }
 
-    categoriesId.forEach((element) {
-      cateogries.add("${element['_id']}");
-    });
+    for (final element in categoriesId) {
+      if (element is Map) {
+        final id = element['_id'] ?? element['id'];
+        if (id != null && id.toString().isNotEmpty) {
+          cateogries.add(id.toString());
+        }
+      }
+    }
 
     getSimilarProduct(cateogries);
     extractAttributes();
@@ -106,6 +111,7 @@ class ProductController extends GetxController
       vsync: this,
       duration: Duration(milliseconds: 300),
     );
+    _animationInitialized = true;
     scaleAnimation = Tween<double>(begin: 1.0, end: 1.5).animate(
       CurvedAnimation(parent: controller, curve: Curves.easeInOut),
     );
@@ -129,47 +135,58 @@ class ProductController extends GetxController
 
   // Call this after getProductDetials()
   void extractAttributes() {
-    if (productDetials['attributes'] != null) {
-      for (var attribute in productDetials['attributes']) {
-        if (attribute['name'] == 'size') {
-          sizes.value = List<String>.from(attribute['values']);
-        }
-        if (attribute['name'] == 'color') {
-          colors.value = List<String>.from(attribute['values']);
-        }
+    final attributes = productDetials['attributes'];
+    if (attributes is! List) return;
+    for (final attribute in attributes.whereType<Map>()) {
+      final name = (attribute['name'] ?? '').toString().trim().toLowerCase();
+      final values = _stringValues(attribute['values']);
+      if (name.contains('size') && values.isNotEmpty) {
+        sizes.assignAll(values);
+      } else if (name.contains('color') && values.isNotEmpty) {
+        colors.assignAll(values);
       }
     }
   }
 
   void updateSelectedVariant() {
     if (productDetials['variants'] == null ||
-        productDetials['variants'] is! List) return;
+        productDetials['variants'] is! List) {
+      selectedVariantIndex.value = -1;
+      return;
+    }
 
     List variants = productDetials['variants'];
     int variantIndex = -1;
 
-    String? targetSize =
-        sizes.isNotEmpty ? sizes[selectedSizeIndex.value].toLowerCase() : null;
-    String? targetColor = colors.isNotEmpty
-        ? colors[selectedColorIndex.value].toLowerCase()
+    final targetSize =
+        selectedSizeIndex.value >= 0 && selectedSizeIndex.value < sizes.length
+            ? sizes[selectedSizeIndex.value].trim().toLowerCase()
+            : null;
+    final targetColor = selectedColorIndex.value >= 0 &&
+            selectedColorIndex.value < colors.length
+        ? colors[selectedColorIndex.value].trim().toLowerCase()
         : null;
-
-    print("Target Attributes - Size: $targetSize, Color: $targetColor");
+    selectedVariantIndex.value = -1;
 
     for (int i = 0; i < variants.length; i++) {
       var variant = variants[i];
-      var variantAttributes = variant['attributes'];
+      if (variant is! Map) continue;
+      final rawAttributes = variant['attributes'];
+      final variantAttributes = <String, String>{};
+      if (rawAttributes is Map) {
+        for (final entry in rawAttributes.entries) {
+          variantAttributes[entry.key.toString().trim().toLowerCase()] =
+              entry.value.toString().trim().toLowerCase();
+        }
+      }
 
-      if (variantAttributes != null && variantAttributes is Map) {
+      if (variantAttributes.isNotEmpty) {
         // Match by attributes
         bool isMatch = true;
-        if (targetSize != null &&
-            variantAttributes['size']?.toString().toLowerCase() != targetSize) {
+        if (targetSize != null && variantAttributes['size'] != targetSize) {
           isMatch = false;
         }
-        if (targetColor != null &&
-            variantAttributes['color']?.toString().toLowerCase() !=
-                targetColor) {
+        if (targetColor != null && variantAttributes['color'] != targetColor) {
           isMatch = false;
         }
 
@@ -179,10 +196,10 @@ class ProductController extends GetxController
         }
       } else {
         // Fallback to name matching
-        String variantName =
-            variant['variant_name']?.toString().toLowerCase() ??
-                variant['name']?.toString().toLowerCase() ??
-                '';
+        final variantName = (variant['variant_name'] ?? variant['name'] ?? '')
+            .toString()
+            .trim()
+            .toLowerCase();
 
         if (targetSize != null && targetColor != null) {
           List<String> formats = [
@@ -208,10 +225,6 @@ class ProductController extends GetxController
     if (variantIndex != -1) {
       selectedVariantIndex.value = variantIndex;
       selectedImageIndex.value = 0;
-      print(
-          "Matched variant at index $variantIndex: ${variants[variantIndex]}");
-    } else {
-      print("No variant matched for attributes.");
     }
   }
 
@@ -225,9 +238,13 @@ class ProductController extends GetxController
         print("⚠️ Similar products endpoint not available: $e");
         return null;
       });
-      if (response == null || response['data'] == null) return;
-      similarProduct.clear();
-      similarProduct.addAll(response['data']);
+      final products = response is List
+          ? response
+          : response is Map
+              ? response['data'] ?? response['products'] ?? response['product']
+              : null;
+      if (products is! List) return;
+      similarProduct.assignAll(products);
     } catch (e) {
       print('similar product error $e');
     }
@@ -265,10 +282,12 @@ class ProductController extends GetxController
     var response = await BasicProvider("public/reviews/product")
         .postRequest(form)
         .catchError(handleError);
-    if (response == null) return;
-    productReview.clear();
-
-    productReview.addAll(response);
+    final reviews = response is List
+        ? response
+        : response is Map
+            ? response['data'] ?? response['reviews']
+            : null;
+    if (reviews is List) productReview.assignAll(reviews);
   }
 
   void getProductReview(String productId) async {
@@ -278,108 +297,111 @@ class ProductController extends GetxController
       print("⚠️ Product reviews endpoint not available: $e");
       return null;
     });
-    if (response == null || response['data'] == null) return;
-    // productReview.addAll(response['data']);
-    productReview.clear();
-    productReview.addAll(response['data']);
+    final reviews = response is List
+        ? response
+        : response is Map
+            ? response['data'] ?? response['reviews']
+            : null;
+    if (reviews is List) productReview.assignAll(reviews);
   }
 
   Future<void> getProductDetials({required String id}) async {
     isLoading.value = true;
-    var response = await BasicProvider("products/$id")
-        .getRequest()
-        .catchError(handleError);
-    if (response == null) {
+    try {
+      final response = await BasicProvider("products/$id")
+          .getRequest()
+          .catchError(handleError);
+      if (isClosed) return;
+      if (response is! Map) return;
+
+      final payload = response['data'] is Map ? response['data'] : response;
+      if (payload is! Map) return;
+      productDetials.assignAll(Map<String, dynamic>.from(payload));
+
+      final gallery = productDetials['gallery'];
+      productGallery.assignAll(gallery is List ? gallery : const []);
+      sizes.clear();
+      colors.clear();
+
+      final attributes = productDetials['attributes'];
+      if (attributes is List) {
+        for (final attribute in attributes.whereType<Map>()) {
+          final name = (attribute['name'] ?? '').toString().toLowerCase();
+          final values = _stringValues(attribute['values']);
+          if (name.contains('color')) colors.assignAll(values);
+          if (name.contains('size')) sizes.assignAll(values);
+        }
+      }
+
+      final variants = productDetials['variants'];
+      if (variants is List && (sizes.isEmpty || colors.isEmpty)) {
+        final foundSizes = <String>{...sizes};
+        final foundColors = <String>{...colors};
+        const knownColors = {
+          'red',
+          'blue',
+          'green',
+          'black',
+          'white',
+          'yellow',
+          'purple',
+          'pink',
+          'brown',
+          'gray',
+          'grey',
+          'orange',
+          'beige',
+          'navy',
+          'silver',
+          'gold',
+          'cream',
+          'maroon',
+          'teal',
+          'tan',
+        };
+        for (final variant in variants.whereType<Map>()) {
+          final variantAttributes = variant['attributes'];
+          if (variantAttributes is Map) {
+            for (final entry in variantAttributes.entries) {
+              final key = entry.key.toString().toLowerCase();
+              final value = entry.value.toString().trim();
+              if (value.isEmpty) continue;
+              if (key.contains('size') && sizes.isEmpty) foundSizes.add(value);
+              if (key.contains('color') && colors.isEmpty)
+                foundColors.add(value);
+            }
+          } else {
+            final name =
+                (variant['variant_name'] ?? variant['name'] ?? '').toString();
+            for (final part in name
+                .split(RegExp(r'\s*[/,|]\s*'))
+                .map((value) => value.trim())
+                .where((value) => value.isNotEmpty)) {
+              final normalized = part.toLowerCase();
+              if (sizes.isEmpty &&
+                  RegExp(r'^(xxxs|xxs|xs|s|m|l|xl|xxl|xxxl|\d+)$')
+                      .hasMatch(normalized)) {
+                foundSizes.add(part.toUpperCase());
+              } else if (colors.isEmpty && knownColors.contains(normalized)) {
+                foundColors.add(part);
+              }
+            }
+          }
+        }
+        if (sizes.isEmpty) sizes.assignAll(foundSizes);
+        if (colors.isEmpty) colors.assignAll(foundColors);
+      }
+      initializeSelectors();
+    } catch (error) {
+      debugPrint('Product details load failed: $error');
+    } finally {
       isLoading.value = false;
-      return;
     }
-    isLoading.value = false;
-
-    productDetials.value = response;
-
-    if (productDetials['gallery'] != null) {
-      productGallery.value = productDetials['gallery'];
-    }
-
-    // First try to extract from attributes (more reliable)
-    if (productDetials['attributes'] != null &&
-        productDetials['attributes'].isNotEmpty) {
-      var attributes = productDetials['attributes'];
-
-      for (var attr in attributes) {
-        String attrName = attr['name']?.toString().toLowerCase() ?? '';
-
-        if (attrName.contains('color')) {
-          // Extract colors from attributes
-          List<String> colorValues = List<String>.from(attr['values'] ?? []);
-          colors.assignAll(colorValues);
-          print("Extracted colors from attributes: $colors");
-        } else if (attrName.contains('size')) {
-          // Extract sizes from attributes
-          List<String> sizeValues = List<String>.from(attr['values'] ?? []);
-          sizes.assignAll(sizeValues);
-          print("Extracted sizes from attributes: $sizes");
-        }
-      }
-    }
-
-    // If attributes didn't have data, extract from variants
-    if (sizes.isEmpty && colors.isEmpty) {
-      if (productDetials['variants'] != null) {
-        List<dynamic> variants = productDetials['variants'];
-
-        Set<String> uniqueSizes = {};
-        Set<String> uniqueColors = {};
-
-        for (var variant in variants) {
-          String variantName =
-              variant['variant_name']?.toString().toLowerCase() ?? '';
-
-          // Check if it's a size
-          if (variantName.contains('s') ||
-              variantName.contains('m') ||
-              variantName.contains('l') ||
-              variantName.contains('xl') ||
-              variantName.contains('xxl') ||
-              variantName.contains('xs')) {
-            uniqueSizes.add(variantName.toUpperCase());
-          }
-          // Check if it's a color (common color names)
-          else if (variantName.isNotEmpty &&
-              (variantName.contains('red') ||
-                  variantName.contains('blue') ||
-                  variantName.contains('green') ||
-                  variantName.contains('black') ||
-                  variantName.contains('white') ||
-                  variantName.contains('yellow') ||
-                  variantName.contains('purple') ||
-                  variantName.contains('pink') ||
-                  variantName.contains('brown') ||
-                  variantName.contains('gray') ||
-                  variantName.contains('grey'))) {
-            uniqueColors
-                .add(variantName[0].toUpperCase() + variantName.substring(1));
-          }
-          // If it's not clearly a size or color, check the variant's attributes if available
-          else if (variantName.isNotEmpty && variant['attributes'] != null) {
-            // You can add logic here to check variant-specific attributes
-            // For now, just add to colors
-            uniqueColors
-                .add(variantName[0].toUpperCase() + variantName.substring(1));
-          }
-        }
-
-        sizes.assignAll(uniqueSizes.toList());
-        colors.assignAll(uniqueColors.toList());
-
-        print("Extracted sizes from variants: $sizes");
-        print("Extracted colors from variants: $colors");
-      }
-    }
-
-    // Initialize selectors with the extracted data
-    initializeSelectors();
   }
+
+  List<String> _stringValues(dynamic values) => values is List
+      ? values.map((value) => value.toString()).toList(growable: false)
+      : const [];
 
   void getVariantDetails() {
     if (productDetials['type'] == 'variable' ||
@@ -387,16 +409,29 @@ class ProductController extends GetxController
       if (productDetials['variant_options'] != null) {
         var options = productDetials['variant_options'];
         if (options is String) {
-          productVariantOption = json.decode(options);
+          try {
+            productVariantOption = json.decode(options);
+          } catch (error) {
+            debugPrint('Invalid product variant options: $error');
+            productVariantOption = const [];
+          }
         } else {
           productVariantOption = options;
         }
+        if (productVariantOption is! List) {
+          productVariantOption = const [];
+          return;
+        }
+        labels.clear();
+        labelVariant.clear();
+        selectedVariant.clear();
 
         List<String> selectedVariantList = [];
-        for (var item in productVariantOption) {
+        for (final item in productVariantOption) {
+          if (item is! Map || item['variants'] is! List) continue;
           labels.add(item['label']);
           labelVariant.add(item['variants']);
-          if (item['variants'] != null && item['variants'].isNotEmpty) {
+          if ((item['variants'] as List).isNotEmpty) {
             String initialVariant = item['variants'][0].toString();
             selectedVariantList.add(initialVariant);
             selectedVariant[item['label']] = initialVariant;
@@ -423,10 +458,20 @@ class ProductController extends GetxController
   }
 
   void updateVariantIndex() {
-    for (int i = 0; i < productDetials['variant_ids'].length; i++) {
-      if (joinedVariants.value == productDetials['variant_ids'][i]['variant']) {
-        // selectedVariant.addAll(variantsProduct[i]);
+    final variantIds = productDetials['variant_ids'];
+    if (variantIds is! List) {
+      selectedVariantIndex.value = -1;
+      return;
+    }
+    selectedVariantIndex.value = -1;
+    for (int i = 0; i < variantIds.length; i++) {
+      final item = variantIds[i];
+      final variants = productDetials['variants'];
+      if (item is Map &&
+          joinedVariants.value == item['variant']?.toString() &&
+          (variants is! List || i < variants.length)) {
         selectedVariantIndex.value = i;
+        return;
       }
     }
   }
@@ -438,17 +483,41 @@ class ProductController extends GetxController
     return parts.contains(target);
   }
 
-  Future<void> addToCart() async {
+  Future<bool> addToCart() async {
     final variants = productDetials['variants'];
-    if (variants == null || (variants as List).isEmpty) return;
+    if (variants is! List || variants.isEmpty) {
+      HelperFunctions().showSnackBarError('This product is unavailable.');
+      return false;
+    }
+    final index = selectedVariantIndex.value;
+    if (index < 0 || index >= variants.length || variants[index] is! Map) {
+      HelperFunctions().showSnackBarError(
+          'Please select an available product option before adding to cart.');
+      return false;
+    }
+    final variantId =
+        (variants[index]['_id'] ?? variants[index]['id'])?.toString() ?? '';
+    if (variantId.isEmpty || productId == null) {
+      HelperFunctions()
+          .showSnackBarError('This product cannot be added right now.');
+      return false;
+    }
+    if (!ProductHelper.isInStock(
+      Map<String, dynamic>.from(productDetials),
+      variantIndex: index,
+    )) {
+      HelperFunctions().showSnackBarError('This option is out of stock.');
+      return false;
+    }
 
     isLoading.value = true;
     try {
       await CartService.to.manageCart(
           productId: productId,
-          variantId: variants[selectedVariantIndex.value]['_id'],
+          variantId: variantId,
           quantity: count.value,
           product: Map<String, dynamic>.from(productDetials));
+      return true;
     } finally {
       isLoading.value = false;
     }
@@ -472,9 +541,13 @@ class ProductController extends GetxController
   }
 
   @override
-  void dispose() {
-    super.dispose();
+  void onClose() {
     pageController.dispose();
+    pinCodeController.dispose();
+    reviewTextController.dispose();
+    checkController.dispose();
+    if (_animationInitialized) controller.dispose();
+    super.onClose();
   }
 
   List size = [

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 class MyReviewsController extends GetxController with BaseController {
   var isLoading = false.obs;
+  var hasError = false.obs;
   var reviewsList = <Map<String, dynamic>>[].obs;
 
   @override
@@ -18,25 +19,30 @@ class MyReviewsController extends GetxController with BaseController {
   Future<void> fetchReviews() async {
     try {
       isLoading.value = true;
-      var response = await BasicProvider("customer/reviews")
-          .getRequest(queryParams: {'page': 1, 'limit': 50})
-          .catchError(handleError);
-
-      reviewsList.clear();
+      hasError.value = false;
+      var response = await BasicProvider("customer/reviews").getRequest(
+          queryParams: {'page': 1, 'limit': 50}).catchError(handleError);
+      if (response == null) {
+        hasError.value = true;
+        return;
+      }
       List rawReviews = [];
       if (response is List) {
         rawReviews = response;
       } else if (response is Map) {
-        final reviews = response['reviews'] ?? response['data'] ?? response['docs'];
+        final reviews =
+            response['reviews'] ?? response['data'] ?? response['docs'];
         if (reviews is List) {
           rawReviews = reviews;
         } else if (reviews is Map && reviews['reviews'] is List) {
           rawReviews = reviews['reviews'];
         }
       }
-      reviewsList.addAll(rawReviews.whereType<Map>().map((e) => _normalizeReview(e)));
+      reviewsList.assignAll(
+          rawReviews.whereType<Map>().map((e) => _normalizeReview(e)));
     } catch (e) {
       debugPrint('fetchReviews error: $e');
+      hasError.value = true;
     } finally {
       isLoading.value = false;
     }
@@ -62,7 +68,7 @@ class MyReviewsController extends GetxController with BaseController {
     }
 
     return {
-      'id': (item['id'] ?? item['_id']).toString(),
+      'id': (item['id'] ?? item['_id'])?.toString() ?? '',
       'product_name': productName,
       'product_slug': productSlug,
       'product_image': productImage,
@@ -73,6 +79,10 @@ class MyReviewsController extends GetxController with BaseController {
   }
 
   void confirmDeleteReview(BuildContext context, String id) {
+    if (id.isEmpty) {
+      HelperFunctions().showSnackBarError('This review cannot be deleted because its ID is missing.');
+      return;
+    }
     final colorScheme = Theme.of(context).colorScheme;
     Get.dialog(
       AlertDialog(
@@ -103,9 +113,11 @@ class MyReviewsController extends GetxController with BaseController {
 
   Future<void> deleteReview(String id) async {
     try {
-      await BasicProvider("customer/reviews/$id")
+      final response = await BasicProvider("customer/reviews/$id")
           .deleteRequest()
           .catchError(handleError);
+      if (response == null)
+        throw Exception('Review deletion was not confirmed');
       reviewsList.removeWhere((element) => element['id'] == id);
       HelperFunctions().showSnackBarSuccess('Review deleted successfully');
     } catch (e) {

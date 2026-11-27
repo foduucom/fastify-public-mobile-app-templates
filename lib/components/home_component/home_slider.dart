@@ -40,13 +40,22 @@ class _FoduuSliderState extends State<FoduuSlider>
   double _getSliderHeight() {
     final bool isFullScreen = widget.sliderData['full_screen'] ?? false;
     if (isFullScreen) {
-      // For full screen, calculate height based on width with 16:9 aspect ratio
-      return Get.width * 9 / 16;
-    } else {
-      // Use the height from content_json, default to 200 if not provided
-      final dynamic height = widget.sliderData['height'];
-      return height != null ? height.toDouble() : 200.0;
+      return (Get.width * 9 / 16).clamp(210.0, 250.0);
     }
+
+    final slider = widget.sliderData['slider'];
+    final content = slider is Map ? slider['content'] : null;
+    final hasLongDescription = content is List &&
+        content.any((item) =>
+            item is Map && '${item['description'] ?? ''}'.trim().length > 60);
+    if (hasLongDescription) return (Get.width * 0.85).clamp(280.0, 340.0);
+
+    final configuredHeight =
+        double.tryParse('${widget.sliderData['height'] ?? ''}');
+    if (configuredHeight != null && configuredHeight >= 220) {
+      return configuredHeight;
+    }
+    return (Get.width * 0.58).clamp(225.0, 260.0);
   }
 
   void _resolveImageUrls() {
@@ -63,10 +72,11 @@ class _FoduuSliderState extends State<FoduuSlider>
   }
 
   List<Widget> _buildPageIndicator() {
-    List<Widget> list = [];
-    //print("Slide Data : ${widget.sliderData['slider']['content']}");
-    for (int i = 0; i < widget.sliderData['slider']['content'].length; i++) {
-      list.add(i == _currentPage ? _indicator(true) : _indicator(false));
+    final content = widget.sliderData['slider']?['content'];
+    if (content is! List || content.length <= 1) return const [];
+    final list = <Widget>[];
+    for (int i = 0; i < content.length; i++) {
+      list.add(_indicator(i == _currentPage));
     }
     return list;
   }
@@ -81,7 +91,9 @@ class _FoduuSliderState extends State<FoduuSlider>
     _resolveImageUrls();
 
     _timer = Timer.periodic(const Duration(seconds: 8), (Timer timer) {
-      if (_currentPage < widget.sliderData['slider']['content'].length - 1) {
+      final content = widget.sliderData['slider']?['content'];
+      if (content is! List || content.length < 2) return;
+      if (_currentPage < content.length - 1) {
         _currentPage++;
       } else {
         _currentPage = 0;
@@ -116,6 +128,9 @@ class _FoduuSliderState extends State<FoduuSlider>
     super.build(
         context); // Call to the super method for AutomaticKeepAliveClientMixin
     final double sliderHeight = _getSliderHeight();
+    final rawSlider = widget.sliderData['slider'];
+    final rawContent = rawSlider is Map ? rawSlider['content'] : null;
+    final content = rawContent is List ? rawContent : const [];
 
     return Stack(
       alignment: Alignment.bottomCenter,
@@ -126,7 +141,7 @@ class _FoduuSliderState extends State<FoduuSlider>
             color: Colors.transparent,
           ),
           height: sliderHeight,
-          child: widget.sliderData['slider']['content'].isEmpty
+          child: content.isEmpty
               ? Shimmer.fromColors(
                   child: Padding(
                     padding: pageSurroundingPadding,
@@ -158,10 +173,9 @@ class _FoduuSliderState extends State<FoduuSlider>
                           _currentPage = page;
                         });
                       },
-                      itemCount: widget.sliderData['slider']['content'].length,
+                      itemCount: content.length,
                       itemBuilder: (context, index) {
-                        final sliderItem =
-                            widget.sliderData['slider']['content'][index];
+                        final sliderItem = content[index];
 
                         // Extract title and content
                         final String title = sliderItem['heading'] ?? '';
@@ -185,10 +199,10 @@ class _FoduuSliderState extends State<FoduuSlider>
                           onTap: () async {
                             if (sliderType == 'categories') {
                               openShop({
-                                    'source': 'category',
-                                    'productId': link,
-                                    'name': title
-                                  });
+                                'source': 'category',
+                                'productId': link,
+                                'name': title
+                              });
                             } else if (sliderType == 'blog') {
                               Get.toNamed(Routes.BLOG_DETAILS, arguments: {
                                 'id': link,
@@ -223,35 +237,37 @@ class _FoduuSliderState extends State<FoduuSlider>
                                     borderRadius: BorderRadius.circular(12.0),
                                     child: (index < _imageUrls.length &&
                                             _imageUrls[index].isNotEmpty &&
-                                            _imageUrls[index] != HelperFunctions.getNoImage())
+                                            _imageUrls[index] !=
+                                                HelperFunctions.getNoImage())
                                         ? CachedNetworkImage(
                                             height: sliderHeight,
                                             imageUrl: _imageUrls[index],
                                             fit: BoxFit.cover,
                                             width: Get.width,
-                                            errorWidget: ((context, url, error) =>
-                                                AppImagePlaceholder(
-                                                  radius: 12,
-                                                  height: sliderHeight,
-                                                  width: double.infinity,
-                                                  fit: BoxFit.cover,
-                                                )),
-                                            progressIndicatorBuilder:
-                                                ((context, url, progress) =>
-                                                    Container(
-                                                      width: MediaQuery.of(context)
-                                                          .size
-                                                          .width,
+                                            errorWidget:
+                                                ((context, url, error) =>
+                                                    AppImagePlaceholder(
+                                                      radius: 12,
                                                       height: sliderHeight,
-                                                      decoration: BoxDecoration(
-                                                          color: Theme.of(context)
-                                                              .colorScheme
-                                                              .surfaceContainerHighest),
-                                                      child: Center(
-                                                        child: HelperFunctions()
-                                                            .loadingIndicator(),
-                                                      ),
+                                                      width: double.infinity,
+                                                      fit: BoxFit.cover,
                                                     )),
+                                            progressIndicatorBuilder: ((context,
+                                                    url, progress) =>
+                                                Container(
+                                                  width: MediaQuery.of(context)
+                                                      .size
+                                                      .width,
+                                                  height: sliderHeight,
+                                                  decoration: BoxDecoration(
+                                                      color: Theme.of(context)
+                                                          .colorScheme
+                                                          .surfaceContainerHighest),
+                                                  child: Center(
+                                                    child: HelperFunctions()
+                                                        .loadingIndicator(),
+                                                  ),
+                                                )),
                                           )
                                         : AppImagePlaceholder(
                                             radius: 12,

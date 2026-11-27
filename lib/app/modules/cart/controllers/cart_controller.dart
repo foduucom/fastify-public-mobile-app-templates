@@ -15,7 +15,8 @@ class CartController extends GetxController
     for (int i = 0; i < cartItems.length; i++) {
       final item = cartItems[i];
       final p = item["product_id"] ?? item["product"];
-      final pId = (p is Map ? (p["_id"] ?? p["id"]) : item["product_id"])?.toString();
+      final pId =
+          (p is Map ? (p["_id"] ?? p["id"]) : item["product_id"])?.toString();
       final pName = (p is Map ? p["name"] : item["name"])?.toString();
 
       if (productId != null && productId.isNotEmpty && pId == productId) {
@@ -34,9 +35,9 @@ class CartController extends GetxController
     return null;
   }
 
-
   final _cartService = CartService.to;
   var couponDetails = {}.obs;
+  final appliedCouponCode = ''.obs;
   var couponeMessage = ''.obs;
   late TextEditingController couponController;
   var allCoupon = [].obs;
@@ -76,10 +77,10 @@ class CartController extends GetxController
     super.onClose();
   }
 
-  Future<void> fetchCart() async {
+  Future<void> fetchCart({bool useCache = true}) async {
     try {
       isLoading.value = true;
-      await _cartService.fetchCart();
+      await _cartService.fetchCart(useCache: useCache);
     } catch (e) {
       debugPrint('CartController.fetchCart error: $e');
     } finally {
@@ -102,6 +103,11 @@ class CartController extends GetxController
 
       couponDetails.clear();
       couponDetails.addAll(response);
+      appliedCouponCode.value = coupon.trim();
+
+      // Coupon application can change the server-calculated cart total.
+      // Reload uncached totals before checkout uses them for payment.
+      await fetchCart(useCache: false);
 
       return response;
     } catch (e) {
