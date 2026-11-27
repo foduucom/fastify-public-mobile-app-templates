@@ -990,18 +990,6 @@ class ProfileView extends GetView<ProfileController> {
                         indent: 62),
                     _buildGuestTile(
                       context,
-                      icon: Icons.help_outline_rounded,
-                      title: 'Help & FAQs',
-                      subtitle: 'Frequently asked questions and guides',
-                      onTap: () => Get.toNamed(Routes.HELPANDSUPPORT),
-                      colorScheme: colorScheme,
-                    ),
-                    Divider(
-                        height: 1,
-                        color: colorScheme.outline.withOpacity(0.15),
-                        indent: 62),
-                    _buildGuestTile(
-                      context,
                       icon: Icons.article_outlined,
                       title: 'From Our Blog',
                       subtitle: 'Read trends, news & stories',
@@ -1025,7 +1013,7 @@ class ProfileView extends GetView<ProfileController> {
                       context,
                       icon: Icons.mail_outline_rounded,
                       title: 'Contact Us',
-                      subtitle: 'Send us a message or inquiry',
+                      subtitle: 'FAQs, support & inquiries',
                       onTap: () => Get.toNamed(Routes.CONTACTUS),
                       colorScheme: colorScheme,
                     ),

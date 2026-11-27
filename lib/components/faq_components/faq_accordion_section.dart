@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/data/models/faq_sections.dart';
-import 'package:foduu_ecommerce/app/modules/helpandsupport/controllers/helpandsupport_controller.dart';
-import 'package:get/get.dart';
 
 class FaqAccordionSection extends StatelessWidget {
   final FaqAccordionSectionData data;
@@ -18,100 +16,12 @@ class FaqAccordionSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-
-    final helpController = Get.isRegistered<HelpandsupportController>()
-        ? Get.find<HelpandsupportController>()
-        : null;
-
-    if (helpController != null) {
-      return Obx(() {
-        final query = helpController.searchQuery.value.trim().toLowerCase();
-        final selectedTopic =
-            helpController.selectedTopic.value.trim().toLowerCase();
-
-        // Topic matching filter
-        if (selectedTopic.isNotEmpty &&
-            !data.title.toLowerCase().contains(selectedTopic) &&
-            !data.eyebrow.toLowerCase().contains(selectedTopic)) {
-          // If a topic is selected and doesn't match this section title,
-          // check if any of the questions match the topic
-          final matchesTopic = data.items.any((item) =>
-              item.question.toLowerCase().contains(selectedTopic) ||
-              item.answer.toLowerCase().contains(selectedTopic));
-          if (!matchesTopic) {
-            return const SizedBox.shrink();
-          }
-        }
-
-        // Search query filter
-        final filteredItems = data.items.where((item) {
-          if (query.isEmpty) return true;
-          return item.question.toLowerCase().contains(query) ||
-              item.answer.toLowerCase().contains(query);
-        }).toList();
-
-        if (filteredItems.isEmpty &&
-            (query.isNotEmpty || selectedTopic.isNotEmpty)) {
-          return Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: colorScheme.outlineVariant),
-              ),
-              child: Column(
-                children: [
-                  Icon(Icons.search_off_rounded,
-                      color: colorScheme.primary, size: 28),
-                  const SizedBox(height: 8),
-                  Text(
-                    'No matching answers found',
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.w700),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Try another search or clear your filters to browse all answers.',
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: colorScheme.onSurfaceVariant),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 10),
-                  TextButton.icon(
-                    onPressed: helpController.clearFilters,
-                    icon: const Icon(Icons.close_rounded, size: 18),
-                    label: const Text('Clear filters'),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        return _buildSectionBody(
-          context: context,
-          items: filteredItems,
-          theme: theme,
-          colorScheme: colorScheme,
-          isDark: isDark,
-          helpController: helpController,
-        );
-      });
-    }
 
     return _buildSectionBody(
       context: context,
       items: data.items,
       theme: theme,
       colorScheme: colorScheme,
-      isDark: isDark,
-      helpController: null,
     );
   }
 
@@ -120,8 +30,6 @@ class FaqAccordionSection extends StatelessWidget {
     required List<FaqItem> items,
     required ThemeData theme,
     required ColorScheme colorScheme,
-    required bool isDark,
-    required HelpandsupportController? helpController,
   }) {
     if (items.isEmpty) return const SizedBox.shrink();
 

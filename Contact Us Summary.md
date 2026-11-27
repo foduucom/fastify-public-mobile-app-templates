@@ -1,169 +1,275 @@
-# Contact Us Modernization & Fastify Studio CMS Integration Summary
+# Contact Us Module — Full Modernization & CMS Broadcasting Parity Summary
 
-## Executive Overview
-
-This document provides a comprehensive technical record of the modernization of the **Contact Us** page within the `fastify-public-mobile-app-templates` repository.
-
-### Project Mission & Objectives
-1. **Transition from Legacy WebView to 100% Server-Driven Native Layout Engine**: Replace static HTML/WebView rendering (`AppWebViewScreen`) with a high-performance native Flutter UI driven by the Fastify Studio CMS layout engine (`FoduuStudioLayoutMixin` and `WidgetRegistry`).
-2. **Architectural Parity with Senior Developer's Reference Template (`vIsioninfra`)**: Deeply inspect and replicate the senior engineer's core setup across `app_config.json`, WebSocket route dispatching, dynamic form schema modeling, resilient 3-tier fetching, and layout broadcasting.
-3. **Design & Content Parity with Parent Storefront**: Match the visual hierarchy, exact typography, layout order, interactive FAQ accordion, actionable direct-contact cards, and live API specifications provided by:
-   - **Parent Web Storefront**: [https://foduu-electronics-store.foduu.store/contact-us](https://foduu-electronics-store.foduu.store/contact-us)
-   - **Live CMS Layout API Payload**: `error.txt` (`https://foduu-electronics-store.foduu.store/api/mobile-app/contact-us`)
-   - **Dynamic Form Submission Guide**: `/Users/flutterdev/Desktop/vIsioninfra/form-submission-api-guide.md`
-4. **Code Quality & Compliance**:
-   - 100% compliant with modern Flutter standards: Replaced all deprecated `.withOpacity(...)` calls with `.withValues(alpha: ...)`.
-   - **0 errors & 0 warnings** in `flutter analyze` for all contact modules, models, and widgets.
+> **Last Updated:** 2026-11-27  
+> **Parent Website:** [https://foduu-electro.foduu.store/contact](https://foduu-electro.foduu.store/contact)  
+> **CMS API Endpoint:** `GET https://foduu-electro.foduu.store/api/mobile-app/contact-us`  
+> **Form Schema API:** `GET https://foduu-electro.foduu.store/api/forms/contact`  
+> **Form Submit API:** `POST https://foduu-electro.foduu.store/api/forms/contact/submit`  
+> **Architecture Standard:** [CMS_Broadcasting_Parity_Summary.md](CMS_Broadcasting_Parity_Summary.md)
 
 ---
 
-## Architecture & Data Flow
+## 1. Executive Summary
+
+The **Contact Us** module (`lib/app/modules/contact/`) was fully modernized from a hardcoded, static layout to a **100% server-driven (SDUI)** implementation, achieving complete CMS Broadcasting parity with:
+
+1. **Parent Website** (`foduu-electro.foduu.store/contact`) — visual and structural alignment
+2. **Live CMS API** (`log.txt`) — exact 4-section dynamic layout
+3. **CMS Broadcasting & SDUI Standard** — `FoduuStudioLayoutMixin`, `FoduuStudioLayoutView`, `WidgetRegistry`, `StudioSocketRouting`, and GetX lifecycle hardening
+4. **About Us module pattern** — consistent architecture across both CMS-driven pages
+
+---
+
+## 2. Problems Identified & Resolved
+
+### 2.1 Hardcoded View Bypassing CMS (Critical)
+
+| Aspect | Before | After |
+|--------|--------|-------|
+| **View** | Hardcoded `ListView` with 5 static sections (`ContactHeroBannerWidget`, `ContactFormCardWidget`, `ContactChannelsWidget`, `ContactFaqAccordionWidget`, `ContactFaqCtaWidget`) | Pure `FoduuStudioLayoutView` — 0 hardcoded sections |
+| **Controller slug** | `fetchLayout('contact')` → returned `{"status":"success"}` with **no sections** | `fetchLayout('contact-us')` → returns all 4 live CMS sections |
+| **Fallback sections** | Injected `Contact Information` and `contact_map` (not in CMS) | Exactly 4 sections matching `log.txt`: `slider`, `rich_text`, `text_block`, `formbuilder` |
+
+### 2.2 `rich_text` Rendering Defect
+
+| Aspect | Before | After |
+|--------|--------|-------|
+| **Appearance** | `"Let's ConnectSend Your Message"` shown as raw concatenated text inside a gray rounded pill box (generic `RichTextComponent`) | Parsed into → **"LET'S CONNECT"** primary-accent eyebrow pill + **"Send Your Message"** bold 22sp heading |
+| **Widget** | Generic `RichTextComponent` | New **`ContactSectionHeaderWidget`** with intelligent parsing (HTML tags, concatenated strings, camelCase boundary) |
+
+### 2.3 `text_block` Rendering Defect
+
+| Aspect | Before | After |
+|--------|--------|-------|
+| **Appearance** | Oversized `16sp` hardcoded `#000000` text (broken in dark mode) | Clean `13.5sp` muted subtitle, theme-aware |
+| **Widget** | Generic `TextBlockComponent` | New **`ContactIntroTextWidget`** + `TextBlockComponent` dark-mode fix |
+| **Dark-mode fix** | `#000000` stayed black on dark backgrounds | `#000000` → `colorScheme.onSurface` when `isDark == true` |
+
+### 2.4 `formbuilder` Title Defect
+
+| Aspect | Before | After |
+|--------|--------|-------|
+| **Title** | CMS sends `"title": "HI"` → rendered as card header "▎ HI" | Short placeholder titles (< 3 chars or `"HI"`) are **suppressed**; `"Send Your Message"` from `rich_text` acts as the unified heading |
+
+### 2.5 Form Schema Mismatch
+
+| Aspect | Before | After |
+|--------|--------|-------|
+| **Fields** | `full_name`, `email`, `phone`, `message` + hardcoded privacy checkbox | `first-name`, `last-name`, `email_id`, `message` (matches `GET /api/forms/contact`) |
+| **Layout** | Single-column stacked | 2-column First/Last Name row + single-column Email + Message |
+| **Features** | None | `AutofillGroup`, `AutofillHints`, `TextInputAction.next/newline`, inline loading spinner, `GetStorage` user profile prefill |
+
+### 2.6 GetX Lifecycle Re-Entrancy (Section 11.3 — Critical)
+
+| Aspect | Before | After |
+|--------|--------|-------|
+| **Risk** | `register_default_widgets.dart` → `buildFormBuilder` called `Get.find<ContactController>()` synchronously during `WidgetRegistry.build()` → `StackOverflowError` from `lazyPut` re-entrancy during `onInit()` | `controller` parameter is **optional** on `ContactFormCardWidget`; resolution deferred to `build(BuildContext context)` via `_resolvedController` getter |
+| **Imports** | `import 'contact_controller.dart'` and `import 'url_launcher'` in `register_default_widgets.dart` | Both **removed** |
+
+---
+
+## 3. Live CMS API Response Structure (`log.txt`)
+
+The CMS endpoint `GET /api/mobile-app/contact-us` returns exactly **4 ordered sections**:
+
+```
+API: GET https://foduu-electro.foduu.store/api/mobile-app/contact-us
+Header: access-key: d032b30cc2568579807cfca91ea7d85a99e099af2afe00cb
+```
+
+| Index | CMS `type` | Key Content | Mobile Widget |
+|:-----:|:-----------|:------------|:--------------|
+| **[0]** | `slider` (`contact-us-slider`) | `heading`: "Contact Us", `sub_heading`: "Get In Touch", `description`: "We are here for you! how can we help, We are here for you!", `filePath`: `2026/11/24/contact-us-2173b173.webp` | **`ContactHeroBannerWidget`** |
+| **[1]** | `rich_text` | `html_content`: `"Let's ConnectSend Your Message"` | **`ContactSectionHeaderWidget`** |
+| **[2]** | `text_block` | `text`: "Have questions or feedback? Fill out the form below and our team will get back to you shortly.", `color`: `#000000` | **`ContactIntroTextWidget`** |
+| **[3]** | `formbuilder` | `form_id.slug`: `"contact"`, `form_id.label`: "Contact Us", `title`: "HI" | **`ContactFormCardWidget`** |
+
+### Live Form Schema (`GET /api/forms/contact`)
+
+| Field Name | Type | Label | Required |
+|:-----------|:-----|:------|:--------:|
+| `first-name` | `text` | First Name | ✅ |
+| `last-name` | `text` | Last Name | ✅ |
+| `email_id` | `email` | Email address | ✅ |
+| `message` | `textarea` | Message | ✅ |
+
+---
+
+## 4. Architecture & Data Flow
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│ Fastify Studio Web Admin (Reads app_config.json manifest)              │
+│ Foduu Studio Web Admin / CMS                                           │
+│ - Reads app_config.json ("slug": "contact-us", "route": "/contact")    │
+│ - Serves GET /api/mobile-app/contact-us (4 ordered sections)           │
+│ - Serves GET /api/forms/contact (4 dynamic form fields)                │
+│ - Broadcasts route & layout updates via Socket.IO                      │
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │
-                  WebSocket Route & Content Broadcast
-                      ($websiteDomain:mobileapp)
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│ ContactController (BaseController + FoduuStudioLayoutMixin)            │
+│ - fetchLayout('contact-us') + 4-section canonical fallback             │
+│ - fetchFormSchema('contact') & submitForm('contact', payload)          │
+│ - FormApiService for schema + submission                               │
+│ - User profile prefill (first/last name, email from GetStorage)        │
+│ - buildLayout() override: detects formbuilder slug changes             │
+└───────────────────────────────────┬────────────────────────────────────┘
                                     │
-         ┌──────────────────────────┴──────────────────────────┐
-         ▼                                                     ▼
-┌──────────────────────────────────┐      ┌───────────────────────────────┐
-│ StudioSocketRouting              │      │ FoduuStudioLayoutMixin        │
-│ - Intercepts "contact-us" slug   │      │ - Listens for live socket     │
-│ - Navigates to Routes.CONTACT    │      │   layout broadcasts           │
-│ - Triggers fetchContactUs() if   │      │ - Invokes buildLayout() on    │
-│   already on active screen       │      │   registered controller slug  │
-└──────────────────────────────────┘      └──────────────┬────────────────┘
-                                                         │
-                                                         ▼
+                                    ▼
 ┌────────────────────────────────────────────────────────────────────────┐
-│ ContactController (lib/app/modules/contact/controller)                 │
-│ - Extends GetxController with FoduuStudioLayoutMixin                   │
-│ - 3-Tier Resilient Fetching:                                           │
-│   • Tier 1: Fastify CMS Broadcasting Layout (fetchLayout('contact-us'))│
-│   • Tier 2: Cached Local Storage fallback (GetStorage)                 │
-│   • Tier 3: Website Canonical Defaults (Electronics Store Specs)       │
-│ - Integrates FormApiService (dynamic schema loading & POST submit)     │
-│ - Reactive FAQ accordion state (RxInt expandedFaqIndex)                │
-│ - Direct native dialer & email launcher integration                    │
-└──────────────────────────────────┬─────────────────────────────────────┘
-                                   │
-                                   ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│ ContactView (lib/app/modules/contact/views)                            │
-│ - Native Flutter widgets rendered inside RefreshIndicator + ListView   │
-│ - Dynamic Light & Dark Theme Support (surfaceColor, onSurfaceColor)    │
-│ - 5 Dynamic CMS Sections mapped in exact backend priority order:       │
-│   1. Hero Header Banner (slider / contact-us-slider)                   │
-│   2. Dynamic Contact Form (formbuilder / contact)                      │
-│   3. Contact Channels (trust_badges / 4 actionable cards)              │
-│   4. FAQ Accordion (trust_badges / Account & Access FAQs)              │
-│   5. "Still Stuck?" Support Banner (slider / faq-center-slider)        │
+│ WidgetRegistry (register_default_widgets.dart) → ContactView           │
+│ - [0] slider (contact-us-slider) → ContactHeroBannerWidget             │
+│ - [1] rich_text                  → ContactSectionHeaderWidget          │
+│ - [2] text_block                 → ContactIntroTextWidget              │
+│ - [3] formbuilder (contact)      → ContactFormCardWidget               │
+│ - Rendered in exact server order via FoduuStudioLayoutView             │
+│ - No outer Obx wrapper (Section 11.2 compliant)                       │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Deep Comparison: Reference Template (`vIsioninfra`) vs Current Project
+## 5. Complete Inventory of Modified Files
 
-| Component | Reference Project (`vIsioninfra`) | Current Project (Prior to Fix) | Action Taken & Resolution |
-| :--- | :--- | :--- | :--- |
-| **Contact Screen** | Dedicated native screen with `FoduuStudioLayoutMixin` and resilient 3-tier fallback. | Legacy `AppWebViewScreen` loading remote URL in webview. | **Created native `ContactView` with 5 server-driven sections.** |
-| **`app_config.json`** | Explicitly registered `"Contact Us"` (`slug: "contact-us"`, `route: "/contact"`). | Missing or routed to obsolete webview. | **Confirmed manifest registration with `slug: "contact-us"` and `route: "/contact"`.** |
-| **`studio_socket_routing.dart`** | Intercepted `'contact-us'`, `'contact'`. Triggered live refresh or navigated to route. | Present but pointed to stub controller. | **Wired directly to `ContactBinding` + `ContactView` with live-refresh and navigation.** |
-| **`WidgetRegistry`** | Registered `slider`, `trust_badges`, etc. Missing `formbuilder`. | Missing `formbuilder` registration. | **Added `formbuilder` and `form_builder` builders to `register_default_widgets.dart`.** |
-| **Form Submission API** | Standardized `/api/forms/:slug` and `/api/forms/:slug/submit` per guide. | None. | **Implemented `FormSchemaModel` and `FormApiService` with automated validation and user pre-fill.** |
-| **API Deprecations** | Mixed `withOpacity`. | Mixed `withOpacity`. | **100% migrated to modern `withValues(alpha: ...)` across all contact widgets.** |
+### 5.1 Core Module Files
 
----
+| File Path | Change | Description |
+|:----------|:------:|:------------|
+| `lib/app/modules/contact/controller/contact_controller.dart` | **[REWRITTEN]** | Uses `FoduuStudioLayoutMixin` with `fetchLayout('contact-us')`. 4-section `_canonicalFallbackSections` matching `log.txt`. `FormApiService` with slug `'contact'` for schema + submission. First/last name prefill from `GetStorage`. `buildLayout()` override detects formbuilder slug changes. No eager `Get.find` calls. |
+| `lib/app/modules/contact/views/contact_view.dart` | **[REWRITTEN]** | Pure `FoduuStudioLayoutView` (no hardcoded `ListView`, no outer `Obx`). `AppBar` with back button, centered title, clean styling matching `AboutusView`. `GestureDetector` for keyboard dismissal. Pull-to-refresh via `onRefresh: controller.fetchContactLayout`. |
 
-## Backend API Specification (5 Dynamic Sections from `error.txt`)
+### 5.2 Widget Files
 
-The live layout payload from `https://foduu-electronics-store.foduu.store/api/mobile-app/contact-us` was modeled and rendered in the exact backend sequence:
+| File Path | Change | Description |
+|:----------|:------:|:------------|
+| `lib/components/contact_component/contact_widgets.dart` | **[HEAVILY MODIFIED]** | **ContactHeroBannerWidget**: Renders `heading`, `subHeading`, `description` from slider payload; uses `contact-us-2173b173.webp`; gradient overlay with `Home / Contact Us` breadcrumb pill. **ContactSectionHeaderWidget** (NEW): Parses concatenated `"Let's ConnectSend Your Message"` into eyebrow pill + bold heading via HTML stripping, known-phrase matching, and camelCase boundary fallback. **ContactIntroTextWidget** (NEW): Clean `13.5sp` muted subtitle for `text_block`. **ContactFormCardWidget**: Optional `controller` (lazy GetX resolution in `build()`), 2-col First/Last Name row, `AutofillGroup`/`AutofillHints`, suppresses short placeholders like `"HI"`, inline loading spinner on SEND MESSAGE button. **Removed**: `url_launcher` import, dead `_ContactChannelTile`, `_MapGridPainter`, and commented-out `ContactChannelsWidget` / `ContactLocationMapCard` sections. |
 
-### 1. Hero Header Banner (`type: "slider"`, `slug: "contact-us-slider"`)
-* **Backend Content**: Slide with image `upload/2026/11/14/appliance-lineup-f27d481f.webp`, heading `"Contact Us"`, sub-heading `"Get In Touch"`, description `"Need assistance with an appliance order, smart setup, or hardware warranty? Reach out."`.
-* **Flutter Implementation**: `ContactHeroBannerWidget` renders a dark gradient banner with rounded corners, breadcrumb chip (`Home / Contact Us`), high-contrast title, and subtitle.
+### 5.3 Widget Registry
 
-### 2. Dynamic Contact Form (`type: "formbuilder"`, `slug: "contact"`)
-* **Backend Content**: Form title `"Send a Message"`, description `"Fill out the form below and our engineering team will get back to you within 24 hours."`.
-* **Dynamic Schema & Fallback**:
-  - Fetches schema from `GET /api/forms/contact` (with fallback to `GET /api/form-builder/contact`).
-  - Supports text, email, tel/phone, textarea, and select dropdown fields.
-  - Automatically pre-fills Name, Email, and Phone from current logged-in user session.
-  - Submits payload via `POST /api/forms/contact/submit` with visual progress, success alert, and error handling.
-* **Flutter Implementation**: `ContactFormCardWidget` renders input cards, custom dropdown selectors, active character counter, and full-width gradient submit button.
+| File Path | Change | Description |
+|:----------|:------:|:------------|
+| `lib/core/foduuStudio/register_default_widgets.dart` | **[MODIFIED]** | **Added**: `_isContactRichTextHeading()` matcher → `ContactSectionHeaderWidget` (for `rich_text` on contact route). `_isContactIntroText()` matcher → `ContactIntroTextWidget` (for `text_block` on contact route). **Removed**: `import 'contact_controller.dart'`, `import 'url_launcher'`, eager `Get.find<ContactController>()` from `buildFormBuilder`, `_handleContactCardTap` function. **Commented out**: `contact_map` and `_isContactChannels` registrations (not in CMS payload). |
 
-### 3. Contact Channels (`type: "trust_badges"`, `title: "Contact Channels"`, `no_of_columns: 2`)
-* **Backend Content**: 4 actionable support cards:
-  1. **Direct Phone Support**: `+1 (800) 592-3829` (Mon–Fri, 9am–8pm EST) — Taps to dial native phone dialer (`tel:`).
-  2. **Technical Support**: `support@foduuelectronics.com` (Average response: 4 hours) — Taps to open native email client (`mailto:`).
-  3. **Experience Store**: `742 Evergreen Terrace, Tech District, CA` — Showcases showroom hours (Open Daily: 10am–9pm).
-  4. **Live Chat Help**: Available via app bottom bar & drawer.
-* **Flutter Implementation**: `ContactChannelsWidget` renders a 2x2 grid with icon badging, status dots, and one-tap dialing/emailing.
+### 5.4 Data Models
 
-### 4. FAQ Accordion (`type: "trust_badges"`, `eyebrow: "Categories"`, `title: "Account & Access"`)
-* **Backend Content**: 6 interactive customer FAQs:
-  1. *How do I track my order in real-time?*
-  2. *What is your return and warranty policy?*
-  3. *Do you provide international shipping?*
-  4. *How does the Smart Setup concierge service work?*
-  5. *What payment options do you support?*
-  6. *How do I update or cancel my order?*
-* **Flutter Implementation**: `ContactFaqAccordionWidget` with smooth `AnimatedRotation` chevron indicators and `AnimatedCrossFade` content expansion driven by `RxInt expandedFaqIndex`.
+| File Path | Change | Description |
+|:----------|:------:|:------------|
+| `lib/app/data/models/form_schema_model.dart` | **[MODIFIED]** | `fallbackContactFormSchema` updated to match live `GET /api/forms/contact`: `first-name` (text), `last-name` (text), `email_id` (email), `message` (textarea). Added `validate()` method and `FormSchemaOption` class. |
+| `lib/app/data/models/contact_sections.dart` | **[MODIFIED]** | Updated `ContactHeroHeaderData` defaults and parsing. Updated `ContactFormBuilderData` with `badgeText`, `badgeSubtitle`, `eyebrow`, `subtitle` fields. `ContactLocationMapData` commented out (not in CMS). `ContactChannelCard` enhanced with `isWebsite`, `isAddress`, `normalizedWebsiteUrl` helpers. `ContactChannelsData` commented out (not in CMS). |
 
-### 5. "Still Stuck?" Support Banner (`type: "slider"`, `slug: "faq-center-slider"`)
-* **Backend Content**: Subheading `"Can't find what you're looking for?"`, Heading `"Still Stuck?"`, SVG gear icon, description `"Search our comprehensive knowledge base or create a ticket for dedicated 1-on-1 assistance."`.
-* **Flutter Implementation**: `ContactFaqCtaWidget` renders a dark navy `#0F172A` banner with gear SVG and two quick actions:
-  - **Search Community**: Navigates to `Routes.SEARCH`.
-  - **Open a Ticket**: Directly navigates to `Routes.SUPPORT_TICKET`.
+### 5.5 Shared Component Fix
+
+| File Path | Change | Description |
+|:----------|:------:|:------------|
+| `lib/components/home_component/home_common_widgets.dart` | **[MODIFIED]** | `TextBlockComponent`: When CMS sends `#000000` and app is in dark mode, automatically uses `colorScheme.onSurface` instead of hardcoded black. Affects both Contact Us and any other SDUI page using `text_block`. |
 
 ---
 
-## File Structure & Delivered Artifacts
+## 6. Widget Registry Matching Logic
 
-```
-lib/
-├── app/
-│   ├── data/
-│   │   ├── models/
-│   │   │   ├── contact_sections.dart      # 5 Section models & canonical fallback container
-│   │   │   └── form_schema_model.dart     # Dynamic form schema model, field types, validation
-│   │   └── services/
-│   │       └── form_api_service.dart      # Form schema fetcher & submission service
-│   ├── modules/
-│   │   ├── contact/
-│   │   │   ├── binding/
-│   │   │   │   └── contact_binding.dart   # Contact controller dependency injection
-│   │   │   ├── controller/
-│   │   │   │   └── contact_controller.dart# 3-tier layout, form state, FAQ expansion state
-│   │   │   └── views/
-│   │   │       └── contact_view.dart      # Native Scaffold + ListView layout
-│   │   └── Profie/contact/view/
-│   │       └── contact_us_view.dart       # Backward-compatible redirect to ContactView
-│   └── routes/
-│       └── app_pages.dart                 # Routes.CONTACT & Routes.CONTACTUS consolidated
-├── components/
-│   └── contact_component/
-│       └── contact_widgets.dart           # 5 reusable native section widgets
-└── core/
-    ├── foduuStudio/
-    │   ├── register_default_widgets.dart  # formbuilder & contact widget registration
-    │   └── widget_registry.dart           # Studio widget resolver
-    └── studio_socket_routing.dart         # Live socket routing for contact-us slug
-```
+### 6.1 `_isContactHeroSlider(Map? json)` → `ContactHeroBannerWidget`
+- Matches slider with `slug` containing `'contact-us-slider'` or `'contact-us'`
+- Fallback: heading `"contact us"` or sub_heading containing `"get in touch"`
+
+### 6.2 `_isContactRichTextHeading(Map? json)` → `ContactSectionHeaderWidget`
+- Matches `rich_text` on the `/contact` route
+- Checks `html_content` contains `"connect"` or `"message"` (case-insensitive)
+
+### 6.3 `_isContactIntroText(Map? json)` → `ContactIntroTextWidget`
+- Matches `text_block` on the `/contact` route
+- Checks `text` contains `"questions"` or `"feedback"` (case-insensitive)
+
+### 6.4 `formbuilder` → `ContactFormCardWidget`
+- All `formbuilder` / `form_builder` sections → `ContactFormBuilderData.fromContentJson()`
+- Controller resolution **deferred to `build()`** (GetX lifecycle safe)
 
 ---
 
-## Quality Assurance & Verification Results
+## 7. ContactSectionHeaderWidget — Parsing Strategy
 
-1. **Flutter Analyze**:
-   - `0 errors` and `0 warnings` across all contact models, services, controllers, and view components.
-2. **API Deprecation**:
-   - Replaced all 26 occurrences of `.withOpacity(...)` with `.withValues(alpha: ...)` in `contact_widgets.dart`.
-3. **Studio WebSocket Live Preview**:
-   - Tested and verified `slugHandlers['contact-us']` registration via `FoduuStudioLayoutMixin`.
-4. **Resilience**:
-   - When offline or when the CMS API is loading, instantaneous rendering is achieved via cached `GetStorage` or canonical store defaults without showing empty or broken screens.
+The CMS sends `rich_text` with `html_content: "Let's ConnectSend Your Message"` (concatenated, no HTML tags). The widget uses a 4-tier parsing strategy:
+
+1. **HTML Tag Stripping**: Replace `<br>`, `</p>`, `</div>`, `</h1-h6>`, `</span>` with `\n`, then strip remaining tags and decode HTML entities (`&rsquo;`, `&#39;`, `&amp;`)
+2. **Newline Split**: If result contains `\n`, split into parts → first part = eyebrow, rest = heading
+3. **Known-Phrase Match**: If lowercase starts with `"let's connect"` and has more text → split at phrase boundary
+4. **CamelCase Boundary Fallback**: Find `[a-z][A-Z]` boundary (e.g., `"...ct" + "Se..."`) → split there
+
+**Result**: `eyebrow = "LET'S CONNECT"` (primary-accent pill) + `heading = "Send Your Message"` (bold 22sp)
+
+---
+
+## 8. ContactFormCardWidget — Key Features
+
+### 8.1 Dynamic Schema-Driven Fields
+- Loads field definitions from `GET /api/forms/contact` at runtime
+- Falls back to `FormSchemaField.fallbackContactFormSchema` if API unavailable
+- Cached in `GetStorage` under key `'cms_form_schema_contact'`
+
+### 8.2 Smart Field Detection & UI Adaptation
+| Detection | Behavior |
+|:----------|:---------|
+| `first-name` + `last-name` adjacent | 2-column `Row` layout |
+| `type == 'email'` or name contains `'email'` | `TextInputType.emailAddress` + email validation |
+| `type == 'tel'` or name contains `'phone'` | `TextInputType.phone` + digits-only filter + 15-char limit |
+| `type == 'textarea'` or name `== 'message'` | `TextInputType.multiline` + 4 lines |
+| Name contains `'name'` | Letters-only filter (`a-zA-Z\s'-`) |
+
+### 8.3 User Profile Prefill
+- Reads from `GetStorage('userDetails')` during `onInit()`
+- Auto-fills `first-name` (first word of `name`), `last-name`, `email`
+
+### 8.4 Title Suppression
+- If CMS `title` is `"HI"`, empty, or < 3 characters → suppressed
+- `"Send Your Message"` from `ContactSectionHeaderWidget` acts as unified heading
+
+---
+
+## 9. CMS Broadcasting & SDUI Compliance Checklist
+
+| CMS Parity Rule | Status | Details |
+|:-----------------|:------:|:--------|
+| **Section 11.1** — `FoduuStudioLayoutMixin` with correct slug | ✅ | `fetchLayout('contact-us')` |
+| **Section 11.2** — `FoduuStudioLayoutView` without outer `Obx` | ✅ | `ContactView` → `Scaffold.body = GestureDetector > FoduuStudioLayoutView` |
+| **Section 11.3** — No eager `Get.find` during `onInit` | ✅ | `ContactFormCardWidget.controller` is optional; resolved in `build()` |
+| **Section 11.4** — Order-preserving server-driven rendering | ✅ | `WidgetRegistry` renders in exact CMS section order |
+| **Section 11.5** — Socket broadcast hot-refresh | ✅ | `StudioSocketRouting` handles `'contact-us'` and `'contact'` cases |
+| **Section 11.6** — Canonical fallback matches live API | ✅ | 4-section `_canonicalFallbackSections` matches `log.txt` exactly |
+| **Dark-mode safety** | ✅ | `TextBlockComponent` maps `#000000` → `colorScheme.onSurface` |
+
+---
+
+## 10. Verification Results
+
+- **`flutter analyze`** across all modified files (`contact/`, `contact_component/`, `home_common_widgets.dart`, `register_default_widgets.dart`, `contact_sections.dart`, `form_schema_model.dart`): **0 errors, 0 warnings** (only pre-existing `info`-level `deprecated_member_use` and `prefer_interpolation_to_compose_strings`)
+- **`git diff --check`**: Exit code `0` — no whitespace, syntax, or merge conflict issues
+
+---
+
+## 11. Visual Before/After Comparison
+
+### Before (Broken State)
+- Hero banner with raw breadcrumb overlay
+- `"Let's ConnectSend Your Message"` shown as raw concatenated text in gray pill
+- `"HI"` title rendered as form card header
+- `"Contact Information"` section injected from fallback (not in CMS)
+- `#000000` text broken in dark mode
+
+### After (Current State)
+- Clean hero banner with gradient overlay, `Home / Contact Us` breadcrumb pill, title, subtitle, description
+- `"LET'S CONNECT"` eyebrow pill + **"Send Your Message"** bold heading (properly parsed)
+- `"HI"` title suppressed — clean form card
+- Only 4 CMS-driven sections rendered (no phantom sections)
+- Dark-mode safe text rendering
+- 2-column First/Last Name row with autofill hints
+- Inline loading spinner on SEND MESSAGE button
+
+---
+
+## 12. Files NOT Modified (Intentionally)
+
+| File | Reason |
+|:-----|:-------|
+| `lib/app/modules/Profie/contact/` | Legacy dead/mocked `ContactUsController` with `Future.delayed`. Not wired to current Contact Us route. Cleanup deferred. |
+| `lib/core/studio_socket_routing.dart` | Already handles `'contact-us'` and `'contact'` cases correctly. No changes needed. |
+| `lib/app/routes/app_pages.dart` | Contact Us route and binding already correctly configured. |

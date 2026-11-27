@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:foduu_ecommerce/app/data/models/contact_sections.dart';
+import 'package:foduu_ecommerce/app/data/models/form_schema_model.dart';
 import 'package:foduu_ecommerce/app/modules/contact/controller/contact_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
@@ -21,7 +22,7 @@ class ContactHeroBannerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: data.height.clamp(170, 230).toDouble(),
+      height: data.height.clamp(165, 210).toDouble(),
       decoration: BoxDecoration(color: context.surfaceColor),
       child: Stack(
         fit: StackFit.expand,
@@ -40,27 +41,26 @@ class ContactHeroBannerWidget extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  context.primaryColor.withValues(alpha: 0.55),
-                  context.primaryColor.withValues(alpha: 0.92),
+                  Colors.black.withValues(alpha: 0.45),
+                  context.primaryColor.withValues(alpha: 0.88),
                 ],
               ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Breadcrumb Badge
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: Colors.white.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.25),
+                      color: Colors.white.withValues(alpha: 0.28),
                       width: 1,
                     ),
                   ),
@@ -68,12 +68,13 @@ class ContactHeroBannerWidget extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.home_outlined,
-                          size: 13, color: Colors.white.withValues(alpha: 0.9)),
+                          size: 13,
+                          color: Colors.white.withValues(alpha: 0.92)),
                       const SizedBox(width: 5),
                       Text(
                         'Home / Contact Us',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w500,
                           color: Colors.white.withValues(alpha: 0.95),
                         ),
@@ -86,9 +87,9 @@ class ContactHeroBannerWidget extends StatelessWidget {
                   data.heading.isNotEmpty ? data.heading : 'Contact Us',
                   style: const TextStyle(
                     fontSize: 26,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                     color: Colors.white,
-                    letterSpacing: -0.3,
+                    letterSpacing: -0.4,
                   ),
                 ),
                 if (data.subHeading.isNotEmpty) ...[
@@ -96,25 +97,161 @@ class ContactHeroBannerWidget extends StatelessWidget {
                   Text(
                     data.subHeading,
                     style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white.withValues(alpha: 0.85),
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
-                const SizedBox(height: 6),
-                Container(
-                  width: 44,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    color: context.primaryColor,
-                    borderRadius: BorderRadius.circular(2),
+                if (data.description.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    data.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      height: 1.35,
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Section 1B: Contact Section Header (rich_text: "Let's ConnectSend Your Message")
+// ─────────────────────────────────────────────────────────────────────────────
+class ContactSectionHeaderWidget extends StatelessWidget {
+  const ContactSectionHeaderWidget({Key? key, required this.contentJson})
+      : super(key: key);
+
+  final Map<String, dynamic> contentJson;
+
+  ({String eyebrow, String heading}) _parseContent() {
+    final raw = (contentJson['html_content'] ??
+            contentJson['content'] ??
+            contentJson['text'] ??
+            '')
+        .toString();
+
+    // Strip HTML tags while preserving boundaries between block/inline elements
+    final spaced = raw
+        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+        .replaceAll(RegExp(r'</(p|div|h[1-6]|span)>', caseSensitive: false), '\n')
+        .replaceAll(RegExp(r'<[^>]+>'), '')
+        .replaceAll('&rsquo;', "'")
+        .replaceAll('&#39;', "'")
+        .replaceAll('&amp;', '&')
+        .trim();
+
+    if (spaced.contains('\n')) {
+      final parts = spaced
+          .split('\n')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+      if (parts.length >= 2) {
+        return (eyebrow: parts.first, heading: parts.sublist(1).join(' '));
+      }
+    }
+
+    // Handle concatenated CMS string: "Let's ConnectSend Your Message"
+    final lower = spaced.toLowerCase();
+    const eyebrowPhrase = "let's connect";
+    if (lower.startsWith(eyebrowPhrase) && spaced.length > eyebrowPhrase.length) {
+      return (
+        eyebrow: spaced.substring(0, eyebrowPhrase.length).trim(),
+        heading: spaced.substring(eyebrowPhrase.length).trim(),
+      );
+    }
+
+    // Fallback: split on camel-like boundary ("...ctSe...")
+    final boundary = RegExp(r'([a-z])([A-Z])').firstMatch(spaced);
+    if (boundary != null) {
+      final idx = boundary.start + 1;
+      return (
+        eyebrow: spaced.substring(0, idx).trim(),
+        heading: spaced.substring(idx).trim(),
+      );
+    }
+
+    return (eyebrow: "Let's Connect", heading: spaced.isNotEmpty ? spaced : 'Send Your Message');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final parsed = _parseContent();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (parsed.eyebrow.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: context.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                parsed.eyebrow.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.0,
+                  color: context.primaryColor,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+          if (parsed.heading.isNotEmpty)
+            Text(
+              parsed.heading,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.3,
+                color: context.onSurfaceColor,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Section 1C: Contact Intro Subtitle (text_block)
+// ─────────────────────────────────────────────────────────────────────────────
+class ContactIntroTextWidget extends StatelessWidget {
+  const ContactIntroTextWidget({Key? key, required this.contentJson})
+      : super(key: key);
+
+  final Map<String, dynamic> contentJson;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = (contentJson['text'] ?? '').toString().trim();
+    if (text.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 13.5,
+          height: 1.5,
+          color: context.onSurfaceColor.withValues(alpha: 0.68),
+        ),
       ),
     );
   }
@@ -127,11 +264,17 @@ class ContactFormCardWidget extends StatelessWidget {
   const ContactFormCardWidget({
     Key? key,
     required this.data,
-    required this.controller,
+    this.controller,
   }) : super(key: key);
 
   final ContactFormBuilderData data;
-  final ContactController controller;
+  final ContactController? controller;
+
+  ContactController get _resolvedController =>
+      controller ??
+      (Get.isRegistered<ContactController>()
+          ? Get.find<ContactController>()
+          : Get.put(ContactController()));
 
   IconData _iconForField(String name, String type) {
     final lowerName = name.toLowerCase();
@@ -152,35 +295,225 @@ class ContactFormCardWidget extends StatelessWidget {
     return Icons.person_outline_rounded;
   }
 
+  Iterable<String>? _autofillHintsForField(String name, String type) {
+    final lower = name.toLowerCase();
+    if (type == 'email' || lower.contains('email')) {
+      return const [AutofillHints.email];
+    }
+    if (lower.contains('first')) return const [AutofillHints.givenName];
+    if (lower.contains('last')) return const [AutofillHints.familyName];
+    if (lower.contains('name')) return const [AutofillHints.name];
+    if (type == 'tel' || lower.contains('phone') || lower.contains('mobile')) {
+      return const [AutofillHints.telephoneNumber];
+    }
+    return null;
+  }
+
   String _cleanPlaceholder(String name, String rawPlaceholder) {
     if (rawPlaceholder.isNotEmpty && !rawPlaceholder.contains('.....')) {
       return rawPlaceholder;
     }
     final lower = name.toLowerCase();
-    if (lower.contains('name')) return 'e.g. John Doe';
-    if (lower.contains('email')) return 'name@company.com';
+    if (lower.contains('first')) return 'Alex';
+    if (lower.contains('last')) return 'Johnson';
+    if (lower.contains('name')) return 'e.g. Alex Johnson';
+    if (lower.contains('email')) return 'alex.johnson@example.com';
     if (lower.contains('phone') || lower.contains('mobile')) {
-      return '+1 (555) 000-0000';
+      return '+012 3456 7890';
     }
     if (lower.contains('message')) {
-      return 'How can our team help you?';
+      return 'How can our support team assist you today?';
     }
     return 'Enter $name...';
+  }
+
+  Widget _buildFieldInput(
+    BuildContext context,
+    ContactController formCtrl,
+    FormSchemaField field, {
+    required bool isLast,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final ctrl = formCtrl.controllerForField(field);
+    final isEmail =
+        field.type == 'email' || field.name.toLowerCase().contains('email');
+    final isTel = field.type == 'tel' ||
+        field.name.toLowerCase().contains('phone') ||
+        field.name.toLowerCase().contains('mobile');
+    final isMessage = field.type == 'textarea' ||
+        field.name.toLowerCase() == 'message' ||
+        field.label.toLowerCase().contains('message');
+
+    List<TextInputFormatter>? formatters;
+    TextInputType keyType = TextInputType.text;
+    int maxLines = 1;
+
+    if (isEmail) {
+      keyType = TextInputType.emailAddress;
+    } else if (isTel) {
+      keyType = TextInputType.phone;
+      formatters = [
+        FilteringTextInputFormatter.digitsOnly,
+        LengthLimitingTextInputFormatter(15),
+      ];
+    } else if (isMessage) {
+      keyType = TextInputType.multiline;
+      maxLines = 4;
+    } else if (field.name.toLowerCase().contains('name')) {
+      formatters = [
+        FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z\s'\-]")),
+      ];
+    }
+
+    final labelText = field.label.isNotEmpty ? field.label : field.name;
+    final placeholder = _cleanPlaceholder(labelText, field.placeholder);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Flexible(
+                child: Text(
+                  labelText,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: context.onSurfaceColor,
+                  ),
+                ),
+              ),
+              if (field.required)
+                const Text(
+                  ' *',
+                  style: TextStyle(
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 7),
+          TextFormField(
+            controller: ctrl,
+            keyboardType: keyType,
+            textInputAction: isMessage
+                ? TextInputAction.newline
+                : (isLast ? TextInputAction.done : TextInputAction.next),
+            autofillHints: _autofillHintsForField(field.name, field.type),
+            maxLines: maxLines,
+            inputFormatters: formatters,
+            style: TextStyle(
+              fontSize: 14,
+              color: context.onSurfaceColor,
+            ),
+            validator: (value) {
+              final v = value?.trim() ?? '';
+              if (field.required && v.isEmpty) {
+                return 'Please enter $labelText';
+              }
+              if (isEmail && v.isNotEmpty && !GetUtils.isEmail(v)) {
+                return 'Enter a valid email address';
+              }
+              if (isTel && v.isNotEmpty) {
+                final minDigits = field.min ?? 10;
+                if (v.length < minDigits) {
+                  return 'Please enter valid $minDigits-digit phone number';
+                }
+              }
+              if (isMessage && v.isNotEmpty && v.length < 3) {
+                return 'Message must be at least 3 characters';
+              }
+              return null;
+            },
+            decoration: InputDecoration(
+              hintText: placeholder,
+              hintStyle: TextStyle(
+                fontSize: 13.5,
+                color: context.onSurfaceColor.withValues(alpha: 0.42),
+              ),
+              prefixIcon: isMessage
+                  ? Padding(
+                      padding: const EdgeInsets.only(
+                          bottom: 52, left: 12, right: 12),
+                      child: Icon(
+                        _iconForField(field.name, field.type),
+                        size: 20,
+                        color: context.onSurfaceColor.withValues(alpha: 0.55),
+                      ),
+                    )
+                  : Icon(
+                      _iconForField(field.name, field.type),
+                      size: 20,
+                      color: context.onSurfaceColor.withValues(alpha: 0.55),
+                    ),
+              filled: true,
+              fillColor: context.backgroundColor,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 14,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: isDark
+                      ? Colors.white12
+                      : Colors.grey.withValues(alpha: 0.25),
+                  width: 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: context.primaryColor,
+                  width: 1.5,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(
+                  color: Colors.redAccent,
+                  width: 1,
+                ),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(
+                  color: Colors.redAccent,
+                  width: 1.5,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final formCtrl = _resolvedController;
+
+    final trimmedTitle = data.title.trim();
+    final showCardTitle = trimmedTitle.isNotEmpty &&
+        trimmedTitle.toUpperCase() != 'HI' &&
+        trimmedTitle.length >= 3;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: context.surfaceColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isDark ? Colors.white12 : Colors.grey.withValues(alpha: 0.2),
+            color:
+                isDark ? Colors.white12 : Colors.grey.withValues(alpha: 0.2),
             width: 1,
           ),
           boxShadow: [
@@ -192,492 +525,341 @@ class ContactFormCardWidget extends StatelessWidget {
           ],
         ),
         child: Form(
-          key: controller.formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 4,
-                    height: 22,
-                    decoration: BoxDecoration(
-                      color: context.primaryColor,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    data.title.isNotEmpty ? data.title : 'Send a Message',
-                    style: TextStyle(
-                      fontSize: 19,
-                      fontWeight: FontWeight.w700,
-                      color: context.onSurfaceColor,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Have questions or need assistance? Fill out the details below and our team will get back to you promptly.',
-                style: TextStyle(
-                  fontSize: 12.5,
-                  height: 1.45,
-                  color: context.onSurfaceColor.withValues(alpha: 0.65),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Obx(() {
-                final fields = controller.formFields;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: fields.map((field) {
-                    final ctrl = controller.controllerForField(field);
-                    final isEmail = field.type == 'email' ||
-                        field.name.toLowerCase().contains('email');
-                    final isTel = field.type == 'tel' ||
-                        field.name.toLowerCase().contains('phone') ||
-                        field.name.toLowerCase().contains('mobile');
-                    final isMessage = field.type == 'textarea' ||
-                        field.name.toLowerCase() == 'message' ||
-                        field.label.toLowerCase().contains('message');
-
-                    List<TextInputFormatter>? formatters;
-                    TextInputType keyType = TextInputType.text;
-                    int maxLines = 1;
-
-                    if (isEmail) {
-                      keyType = TextInputType.emailAddress;
-                    } else if (isTel) {
-                      keyType = TextInputType.phone;
-                      formatters = [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(15),
-                      ];
-                    } else if (isMessage) {
-                      keyType = TextInputType.multiline;
-                      maxLines = 4;
-                    } else if (field.name.toLowerCase().contains('name')) {
-                      formatters = [
-                        FilteringTextInputFormatter.allow(
-                            RegExp(r'[a-zA-Z\s]')),
-                      ];
-                    }
-
-                    final labelText =
-                        field.label.isNotEmpty ? field.label : field.name;
-                    final placeholder =
-                        _cleanPlaceholder(labelText, field.placeholder);
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                labelText,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: context.onSurfaceColor,
-                                ),
-                              ),
-                              if (field.required)
-                                const Text(
-                                  ' *',
-                                  style: TextStyle(
-                                    color: Colors.redAccent,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 7),
-                          TextFormField(
-                            controller: ctrl,
-                            keyboardType: keyType,
-                            maxLines: maxLines,
-                            inputFormatters: formatters,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: context.onSurfaceColor,
-                            ),
-                            validator: (value) {
-                              final v = value?.trim() ?? '';
-                              if (field.required && v.isEmpty) {
-                                return 'Please enter $labelText';
-                              }
-                              if (isEmail &&
-                                  v.isNotEmpty &&
-                                  !GetUtils.isEmail(v)) {
-                                return 'Enter a valid email address';
-                              }
-                              if (isTel && v.isNotEmpty) {
-                                final minDigits = field.min ?? 10;
-                                if (v.length < minDigits) {
-                                  return 'Please enter valid $minDigits-digit phone number';
-                                }
-                              }
-                              if (isMessage && v.isNotEmpty && v.length < 3) {
-                                return 'Message must be at least 3 characters';
-                              }
-                              return null;
-                            },
-                            decoration: InputDecoration(
-                              hintText: placeholder,
-                              hintStyle: TextStyle(
-                                fontSize: 13.5,
-                                color: context.onSurfaceColor
-                                    .withValues(alpha: 0.4),
-                              ),
-                              prefixIcon: isMessage
-                                  ? Padding(
-                                      padding: const EdgeInsets.only(
-                                          bottom: 52, left: 12, right: 12),
-                                      child: Icon(
-                                        _iconForField(field.name, field.type),
-                                        size: 20,
-                                        color: context.onSurfaceColor
-                                            .withValues(alpha: 0.55),
-                                      ),
-                                    )
-                                  : Icon(
-                                      _iconForField(field.name, field.type),
-                                      size: 20,
-                                      color: context.onSurfaceColor
-                                          .withValues(alpha: 0.55),
-                                    ),
-                              filled: true,
-                              fillColor: context.backgroundColor,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 14,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
-                                  color: isDark
-                                      ? Colors.white12
-                                      : Colors.grey.withValues(alpha: 0.25),
-                                  width: 1,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
-                                  color: context.primaryColor,
-                                  width: 1.5,
-                                ),
-                              ),
-                              errorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(
-                                  color: Colors.redAccent,
-                                  width: 1,
-                                ),
-                              ),
-                              focusedErrorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(
-                                  color: Colors.redAccent,
-                                  width: 1.5,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                );
-              }),
-              // Privacy Policy Consent
-              Obx(() => Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+          key: formCtrl.formKey,
+          child: AutofillGroup(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (showCardTitle) ...[
+                  Row(
                     children: [
-                      SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: Checkbox(
-                          value: controller.agreePolicy.value,
-                          onChanged: (val) {
-                            controller.agreePolicy.value = val ?? false;
-                          },
-                          activeColor: context.primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
-                          ),
+                      Container(
+                        width: 4,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: context.primaryColor,
+                          borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 10),
                       Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            controller.agreePolicy.toggle();
-                          },
-                          child: RichText(
-                            text: TextSpan(
-                              text: 'I agree with the site ',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: context.onSurfaceColor,
-                              ),
-                              children: [
-                                WidgetSpan(
-                                  alignment: PlaceholderAlignment.baseline,
-                                  baseline: TextBaseline.alphabetic,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      Get.toNamed(Routes.PRIVACY_POLICY);
-                                    },
-                                    child: Text(
-                                      'privacy policy',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: context.primaryColor,
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                        child: Text(
+                          trimmedTitle,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: context.onSurfaceColor,
                           ),
                         ),
                       ),
                     ],
-                  )),
-              const SizedBox(height: 22),
-              // Submit Button
-              Obx(() => controller.isSubmitting.value
-                  ? Center(child: HelperFunctions().loadingIndicator())
-                  : SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.send_rounded, size: 18),
-                        label: const Text(
-                          'SUBMIT MESSAGE',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.8,
-                          ),
+                  ),
+                  const SizedBox(height: 18),
+                ],
+                Obx(() {
+                  final fields = formCtrl.formFields;
+                  final widgets = <Widget>[];
+                  int i = 0;
+                  while (i < fields.length) {
+                    final current = fields[i];
+                    final hasNext = i + 1 < fields.length;
+                    final next = hasNext ? fields[i + 1] : null;
+                    final isFirstAndLastName = next != null &&
+                        current.name.toLowerCase().contains('first') &&
+                        next.name.toLowerCase().contains('last');
+
+                    if (isFirstAndLastName) {
+                      widgets.add(
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: _buildFieldInput(
+                                context,
+                                formCtrl,
+                                current,
+                                isLast: false,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildFieldInput(
+                                context,
+                                formCtrl,
+                                next,
+                                isLast: i + 1 == fields.length - 1,
+                              ),
+                            ),
+                          ],
                         ),
-                        onPressed: () {
-                          HelperFunctions().closeKeyboard(context);
-                          controller.sendFormData();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: context.primaryColor,
-                          foregroundColor: Colors.white,
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                      );
+                      i += 2;
+                    } else {
+                      widgets.add(
+                        _buildFieldInput(
+                          context,
+                          formCtrl,
+                          current,
+                          isLast: i == fields.length - 1,
+                        ),
+                      );
+                      i += 1;
+                    }
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: widgets,
+                  );
+                }),
+                Obx(() {
+                  final isSubmitting = formCtrl.isSubmitting.value;
+                  return SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: isSubmitting
+                          ? null
+                          : () {
+                              HelperFunctions().closeKeyboard(context);
+                              formCtrl.sendFormData();
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: context.primaryColor,
+                        disabledBackgroundColor:
+                            context.primaryColor.withValues(alpha: 0.65),
+                        foregroundColor: Colors.white,
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                    )),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Section 3: Contact Channels Section (2-Column Grid)
-// ─────────────────────────────────────────────────────────────────────────────
-class ContactChannelsWidget extends StatelessWidget {
-  const ContactChannelsWidget({
-    Key? key,
-    required this.data,
-    required this.onCardTap,
-  }) : super(key: key);
-
-  final ContactChannelsData data;
-  final void Function(ContactChannelCard) onCardTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (data.eyebrow.isNotEmpty) ...[
-            Text(
-              data.eyebrow.toUpperCase(),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.8,
-                color: context.primaryColor,
-              ),
-            ),
-            const SizedBox(height: 6),
-          ],
-          Text(
-            data.title.isNotEmpty ? data.title : 'Contact Channels',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: context.onSurfaceColor,
-            ),
-          ),
-          const SizedBox(height: 14),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: data.cards.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              // Keep two-column cards comfortably tall for wrapped details,
-              // without creating the large empty area of the old tall tiles.
-              childAspectRatio: 1.05,
-            ),
-            itemBuilder: (context, index) {
-              final card = data.cards[index];
-              return _ContactChannelTile(
-                card: card,
-                onTap: () => onCardTap(card),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ContactChannelTile extends StatelessWidget {
-  const _ContactChannelTile({required this.card, required this.onTap});
-
-  final ContactChannelCard card;
-  final VoidCallback onTap;
-
-  IconData get _fallbackIcon {
-    if (card.isEmail) return Icons.mail_outline_rounded;
-    if (card.isPhone) return Icons.phone_in_talk_outlined;
-    if (card.heading.toLowerCase().contains('hour') ||
-        card.heading.toLowerCase().contains('office')) {
-      return Icons.access_time_rounded;
-    }
-    return Icons.location_on_outlined;
-  }
-
-  Widget _buildIcon(BuildContext context) {
-    final img = card.image;
-
-    if (img.isNotEmpty) {
-      if (img.endsWith('.svg')) {
-        return SvgPicture.network(
-          card.fullImageUrl,
-          width: 24,
-          height: 24,
-          colorFilter: ColorFilter.mode(context.primaryColor, BlendMode.srcIn),
-          placeholderBuilder: (_) =>
-              Icon(_fallbackIcon, color: context.primaryColor, size: 24),
-        );
-      }
-      return CachedNetworkImage(
-        imageUrl: card.fullImageUrl,
-        width: 24,
-        height: 24,
-        fit: BoxFit.contain,
-        errorWidget: (_, __, ___) =>
-            Icon(_fallbackIcon, color: context.primaryColor, size: 24),
-      );
-    }
-    return Icon(_fallbackIcon, color: context.primaryColor, size: 24);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Material(
-      color: context.surfaceColor,
-      borderRadius: BorderRadius.circular(14),
-      elevation: 1.5,
-      shadowColor: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
-      child: InkWell(
-        onTap: (card.isPhone || card.isEmail) ? onTap : null,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color:
-                  isDark ? Colors.white12 : Colors.grey.withValues(alpha: 0.18),
-              width: 1,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: context.primaryColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(child: _buildIcon(context)),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                card.heading,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: context.onSurfaceColor,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                card.text,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 11.5,
-                  height: 1.35,
-                  fontWeight: (card.isPhone || card.isEmail)
-                      ? FontWeight.w700
-                      : FontWeight.w400,
-                  color: (card.isPhone || card.isEmail)
-                      ? context.primaryColor
-                      : context.onSurfaceColor.withValues(alpha: 0.7),
-                ),
-              ),
-              if (card.footer.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  card.footer,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: context.onSurfaceColor.withValues(alpha: 0.5),
-                  ),
-                ),
+                      child: isSubmitting
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.4,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.send_rounded, size: 18),
+                                SizedBox(width: 8),
+                                Text(
+                                  'SEND MESSAGE',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                  );
+                }),
               ],
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Section 3: Location Map Card Widget
+// ─────────────────────────────────────────────────────────────────────────────
+// class ContactLocationMapCard extends StatelessWidget {
+//   const ContactLocationMapCard({Key? key, required this.data})
+//       : super(key: key);
+
+//   //final ContactLocationMapData data;
+
+//   Future<void> _openMaps() async {
+//     final uri = Uri.tryParse(data.mapsUrl);
+//     if (uri == null) return;
+//     try {
+//       if (await canLaunchUrl(uri)) {
+//         await launchUrl(uri, mode: LaunchMode.externalApplication);
+//       }
+//     } catch (_) {}
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+//     return Padding(
+//       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+//       child: Container(
+//         decoration: BoxDecoration(
+//           color: context.surfaceColor,
+//           borderRadius: BorderRadius.circular(16),
+//           border: Border.all(
+//             color:
+//                 isDark ? Colors.white12 : Colors.grey.withValues(alpha: 0.2),
+//           ),
+//           boxShadow: [
+//             BoxShadow(
+//               color: Colors.black.withValues(alpha: isDark ? 0.28 : 0.05),
+//               blurRadius: 12,
+//               offset: const Offset(0, 4),
+//             ),
+//           ],
+//         ),
+//         child: ClipRRect(
+//           borderRadius: BorderRadius.circular(16),
+//           child: Column(
+//             crossAxisAlignment: CrossAxisAlignment.start,
+//             children: [
+//               // Lightweight native styled map preview
+//               InkWell(
+//                 onTap: _openMaps,
+//                 child: Container(
+//                   height: 150,
+//                   width: double.infinity,
+//                   decoration: BoxDecoration(
+//                     gradient: LinearGradient(
+//                       begin: Alignment.topLeft,
+//                       end: Alignment.bottomRight,
+//                       colors: isDark
+//                           ? [
+//                               const Color(0xFF1E293B),
+//                               const Color(0xFF0F172A),
+//                             ]
+//                           : [
+//                               context.primaryColor.withValues(alpha: 0.08),
+//                               context.primaryColor.withValues(alpha: 0.16),
+//                             ],
+//                     ),
+//                   ),
+//                   child: Stack(
+//                     children: [
+//                       // Subtle decorative map grid lines
+//                       Positioned.fill(
+//                         child: CustomPaint(
+//                           painter: _MapGridPainter(
+//                             lineColor: isDark
+//                                 ? Colors.white.withValues(alpha: 0.06)
+//                                 : context.primaryColor.withValues(alpha: 0.12),
+//                           ),
+//                         ),
+//                       ),
+//                       Center(
+//                         child: Column(
+//                           mainAxisSize: MainAxisSize.min,
+//                           children: [
+//                             Container(
+//                               width: 52,
+//                               height: 52,
+//                               decoration: BoxDecoration(
+//                                 color: context.primaryColor,
+//                                 shape: BoxShape.circle,
+//                                 boxShadow: [
+//                                   BoxShadow(
+//                                     color: context.primaryColor
+//                                         .withValues(alpha: 0.35),
+//                                     blurRadius: 14,
+//                                     offset: const Offset(0, 4),
+//                                   ),
+//                                 ],
+//                               ),
+//                               child: const Icon(
+//                                 Icons.location_on_rounded,
+//                                 color: Colors.white,
+//                                 size: 28,
+//                               ),
+//                             ),
+//                             const SizedBox(height: 8),
+//                             Container(
+//                               padding: const EdgeInsets.symmetric(
+//                                   horizontal: 10, vertical: 4),
+//                               decoration: BoxDecoration(
+//                                 color: context.surfaceColor
+//                                     .withValues(alpha: 0.92),
+//                                 borderRadius: BorderRadius.circular(12),
+//                               ),
+//                               child: Text(
+//                                 data.addressLabel,
+//                                 style: TextStyle(
+//                                   fontSize: 11.5,
+//                                   fontWeight: FontWeight.w600,
+//                                   color: context.onSurfaceColor,
+//                                 ),
+//                               ),
+//                             ),
+//                           ],
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//               ),
+//               Padding(
+//                 padding:
+//                     const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+//                 child: Row(
+//                   children: [
+//                     Expanded(
+//                       child: Column(
+//                         crossAxisAlignment: CrossAxisAlignment.start,
+//                         children: [
+//                           Text(
+//                             data.city,
+//                             style: TextStyle(
+//                               fontSize: 17,
+//                               fontWeight: FontWeight.w700,
+//                               color: context.onSurfaceColor,
+//                             ),
+//                           ),
+//                           const SizedBox(height: 2),
+//                           Text(
+//                             data.addressLabel,
+//                             style: TextStyle(
+//                               fontSize: 12.5,
+//                               color: context.onSurfaceColor
+//                                   .withValues(alpha: 0.65),
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                     const SizedBox(width: 12),
+//                     ElevatedButton.icon(
+//                       onPressed: _openMaps,
+//                       icon: const Icon(Icons.map_outlined, size: 16),
+//                       label: const Text(
+//                         'Open in Maps',
+//                         style: TextStyle(
+//                           fontSize: 12.5,
+//                           fontWeight: FontWeight.w600,
+//                         ),
+//                       ),
+//                       style: ElevatedButton.styleFrom(
+//                         backgroundColor: context.primaryColor,
+//                         foregroundColor: Colors.white,
+//                         elevation: 0,
+//                         padding: const EdgeInsets.symmetric(
+//                             horizontal: 14, vertical: 10),
+//                         shape: RoundedRectangleBorder(
+//                           borderRadius: BorderRadius.circular(10),
+//                         ),
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Section 4: FAQ Accordion Widget (Account & Access)

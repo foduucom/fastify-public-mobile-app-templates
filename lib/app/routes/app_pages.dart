@@ -48,8 +48,6 @@ import 'package:foduu_ecommerce/app/modules/checkout/bindings/checkout_bindings.
 import 'package:foduu_ecommerce/app/modules/checkout/views/checkout_views.dart';
 import 'package:foduu_ecommerce/app/modules/choose_category/bindings/choose_category_binding.dart';
 import 'package:foduu_ecommerce/app/modules/choose_category/views/choose_category_view.dart';
-import 'package:foduu_ecommerce/app/modules/helpandsupport/bindings/helpandsupport_binding.dart';
-import 'package:foduu_ecommerce/app/modules/helpandsupport/views/helpandsupport_view.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/bindings/homepage_binding.dart';
 import 'package:foduu_ecommerce/app/modules/homepage/views/home_page_view.dart';
 import 'package:foduu_ecommerce/app/modules/intro/bindings/intro_binding.dart';
@@ -309,14 +307,9 @@ class AppPages {
     ),
 
     GetPage(
-      name: _Paths.HELPANDSUPPORT,
-      page: () => const HelpandsupportView(),
-      binding: HelpandsupportBinding(),
-    ),
-    GetPage(
       name: _Paths.FAQ,
-      page: () => const HelpandsupportView(),
-      binding: HelpandsupportBinding(),
+      page: () => const ContactView(),
+      binding: ContactBinding(),
     ),
     GetPage(
       name: _Paths.ABOUTUS,

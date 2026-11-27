@@ -30,10 +30,10 @@ class SplashscreenView extends GetView<SplashScreenController> {
         children: [
           Center(
             child: SizedBox(
-              width: width * 0.55,
-              height: width * 0.55,
+              width: width * 0.7,
+              height: width * 0.7,
               child: Image.asset(
-                'assets/images/foduu_electro_logo.webp',
+                'assets/images/foduu_electro_launcher.png',
                 fit: BoxFit.contain,
               ),
             ),

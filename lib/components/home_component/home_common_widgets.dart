@@ -129,6 +129,12 @@ class _TextBlockComponentState extends State<TextBlockComponent> {
       if (alignStr == 'center') align = TextAlign.center;
       if (alignStr == 'right') align = TextAlign.right;
 
+      final normalizedColor = colorStr.trim().toLowerCase();
+      final effectiveColor =
+          (isDark && (normalizedColor == '#000000' || normalizedColor == '#000'))
+              ? colorScheme.onSurface
+              : _parseColor(colorStr);
+
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         child: Text(
@@ -137,7 +143,7 @@ class _TextBlockComponentState extends State<TextBlockComponent> {
           style: TextStyle(
             fontSize: size,
             fontWeight: weight,
-            color: _parseColor(colorStr),
+            color: effectiveColor,
           ),
         ),
       );

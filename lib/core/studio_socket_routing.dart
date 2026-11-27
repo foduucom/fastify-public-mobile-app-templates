@@ -3,7 +3,6 @@ import 'package:foduu_ecommerce/app/modules/aboutus/controllers/aboutus_controll
 import 'package:foduu_ecommerce/app/modules/blog/controller/blog_controller.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foduu_ecommerce/app/modules/contact/controller/contact_controller.dart';
-import 'package:foduu_ecommerce/app/modules/helpandsupport/controllers/helpandsupport_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/helpers/socket_helper.dart';
@@ -142,26 +141,19 @@ class StudioSocketRouting extends GetxController {
         break;
       case 'contact-us':
       case 'contact':
-        if (Get.currentRoute == Routes.CONTACT) {
-          if (Get.isRegistered<ContactController>()) {
-            Get.find<ContactController>().fetchContactLayout();
-          }
-        } else {
-          Get.toNamed(Routes.CONTACT);
-        }
-        break;
       case 'faq':
       case 'faqs':
       case 'help':
       case 'helpandsupport':
       case 'help-and-support':
-        if (Get.currentRoute == Routes.HELPANDSUPPORT ||
+        if (Get.currentRoute == Routes.CONTACT ||
+            Get.currentRoute == Routes.CONTACTUS ||
             Get.currentRoute == Routes.FAQ) {
-          if (Get.isRegistered<HelpandsupportController>()) {
-            Get.find<HelpandsupportController>().getFaqs();
+          if (Get.isRegistered<ContactController>()) {
+            Get.find<ContactController>().fetchContactLayout();
           }
         } else {
-          Get.toNamed(Routes.HELPANDSUPPORT);
+          Get.toNamed(Routes.CONTACT);
         }
         break;
       case 'blog':

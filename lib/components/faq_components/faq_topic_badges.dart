@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/data/models/faq_sections.dart';
-import 'package:foduu_ecommerce/app/modules/helpandsupport/controllers/helpandsupport_controller.dart';
 import 'package:foduu_ecommerce/constants/foduuCachedImageNetwork.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
-import 'package:get/get.dart';
 
 class FaqTopicBadges extends StatelessWidget {
   final FaqTopicBadgesSection data;
@@ -19,9 +17,6 @@ class FaqTopicBadges extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final helpController = Get.isRegistered<HelpandsupportController>()
-        ? Get.find<HelpandsupportController>()
-        : null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -40,16 +35,6 @@ class FaqTopicBadges extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (helpController != null)
-                  Obx(() {
-                    if (helpController.selectedTopic.value.isEmpty) {
-                      return const SizedBox.shrink();
-                    }
-                    return TextButton(
-                      onPressed: () => helpController.selectTopic(''),
-                      child: const Text('Show all'),
-                    );
-                  }),
               ],
             ),
           ),
@@ -67,30 +52,13 @@ class FaqTopicBadges extends StatelessWidget {
                     ? HelperFunctions().getImage(badge.image)
                     : '';
 
-                if (helpController == null) {
-                  return _buildTopic(
-                    context,
-                    badge,
-                    imageUrl,
-                    isSelected: false,
-                    onTap: null,
-                  );
-                }
-
-                return Obx(() {
-                  final isSelected =
-                      helpController.selectedTopic.value.toLowerCase() ==
-                          badge.heading.toLowerCase();
-                  return _buildTopic(
-                    context,
-                    badge,
-                    imageUrl,
-                    isSelected: isSelected,
-                    onTap: () => helpController.selectTopic(
-                      isSelected ? '' : badge.heading,
-                    ),
-                  );
-                });
+                return _buildTopic(
+                  context,
+                  badge,
+                  imageUrl,
+                  isSelected: false,
+                  onTap: null,
+                );
               },
             ),
           ),

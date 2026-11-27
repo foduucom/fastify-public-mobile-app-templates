@@ -1,10 +1,10 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
 export "FLUTTER_ROOT=/Users/flutterdev/Developer/flutter"
-export "FLUTTER_APPLICATION_PATH=/Users/flutterdev/Desktop/fastify-public-mobile-app-templates"
-export "FLUTTER_FRAMEWORK_SWIFT_PACKAGE_PATH=/Users/flutterdev/Desktop/fastify-public-mobile-app-templates/ios/Flutter/ephemeral/Packages/.packages/FlutterFramework"
+export "FLUTTER_APPLICATION_PATH=/Users/flutterdev/Desktop/vIsioninfra"
+export "FLUTTER_FRAMEWORK_SWIFT_PACKAGE_PATH=/Users/flutterdev/Desktop/vIsioninfra/ios/Flutter/ephemeral/Packages/.packages/FlutterFramework"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
-export "FLUTTER_TARGET=/Users/flutterdev/Desktop/fastify-public-mobile-app-templates/lib/main.dart"
+export "FLUTTER_TARGET=/Users/flutterdev/Desktop/vIsioninfra/lib/main.dart"
 export "FLUTTER_BUILD_DIR=build"
 export "FLUTTER_BUILD_NAME=1.0.0"
 export "FLUTTER_BUILD_NUMBER=1"
@@ -12,4 +12,4 @@ export "DART_DEFINES=RkxVVFRFUl9CVUlMRF9OQU1FPTEuMC4w,RkxVVFRFUl9CVUlMRF9OVU1CRV
 export "DART_OBFUSCATION=false"
 export "TRACK_WIDGET_CREATION=true"
 export "TREE_SHAKE_ICONS=false"
-export "PACKAGE_CONFIG=/Users/flutterdev/Desktop/fastify-public-mobile-app-templates/.dart_tool/package_config.json"
+export "PACKAGE_CONFIG=/Users/flutterdev/Desktop/vIsioninfra/.dart_tool/package_config.json"

@@ -65,9 +65,7 @@
 //                   icon: 'assets/icon/drawricon7.svg',
 //                   title: 'Your Account',
 //                   subtitle: 'Profile, Settings, Saved Cards...',
-//                   pressevent: () {
-//                     // Get.to(const HelpandsupportView());
-//                   },
+//                   pressevent: () {},
 //                 ),
 //                 drawerList(
 //                   icon: 'assets/icon/drawricon5.svg',

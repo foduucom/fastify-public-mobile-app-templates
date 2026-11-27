@@ -467,7 +467,7 @@ class OrderdetailView extends GetView<OrderdetailController> {
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 child: GestureDetector(
                   onTap: () {
-                    Get.toNamed(Routes.HELPANDSUPPORT);
+                    Get.toNamed(Routes.CONTACT);
                   },
                   child: Row(
                     children: [

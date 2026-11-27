@@ -280,15 +280,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
               // SUPPORT & HELP
               _buildSectionHeader(context, 'SUPPORT & HELP'),
               DrawerTile(
-                icon: const Icon(Icons.headset_mic_outlined),
-                title: 'Help & Customer Care',
-                subtitle: 'FAQs, contact & support',
-                onTap: () {
-                  Get.back();
-                  Get.toNamed(Routes.HELPANDSUPPORT);
-                },
-              ),
-              DrawerTile(
                 icon: const Icon(Icons.info_outline),
                 title: 'About Us',
                 subtitle: 'Learn about our store',
@@ -300,7 +291,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               DrawerTile(
                 icon: const Icon(Icons.mail_outline),
                 title: 'Contact Us',
-                subtitle: 'Get in touch with us',
+                subtitle: 'FAQs, contact & support',
                 onTap: () {
                   Get.back();
                   Get.toNamed(Routes.CONTACTUS);

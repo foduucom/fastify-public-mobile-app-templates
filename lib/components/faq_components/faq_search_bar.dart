@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:foduu_ecommerce/app/modules/helpandsupport/controllers/helpandsupport_controller.dart';
-import 'package:get/get.dart';
 
 class FaqSearchBar extends StatefulWidget {
   final String placeholder;
@@ -30,9 +28,6 @@ class _FaqSearchBarState extends State<FaqSearchBar> {
   void initState() {
     super.initState();
     _controller = TextEditingController();
-    if (Get.isRegistered<HelpandsupportController>()) {
-      _controller.text = Get.find<HelpandsupportController>().searchQuery.value;
-    }
   }
 
   @override
@@ -43,9 +38,6 @@ class _FaqSearchBarState extends State<FaqSearchBar> {
 
   void _onTextChange(String val) {
     widget.onChanged?.call(val);
-    if (Get.isRegistered<HelpandsupportController>()) {
-      Get.find<HelpandsupportController>().updateSearchQuery(val);
-    }
     setState(() {});
   }
 

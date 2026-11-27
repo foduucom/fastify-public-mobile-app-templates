@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/data/models/contact_sections.dart';
-import 'package:foduu_ecommerce/app/modules/contact/controller/contact_controller.dart';
+import 'package:foduu_ecommerce/components/about_components/about_hero_banner.dart';
+import 'package:foduu_ecommerce/components/about_components/about_story_showcase_card.dart';
+import 'package:foduu_ecommerce/components/about_components/about_trust_sections.dart';
 import 'package:foduu_ecommerce/components/blog_components/blog_feed_section.dart';
 import 'package:foduu_ecommerce/components/blog_components/blog_hero_card.dart';
 import 'package:foduu_ecommerce/components/blog_components/blog_search_bar.dart';
@@ -17,7 +19,6 @@ import 'package:foduu_ecommerce/components/home_component/dual_promo_cards.dart'
 import 'package:foduu_ecommerce/components/home_component/dual_promotional_deals.dart';
 import 'package:foduu_ecommerce/components/home_component/smart_assistant_showcase_card.dart';
 import 'package:foduu_ecommerce/components/search_bar_rounded.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '/app/routes/app_pages.dart';
 import '/components/home_component/home_products.dart';
 import '/components/home_component/home_rich_text_component.dart';
@@ -40,7 +41,8 @@ bool _isHeroSidePromoSlider(Map? json) {
   if (slider is Map) {
     final slug =
         (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
-    if (slug == 'home-parent-leftside-slider' || slug.contains('parent-leftside')) {
+    if (slug == 'home-parent-leftside-slider' ||
+        slug.contains('parent-leftside')) {
       return true;
     }
     final content = slider['content'];
@@ -118,7 +120,8 @@ bool _isFlashSaleSlider(Map? json) {
     final slug =
         (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
     // Exclude parent-leftside-slider so it routes to HeroSidePromoCard
-    if (slug == 'home-parent-leftside-slider' || slug.contains('parent-leftside')) {
+    if (slug == 'home-parent-leftside-slider' ||
+        slug.contains('parent-leftside')) {
       return false;
     }
     if (slug == 'home-side-slider') {
@@ -259,7 +262,8 @@ bool _isFaqAccordion(Map? json) {
       if (first is Map) {
         final heading = (first['heading'] ?? '').toString();
         final text = (first['text'] ?? '').toString();
-        if (heading.contains('?') || (text.length > 50 && first['image'] == null)) {
+        if (heading.contains('?') ||
+            (text.length > 50 && first['image'] == null)) {
           return true;
         }
       }
@@ -304,33 +308,30 @@ bool _isContactHeroSlider(Map? json) {
   return false;
 }
 
-bool _isContactChannels(Map? json) {
+// bool _isContactChannels(Map? json) {
+//   if (json == null) return false;
+//   final title = (json['title'] ?? '').toString().toLowerCase();
+//   if (title.contains('contact channel') ||
+//       title.contains('contact information') ||
+//       title.contains('channels')) {
+//     return true;
+//   }
+//   return false;
+// }
+
+bool _isContactRichTextHeading(Map? json) {
   if (json == null) return false;
-  final title = (json['title'] ?? '').toString().toLowerCase();
-  if (title.contains('contact channel') || title.contains('channels')) {
-    return true;
-  }
-  return false;
+  final html = (json['html_content'] ?? json['content'] ?? json['text'] ?? '')
+      .toString()
+      .toLowerCase();
+  return html.contains("let's connect") || html.contains('send your message');
 }
 
-void _handleContactCardTap(ContactChannelCard card) async {
-  if (card.isEmail) {
-    final email = card.text.trim();
-    if (email.isNotEmpty) {
-      try {
-        await launchUrl(Uri(scheme: 'mailto', path: email),
-            mode: LaunchMode.externalApplication);
-      } catch (_) {}
-    }
-  } else if (card.isPhone) {
-    final phone = card.cleanPhone;
-    if (phone.isNotEmpty) {
-      try {
-        await launchUrl(Uri(scheme: 'tel', path: phone),
-            mode: LaunchMode.externalApplication);
-      } catch (_) {}
-    }
-  }
+bool _isContactIntroText(Map? json) {
+  if (json == null) return false;
+  final text = (json['text'] ?? '').toString().toLowerCase();
+  return text.contains('have questions or feedback') ||
+      text.contains('fill out the form below');
 }
 
 bool _isBlogHeroSlider(Map? json) {
@@ -377,6 +378,73 @@ bool _isBlogCategorySection(Map? json) {
   return false;
 }
 
+bool _isAboutHeroSlider(Map? json) {
+  if (json == null) return false;
+  final slider = json['slider'];
+  if (slider is Map) {
+    final slug =
+        (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
+    if (slug == 'about-us-slider' || slug == 'about-us') {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool _isAboutStorySlider(Map? json) {
+  if (json == null) return false;
+  final slider = json['slider'];
+  if (slider is Map) {
+    final slug =
+        (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
+    if (slug == 'about-us-second-slider' || slug.contains('about-us-second')) {
+      return true;
+    }
+    final content = slider['content'];
+    if (content is List && content.isNotEmpty && content.first is Map) {
+      final first = content.first as Map;
+      final heading = (first['heading'] ?? '').toString();
+      final desc = (first['description'] ?? '').toString();
+      if (heading.contains('about-floating-badge') ||
+          desc.contains('about-action-strip')) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool _isAboutMission(Map? json) {
+  if (json == null) return false;
+  final eyebrow = (json['eyebrow'] ?? '').toString().toLowerCase();
+  final title = (json['title'] ?? '').toString().toLowerCase();
+  return eyebrow.contains('our mission') ||
+      title.contains('empowering tech creators');
+}
+
+bool _isAboutStandards(Map? json) {
+  if (json == null) return false;
+  final eyebrow = (json['eyebrow'] ?? '').toString().toLowerCase();
+  final title = (json['title'] ?? '').toString().toLowerCase();
+  return eyebrow.contains('why choose') ||
+      title.contains('standards that set us apart');
+}
+
+bool _isAboutKpiStats(Map? json) {
+  if (json == null) return false;
+  final title = (json['title'] ?? '').toString().trim();
+  final eyebrow = (json['eyebrow'] ?? '').toString().trim();
+  if (title.isNotEmpty || eyebrow.isNotEmpty) return false;
+  final cards = json['cards'] ?? json['items'];
+  if (cards is! List || cards.isEmpty) return false;
+  final statPattern = RegExp(r'^[0-9]+(?:\.[0-9]+)?[%+KkMmBb]*$');
+  return cards.every((c) =>
+      c is Map &&
+      statPattern
+          .hasMatch((c['heading'] ?? c['title'] ?? '').toString().trim()) &&
+      (c['text'] ?? c['description'] ?? '').toString().trim().isNotEmpty);
+}
+
 /// Register all default section widget builders.
 ///
 /// Call this once in `main()` before `runApp(...)`.
@@ -412,6 +480,14 @@ void registerDefaultWidgets() {
   // ─── Slider / Carousel ──────────────────────────────────────
   r.register('slider', (json) {
     if (json is Map<String, dynamic>) {
+      // About Us Hero Banner
+      if (_isAboutHeroSlider(json)) {
+        return AboutHeroBanner(contentJson: json);
+      }
+      // About Us Story & Founder Showcase
+      if (_isAboutStorySlider(json)) {
+        return AboutStoryShowcaseCard(contentJson: json);
+      }
       // Blog Hero Header
       if (_isBlogHeroSlider(json)) {
         return BlogHeroCard.fromMap(json);
@@ -496,6 +572,9 @@ void registerDefaultWidgets() {
 
   // ─── Text Block ─────────────────────────────────────────────
   r.register('text_block', (json) {
+    if (_isContactIntroText(json)) {
+      return ContactIntroTextWidget(contentJson: json ?? {});
+    }
     return TextBlockComponent(contentJson: json ?? {});
   });
 
@@ -506,11 +585,15 @@ void registerDefaultWidgets() {
 
   // ─── Rich Text ──────────────────────────────────────────────
   r.register('rich_text', (json) {
+    if (_isContactRichTextHeading(json)) {
+      return ContactSectionHeaderWidget(contentJson: json ?? {});
+    }
     return RichTextComponent(contentJson: json ?? {});
   });
 
   r.register('countdown', (json) {
-    return FlashSaleCountdownCard(sliderData: json is Map<String, dynamic> ? json : {});
+    return FlashSaleCountdownCard(
+        sliderData: json is Map<String, dynamic> ? json : {});
   });
 
   // r.register('icon_button', (json) {
@@ -520,12 +603,21 @@ void registerDefaultWidgets() {
   // ─── Trust Badges / Testimonials ────────────────────────────
   r.register('trust_badges', (json) {
     if (json is Map<String, dynamic>) {
-      if (_isContactChannels(json)) {
-        return ContactChannelsWidget(
-          data: ContactChannelsData.fromContentJson(json),
-          onCardTap: _handleContactCardTap,
-        );
+      if (_isAboutMission(json)) {
+        return AboutMissionSection(contentJson: json);
       }
+      if (_isAboutKpiStats(json)) {
+        return AboutKpiStatsGrid(contentJson: json);
+      }
+      if (_isAboutStandards(json)) {
+        return AboutStandardsSection(contentJson: json);
+      }
+      // if (_isContactChannels(json)) {
+      //   return ContactChannelsWidget(
+      //     data: ContactChannelsData.fromContentJson(json),
+      //     onCardTap: _handleContactCardTap,
+      //   );
+      // }
       if (_isFaqAccordion(json)) {
         return FaqAccordionSection.fromMap(json);
       }
@@ -542,12 +634,18 @@ void registerDefaultWidgets() {
         ? json
         : (json is Map ? Map<String, dynamic>.from(json) : <String, dynamic>{});
     final formData = ContactFormBuilderData.fromContentJson(contentJson);
-    final ctrl = Get.isRegistered<ContactController>()
-        ? Get.find<ContactController>()
-        : Get.put(ContactController());
-    return ContactFormCardWidget(data: formData, controller: ctrl);
+    // Defer ContactController resolution to ContactFormCardWidget.build()
+    // to avoid GetX lazyPut re-entrancy during onInit().
+    return ContactFormCardWidget(data: formData);
   }
 
   r.register('formbuilder', buildFormBuilder);
   r.register('form_builder', buildFormBuilder);
+
+  // ─── Contact Location Map ───────────────────────────────────
+  // r.register('contact_map', (json) {
+  //   return ContactLocationMapCard(
+  //     data: ContactLocationMapData.fromContentJson(json ?? const {}),
+  //   );
+  // });
 }

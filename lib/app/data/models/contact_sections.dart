@@ -21,7 +21,7 @@ String _s(Map<String, dynamic> m, String key, [String fallback = '']) {
   return v.isEmpty ? fallback : v;
 }
 
-const _defaultHeroImage = '2026/11/17/appliance-lineup-f27d481f.webp';
+const _defaultHeroImage = '2026/11/14/blog3-ecff3e30.webp';
 const _defaultCtaImage = '2026/11/17/cta-gear-9f7e301e.svg';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -39,16 +39,16 @@ class ContactHeroHeaderData {
     required this.subHeading,
     required this.description,
     required this.imageUrl,
-    this.height = 200,
+    this.height = 185,
   });
 
   factory ContactHeroHeaderData.fromContentJson(Map<String, dynamic> json) {
     String heading = 'Contact Us';
-    String subHeading = 'Get In Touch';
+    String subHeading = 'Get in touch';
     String description =
-        'Have questions or need assistance? Our team is here to help.';
+        'We are here for you! how can we help, We are here for you!';
     String img = _defaultHeroImage;
-    double h = 200.0;
+    double h = 185.0;
 
     if (json['height'] != null) {
       final parsedH = double.tryParse(json['height'].toString());
@@ -82,13 +82,13 @@ class ContactHeroHeaderData {
     );
   }
 
-  factory ContactHeroHeaderData.canonical() => const ContactHeroHeaderData(
+  factory ContactHeroHeaderData.canonical() => ContactHeroHeaderData(
         heading: 'Contact Us',
-        subHeading: 'Get In Touch',
+        subHeading: 'Get in touch',
         description:
-            'Have questions or need assistance? Our team is here to help.',
-        imageUrl: _defaultHeroImage,
-        height: 200,
+            'We are here for you! how can we help, We are here for you!',
+        imageUrl: _cleanUrl(_defaultHeroImage),
+        height: 185,
       );
 }
 
@@ -96,18 +96,37 @@ class ContactHeroHeaderData {
 // 2. Form Builder Meta Section (formbuilder)
 // ─────────────────────────────────────────────────────────────────────────────
 class ContactFormBuilderData {
+  final String badgeText;
+  final String badgeSubtitle;
+  final String eyebrow;
   final String title;
+  final String subtitle;
   final String formSlug;
   final String formId;
 
   const ContactFormBuilderData({
+    this.badgeText = 'Get in touch',
+    this.badgeSubtitle =
+        'We are here for you! how can we help, We are here for you!',
+    this.eyebrow = "Let's Connect",
     required this.title,
+    this.subtitle =
+        'Have questions or feedback? Fill out the form below and our team will get back to you shortly.',
     required this.formSlug,
     required this.formId,
   });
 
   factory ContactFormBuilderData.fromContentJson(Map<String, dynamic> json) {
-    final title = _s(json, 'title', 'Send a Message');
+    final badgeText = _s(json, 'badge', _s(json, 'badge_text', 'Get in touch'));
+    final badgeSubtitle = _s(json, 'badge_subtitle',
+        'We are here for you! how can we help, We are here for you!');
+    final eyebrow = _s(json, 'eyebrow', "Let's Connect");
+    final title = _s(json, 'title', 'Send Your Message');
+    final subtitle = _s(
+      json,
+      'subtitle',
+      'Have questions or feedback? Fill out the form below and our team will get back to you shortly.',
+    );
     String slug = 'contact';
     String id = '6afc23c408a059f9a214f5d5';
 
@@ -120,21 +139,68 @@ class ContactFormBuilderData {
     }
 
     return ContactFormBuilderData(
+      badgeText: badgeText,
+      badgeSubtitle: badgeSubtitle,
+      eyebrow: eyebrow,
       title: title,
+      subtitle: subtitle,
       formSlug: slug,
       formId: id,
     );
   }
 
   factory ContactFormBuilderData.canonical() => const ContactFormBuilderData(
-        title: 'Send a Message',
+        badgeText: 'Get in touch',
+        badgeSubtitle:
+            'We are here for you! how can we help, We are here for you!',
+        eyebrow: "Let's Connect",
+        title: 'Send Your Message',
+        subtitle:
+            'Have questions or feedback? Fill out the form below and our team will get back to you shortly.',
         formSlug: 'contact',
         formId: '6afc23c408a059f9a214f5d5',
       );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. Contact Channels Section (trust_badges: Contact Channels)
+// 3. Location Map Card Section (contact_map)
+// ─────────────────────────────────────────────────────────────────────────────
+// class ContactLocationMapData {
+//   final String city;
+//   final String addressLabel;
+//   final String mapsUrl;
+
+//   const ContactLocationMapData({
+//     required this.city,
+//     required this.addressLabel,
+//     required this.mapsUrl,
+//   });
+
+//   factory ContactLocationMapData.fromContentJson(Map<String, dynamic> json) {
+//     final city = _s(json, 'city', _s(json, 'title', 'New York'));
+//     final addressLabel =
+//         _s(json, 'address', _s(json, 'subtitle', 'New York, NY, USA'));
+//     final mapsUrl = _s(
+//       json,
+//       'maps_url',
+//       'https://maps.google.com/maps?q=${Uri.encodeComponent(addressLabel)}',
+//     );
+//     return ContactLocationMapData(
+//       city: city,
+//       addressLabel: addressLabel,
+//       mapsUrl: mapsUrl,
+//     );
+//   }
+
+//   factory ContactLocationMapData.canonical() => const ContactLocationMapData(
+//         city: 'New York',
+//         addressLabel: 'New York, NY, USA',
+//         mapsUrl: 'https://maps.google.com/maps?q=New%20York%2C%20NY%2C%20USA',
+//       );
+// }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. Contact Channels Section (trust_badges: Contact Channels / Info Cards)
 // ─────────────────────────────────────────────────────────────────────────────
 class ContactChannelCard {
   final String image;
@@ -151,18 +217,39 @@ class ContactChannelCard {
 
   String get fullImageUrl => _cleanUrl(image);
 
+  bool get isWebsite =>
+      heading.toLowerCase().contains('website') ||
+      text.toLowerCase().startsWith('www.') ||
+      text.toLowerCase().startsWith('http://') ||
+      text.toLowerCase().startsWith('https://');
+
+  bool get isAddress =>
+      heading.toLowerCase().contains('address') ||
+      heading.toLowerCase().contains('headquarter') ||
+      heading.toLowerCase().contains('location');
+
   bool get isEmail =>
       heading.toLowerCase().contains('email') ||
+      heading.toLowerCase().contains('mail') ||
       text.contains('@') ||
       image.toLowerCase().contains('mail');
 
   bool get isPhone =>
       heading.toLowerCase().contains('call') ||
       heading.toLowerCase().contains('phone') ||
+      heading.toLowerCase().contains('telephone') ||
       image.toLowerCase().contains('phone') ||
-      text.replaceAll(RegExp(r'[^0-9]'), '').length >= 7;
+      (!isAddress && text.replaceAll(RegExp(r'[^0-9]'), '').length >= 7);
 
   String get cleanPhone => text.replaceAll(RegExp(r'[^0-9+]'), '');
+
+  String get normalizedWebsiteUrl {
+    final trimmed = text.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    return 'https://$trimmed';
+  }
 
   factory ContactChannelCard.fromMap(Map<String, dynamic> m) {
     return ContactChannelCard(
@@ -174,78 +261,76 @@ class ContactChannelCard {
   }
 }
 
-class ContactChannelsData {
-  final String eyebrow;
-  final String title;
-  final String subtitle;
-  final int noOfColumns;
-  final List<ContactChannelCard> cards;
+// class ContactChannelsData {
+//   final String eyebrow;
+//   final String title;
+//   final String subtitle;
+//   final int noOfColumns;
+//   final List<ContactChannelCard> cards;
 
-  const ContactChannelsData({
-    required this.eyebrow,
-    required this.title,
-    required this.subtitle,
-    required this.noOfColumns,
-    required this.cards,
-  });
+//   const ContactChannelsData({
+//     required this.eyebrow,
+//     required this.title,
+//     required this.subtitle,
+//     required this.noOfColumns,
+//     required this.cards,
+//   });
 
-  static const List<ContactChannelCard> defaultCards = [
-    ContactChannelCard(
-      image: '2026/11/17/phone-call-f208b45d.svg',
-      heading: 'Call customer care',
-      text: '+1 (310) 555-0142',
-      footer: 'Toll-free customer helpline',
-    ),
-    ContactChannelCard(
-      image: '2026/11/17/mail-a91d05b7.svg',
-      heading: 'Email support',
-      text: 'info@foduu.com',
-      footer: 'Response within 1 business day',
-    ),
-    ContactChannelCard(
-      image: '',
-      heading: 'Office & Hours',
-      text:
-          'Support hours\nMonday – Friday: 8 AM – 8 PM PST\nSaturday – Sunday: 9 AM – 5 PM PST',
-      footer: '',
-    ),
-    ContactChannelCard(
-      image: '',
-      heading: 'Corporate headquarters',
-      text:
-          '102 Flat No, Raj Palace, Indrapuri Colony,\nBhawarkua, Indore,\nMadhya Pradesh – 452001',
-      footer: '',
-    ),
-  ];
+//   static const List<ContactChannelCard> defaultCards = [
+//     ContactChannelCard(
+//       image: '',
+//       heading: 'Website',
+//       text: 'www.example.com',
+//       footer: '',
+//     ),
+//     ContactChannelCard(
+//       image: '',
+//       heading: 'Address',
+//       text: '123 Street, New York, USA',
+//       footer: '',
+//     ),
+//     ContactChannelCard(
+//       image: '',
+//       heading: 'Mail Us',
+//       text: 'info@foduu.com',
+//       footer: '',
+//     ),
+//     ContactChannelCard(
+//       image: '',
+//       heading: 'Telephone',
+//       text: '+012 3456 7890',
+//       footer: '',
+//     ),
+//   ];
 
-  factory ContactChannelsData.fromContentJson(Map<String, dynamic> json) {
-    final rawCards = json['cards'] ?? json['items'];
-    final list = <ContactChannelCard>[];
-    if (rawCards is List) {
-      for (final c in rawCards) {
-        if (c is Map) {
-          list.add(ContactChannelCard.fromMap(Map<String, dynamic>.from(c)));
-        }
-      }
-    }
+//   factory ContactChannelsData.fromContentJson(Map<String, dynamic> json) {
+//     final rawCards = json['cards'] ?? json['items'];
+//     final list = <ContactChannelCard>[];
+//     if (rawCards is List) {
+//       for (final c in rawCards) {
+//         if (c is Map) {
+//           list.add(ContactChannelCard.fromMap(Map<String, dynamic>.from(c)));
+//         }
+//       }
+//     }
 
-    return ContactChannelsData(
-      eyebrow: _s(json, 'eyebrow'),
-      title: _s(json, 'title', 'Contact Channels'),
-      subtitle: _s(json, 'subtitle'),
-      noOfColumns: int.tryParse(json['no_of_columns']?.toString() ?? '2') ?? 2,
-      cards: list.isNotEmpty ? list : defaultCards,
-    );
-  }
+//     return ContactChannelsData(
+//       eyebrow: _s(json, 'eyebrow'),
+//       title: _s(json, 'title', 'Contact Information'),
+//       subtitle: _s(json, 'subtitle'),
+//       noOfColumns: int.tryParse(json['no_of_columns']?.toString() ?? '2') ?? 2,
+//       cards: list.isNotEmpty ? list : defaultCards,
+//     );
+//   }
 
-  factory ContactChannelsData.canonical() => const ContactChannelsData(
-        eyebrow: '',
-        title: 'Contact Channels',
-        subtitle: '',
-        noOfColumns: 2,
-        cards: defaultCards,
-      );
-}
+//   factory ContactChannelsData.canonical() => const ContactChannelsData(
+//         eyebrow: '',
+//         title: 'Contact Information',
+//         subtitle: '',
+//         noOfColumns: 2,
+//         cards: defaultCards,
+//       );
+// }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 4. Frequently Asked Questions Section (trust_badges: Account & Access)
@@ -401,14 +486,14 @@ class ContactFaqCtaData {
 class ContactBroadcastSectionsData {
   final ContactHeroHeaderData heroHeader;
   final ContactFormBuilderData formBuilder;
-  final ContactChannelsData channels;
+  //final ContactChannelsData channels;
   final ContactFaqSectionData faq;
   final ContactFaqCtaData faqCta;
 
   const ContactBroadcastSectionsData({
     required this.heroHeader,
     required this.formBuilder,
-    required this.channels,
+    // required this.channels,
     required this.faq,
     required this.faqCta,
   });
@@ -416,7 +501,7 @@ class ContactBroadcastSectionsData {
   factory ContactBroadcastSectionsData.fromSections(List sections) {
     ContactHeroHeaderData? hero;
     ContactFormBuilderData? form;
-    ContactChannelsData? channels;
+    //ContactChannelsData? channels;
     ContactFaqSectionData? faq;
     ContactFaqCtaData? cta;
 
@@ -435,8 +520,10 @@ class ContactBroadcastSectionsData {
 
       switch (type) {
         case 'slider':
-          final slider = contentMap['slider'] is Map ? contentMap['slider'] : {};
-          final slug = (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
+          final slider =
+              contentMap['slider'] is Map ? contentMap['slider'] : {};
+          final slug =
+              (slider['slug'] ?? slider['name'] ?? '').toString().toLowerCase();
           if (slug.contains('faq') || slug.contains('stuck')) {
             cta = ContactFaqCtaData.fromContentJson(contentMap);
           } else {
@@ -451,8 +538,10 @@ class ContactBroadcastSectionsData {
 
         case 'trust_badges':
           final title = (contentMap['title'] ?? '').toString().toLowerCase();
-          final eyebrow = (contentMap['eyebrow'] ?? '').toString().toLowerCase();
-          final noOfCols = int.tryParse(contentMap['no_of_columns']?.toString() ?? '2') ?? 2;
+          final eyebrow =
+              (contentMap['eyebrow'] ?? '').toString().toLowerCase();
+          final noOfCols =
+              int.tryParse(contentMap['no_of_columns']?.toString() ?? '2') ?? 2;
 
           if (title.contains('account') ||
               title.contains('access') ||
@@ -462,7 +551,7 @@ class ContactBroadcastSectionsData {
               noOfCols == 1) {
             faq = ContactFaqSectionData.fromContentJson(contentMap);
           } else {
-            channels = ContactChannelsData.fromContentJson(contentMap);
+            //channels = ContactChannelsData.fromContentJson(contentMap);
           }
           break;
       }
@@ -471,7 +560,7 @@ class ContactBroadcastSectionsData {
     return ContactBroadcastSectionsData(
       heroHeader: hero ?? ContactHeroHeaderData.canonical(),
       formBuilder: form ?? ContactFormBuilderData.canonical(),
-      channels: channels ?? ContactChannelsData.canonical(),
+      //channels: channels ?? ContactChannelsData.canonical(),
       faq: faq ?? ContactFaqSectionData.canonical(),
       faqCta: cta ?? ContactFaqCtaData.canonical(),
     );
@@ -481,7 +570,7 @@ class ContactBroadcastSectionsData {
       ContactBroadcastSectionsData(
         heroHeader: ContactHeroHeaderData.canonical(),
         formBuilder: ContactFormBuilderData.canonical(),
-        channels: ContactChannelsData.canonical(),
+        //channels: ContactChannelsData.canonical(),
         faq: ContactFaqSectionData.canonical(),
         faqCta: ContactFaqCtaData.canonical(),
       );

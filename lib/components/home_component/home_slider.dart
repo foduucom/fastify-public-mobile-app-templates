@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:foduu_ecommerce/components/app_image_placeholder.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
-import 'package:foduu_ecommerce/app/modules/homepage/controllers/homepage_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
@@ -26,7 +25,6 @@ class FoduuSlider extends StatefulWidget {
 
 class _FoduuSliderState extends State<FoduuSlider>
     with AutomaticKeepAliveClientMixin, BaseController {
-  late HomepageController homeController;
   // var sliderImage = [];
 
   int _currentPage = 0;
@@ -92,7 +90,6 @@ class _FoduuSliderState extends State<FoduuSlider>
   @override
   void initState() {
     super.initState();
-    homeController = Get.find<HomepageController>();
     // sliderImage.clear();
     // initFetchSliderImage(widget.id);
 
