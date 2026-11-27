@@ -29,6 +29,46 @@
 
   <title>Foduu</title>
   <link rel="manifest" href="manifest.json">
+  
+  
+  <style id="inappwebview-theme-style">
+    body.app-dark-mode iframe {
+      filter: invert(0.92) hue-rotate(180deg) brightness(0.95) contrast(0.95) !important;
+      background-color: #121212 !important;
+      transition: filter 0.25s ease-in-out;
+    }
+    body.app-light-mode iframe {
+      filter: none !important;
+      background-color: #ffffff !important;
+      transition: filter 0.25s ease-in-out;
+    }
+  </style>
+  <script>
+    window.setAppWebViewTheme = function(isDark) {
+      try {
+        if (isDark) {
+          document.body.classList.add('app-dark-mode');
+          document.body.classList.remove('app-light-mode');
+        } else {
+          document.body.classList.add('app-light-mode');
+          document.body.classList.remove('app-dark-mode');
+        }
+        var iframes = document.querySelectorAll('iframe');
+        iframes.forEach(function(iframe) {
+          if (isDark) {
+            iframe.style.filter = 'invert(0.92) hue-rotate(180deg) brightness(0.95) contrast(0.95)';
+            iframe.style.backgroundColor = '#121212';
+          } else {
+            iframe.style.filter = 'none';
+            iframe.style.backgroundColor = '#ffffff';
+          }
+        });
+      } catch (e) {
+        console.warn('Error setting webview theme:', e);
+      }
+    };
+  </script>
+  <script type="application/javascript" src="assets/packages/flutter_inappwebview_web/assets/web/web_support.js" defer=""></script>
   <style id="splash-screen-style">
     html {
       height: 100%
@@ -37,7 +77,7 @@
     body {
       margin: 0;
       min-height: 100%;
-      background-color: #ffffff;
+      background-color: #FFFFFF;
           background-size: 100% 100%;
     }
 
@@ -86,6 +126,12 @@
       bottom: 0;
       right: 0;
     }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #FFFFFF;
+          }
+    }
   </style>
   <script id="splash-screen-script">
     function removeSplashFromWeb() {
@@ -94,44 +140,7 @@
       document.body.style.background = "transparent";
     }
   </script>
-  <style id="inappwebview-theme-style">
-    body.app-dark-mode iframe {
-      filter: invert(0.92) hue-rotate(180deg) brightness(0.95) contrast(0.95) !important;
-      background-color: #121212 !important;
-      transition: filter 0.25s ease-in-out;
-    }
-    body.app-light-mode iframe {
-      filter: none !important;
-      background-color: #ffffff !important;
-      transition: filter 0.25s ease-in-out;
-    }
-  </style>
-  <script>
-    window.setAppWebViewTheme = function(isDark) {
-      try {
-        if (isDark) {
-          document.body.classList.add('app-dark-mode');
-          document.body.classList.remove('app-light-mode');
-        } else {
-          document.body.classList.add('app-light-mode');
-          document.body.classList.remove('app-dark-mode');
-        }
-        var iframes = document.querySelectorAll('iframe');
-        iframes.forEach(function(iframe) {
-          if (isDark) {
-            iframe.style.filter = 'invert(0.92) hue-rotate(180deg) brightness(0.95) contrast(0.95)';
-            iframe.style.backgroundColor = '#121212';
-          } else {
-            iframe.style.filter = 'none';
-            iframe.style.backgroundColor = '#ffffff';
-          }
-        });
-      } catch (e) {
-        console.warn('Error setting webview theme:', e);
-      }
-    };
-  </script>
-  <script type="application/javascript" src="assets/packages/flutter_inappwebview_web/assets/web/web_support.js" defer></script>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
 </head>
 <body>
   <picture id="splash">
@@ -139,6 +148,7 @@
       <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x, splash/img/dark-3x.png 3x, splash/img/dark-4x.png 4x" media="(prefers-color-scheme: dark)">
       <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
   </picture>
+  
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader

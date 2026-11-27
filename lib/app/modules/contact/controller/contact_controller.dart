@@ -137,7 +137,7 @@ class ContactController extends GetxController
   }
 
   /// Fetches the `contact-us` CMS layout and falls back to canonical
-  /// `foduu-electro.foduu.store` (`log.txt`) 4-section payload if empty.
+  /// `foduu-electro.foduu.store` (`error.txt`) 5-section payload if empty.
   Future<void> fetchContactLayout() async {
     await fetchLayout('contact-us');
     if (widgetList.isEmpty) {
@@ -243,9 +243,8 @@ class ContactController extends GetxController
           'content': [
             {
               'heading': 'Contact Us',
-              'sub_heading': 'Get In Touch',
-              'description':
-                  'We are here for you! how can we help, We are here for you!',
+              'sub_heading': '',
+              'description': '',
               'filePath': '2026/11/24/contact-us-2173b173.webp',
             },
           ],
@@ -257,7 +256,7 @@ class ContactController extends GetxController
       'type': 'rich_text',
       'visible': true,
       'content_json': {
-        'html_content': "Let's ConnectSend Your Message",
+        'html_content': 'Get In Touch',
       },
     },
     {
@@ -265,12 +264,19 @@ class ContactController extends GetxController
       'type': 'text_block',
       'visible': true,
       'content_json': {
-        'text':
-            'Have questions or feedback? Fill out the form below and our team will get back to you shortly.',
+        'text': 'We are here for you! how can we help, We are here for you!',
         'size': 16,
         'weight': 'normal',
         'alignment': 'left',
         'color': '#000000',
+      },
+    },
+    {
+      'id': 'rich_text',
+      'type': 'rich_text',
+      'visible': true,
+      'content_json': {
+        'html_content': "Let's Connect",
       },
     },
     {
@@ -284,6 +290,8 @@ class ContactController extends GetxController
           'slug': 'contact',
         },
         'title': 'Send Your Message',
+        'subtitle':
+            'Have questions or feedback? Fill out the form below and our team will get back to you shortly.',
       },
     },
   ];

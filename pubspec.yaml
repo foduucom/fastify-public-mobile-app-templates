@@ -62,6 +62,7 @@ dependencies:
   razorpay_flutter: ^1.4.1
   flutter_stripe: ^12.4.0
   phonepe_payment_sdk: ^3.0.2
+  flutter_native_splash: ^2.4.4
 
 dev_dependencies:
   flutter_lints: ^2.0.1
@@ -85,6 +86,21 @@ flutter_launcher_icons:
   web:
     generate: true
     image_path: "assets/images/foduu_electro_launcher.png"
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  color_dark: "#FFFFFF"
+  image: "assets/images/foduu_electro_launcher.png"
+  image_dark: "assets/images/foduu_electro_launcher.png"
+  ios_content_mode: scaleAspectFit
+  android_gravity: center
+  android_12:
+    image: "assets/images/foduu_electro_launcher_foreground.png"
+    image_dark: "assets/images/foduu_electro_launcher_foreground.png"
+    color: "#FFFFFF"
+    color_dark: "#FFFFFF"
+    icon_background_color: "#FFFFFF"
+    icon_background_color_dark: "#FFFFFF"
 
 flutter:
   uses-material-design: true

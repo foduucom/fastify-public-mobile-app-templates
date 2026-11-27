@@ -144,7 +144,8 @@ class ContactSectionHeaderWidget extends StatelessWidget {
     // Strip HTML tags while preserving boundaries between block/inline elements
     final spaced = raw
         .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
-        .replaceAll(RegExp(r'</(p|div|h[1-6]|span)>', caseSensitive: false), '\n')
+        .replaceAll(
+            RegExp(r'</(p|div|h[1-6]|span)>', caseSensitive: false), '\n')
         .replaceAll(RegExp(r'<[^>]+>'), '')
         .replaceAll('&rsquo;', "'")
         .replaceAll('&#39;', "'")
@@ -162,10 +163,16 @@ class ContactSectionHeaderWidget extends StatelessWidget {
       }
     }
 
-    // Handle concatenated CMS string: "Let's ConnectSend Your Message"
     final lower = spaced.toLowerCase();
+    if (lower == 'get in touch') {
+      return (eyebrow: '', heading: spaced);
+    }
     const eyebrowPhrase = "let's connect";
-    if (lower.startsWith(eyebrowPhrase) && spaced.length > eyebrowPhrase.length) {
+    if (lower == eyebrowPhrase) {
+      return (eyebrow: spaced, heading: '');
+    }
+    if (lower.startsWith(eyebrowPhrase) &&
+        spaced.length > eyebrowPhrase.length) {
       return (
         eyebrow: spaced.substring(0, eyebrowPhrase.length).trim(),
         heading: spaced.substring(eyebrowPhrase.length).trim(),
@@ -182,15 +189,26 @@ class ContactSectionHeaderWidget extends StatelessWidget {
       );
     }
 
-    return (eyebrow: "Let's Connect", heading: spaced.isNotEmpty ? spaced : 'Send Your Message');
+    return (
+      eyebrow: '',
+      heading: spaced.isNotEmpty ? spaced : 'Send Your Message'
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final parsed = _parseContent();
+    if (parsed.eyebrow.isEmpty && parsed.heading.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        parsed.heading.isNotEmpty ? 18 : 12,
+        16,
+        parsed.heading.isNotEmpty ? 4 : 6,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -211,7 +229,7 @@ class ContactSectionHeaderWidget extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            if (parsed.heading.isNotEmpty) const SizedBox(height: 8),
           ],
           if (parsed.heading.isNotEmpty)
             Text(
@@ -512,8 +530,7 @@ class ContactFormCardWidget extends StatelessWidget {
           color: context.surfaceColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color:
-                isDark ? Colors.white12 : Colors.grey.withValues(alpha: 0.2),
+            color: isDark ? Colors.white12 : Colors.grey.withValues(alpha: 0.2),
             width: 1,
           ),
           boxShadow: [
@@ -554,6 +571,17 @@ class ContactFormCardWidget extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (data.subtitle.trim().isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      data.subtitle.trim(),
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.45,
+                        color: context.onSurfaceColor.withValues(alpha: 0.68),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 18),
                 ],
                 Obx(() {

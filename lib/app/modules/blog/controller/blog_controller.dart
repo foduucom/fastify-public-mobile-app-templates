@@ -15,12 +15,14 @@ class BlogController extends GetxController
   // View mode switcher: true = Grid View, false = List View (matching website tabs)
   final RxBool isGridView = true.obs;
 
-  // Pagination state for "All Articles" (from error.txt API: /api/blogs?page=1, page=2)
+  // Pagination state for "All Articles" (from /api/blogs?page=1, page=2)
   final RxInt currentPage = 1.obs;
   final RxBool hasNextPage = true.obs;
   final RxBool isLoadingBlogs = false.obs;
   final RxBool isMoreLoading = false.obs;
   final RxInt totalArticles = 0.obs;
+  bool _hasLoadedPaginatedFeed = false;
+  bool _isAutoLoadingRemainingPages = false;
 
   // Search & Category Filtering
   final RxString searchQuery = ''.obs;
@@ -35,76 +37,43 @@ class BlogController extends GetxController
 
   static final List<Map<String, dynamic>> defaultCanonicalBlogSections = [
     {
-      "id": "slider",
-      "type": "slider",
+      "id": "rich_text",
+      "type": "rich_text",
       "content_json": {
-        "slider_id": "6afd5509092bb0fa151fc5d5",
-        "full_screen": false,
-        "height": 200,
-        "slider": {
-          "name": "blog-slider",
-          "slug": "blog-slider",
-          "content": [
-            {
-              "heading": "Blog",
-              "sub_heading": "Stories Powered by Tech",
-              "description":
-                  "Discover the latest gadgets, smart home trends, and expert reviews designed to upgrade every corner of your digital life.",
-              "filePath": "2026/11/17/appliance-lineup-5343cd2f.webp",
-            }
-          ]
-        }
+        "html_content": "News & Insights",
       },
-      "visible": true
-    },
-    {
-      "id": "search",
-      "type": "search",
-      "content_json": {
-        "name": "Search",
-        "placeholder": "Search articles, guides and reviews"
-      },
-      "visible": true
-    },
-    {
-      "id": "text_block",
-      "type": "text_block",
-      "content_json": {
-        "text": "Browse Categories",
-        "size": 16,
-        "weight": "bold",
-        "alignment": "left",
-        "color": "#000000"
-      },
-      "visible": true
+      "visible": true,
     },
     {
       "id": "blog",
       "type": "blog",
       "content_json": {
+        "title": "Our Latest Blog Posts",
+        "subtitle":
+            "Explore in-depth articles, buying guides, and technical breakdowns.",
         "blog_type": "blog_category",
-        "no_of_blog": 70,
+        "no_of_blog": 100,
         "category_ids": [
           {
-            "_id": "6af2a6985378860472ebf280",
-            "name": "Gaming",
-            "slug": "gaming-1"
+            "_id": "6af827652a0fe203761799d1",
+            "name": "Wearables & Tech",
+            "slug": "wearables-tech",
           },
           {
-            "_id": "6af2a6985378860472ebf27e",
-            "name": "Audio Tech",
-            "slug": "audio-tech"
+            "_id": "6af827652a0fe203761799d0",
+            "name": "Cameras & Video",
+            "slug": "cameras-video",
           },
           {
-            "_id": "6af2a6985378860472ebf27c",
-            "name": "Smart Living",
-            "slug": "smart-living"
-          }
+            "_id": "6af827652a0fe203761799ce",
+            "name": "Audio & Sound",
+            "slug": "audio-sound",
+          },
         ],
-        "blogs": []
+        "blogs": [],
       },
-      "visible": true
-    }
+      "visible": true,
+    },
   ];
 
   late final ScrollController scrollController;
@@ -175,7 +144,7 @@ class BlogController extends GetxController
     }
   }
 
-  /// Paginated fetching for all blogs (matching backend error.txt specification: /api/blogs?page=1)
+  /// Paginated fetching for all blogs (/api/blogs?page=1)
   Future<void> fetchAllArticles({bool isRefresh = false}) async {
     try {
       if (isRefresh) {
@@ -190,46 +159,21 @@ class BlogController extends GetxController
 
       if (response == null) return;
 
-      Map? mapObj;
-      List? rawList;
-
-      if (response is Map) {
-        mapObj = response;
-        final inner = response['data'];
-        if (inner is List) {
-          rawList = inner;
-        }
-      } else if (response is List) {
-        rawList = response;
-      }
+      final parsed = _parseBlogsResponse(response);
+      final rawList = parsed.items;
 
       if (rawList != null) {
-        final fetched = rawList
-            .map((item) => BlogModel.fromJson(Map<String, dynamic>.from(item)))
-            .toList();
+        _hasLoadedPaginatedFeed = true;
+        final fetched = _decodeBlogs(rawList);
 
         if (isRefresh) {
           allBlogs.assignAll(fetched);
         } else {
-          final existingIds = allBlogs.map((b) => b.id).toSet();
-          final newUnique =
-              fetched.where((b) => !existingIds.contains(b.id)).toList();
-          allBlogs.addAll(newUnique);
+          _appendUniqueBlogs(fetched);
         }
 
-        if (mapObj != null) {
-          hasNextPage.value = mapObj['hasNextPage'] == true ||
-              (mapObj['pagination'] is Map &&
-                  mapObj['pagination']['has_next'] == true);
-          final total = (mapObj['pagination'] is Map)
-              ? (mapObj['pagination']['total'] as num?)?.toInt()
-              : null;
-          if (total != null) {
-            totalArticles.value = total;
-          } else {
-            totalArticles.value = allBlogs.length;
-          }
-        }
+        hasNextPage.value = parsed.hasNext;
+        totalArticles.value = parsed.total ?? allBlogs.length;
 
         _extractCategoriesFromBlogs();
         _applyFilters();
@@ -253,38 +197,23 @@ class BlogController extends GetxController
           .getRequest(queryParams: {'page': nextPage.toString()})
           .catchError(handleError);
 
-      if (response == null) return;
-
-      List? rawList;
-      Map? mapObj;
-
-      if (response is Map) {
-        mapObj = response;
-        final inner = response['data'];
-        if (inner is List) rawList = inner;
-      } else if (response is List) {
-        rawList = response;
+      if (response == null) {
+        hasNextPage.value = false;
+        return;
       }
 
-      if (rawList != null && rawList.isNotEmpty) {
-        final fetched = rawList
-            .map((item) => BlogModel.fromJson(Map<String, dynamic>.from(item)))
-            .toList();
+      final parsed = _parseBlogsResponse(response);
+      final rawList = parsed.items;
 
-        final existingIds = allBlogs.map((b) => b.id).toSet();
-        final newUnique =
-            fetched.where((b) => !existingIds.contains(b.id)).toList();
-        allBlogs.addAll(newUnique);
+      if (rawList != null && rawList.isNotEmpty) {
+        _hasLoadedPaginatedFeed = true;
+        final fetched = _decodeBlogs(rawList);
+        _appendUniqueBlogs(fetched);
 
         currentPage.value = nextPage;
-        if (mapObj != null) {
-          hasNextPage.value = mapObj['hasNextPage'] == true ||
-              (mapObj['pagination'] is Map &&
-                  mapObj['pagination']['has_next'] == true);
-          final total = (mapObj['pagination'] is Map)
-              ? (mapObj['pagination']['total'] as num?)?.toInt()
-              : null;
-          if (total != null) totalArticles.value = total;
+        hasNextPage.value = parsed.hasNext;
+        if (parsed.total != null) {
+          totalArticles.value = parsed.total!;
         }
 
         _extractCategoriesFromBlogs();
@@ -299,26 +228,104 @@ class BlogController extends GetxController
     }
   }
 
+  /// Loads remaining paginated pages in the background so category/search
+  /// filters operate over the complete article set.
+  Future<void> _loadRemainingPagesInBackground() async {
+    if (_isAutoLoadingRemainingPages || !hasNextPage.value) return;
+    _isAutoLoadingRemainingPages = true;
+    try {
+      while (hasNextPage.value) {
+        final prevPage = currentPage.value;
+        await fetchMoreArticles();
+        if (currentPage.value == prevPage) break;
+      }
+    } finally {
+      _isAutoLoadingRemainingPages = false;
+    }
+  }
+
+  ({List? items, bool hasNext, int? total}) _parseBlogsResponse(dynamic response) {
+    List? rawList;
+    Map? mapObj;
+
+    if (response is Map) {
+      mapObj = response;
+      final inner = response['data'];
+      if (inner is List) {
+        rawList = inner;
+      } else if (inner is Map) {
+        mapObj = inner;
+        final nested = inner['data'] ?? inner['blogs'] ?? inner['docs'];
+        if (nested is List) rawList = nested;
+      }
+    } else if (response is List) {
+      rawList = response;
+    }
+
+    bool hasNext = false;
+    int? total;
+    if (mapObj != null) {
+      final pagination =
+          mapObj['pagination'] is Map ? mapObj['pagination'] as Map : null;
+      final currentP = (pagination?['current_page'] as num?)?.toInt();
+      final lastP = (pagination?['last_page'] as num?)?.toInt();
+      hasNext = mapObj['hasNextPage'] == true ||
+          pagination?['has_next'] == true ||
+          (currentP != null && lastP != null && currentP < lastP);
+      total = (pagination?['total'] as num?)?.toInt() ??
+          (mapObj['total'] as num?)?.toInt();
+    }
+
+    return (items: rawList, hasNext: hasNext, total: total);
+  }
+
+  List<BlogModel> _decodeBlogs(List rawList) {
+    final result = <BlogModel>[];
+    for (final item in rawList) {
+      if (item is Map) {
+        try {
+          result.add(BlogModel.fromJson(Map<String, dynamic>.from(item)));
+        } catch (_) {}
+      }
+    }
+    return result;
+  }
+
+  void _appendUniqueBlogs(List<BlogModel> fetched) {
+    final existingKeys =
+        allBlogs.map((b) => b.id.isNotEmpty ? b.id : b.slug).toSet();
+    final newUnique = fetched
+        .where((b) => !existingKeys.contains(b.id.isNotEmpty ? b.id : b.slug))
+        .toList();
+    allBlogs.addAll(newUnique);
+  }
+
   void _syncFromSectionsData() {
     final feedData = sectionsData.value.feed;
 
     // 1. Synchronize Categories from CMS
     final catSet = <String>{'All'};
     for (final c in feedData.categories) {
-      if (c.name.trim().isNotEmpty) {
-        catSet.add(c.name.trim());
+      final norm = normalizeBlogCategory(c.name);
+      if (norm.isNotEmpty) {
+        catSet.add(norm);
       }
     }
     // Also include any categories present on the blog items
     for (final b in feedData.blogs) {
       for (final cat in b.categories) {
-        if (cat.trim().isNotEmpty) catSet.add(cat.trim());
+        final norm = normalizeBlogCategory(cat);
+        if (norm.isNotEmpty) catSet.add(norm);
       }
     }
     categories.assignAll(catSet.toList());
 
-    // 2. Synchronize Blogs
-    if (feedData.blogs.isNotEmpty) {
+    // 2. Synchronize Blogs only as an initial/offline fallback before the
+    // paginated /api/blogs feed has loaded (prevents overwriting 23 articles
+    // with the 15-item CMS section subset).
+    if (!_hasLoadedPaginatedFeed &&
+        allBlogs.isEmpty &&
+        feedData.blogs.isNotEmpty) {
       allBlogs.assignAll(feedData.blogs);
     }
 
@@ -327,10 +334,15 @@ class BlogController extends GetxController
 
   void _extractCategoriesFromBlogs() {
     final catSet = <String>{'All'};
+    for (final c in sectionsData.value.feed.categories) {
+      final norm = normalizeBlogCategory(c.name);
+      if (norm.isNotEmpty) catSet.add(norm);
+    }
     for (final blog in allBlogs) {
       for (final cat in blog.categories) {
-        if (cat.trim().isNotEmpty) {
-          catSet.add(cat.trim());
+        final norm = normalizeBlogCategory(cat);
+        if (norm.isNotEmpty) {
+          catSet.add(norm);
         }
       }
     }
@@ -340,6 +352,9 @@ class BlogController extends GetxController
   void onSearchChanged(String query) {
     searchQuery.value = query;
     _applyFilters();
+    if (query.trim().isNotEmpty && hasNextPage.value) {
+      _loadRemainingPagesInBackground();
+    }
   }
 
   void clearSearch() {
@@ -351,6 +366,9 @@ class BlogController extends GetxController
   void onCategorySelected(String category) {
     selectedCategory.value = category;
     _applyFilters();
+    if (category != 'All' && category.isNotEmpty && hasNextPage.value) {
+      _loadRemainingPagesInBackground();
+    }
   }
 
   void selectCategory(String category) {
@@ -378,11 +396,12 @@ class BlogController extends GetxController
 
     // 1. Filter by category
     if (category != 'All' && category.isNotEmpty) {
+      final target = normalizeBlogCategory(category).toLowerCase();
       result = result.where((b) {
         final matchesCat = b.categories.any(
-            (c) => c.trim().toLowerCase() == category.toLowerCase());
+            (c) => normalizeBlogCategory(c).toLowerCase() == target);
         final matchesTag =
-            b.tags.any((t) => t.trim().toLowerCase() == category.toLowerCase());
+            b.tags.any((t) => normalizeBlogCategory(t).toLowerCase() == target);
         return matchesCat || matchesTag;
       }).toList();
     }

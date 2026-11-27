@@ -13,6 +13,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import '/app/routes/app_pages.dart';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -27,7 +28,8 @@ import 'package:foduu_ecommerce/services/api_cache.dart';
 import 'package:foduu_ecommerce/services/api_health_service.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   await GetStorage.init();
   await ApiCache.init();
@@ -86,6 +88,7 @@ Future<void> main() async {
       : (isOtpLogin ? Routes.MOBILELOGIN : Routes.LOGIN);
 
   runApp(MyApp(initialRoute: initialRoute));
+  FlutterNativeSplash.remove();
 
   // These tasks are best-effort and run after the first frame. Firebase config,
   // push permissions, and network requests must not prevent the app UI opening.

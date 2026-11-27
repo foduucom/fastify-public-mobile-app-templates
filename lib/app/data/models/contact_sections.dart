@@ -21,7 +21,7 @@ String _s(Map<String, dynamic> m, String key, [String fallback = '']) {
   return v.isEmpty ? fallback : v;
 }
 
-const _defaultHeroImage = '2026/11/14/blog3-ecff3e30.webp';
+const _defaultHeroImage = '2026/11/24/contact-us-2173b173.webp';
 const _defaultCtaImage = '2026/11/17/cta-gear-9f7e301e.svg';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -44,9 +44,8 @@ class ContactHeroHeaderData {
 
   factory ContactHeroHeaderData.fromContentJson(Map<String, dynamic> json) {
     String heading = 'Contact Us';
-    String subHeading = 'Get in touch';
-    String description =
-        'We are here for you! how can we help, We are here for you!';
+    String subHeading = '';
+    String description = '';
     String img = _defaultHeroImage;
     double h = 185.0;
 
@@ -61,8 +60,8 @@ class ContactHeroHeaderData {
       if (content is List && content.isNotEmpty && content.first is Map) {
         final first = Map<String, dynamic>.from(content.first as Map);
         heading = _s(first, 'heading', heading);
-        subHeading = _s(first, 'sub_heading', subHeading);
-        description = _s(first, 'description', description);
+        subHeading = (first['sub_heading'] ?? '').toString().trim();
+        description = (first['description'] ?? '').toString().trim();
         final rawImg = first['download_url'] ??
             first['filePath'] ??
             first['filepath'] ??

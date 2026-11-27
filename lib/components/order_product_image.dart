@@ -61,6 +61,6 @@ class OrderProductImage extends StatelessWidget {
         height: height,
         fit: fit,
         backgroundColor: Colors.white,
-        imageAsset: 'assets/images/app_logo.png',
+        imageAsset: 'assets/images/foduu_electro_launcher.png',
       );
 }

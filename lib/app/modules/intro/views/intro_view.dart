@@ -17,7 +17,7 @@ class IntroView extends GetView<IntroController> {
       appBar: AppBar(
         leading: Transform.translate(
           offset: const Offset(15, 0),
-          child: Image.asset('assets/images/logo.png'),
+          child: Image.asset('assets/images/foduu_electro_launcher.png'),
         ),
         leadingWidth: 77,
         actions: [

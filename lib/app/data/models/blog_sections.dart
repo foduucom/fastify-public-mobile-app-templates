@@ -2,6 +2,15 @@ import 'package:foduu_ecommerce/models/blog_model.dart';
 
 String _str(dynamic v) => (v ?? '').toString().trim();
 
+/// Normalizes raw CMS blog category/tag names (e.g. "others" -> "Tech Guides").
+String normalizeBlogCategory(String raw) {
+  final trimmed = raw.trim();
+  if (trimmed.isEmpty) return '';
+  final lower = trimmed.toLowerCase();
+  if (lower == 'others' || lower == 'other') return 'Tech Guides';
+  return trimmed;
+}
+
 /// ─────────────────────────────────────────────────────────────────────────────
 /// 1. Blog Hero Header (Top Slider: slug "blog-slider", heading "Blog")
 /// ─────────────────────────────────────────────────────────────────────────────
@@ -153,7 +162,7 @@ class BlogCategoryItem {
   factory BlogCategoryItem.fromJson(Map<String, dynamic> json) {
     return BlogCategoryItem(
       id: _str(json['_id'] ?? json['id']),
-      name: _str(json['name']),
+      name: normalizeBlogCategory(_str(json['name'])),
       slug: _str(json['slug']),
     );
   }
@@ -163,12 +172,17 @@ class BlogCategoryItem {
 /// 4. Blog Feed Section Data (Categories + Articles)
 /// ─────────────────────────────────────────────────────────────────────────────
 class BlogFeedSectionData {
+  final String title;
+  final String subtitle;
   final String blogType;
   final int noOfBlog;
   final List<BlogCategoryItem> categories;
   final List<BlogModel> blogs;
 
   const BlogFeedSectionData({
+    this.title = 'Our Latest Blog Posts',
+    this.subtitle =
+        'Explore in-depth articles, buying guides, and technical breakdowns.',
     required this.blogType,
     required this.noOfBlog,
     required this.categories,
@@ -190,8 +204,11 @@ class BlogFeedSectionData {
 
   factory BlogFeedSectionData.fallback() {
     return BlogFeedSectionData(
+      title: 'Our Latest Blog Posts',
+      subtitle:
+          'Explore in-depth articles, buying guides, and technical breakdowns.',
       blogType: 'blog_category',
-      noOfBlog: 70,
+      noOfBlog: 100,
       categories: defaultCategories,
       blogs: const [],
     );
@@ -222,11 +239,18 @@ class BlogFeedSectionData {
       }
     }
 
+    final title = _str(json['title'] ?? json['heading']);
+    final subtitle = _str(json['subtitle'] ?? json['subheading']);
+
     return BlogFeedSectionData(
+      title: title.isNotEmpty ? title : 'Our Latest Blog Posts',
+      subtitle: subtitle.isNotEmpty
+          ? subtitle
+          : 'Explore in-depth articles, buying guides, and technical breakdowns.',
       blogType: _str(json['blog_type']).isNotEmpty
           ? _str(json['blog_type'])
           : 'blog_category',
-      noOfBlog: (json['no_of_blog'] as num?)?.toInt() ?? 70,
+      noOfBlog: (json['no_of_blog'] as num?)?.toInt() ?? 100,
       categories: cats.isNotEmpty ? cats : defaultCategories,
       blogs: blogsList,
     );

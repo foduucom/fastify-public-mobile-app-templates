@@ -5,6 +5,7 @@ import 'package:foduu_ecommerce/components/about_components/about_story_showcase
 import 'package:foduu_ecommerce/components/about_components/about_trust_sections.dart';
 import 'package:foduu_ecommerce/components/blog_components/blog_feed_section.dart';
 import 'package:foduu_ecommerce/components/blog_components/blog_hero_card.dart';
+import 'package:foduu_ecommerce/components/blog_components/blog_page_header.dart';
 import 'package:foduu_ecommerce/components/blog_components/blog_search_bar.dart';
 import 'package:foduu_ecommerce/components/contact_component/contact_widgets.dart';
 import 'package:foduu_ecommerce/components/faq_components/faq_accordion_section.dart';
@@ -324,13 +325,17 @@ bool _isContactRichTextHeading(Map? json) {
   final html = (json['html_content'] ?? json['content'] ?? json['text'] ?? '')
       .toString()
       .toLowerCase();
-  return html.contains("let's connect") || html.contains('send your message');
+  return html.contains('get in touch') ||
+      html.contains("let's connect") ||
+      html.contains('send your message');
 }
 
 bool _isContactIntroText(Map? json) {
   if (json == null) return false;
   final text = (json['text'] ?? '').toString().toLowerCase();
-  return text.contains('have questions or feedback') ||
+  return text.contains('we are here for you') ||
+      text.contains('how can we help') ||
+      text.contains('have questions or feedback') ||
       text.contains('fill out the form below');
 }
 
@@ -376,6 +381,16 @@ bool _isBlogCategorySection(Map? json) {
   final categoryIds = json['category_ids'];
   if (categoryIds is List && categoryIds.isNotEmpty) return true;
   return false;
+}
+
+bool _isBlogRichTextHeader(Map? json) {
+  if (json == null) return false;
+  final html = (json['html_content'] ?? json['content'] ?? json['text'] ?? '')
+      .toString()
+      .toLowerCase();
+  return html.contains('news & insights') ||
+      html.contains('news &amp; insights') ||
+      html.contains('latest blog');
 }
 
 bool _isAboutHeroSlider(Map? json) {
@@ -587,6 +602,9 @@ void registerDefaultWidgets() {
   r.register('rich_text', (json) {
     if (_isContactRichTextHeading(json)) {
       return ContactSectionHeaderWidget(contentJson: json ?? {});
+    }
+    if (_isBlogRichTextHeader(json)) {
+      return BlogPageHeader.fromMap(json is Map<String, dynamic> ? json : null);
     }
     return RichTextComponent(contentJson: json ?? {});
   });

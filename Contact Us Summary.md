@@ -273,3 +273,24 @@ The CMS sends `rich_text` with `html_content: "Let's ConnectSend Your Message"` 
 | `lib/app/modules/Profie/contact/` | Legacy dead/mocked `ContactUsController` with `Future.delayed`. Not wired to current Contact Us route. Cleanup deferred. |
 | `lib/core/studio_socket_routing.dart` | Already handles `'contact-us'` and `'contact'` cases correctly. No changes needed. |
 | `lib/app/routes/app_pages.dart` | Contact Us route and binding already correctly configured. |
+
+---
+
+## 13. Backend 5-Section Format Update (`error.txt` Parity)
+
+Following backend updates captured in `error.txt` (`GET https://foduu-electro.foduu.store/api/mobile-app/contact-us`), the CMS payload expanded from 4 sections to **5 ordered sections**:
+
+| Index | CMS `type` | Live Content (`error.txt`) | Widget & Behavior |
+| :---: | :--- | :--- | :--- |
+| **[0]** | `slider` (`contact-us-slider`) | `heading: "Contact Us"`, `sub_heading: ""`, `description: ""`, `filePath: "2026/11/24/contact-us-2173b173.webp"` | `ContactHeroBannerWidget` — preserves empty `subHeading`/`description` instead of injecting duplicate fallback copy |
+| **[1]** | `rich_text` | `html_content: "Get In Touch"` | `ContactSectionHeaderWidget` — renders as clean `22sp` bold section heading (no generic `RichTextComponent` gray box) |
+| **[2]** | `text_block` | `text: "We are here for you! how can we help, We are here for you!"` | `ContactIntroTextWidget` — matched via `_isContactIntroText()` |
+| **[3]** | `rich_text` | `html_content: "Let's Connect"` | `ContactSectionHeaderWidget` — renders as single `"LET'S CONNECT"` eyebrow pill without duplicating `"Let's Connect"` as a heading |
+| **[4]** | `formbuilder` | `form_id.slug: "contact"`, `title: "Send Your Message"`, `subtitle: "Have questions or feedback? Fill out the form below and our team will get back to you shortly."` | `ContactFormCardWidget` — displays `"Send Your Message"` header + `data.subtitle` above the 2-column First/Last Name, Email, and Message fields |
+
+### Updated Files for 5-Section Parity
+- `lib/core/foduuStudio/register_default_widgets.dart`: Updated `_isContactRichTextHeading()` (`'get in touch'`, `"let's connect"`, `'send your message'`) and `_isContactIntroText()` (`'we are here for you'`, `'how can we help'`, `'have questions or feedback'`, `'fill out the form below'`).
+- `lib/app/data/models/contact_sections.dart`: Updated `ContactHeroHeaderData.fromContentJson()` to preserve empty `sub_heading`/`description` when provided by CMS, and updated `_defaultHeroImage` to `'2026/11/24/contact-us-2173b173.webp'`.
+- `lib/components/contact_component/contact_widgets.dart`: Updated `ContactSectionHeaderWidget._parseContent()` and `build()` for clean single-phrase `"Get In Touch"` and `"Let's Connect"` rendering, and rendered `data.subtitle` inside `ContactFormCardWidget`.
+- `lib/app/modules/contact/controller/contact_controller.dart`: Updated `_canonicalFallbackSections` to the 5-section `error.txt` payload.
+- **Verification**: `flutter analyze` across all Contact Us files returned **0 errors**; `git diff --check` exited with code `0`.

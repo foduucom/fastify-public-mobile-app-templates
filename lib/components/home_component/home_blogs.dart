@@ -53,7 +53,12 @@ class _BlogSectionState extends State<BlogSection>
     if (_fetched) return;
     _fetched = true;
     try {
-      final response = await BasicProvider('blogs?count=6').getRequest();
+      final rawCount = widget.blogData is Map
+          ? int.tryParse((widget.blogData['no_of_blog'] ?? '').toString())
+          : null;
+      final count =
+          (rawCount != null && rawCount > 0) ? rawCount.clamp(1, 20) : 6;
+      final response = await BasicProvider('blogs?count=$count').getRequest();
       List? fetched;
       if (response is Map) {
         final inner = response['data'];
@@ -326,15 +331,25 @@ class _BlogSectionState extends State<BlogSection>
 
     if (_blogs.isEmpty) return const SizedBox.shrink();
 
-    final heading = (widget.blogData is Map &&
-            (widget.blogData['heading'] ?? '').toString().isNotEmpty)
-        ? widget.blogData['heading'].toString()
-        : 'Stories Powered by Tech';
+    String resolveText(List<String> keys, String fallback) {
+      if (widget.blogData is Map) {
+        for (final k in keys) {
+          final v = (widget.blogData[k] ?? '').toString().trim();
+          if (v.isNotEmpty) return v;
+        }
+      }
+      return fallback;
+    }
 
-    final subheading = (widget.blogData is Map &&
-            (widget.blogData['subheading'] ?? '').toString().isNotEmpty)
-        ? widget.blogData['subheading'].toString()
-        : 'Discover the latest gadgets, smart home trends, and expert reviews designed to upgrade every corner of your digital life.';
+    final heading = resolveText(
+      const ['title', 'heading'],
+      'Stories Powered by Tech',
+    );
+
+    final subheading = resolveText(
+      const ['subtitle', 'subheading'],
+      'Discover the latest gadgets, smart home trends, and expert reviews designed to upgrade every corner of your digital life.',
+    );
 
     final cardWidth =
         (MediaQuery.of(context).size.width * 0.78).clamp(280.0, 320.0);
@@ -372,208 +387,212 @@ class _BlogSectionState extends State<BlogSection>
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
                 itemCount: _blogs.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(width: 14),
+                separatorBuilder: (context, index) => const SizedBox(width: 14),
                 itemBuilder: (context, index) {
-                final blog = _blogs[index];
-                if (blog is! Map) return const SizedBox.shrink();
+                  final blog = _blogs[index];
+                  if (blog is! Map) return const SizedBox.shrink();
 
-                final blogId = blog['_id'] ?? blog['id'];
-                final title = blog['name']?.toString() ??
-                    blog['title']?.toString() ??
-                    '';
-                final rawExcerpt = blog['excerpt']?.toString() ??
-                    blog['content']?.toString() ??
-                    '';
-                final cleanDesc = _cleanContent(rawExcerpt);
-                final imageUrl = _resolveBlogImage(blog);
-                final tagStr = _resolveBlogTag(blog);
-                final dateStr = _formatDate(blog['created_at']);
+                  final blogId = blog['_id'] ?? blog['id'];
+                  final title = blog['name']?.toString() ??
+                      blog['title']?.toString() ??
+                      '';
+                  final rawExcerpt = blog['excerpt']?.toString() ??
+                      blog['content']?.toString() ??
+                      '';
+                  final cleanDesc = _cleanContent(rawExcerpt);
+                  final imageUrl = _resolveBlogImage(blog);
+                  final tagStr = _resolveBlogTag(blog);
+                  final dateStr = _formatDate(blog['created_at']);
 
-                return Container(
-                  width: cardWidth,
-                  decoration: BoxDecoration(
-                    color: isDark ? colorScheme.surface : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: colorScheme.outline.withOpacity(0.12),
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
-                        blurRadius: 10,
-                        offset: const Offset(0, 3),
+                  return Container(
+                    width: cardWidth,
+                    decoration: BoxDecoration(
+                      color: isDark ? colorScheme.surface : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: colorScheme.outline.withOpacity(0.12),
+                        width: 1,
                       ),
-                    ],
-                  ),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: () {
-                      if (blogId != null) {
-                        Get.toNamed(Routes.BLOG_DETAILS,
-                            arguments: {'id': blogId, 'blog': blog});
-                      }
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Article Image with Tag Overlay & Shimmer
-                        ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(15)),
-                          child: SizedBox(
-                            height: 145,
-                            width: double.infinity,
-                            child: Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                imageUrl.isNotEmpty
-                                    ? CachedNetworkImage(
-                                        imageUrl: imageUrl,
-                                        height: 145,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
-                                        errorWidget: (_, __, ___) =>
-                                            _buildEditorialFallback(
-                                                title, context),
-                                        placeholder: (_, __) =>
-                                            _buildShimmerPlaceholder(),
-                                      )
-                                    : _buildEditorialFallback(title, context),
-                                if (imageUrl.isNotEmpty &&
-                                    tagStr != null &&
-                                    tagStr.isNotEmpty)
-                                  Positioned(
-                                    left: 12,
-                                    bottom: 12,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.85),
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Text(
-                                        tagStr,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 10.5,
-                                          fontWeight: FontWeight.w600,
-                                          letterSpacing: 0.3,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        // Article Details & Meta
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(14.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      title,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 14.5,
-                                        fontWeight: FontWeight.w700,
-                                        color: colorScheme.onSurface,
-                                        height: 1.25,
-                                      ),
-                                    ),
-                                    if (cleanDesc.isNotEmpty) ...[
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        cleanDesc,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: colorScheme.onSurfaceVariant,
-                                          height: 1.35,
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-
-                                // Footer: Date + "Read more >" dark pill button
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.calendar_today_outlined,
-                                          size: 13,
-                                          color: colorScheme.onSurfaceVariant
-                                              .withOpacity(0.7),
-                                        ),
-                                        const SizedBox(width: 5),
-                                        Text(
-                                          dateStr,
-                                          style: TextStyle(
-                                            fontSize: 11.5,
-                                            fontWeight: FontWeight.w500,
-                                            color: colorScheme.onSurfaceVariant,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: colorScheme.primary,
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            'Read more',
-                                            style: TextStyle(
-                                              color: colorScheme.onPrimary,
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 3),
-                                          Icon(
-                                            Icons.chevron_right_rounded,
-                                            size: 13,
-                                            color: colorScheme.onPrimary,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
-                  ),
-                );
-              },
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        if (blogId != null) {
+                          Get.toNamed(Routes.BLOG_DETAILS,
+                              arguments: {'id': blogId, 'blog': blog});
+                        }
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Article Image with Tag Overlay & Shimmer
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(15)),
+                            child: SizedBox(
+                              height: 145,
+                              width: double.infinity,
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  imageUrl.isNotEmpty
+                                      ? CachedNetworkImage(
+                                          imageUrl: imageUrl,
+                                          height: 145,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                          errorWidget: (_, __, ___) =>
+                                              _buildEditorialFallback(
+                                                  title, context),
+                                          placeholder: (_, __) =>
+                                              _buildShimmerPlaceholder(),
+                                        )
+                                      : _buildEditorialFallback(title, context),
+                                  if (imageUrl.isNotEmpty &&
+                                      tagStr != null &&
+                                      tagStr.isNotEmpty)
+                                    Positioned(
+                                      left: 12,
+                                      bottom: 12,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withOpacity(0.85),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                        child: Text(
+                                          tagStr,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0.3,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // Article Details & Meta
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(14.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        title,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 14.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: colorScheme.onSurface,
+                                          height: 1.25,
+                                        ),
+                                      ),
+                                      if (cleanDesc.isNotEmpty) ...[
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          cleanDesc,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: colorScheme.onSurfaceVariant,
+                                            height: 1.35,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+
+                                  // Footer: Date + "Read more >" dark pill button
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.calendar_today_outlined,
+                                            size: 13,
+                                            color: colorScheme.onSurfaceVariant
+                                                .withOpacity(0.7),
+                                          ),
+                                          const SizedBox(width: 5),
+                                          Text(
+                                            dateStr,
+                                            style: TextStyle(
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.w500,
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: colorScheme.primary,
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              'Read more',
+                                              style: TextStyle(
+                                                color: colorScheme.onPrimary,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 3),
+                                            Icon(
+                                              Icons.chevron_right_rounded,
+                                              size: 13,
+                                              color: colorScheme.onPrimary,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),

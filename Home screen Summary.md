@@ -669,6 +669,21 @@ Comparing 6 sequential mobile screenshots against the parent storefront (`https:
 ### 12.3 Verification
 * **Static Analysis (`flutter analyze`):** Executed across all 10 modified/created files — **0 compilation errors** (only pre-existing deprecation `info` notices and 3 pre-existing unused-declaration/import warnings).
 
+---
+
+## 13. Dynamic Blog Section Header & CMS Broadcasting Parity (`log.txt`)
+
+### 13.1 Root Cause
+- In `log.txt`, the Home screen's `blog` section (`"id": "blog"`, `"type": "blog"`) broadcasts `"title": "Latest News & Tech Articles"`, `"subtitle": "Stay updated with the latest trends, gadget reviews, and expert electronics buying guides"`, and `"no_of_blog": 10` inside `content_json`.
+- `BlogSection` in `lib/components/home_component/home_blogs.dart` previously checked `widget.blogData['heading']` and `widget.blogData['subheading']` and hardcoded `blogs?count=6`, causing it to ignore the CMS `title`/`subtitle` and fall back to static `'Stories Powered by Tech'` copy.
+
+### 13.2 Implemented Changes
+- **`lib/components/home_component/home_blogs.dart`**:
+  - Updated `BlogSection.build()` to resolve `title` → `heading` → fallback `'Stories Powered by Tech'`, and `subtitle` → `subheading` → fallback.
+  - Updated `_fetchLiveBlogs()` to read `no_of_blog` from `widget.blogData` (clamped `1..20`, default `6`).
+  - Live WebSocket broadcasts via `FoduuStudioLayoutMixin` (`$websiteDomain:mobileapp`) and `WidgetRegistry` now update the Home blog section title, subtitle, and item count dynamically.
+- **Verification**: `flutter analyze lib/components/home_component/home_blogs.dart` returned **0 errors**; `git diff --check` exited with code `0`.
+
 
 
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/data/models/blog_sections.dart';
 import 'package:foduu_ecommerce/app/modules/blog/controller/blog_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/components/blog_components/blog_search_bar.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/foduuCachedImageNetwork.dart';
 import 'package:foduu_ecommerce/models/blog_model.dart';
@@ -32,7 +33,7 @@ class _BlogFeedSectionState extends State<BlogFeedSection> {
   @override
   Widget build(BuildContext context) {
     if (Get.isRegistered<BlogController>()) {
-      return const _ReactiveBlogFeed();
+      return _ReactiveBlogFeed(data: _staticData);
     }
     return _StaticBlogFeed(data: _staticData);
   }
@@ -40,7 +41,8 @@ class _BlogFeedSectionState extends State<BlogFeedSection> {
 
 /// Reactive feed connected directly to BlogController
 class _ReactiveBlogFeed extends StatelessWidget {
-  const _ReactiveBlogFeed({Key? key}) : super(key: key);
+  final BlogFeedSectionData data;
+  const _ReactiveBlogFeed({Key? key, required this.data}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -54,14 +56,54 @@ class _ReactiveBlogFeed extends StatelessWidget {
       final selectedCategory = controller.selectedCategory.value;
       final blogs = controller.filteredBlogs;
       final isGridView = controller.isGridView.value;
+      final hasSeparateSearch = controller.sectionTypes.contains('search');
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 0. CMS Title & Subtitle Header ("Our Latest Blog Posts")
+          if (data.title.isNotEmpty || data.subtitle.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (data.title.isNotEmpty)
+                    Text(
+                      data.title,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 22,
+                        letterSpacing: -0.3,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  if (data.subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      data.subtitle,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontSize: 13,
+                        height: 1.45,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+          // 0B. Inline Search Bar when CMS omits a separate search section
+          if (!hasSeparateSearch)
+            const BlogSearchBar(
+              placeholder: 'Search articles, guides and reviews...',
+            ),
+
           // 1. Category Pills
           if (categories.isNotEmpty) ...[
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
@@ -76,16 +118,16 @@ class _ReactiveBlogFeed extends StatelessWidget {
                           cat == 'All' ? 'All Articles' : cat,
                           style: TextStyle(
                             fontSize: 13,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                            fontWeight:
+                                isSelected ? FontWeight.w600 : FontWeight.w500,
                             color: isSelected
                                 ? colorScheme.onPrimary
                                 : colorScheme.onSurface,
                           ),
                         ),
                         selected: isSelected,
-                        selectedColor: isDark
-                            ? colorScheme.primary
-                            : colorScheme.primary,
+                        selectedColor:
+                            isDark ? colorScheme.primary : colorScheme.primary,
                         backgroundColor: isDark
                             ? colorScheme.surface
                             : colorScheme.surfaceVariant.withValues(alpha: 0.5),
@@ -95,7 +137,8 @@ class _ReactiveBlogFeed extends StatelessWidget {
                           side: BorderSide(
                             color: isSelected
                                 ? colorScheme.primary
-                                : colorScheme.outlineVariant.withValues(alpha: 0.4),
+                                : colorScheme.outlineVariant
+                                    .withValues(alpha: 0.4),
                           ),
                         ),
                         onSelected: (_) => controller.onCategorySelected(cat),
@@ -126,7 +169,8 @@ class _ReactiveBlogFeed extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: colorScheme.primary.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(10),
@@ -149,7 +193,9 @@ class _ReactiveBlogFeed extends StatelessWidget {
                 IconButton(
                   tooltip: isGridView ? 'Switch to List' : 'Switch to Grid',
                   icon: Icon(
-                    isGridView ? Icons.view_agenda_outlined : Icons.grid_view_rounded,
+                    isGridView
+                        ? Icons.view_agenda_outlined
+                        : Icons.grid_view_rounded,
                     size: 20,
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -173,7 +219,7 @@ class _ReactiveBlogFeed extends StatelessWidget {
                   crossAxisCount: 2,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 14,
-                  childAspectRatio: 0.68,
+                  childAspectRatio: 0.65,
                 ),
                 itemBuilder: (context, index) {
                   return _BlogGridCard(blog: blogs[index]);
@@ -201,6 +247,33 @@ class _ReactiveBlogFeed extends StatelessWidget {
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
                   color: colorScheme.primary,
+                ),
+              ),
+            ),
+          ] else if (controller.hasNextPage.value &&
+              blogs.isNotEmpty &&
+              selectedCategory == 'All' &&
+              controller.searchQuery.value.isEmpty) ...[
+            const SizedBox(height: 16),
+            Center(
+              child: OutlinedButton(
+                onPressed: controller.fetchMoreArticles,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: colorScheme.primary,
+                  side: BorderSide(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.7),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
+                ),
+                child: const Text(
+                  'Load More Articles',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -288,7 +361,8 @@ class _StaticBlogFeed extends StatelessWidget {
       children: [
         if (data.categories.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -317,7 +391,8 @@ class _StaticBlogFeed extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: data.blogs.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) => _BlogListCard(blog: data.blogs[index]),
+            itemBuilder: (context, index) =>
+                _BlogListCard(blog: data.blogs[index]),
           ),
         ),
       ],
@@ -336,9 +411,12 @@ class _BlogGridCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final categoryLabel = blog.categories.isNotEmpty
+    final rawCategory = blog.categories.isNotEmpty
         ? blog.categories.first
-        : (blog.tags.isNotEmpty ? blog.tags.first : 'General');
+        : (blog.tags.isNotEmpty ? blog.tags.first : 'Tech Guides');
+    final categoryLabel = normalizeBlogCategory(rawCategory).isNotEmpty
+        ? normalizeBlogCategory(rawCategory)
+        : 'Tech Guides';
 
     return InkWell(
       onTap: () {
@@ -350,7 +428,8 @@ class _BlogGridCard extends StatelessWidget {
           color: isDark ? colorScheme.surface : context.surfaceColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.35 : 0.6),
+            color: colorScheme.outlineVariant
+                .withValues(alpha: isDark ? 0.35 : 0.6),
             width: 1,
           ),
           boxShadow: [
@@ -388,7 +467,8 @@ class _BlogGridCard extends StatelessWidget {
                   top: 8,
                   left: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.75),
                       borderRadius: BorderRadius.circular(12),
@@ -445,7 +525,8 @@ class _BlogGridCard extends StatelessWidget {
                           blog.shortDate.isNotEmpty ? blog.shortDate : 'Recent',
                           style: TextStyle(
                             fontSize: 10,
-                            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                            color: colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.8),
                           ),
                         ),
                         Text(
@@ -480,9 +561,12 @@ class _BlogListCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final categoryLabel = blog.categories.isNotEmpty
+    final rawCategory = blog.categories.isNotEmpty
         ? blog.categories.first
-        : (blog.tags.isNotEmpty ? blog.tags.first : 'General');
+        : (blog.tags.isNotEmpty ? blog.tags.first : 'Tech Guides');
+    final categoryLabel = normalizeBlogCategory(rawCategory).isNotEmpty
+        ? normalizeBlogCategory(rawCategory)
+        : 'Tech Guides';
 
     return InkWell(
       onTap: () {
@@ -494,7 +578,8 @@ class _BlogListCard extends StatelessWidget {
           color: isDark ? colorScheme.surface : context.surfaceColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.35 : 0.6),
+            color: colorScheme.outlineVariant
+                .withValues(alpha: isDark ? 0.35 : 0.6),
             width: 1,
           ),
           boxShadow: [
@@ -531,7 +616,8 @@ class _BlogListCard extends StatelessWidget {
                   top: 12,
                   left: 12,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.8),
                       borderRadius: BorderRadius.circular(14),
