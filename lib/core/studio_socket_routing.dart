@@ -1,9 +1,12 @@
 // ignore_for_file: avoid_print
 
 import 'dart:convert';
+import 'package:zouhi/app/data/basic_provider.dart';
 import 'package:zouhi/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:zouhi/app/routes/app_pages.dart';
 import 'package:zouhi/constants/constants.dart';
+import 'package:zouhi/constants/dynamic_theme.dart';
+import 'package:zouhi/core/config/app_config.dart';
 import 'package:zouhi/helpers/socket_helper.dart';
 import 'package:get/get.dart';
 import 'package:zouhi/app/modules/shop/shop_navigation.dart';
@@ -51,15 +54,23 @@ class StudioSocketRouting extends GetxController {
       _socketHelper.connect();
 
       final eventName = '$websiteDomain:mobileapp:route';
+      final themeEventName = '$websiteDomain:mobileapp:theme';
+      final settingsEventName = '$websiteDomain:mobileapp:settings';
       print('🌐 StudioSocketRouting: Listening for event: $eventName');
 
       // Clear existing listeners to avoid duplicates
       _socketHelper.off(eventName);
+      _socketHelper.off(themeEventName);
+      _socketHelper.off(settingsEventName);
 
       _socketHelper.on(eventName, (data) {
         print('📨 StudioSocketRouting: Received data: $data');
         _handleRouteEvent(data);
       });
+      _socketHelper.on(
+          themeEventName, (data) => _handleThemeOrSettingsEvent(data));
+      _socketHelper.on(
+          settingsEventName, (data) => _handleThemeOrSettingsEvent(data));
     } catch (e) {
       print('❌ StudioSocketRouting: Error initializing socket: $e');
     }
@@ -225,10 +236,41 @@ class StudioSocketRouting extends GetxController {
     }
   }
 
+  Future<void> _handleThemeOrSettingsEvent(dynamic data) async {
+    try {
+      dynamic decoded = data is String ? json.decode(data) : data;
+      if (decoded is Map) {
+        final palette = decoded['app_theme_color'] ?? decoded['theme_color'];
+        if (palette is Map) {
+          final updated = DynamicThemeManager()
+              .updateFromApi(Map<String, dynamic>.from(palette));
+          if (updated && Get.isRegistered<ThemeController>()) {
+            Get.find<ThemeController>().refreshTheme();
+          }
+        }
+      }
+      final response =
+          await BasicProvider('public-settings', showSnackBar: false)
+              .getRequest();
+      final settings = AppConfig.instance.applyPublicSettings(response);
+      if (settings != null) {
+        final palette = AppConfig.instance.extractThemePalette(settings);
+        if (palette != null &&
+            DynamicThemeManager().updateFromApi(palette) &&
+            Get.isRegistered<ThemeController>()) {
+          Get.find<ThemeController>().refreshTheme();
+        }
+      }
+    } catch (e) {
+      print('⚠️ StudioSocketRouting: Error refreshing theme/settings: $e');
+    }
+  }
+
   @override
   void onClose() {
-    final eventName = '$websiteDomain:mobileapp:route';
-    _socketHelper.off(eventName);
+    _socketHelper.off('$websiteDomain:mobileapp:route');
+    _socketHelper.off('$websiteDomain:mobileapp:theme');
+    _socketHelper.off('$websiteDomain:mobileapp:settings');
     super.onClose();
   }
 }

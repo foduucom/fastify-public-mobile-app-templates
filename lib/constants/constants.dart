@@ -1,33 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zouhi/app/controllers/currency_controller.dart';
+import 'package:zouhi/core/config/app_config.dart';
 
-const appMode = "protu";
+String get appMode => AppConfig.instance.appMode;
 
-// var url = "http://mern.foduu.com:3016/";
-var url = "https://vision.foduu.store/";
-// var url = 'https://api.protuffnutri.com/';
-
-var assetURL = "${url}images/";
-var apiURL = "${url}api/";
-var vendorapiURL = "${url}vendorapi/";
+String get url => AppConfig.instance.url;
+String get assetURL => AppConfig.instance.assetURL;
+String get apiURL => AppConfig.instance.apiURL;
+String get vendorapiURL => AppConfig.instance.vendorapiURL;
 var razorPayKey = "";
 
-//var accessToken = "f654e0a9ed1f267915a55b950a579ad47d281f74d7fd4cd6";
-var accessToken = "c50c0c1258bb25df3082b9053e7b3bc0ab5fcf96a0d78a04";
-var websiteDomain = "vision.foduu.store";
-var socketUrl = "https://studio.foduu.store/";
-var ACCESS_KEY = "c50c0c1258bb25df3082b9053e7b3bc0ab5fcf96a0d78a04";
+String get accessToken => AppConfig.instance.accessKey;
+set accessToken(String value) => AppConfig.instance.accessKey = value;
 
-bool isOtpLogin = false;
+String get websiteDomain => AppConfig.instance.websiteDomain;
+set websiteDomain(String value) => AppConfig.instance.websiteDomain = value;
+
+String get socketUrl => AppConfig.instance.socketUrl;
+set socketUrl(String value) => AppConfig.instance.socketUrl = value;
+
+String get ACCESS_KEY => AppConfig.instance.accessKey;
+set ACCESS_KEY(String value) => AppConfig.instance.accessKey = value;
+
+bool get isOtpLogin => AppConfig.instance.isOtpLogin;
+set isOtpLogin(bool value) => AppConfig.instance.isOtpLogin = value;
 
 /// Symbol of the app's single currency (empty until it has loaded).
 String get currency => Get.isRegistered<CurrencyController>()
     ? Get.find<CurrencyController>().symbol
     : '';
-const String appName = 'Vision Infrastructure';
-String supportEmail = "support@vbought.com";
-String supportContact = "1-800-570-7777";
+String get appName => AppConfig.instance.appName;
+String get supportEmail => AppConfig.instance.supportEmail;
+set supportEmail(String value) => AppConfig.instance.supportEmail = value;
+
+String get supportContact => AppConfig.instance.supportContact;
+set supportContact(String value) => AppConfig.instance.supportContact = value;
 
 String discountPercent = "15";
 
@@ -83,30 +91,33 @@ const double themeBorderRadiusValue = 16.0;
 const double themeButtonRadius = 8.0;
 const double themeButtonHeight = 48.0;
 
-BorderRadiusGeometry themeBorderRadius =
-    BorderRadius.circular(themeBorderRadiusValue);
-ShapeBorder themeShapeBorderRadius = RoundedRectangleBorder(
-  borderRadius: themeBorderRadius,
-);
+BorderRadiusGeometry get themeBorderRadius => BorderRadius.circular(
+      AppConfig.instance.borderRadiusOverride ?? themeBorderRadiusValue,
+    );
+ShapeBorder get themeShapeBorderRadius => RoundedRectangleBorder(
+      borderRadius: themeBorderRadius,
+    );
 
 /// ****************** Design Properties ****************** ///
-ButtonStyle themeButton = ButtonStyle(
-  shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-    RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(themeButtonRadius)),
-  ),
-  textStyle: WidgetStateProperty.all<TextStyle>(
-    const TextStyle(
-      color: Colors.white,
-      fontWeight: FontWeight.w600,
-      fontFamily: 'Poppins',
-    ),
-  ),
-  backgroundColor: WidgetStateProperty.all(themePrimaryColor),
-  elevation: WidgetStateProperty.all(0),
-  minimumSize: WidgetStateProperty.all(Size.zero),
-  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-);
+ButtonStyle get themeButton => ButtonStyle(
+      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+        RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+                AppConfig.instance.buttonBorderRadiusOverride ??
+                    themeButtonRadius)),
+      ),
+      textStyle: WidgetStateProperty.all<TextStyle>(
+        const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+          fontFamily: 'Poppins',
+        ),
+      ),
+      backgroundColor: WidgetStateProperty.all(themePrimaryColor),
+      elevation: WidgetStateProperty.all(0),
+      minimumSize: WidgetStateProperty.all(Size.zero),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
 
 String environment = 'SANDBOX';
 String saltKey = '099eb0cd-02cf-4e2a-8aca-3e6c6aff0399';

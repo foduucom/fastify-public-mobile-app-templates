@@ -15,28 +15,22 @@ import 'app/routes/app_pages.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:zouhi/constants/constants.dart';
+import 'package:zouhi/core/config/app_config.dart';
 import 'package:zouhi/core/studio_socket_routing.dart';
 
 Future<void> _refreshPublicSettings() async {
   try {
     final response =
         await BasicProvider('public-settings', showSnackBar: false).getRequest();
-    if (response != null && response is Map) {
-      if (response.containsKey('storeSettings')) {
-        final storeSettings = response['storeSettings'];
-        if (storeSettings is Map &&
-            storeSettings.containsKey('app_theme_color')) {
-          final themeColor = storeSettings['app_theme_color'];
-          if (themeColor is Map) {
-            if (Get.isRegistered<ThemeController>()) {
-              Get.find<ThemeController>().updateThemeFromApi(
-                  Map<String, dynamic>.from(themeColor));
-            } else {
-              DynamicThemeManager().updateFromApi(
-                  Map<String, dynamic>.from(themeColor));
-            }
-          }
-        }
+    final settings = AppConfig.instance.applyPublicSettings(response);
+    if (settings == null) return;
+
+    final palette = AppConfig.instance.extractThemePalette(settings);
+    if (palette != null) {
+      if (Get.isRegistered<ThemeController>()) {
+        Get.find<ThemeController>().updateThemeFromApi(palette);
+      } else {
+        DynamicThemeManager().updateFromApi(palette);
       }
     }
   } catch (e) {
@@ -47,6 +41,7 @@ Future<void> _refreshPublicSettings() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
+  final appConfig = await AppConfig.init();
 
   // Initialize dynamic theme manager from local cache
   await DynamicThemeManager().init();
@@ -69,30 +64,7 @@ Future<void> main() async {
   Get.put(CurrencyController(), permanent: true);
 
   if (kIsWeb) {
-    var accessKey = Uri.base.queryParameters['api_key'];
-    var domain = Uri.base.queryParameters['domain_name'];
-    String? slug = Uri.base.queryParameters['slug'] ?? 'home';
-    if (accessKey == null && Uri.base.fragment.isNotEmpty) {
-      try {
-        final fragmentUri = Uri.parse(Uri.base.fragment);
-        accessKey = fragmentUri.queryParameters['api_key'];
-        domain = fragmentUri.queryParameters['domain_name'];
-        slug = fragmentUri.queryParameters['slug'] ?? slug;
-      } catch (e) {
-        print("Error parsing URI fragment: $e");
-      }
-    }
-
-    if (accessKey != null && accessKey.isNotEmpty) {
-      ACCESS_KEY = accessKey;
-      accessToken = accessKey;
-    }
-
-    if (domain != null && domain.isNotEmpty) {
-      websiteDomain = domain;
-    }
-
-    Get.put(StudioSocketRouting(initialSlug: slug));
+    Get.put(StudioSocketRouting(initialSlug: appConfig.initialSlug));
   }
 
   runApp(const AppRoot());
@@ -130,7 +102,7 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
       builder: (themeController) {
         return GetMaterialApp(
           debugShowCheckedModeBanner: false,
-          title: "Vision Infrastructure",
+          title: appName,
           theme: themeController.lightTheme,
           darkTheme: themeController.lightTheme,
           themeMode: ThemeMode.light,
