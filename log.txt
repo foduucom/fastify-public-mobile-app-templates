@@ -1,852 +1,373 @@
-D/CCodecConfig( 9301):   c2::u32 raw.crop.height = 1080
-D/CCodecConfig( 9301):   c2::u32 raw.crop.left = 0
-D/CCodecConfig( 9301):   c2::u32 raw.crop.top = 0
-D/CCodecConfig( 9301):   c2::u32 raw.crop.width = 720
-D/CCodecBuffers( 9301): [c2.android.av1-dav1d.decoder#680:2D-BB-Output] popFromStashAndRegister: at 0us, output format changed to AMessage(what = 0x00000000) = {
-D/CCodecBuffers( 9301):   int32_t android._color-format = 2135033992
-D/CCodecBuffers( 9301):   int32_t android._video-scaling = 1
-D/CCodecBuffers( 9301):   int32_t android._dataspace = 142737408
-D/CCodecBuffers( 9301):   int32_t color-standard = 86
-D/CCodecBuffers( 9301):   int32_t color-range = 1
-D/CCodecBuffers( 9301):   int32_t color-transfer = 2
-D/CCodecBuffers( 9301):   int32_t sar-height = 1
-D/CCodecBuffers( 9301):   int32_t rotation-degrees = 0
-D/CCodecBuffers( 9301):   Buffer hdr-static-info = {
-D/CCodecBuffers( 9301):     00000000:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
-D/CCodecBuffers( 9301):     00000010:  00 00 00 00 00 00 00 00  00                       .........
-D/CCodecBuffers( 9301):   }
-D/CCodecBuffers( 9301):   int32_t sar-width = 1
-D/CCodecBuffers( 9301):   Rect crop(0, 0, 719, 1079)
-D/CCodecBuffers( 9301):   int32_t width = 720
-D/CCodecBuffers( 9301):   Buffer hdr10-plus-info = {
-D/CCodecBuffers( 9301):   }
-D/CCodecBuffers( 9301):   int32_t height = 1080
-D/CCodecBuffers( 9301):   int32_t max-height = 1080
-D/CCodecBuffers( 9301):   int32_t max-width = 720
-D/CCodecBuffers( 9301):   string mime = "video/raw"
-D/CCodecBuffers( 9301):   int32_t color-format = 2135033992
-D/CCodecBuffers( 9301): }
-D/CCodecBuffers( 9301): [c2.android.av1-dav1d.decoder#680:2D-BB-Output] updating image-data
-D/CCodecBuffers( 9301): [c2.android.av1-dav1d.decoder#680:2D-BB-Output] updating stride = 720, width: 720, height: 1080
-D/CCodecBuffers( 9301): [c2.android.av1-dav1d.decoder#680:2D-BB-Output] updating vstride = 1356
-W/HWUI    ( 9301): Image decoding logging dropped!
-D/CCodecBufferChannel( 9301): [c2.android.av1-dav1d.decoder#680] MediaCodec discarded an unknown buffer
-D/CCodecBufferChannel( 9301): [c2.android.av1-dav1d.decoder#680] MediaCodec discarded an unknown buffer
-D/CCodecBufferChannel( 9301): [c2.android.av1-dav1d.decoder#680] MediaCodec discarded an unknown buffer
-D/CCodecBufferChannel( 9301): [c2.android.av1-dav1d.decoder#680] MediaCodec discarded an unknown buffer
-I/hw-BpHwBinder( 9301): onLastStrongRef automatically unlinking death recipients
-W/AMessage( 9301): failed to deliver message as target handler 72 is gone.
-I/flutter ( 9301): widgetList.length: 6
-I/flutter ( 9301): widgetList.length: 6
-D/CCodec  ( 9301): allocate(c2.android.av1-dav1d.decoder)
-I/CCodec  ( 9301): setting up 'default' as default (vendor) store
-I/CCodec  ( 9301): Created component [c2.android.av1-dav1d.decoder] for [c2.android.av1-dav1d.decoder]
-D/CCodecConfig( 9301): read media type: video/av01
-D/ReflectedParamUpdater( 9301): extent() != 1 for single value type: algo.buffers.max-count.values
-D/ReflectedParamUpdater( 9301): extent() != 1 for single value type: output.subscribed-indices.values
-D/ReflectedParamUpdater( 9301): extent() != 1 for single value type: input.buffers.allocator-ids.values
-D/ReflectedParamUpdater( 9301): extent() != 1 for single value type: output.buffers.allocator-ids.values
-D/ReflectedParamUpdater( 9301): extent() != 1 for single value type: algo.buffers.allocator-ids.values
-D/ReflectedParamUpdater( 9301): extent() != 1 for single value type: output.buffers.pool-ids.values
-D/ReflectedParamUpdater( 9301): extent() != 1 for single value type: algo.buffers.pool-ids.values
-D/ReflectedParamUpdater( 9301): ignored struct field coded.color-format.locations
-D/CCodecConfig( 9301): ignoring local param raw.size (0xd2001800) as it is already supported
-D/CCodecConfig( 9301): ignoring local param default.color (0x5200180b) as it is already supported
-D/CCodecConfig( 9301): ignoring local param raw.hdr-static-info (0xd200180a) as it is already supported
-I/CCodecConfig( 9301): query failed after returning 16 values (BAD_INDEX)
-D/CCodecConfig( 9301): c2 config diff is Dict {
-D/CCodecConfig( 9301):   c2::u32 algo.low-latency.value = 0
-D/CCodecConfig( 9301):   c2::u32 coded.pl.level = 36865
-D/CCodecConfig( 9301):   c2::u32 coded.pl.profile = 36864
-D/CCodecConfig( 9301):   c2::u32 coded.vui.color.matrix = 0
-D/CCodecConfig( 9301):   c2::u32 coded.vui.color.primaries = 0
-D/CCodecConfig( 9301):   c2::u32 coded.vui.color.range = 2
-D/CCodecConfig( 9301):   c2::u32 coded.vui.color.transfer = 0
-D/CCodecConfig( 9301):   c2::u32 default.color.matrix = 0
-D/CCodecConfig( 9301):   c2::u32 default.color.primaries = 0
-D/CCodecConfig( 9301):   c2::u32 default.color.range = 0
-D/CCodecConfig( 9301):   c2::u32 default.color.transfer = 0
-D/CCodecConfig( 9301):   c2::u32 input.buffers.max-size.value = 2097152
-D/CCodecConfig( 9301):   c2::u32 input.delay.value = 0
-D/CCodecConfig( 9301):   Buffer input.hdr10-plus-info.value = {
-D/CCodecConfig( 9301):   }
-D/CCodecConfig( 9301):   string input.media-type.value = "video/av01"
-D/CCodecConfig( 9301):   c2::u32 output.delay.value = 4
-D/CCodecConfig( 9301):   Buffer output.hdr10-plus-info.value = {
-D/CCodecConfig( 9301):   }
-D/CCodecConfig( 9301):   string output.media-type.value = "video/raw"
-D/CCodecConfig( 9301):   c2::u32 raw.color.matrix = 0
-D/CCodecConfig( 9301):   c2::u32 raw.color.primaries = 0
-D/CCodecConfig( 9301):   c2::u32 raw.color.range = 2
-D/CCodecConfig( 9301):   c2::u32 raw.color.transfer = 0
-D/CCodecConfig( 9301):   c2::float raw.hdr-static-info.mastering.blue.x = 0
-D/CCodecConfig( 9301):   c2::float raw.hdr-static-info.mastering.blue.y = 0
-D/CCodecConfig( 9301):   c2::float raw.hdr-static-info.mastering.green.x = 0
-D/CCodecConfig( 9301):   c2::floa
-W/ColorUtils( 9301): expected specified color aspects (2:0:0:0)
-E/MediaCodec( 9301): Media Quality Service not found.
-D/CCodec  ( 9301): [c2.android.av1-dav1d.decoder] buffers are bound to CCodec for this session
-D/CCodecConfig( 9301): no c2 equivalents for color-format
-D/CCodecConfig( 9301): no c2 equivalents for flags
-D/CCodecConfig( 9301): c2 config diff is   c2::u32 algo.low-latency.value = 1
-D/CCodecConfig( 9301):   c2::u32 raw.size.height = 1080
-D/CCodecConfig( 9301):   c2::u32 raw.size.width = 720
-W/ColorUtils( 9301): expected specified color aspects (2:0:0:0)
-W/Codec2Client( 9301): query -- param skipped: index = 1107298332.
-D/CCodec  ( 9301): client requested max input size 155144, which is smaller than what component recommended (2097152); overriding with component recommendation.
-W/CCodec  ( 9301): This behavior is subject to change. It is recommended that app developers double check whether the requested max input size is in reasonable range.
-D/CCodec  ( 9301): encoding statistics level = 0
-D/CCodec  ( 9301): setup formats input: AMessage(what = 0x00000000) = {
-D/CCodec  ( 9301):   int32_t height = 1080
-D/CCodec  ( 9301):   int32_t level = 2
-D/CCodec  ( 9301):   int32_t max-input-size = 2097152
-D/CCodec  ( 9301):   string mime = "video/av01"
-D/CCodec  ( 9301):   int32_t profile = 1
-D/CCodec  ( 9301):   int32_t width = 720
-D/CCodec  ( 9301):   Rect crop(0, 0, 719, 1079)
-D/CCodec  ( 9301): }
-D/CCodec  ( 9301): setup formats output: AMessage(what = 0x00000000) = {
-D/CCodec  ( 9301):   int32_t android._color-format = 2135033992
-D/CCodec  ( 9301):   int32_t android._video-scaling = 1
-D/CCodec  ( 9301):   int32_t android._dataspace = 268435456
-D/CCodec  ( 9301):   int32_t color-standard = 0
-D/CCodec  ( 9301):   int32_t color-range = 2
-D/CCodec  ( 9301):   int32_t color-transfer = 0
-D/CCodec  ( 9301):   int32_t sar-height = 1
-D/CCodec  ( 9301):   int32_t rotation-degrees = 0
-D/CCodec  ( 9301):   Buffer hdr-static-info = {
-D/CCodec  ( 9301):     00000000:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
-D/CCodec  ( 9301):     00000010:  00 00 00 00 00 00 00 00  00                       .........
-D/CCodec  ( 9301):   }
-D/CCodec  ( 9301):   int32_t sar-width = 1
-D/CCodec  ( 9301):   Rect crop(0, 0, 719, 1079)
-D/CCodec  ( 9301):   int32_t width = 720
-D/CCodec  ( 9301):   Buffer hdr10-plus-info = {
-D/CCodec  ( 9301):   }
-D/CCodec  ( 9301):   int32_t height = 1080
-D/CCodec  ( 9301):   int32_t max-height = 240
-D/CCodec  ( 9301):   int32_t max-width = 320
-D/CCodec  ( 9301):   string mime = "video/raw"
-D/CCodec  ( 9301):   int32_t color-format = 2135033992
-D/CCodec  ( 9301): }
-I/CCodecConfig( 9301): query failed after returning 16 values (BAD_INDEX)
-D/CCodecConfig( 9301): c2 config diff is   c2::u32 output.delay.value = 1
-D/CCodecConfig( 9301):   c2::u32 raw.max-size.height = 1080
-D/CCodecConfig( 9301):   c2::u32 raw.max-size.width = 720
-W/ColorUtils( 9301): expected specified color aspects (2:0:0:0)
-E/foduu_ecommerce( 9301): Failed to query component interface for required system resources: 6
-W/Codec2Client( 9301): query -- param skipped: index = 1342179345.
-W/Codec2Client( 9301): query -- param skipped: index = 2415921170.
-W/Codec2Client( 9301): query -- param skipped: index = 1610614798.
-D/CCodecBufferChannel( 9301): [c2.android.av1-dav1d.decoder#329] Created input block pool with allocatorID 16 => poolID 41 - OK (0)
-D/CCodecBufferChannel( 9301): [c2.android.av1-dav1d.decoder#329] Configured output block pool ids 1 => OK
-D/CCodecConfig( 9301): c2 config diff is   c2::u32 raw.color.matrix = 3
-D/CCodecConfig( 9301):   c2::u32 raw.color.primaries = 1
-D/CCodecConfig( 9301):   c2::u32 raw.color.range = 1
-D/CCodecConfig( 9301):   c2::u32 raw.color.transfer = 2
-D/CCodecConfig( 9301):   c2::u32 raw.crop.height = 1080
-D/CCodecConfig( 9301):   c2::u32 raw.crop.left = 0
-D/CCodecConfig( 9301):   c2::u32 raw.crop.top = 0
-D/CCodecConfig( 9301):   c2::u32 raw.crop.width = 720
-D/CCodecBuffers( 9301): [c2.android.av1-dav1d.decoder#329:2D-BB-Output] popFromStashAndRegister: at 0us, output format changed to AMessage(what = 0x00000000) = {
-D/CCodecBuffers( 9301):   int32_t android._color-format = 2135033992
-D/CCodecBuffers( 9301):   int32_t android._video-scaling = 1
-D/CCodecBuffers( 9301):   int32_t android._dataspace = 142737408
-D/CCodecBuffers( 9301):   int32_t color-standard = 86
-D/CCodecBuffers( 9301):   int32_t color-range = 1
-D/CCodecBuffers( 9301):   int32_t color-transfer = 2
-D/CCodecBuffers( 9301):   int32_t sar-height = 1
-D/CCodecBuffers( 9301):   int32_t rotation-degrees = 0
-D/CCodecBuffers( 9301):   Buffer hdr-static-info = {
-D/CCodecBuffers( 9301):     00000000:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
-D/CCodecBuffers( 9301):     00000010:  00 00 00 00 00 00 00 00  00                       .........
-D/CCodecBuffers( 9301):   }
-D/CCodecBuffers( 9301):   int32_t sar-width = 1
-D/CCodecBuffers( 9301):   Rect crop(0, 0, 719, 1079)
-D/CCodecBuffers( 9301):   int32_t width = 720
-D/CCodecBuffers( 9301):   Buffer hdr10-plus-info = {
-D/CCodecBuffers( 9301):   }
-D/CCodecBuffers( 9301):   int32_t height = 1080
-D/CCodecBuffers( 9301):   int32_t max-height = 1080
-D/CCodecBuffers( 9301):   int32_t max-width = 720
-D/CCodecBuffers( 9301):   string mime = "video/raw"
-D/CCodecBuffers( 9301):   int32_t color-format = 2135033992
-D/CCodecBuffers( 9301): }
-D/CCodecBuffers( 9301): [c2.android.av1-dav1d.decoder#329:2D-BB-Output] updating image-data
-D/CCodecBuffers( 9301): [c2.android.av1-dav1d.decoder#329:2D-BB-Output] updating stride = 720, width: 720, height: 1080
-D/CCodecBuffers( 9301): [c2.android.av1-dav1d.decoder#329:2D-BB-Output] updating vstride = 1356
-W/HWUI    ( 9301): Image decoding logging dropped!
-D/CCodecBufferChannel( 9301): [c2.android.av1-dav1d.decoder#329] MediaCodec discarded an unknown buffer
-D/CCodecBufferChannel( 9301): [c2.android.av1-dav1d.decoder#329] MediaCodec discarded an unknown buffer
-D/CCodecBufferChannel( 9301): [c2.android.av1-dav1d.decoder#329] MediaCodec discarded an unknown buffer
-D/CCodecBufferChannel( 9301): [c2.android.av1-dav1d.decoder#329] MediaCodec discarded an unknown buffer
-I/hw-BpHwBinder( 9301): onLastStrongRef automatically unlinking death recipients
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Men's Collections, layout=standard, infiniteScroll=false, contentJson={heading: Men's Collections, subheading: Here's some of our most new arrivals products that people are in love with., category_type: parent_category, count: 20, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 2026-08-03T05:05:44.605Z, alt_text: Images (1)}, galler
-I/foduu_ecommerce( 9301): AssetManager2(0xb400007156407218) locale list changing from [] to [en-US]
-I/foduu_ecommerce( 9301): AssetManager2(0xb4000071564246d8) locale list changing from [] to [en-US]
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Men's Collections, layout=standard, infiniteScroll=false, contentJson={heading: Men's Collections, subheading: Here's some of our most new arrivals products that people are in love with., category_type: parent_category, count: 20, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 2026-08-03T05:05:44.605Z, alt_text: Images (1)}, galler
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Men's Collections, layout=standard, infiniteScroll=false, contentJson={heading: Men's Collections, subheading: Here's some of our most new arrivals products that people are in love with., category_type: parent_category, count: 20, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 
-D/BufferPoolAccessor2.0( 9301): bufferpool2 0xb4000071f643e3f8 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 2/4 (fetch/transfer)
-D/BufferPoolAccessor2.0( 9301): evictor expired: 3, evicted: 1
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 2026-08-03T05:05:44.605Z, alt_text: Images (1)}, galler
-D/BufferPoolAccessor2.0( 9301): bufferpool2 0xb4000071f65c29a8 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 2/4 (fetch/transfer)
-D/BufferPoolAccessor2.0( 9301): evictor expired: 1, evicted: 1
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Men's Collections, layout=standard, infiniteScroll=false, contentJson={heading: Men's Collections, subheading: Here's some of our most new arrivals products that people are in love with., category_type: parent_category, count: 20, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Men's Collections, layout=standard, infiniteScroll=false, contentJson={heading: Men's Collections, subheading: Here's some of our most new arrivals products that people are in love with., category_type: parent_category, count: 20, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 
-I/flutter ( 9301): isLogin true
-I/flutter ( 9301): url === https://traditional-ecom.vbought.com/api/customer/addresses 200
-I/flutter ( 9301): respsen addressssssssss--- --- -- - - -[]
-I/flutter ( 9301): User address list: []
-I/flutter ( 9301): First address type: empty
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 2026-08-03T05:05:44.605Z, alt_text: Images (1)}, galler
+flutterdev@Flutters-Mac-mini-93 fastify-public-mobile-app-templates % flutter
+ clean
+Deleting build...                                                  699ms
+Deleting .dart_tool...                                              21ms
+Deleting ephemeral...                                                0ms
+Deleting Generated.xcconfig...                                       0ms
+Deleting flutter_export_environment.sh...                            0ms
+Deleting Flutter.podspec...                                          0ms
+Deleting ephemeral...                                                0ms
+Deleting ephemeral...                                                0ms
+Deleting ephemeral...                                                1ms
+Deleting .flutter-plugins-dependencies...                            0ms
+flutterdev@Flutters-Mac-mini-93 fastify-public-mobile-app-templates % flutter
+ pub get
+Resolving dependencies...
+Downloading packages...
+  _flutterfire_internals 1.3.59 (1.4.0 available)
+  archive 3.6.1 (4.7.1 available)
+  async 2.13.0 (2.13.1 available)
+  audio_session 0.2.2 (0.2.4 available)
+  awesome_notifications 0.10.1 (0.12.1 available)
+  badges 3.1.2 (4.0.1 available)
+  cached_network_image 3.4.1 (4.0.7 available)
+  cached_network_image_platform_interface 4.1.1 (5.0.4 available)
+  cached_network_image_web 1.3.1 (2.0.5 available)
+  chewie 1.13.0 (1.18.1 available)
+  cli_util 0.4.2 (0.6.1 available)
+  clipboard 0.1.3 (3.0.14 available)
+  code_assets 1.0.0 (2.2.0 available)
+  connectivity_plus 7.0.0 (7.3.2 available)
+  connectivity_plus_platform_interface 2.0.1 (2.1.0 available)
+  cross_file 0.3.5+2 (0.4.0 available)
+  crypto 3.0.7 (3.0.8 available)
+  cupertino_icons 1.0.8 (2.0.0 available)
+  dbus 0.7.12 (0.8.1 available)
+  device_info_plus 9.1.2 (13.3.0 available)
+  device_info_plus_platform_interface 7.0.3 (8.1.0 available)
+  dio 5.9.2 (5.11.1 available)
+  dio_web_adapter 2.1.2 (2.2.2 available)
+  dotted_border 2.1.0 (3.1.0 available)
+  file_picker 8.3.7 (13.4.1 available)
+  file_selector_linux 0.9.4 (0.9.4+1 available)
+  file_selector_macos 0.9.5 (0.9.5+2 available)
+  file_selector_windows 0.9.3+5 (0.9.3+6 available)
+  firebase_core 3.15.2 (5.2.0 available)
+  firebase_core_platform_interface 6.0.3 (8.2.0 available)
+  firebase_core_web 2.24.1 (4.2.0 available)
+  firebase_messaging 15.2.10 (17.1.0 available)
+  firebase_messaging_platform_interface 4.6.10 (4.12.0 available)
+  firebase_messaging_web 3.10.10 (4.4.0 available)
+  flutter_cache_manager 3.4.1 (3.5.0 available)
+  flutter_downloader 1.12.0 (1.12.1 available)
+  flutter_image_compress 2.4.0 (2.5.1 available)
+  flutter_image_compress_common 1.0.6 (1.1.1 available)
+  flutter_image_compress_macos 1.0.3 (1.1.0 available)
+  flutter_image_compress_ohos 0.0.3 (0.0.3+1 available)
+  flutter_image_compress_platform_interface 1.0.5 (1.1.0 available)
+  flutter_image_compress_web 0.1.5 (0.1.5+1 available)
+  flutter_launcher_icons 0.13.1 (0.14.4 available)
+  flutter_lints 2.0.3 (6.0.0 available)
+  flutter_local_notifications 17.2.4 (23.0.4 available)
+  flutter_local_notifications_linux 4.0.1 (9.0.0 available)
+  flutter_local_notifications_platform_interface 7.2.0 (13.0.0 available)
+  flutter_plugin_android_lifecycle 2.0.33 (2.0.35 available)
+  flutter_staggered_grid_view 0.6.2 (0.7.0 available)
+  flutter_stripe 12.4.0 (15.0.0 available)
+  flutter_svg 2.2.3 (2.5.1 available)
+  flutter_widget_from_html 0.17.1 (0.17.4 available)
+  flutter_widget_from_html_core 0.17.0 (0.17.4 available)
+  fluttertoast 8.2.14 (10.0.3 available)
+  fwfh_cached_network_image 0.16.1 (0.16.3 available)
+  fwfh_webview 0.15.6 (0.15.8 available)
+  glob 2.1.3 (2.2.0 available)
+  google_fonts 6.3.3 (9.0.0 available)
+  hooks 1.0.1 (2.2.0 available)
+  html 0.15.6 (0.15.7 available)
+  image 4.3.0 (4.13.1 available)
+  image_picker 1.2.1 (1.2.4 available)
+  image_picker_android 0.8.13+13 (0.8.13+25 available)
+  image_picker_ios 0.8.13+6 (0.8.13+16 available)
+  image_picker_platform_interface 2.11.1 (2.11.2 available)
+  intl 0.20.2 (0.20.3 available)
+  js 0.6.7 (discontinued)
+  json_annotation 4.10.0 (4.12.0 available)
+  just_audio 0.10.5 (0.10.6 available)
+  lints 2.1.1 (6.1.0 available)
+  lottie 1.4.3 (3.8.2 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  mime 2.0.0 (2.1.0 available)
+  native_toolchain_c 0.17.4 (0.19.6 available)
+  nm 0.5.0 (0.6.0 available)
+  objective_c 9.3.0 (9.6.4 available)
+  octo_image 2.1.0 (2.1.5 available)
+  open_filex 4.7.0 (5.0.0 available)
+  package_info_plus 9.0.0 (10.2.2 available)
+  package_info_plus_platform_interface 3.2.1 (4.1.0 available)
+  path_provider 2.1.5 (2.1.6 available)
+  path_provider_android 2.2.22 (2.3.1 available)
+  path_provider_linux 2.2.1 (2.2.2 available)
+  path_provider_platform_interface 2.1.2 (2.1.3 available)
+  permission_handler 11.4.0 (13.0.2 available)
+  permission_handler_android 12.1.0 (14.1.1 available)
+  permission_handler_apple 9.4.7 (9.6.5 available)
+  permission_handler_html 0.1.3+5 (0.1.4+1 available)
+  permission_handler_platform_interface 4.3.0 (4.4.1 available)
+  permission_handler_windows 0.2.1 (0.2.4 available)
+  petitparser 7.0.1 (7.1.0 available)
+  photo_view 0.14.0 (0.15.0 available)
+  pin_code_fields 8.0.1 (10.1.2 available)
+  pin_input_text_field 4.5.2 (4.5.3 available)
+  platform 3.1.6 (3.2.0 available)
+  pub_semver 2.2.0 (2.2.1 available)
+  razorpay_flutter 1.4.1 (1.4.7 available)
+  share_plus 10.1.4 (13.3.1 available)
+  share_plus_platform_interface 5.0.2 (7.2.0 available)
+  shimmer 3.0.0 (4.0.0 available)
+  sms_autofill 2.4.1 (2.6.1 available)
+  socket_io_client 3.1.4 (3.1.6 available)
+  sqflite 2.4.2 (2.4.6 available)
+  sqflite_android 2.4.2+2 (2.4.6 available)
+  sqflite_common 2.5.6 (2.5.17 available)
+  sqflite_darwin 2.4.2 (2.4.6 available)
+  sqflite_platform_interface 2.4.0 (2.4.4 available)
+  stripe_android 12.4.0 (15.0.0 available)
+  stripe_ios 12.4.0 (15.0.0 available)
+  stripe_platform_interface 12.4.0 (15.0.0 available)
+  synchronized 3.4.0 (3.6.1+1 available)
+  test_api 0.7.14 (0.7.15 available)
+  timezone 0.9.4 (0.11.2 available)
+  url_launcher 6.3.2 (6.3.3 available)
+  url_launcher_android 6.3.28 (6.3.35 available)
+  url_launcher_ios 6.4.0 (6.4.2 available)
+  url_launcher_linux 3.2.2 (3.2.3 available)
+  url_launcher_macos 3.2.5 (3.2.6 available)
+  url_launcher_web 2.4.2 (2.4.3 available)
+  url_launcher_windows 3.1.5 (3.1.6 available)
+  uuid 4.5.2 (4.6.0 available)
+  vector_graphics 1.1.19 (1.3.1 available)
+  vector_graphics_codec 1.1.13 (1.2.0 available)
+  vector_graphics_compiler 1.1.20 (1.3.7 available)
+  video_player 2.10.1 (2.14.1 available)
+  video_player_android 2.9.1 (2.13.0 available)
+  video_player_avfoundation 2.9.3 (2.12.5 available)
+  video_player_platform_interface 6.6.0 (6.9.0 available)
+  vm_service 15.0.2 (15.4.0 available)
+  wakelock_plus 1.4.0 (1.8.2 available)
+  wakelock_plus_platform_interface 1.3.0 (1.7.0 available)
+  web 1.1.1 (1.1.2 available)
+  webview_flutter 4.13.1 (4.14.1 available)
+  webview_flutter_android 4.10.11 (4.14.1 available)
+  webview_flutter_platform_interface 2.14.0 (2.15.1 available)
+  webview_flutter_wkwebview 3.23.6 (3.27.2 available)
+  win32 5.15.0 (6.4.0 available)
+  win32_registry 1.1.5 (3.0.3 available)
+  xml 6.6.1 (7.1.0 available)
+  yaml 3.1.3 (3.1.4 available)
+Got dependencies!
+1 package is discontinued.
+140 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+flutterdev@Flutters-Mac-mini-93 fastify-public-mobile-app-templates % flutter
+ run
+Launching lib/main.dart on iPhone 16e in debug mode...
+Swift Package Manager is currently disabled. Enabling Swift Package Manager
+will be required in a future version of Flutter. To re-enable it, run
+"flutter config --enable-swift-package-manager"
+The following plugins do not support Swift Package Manager for ios:
+  - awesome_notifications
+  - device_info_plus
+  - flutter_downloader
+  - flutter_image_compress_common
+  - flutter_inappwebview_ios
+  - flutter_local_notifications
+  - fluttertoast
+  - open_filex
+  - permission_handler_apple
+  - phonepe_payment_sdk
+  - razorpay_flutter
+  - sms_autofill
+This will become an error in a future version of Flutter. Please contact the
+plugin maintainers to request Swift Package Manager adoption.
+Running pod install...                                              4.6s
+Running Xcode build...                                                  
+Xcode build done.                                           88.4s
+[IMPORTANT:flutter/shell/platform/darwin/graphics/FlutterDarwinContextMetalImpeller.mm(45)] Using the Impeller rendering backend (Metal).
+Plugin PhonePePaymentSdk uses deprecated application lifecycle events. Please contact plugin maintainers and request UIScene lifecycle support. This will be required in a future version of Flutter. See https://docs.flutter.dev/release/breaking-changes/uiscenedelegate#migration-guide-for-flutter-plugins
+Plugin StripeIosPlugin uses deprecated application lifecycle events. Please contact plugin maintainers and request UIScene lifecycle support. This will be required in a future version of Flutter. See https://docs.flutter.dev/release/breaking-changes/uiscenedelegate#migration-guide-for-flutter-plugins
+Syncing files to device iPhone 16e...                              186ms
 
-══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK
-╞═════════════════════════════════════════════════════════
-The following assertion was thrown:
-ListTile background color or ink splashes may be invisible.
-The ListTile is wrapped in a DecoratedBox that has a background
-color. Because ListTile paints its
-background and ink splashes on the nearest Material ancestor, this
-DecoratedBox will hide those
-effects.
-To fix this, wrap the ListTile in its own Material widget, or
-remove the background color from the
-intermediate DecoratedBox.
+Flutter run key commands.
+r Hot reload. 🔥🔥🔥
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
 
-ListTile:
-  ListTile(selectedColor: Color(alpha: 1.0000, red: 0.5451, green:
-  0.3608, blue: 0.9647, colorSpace: ColorSpace.sRGB),
-  contentPadding: EdgeInsets(14.0, 0.0, 14.0, 0.0), onTap:
-  Closure: () => void)
-DecoratedBox:
-  DecoratedBox(bg: BoxDecoration(color: Color(alpha: 0.5020, red:
-  0.1725, green: 0.1725, blue: 0.1725, colorSpace:
-  ColorSpace.sRGB), border: Border.all(BorderSide(color:
-  Color(alpha: 0.5020, red: 0.2667, green: 0.2667, blue: 0.2667,
-  colorSpace: ColorSpace.sRGB))), borderRadius:
-  BorderRadius.circular(10.0)))
-══════════════════════════════════════════════════════════════════
-══════════════════════════════════
+A Dart VM Service on iPhone 16e is available at:
+http://127.0.0.1:54080/reeEgKnYg9A=/
+The Flutter DevTools debugger and profiler on iPhone 16e is available at:
+http://127.0.0.1:54080/reeEgKnYg9A=/devtools/?uri=ws://127.0.0.1:54080/reeEgK
+nYg9A=/ws
+flutter: 🎨 Using default LIGHT theme colors
+flutter: 🎨 Using default DARK theme colors
+flutter: Connectivity restored. Triggering notification sync...
+flutter: 🎨 Building light theme for mode: ThemeMode.system
+flutter: 🎨 Building dark theme for mode: ThemeMode.system
+flutter: 📦 Initializing DynamicThemeManager
+flutter: ℹ️ No stored light theme found, using defaults
+flutter: ℹ️ No stored dark theme found, using defaults
+flutter: we are gettinmg this after debugg
+flutter: 🔄 Refreshing app theme...
+flutter: 🎨 Building light theme for mode: ThemeMode.system
+flutter: 🎨 Building dark theme for mode: ThemeMode.system
+flutter: Firebase startup initialization failed: [core/not-initialized] Firebase has not been correctly initialized.
+flutter:
+flutter: Usually this means you've attempted to use a Firebase service before calling `Firebase.initializeApp`.
+flutter:
+flutter: View the documentation for more information: https://firebase.google.com/docs/flutter/setup
+flutter:
+flutter: #0      MethodChannelFirebase.initializeApp (package:firebase_core_platform_interface/src/method_channel/method_channel_firebase.dart:117:9)
+flutter: <asynchronous suspension>
+flutter: #1      Firebase.initializeApp (package:firebase_core/src/firebase.dart:66:31)
+flutter: <asynchronous suspension>
+flutter: #2      _initializeFirebase (package:foduu_ecommerce/main.dart:60:5)
+flutter: <asynchronous suspension>
+flutter: url === https://traditional-ecom.foduu.store/api/public-settings 200
+flutter: 🌐 Updating themes from API
+flutter: 🌐 Parsing LIGHT theme colors
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: ✅ Light theme updated & saved successfully
+flutter: 🌐 Parsing DARK theme colors
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: ✅ Dark theme updated & saved successfully
+flutter: 🔄 Refreshing app theme...
+flutter: 🎨 Building light theme for mode: ThemeMode.system
+flutter: 🎨 Building dark theme for mode: ThemeMode.system
+flutter: Login Auth Mode - OTP: true, Password: false, Mobile OTP: false
 
-I/flutter ( 9301): url === https://traditional-ecom.vbought.com/api/countries?search=indi 200
-I/flutter ( 9301): address r esponse  {data: [{_id: 68e63df6038f495b64eca490, name: India, slug: india, type: country, featured_image: null, is_featured: false, parentRegion: null, children: [68f88bb729ef8cbaa7fcdfbe, 68f88d67066388d0ed8827ec, 68f88dbca7d36caf89372a58, 68f8a988e4da0b00d9ece447, 68f8a988e4da0b00d9ece446, 68f9ccb3281ec9e0cd95e40d, 68f9d97d2b4530f2550168de], currency: 68c51610073544fb88267abf, created_at: 2025-10-08T10:33:26.109Z, updated_at: 2026-05-23T07:33:38.088Z, path: #68e63df6038f495b64eca490, __v: 0, country_code: +91, id: 68e63df6038f495b64eca490}], total: 1, per_page: 20, last_page: 1, current_page: 1, pagingCounter: 1, hasPrevPage: false, hasNextPage: false, prev: null, next: null, pagination: {show_pagination: true, has_multiple_pages: false, current_page: 1, last_page: 1, per_page: 20, total: 1, from: 1, to: 1, has_prev: false, has_next: false, prev_url: null, next_url: null, page_links: [{page: 1, url: /api/countries?search=indi, is_current: true, is_dots: false}], show_per_page_selector: true}}
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-I/flutter ( 9301): url === https://traditional-ecom.vbought.com/api/states/68e63df6038f495b64eca490 200
-I/flutter ( 9301): state resonse  {data: [{_id: 68f88bb729ef8cbaa7fcdfbe, name: Andhra Pradesh, slug: andhra-pradesh, type: state, featured_image: null, is_featured: false, parentRegion: 68e63df6038f495b64eca490, children: [], created_at: 2025-10-22T07:45:59.519Z, updated_at: 2025-10-22T07:45:59.519Z, path: #68e63df6038f495b64eca490#68f88bb729ef8cbaa7fcdfbe, __v: 0, currency: 68c51736f1f847cf76d205b8, id: 68f88bb729ef8cbaa7fcdfbe}, {_id: 68f88d67066388d0ed8827ec, name: Arunachal Pradesh, slug: arunachal-pradesh-assam, type: state, featured_image: null, is_featured: false, parentRegion: 68e63df6038f495b64eca490, children: [], created_at: 2025-10-22T07:53:11.204Z, updated_at: 2026-05-28T05:47:11.621Z, path: #68e63df6038f495b64eca490#68f88d67066388d0ed8827ec, __v: 0, currency: 68c51736f1f847cf76d205b8, country_code: +91, id: 68f88d67066388d0ed8827ec}, {_id: 68f88dbca7d36caf89372a58, name: Assam
-I/flutter ( 9301): Bihar, slug: assam-bihar, type: state, featured_image: null, is_featured: false, parentRegion: 68e63df6038f495b64eca490, children: [], c
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:84d5a50c: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false
-D/InsetsController( 9301): show(ime(), fromIme=false)
-D/InsetsController( 9301): Setting requestedVisibleTypes to -1 (was -9)
-D/InputConnectionAdaptor( 9301): The input method toggled cursor monitoring on
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 2026-08-03T05:05:44.605Z, alt_text: Images (1)}, galler
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:84d5a50c: onShown
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Men's Collections, layout=standard, infiniteScroll=false, contentJson={heading: Men's Collections, subheading: Here's some of our most new arrivals products that people are in love with., category_type: parent_category, count: 20, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 2026-08-03T05:05:44.605Z, alt_text: Images (1)}, galler
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Men's Collections, layout=standard, infiniteScroll=false, contentJson={heading: Men's Collections, subheading: Here's some of our most new arrivals products that people are in love with., category_type: parent_category, count: 20, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:1dfe7504: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false
-D/InsetsController( 9301): show(ime(), fromIme=false)
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:1dfe7504: onCancelled at PHASE_CLIENT_APPLY_ANIMATION
-D/InputConnectionAdaptor( 9301): The input method toggled cursor monitoring on
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:62d01ba0: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false
-D/InsetsController( 9301): show(ime(), fromIme=false)
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:62d01ba0: onCancelled at PHASE_CLIENT_APPLY_ANIMATION
-D/InputConnectionAdaptor( 9301): The input method toggled cursor monitoring on
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:633378b2: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false
-D/InsetsController( 9301): show(ime(), fromIme=false)
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:633378b2: onCancelled at PHASE_CLIENT_APPLY_ANIMATION
-D/InputConnectionAdaptor( 9301): The input method toggled cursor monitoring on
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:4b3a4351: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false
-D/InsetsController( 9301): show(ime(), fromIme=false)
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:4b3a4351: onCancelled at PHASE_CLIENT_APPLY_ANIMATION
-D/InputConnectionAdaptor( 9301): The input method toggled cursor monitoring on
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:1cab9950: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false
-D/InsetsController( 9301): show(ime(), fromIme=false)
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:1cab9950: onCancelled at PHASE_CLIENT_APPLY_ANIMATION
-D/InputConnectionAdaptor( 9301): The input method toggled cursor monitoring on
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:cbb992a9: onRequestHide at ORIGIN_CLIENT reason HIDE_SOFT_INPUT fromUser false
-D/InsetsController( 9301): hide(ime(), fromIme=false)
-W/WindowOnBackDispatcher( 9301): sendCancelIfRunning: isInProgress=false callback=android.view.ImeBackAnimationController@5ce51d0
-D/InsetsController( 9301): Setting requestedVisibleTypes to -9 (was -1)
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-I/ImeTracker( 9301): system_server:a738e240: onCancelled at PHASE_CLIENT_ON_CONTROLS_CHANGED
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-I/flutter ( 9301): url === https://traditional-ecom.vbought.com/api/cities/68f9ccb3281ec9e0cd95e40d 200
-I/flutter ( 9301): city response {data: [{_id: 68f9ccfa281ec9e0cd95e482, name: Dewas, slug: dewas, type: city, featured_image: null, is_featured: false, parentRegion: 68f9ccb3281ec9e0cd95e40d, children: [], currency: 68c51736f1f847cf76d205b8, created_at: 2025-10-23T06:36:42.589Z, updated_at: 2025-10-23T06:36:42.589Z, path: #68e63df6038f495b64eca490#68f9ccb3281ec9e0cd95e40d#68f9ccfa281ec9e0cd95e482, __v: 0, id: 68f9ccfa281ec9e0cd95e482}, {_id: 68f9cd45281ec9e0cd95e4d7, name: Gwalior, slug: gwalior, type: city, featured_image: 69ba80624cbaeb415d8a01f9, is_featured: false, parentRegion: 68f9ccb3281ec9e0cd95e40d, children: [], currency: 68c51736f1f847cf76d205b8, created_at: 2025-10-23T06:37:57.607Z, updated_at: 2026-03-18T10:37:22.059Z, path: #68e63df6038f495b64eca490#68f9ccb3281ec9e0cd95e40d#68f9cd45281ec9e0cd95e4d7, __v: 0, id: 68f9cd45281ec9e0cd95e4d7}, {_id: 68f9cccc281ec9e0cd95e422, name: Indore, slug: indore, type: city, featured_image: null, is_featured: false, parentRegion: 68f9ccb3281ec9e0cd95e40d, children: [], currency:
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:b9834a53: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false
-D/InsetsController( 9301): show(ime(), fromIme=false)
-D/InsetsController( 9301): Setting requestedVisibleTypes to -1 (was -9)
-D/InputConnectionAdaptor( 9301): The input method toggled cursor monitoring on
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 2026-08-03T05:05:44.605Z, alt_text: Images (1)}, galler
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:b9834a53: onShown
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Men's Collections, layout=standard, infiniteScroll=false, contentJson={heading: Men's Collections, subheading: Here's some of our most new arrivals products that people are in love with., category_type: parent_category, count: 20, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 2026-08-03T05:05:44.605Z, alt_text: Images (1)}, galler
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Men's Collections, layout=standard, infiniteScroll=false, contentJson={heading: Men's Collections, subheading: Here's some of our most new arrivals products that people are in love with., category_type: parent_category, count: 20, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 
-I/flutter ( 9301): postman body {name: Aniket, email: rathoreaniket70@gmail.com, mobile: 9837243344, street: 32 E, landmark: indrapury, country: 68e63df6038f495b64eca490, state: 68f9ccb3281ec9e0cd95e40d, city: 68f9cccc281ec9e0cd95e422, postal_code: 987634, address_type: Home, is_default: 1}
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:dc25b0af: onRequestHide at ORIGIN_CLIENT reason HIDE_SOFT_INPUT fromUser false
-D/InsetsController( 9301): hide(ime(), fromIme=false)
-W/WindowOnBackDispatcher( 9301): sendCancelIfRunning: isInProgress=false callback=android.view.ImeBackAnimationController@5ce51d0
-D/InsetsController( 9301): Setting requestedVisibleTypes to -9 (was -1)
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-I/flutter ( 9301): url === https://traditional-ecom.vbought.com/api/customer/addresses/add 200
-I/flutter ( 9301): address update response 1: {status: success, data: Address added successfully}
-I/flutter ( 9301): isLogin true
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:1c4e544c: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false
-D/InsetsController( 9301): show(ime(), fromIme=false)
-D/InsetsController( 9301): Setting requestedVisibleTypes to -1 (was -9)
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:dc25b0af: onCancelled at PHASE_CLIENT_ANIMATION_CANCEL
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-W/RemoteInputConnectionImpl( 9301): requestCursorUpdates on inactive InputConnection
-W/RemoteInputConnectionImpl( 9301): getSurroundingText on inactive InputConnection
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/InputConnectionAdaptor( 9301): The input method toggled cursor monitoring on
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-I/flutter ( 9301): url === https://traditional-ecom.vbought.com/api/customer/addresses 200
-I/flutter ( 9301): respsen addressssssssss--- --- -- - - -[{name: Aniket, email: rathoreaniket70@gmail.com, mobile: 9837243344, type: shipping, street: 32 E, landmark: indrapury, city: 68f9cccc281ec9e0cd95e422, state: {_id: 68f9ccb3281ec9e0cd95e40d, name: Madhya Pradesh, slug: madhya-pradesh, type: state, featured_image: null, is_featured: false, parentRegion: 68e63df6038f495b64eca490, children: [68f9cccc281ec9e0cd95e422, 68f9cce7281ec9e0cd95e449, 68f9ccfa281ec9e0cd95e482, 68f9cd19281ec9e0cd95e4a8, 68f9cd45281ec9e0cd95e4d7, 69ea2042f56476c922e5becd], currency: 68c51736f1f847cf76d205b8, created_at: 2025-10-23T06:35:31.305Z, updated_at: 2026-04-23T13:36:02.542Z, path: #68e63df6038f495b64eca490#68f9ccb3281ec9e0cd95e40d, __v: 0, id: 68f9ccb3281ec9e0cd95e40d}, country: {_id: 68e63df6038f495b64eca490, name: India, slug: india, type: country, featured_image: null, is_featured: false, parentRegion: null, children: [68f88bb729ef8cbaa7fcdfbe, 68f88d67066388d0ed8827ec, 68f88dbca7d36caf89372a58, 68f8a988e4da0b00d9ece447, 68f8a988e4da0b00d
-I/flutter ( 9301): User address list: [{name: Aniket, email: rathoreaniket70@gmail.com, mobile: 9837243344, type: shipping, street: 32 E, landmark: indrapury, city: 68f9cccc281ec9e0cd95e422, state: {_id: 68f9ccb3281ec9e0cd95e40d, name: Madhya Pradesh, slug: madhya-pradesh, type: state, featured_image: null, is_featured: false, parentRegion: 68e63df6038f495b64eca490, children: [68f9cccc281ec9e0cd95e422, 68f9cce7281ec9e0cd95e449, 68f9ccfa281ec9e0cd95e482, 68f9cd19281ec9e0cd95e4a8, 68f9cd45281ec9e0cd95e4d7, 69ea2042f56476c922e5becd], currency: 68c51736f1f847cf76d205b8, created_at: 2025-10-23T06:35:31.305Z, updated_at: 2026-04-23T13:36:02.542Z, path: #68e63df6038f495b64eca490#68f9ccb3281ec9e0cd95e40d, __v: 0, id: 68f9ccb3281ec9e0cd95e40d}, country: {_id: 68e63df6038f495b64eca490, name: India, slug: india, type: country, featured_image: null, is_featured: false, parentRegion: null, children: [68f88bb729ef8cbaa7fcdfbe, 68f88d67066388d0ed8827ec, 68f88dbca7d36caf89372a58, 68f8a988e4da0b00d9ece447, 68f8a988e4da0b00d9ece446, 68f9ccb3281
-I/flutter ( 9301): First address type: _Map<String, dynamic>
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: type 'String' is not a subtype of
-type 'int' of 'index'
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:1c4e544c: onShown
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-I/flutter ( 9301): postman body {name: Aniket, email: rathoreaniket70@gmail.com, mobile: 9837243344, street: 32 E, landmark: indrapury, country: 68e63df6038f495b64eca490, state: 68f9ccb3281ec9e0cd95e40d, city: 68f9cccc281ec9e0cd95e422, postal_code: 987634, address_type: Home, is_default: 1}
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:3b0ab8cc: onRequestHide at ORIGIN_CLIENT reason HIDE_SOFT_INPUT fromUser false
-D/InsetsController( 9301): hide(ime(), fromIme=false)
-W/WindowOnBackDispatcher( 9301): sendCancelIfRunning: isInProgress=false callback=android.view.ImeBackAnimationController@5ce51d0
-D/InsetsController( 9301): Setting requestedVisibleTypes to -9 (was -1)
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-I/flutter ( 9301): url === https://traditional-ecom.vbought.com/api/customer/addresses/add 200
-I/flutter ( 9301): address update response 1: {status: success, data: Address added successfully}
-I/flutter ( 9301): isLogin true
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-Another exception was thrown: type 'String' is not a subtype of
-type 'int' of 'index'
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:14ae8d85: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false
-D/InsetsController( 9301): show(ime(), fromIme=false)
-D/InsetsController( 9301): Setting requestedVisibleTypes to -1 (was -9)
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:3b0ab8cc: onCancelled at PHASE_CLIENT_ANIMATION_CANCEL
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: ListTile background color or ink
-splashes may be invisible.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-W/RemoteInputConnectionImpl( 9301): requestCursorUpdates on inactive InputConnection
-W/RemoteInputConnectionImpl( 9301): getSurroundingText on inactive InputConnection
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/InputConnectionAdaptor( 9301): The input method toggled cursor monitoring on
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-I/flutter ( 9301): url === https://traditional-ecom.vbought.com/api/customer/addresses 200
-I/flutter ( 9301): respsen addressssssssss--- --- -- - - -[{name: Aniket, email: rathoreaniket70@gmail.com, mobile: 9837243344, type: shipping, street: 32 E, landmark: indrapury, city: 68f9cccc281ec9e0cd95e422, state: {_id: 68f9ccb3281ec9e0cd95e40d, name: Madhya Pradesh, slug: madhya-pradesh, type: state, featured_image: null, is_featured: false, parentRegion: 68e63df6038f495b64eca490, children: [68f9cccc281ec9e0cd95e422, 68f9cce7281ec9e0cd95e449, 68f9ccfa281ec9e0cd95e482, 68f9cd19281ec9e0cd95e4a8, 68f9cd45281ec9e0cd95e4d7, 69ea2042f56476c922e5becd], currency: 68c51736f1f847cf76d205b8, created_at: 2025-10-23T06:35:31.305Z, updated_at: 2026-04-23T13:36:02.542Z, path: #68e63df6038f495b64eca490#68f9ccb3281ec9e0cd95e40d, __v: 0, id: 68f9ccb3281ec9e0cd95e40d}, country: {_id: 68e63df6038f495b64eca490, name: India, slug: india, type: country, featured_image: null, is_featured: false, parentRegion: null, children: [68f88bb729ef8cbaa7fcdfbe, 68f88d67066388d0ed8827ec, 68f88dbca7d36caf89372a58, 68f8a988e4da0b00d9ece447, 68f8a988e4da0b00d
-I/flutter ( 9301): User address list: [{name: Aniket, email: rathoreaniket70@gmail.com, mobile: 9837243344, type: shipping, street: 32 E, landmark: indrapury, city: 68f9cccc281ec9e0cd95e422, state: {_id: 68f9ccb3281ec9e0cd95e40d, name: Madhya Pradesh, slug: madhya-pradesh, type: state, featured_image: null, is_featured: false, parentRegion: 68e63df6038f495b64eca490, children: [68f9cccc281ec9e0cd95e422, 68f9cce7281ec9e0cd95e449, 68f9ccfa281ec9e0cd95e482, 68f9cd19281ec9e0cd95e4a8, 68f9cd45281ec9e0cd95e4d7, 69ea2042f56476c922e5becd], currency: 68c51736f1f847cf76d205b8, created_at: 2025-10-23T06:35:31.305Z, updated_at: 2026-04-23T13:36:02.542Z, path: #68e63df6038f495b64eca490#68f9ccb3281ec9e0cd95e40d, __v: 0, id: 68f9ccb3281ec9e0cd95e40d}, country: {_id: 68e63df6038f495b64eca490, name: India, slug: india, type: country, featured_image: null, is_featured: false, parentRegion: null, children: [68f88bb729ef8cbaa7fcdfbe, 68f88d67066388d0ed8827ec, 68f88dbca7d36caf89372a58, 68f8a988e4da0b00d9ece447, 68f8a988e4da0b00d9ece446, 68f9ccb3281
-I/flutter ( 9301): First address type: _Map<String, dynamic>
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-Another exception was thrown: type 'String' is not a subtype of
-type 'int' of 'index'
-Another exception was thrown: type 'String' is not a subtype of
-type 'int' of 'index'
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-I/ImeTracker( 9301): com.foduu.foduu_ecommerce:14ae8d85: onShown
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
-D/FlutterJNI( 9301): Sending viewport metrics to the engine.
+Application finished.
+flutterdev@Flutters-Mac-mini-93 fastify-public-mobile-app-templates % flutter run
+Launching lib/main.dart on iPhone 16e in debug mode...
+Swift Package Manager is currently disabled. Enabling Swift Package Manager
+will be required in a future version of Flutter. To re-enable it, run
+"flutter config --enable-swift-package-manager"
+The following plugins do not support Swift Package Manager for ios:
+  - awesome_notifications
+  - device_info_plus
+  - flutter_downloader
+  - flutter_image_compress_common
+  - flutter_inappwebview_ios
+  - flutter_local_notifications
+  - fluttertoast
+  - open_filex
+  - permission_handler_apple
+  - phonepe_payment_sdk
+  - razorpay_flutter
+  - sms_autofill
+This will become an error in a future version of Flutter. Please contact the
+plugin maintainers to request Swift Package Manager adoption.
+Running Xcode build...                                                  
+Xcode build done.                                           15.3s
+[IMPORTANT:flutter/shell/platform/darwin/graphics/FlutterDarwinContextMetalImpeller.mm(45)] Using the Impeller rendering backend (Metal).
+Plugin PhonePePaymentSdk uses deprecated application lifecycle events. Please contact plugin maintainers and request UIScene lifecycle support. This will be required in a future version of Flutter. See https://docs.flutter.dev/release/breaking-changes/uiscenedelegate#migration-guide-for-flutter-plugins
+Plugin StripeIosPlugin uses deprecated application lifecycle events. Please contact plugin maintainers and request UIScene lifecycle support. This will be required in a future version of Flutter. See https://docs.flutter.dev/release/breaking-changes/uiscenedelegate#migration-guide-for-flutter-plugins
+Syncing files to device iPhone 16e...                              102ms
 
+Flutter run key commands.
+r Hot reload. 🔥🔥🔥
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-W/HWUI    ( 9301): Image decoding logging dropped!
-D/CCodecBufferChannel( 9301): [c2.android.av1-dav1d.decoder#677] MediaCodec discarded an unknown buffer
-D/CCodecBufferChannel( 9301): [c2.android.av1-dav1d.decoder#677] MediaCodec discarded an unknown buffer
-D/CCodecBufferChannel( 9301): [c2.android.av1-dav1d.decoder#677] MediaCodec discarded an unknown buffer
-D/CCodecBufferChannel( 9301): [c2.android.av1-dav1d.decoder#677] MediaCodec discarded an unknown buffer
-I/hw-BpHwBinder( 9301): onLastStrongRef automatically unlinking death recipients
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Men's Collections, layout=standard, infiniteScroll=false, contentJson={heading: Men's Collections, subheading: Here's some of our most new arrivals products that people are in love with., category_type: parent_category, count: 20, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 2026-08-03T05:05:44.605Z, alt_text: Images (1)}, galler
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Men's Collections, layout=standard, infiniteScroll=false, contentJson={heading: Men's Collections, subheading: Here's some of our most new arrivals products that people are in love with., category_type: parent_category, count: 20, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 
-D/BufferPoolAccessor2.0( 9301): bufferpool2 0xb4000071f657b7e8 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 2/4 (fetch/transfer)
-D/BufferPoolAccessor2.0( 9301): evictor expired: 3, evicted: 1
-I/flutter ( 9301): widgetList.length: 0
-I/flutter ( 9301): url === https://traditional-ecom.vbought.com/api/mobile-app/shop 200
-I/flutter ( 9301): Hi Fetch Layout Response received
-I/flutter ( 9301): 🎨 DynamicLayout: Theme found in API response
-I/flutter ( 9301): 🌐 Updating themes from API
-I/flutter ( 9301): 🌐 Parsing LIGHT theme colors
-I/flutter ( 9301): 🎨 Parsed color: #FF8b5cf6
-I/flutter ( 9301): 🎨 Parsed color: #FF000000
-I/flutter ( 9301): 🎨 Parsed color: #FFffffff
-I/flutter ( 9301): 🎨 Parsed color: #FFffffff
-I/flutter ( 9301): 🎨 Parsed color: #FFffffff
-I/flutter ( 9301): 🎨 Parsed color: #FF000000
-I/flutter ( 9301): 🎨 Parsed color: #FFffffff
-I/flutter ( 9301): 🎨 Parsed color: #FF000000
-I/flutter ( 9301): ✅ Light theme updated & saved successfully
-I/flutter ( 9301): 🌐 Parsing DARK theme colors
-I/flutter ( 9301): 🎨 Parsed color: #FF8b5cf6
-I/flutter ( 9301): 🎨 Parsed color: #FF000000
-I/flutter ( 9301): 🎨 Parsed color: #FF000000
-I/flutter ( 9301): 🎨 Parsed color: #FF000000
-I/flutter ( 9301): 🎨 Parsed color: #FF000000
-I/flutter ( 9301): 🎨 Parsed color: #FFffffff
-I/flutter ( 9301): 🎨 Parsed color: #FF000000
-I/flutter ( 9301): 🎨 Parsed color: #FFffffff
-I/flutter ( 9301): ✅ Dark theme updated & saved successfully
-I/flutter ( 9301): 🔄 Refreshing app theme...
-I/flutter ( 9301): 🎨 Building light theme for mode: ThemeMode.system
-I/flutter ( 9301): 🎨 Building dark theme for mode: ThemeMode.system
-I/flutter ( 9301): widgetList.length: 6
-I/flutter ( 9301): widgetList.length: 2
-D/BufferPoolAccessor2.0( 9301): bufferpool2 0xb4000071f65748e8 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 2/4 (fetch/transfer)
-D/BufferPoolAccessor2.0( 9301): evictor expired: 1, evicted: 1
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Products, layout=parent_web, infiniteScroll=true, contentJson={heading: Products, subheading: , category_type: parent_category, count: 100, infinite_scroll: true, layout: parent_web, view: grid, rows: 1, columns: 2, aspect_ratio: 0.6, spacing: 10, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 2026-08-03T05:05:44.605Z, alt_text: Images (1)}, gallery: [{_id: 
-I/foduu_ecommerce( 9301): AssetManager2(0xb400007156471f78) locale list changing from [] to [en-US]
-I/foduu_ecommerce( 9301): AssetManager2(0xb4000071564537f8) locale list changing from [] to [en-US]
-I/flutter ( 9301): widgetList.length: 6
-I/flutter ( 9301): widgetList.length: 2
-I/flutter ( 9301): widgetList.length: 6
-I/flutter ( 9301): widgetList.length: 2
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Men's Collections, layout=standard, infiniteScroll=false, contentJson={heading: Men's Collections, subheading: Here's some of our most new arrivals products that people are in love with., category_type: parent_category, count: 20, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 
-I/flutter ( 9301): url === https://traditional-ecom.vbought.com/api/products 200
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 2026-08-03T05:05:44.605Z, alt_text: Images (1)}, galler
-I/flutter ( 9301): widgetList.length: 2
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Products, layout=parent_web, infiniteScroll=true, contentJson={heading: Products, subheading: , category_type: parent_category, count: 100, infinite_scroll: true, layout: parent_web, view: grid, rows: 1, columns: 2, aspect_ratio: 0.6, spacing: 10, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 2026-08-03T05:05:44.605Z, alt_text: Images (1)}, gallery: [{_id: 
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Men's Collections, layout=standard, infiniteScroll=false, contentJson={heading: Men's Collections, subheading: Here's some of our most new arrivals products that people are in love with., category_type: parent_category, count: 20, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 2026-08-03T05:05:44.605Z, alt_text: Images (1)}, galler
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Products, layout=parent_web, infiniteScroll=true, contentJson={heading: Products, subheading: , category_type: parent_category, count: 100, infinite_scroll: true, layout: parent_web, view: grid, rows: 1, columns: 2, aspect_ratio: 0.6, spacing: 10, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 2026-08-03T05:05:44.605Z, alt_text: Images (1)}, gallery: [{_id: 
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Men's Collections, layout=standard, infiniteScroll=false, contentJson={heading: Men's Collections, subheading: Here's some of our most new arrivals products that people are in love with., category_type: parent_category, count: 20, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 
-I/flutter ( 9301): isLogin true
-I/flutter ( 9301): url === https://traditional-ecom.vbought.com/api/customer/addresses 200
-I/flutter ( 9301): respsen addressssssssss--- --- -- - - -[{name: Aniket, email: rathoreaniket70@gmail.com, mobile: 9837243344, type: shipping, street: 32 E, landmark: indrapury, city: 68f9cccc281ec9e0cd95e422, state: {_id: 68f9ccb3281ec9e0cd95e40d, name: Madhya Pradesh, slug: madhya-pradesh, type: state, featured_image: null, is_featured: false, parentRegion: 68e63df6038f495b64eca490, children: [68f9cccc281ec9e0cd95e422, 68f9cce7281ec9e0cd95e449, 68f9ccfa281ec9e0cd95e482, 68f9cd19281ec9e0cd95e4a8, 68f9cd45281ec9e0cd95e4d7, 69ea2042f56476c922e5becd], currency: 68c51736f1f847cf76d205b8, created_at: 2025-10-23T06:35:31.305Z, updated_at: 2026-04-23T13:36:02.542Z, path: #68e63df6038f495b64eca490#68f9ccb3281ec9e0cd95e40d, __v: 0, id: 68f9ccb3281ec9e0cd95e40d}, country: {_id: 68e63df6038f495b64eca490, name: India, slug: india, type: country, featured_image: null, is_featured: false, parentRegion: null, children: [68f88bb729ef8cbaa7fcdfbe, 68f88d67066388d0ed8827ec, 68f88dbca7d36caf89372a58, 68f8a988e4da0b00d9ece447, 68f8a988e4da0b00d
-I/flutter ( 9301): User address list: [{name: Aniket, email: rathoreaniket70@gmail.com, mobile: 9837243344, type: shipping, street: 32 E, landmark: indrapury, city: 68f9cccc281ec9e0cd95e422, state: {_id: 68f9ccb3281ec9e0cd95e40d, name: Madhya Pradesh, slug: madhya-pradesh, type: state, featured_image: null, is_featured: false, parentRegion: 68e63df6038f495b64eca490, children: [68f9cccc281ec9e0cd95e422, 68f9cce7281ec9e0cd95e449, 68f9ccfa281ec9e0cd95e482, 68f9cd19281ec9e0cd95e4a8, 68f9cd45281ec9e0cd95e4d7, 69ea2042f56476c922e5becd], currency: 68c51736f1f847cf76d205b8, created_at: 2025-10-23T06:35:31.305Z, updated_at: 2026-04-23T13:36:02.542Z, path: #68e63df6038f495b64eca490#68f9ccb3281ec9e0cd95e40d, __v: 0, id: 68f9ccb3281ec9e0cd95e40d}, country: {_id: 68e63df6038f495b64eca490, name: India, slug: india, type: country, featured_image: null, is_featured: false, parentRegion: null, children: [68f88bb729ef8cbaa7fcdfbe, 68f88d67066388d0ed8827ec, 68f88dbca7d36caf89372a58, 68f8a988e4da0b00d9ece447, 68f8a988e4da0b00d9ece446, 68f9ccb3281
-I/flutter ( 9301): First address type: _Map<String, dynamic>
-
-══╡ EXCEPTION CAUGHT BY WIDGETS LIBRARY
-╞═══════════════════════════════════════════════════════════
-The following _TypeError was thrown building Obx(has builder,
-dirty, state: ObxState#8eed5):
-type 'String' is not a subtype of type 'int' of 'index'
-
-The relevant error-causing widget was:
-  Obx
-  Obx:file:///Users/flutterdev/Desktop/fastify-public-mobile-app-t
-  emplates_2/lib/app/modules/address/views/address_list_view.dart:
-  62:34
-
-When the exception was thrown, this was the stack:
-#0      AddressListView.build.<anonymous closure>.<anonymous
-closure>.<anonymous closure>
-(package:foduu_ecommerce/app/modules/address/views/address_list_vi
-ew.dart:239:63)
-#1      Obx.build
-(package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart:7
-2:28)
-#2      RxInterface.notifyChildren
-(package:get/get_rx/src/rx_types/rx_core/rx_interface.dart:26:27)
-#3      ObxState.build
-(package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart:5
-6:19)
-#4      StatefulElement.build
-(package:flutter/src/widgets/framework.dart:5944:27)
-#5      ComponentElement.performRebuild
-(package:flutter/src/widgets/framework.dart:5830:15)
-#6      StatefulElement.performRebuild
-(package:flutter/src/widgets/framework.dart:5995:11)
-#7      Element.rebuild
-(package:flutter/src/widgets/framework.dart:5542:7)
-#8      ComponentElement._firstBuild
-(package:flutter/src/widgets/framework.dart:5812:5)
-#9      StatefulElement._firstBuild
-(package:flutter/src/widgets/framework.dart:5986:11)
-#10     ComponentElement.mount
-(package:flutter/src/widgets/framework.dart:5806:5)
-...     Normal element mounting (41 frames)
-#51     Element.inflateWidget
-(package:flutter/src/widgets/framework.dart:4600:20)
-#52     Element.updateChild
-(package:flutter/src/widgets/framework.dart:4072:18)
-#53     SliverMultiBoxAdaptorElement.updateChild
-(package:flutter/src/widgets/sliver.dart:1092:37)
-#54     SliverMultiBoxAdaptorElement.createChild.<anonymous
-closure> (package:flutter/src/widgets/sliver.dart:1077:20)
-#55     BuildOwner.buildScope
-(package:flutter/src/widgets/framework.dart:3114:19)
-#56     SliverMultiBoxAdaptorElement.createChild
-(package:flutter/src/widgets/sliver.dart:1067:12)
-#57
-RenderSliverMultiBoxAdaptor._createOrObtainChild.<anonymous
-closure>
-(package:flutter/src/rendering/sliver_multi_box_adaptor.dart:368:2
-3)
-#58     RenderObject.invokeLayoutCallback.<anonymous closure>
-(package:flutter/src/rendering/object.dart:3042:17)
-#59     PipelineOwner._enableMutationsToDirtySubtrees
-(package:flutter/src/rendering/object.dart:1223:15)
-#60     RenderObject.invokeLayoutCallback
-(package:flutter/src/rendering/object.dart:3041:14)
-#61     RenderSliverMultiBoxAdaptor._createOrObtainChild
-(package:flutter/src/rendering/sliver_multi_box_adaptor.dart:357:5
-)
-#62     RenderSliverMultiBoxAdaptor.addInitialChild
-(package:flutter/src/rendering/sliver_multi_box_adaptor.dart:455:5
-)
-#63     RenderSliverList.performLayout
-(package:flutter/src/rendering/sliver_list.dart:79:12)
-#64     RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#65     RenderSliverEdgeInsetsPadding.performLayout
-(package:flutter/src/rendering/sliver_padding.dart:133:12)
-#66     RenderSliverPadding.performLayout
-(package:flutter/src/rendering/sliver_padding.dart:368:11)
-#67     RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#68     RenderViewportBase.layoutChildSequence
-(package:flutter/src/rendering/viewport.dart:821:13)
-#69     RenderShrinkWrappingViewport._attemptLayout
-(package:flutter/src/rendering/viewport.dart:2160:12)
-#70     RenderShrinkWrappingViewport.performLayout
-(package:flutter/src/rendering/viewport.dart:2112:20)
-#71     RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#72     RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#73     RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#74     RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#75     RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#76     RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#77     RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#78     RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#79     RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#80     RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#81     RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#82     RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#83     RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#84     RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#85     RenderCustomPaint.performLayout
-(package:flutter/src/rendering/custom_paint.dart:574:11)
-#86     RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#87     RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#88     RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#89     RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#90     _RenderCustomClip.performLayout
-(package:flutter/src/rendering/proxy_box.dart:1549:11)
-#91     RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#92     RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#93     RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#94     RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#95     RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#96     RenderSliverList.performLayout
-(package:flutter/src/rendering/sliver_list.dart:209:28)
-#97     RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#98     RenderSliverEdgeInsetsPadding.performLayout
-(package:flutter/src/rendering/sliver_padding.dart:133:12)
-#99     RenderSliverPadding.performLayout
-(package:flutter/src/rendering/sliver_padding.dart:368:11)
-#100    RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#101    RenderViewportBase.layoutChildSequence
-(package:flutter/src/rendering/viewport.dart:821:13)
-#102    RenderViewport._attemptLayout
-(package:flutter/src/rendering/viewport.dart:1831:12)
-#103    RenderViewport.performLayout
-(package:flutter/src/rendering/viewport.dart:1724:20)
-#104    RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#105    RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#106    RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#107    RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#108    RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#109    RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#110    RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#111    RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#112    RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#113    RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#114    RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#115    RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#116    RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#117    RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#118    RenderCustomPaint.performLayout
-(package:flutter/src/rendering/custom_paint.dart:574:11)
-#119    RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#120    RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#121    RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#122    RenderProxyBoxMixin.performLayout
-(package:flutter/src/rendering/proxy_box.dart:118:18)
-#123    _RenderCustomClip.performLayout
-(package:flutter/src/rendering/proxy_box.dart:1549:11)
-#124    RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#125    ChildLayoutHelper.layoutChild
-(package:flutter/src/rendering/layout_helper.dart:62:11)
-#126    RenderStack._computeSize
-(package:flutter/src/rendering/stack.dart:647:43)
-#127    RenderStack.performLayout
-(package:flutter/src/rendering/stack.dart:682:12)
-#128    RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#129    RenderStack.layoutPositionedChild
-(package:flutter/src/rendering/stack.dart:551:11)
-#130    RenderStack.performLayout
-(package:flutter/src/rendering/stack.dart:693:13)
-#131    RenderObject.layout
-(package:flutter/src/rendering/object.dart:2923:7)
-#132    MultiChildLayoutDelegate.layoutChild
-(package:flutter/src/rendering/custom_layout.dart:180:12)
-#133    _ScaffoldLayout.performLayout
-(package:flutter/src/material/scaffold.dart:1113:7)
-#134    MultiChildLayoutDelegate._callPerformLayout
-(package:flutter/src/rendering/custom_layout.dart:246:7)
-#135    RenderCustomMultiChildLayoutBox.performLayout
-(package:flutter/src/rendering/custom_layout.dart:417:14)
-#136    RenderObject._layoutWithoutResize
-(package:flutter/src/rendering/object.dart:2771:7)
-#137    PipelineOwner.flushLayout
-(package:flutter/src/rendering/object.dart:1174:18)
-#138    PipelineOwner.flushLayout
-(package:flutter/src/rendering/object.dart:1187:15)
-#139    RendererBinding.drawFrame
-(package:flutter/src/rendering/binding.dart:692:23)
-#140    WidgetsBinding.drawFrame
-(package:flutter/src/widgets/binding.dart:1573:13)
-#141    RendererBinding._handlePersistentFrameCallback
-(package:flutter/src/rendering/binding.dart:558:5)
-#142    SchedulerBinding._invokeFrameCallback
-(package:flutter/src/scheduler/binding.dart:1430:15)
-#143    SchedulerBinding.handleDrawFrame
-(package:flutter/src/scheduler/binding.dart:1345:9)
-#144    SchedulerBinding._handleDrawFrame
-(package:flutter/src/scheduler/binding.dart:1198:5)
-#145    _invoke (dart:ui/hooks.dart:441:13)
-#146    PlatformDispatcher._drawFrame
-(dart:ui/platform_dispatcher.dart:450:5)
-#147    _drawFrame (dart:ui/hooks.dart:413:31)
-
-══════════════════════════════════════════════════════════════════
-══════════════════════════════════
-
-Another exception was thrown: type 'String' is not a subtype of
-type 'int' of 'index'
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=All Product Shop, layout=standard, infiniteScroll=false, contentJson={heading: All Product Shop, subheading: Favorite Style Product, category_type: parent_category, count: 40, infinite_scroll: false, layout: standard, view: list, list_view_type: horizontal, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 2026-08-03T05:05:44.605Z, alt_text: Images (1)}, galler
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Trending Now, layout=horizontal, infiniteScroll=true, contentJson={heading: Trending Now, subheading: Explore popular picks and save what you love, layout: horizontal, infinite_scroll: true}
-I/flutter ( 9301): DEBUG PRODUCTS SECTION: heading=Products, layout=parent_web, infiniteScroll=true, contentJson={heading: Products, subheading: , category_type: parent_category, count: 100, infinite_scroll: true, layout: parent_web, view: grid, rows: 1, columns: 2, aspect_ratio: 0.6, spacing: 10, parent_type: product, products: {data: [{_id: 6a7021b6325be61b125f84c8, name: pattu Lehenga, slug: pattu-lehenga, type: simple, content: <p>this is the best product </p>, long_content: <p><br /></p>, featured_image: {_id: 6a7021a8325be61b125f844c, filename: images-(1)-a0dc163f.jpeg, originalname: images-(1).jpeg, filepath: 2026/08/03/images-(1)-a0dc163f.jpeg, mimetype: image/jpeg, size: 9356, file_type: image, reseller_id: null, is_public: true, download_count: 0, metadata: {processed: false, original_size: 9356, compression_status: compression failed due to output larger than original, compression_ratio: 1}, tags: [], created_at: 2026-08-03T05:05:44.605Z, updated_at: 2026-08-03T05:05:44.605Z, alt_text: Images (1)}, gallery: [{_id: 
+A Dart VM Service on iPhone 16e is available at:
+http://127.0.0.1:54172/JNd1jk6wjpo=/
+The Flutter DevTools debugger and profiler on iPhone 16e is available at:
+http://127.0.0.1:54172/JNd1jk6wjpo=/devtools/?uri=ws://127.0.0.1:54172/JNd1jk
+6wjpo=/ws
+flutter: 🎨 Using default LIGHT theme colors
+flutter: 🎨 Using default DARK theme colors
+flutter: Connectivity restored. Triggering notification sync...
+flutter: Firebase startup initialization failed: [core/not-initialized] Firebase has not been correctly initialized.
+flutter:
+flutter: Usually this means you've attempted to use a Firebase service before calling `Firebase.initializeApp`.
+flutter:
+flutter: View the documentation for more information: https://firebase.google.com/docs/flutter/setup
+flutter:
+flutter: #0      MethodChannelFirebase.initializeApp (package:firebase_core_platform_interface/src/method_channel/method_channel_firebase.dart:117:9)
+flutter: <asynchronous suspension>
+flutter: #1      Firebase.initializeApp (package:firebase_core/src/firebase.dart:66:31)
+flutter: <asynchronous suspension>
+flutter: #2      _initializeFirebase (package:foduu_ecommerce/main.dart:60:5)
+flutter: <asynchronous suspension>
+flutter: 🎨 Building light theme for mode: ThemeMode.system
+flutter: 🎨 Building dark theme for mode: ThemeMode.system
+flutter: 📦 Initializing DynamicThemeManager
+flutter: 💾 Light theme found in storage, loading...
+flutter: 🌐 Parsing LIGHT theme colors
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FFB00020
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FFFFFFFF
+flutter: 🎨 Parsed color: #FFDDDDDD
+flutter: 🎨 Parsed color: #FFF5F5F5
+flutter: 🎨 Parsed color: #FF666666
+flutter: 💾 Dark theme found in storage, loading...
+flutter: 🌐 Parsing DARK theme colors
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FFCF6679
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF444444
+flutter: 🎨 Parsed color: #FF2C2C2C
+flutter: 🎨 Parsed color: #FFAAAAAA
+flutter: we are gettinmg this after debugg
+flutter: 🔄 Refreshing app theme...
+flutter: 🎨 Building light theme for mode: ThemeMode.system
+flutter: 🎨 Building dark theme for mode: ThemeMode.system
+flutter: Login Auth Mode - OTP: true, Password: false, Mobile OTP: false
+flutter: url === https://traditional-ecom.foduu.store/api/public-settings 200
+flutter: Login Auth Mode - OTP: true, Password: false, Mobile OTP: false
+flutter: 🌐 Updating themes from API
+flutter: 🌐 Parsing LIGHT theme colors
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: ✅ Light theme updated & saved successfully
+flutter: 🌐 Parsing DARK theme colors
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: 🎨 Parsed color: #FF000000
+flutter: ✅ Dark theme updated & saved successfully
+flutter: 🔄 Refreshing app theme...
+flutter: 🎨 Building light theme for mode: ThemeMode.system
+flutter: 🎨 Building dark theme for mode: ThemeMode.system

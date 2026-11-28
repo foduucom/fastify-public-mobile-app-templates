@@ -1,6 +1,9 @@
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
+import 'package:foduu_ecommerce/app/data/services/session_service.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
+import 'package:foduu_ecommerce/constants/constants.dart';
+import 'package:flutter/foundation.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/core/config/app_config.dart';
 import 'package:get/get.dart';
@@ -17,64 +20,66 @@ class SplashScreenController extends GetxController with BaseController {
   void onInit() {
     super.onInit();
 
-    // 1. Initialize the Theme Manager (delayed from main.dart)
-    Get.find<ThemeController>().initThemeManager().then((_) {
-      // 2. Then proceed to fetch the latest settings and route
-      fetchSettings();
-    });
+    _initializeAndRoute();
   }
 
-  Future<void> fetchSettings() async {
+  Future<void> _initializeAndRoute() async {
     try {
-      // Start progress
       progressValue.value = 0.1;
-      await Future.delayed(
-          Duration(milliseconds: 100)); // Small delay for visual feedback
-
+      await Get.find<ThemeController>().initThemeManager();
       progressValue.value = 0.3;
-      var response = await BasicProvider('public-settings').getRequest();
-
+      final refresh = _refreshPublicSettings();
+      // On a fresh install, allow auth preferences to load before selecting
+      // the login route. Returning users continue with their saved config.
+      if (box.read('auth_preference') == null) {
+        await refresh.timeout(const Duration(seconds: 10), onTimeout: () {});
+      }
       progressValue.value = 0.6;
 
-      if (response != null) {
-        progressValue.value = 0.8;
+      var isLoggedIn = box.read('isLogin') == true ||
+          box.read('isLogin')?.toString() == 'true';
+      if (isLoggedIn) {
+        isLoggedIn = await SessionService.validateAtLaunch();
+      }
 
-        final storeSettings = AppConfig.instance.applyPublicSettings(response);
-        if (storeSettings != null) {
-          final palette = AppConfig.instance.extractThemePalette(storeSettings);
-          if (palette != null) {
-            final themeUpdated = DynamicThemeManager().updateFromApi(palette);
-            if (themeUpdated) Get.find<ThemeController>().refreshTheme();
-          }
-        }
+      progressValue.value = 1.0;
+      final route = isLoggedIn
+          ? Routes.BOTTOMBAR
+          : (isOtpLogin ? Routes.MOBILELOGIN : Routes.LOGIN);
+      Get.offAllNamed(route);
 
-        progressValue.value = 0.9;
-
-        // Check if user is already logged in
-        bool isLogin = box.read('isLogin') ?? false;
-
-        if (isLogin) {
-          // User is logged in, go to bottom bar
-          Get.offAllNamed(Routes.BOTTOMBAR);
-        } else {
-          // User not logged in, go to onboarding/login
-          Get.offAllNamed(Routes.ONBOARDING);
-        }
-
-        progressValue.value = 1.0; // Complete
-      } else {
-        throw Exception('Failed to load settings');
+      if (SessionService.pendingNotice != null) {
+        Future.delayed(
+          const Duration(milliseconds: 900),
+          SessionService.showPendingNotice,
+        );
       }
     } catch (e) {
-      print('Error fetching settings: $e');
-      // A server hiccup must never sign a returning user out.
-      if (box.read('isLogin') ?? false) {
-        Get.offAllNamed(Routes.BOTTOMBAR);
-      } else {
-        Get.offAllNamed(Routes.ONBOARDING);
-      }
+      debugPrint('Startup routing failed: $e');
+      final isLoggedIn = box.read('isLogin') == true ||
+          box.read('isLogin')?.toString() == 'true';
+      final route = isLoggedIn
+          ? Routes.BOTTOMBAR
+          : (isOtpLogin ? Routes.MOBILELOGIN : Routes.LOGIN);
+      Get.offAllNamed(route);
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> _refreshPublicSettings() async {
+    try {
+      final response = await BasicProvider('public-settings').getRequest();
+      final settings = AppConfig.instance.applyPublicSettings(response);
+      if (settings == null) return;
+
+      final palette = AppConfig.instance.extractThemePalette(settings);
+      if (palette != null && DynamicThemeManager().updateFromApi(palette)) {
+        Get.find<ThemeController>().refreshTheme();
+      }
+    } catch (error) {
+      // A settings service outage should not prevent opening the app.
+      debugPrint('Public settings refresh failed during startup: $error');
     }
   }
 }

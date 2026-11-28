@@ -1,4 +1,4 @@
-// import 'package:flutter_stripe/flutter_stripe.dart';
+import 'dart:async';
 
 import 'package:foduu_ecommerce/core/config/app_config.dart';
 import 'package:foduu_ecommerce/core/services/wishlistService.dart';
@@ -7,7 +7,6 @@ import '/constants/constants.dart';
 import '/core/services/cartServcie.dart';
 import '/constants/dynamic_theme.dart';
 import 'core/foduuStudio/register_default_widgets.dart';
-import 'package:foduu_ecommerce/app/data/services/session_service.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -16,7 +15,6 @@ import '/app/routes/app_pages.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:foduu_ecommerce/constants/firebase_notification.dart';
-import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/services/local_storage_notification_service.dart';
 import 'package:foduu_ecommerce/services/notification_sync_service.dart';
 import 'package:foduu_ecommerce/services/payment_service.dart';
@@ -43,71 +41,28 @@ Future<void> main() async {
     Get.put(StudioSocketRouting(initialSlug: appConfig.initialSlug));
   }
 
-  // Initialize Firebase and push notifications
-  if (!kIsWeb) {
-    await Firebase.initializeApp();
-    await FirebaseHelpers.firebaseInitialise();
-    await FirebaseHelpers.getFCMToken();
-  }
-
-  // Initialize dynamic theme from storage
-  await DynamicThemeManager().init();
-
   // Register ThemeController globally
   Get.put(ThemeController());
 
   // Register all dynamic layout widgets
   registerDefaultWidgets();
 
-  // Initialize App and get initial route
-  String initialRoute = await _initApp();
+  // Start the app UI before Firebase or network initialization. The Flutter
+  // splash route owns settings/session loading and provides a visible fallback
+  // while these services initialize.
+  runApp(const MyApp(initialRoute: Routes.SPLASH));
 
-  runApp(MyApp(initialRoute: initialRoute));
-
-  // If the session was found dead at launch, tell the user once Login is up.
-  if (SessionService.pendingNotice != null) {
-    Future.delayed(
-        const Duration(milliseconds: 900), SessionService.showPendingNotice);
-  }
-
-  // Remove splash screen after app is ready
-  // Splash screen removed (flutter_native_splash not configured)
+  if (!kIsWeb) unawaited(_initializeFirebase());
 }
 
-Future<String> _initApp() async {
-  final box = GetStorage();
-  bool isLogin = box.read('isLogin') == true || box.read('isLogin') == 'true';
-
-  final refresh = _refreshPublicSettings(box);
-  // First ever launch has no saved settings, so give them a short window to
-  // arrive. Returning users start immediately from saved settings and the
-  // refresh finishes in the background; a 5xx never logs anyone out.
-  if (box.read('auth_preference') == null) {
-    await refresh.timeout(const Duration(seconds: 10), onTimeout: () {});
-  }
-  // Confirm the stored session once before the first screen is chosen, so a
-  // dead token goes straight to Login (one transition) instead of opening
-  // the app and being kicked out mid-load.
-  if (isLogin) isLogin = await SessionService.validateAtLaunch();
-  if (!isLogin) return isOtpLogin ? Routes.MOBILELOGIN : Routes.LOGIN;
-  return Routes.BOTTOMBAR;
-}
-
-Future<void> _refreshPublicSettings(GetStorage box) async {
+Future<void> _initializeFirebase() async {
   try {
-    final response = await BasicProvider('public-settings').getRequest();
-    print('public-settings loaded');
-
-    final settings = AppConfig.instance.applyPublicSettings(response);
-    if (settings == null) return;
-
-    final palette = AppConfig.instance.extractThemePalette(settings);
-    if (palette != null) {
-      DynamicThemeManager().updateFromApi(palette);
-      Get.find<ThemeController>().refreshTheme();
-    }
-  } catch (e) {
-    print('Error during initApp: $e');
+    await Firebase.initializeApp();
+    await FirebaseHelpers.firebaseInitialise();
+    await FirebaseHelpers.getFCMToken();
+  } catch (error, stackTrace) {
+    debugPrint('Firebase startup initialization failed: $error');
+    debugPrintStack(stackTrace: stackTrace);
   }
 }
 

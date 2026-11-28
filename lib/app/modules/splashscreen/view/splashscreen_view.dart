@@ -27,14 +27,15 @@ class SplashscreenView extends GetView<SplashScreenController> {
       body: Stack(
         alignment: Alignment.bottomCenter,
         children: [
-          Positioned(
-            top: height * 0.04,
-            right: 0,
-            left: 0,
-            bottom: height * 0.18,
-            child: Image.asset(
-              'assets/images/splash.png',
-              fit: BoxFit.fill,
+          Center(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: height * 0.12),
+              child: Image.asset(
+                'assets/icon/logo-rivaya-09ae08c1.png',
+                width: width * 0.78,
+                height: height * 0.22,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
           Positioned(
@@ -46,12 +47,14 @@ class SplashscreenView extends GetView<SplashScreenController> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                CircularLoadingIndicator(
-                  progress: controller.progressValue.value,
-                  size: height * 0.10,
+                Obx(
+                  () => CircularLoadingIndicator(
+                    progress: controller.progressValue.value,
+                    size: height * 0.10,
+                  ),
                 ),
                 Text(
-                  '©2023 OCTAGON - All Right Reserved ',
+                  '© Rivaya',
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 18,

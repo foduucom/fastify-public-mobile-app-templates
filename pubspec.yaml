@@ -74,11 +74,13 @@ dev_dependencies:
 #   font_awesome_flutter:
 #     path: font_awesome_flutter
 
-flutter_icons:
+flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   remove_alpha_ios: true
-  image_path: "assets/images/appIconlogo.png"
+  image_path: "assets/icon/logo-rivaya-app-icon.png"
+  adaptive_icon_background: "#1D160D"
+  adaptive_icon_foreground: "assets/icon/logo-rivaya-adaptive-foreground.png"
 
 flutter:
   uses-material-design: true
