@@ -78,7 +78,10 @@ class WishListService extends GetxService with BaseController {
         wishListItems.assignAll(snapshot);
         HelperFunctions().showSnackBarError(ResilienceStrings.writeFailed);
       } else {
-        parseWishListResponse(response);
+        final updatedFromList = parseWishListResponse(response);
+        if (!updatedFromList) {
+          await fetchWishList();
+        }
       }
       return response;
     } catch (e) {
@@ -117,7 +120,10 @@ class WishListService extends GetxService with BaseController {
         wishListItems.assignAll(snapshot);
         HelperFunctions().showSnackBarError(ResilienceStrings.writeFailed);
       } else {
-        parseWishListResponse(response);
+        final updatedFromList = parseWishListResponse(response);
+        if (!updatedFromList) {
+          await fetchWishList();
+        }
       }
       return response;
     } catch (e) {

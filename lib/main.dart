@@ -11,6 +11,7 @@ import 'app/routes/app_pages.dart';
 import 'constants/constants.dart';
 import 'constants/dynamic_theme.dart';
 import 'constants/firebase_notification.dart';
+import 'core/config/app_config.dart';
 import 'core/foduuStudio/register_default_widgets.dart';
 import 'core/services/cartServcie.dart';
 import 'core/services/wishlistService.dart';
@@ -60,36 +61,10 @@ Future<void> _initializeApplication() async {
   // layout, otherwise the API data arrives but no section widgets are built.
   registerDefaultWidgets();
 
+  final appConfig = await AppConfig.init();
+
   if (kIsWeb) {
-    var accessKey = Uri.base.queryParameters['api_key'];
-    var domain = Uri.base.queryParameters['domain_name'];
-    String? slug = Uri.base.queryParameters['slug'] ?? 'home';
-    if (accessKey == null && Uri.base.fragment.isNotEmpty) {
-      try {
-        final fragmentUri = Uri.parse(Uri.base.fragment);
-        accessKey = fragmentUri.queryParameters['api_key'];
-        domain = fragmentUri.queryParameters['domain_name'];
-        slug = fragmentUri.queryParameters['slug'];
-        print('Access Key: $accessKey');
-        print('Domain: $domain');
-        print('Slug: $slug');
-      } catch (e) {
-        print("Error parsing URI fragment: $e");
-      }
-    }
-
-    if (accessKey != null && accessKey.isNotEmpty) {
-      ACCESS_KEY = accessKey;
-    }
-
-    if (domain != null && domain.isNotEmpty) {
-      websiteDomain = domain;
-      url = "https://$websiteDomain/";
-      assetURL = "${url}images/";
-      apiURL = "${url}api/";
-    }
-
-    Get.put(StudioSocketRouting(initialSlug: slug));
+    Get.put(StudioSocketRouting(initialSlug: appConfig.initialSlug));
   }
 
   // Load cached theme colors before building MaterialApp. If persisted theme
@@ -129,10 +104,12 @@ Future<void> _initializeApplication() async {
   if (!kIsWeb) {
     await WidgetsBinding.instance.endOfFrame;
   }
-  runApp(MyApp(
-    initialRoute: initialRoute,
-    persistentStorageAvailable: persistentStorageAvailable,
-  ));
+  runApp(
+    MyApp(
+      initialRoute: initialRoute,
+      persistentStorageAvailable: persistentStorageAvailable,
+    ),
+  );
   if (!kIsWeb) unawaited(_initializeFirebaseServices());
 }
 
@@ -201,9 +178,7 @@ class _StartupSplashState extends State<StartupSplash> {
                     dimension: 30,
                     child: CircularProgressIndicator(
                       strokeWidth: 3,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.black87,
-                      ),
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.black87),
                     ),
                   ),
                 ),
@@ -223,8 +198,9 @@ Future<void> _initializeFirebaseServices() async {
         options: DefaultFirebaseOptions.currentPlatform,
       ).timeout(const Duration(seconds: 10));
     }
-    await FirebaseHelpers.firebaseInitialise()
-        .timeout(const Duration(seconds: 10));
+    await FirebaseHelpers.firebaseInitialise().timeout(
+      const Duration(seconds: 10),
+    );
     await FirebaseHelpers.getFCMToken().timeout(const Duration(seconds: 10));
   } catch (e, stackTrace) {
     debugPrint('Push notification startup skipped: $e');
@@ -264,14 +240,13 @@ class MyApp extends StatelessWidget {
         Get.find<ThemeController>(); // ✅ finds registered controller
 
     return GetMaterialApp(
-      title: 'Your App',
+      title: appName,
       debugShowCheckedModeBanner: false,
 
       // ── Dynamic Themes ─────────────────────────────────────────
       themeMode: themeCtrl.themeMode, // ✅ reactive
       theme: themeCtrl.lightTheme, // ✅ dynamic light
       darkTheme: themeCtrl.darkTheme, // ✅ dynamic dark
-
       // ── Routing ────────────────────────────────────────────────
       initialRoute: initialRoute,
       getPages: AppPages.pages,
