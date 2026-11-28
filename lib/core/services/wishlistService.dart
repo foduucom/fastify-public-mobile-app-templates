@@ -59,7 +59,10 @@ class WishListService extends GetxService with BaseController {
         .postRequest(form)
         .catchError(handleError);
     if (response != null && response is! String) {
-      parseWishListResponse(response);
+      final updatedFromList = parseWishListResponse(response);
+      if (!updatedFromList) {
+        await fetchWishList();
+      }
     }
     return response;
   }
@@ -80,7 +83,10 @@ class WishListService extends GetxService with BaseController {
         .postRequest(form)
         .catchError(handleError);
     if (response != null && response is! String) {
-      parseWishListResponse(response);
+      final updatedFromList = parseWishListResponse(response);
+      if (!updatedFromList) {
+        await fetchWishList();
+      }
     }
     return response;
   }
@@ -147,7 +153,7 @@ class WishListService extends GetxService with BaseController {
     HelperFunctions().showSnackBarError(ResilienceStrings.writeFailed);
   }
 
-  void parseWishListResponse(dynamic data) {
+  bool parseWishListResponse(dynamic data) {
     List<dynamic>? items;
     if (data is List) {
       items = data;
@@ -160,13 +166,17 @@ class WishListService extends GetxService with BaseController {
       } else {
         // If data is a String (success message), don't clear the list
         // as we've already updated it optimistically.
-        return;
+        return false;
       }
     }
 
     if (items != null) {
-      wishListItems.value =
-          items.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      wishListItems.value = items
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+      return true;
     }
+    return false;
   }
 }

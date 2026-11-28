@@ -8,6 +8,7 @@ import 'package:foduu_ecommerce/app/modules/wishlist/views/home_wishlist_empty_v
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/buttons/primary_action_button.dart';
 import 'package:foduu_ecommerce/components/home_component/home_products.dart';
+import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/product_helper.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
@@ -344,7 +345,6 @@ class _WishListGridItem extends StatelessWidget {
     final imageUrl = ProductHelper.getProductImage(product);
     final storeName = controller.getStoreName(index);
     final priceInfo = controller.getPriceInfo(index);
-    final productType = priceInfo['productType'];
 
     return InkWell(
       onTap: () => Get.toNamed(Routes.PRODUCTDETAILS,
@@ -459,31 +459,35 @@ class _WishListGridItem extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      productName,
+                      productName.isNotEmpty
+                          ? productName
+                          : 'Product unavailable',
                       style: textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                         height: 1.1, // Tighter line height
+                        color: colorScheme.onSurface,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      storeName,
-                      style: textTheme.bodySmall?.copyWith(
-                        fontSize: 11,
-                        color: colorScheme.onSurfaceVariant,
+                    if (storeName.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        storeName,
+                        style: textTheme.bodySmall?.copyWith(
+                          fontSize: 11,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    ],
                     const SizedBox(height: 4),
-
-                    // if (productType == 'variable')
-                    //   _buildVariablePrice(context, priceInfo)
-                    // else
-                    //   _buildSimplePrice(context, priceInfo),
+                    _WishlistPriceText(
+                      priceInfo: priceInfo,
+                      compact: true,
+                    ),
                     const Spacer(),
                     // Add to Cart Section
                     Row(
@@ -502,7 +506,11 @@ class _WishListGridItem extends StatelessWidget {
                               IconButton(
                                 onPressed: () =>
                                     controller.decrementItemQuantity(index),
-                                icon: const Icon(Icons.remove, size: 14),
+                                icon: Icon(
+                                  Icons.remove,
+                                  size: 14,
+                                  color: colorScheme.onSurface,
+                                ),
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
                               ),
@@ -516,13 +524,18 @@ class _WishListGridItem extends StatelessWidget {
                                       style: textTheme.labelLarge?.copyWith(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 12,
+                                        color: colorScheme.onSurface,
                                       ),
                                     )),
                               ),
                               IconButton(
                                 onPressed: () =>
                                     controller.incrementItemQuantity(index),
-                                icon: const Icon(Icons.add, size: 14),
+                                icon: Icon(
+                                  Icons.add,
+                                  size: 14,
+                                  color: colorScheme.onSurface,
+                                ),
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
                               ),
@@ -577,7 +590,6 @@ class _WishListItemCard extends StatelessWidget {
     final imageUrl = ProductHelper.getProductImage(product);
     final storeName = controller.getStoreName(index);
     final priceInfo = controller.getPriceInfo(index);
-    final productType = priceInfo['productType'];
 
     return InkWell(
       onTap: () => _navigateToProduct(productId),
@@ -668,10 +680,13 @@ class _WishListItemCard extends StatelessWidget {
                           children: [
                             Expanded(
                               child: Text(
-                                productName,
+                                productName.isNotEmpty
+                                    ? productName
+                                    : 'Product unavailable',
                                 style: textTheme.titleSmall?.copyWith(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 14,
+                                  color: colorScheme.onSurface,
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -700,25 +715,26 @@ class _WishListItemCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          storeName,
-                          style: textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w400,
-                            fontSize: 12,
-                            color: colorScheme.onSurfaceVariant,
+                        if (storeName.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            storeName,
+                            style: textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 12,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
+                        ],
                         const SizedBox(height: 6),
                         ProductBadges(product: product),
-                        // if (productType == 'variable')
-                        //   _buildVariablePrice(context, priceInfo)
-                        // else
-                        //   _buildSimplePrice(context, priceInfo),
+                        _WishlistPriceText(priceInfo: priceInfo),
                         const Spacer(),
                         // Add to cart controls
                         Row(
-                          mainAxisSize: MainAxisSize.min,
+                          mainAxisSize: MainAxisSize.max,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
@@ -740,7 +756,11 @@ class _WishListItemCard extends StatelessWidget {
                                     child: IconButton(
                                       padding: EdgeInsets.zero,
                                       constraints: const BoxConstraints(),
-                                      icon: const Icon(Icons.remove, size: 16),
+                                      icon: Icon(
+                                        Icons.remove,
+                                        size: 16,
+                                        color: colorScheme.onSurface,
+                                      ),
                                       onPressed: () => controller
                                           .decrementItemQuantity(index),
                                     ),
@@ -752,6 +772,7 @@ class _WishListItemCard extends StatelessWidget {
                                         style: textTheme.bodyMedium?.copyWith(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 13,
+                                          color: colorScheme.onSurface,
                                         ),
                                       )),
                                   SizedBox(
@@ -759,7 +780,11 @@ class _WishListItemCard extends StatelessWidget {
                                     child: IconButton(
                                       padding: EdgeInsets.zero,
                                       constraints: const BoxConstraints(),
-                                      icon: const Icon(Icons.add, size: 16),
+                                      icon: Icon(
+                                        Icons.add,
+                                        size: 16,
+                                        color: colorScheme.onSurface,
+                                      ),
                                       onPressed: () => controller
                                           .incrementItemQuantity(index),
                                     ),
@@ -792,53 +817,89 @@ class _WishListItemCard extends StatelessWidget {
     );
   }
 
-  /// Variable product price display (compact version from HomeProducts)
-  Widget _buildVariablePrice(
-      BuildContext context, Map<String, dynamic> priceInfo) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Text(
-      '₹${priceInfo['lowestPrice']} - ₹${priceInfo['highestPrice']}',
-      style: textTheme.bodyMedium?.copyWith(
-        fontWeight: FontWeight.w600,
-        fontSize: 12,
-        color: colorScheme.primary,
-      ),
-    );
+  void _navigateToProduct(String productId) {
+    Get.toNamed(Routes.PRODUCTDETAILS, arguments: {'productId': productId});
   }
+}
 
-  /// Simple product price display with discount (compact version from HomeProducts)
-  Widget _buildSimplePrice(
-      BuildContext context, Map<String, dynamic> priceInfo) {
+class _WishlistPriceText extends StatelessWidget {
+  final Map<String, dynamic> priceInfo;
+  final bool compact;
+
+  const _WishlistPriceText({
+    required this.priceInfo,
+    this.compact = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final semanticColors = context.semanticColors;
+    final productType = priceInfo['productType'];
+    final double fontSize = compact ? 12 : 13;
+
+    if (productType == 'variable') {
+      final low = ProductHelper.formatPrice(priceInfo['lowestPrice']);
+      final high = ProductHelper.formatPrice(priceInfo['highestPrice']);
+      if (low.isEmpty ||
+          (priceInfo['lowestPrice']?.toString() == '0' &&
+              priceInfo['highestPrice']?.toString() == '0')) {
+        return const SizedBox.shrink();
+      }
+      final label = low == high || high.isEmpty ? low : '$low - $high';
+      return Text(
+        label,
+        style: textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+          fontSize: fontSize,
+          color: semanticColors.price,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    final rawPrice = priceInfo['productPrice']?.toString() ?? '';
+    final formattedPrice = ProductHelper.formatPrice(rawPrice);
+    if (formattedPrice.isEmpty || rawPrice == '0' || rawPrice == '0.0') {
+      return const SizedBox.shrink();
+    }
+
+    final discountRate = priceInfo['discountRate']?.toString() ?? '';
+    final originalPrice = ProductHelper.formatPrice(
+      priceInfo['salePrice'] ?? priceInfo['discountPrice'],
+    );
 
     return RichText(
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
       text: TextSpan(
-        text: '₹${priceInfo['productPrice']}',
+        text: formattedPrice,
         style: textTheme.bodyMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
-          color: colorScheme.primary,
+          fontWeight: FontWeight.w700,
+          fontSize: fontSize,
+          color: semanticColors.price,
         ),
         children: [
-          if (priceInfo['discountRate'] != null &&
-              priceInfo['discountRate'].toString().isNotEmpty) ...[
-            const TextSpan(text: '  '),
-            TextSpan(
-              text: '₹${priceInfo['discountPrice']}',
-              style: textTheme.bodySmall?.copyWith(
-                fontSize: 10,
-                decoration: TextDecoration.lineThrough,
-                color: colorScheme.onSurfaceVariant,
+          if (discountRate.isNotEmpty) ...[
+            if (originalPrice.isNotEmpty && originalPrice != formattedPrice) ...[
+              const TextSpan(text: '  '),
+              TextSpan(
+                text: originalPrice,
+                style: textTheme.bodySmall?.copyWith(
+                  fontSize: compact ? 10 : 11,
+                  decoration: TextDecoration.lineThrough,
+                  color: semanticColors.mutedText,
+                ),
               ),
-            ),
+            ],
             const TextSpan(text: ' '),
             TextSpan(
-              text: priceInfo['discountRate'],
+              text: discountRate.trim(),
               style: textTheme.bodySmall?.copyWith(
-                fontSize: 10,
+                fontSize: compact ? 10 : 11,
+                fontWeight: FontWeight.w600,
                 color: colorScheme.error,
               ),
             ),
@@ -846,10 +907,6 @@ class _WishListItemCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  void _navigateToProduct(String productId) {
-    Get.toNamed(Routes.PRODUCTDETAILS, arguments: {'productId': productId});
   }
 }
 

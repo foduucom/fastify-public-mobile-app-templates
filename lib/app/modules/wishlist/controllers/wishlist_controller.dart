@@ -41,19 +41,21 @@ class WishlistController extends GetxController
   }
 
   Map<String, dynamic> getProduct(int index) {
-    if (index >= wishlistItems.length) return {};
+    if (index < 0 || index >= wishlistItems.length) return {};
     final item = wishlistItems[index];
-    if (item['product_id'] != null && item['product_id'] is Map) {
-      return Map<String, dynamic>.from(item['product_id']);
+    final product = item['product_id'] ?? item['product'];
+    if (product is Map) {
+      return Map<String, dynamic>.from(product);
     }
     return {};
   }
 
   Map<String, dynamic> getVariant(int index) {
-    if (index >= wishlistItems.length) return {};
+    if (index < 0 || index >= wishlistItems.length) return {};
     final item = wishlistItems[index];
-    if (item['variant_id'] != null && item['variant_id'] is Map) {
-      return Map<String, dynamic>.from(item['variant_id']);
+    final variant = item['variant_id'] ?? item['variant'];
+    if (variant is Map) {
+      return Map<String, dynamic>.from(variant);
     }
     // Fallback: Use the product itself as the variant (for simple products)
     return getProduct(index);
@@ -65,9 +67,13 @@ class WishlistController extends GetxController
   }
 
   String getStoreName(int index) {
-    if (index >= wishlistItems.length) return 'Store Name';
+    if (index < 0 || index >= wishlistItems.length) return '';
     final product = getProduct(index);
-    return (product['brand']?['name'] ?? 'Store Name').toString();
+    final brand = product['brand'];
+    if (brand is Map && brand['name'] != null) {
+      return brand['name'].toString().trim();
+    }
+    return (product['store_name'] ?? '').toString().trim();
   }
 
   int getQuantity(int index) {
@@ -85,12 +91,15 @@ class WishlistController extends GetxController
   }
 
   String getProductId(int index) {
-    if (index >= wishlistItems.length) return '';
+    if (index < 0 || index >= wishlistItems.length) return '';
     final item = wishlistItems[index];
-    final product = item['product_id'];
+    final product = item['product_id'] ?? item['product'];
 
     if (product is Map) {
       return (product['_id'] ?? product['id'] ?? '').toString();
+    }
+    if (product != null) {
+      return product.toString();
     }
 
     return '';

@@ -2,6 +2,7 @@ import 'dart:async';
 
 // import 'package:flutter_stripe/flutter_stripe.dart';
 
+import 'package:foduu_ecommerce/core/config/app_config.dart';
 import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import 'package:foduu_ecommerce/core/studio_socket_routing.dart';
 import '/constants/constants.dart';
@@ -33,6 +34,7 @@ Future<void> main() async {
 
   await GetStorage.init();
   await ApiCache.init();
+  final appConfig = await AppConfig.init();
   Get.put(ApiHealthService(), permanent: true);
 
   Get.put(LocalStorageNotificationService());
@@ -42,32 +44,7 @@ Future<void> main() async {
   Get.put(WishListService());
 
   if (kIsWeb) {
-    var accessKey = Uri.base.queryParameters['api_key'];
-    var domain = Uri.base.queryParameters['domain_name'];
-    String? slug = Uri.base.queryParameters['slug'] ?? 'home';
-    if (accessKey == null && Uri.base.fragment.isNotEmpty) {
-      try {
-        final fragmentUri = Uri.parse(Uri.base.fragment);
-        accessKey = fragmentUri.queryParameters['api_key'];
-        domain = fragmentUri.queryParameters['domain_name'];
-        slug = fragmentUri.queryParameters['slug'];
-        print('Access Key: $accessKey');
-        print('Domain: $domain');
-        print('Slug: $slug');
-      } catch (e) {
-        print("Error parsing URI fragment: $e");
-      }
-    }
-
-    if (accessKey != null && accessKey.isNotEmpty) {
-      ACCESS_KEY = accessKey;
-    }
-
-    if (domain != null && domain.isNotEmpty) {
-      websiteDomain = domain;
-    }
-
-    Get.put(StudioSocketRouting(initialSlug: slug));
+    Get.put(StudioSocketRouting(initialSlug: appConfig.initialSlug));
   }
 
   // Initialize dynamic theme from storage
@@ -147,40 +124,16 @@ Future<void> _refreshPublicSettings(GetStorage box) async {
     final response = await BasicProvider('public-settings').getRequest();
     print('public-settings loaded');
 
-    Map? settings;
-    if (response is Map) {
-      if (response['storeSettings'] is Map) {
-        settings = response['storeSettings'];
-      } else if (response['data'] is Map &&
-          response['data']['storeSettings'] is Map) {
-        settings = response['data']['storeSettings'];
-      }
-    }
-    if (settings is! Map) {
+    final settings = AppConfig.instance.applyPublicSettings(response);
+    if (settings == null) {
       themeController?.setThemeError(
           'Store settings missing. Unable to load backend theme.');
       return;
     }
 
-    final authPreference = settings['auth_preference'];
-    if (authPreference != null && authPreference is Map) {
-      box.write('auth_preference', Map<String, dynamic>.from(authPreference));
-    }
-
-    final storeName = settings['name'] ?? settings['store_name'];
-    if (storeName != null && storeName.toString().trim().isNotEmpty) {
-      box.write('store_name', storeName.toString().trim());
-    }
-    final storeLogo = settings['logo'] ??
-        settings['app_logo'] ??
-        settings['store_logo'];
-    if (storeLogo != null && storeLogo.toString().trim().isNotEmpty) {
-      box.write('store_logo', storeLogo.toString().trim());
-    }
-
-    if (settings['app_theme_color'] is Map) {
-      final themeUpdated = DynamicThemeManager().updateFromApi(
-          Map<String, dynamic>.from(settings['app_theme_color']));
+    final palette = AppConfig.instance.extractThemePalette(settings);
+    if (palette != null) {
+      final themeUpdated = DynamicThemeManager().updateFromApi(palette);
       if (themeUpdated) {
         themeController?.setThemeError(null);
         themeController?.refreshTheme();
@@ -212,7 +165,7 @@ class MyApp extends StatelessWidget {
       builder: (themeController) {
         return GetMaterialApp(
           debugShowCheckedModeBanner: false,
-          title: "Foduu",
+          title: appName,
           initialRoute: initialRoute,
           getPages: AppPages.routes,
           theme: themeController.lightTheme,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:foduu_ecommerce/core/config/app_config.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -330,8 +331,10 @@ class DynamicThemeManager {
   DynamicThemeManager._internal();
 
   final _box = GetStorage();
-  static const String _lightThemeKey = 'app_theme_colors_light';
-  static const String _darkThemeKey = 'app_theme_colors_dark';
+  String get _lightThemeKey =>
+      'app_theme_colors_light_${AppConfig.instance.websiteDomain}';
+  String get _darkThemeKey =>
+      'app_theme_colors_dark_${AppConfig.instance.websiteDomain}';
 
   AppThemeColors? _lightColors;
   AppThemeColors? _darkColors;
