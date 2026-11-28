@@ -24,34 +24,16 @@ class SupportTicketController extends GetxController with BaseController {
       loadError.value = false;
       var response = await BasicProvider("customer/support-tickets").getRequest(
           queryParams: {'page': 1, 'limit': 10}).catchError(handleError);
-
-      List rawTickets = [];
-      Map<String, dynamic> rawPagination = {};
-
-      if (response is List) {
-        rawTickets = response;
-      } else if (response is Map) {
-        final ticketsData =
-            response['tickets'] ?? response['data'] ?? response['docs'];
-        if (ticketsData is List) {
-          rawTickets = ticketsData;
-        } else if (ticketsData is Map && ticketsData['tickets'] is List) {
-          rawTickets = ticketsData['tickets'];
-          if (ticketsData['pagination'] is Map) {
-            rawPagination =
-                Map<String, dynamic>.from(ticketsData['pagination']);
-          }
-        }
-        if (response['pagination'] is Map) {
-          rawPagination = Map<String, dynamic>.from(response['pagination']);
-        }
-      }
-
-      if (response == null) {
+      final rawTickets = _extractTickets(response);
+      if (rawTickets == null || _writeFailed(response)) {
         loadError.value = true;
         return;
       }
 
+      Map<String, dynamic> rawPagination = {};
+      if (response is Map && response['pagination'] is Map) {
+        rawPagination = Map<String, dynamic>.from(response['pagination']);
+      }
       supportTickets
         ..clear()
         ..addAll(rawTickets);
@@ -63,6 +45,21 @@ class SupportTicketController extends GetxController with BaseController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  List<dynamic>? _extractTickets(dynamic response) {
+    if (response is List) return response;
+    if (response is! Map) return null;
+    for (final key in ['tickets', 'data', 'docs', 'results', 'items']) {
+      if (!response.containsKey(key)) continue;
+      final value = response[key];
+      if (value is List) return value;
+      if (value is Map) {
+        final nested = _extractTickets(value);
+        if (nested != null) return nested;
+      }
+    }
+    return null;
   }
 
   Future<bool> createSupportTicket({
@@ -105,7 +102,11 @@ class SupportTicketController extends GetxController with BaseController {
           .postRequest(form)
           .catchError(handleError);
 
-      if (response == null) return false;
+      if (_writeFailed(response)) {
+        HelperFunctions().showSnackBarError(
+            'Could not create the support ticket. Please try again.');
+        return false;
+      }
 
       HelperFunctions()
           .showSnackBarSuccess('Support ticket created successfully');
@@ -119,6 +120,11 @@ class SupportTicketController extends GetxController with BaseController {
   }
 
   Future<bool> closeSupportTicket(String id) async {
+    if (id.trim().isEmpty || id == 'null') {
+      HelperFunctions()
+          .showSnackBarError('This ticket is missing its reference ID.');
+      return false;
+    }
     try {
       final response = await BasicProvider("customer/support-tickets/$id/close")
           .postRequest({}).catchError(handleError);
@@ -126,8 +132,11 @@ class SupportTicketController extends GetxController with BaseController {
           (response is Map &&
               (response['success'] == false ||
                   response['status'] == false ||
-                  const {'error', 'failed', 'failure'}.contains(
-                      response['status']?.toString().toLowerCase())))) {
+                  const {
+                    'error',
+                    'failed',
+                    'failure'
+                  }.contains(response['status']?.toString().toLowerCase())))) {
         throw Exception('Ticket closure was not confirmed');
       }
 
@@ -147,5 +156,17 @@ class SupportTicketController extends GetxController with BaseController {
       HelperFunctions().showSnackBarError('Failed to close support ticket');
       return false;
     }
+  }
+
+  bool _writeFailed(dynamic response) {
+    if (response == null) return true;
+    if (response is! Map) return false;
+    final status = response['status']?.toString().toLowerCase();
+    return response['success'] == false ||
+        status == 'false' ||
+        status == 'error' ||
+        status == 'failed' ||
+        status == 'failure' ||
+        status == '409';
   }
 }

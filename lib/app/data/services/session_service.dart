@@ -55,6 +55,7 @@ class SessionService {
     }
     unawaited(ApiCache.clear());
     AuthDetails.loggedIn.value = false;
+    await FirebaseHelpers.clearLocalNotifications();
     try {
       if (Get.isRegistered<WishListService>()) {
         WishListService.to.wishListItems.clear();

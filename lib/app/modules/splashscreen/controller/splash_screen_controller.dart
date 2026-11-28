@@ -2,6 +2,7 @@ import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.
 import 'package:foduu_ecommerce/app/data/basic_provider.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
+import 'package:foduu_ecommerce/core/config/app_config.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -38,33 +39,13 @@ class SplashScreenController extends GetxController with BaseController {
       if (response != null) {
         progressValue.value = 0.8;
 
-        Map? storeSettings;
-        if (response is Map) {
-          if (response['storeSettings'] is Map) {
-            storeSettings = response['storeSettings'];
-          } else if (response['data'] is Map &&
-              response['data']['storeSettings'] is Map) {
-            storeSettings = response['data']['storeSettings'];
+        final storeSettings = AppConfig.instance.applyPublicSettings(response);
+        if (storeSettings != null) {
+          final palette = AppConfig.instance.extractThemePalette(storeSettings);
+          if (palette != null) {
+            final themeUpdated = DynamicThemeManager().updateFromApi(palette);
+            if (themeUpdated) Get.find<ThemeController>().refreshTheme();
           }
-        }
-
-        var authPreference = storeSettings?['auth_preference'];
-
-        // Save auth preference for use throughout the app
-        if (authPreference != null && authPreference is Map) {
-          box.write(
-              'auth_preference', Map<String, dynamic>.from(authPreference));
-        }
-        print('Auth Preference saved: $authPreference');
-        print('swapnil splash screen response ${response}');
-
-        if (storeSettings != null && storeSettings['app_theme_color'] != null) {
-          print('App Theme Color: ${storeSettings['app_theme_color']}');
-          DynamicThemeManager()
-              .updateFromApi(storeSettings['app_theme_color']);
-
-          // Trigger app-wide theme rebuild
-          Get.find<ThemeController>().refreshTheme();
         }
 
         progressValue.value = 0.9;

@@ -126,13 +126,10 @@ class AddressListController extends GetxController with BaseController {
           return;
         }
 
-        userAddressList.clear();
-
-        List<dynamic> fetchedList = [];
-        if (response is List) {
-          fetchedList = response;
-        } else if (response is Map && response['data'] is List) {
-          fetchedList = response['data'];
+        final fetchedList = _extractAddressList(response);
+        if (fetchedList == null) {
+          loadError.value = true;
+          return;
         }
 
         await resolveAddressesNames(fetchedList);
@@ -174,6 +171,21 @@ class AddressListController extends GetxController with BaseController {
       isLoading.value = false;
       addressLoading.value = false;
     }
+  }
+
+  List<dynamic>? _extractAddressList(dynamic response) {
+    if (response is List) return response;
+    if (response is! Map) return null;
+    for (final key in ['addresses', 'data', 'docs', 'results', 'items']) {
+      if (!response.containsKey(key)) continue;
+      final value = response[key];
+      if (value is List) return value;
+      if (value is Map) {
+        final nested = _extractAddressList(value);
+        if (nested != null) return nested;
+      }
+    }
+    return null;
   }
 
   void _prefetchMissingCityNames() {
@@ -219,8 +231,11 @@ class AddressListController extends GetxController with BaseController {
           (response is Map &&
               (response['success'] == false ||
                   response['status'] == false ||
-                  const {'error', 'failed', 'failure'}.contains(
-                      response['status']?.toString().toLowerCase())))) {
+                  const {
+                    'error',
+                    'failed',
+                    'failure'
+                  }.contains(response['status']?.toString().toLowerCase())))) {
         throw Exception('Address removal was not confirmed');
       }
 

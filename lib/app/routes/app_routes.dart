@@ -66,6 +66,7 @@ abstract class Routes {
   static const SUPPORT_TICKET = _Paths.SUPPORT_TICKET;
   static const SUPPORT_TICKET_DETAILS = _Paths.SUPPORT_TICKET_DETAILS;
   static const MY_REVIEWS = _Paths.MY_REVIEWS;
+  static const CHANGE_PASSWORD = _Paths.CHANGE_PASSWORD;
 }
 
 abstract class _Paths {
@@ -131,4 +132,5 @@ abstract class _Paths {
   static const SUPPORT_TICKET = '/support-ticket';
   static const SUPPORT_TICKET_DETAILS = '/support-ticket-details';
   static const MY_REVIEWS = '/my-reviews';
+  static const CHANGE_PASSWORD = '/change-password';
 }

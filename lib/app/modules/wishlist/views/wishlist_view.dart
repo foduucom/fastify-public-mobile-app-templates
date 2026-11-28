@@ -7,12 +7,13 @@ import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_contr
 import 'package:foduu_ecommerce/app/modules/wishlist/views/home_wishlist_empty_view.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/buttons/primary_action_button.dart';
+import 'package:foduu_ecommerce/components/commonWidgets/simple_price_text.dart';
+import 'package:foduu_ecommerce/components/commonWidgets/variable_price_text.dart';
 import 'package:foduu_ecommerce/components/home_component/home_products.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/product_helper.dart';
 import 'package:foduu_ecommerce/core/foduuStudio/foduu_studio_layout_view.dart';
 import 'package:foduu_ecommerce/core/services/cartServcie.dart';
-import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import 'package:foduu_ecommerce/app/modules/shop/shop_navigation.dart';
 import 'package:get/get.dart';
 import '../controllers/wishlist_controller.dart';
@@ -315,6 +316,57 @@ class WishlistView extends GetView<WishlistController> {
   }
 }
 
+class _WishlistPrice extends StatelessWidget {
+  const _WishlistPrice({required this.priceInfo});
+
+  final Map<String, dynamic> priceInfo;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    if (priceInfo['productType'] == 'variable') {
+      if (priceInfo['hasValidVariants'] == false) {
+        return Text('Price unavailable', style: textTheme.bodySmall);
+      }
+      return VariablePriceText(
+        lowestPrice: HelperFunctions.parseAmount(priceInfo['lowestPrice']),
+        highestPrice: HelperFunctions.parseAmount(priceInfo['highestPrice']),
+        style: textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+          color: scheme.primary,
+        ),
+      );
+    }
+
+    final discountLabel = priceInfo['discountRate']?.toString() ?? '';
+    final originalPrice = discountLabel.isEmpty
+        ? null
+        : HelperFunctions.parseAmount(priceInfo['salePrice']);
+    return SimplePriceText(
+      price: HelperFunctions.parseAmount(priceInfo['productPrice']),
+      originalPrice: originalPrice,
+      discountLabel: discountLabel.isEmpty ? null : discountLabel.trim(),
+      priceStyle: textTheme.bodyMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+        fontSize: 12,
+        color: scheme.primary,
+      ),
+      originalPriceStyle: textTheme.bodySmall?.copyWith(
+        fontSize: 10,
+        decoration: TextDecoration.lineThrough,
+        color: scheme.onSurfaceVariant,
+      ),
+      discountStyle: textTheme.bodySmall?.copyWith(
+        fontSize: 10,
+        color: scheme.error,
+      ),
+      spacing: 3,
+    );
+  }
+}
+
 class _WishListGridItem extends StatelessWidget {
   final WishlistController controller;
   final int index;
@@ -338,7 +390,6 @@ class _WishListGridItem extends StatelessWidget {
     final imageUrl = ProductHelper.getProductImage(product);
     final storeName = controller.getStoreName(index);
     final priceInfo = controller.getPriceInfo(index);
-    final productType = priceInfo['productType'];
 
     return InkWell(
       onTap: () => Get.toNamed(Routes.PRODUCTDETAILS,
@@ -473,11 +524,7 @@ class _WishListGridItem extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-
-                    // if (productType == 'variable')
-                    //   _buildVariablePrice(context, priceInfo)
-                    // else
-                    //   _buildSimplePrice(context, priceInfo),
+                    _WishlistPrice(priceInfo: priceInfo),
                     const Spacer(),
                     // Add to Cart Section
                     Row(
@@ -571,7 +618,6 @@ class _WishListItemCard extends StatelessWidget {
     final imageUrl = ProductHelper.getProductImage(product);
     final storeName = controller.getStoreName(index);
     final priceInfo = controller.getPriceInfo(index);
-    final productType = priceInfo['productType'];
 
     return InkWell(
       onTap: () => _navigateToProduct(productId),
@@ -679,10 +725,7 @@ class _WishListItemCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         ProductBadges(product: product),
-                        // if (productType == 'variable')
-                        //   _buildVariablePrice(context, priceInfo)
-                        // else
-                        //   _buildSimplePrice(context, priceInfo),
+                        _WishlistPrice(priceInfo: priceInfo),
                         const Spacer(),
                         // Add to cart controls
                         Row(
@@ -785,62 +828,6 @@ class _WishListItemCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  /// Variable product price display (compact version from HomeProducts)
-  Widget _buildVariablePrice(
-      BuildContext context, Map<String, dynamic> priceInfo) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Text(
-      '₹${priceInfo['lowestPrice']} - ₹${priceInfo['highestPrice']}',
-      style: textTheme.bodyMedium?.copyWith(
-        fontWeight: FontWeight.w600,
-        fontSize: 12,
-        color: colorScheme.primary,
-      ),
-    );
-  }
-
-  /// Simple product price display with discount (compact version from HomeProducts)
-  Widget _buildSimplePrice(
-      BuildContext context, Map<String, dynamic> priceInfo) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return RichText(
-      text: TextSpan(
-        text: '₹${priceInfo['productPrice']}',
-        style: textTheme.bodyMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
-          color: colorScheme.primary,
-        ),
-        children: [
-          if (priceInfo['discountRate'] != null &&
-              priceInfo['discountRate'].toString().isNotEmpty) ...[
-            const TextSpan(text: '  '),
-            TextSpan(
-              text: '₹${priceInfo['discountPrice']}',
-              style: textTheme.bodySmall?.copyWith(
-                fontSize: 10,
-                decoration: TextDecoration.lineThrough,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const TextSpan(text: ' '),
-            TextSpan(
-              text: priceInfo['discountRate'],
-              style: textTheme.bodySmall?.copyWith(
-                fontSize: 10,
-                color: colorScheme.error,
-              ),
-            ),
-          ],
-        ],
       ),
     );
   }

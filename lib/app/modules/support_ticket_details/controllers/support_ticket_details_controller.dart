@@ -7,7 +7,6 @@ import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 
 class SupportTicketDetailsController extends GetxController
@@ -57,8 +56,10 @@ class SupportTicketDetailsController extends GetxController
       final raw = attachment['url'] ??
           attachment['download_url'] ??
           attachment['downloadUrl'] ??
+          attachment['file_url'] ??
           attachment['filePath'] ??
           attachment['filepath'] ??
+          attachment['path'] ??
           attachment['filename'];
       if (raw != null && raw.toString().trim().isNotEmpty) {
         return resolveAttachmentUrl(raw.toString().trim());
@@ -276,6 +277,7 @@ class SupportTicketDetailsController extends GetxController
       }
 
       supportTicketDetails.value = ticket;
+      final ticketAttachments = ticket['attachments'] ?? ticket['attachment'];
 
       final List<dynamic> newMessages = [
         if (ticket.isNotEmpty)
@@ -283,15 +285,16 @@ class SupportTicketDetailsController extends GetxController
             'is_customer': true,
             'message': ticket['message'],
             'created_at': ticket['created_at'],
-            'attachment': ticket['attachment'],
-            'attachments': _wrapAttachment(ticket['attachment']),
+            'attachment': ticketAttachments,
+            'attachments': _wrapAttachment(ticketAttachments),
           },
         ...replies.whereType<Map>().map((reply) {
           final map = Map<String, dynamic>.from(reply);
           final isCustomer = reply['is_customer'] == true ||
               reply['sender_type'] == 'customer';
           map['is_customer'] = isCustomer;
-          map['attachments'] = _wrapAttachment(map['attachment']);
+          map['attachments'] =
+              _wrapAttachment(map['attachments'] ?? map['attachment']);
           return map;
         }),
       ];
@@ -314,7 +317,8 @@ class SupportTicketDetailsController extends GetxController
     final text = message.trim();
     if (text.isEmpty && files.isEmpty) return;
     if (supportTicketId.isEmpty || supportTicketId == 'null') {
-      HelperFunctions().showSnackBarError('This support ticket could not be loaded');
+      HelperFunctions()
+          .showSnackBarError('This support ticket could not be loaded');
       return;
     }
     if (supportTicketDetails['can_reply'] == false) {
@@ -364,12 +368,14 @@ class SupportTicketDetailsController extends GetxController
     selectedFiles.remove(file);
   }
 
-  List<Map<String, dynamic>> _wrapAttachment(dynamic attachment) {
-    if (attachment == null || attachment is! Map) return [];
-    final map = Map<String, dynamic>.from(attachment);
-    final resolved = resolveAttachmentUrl(map);
-    return [
-      {...map, if (resolved.isNotEmpty) 'resolved_url': resolved}
-    ];
+  List<Map<String, dynamic>> _wrapAttachment(dynamic rawAttachments) {
+    final items = rawAttachments is List ? rawAttachments : [rawAttachments];
+    return items.where((item) => item != null).map((item) {
+      final map = item is Map
+          ? Map<String, dynamic>.from(item)
+          : {'url': item.toString(), 'name': item.toString().split('/').last};
+      final resolved = resolveAttachmentUrl(map);
+      return {...map, if (resolved.isNotEmpty) 'resolved_url': resolved};
+    }).toList();
   }
 }

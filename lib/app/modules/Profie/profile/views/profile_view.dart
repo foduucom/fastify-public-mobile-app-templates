@@ -7,7 +7,6 @@ import 'package:foduu_ecommerce/app/modules/Profie/profile/views/editprofile_vie
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/bottomar/controllers/bottombar_controller.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
-import 'package:foduu_ecommerce/components/buttons/appbutton.dart';
 import 'package:foduu_ecommerce/components/commonWidgets/user_avatar.dart';
 import 'package:foduu_ecommerce/constants/dynamic_theme.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
@@ -15,12 +14,11 @@ import 'package:foduu_ecommerce/core/services/wishlistService.dart';
 import 'package:get/get.dart';
 
 class ProfileView extends GetView<ProfileController> {
-  ProfileView({Key? key}) : super(key: key);
-
-  final ProfileController _profileController =
-      Get.isRegistered<ProfileController>()
-          ? Get.find<ProfileController>()
-          : Get.put(ProfileController());
+  ProfileView({Key? key}) : super(key: key) {
+    if (!Get.isRegistered<ProfileController>()) {
+      Get.put(ProfileController());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +62,18 @@ class ProfileView extends GetView<ProfileController> {
             parent: BouncingScrollPhysics(),
           ),
           children: [
+            Obx(() => controller.profileLoadError.value
+                ? Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.cloud_off_outlined),
+                      title: const Text('Some profile details could not load.'),
+                      trailing: TextButton(
+                        onPressed: controller.fetchDataFromServer,
+                        child: const Text('Retry'),
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink()),
             // 1. Profile Header Card
             _buildProfileHeaderCard(context, colorScheme, isDark),
             const SizedBox(height: 16),
@@ -165,15 +175,23 @@ class ProfileView extends GetView<ProfileController> {
               colorScheme,
               [
                 _buildThemeSelectorTile(context, colorScheme, isDark),
-                // _buildTile(
-                //   context: context,
-                //   icon: Icons.notifications_outlined,
-                //   iconBgColor: Colors.deepOrange,
-                //   title: "Notifications",
-                //   subtitle: "Offers, order alerts & updates",
-                //   onTap: () => Get.toNamed(Routes.NOTIFICATION),
-                //   isLast: true,
-                // ),
+                _buildTile(
+                  context: context,
+                  icon: Icons.notifications_outlined,
+                  iconBgColor: Colors.deepOrange,
+                  title: "Notifications",
+                  subtitle: "Offers, order alerts & updates",
+                  onTap: () => Get.toNamed(Routes.NOTIFICATION),
+                ),
+                _buildTile(
+                  context: context,
+                  icon: Icons.lock_outline,
+                  iconBgColor: Colors.blueGrey,
+                  title: "Change Password",
+                  subtitle: "Update your account password",
+                  onTap: () => Get.toNamed(Routes.CHANGE_PASSWORD),
+                  isLast: true,
+                ),
               ],
             ),
             const SizedBox(height: 20),

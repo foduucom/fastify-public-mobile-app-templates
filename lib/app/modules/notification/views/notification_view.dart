@@ -26,9 +26,14 @@ class NotificationsView extends GetView<NotificationsController> {
                       title: const Text('Notifications are turned off'),
                       subtitle:
                           const Text('Enable permission to receive updates.'),
-                      trailing: TextButton(
-                          onPressed: controller.requestPermission,
-                          child: const Text('Enable')),
+                      trailing: Obx(() => TextButton(
+                            onPressed: controller.permissionNeedsSettings.value
+                                ? controller.openNotificationSettings
+                                : controller.requestPermission,
+                            child: Text(controller.permissionNeedsSettings.value
+                                ? 'Settings'
+                                : 'Enable'),
+                          )),
                     ),
                   ),
                 if (items.isNotEmpty)

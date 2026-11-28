@@ -22,21 +22,14 @@ class MyReviewsController extends GetxController with BaseController {
       hasError.value = false;
       var response = await BasicProvider("customer/reviews").getRequest(
           queryParams: {'page': 1, 'limit': 50}).catchError(handleError);
-      if (response == null) {
+      if (response == null || _writeFailed(response)) {
         hasError.value = true;
         return;
       }
-      List rawReviews = [];
-      if (response is List) {
-        rawReviews = response;
-      } else if (response is Map) {
-        final reviews =
-            response['reviews'] ?? response['data'] ?? response['docs'];
-        if (reviews is List) {
-          rawReviews = reviews;
-        } else if (reviews is Map && reviews['reviews'] is List) {
-          rawReviews = reviews['reviews'];
-        }
+      final rawReviews = _extractReviews(response);
+      if (rawReviews == null) {
+        hasError.value = true;
+        return;
       }
       reviewsList.assignAll(
           rawReviews.whereType<Map>().map((e) => _normalizeReview(e)));
@@ -48,10 +41,28 @@ class MyReviewsController extends GetxController with BaseController {
     }
   }
 
+  List<dynamic>? _extractReviews(dynamic response) {
+    if (response is List) return response;
+    if (response is! Map) return null;
+    for (final key in ['reviews', 'data', 'docs', 'results', 'items']) {
+      if (!response.containsKey(key)) continue;
+      final value = response[key];
+      if (value is List) return value;
+      if (value is Map) {
+        final nested = _extractReviews(value);
+        if (nested != null) return nested;
+      }
+    }
+    return null;
+  }
+
   Map<String, dynamic> _normalizeReview(dynamic item) {
     final product = item['product'];
     final productName =
         product is Map ? (product['name']?.toString() ?? '') : '';
+    final productId = product is Map
+        ? (product['_id'] ?? product['id'])?.toString() ?? ''
+        : '';
     final productSlug =
         product is Map ? (product['slug']?.toString() ?? '') : '';
     final productImage = product is Map
@@ -70,6 +81,7 @@ class MyReviewsController extends GetxController with BaseController {
     return {
       'id': (item['id'] ?? item['_id'])?.toString() ?? '',
       'product_name': productName,
+      'product_id': productId,
       'product_slug': productSlug,
       'product_image': productImage,
       'rating': int.tryParse((item['rating'] ?? 5).toString()) ?? 5,
@@ -80,7 +92,8 @@ class MyReviewsController extends GetxController with BaseController {
 
   void confirmDeleteReview(BuildContext context, String id) {
     if (id.isEmpty) {
-      HelperFunctions().showSnackBarError('This review cannot be deleted because its ID is missing.');
+      HelperFunctions().showSnackBarError(
+          'This review cannot be deleted because its ID is missing.');
       return;
     }
     final colorScheme = Theme.of(context).colorScheme;
@@ -116,7 +129,7 @@ class MyReviewsController extends GetxController with BaseController {
       final response = await BasicProvider("customer/reviews/$id")
           .deleteRequest()
           .catchError(handleError);
-      if (response == null)
+      if (_writeFailed(response))
         throw Exception('Review deletion was not confirmed');
       reviewsList.removeWhere((element) => element['id'] == id);
       HelperFunctions().showSnackBarSuccess('Review deleted successfully');
@@ -124,5 +137,17 @@ class MyReviewsController extends GetxController with BaseController {
       debugPrint('deleteReview error: $e');
       HelperFunctions().showSnackBarError('Failed to delete review');
     }
+  }
+
+  bool _writeFailed(dynamic response) {
+    if (response == null) return true;
+    if (response is! Map) return false;
+    final status = response['status']?.toString().toLowerCase();
+    return response['success'] == false ||
+        status == 'false' ||
+        status == 'error' ||
+        status == 'failed' ||
+        status == 'failure' ||
+        status == '409';
   }
 }

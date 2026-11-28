@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:foduu_ecommerce/app/data/cookie_client_manager.dart';
-import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/constants/app_exceptions.dart';
 import 'package:foduu_ecommerce/constants/constants.dart';
 import 'package:foduu_ecommerce/constants/helper_functions.dart';
@@ -16,7 +15,8 @@ class OtpProvider extends GetConnect {
       {String? email,
       String? mobile,
       String? countryCode,
-      required String otp}) async {
+      required String otp,
+      bool persistAuthSession = true}) async {
     try {
       final Map<String, dynamic> form = {"otp": otp};
       if (email != null && email.isNotEmpty) {
@@ -25,16 +25,22 @@ class OtpProvider extends GetConnect {
         form["mobile"] = mobile;
         if (countryCode != null) form["country_code"] = countryCode;
       }
-      final client = CookieClientManager.getClient();
-      final response = await client.post(
-        Uri.parse(fetchUrl("auth/verify-otp")),
-        body: jsonEncode(form),
-        headers: {
-          "accept": "application/json",
-          "access-key": ACCESS_KEY,
-          "Content-Type": "application/json",
-        },
-      );
+      final http.Client client =
+          persistAuthSession ? CookieClientManager.getClient() : http.Client();
+      late final http.Response response;
+      try {
+        response = await client.post(
+          Uri.parse(fetchUrl("auth/verify-otp")),
+          body: jsonEncode(form),
+          headers: {
+            "accept": "application/json",
+            "access-key": ACCESS_KEY,
+            "Content-Type": "application/json",
+          },
+        );
+      } finally {
+        if (!persistAuthSession) client.close();
+      }
 
       // Guard against empty or non-JSON response body
       dynamic responseBody;
@@ -44,19 +50,13 @@ class OtpProvider extends GetConnect {
         try {
           responseBody = jsonDecode(response.body);
         } catch (_) {
-          responseBody = {'message': 'Invalid response from server: ${response.body}'};
+          responseBody = {
+            'message': 'Invalid response from server: ${response.body}'
+          };
         }
       }
 
-      // Print response headers to debug cookies
-      print('Response Headers: ${response.headers}');
-      print('Response Status: ${response.statusCode}');
-      print('Response Body: $responseBody');
-
       if (response.statusCode == 200) {
-        // Save the login response including token using AuthDetails
-        AuthDetails.saveLoginResponse(responseBody);
-
         // Return both response body and headers (for cookies)
         return {
           'body': responseBody,
@@ -64,20 +64,23 @@ class OtpProvider extends GetConnect {
           'statusCode': response.statusCode,
         };
       } else if (response.statusCode == 422) {
-        final errorMessage =
-            responseBody['message']?.toString() ?? 'Invalid OTP';
+        final errorMessage = responseBody is Map
+            ? responseBody['message']?.toString() ?? 'Invalid OTP'
+            : 'Invalid OTP';
         throw FormatException(errorMessage);
       } else if (response.statusCode == 401) {
-        final errorMessage =
-            responseBody['message']?.toString() ?? 'Invalid credentials';
+        final errorMessage = responseBody is Map
+            ? responseBody['message']?.toString() ?? 'Invalid credentials'
+            : 'Invalid credentials';
         throw UnAuthorizedException(errorMessage);
       } else {
-        final errorMessage =
-            responseBody['message']?.toString() ?? 'OTP verification failed';
+        final errorMessage = responseBody is Map
+            ? responseBody['message']?.toString() ?? 'OTP verification failed'
+            : 'OTP verification failed';
         throw Exception(errorMessage);
       }
     } on FormatException catch (e) {
-      HelperFunctions().showSnackBarError(e.message ?? 'Invalid OTP format');
+      HelperFunctions().showSnackBarError(e.message);
       rethrow;
     } on UnAuthorizedException catch (e) {
       HelperFunctions().showSnackBarError(e.toString());
@@ -117,7 +120,9 @@ class OtpProvider extends GetConnect {
         try {
           responseBody = jsonDecode(response.body);
         } catch (_) {
-          responseBody = {'message': 'Invalid response from server: ${response.body}'};
+          responseBody = {
+            'message': 'Invalid response from server: ${response.body}'
+          };
         }
       }
 

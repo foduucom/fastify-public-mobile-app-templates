@@ -68,10 +68,11 @@ class BasicProvider {
     final cached = cacheable ? ApiCache.read(cacheKey) : null;
 
     try {
-      final response = await _fetchWithRetry(uri,
-          hasCache: cached != null, retry: retry);
+      final response =
+          await _fetchWithRetry(uri, hasCache: cached != null, retry: retry);
       final result = _processResponse(response, fetchUrl());
-      if (cacheable && (response.statusCode == 200 || response.statusCode == 201)) {
+      if (cacheable &&
+          (response.statusCode == 200 || response.statusCode == 201)) {
         ApiCache.write(cacheKey, result);
       }
       return result;
@@ -119,7 +120,8 @@ class BasicProvider {
       {required bool hasCache, required bool retry}) async {
     // With a cached copy to show we only wait briefly; without one we keep
     // trying long enough to ride out a ~30s deploy.
-    final budget = hasCache ? const Duration(seconds: 8) : const Duration(seconds: 35);
+    final budget =
+        hasCache ? const Duration(seconds: 8) : const Duration(seconds: 35);
     final attemptTimeout =
         hasCache ? const Duration(seconds: 6) : const Duration(seconds: 15);
     final watch = Stopwatch()..start();
@@ -157,7 +159,8 @@ class BasicProvider {
       }
       delay = Duration(
           milliseconds:
-              (delay.inMilliseconds * (0.75 + _random.nextDouble() * 0.5)).round());
+              (delay.inMilliseconds * (0.75 + _random.nextDouble() * 0.5))
+                  .round());
       if (watch.elapsed + delay >= budget) break;
       await Future.delayed(delay);
       attempt++;
@@ -307,7 +310,9 @@ class BasicProvider {
 
   String _writeFailedMessage() {
     final p = custom_url.toLowerCase();
-    return (p.contains('checkout') || p.contains('payment') || p.contains('order'))
+    return (p.contains('checkout') ||
+            p.contains('payment') ||
+            p.contains('order'))
         ? ResilienceStrings.checkoutFailed
         : ResilienceStrings.writeFailed;
   }
@@ -337,7 +342,8 @@ class BasicProvider {
     print('url === $url ${response.statusCode}');
 
     if (_transientStatuses.contains(response.statusCode)) {
-      throw ServiceUnavailableException(null, url.toString(), response.statusCode);
+      throw ServiceUnavailableException(
+          null, url.toString(), response.statusCode);
     }
 
     var responseBody;

@@ -85,10 +85,14 @@ class MyReviewsView extends GetView<MyReviewsController> {
                   onDelete: () =>
                       controller.confirmDeleteReview(context, review['id']),
                   onProductTap: () {
-                    final slug = review['product_slug'];
-                    if (slug != null && slug.toString().isNotEmpty) {
+                    final productId = review['product_id']?.toString() ?? '';
+                    final productSlug =
+                        review['product_slug']?.toString() ?? '';
+                    final productKey =
+                        productId.isNotEmpty ? productId : productSlug;
+                    if (productKey.isNotEmpty) {
                       Get.toNamed(Routes.PRODUCTDETAILS,
-                          arguments: {'slug': slug});
+                          arguments: {'productId': productKey});
                     }
                   },
                 );

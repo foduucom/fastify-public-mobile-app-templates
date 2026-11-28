@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import '/components/app_image_placeholder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:foduu_ecommerce/app/modules/blog/controller/blog_controller.dart';
@@ -13,7 +12,7 @@ class BlogView extends GetView<BlogController> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(BlogController());
+    final controller = this.controller;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -66,7 +65,8 @@ class BlogView extends GetView<BlogController> {
               // Main Blog Content Area
               Obx(() {
                 if (controller.isLoading.value) {
-                  return _buildShimmerLoading(context, controller.isGridView.value);
+                  return _buildShimmerLoading(
+                      context, controller.isGridView.value);
                 }
 
                 if (controller.hasError.value && controller.allBlogs.isEmpty) {
@@ -93,6 +93,13 @@ class BlogView extends GetView<BlogController> {
                               strokeWidth: 2.5,
                             ),
                           ),
+                        ),
+                      if (controller.hasMoreError.value)
+                        TextButton.icon(
+                          onPressed: controller.retryMoreBlogs,
+                          icon: const Icon(Icons.refresh),
+                          label:
+                              const Text('Could not load more articles. Retry'),
                         ),
                       const SizedBox(height: 36),
                     ],
@@ -313,9 +320,7 @@ class BlogView extends GetView<BlogController> {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          blog.shortDate.isNotEmpty
-                              ? blog.shortDate
-                              : 'Recent',
+                          blog.shortDate.isNotEmpty ? blog.shortDate : 'Recent',
                           style: textTheme.labelSmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                             fontSize: 10.5,
@@ -457,9 +462,7 @@ class BlogView extends GetView<BlogController> {
                           size: 14, color: colorScheme.onSurfaceVariant),
                       const SizedBox(width: 5),
                       Text(
-                        blog.shortDate.isNotEmpty
-                            ? blog.shortDate
-                            : 'Recent',
+                        blog.shortDate.isNotEmpty ? blog.shortDate : 'Recent',
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w500,
@@ -543,8 +546,7 @@ class BlogView extends GetView<BlogController> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final baseColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
-    final highlightColor =
-        isDark ? Colors.grey.shade700 : Colors.grey.shade100;
+    final highlightColor = isDark ? Colors.grey.shade700 : Colors.grey.shade100;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),

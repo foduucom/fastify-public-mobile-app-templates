@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/modules/auth/otp/controller.dart/otp_controller.dart';
 import 'package:foduu_ecommerce/app/modules/auth/login/components/app_text.dart';
-import 'package:foduu_ecommerce/app/modules/auth/login/components/app_text_field.dart';
 import 'package:foduu_ecommerce/app/modules/auth/otp/view/otp_input_widget.dart';
 import 'package:foduu_ecommerce/app/routes/app_pages.dart';
 import 'package:foduu_ecommerce/components/buttons/primary_action_button.dart';
@@ -62,7 +61,10 @@ class OTPView extends GetView<OtpController> {
                         ),
                         const SizedBox(height: 8),
                         AppText(
-                          "Verify your account and get access to exclusive travel features",
+                          controller.otpContext.value ==
+                                  OtpContext.forgotPassword
+                              ? 'Enter the code sent to you to continue password recovery.'
+                              : 'Enter the code sent to verify your account.',
                           fontSize: height * 0.018,
                           height: 1.4,
                           letterSpacing: 0,
@@ -76,25 +78,53 @@ class OTPView extends GetView<OtpController> {
 
                   SizedBox(height: height * 0.02),
 
-                  // OTP Input Widget
-                  Center(
-                    child: OtpInputWidget(
-                      length: 6,
-                      controller: controller,
-                      onCompleted: (otp) {
-                        // Auto-verify when OTP is complete
-                        if (otp.length == 6) {
-                          controller.verifyOtp(otp: otp);
-                        }
-                      },
-                    ),
-                  ),
+                  Obx(() {
+                    if (controller.forgotPasswordOtpVerified.value) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              controller.forgotPasswordMessage.value,
+                              style: TextStyle(
+                                  color: colorScheme.onSurfaceVariant),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          PrimaryActionButton(
+                            text: 'Back to Sign In',
+                            onPressed: () => Get.offAllNamed(Routes.LOGIN),
+                          ),
+                        ],
+                      );
+                    }
+
+                    return Center(
+                      child: OtpInputWidget(
+                        length: 6,
+                        controller: controller,
+                        onCompleted: (otp) {
+                          if (otp.length == 6) {
+                            controller.verifyOtp(otp: otp);
+                          }
+                        },
+                      ),
+                    );
+                  }),
 
                   SizedBox(height: height * 0.04),
 
                   // Resend Code Section
                   Center(
                     child: Obx(() {
+                      if (controller.forgotPasswordOtpVerified.value) {
+                        return const SizedBox.shrink();
+                      }
                       if (controller.isResendVisible.value) {
                         return Center(
                           child: Row(
@@ -111,10 +141,7 @@ class OTPView extends GetView<OtpController> {
                               ),
                               SizedBox(width: width * 0.01),
                               InkWell(
-                                onTap: () {
-                                  //print('CLICKED ON CREATE AN ACCOUNT');
-                                  //Get.toNamed(Routes.SIGNUP);
-                                },
+                                onTap: controller.resendOtp,
                                 child: Text(
                                   'Send Code Again',
                                   style: TextStyle(
@@ -144,17 +171,17 @@ class OTPView extends GetView<OtpController> {
                   SizedBox(height: height * 0.04),
 
                   // OTP
-                  Obx(() => PrimaryActionButton(
-                        text: "Submit",
-                        onPressed: controller.otpCode.value.length == 6 &&
-                                !controller.isLoading.value
-                            ? () {
-                                controller.verifyOtp(
-                                    otp: controller.otpCode.value);
-                              }
-                            : null,
-                        isLoading: controller.isLoading.value,
-                      )),
+                  Obx(() => controller.forgotPasswordOtpVerified.value
+                      ? const SizedBox.shrink()
+                      : PrimaryActionButton(
+                          text: 'Verify Code',
+                          onPressed: controller.otpCode.value.length == 6 &&
+                                  !controller.isLoading.value
+                              ? () => controller.verifyOtp(
+                                  otp: controller.otpCode.value)
+                              : null,
+                          isLoading: controller.isLoading.value,
+                        )),
                 ],
               ),
             ),

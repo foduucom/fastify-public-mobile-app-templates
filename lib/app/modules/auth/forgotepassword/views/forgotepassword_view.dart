@@ -93,10 +93,13 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
                       prefixIcon: Icons.email_outlined,
                       fontSize: height * 0.0165,
                       validator: (value) {
-                        if (value == null || value.isEmpty)
+                        final email = value?.trim() ?? '';
+                        if (email.isEmpty) {
                           return 'Please enter your email';
-                        if (!value.contains('@'))
+                        }
+                        if (!GetUtils.isEmail(email)) {
                           return 'Please enter a valid email';
+                        }
                         return null;
                       },
                     ),
@@ -119,14 +122,14 @@ class ForgotepasswordView extends GetView<ForgotepasswordController> {
                     SizedBox(height: height * 0.015),
 
                     // Submit Button
-                    PrimaryActionButton(
-                      text: "Submit",
-                      isLoading: controller.isLoading.value,
-                      onPressed: () {
-                        if (!controller.isLoading.value) {
-                          controller.forgot_password();
-                        }
-                      },
+                    Obx(
+                      () => PrimaryActionButton(
+                        text: 'Send Recovery Code',
+                        isLoading: controller.isLoading.value,
+                        onPressed: controller.isLoading.value
+                            ? null
+                            : () => controller.forgot_password(),
+                      ),
                     ),
                   ],
                 ),

@@ -101,9 +101,12 @@ class SupportTicketView extends GetView<SupportTicketController> {
                   colorScheme: colorScheme,
                   textTheme: textTheme,
                   onView: () {
-                    final id = ticket['id'] ??
-                        ticket['_id'] ??
-                        ticket['ticket_number'];
+                    final id = ticket['id'] ?? ticket['_id'];
+                    if (id == null || id.toString().trim().isEmpty) {
+                      HelperFunctions().showSnackBarError(
+                          'This ticket is missing its reference ID.');
+                      return;
+                    }
                     Get.toNamed(Routes.SUPPORT_TICKET_DETAILS,
                         arguments: {'id': id});
                   },

@@ -338,7 +338,6 @@ class AddressListView extends GetView<AddressListController> {
                                                   _showDeleteDialog(
                                                     context,
                                                     userAddress['_id'],
-                                                    index,
                                                   );
                                                 },
                                                 color: colorScheme.error,
@@ -576,7 +575,7 @@ class AddressListView extends GetView<AddressListController> {
     return locText;
   }
 
-  void _showDeleteDialog(BuildContext context, String id, int index) {
+  void _showDeleteDialog(BuildContext context, String id) {
     final colorScheme = Theme.of(context).colorScheme;
 
     Get.dialog(

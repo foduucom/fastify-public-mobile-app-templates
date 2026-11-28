@@ -69,8 +69,7 @@ class FirebaseHelpers {
       requestSoundPermission: true,
     );
     await _localNotifications.initialize(
-      const InitializationSettings(
-          android: androidSettings, iOS: iosSettings),
+      const InitializationSettings(android: androidSettings, iOS: iosSettings),
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         if (response.payload != null) {
           navigateOnNotificationClick({'type': response.payload});

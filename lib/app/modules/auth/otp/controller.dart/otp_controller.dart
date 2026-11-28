@@ -1,9 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
-import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/material.dart';
 import 'package:foduu_ecommerce/app/controllers/api_exception_handle_controller.dart';
 import 'package:foduu_ecommerce/app/modules/auth/auth_details.dart';
 import 'package:foduu_ecommerce/app/modules/auth/otp/provider/otp_provider.dart';
@@ -35,6 +31,8 @@ class OtpController extends GetxController with BaseController {
   var mobile = "".obs;
   var countryCode = "".obs;
   var otpContext = OtpContext.login.obs;
+  final forgotPasswordMessage = ''.obs;
+  final forgotPasswordOtpVerified = false.obs;
 
   //final AuthProvider authProvider = AuthProvider();
   //final RegisterProvider registerProvider = RegisterProvider();
@@ -51,15 +49,11 @@ class OtpController extends GetxController with BaseController {
       mobile.value = args['mobile'] ?? '';
       countryCode.value = args['country_code'] ?? '';
 
-      String contextStr =
-          args['context'] ?? 'forgot_password'; // Default to forgot_password
+      final contextStr = args['context'] ?? 'login';
       otpContext.value = _getOtpContext(contextStr);
-      print(
-          'OTP Screen - Email: ${email.value}, Mobile: ${mobile.value}, Context: ${otpContext.value}');
     } else {
       // Fallback - try to get from storage or previous screen
       email.value = box.read('userEmail') ?? '';
-      print('OTP Screen - No args, using stored email: ${email.value}');
     }
 
     startCountdown();
@@ -73,8 +67,9 @@ class OtpController extends GetxController with BaseController {
       case 'login':
         return OtpContext.login;
       case 'forgot_password':
+        return OtpContext.forgotPassword;
       default:
-        return OtpContext.forgotPassword; // Add this to your enum
+        return OtpContext.login;
     }
   }
 
@@ -103,8 +98,9 @@ class OtpController extends GetxController with BaseController {
   }
 
   Future<void> verifyOtp({required String otp}) async {
+    if (isLoading.value || forgotPasswordOtpVerified.value) return;
     if (otp.isEmpty || otp.length < 6) {
-      HelperFunctions().showSnackBarError("Please enter 4-digit OTP");
+      HelperFunctions().showSnackBarError("Please enter the 6-digit OTP");
       return;
     }
 
@@ -123,10 +119,11 @@ class OtpController extends GetxController with BaseController {
         await _verifyAuthOtp(otp);
       }
     } catch (error) {
-      isLoading(false);
       print('OTP verification error: $error');
       HelperFunctions()
           .showSnackBarError("OTP verification failed. Please try again.");
+    } finally {
+      isLoading(false);
     }
   }
 
@@ -138,15 +135,24 @@ class OtpController extends GetxController with BaseController {
         mobile: mobile.value.isNotEmpty ? mobile.value : null,
         countryCode: countryCode.value.isNotEmpty ? countryCode.value : null,
         otp: otp,
+        persistAuthSession: false,
       );
 
-      if (response != null && response['statusCode'] == 200) {
-        await _handleSuccessResponse(response);
+      final body = response['body'];
+      final bodyStatus = body is Map
+          ? (body['status'] ?? body['success'])?.toString().toLowerCase()
+          : null;
+      final bodyRejected = body is Map &&
+          (body['success'] == false ||
+              {'error', 'failed', 'failure', 'false'}.contains(bodyStatus));
+
+      if (response['statusCode'] == 200 && !bodyRejected) {
+        forgotPasswordOtpVerified.value = true;
+        forgotPasswordMessage.value =
+            'Your code was verified, but this store has not enabled password reset yet. Please contact store support to regain access.';
       } else {
-        // FIX: Handle null or invalid response
-        final errorMessage = response?['body']?['message']?.toString() ??
-            'Invalid response from server';
-        throw Exception("Invalid response from server");
+        final message = body is Map ? body['message']?.toString() : null;
+        throw Exception(message ?? 'The verification response was invalid.');
       }
     } catch (error) {
       print('OTP verification error type: ${error.runtimeType}');
@@ -156,7 +162,7 @@ class OtpController extends GetxController with BaseController {
       String errorMessage = "OTP verification failed. Please try again.";
 
       if (error is FormatException) {
-        errorMessage = error.message ?? 'Invalid OTP format';
+        errorMessage = error.message;
       } else if (error is UnAuthorizedException) {
         errorMessage = error.toString();
       } else if (error is Exception) {
@@ -179,7 +185,7 @@ class OtpController extends GetxController with BaseController {
         otp: otp,
       );
 
-      if (response != null && response['statusCode'] == 200) {
+      if (response['statusCode'] == 200) {
         await _handleSuccessResponse(response);
       } else {
         throw Exception("Invalid response from server");
@@ -193,11 +199,7 @@ class OtpController extends GetxController with BaseController {
   Future<void> _handleSuccessResponse(Map<String, dynamic> response) async {
     try {
       final responseBody = response['body'];
-      final headers = response['headers'];
       AuthDetails.saveLoginResponse(responseBody);
-
-      print('Full Response Body: ${jsonEncode(responseBody)}');
-      print('User Data Type: ${responseBody['data'].runtimeType}');
 
       // Check if data exists and is Map
       if (responseBody['data'] == null) {
@@ -229,15 +231,6 @@ class OtpController extends GetxController with BaseController {
 
       // Now safely extract data with null checks
       final Map<String, dynamic> safeUserData = userData;
-
-      // Debug each field
-      print('Checking user data fields:');
-      print(
-          'id: ${safeUserData['id']} (type: ${safeUserData['id']?.runtimeType})');
-      print(
-          'email: ${safeUserData['email']} (type: ${safeUserData['email']?.runtimeType})');
-      print(
-          'name: ${safeUserData['name']} (type: ${safeUserData['name']?.runtimeType})');
 
       // Extract with null coalescing
       final userId = safeUserData['id']?.toString() ?? 'unknown_id';
@@ -399,7 +392,6 @@ class OtpController extends GetxController with BaseController {
           countryCode: countryCode.value.isNotEmpty ? countryCode.value : null,
         );
         HelperFunctions().showSnackBarSuccess('OTP resent successfully');
-        isLoading(false);
       } catch (error) {
         isLoading(false);
         HelperFunctions().showSnackBarError('Failed to resend OTP');
@@ -422,30 +414,5 @@ class OtpController extends GetxController with BaseController {
         isResendVisible.value = true;
       }
     });
-  }
-
-  /// Get device details for API request
-  Future<Map<String, dynamic>> _getDeviceDetails() async {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-
-    if (Platform.isAndroid) {
-      var androidInfo = await deviceInfo.androidInfo;
-      return {
-        'type': Platform.operatingSystem,
-        'mobile_name': androidInfo.model,
-        'brand': androidInfo.manufacturer,
-        'version': androidInfo.version.release,
-        'device_identifier': androidInfo.id.toString(),
-      };
-    } else {
-      var iosInfo = await deviceInfo.iosInfo;
-      return {
-        'type': Platform.operatingSystem,
-        'mobile_name': iosInfo.utsname.machine,
-        'brand': iosInfo.model,
-        'version': iosInfo.systemVersion,
-        'device_identifier': iosInfo.identifierForVendor,
-      };
-    }
   }
 }

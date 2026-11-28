@@ -52,9 +52,9 @@ class AddressFormView extends GetView<AddressFormController> {
                   title: "Full Name",
                   fieldHintText: "Enter full name",
                   controller: controller.name,
-                  validationmsg: "",
-                  isRequired: false,
-                  validCheck: null,
+                  validationmsg: "Name is required",
+                  validCheck: (v) =>
+                      (v == null || v.trim().isEmpty) ? "Enter Name" : null,
                 ),
                 const SizedBox(height: 16),
 
@@ -64,11 +64,12 @@ class AddressFormView extends GetView<AddressFormController> {
                   fieldHintText: "Enter 10 digit mobile number",
                   controller: controller.mobile,
                   keyType: TextInputType.phone,
-                  validationmsg: "",
-                  isRequired: false,
+                  validationmsg: "Valid mobile number is required",
                   validCheck: (v) {
-                    if (v == null || v.trim().isEmpty) return null;
-                    if (v.trim().length != 10) {
+                    if (v == null || v.trim().isEmpty) {
+                      return "Enter Mobile Number";
+                    }
+                    if (!RegExp(r'^\d{10}$').hasMatch(v.trim())) {
                       return "Enter 10 digit Mobile Number";
                     }
                     return null;
@@ -131,9 +132,8 @@ class AddressFormView extends GetView<AddressFormController> {
                   fieldHintText: "Enter nearby landmark",
                   controller: controller.landmark,
                   validationmsg: "Required",
-                  validCheck: (v) => (v == null || v.trim().isEmpty)
-                      ? "Enter Landmark"
-                      : null,
+                  validCheck: (v) =>
+                      (v == null || v.trim().isEmpty) ? "Enter Landmark" : null,
                 ),
                 const SizedBox(height: 16),
 
@@ -164,8 +164,9 @@ class AddressFormView extends GetView<AddressFormController> {
                   fieldHintText: "Enter your Town/City",
                   controller: controller.city,
                   validationmsg: "City is required",
-                  validCheck: (v) =>
-                      (v == null || v.trim().isEmpty) ? "Enter Town/City" : null,
+                  validCheck: (v) => (v == null || v.trim().isEmpty)
+                      ? "Enter Town/City"
+                      : null,
                 ),
                 const SizedBox(height: 24),
 
@@ -411,9 +412,8 @@ class AddressFormView extends GetView<AddressFormController> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected
-                      ? colorScheme.primary
-                      : colorScheme.onSurface,
+                  color:
+                      isSelected ? colorScheme.primary : colorScheme.onSurface,
                 ),
               ),
             ],

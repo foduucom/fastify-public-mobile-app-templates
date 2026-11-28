@@ -17,6 +17,7 @@ class BlogDetailsController extends GetxController with BaseController {
   final RxBool isLoading = false.obs;
   final RxBool hasError = false.obs;
   final RxString errorMessage = ''.obs;
+  final RxString requestedBlogId = ''.obs;
 
   @override
   void onInit() {
@@ -31,7 +32,8 @@ class BlogDetailsController extends GetxController with BaseController {
         currentBlog.value = args['blog'] as BlogModel;
         _populateAdjacentAndLatestBlogs();
       } else if (args['id'] != null) {
-        fetchBlogById(args['id'].toString());
+        requestedBlogId.value = args['id'].toString();
+        fetchBlogById(requestedBlogId.value);
       }
     } else if (args is BlogModel) {
       currentBlog.value = args;
@@ -40,14 +42,19 @@ class BlogDetailsController extends GetxController with BaseController {
   }
 
   Future<void> fetchBlogById(String id) async {
+    if (id.trim().isEmpty) {
+      hasError.value = true;
+      errorMessage.value = 'Blog post not found.';
+      return;
+    }
+    requestedBlogId.value = id;
     try {
       isLoading.value = true;
       hasError.value = false;
       errorMessage.value = '';
 
-      final response = await BasicProvider('blogs/$id')
-          .getRequest()
-          .catchError(handleError);
+      final response =
+          await BasicProvider('blogs/$id').getRequest().catchError(handleError);
 
       if (response == null) {
         hasError.value = true;
@@ -121,9 +128,8 @@ class BlogDetailsController extends GetxController with BaseController {
     final blog = currentBlog.value;
     if (blog == null) return;
 
-    final blogUrl = blog.slug.isNotEmpty
-        ? '${url}blog/${blog.slug}'
-        : '${url}blog';
+    final blogUrl =
+        blog.slug.isNotEmpty ? '${url}blog/${blog.slug}' : '${url}blog';
 
     FlutterClipboard.copy(blogUrl).then((_) {
       Fluttertoast.showToast(

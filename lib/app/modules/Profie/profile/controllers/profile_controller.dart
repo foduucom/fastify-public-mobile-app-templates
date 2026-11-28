@@ -23,6 +23,8 @@ class ProfileController extends GetxController with BaseController {
       newPasswordController,
       comfirmPasswordController;
   final isLoading = false.obs;
+  final profileLoadError = false.obs;
+  final isPasswordChanging = false.obs;
   var imagePath = "".obs;
 
   var obsecureValue = true.obs;
@@ -74,6 +76,16 @@ class ProfileController extends GetxController with BaseController {
   }
 
   Future<void> changePassword() async {
+    if (!AuthDetails.isUserLogin()) {
+      HelperFunctions()
+          .showSnackBarError('Please sign in to change your password.');
+      return;
+    }
+    if (isPasswordChanging.value ||
+        changePasswordFormKey.currentState?.validate() != true) {
+      return;
+    }
+    isPasswordChanging.value = true;
     try {
       if (newPasswordController.text != comfirmPasswordController.text) {
         HelperFunctions()
@@ -88,7 +100,11 @@ class ProfileController extends GetxController with BaseController {
       var response = await BasicProvider("public/customer/change/password")
           .postRequest(form)
           .catchError(handleError);
-      if (response == null) return;
+      if (_writeFailed(response)) {
+        HelperFunctions().showSnackBarError(
+            'Could not change password. Check your current password and try again.');
+        return;
+      }
       Get.back();
       newPasswordController.text = '';
       oldPasswordController.text = '';
@@ -99,6 +115,10 @@ class ProfileController extends GetxController with BaseController {
       HelperFunctions().showSnackBarSuccess('Password Change successfully');
     } catch (e) {
       debugPrint('Password change failed: $e');
+      HelperFunctions()
+          .showSnackBarError('Failed to change password. Please try again.');
+    } finally {
+      isPasswordChanging.value = false;
     }
   }
 
@@ -109,7 +129,13 @@ class ProfileController extends GetxController with BaseController {
   }
 
   Future<void> fetchDataFromServer() async {
+    if (!AuthDetails.isUserLogin()) {
+      profileLoadError.value = false;
+      isLoading(false);
+      return;
+    }
     try {
+      profileLoadError.value = false;
       isLoading(true);
       // Switched from "public/customer/profile" to "auth/customer/profile" as requested
       var response = await BasicProvider("auth/customer/profile")
@@ -149,9 +175,11 @@ class ProfileController extends GetxController with BaseController {
 
         debugPrint("Profile data successfully fetched and parsed.");
       } else {
+        profileLoadError.value = true;
         debugPrint("Profile data response was null.");
       }
     } catch (e) {
+      profileLoadError.value = true;
       debugPrint('Error fetching profile: $e');
     } finally {
       isLoading(false);
@@ -161,6 +189,7 @@ class ProfileController extends GetxController with BaseController {
   @override
   void onClose() {
     super.onClose();
+    addressController.dispose();
     nameController.dispose();
     emailController.dispose();
     phoneController.dispose();
@@ -180,9 +209,14 @@ class ProfileController extends GetxController with BaseController {
   ];
 
   Future<void> sendFormData() async {
-    if (formKey.currentState!.validate()) {
-      isLoading(true);
-
+    if (!AuthDetails.isUserLogin()) {
+      HelperFunctions()
+          .showSnackBarError('Please sign in to update your profile.');
+      return;
+    }
+    if (isLoading.value || formKey.currentState?.validate() != true) return;
+    isLoading(true);
+    try {
       var form = FormData({
         'name': nameController.text,
         'mobile': phoneController.text,
@@ -196,27 +230,42 @@ class ProfileController extends GetxController with BaseController {
                 : null,
       });
 
-      try {
-        var response = await BasicProvider("auth/customer/profile/update")
-            .postRequest(form)
-            .catchError(handleError);
+      var response = await BasicProvider("auth/customer/profile/update")
+          .postRequest(form)
+          .catchError(handleError);
 
-        if (response == null) return;
-        // Evict old cached image so the updated one loads fresh
-        if (imagePath.value.contains("http")) {
-          await CachedNetworkImage.evictFromCache(imagePath.value);
-        }
-        await fetchDataFromServer();
-        await AuthDetails().updateUserDetailsFromServer();
-
-        HelperFunctions().showSnackBarSuccess('Profile update successfully');
-      } catch (e) {
-        debugPrint('Profile update failed: $e');
-        HelperFunctions().showSnackBarError('Failed to update profile. Please try again.');
-      } finally {
-        isLoading(false);
+      if (_writeFailed(response)) {
+        HelperFunctions()
+            .showSnackBarError('Failed to update profile. Please try again.');
+        return;
       }
+      // Evict old cached image so the updated one loads fresh
+      if (imagePath.value.contains("http")) {
+        await CachedNetworkImage.evictFromCache(imagePath.value);
+      }
+      await fetchDataFromServer();
+      await AuthDetails().updateUserDetailsFromServer();
+
+      HelperFunctions().showSnackBarSuccess('Profile update successfully');
+    } catch (e) {
+      debugPrint('Profile update failed: $e');
+      HelperFunctions()
+          .showSnackBarError('Failed to update profile. Please try again.');
+    } finally {
+      isLoading(false);
     }
+  }
+
+  bool _writeFailed(dynamic response) {
+    if (response == null) return true;
+    if (response is! Map) return false;
+    final status = response['status']?.toString().toLowerCase();
+    return response['success'] == false ||
+        status == 'false' ||
+        status == 'error' ||
+        status == 'failed' ||
+        status == 'failure' ||
+        status == '409';
   }
 
   List profileOptions = [

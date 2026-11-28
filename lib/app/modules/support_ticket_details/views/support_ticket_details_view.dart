@@ -1,15 +1,11 @@
 import '../widgets/chat_attachment_widget.dart';
-import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart'
     hide ImageSource;
-import 'package:foduu_ecommerce/constants/helper_functions.dart';
 import 'package:foduu_ecommerce/constants/support_ticket_status.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../controllers/support_ticket_details_controller.dart';
 
@@ -120,10 +116,9 @@ class SupportTicketDetailsView extends GetView<SupportTicketDetailsController> {
               }),
             ),
             Obx(() {
-              final canReply =
-                  controller.supportTicketId.isNotEmpty &&
-                      controller.supportTicketId != 'null' &&
-                      controller.supportTicketDetails['can_reply'] != false;
+              final canReply = controller.supportTicketId.isNotEmpty &&
+                  controller.supportTicketId != 'null' &&
+                  controller.supportTicketDetails['can_reply'] != false;
               if (!canReply) {
                 return SafeArea(
                   top: false,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:foduu_ecommerce/core/config/app_config.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -273,8 +274,10 @@ class DynamicThemeManager {
   DynamicThemeManager._internal();
 
   final _box = GetStorage();
-  static const String _lightThemeKey = 'app_theme_colors_light';
-  static const String _darkThemeKey = 'app_theme_colors_dark';
+  String get _lightThemeKey =>
+      'app_theme_colors_light_${AppConfig.instance.websiteDomain}';
+  String get _darkThemeKey =>
+      'app_theme_colors_dark_${AppConfig.instance.websiteDomain}';
 
   AppThemeColors _lightColors = AppThemeColors.defaultsLight();
   AppThemeColors _darkColors = AppThemeColors.defaultsDark();
@@ -323,8 +326,9 @@ class DynamicThemeManager {
 
   /// Update theme colors from API response
   /// Expected format: { "light": { "primary": "#xxx", "secondary": "#xxx", "background": "#xxx", "error": "#xxx" }, "dark": { ... } }
-  void updateFromApi(Map<String, dynamic> appThemeColor) {
+  bool updateFromApi(Map<String, dynamic> appThemeColor) {
     debugPrint('🌐 Updating themes from API');
+    var updated = false;
 
     // Parse light theme
     if (appThemeColor.containsKey('light') && appThemeColor['light'] != null) {
@@ -334,6 +338,7 @@ class DynamicThemeManager {
       );
       _cachedLightTheme = null;
       _box.write(_lightThemeKey, _lightColors.toJson());
+      updated = true;
       debugPrint('✅ Light theme updated & saved successfully');
     } else {
       debugPrint('⚠️ API response does not contain light theme');
@@ -347,10 +352,12 @@ class DynamicThemeManager {
       );
       _cachedDarkTheme = null;
       _box.write(_darkThemeKey, _darkColors.toJson());
+      updated = true;
       debugPrint('✅ Dark theme updated & saved successfully');
     } else {
       debugPrint('⚠️ API response does not contain dark theme');
     }
+    return updated;
   }
 
   /// Clear stored themes (reset to defaults)

@@ -12,7 +12,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(BlogDetailsController());
+    final controller = this.controller;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -55,6 +55,15 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
                     style: TextStyle(color: colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 16),
+                  if (controller.requestedBlogId.value.isNotEmpty)
+                    ElevatedButton.icon(
+                      onPressed: () => controller
+                          .fetchBlogById(controller.requestedBlogId.value),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retry'),
+                    ),
+                  if (controller.requestedBlogId.value.isNotEmpty)
+                    const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: () => Get.back(),
                     child: const Text('Go Back'),
@@ -183,9 +192,7 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
                     size: 15, color: colorScheme.onSurfaceVariant),
                 const SizedBox(width: 4),
                 Text(
-                  blog.formattedDate.isNotEmpty
-                      ? blog.formattedDate
-                      : 'Recent',
+                  blog.formattedDate.isNotEmpty ? blog.formattedDate : 'Recent',
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -334,11 +341,13 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
             runSpacing: 6,
             children: tags.map((tag) {
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: colorScheme.surfaceVariant,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                  border:
+                      Border.all(color: colorScheme.outline.withOpacity(0.2)),
                 ),
                 child: Text(
                   '#$tag',
@@ -501,7 +510,9 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
             radius: 24,
             backgroundColor: colorScheme.primary.withOpacity(0.2),
             child: Text(
-              blog.authorName.isNotEmpty ? blog.authorName[0].toUpperCase() : 'A',
+              blog.authorName.isNotEmpty
+                  ? blog.authorName[0].toUpperCase()
+                  : 'A',
               style: TextStyle(
                 color: colorScheme.primary,
                 fontWeight: FontWeight.bold,
@@ -591,8 +602,8 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                      color: colorScheme.outline.withOpacity(0.12)),
+                  border:
+                      Border.all(color: colorScheme.outline.withOpacity(0.12)),
                 ),
                 child: Row(
                   children: [
@@ -601,24 +612,24 @@ class BlogDetailsView extends GetView<BlogDetailsController> {
                       child: SizedBox(
                         width: 72,
                         height: 54,
-                        child: item.imageUrl != null &&
-                                item.imageUrl!.isNotEmpty
-                            ? CachedNetworkImage(
-                                imageUrl: item.imageUrl!,
-                                fit: BoxFit.cover,
-                                errorWidget: (_, __, ___) => Container(
-                                  color: colorScheme.surfaceVariant,
-                                  child: Icon(Icons.article_outlined,
-                                      size: 20,
-                                      color: colorScheme.onSurfaceVariant),
-                                ),
-                              )
-                            : Container(
-                                color: colorScheme.surfaceVariant,
-                                child: Icon(Icons.article_outlined,
-                                    size: 20,
-                                    color: colorScheme.onSurfaceVariant),
-                              ),
+                        child:
+                            item.imageUrl != null && item.imageUrl!.isNotEmpty
+                                ? CachedNetworkImage(
+                                    imageUrl: item.imageUrl!,
+                                    fit: BoxFit.cover,
+                                    errorWidget: (_, __, ___) => Container(
+                                      color: colorScheme.surfaceVariant,
+                                      child: Icon(Icons.article_outlined,
+                                          size: 20,
+                                          color: colorScheme.onSurfaceVariant),
+                                    ),
+                                  )
+                                : Container(
+                                    color: colorScheme.surfaceVariant,
+                                    child: Icon(Icons.article_outlined,
+                                        size: 20,
+                                        color: colorScheme.onSurfaceVariant),
+                                  ),
                       ),
                     ),
                     const SizedBox(width: 12),

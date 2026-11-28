@@ -1,55 +1,51 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:foduu_ecommerce/core/config/app_config.dart';
 
-const appMode = "test";
+String get appMode => AppConfig.instance.appMode;
 
-// var isWeb = false;
+String get websiteDomain => AppConfig.instance.websiteDomain;
+set websiteDomain(String value) => AppConfig.instance.websiteDomain = value;
 
-// var websiteDomain = isWeb ? "testdemo.vbought.com" : 'Not Provided';
-// var url = isWeb ? "https://${websiteDomain}/" : 'Not Provided';
-// var socketUrl = "https://studio.vbought.com/";
+String get url => AppConfig.instance.url;
+String get socketUrl => AppConfig.instance.socketUrl;
+set socketUrl(String value) => AppConfig.instance.socketUrl = value;
 
-// var ACCESS_KEY =
-//     isWeb ? 'c4144f5a5223976f79ac555d0a95e35f6dd9e34a69e0f935' : 'Not Provided';
+String get ACCESS_KEY => AppConfig.instance.accessKey;
+set ACCESS_KEY(String value) => AppConfig.instance.accessKey = value;
 
-// var websiteDomain = "mywatch.vbought.com";
-// var url = "https://${websiteDomain}/";
-// var socketUrl = "https://studio.vbought.com/";
+String get assetURL => AppConfig.instance.assetURL;
+String get apiURL => AppConfig.instance.apiURL;
 
-// ZOOHI websiteDomain
-var websiteDomain = "traditional-ecom.foduu.store";
-var url = "https://${websiteDomain}/";
-var socketUrl = "https://studio.foduu.store/";
+String get appName => AppConfig.instance.appName;
+String get supportEmail => AppConfig.instance.supportEmail;
+set supportEmail(String value) => AppConfig.instance.supportEmail = value;
 
-// var ACCESS_KEY = '72a5a13ab02a20737217279980c33374f41554ec60742815';
+String get supportContact => AppConfig.instance.supportContact;
+set supportContact(String value) => AppConfig.instance.supportContact = value;
 
-// ZOOHI ACCESS Key
-var ACCESS_KEY = '370093f746beea3adee9176bbf78ea57ee70a29db34edf1c';
-
-var assetURL = "${url}images/";
-var apiURL = "${url}api/";
-
-const String appName = "Store";
-String supportEmail = "support@vbought.com";
-String supportContact = "1-800-570-7777";
-
-bool isOtpLogin = false;
+bool get isOtpLogin => AppConfig.instance.isOtpLogin;
+set isOtpLogin(bool value) => AppConfig.instance.isOtpLogin = value;
 
 const Latofont = TextStyle(fontFamily: 'lato');
 
 const pageSurroundingPadding = EdgeInsets.all(12.0);
 const pageGridPadding = EdgeInsets.symmetric(horizontal: 12.0);
 
-BorderRadiusGeometry themeBorderRadius = BorderRadius.circular(30.0);
-ShapeBorder themeShapeBorderRadius =
+BorderRadiusGeometry get themeBorderRadius => BorderRadius.circular(
+      AppConfig.instance.borderRadiusOverride ?? 30.0,
+    );
+
+ShapeBorder get themeShapeBorderRadius =>
     RoundedRectangleBorder(borderRadius: themeBorderRadius);
 
 /// ****************** Design Properties ****************** ///
-ButtonStyle themeButton = ButtonStyle(
-  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-    RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(05),
-    ),
-  ),
-  elevation: MaterialStateProperty.all(0),
-);
+ButtonStyle get themeButton => ButtonStyle(
+      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            AppConfig.instance.buttonBorderRadiusOverride ?? 5.0,
+          ),
+        ),
+      ),
+      elevation: WidgetStateProperty.all(0),
+    );

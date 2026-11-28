@@ -108,25 +108,26 @@ class AddressFormController extends GetxController with BaseController {
   }
 
   void _initFromArgs() {
-    if (Get.arguments != null) {
-      isEditMode = Get.arguments['isEdit'] ?? false;
+    final arguments = Get.arguments;
+    if (arguments is Map) {
+      isEditMode = arguments['isEdit'] == true;
 
-      if (isEditMode && Get.arguments['address'] != null) {
-        var addr = Get.arguments['address'];
+      if (isEditMode && arguments['address'] != null) {
+        final addr = arguments['address'];
 
         // Debug print to see what we're getting
 
         // Make sure addr is a Map
         if (addr is Map) {
-          editAddressId = addr['_id'] ?? '';
-          name.text = addr['name'] ?? '';
-          email.text = addr['email'] ?? '';
-          mobile.text = addr['mobile'] ?? '';
-          postal_code.text = addr['postal_code'] ?? '';
-          landmark.text = addr['landmark'] ?? '';
-          street.text = addr['street'] ?? '';
-          addressType.value = addr['address_type'] ?? 'Home';
-          isDefault.value = (addr['is_default'] == 1);
+          editAddressId = (addr['_id'] ?? addr['id'] ?? '').toString();
+          name.text = addr['name']?.toString() ?? '';
+          email.text = addr['email']?.toString() ?? '';
+          mobile.text = addr['mobile']?.toString() ?? '';
+          postal_code.text = addr['postal_code']?.toString() ?? '';
+          landmark.text = addr['landmark']?.toString() ?? '';
+          street.text = addr['street']?.toString() ?? '';
+          addressType.value = addr['address_type']?.toString() ?? 'Home';
+          isDefault.value = const {true, 1, '1'}.contains(addr['is_default']);
 
           selectedCountry.value =
               addr['country'] is Map ? Map.from(addr['country']) : {};
@@ -162,9 +163,16 @@ class AddressFormController extends GetxController with BaseController {
   }
 
   Future<void> saveAddress() async {
-    if (!formKey.currentState!.validate()) return;
-    if (selectedCountry.isEmpty || selectedState.isEmpty) {
+    if (isLoading.value) return;
+    if (formKey.currentState?.validate() != true) return;
+    if ((selectedCountry['_id'] ?? '').toString().isEmpty ||
+        (selectedState['_id'] ?? '').toString().isEmpty) {
       HelperFunctions().showSnackBarError("Please select country and state");
+      return;
+    }
+    if (isEditMode && editAddressId.isEmpty) {
+      HelperFunctions().showSnackBarError(
+          'This address cannot be updated because its ID is missing.');
       return;
     }
 
@@ -203,52 +211,36 @@ class AddressFormController extends GetxController with BaseController {
         final response =
             await BasicProvider('customer/addresses/$editAddressId')
                 .patchRequest(body);
-        if (response == null)
+        if (_writeFailed(response))
           throw Exception('Address update was not confirmed by the server');
       } else {
         final response =
             await BasicProvider('customer/addresses/add').postRequest(body);
-        if (response == null)
+        if (_writeFailed(response))
           throw Exception('Address save was not confirmed by the server');
       }
 
       // Hide loader before dialog or route navigation
       HelperFunctions().hideOverlayLoader();
-      isLoading.value = false;
 
-      {
-        if (Get.isRegistered<AddressListController>()) {
-          Get.find<AddressListController>().refreshAddresses();
-        }
-
-        bool hasRedirected = false;
-        void redirectBack() {
-          if (hasRedirected) return;
-          hasRedirected = true;
-          if (Get.isDialogOpen == true) {
-            Get.back(); // Dismiss dialog
-          }
-          Get.back(result: true); // Redirect back to AddressListView
-        }
-
-        // Show successful dialog
-        DialogHelper.showSuccessDialog(
-          title: isEditMode
-              ? "Address Updated Successfully"
-              : "Address Saved Successfully",
-          description: isEditMode
-              ? "Your address details have been successfully updated."
-              : "Your delivery address has been saved and added to your address list.",
-          imagePath: "assets/images/Illustration.png",
-          buttonText: "Continue",
-          onPressed: redirectBack,
-        );
-
-        // Automatic redirect to AddressListView after delay
-        Future.delayed(const Duration(milliseconds: 1800), () {
-          redirectBack();
-        });
+      if (Get.isRegistered<AddressListController>()) {
+        await Get.find<AddressListController>().refreshAddresses();
       }
+
+      DialogHelper.showSuccessDialog(
+        title: isEditMode
+            ? "Address Updated Successfully"
+            : "Address Saved Successfully",
+        description: isEditMode
+            ? "Your address details have been successfully updated."
+            : "Your delivery address has been saved and added to your address list.",
+        imagePath: "assets/images/Illustration.png",
+        buttonText: "Continue",
+        onPressed: () {
+          if (Get.isDialogOpen == true) Get.back();
+          Get.back(result: true);
+        },
+      );
     } catch (e) {
       HelperFunctions().hideOverlayLoader();
       isLoading.value = false;
@@ -259,6 +251,18 @@ class AddressFormController extends GetxController with BaseController {
       HelperFunctions().hideOverlayLoader();
       isLoading.value = false;
     }
+  }
+
+  bool _writeFailed(dynamic response) {
+    if (response == null) return true;
+    if (response is! Map) return false;
+    final status = response['status']?.toString().toLowerCase();
+    return response['success'] == false ||
+        status == 'false' ||
+        status == 'error' ||
+        status == 'failed' ||
+        status == 'failure' ||
+        status == '409';
   }
 
   @override

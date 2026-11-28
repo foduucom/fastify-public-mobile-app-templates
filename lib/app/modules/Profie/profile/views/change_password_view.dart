@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import '/app/modules/Profie/profile/controllers/profile_controller.dart';
-import '/components/foduuformtextfield.dart';
-import '/constants/constants.dart';
 import 'package:get/get.dart';
-import '../../../../../components/buttons/appbutton.dart';
-import '../../../../routes/app_pages.dart';
 
 class ChangePasswordView extends GetView<ProfileController> {
   const ChangePasswordView({Key? key}) : super(key: key);
@@ -73,9 +69,9 @@ class ChangePasswordView extends GetView<ProfileController> {
                       ),
                       const SizedBox(height: 4),
                       Obx(
-                            () => TextFormField(
+                        () => TextFormField(
                           obscureText:
-                          !controller.oldPasswordObsecureValue.value,
+                              !controller.oldPasswordObsecureValue.value,
                           decoration: InputDecoration(
                             floatingLabelBehavior: FloatingLabelBehavior.never,
                             contentPadding: EdgeInsets.symmetric(
@@ -119,7 +115,7 @@ class ChangePasswordView extends GetView<ProfileController> {
                             suffixIcon: GestureDetector(
                               onTap: () {
                                 controller.oldPasswordObsecureValue.value =
-                                !controller.oldPasswordObsecureValue.value;
+                                    !controller.oldPasswordObsecureValue.value;
                               },
                               child: Icon(
                                 controller.oldPasswordObsecureValue.value
@@ -165,9 +161,9 @@ class ChangePasswordView extends GetView<ProfileController> {
                       ),
                       const SizedBox(height: 4),
                       Obx(
-                            () => TextFormField(
+                        () => TextFormField(
                           obscureText:
-                          !controller.newPasswordObsecureValue.value,
+                              !controller.newPasswordObsecureValue.value,
                           decoration: InputDecoration(
                             floatingLabelBehavior: FloatingLabelBehavior.never,
                             contentPadding: EdgeInsets.symmetric(
@@ -211,7 +207,7 @@ class ChangePasswordView extends GetView<ProfileController> {
                             suffixIcon: GestureDetector(
                               onTap: () {
                                 controller.newPasswordObsecureValue.value =
-                                !controller.newPasswordObsecureValue.value;
+                                    !controller.newPasswordObsecureValue.value;
                               },
                               child: Icon(
                                 controller.newPasswordObsecureValue.value
@@ -257,9 +253,9 @@ class ChangePasswordView extends GetView<ProfileController> {
                       ),
                       const SizedBox(height: 4),
                       Obx(
-                            () => TextFormField(
+                        () => TextFormField(
                           obscureText:
-                          !controller.comfirmPasswordObsecureValue.value,
+                              !controller.comfirmPasswordObsecureValue.value,
                           decoration: InputDecoration(
                             floatingLabelBehavior: FloatingLabelBehavior.never,
                             contentPadding: EdgeInsets.symmetric(
@@ -303,15 +299,15 @@ class ChangePasswordView extends GetView<ProfileController> {
                             suffixIcon: GestureDetector(
                               onTap: () {
                                 controller.comfirmPasswordObsecureValue.value =
-                                !controller
-                                    .comfirmPasswordObsecureValue.value;
+                                    !controller
+                                        .comfirmPasswordObsecureValue.value;
                               },
                               child: Icon(
                                 controller.comfirmPasswordObsecureValue.value
                                     ? Icons.visibility
                                     : Icons.visibility_off,
                                 color: controller
-                                    .comfirmPasswordObsecureValue.value
+                                        .comfirmPasswordObsecureValue.value
                                     ? Theme.of(context).primaryColor
                                     : Colors.grey,
                                 size: height * 0.022,
@@ -331,7 +327,8 @@ class ChangePasswordView extends GetView<ProfileController> {
                             if (value.length < 6) {
                               return 'Password must be at least 6 characters';
                             }
-                            if (value != controller.newPasswordController.text) {
+                            if (value !=
+                                controller.newPasswordController.text) {
                               return 'Passwords do not match';
                             }
                             return null;
@@ -344,25 +341,24 @@ class ChangePasswordView extends GetView<ProfileController> {
               ),
             ),
           ),
-          // bottomNavigationBar: Container(
-          //   margin: const EdgeInsets.only(
-          //     bottom: 20.0,
-          //     left: 16.0,
-          //     right: 16.0,
-          //   ),
-          //   child: Obx(
-          //         () => AppButton(
-          //       itemText: 'Update Password',
-          //       keypressEvent: controller.isLoading.value
-          //           ? null
-          //           : () {
-          //         if (controller.formKey.currentState!.validate()) {
-          //           controller.changePassword();
-          //         }
-          //       },
-          //     ),
-          //   ),
-          // ),
+          bottomNavigationBar: SafeArea(
+            minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: Obx(() => SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: controller.isPasswordChanging.value
+                        ? null
+                        : controller.changePassword,
+                    child: controller.isPasswordChanging.value
+                        ? const SizedBox.square(
+                            dimension: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('UPDATE PASSWORD'),
+                  ),
+                )),
+          ),
         ),
       ),
     );

@@ -61,20 +61,10 @@ class HelpandsupportController extends GetxController with BaseController {
       var response = await BasicProvider("frontend/faq")
           .getRequest()
           .catchError(handleError);
-      if (response == null) {
+      final nextFaqs = _extractFaqs(response);
+      if (nextFaqs == null) {
         loadError.value = true;
         return;
-      }
-      final nextFaqs = <dynamic>[];
-      if (response is List) {
-        nextFaqs.addAll(response);
-      } else if (response is Map) {
-        final data = response['data'] ?? response['faqs'] ?? response['docs'];
-        if (data is List) {
-          nextFaqs.addAll(data);
-        } else if (data is Map && data['faqs'] is List) {
-          nextFaqs.addAll(data['faqs']);
-        }
       }
       faqs.assignAll(nextFaqs);
     } catch (e) {
@@ -83,5 +73,27 @@ class HelpandsupportController extends GetxController with BaseController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  List<dynamic>? _extractFaqs(dynamic response) {
+    if (response is List) return response;
+    if (response is! Map) return null;
+    final status = response['status']?.toString().toLowerCase();
+    if (response['success'] == false ||
+        status == 'error' ||
+        status == 'failed' ||
+        status == 'failure') {
+      return null;
+    }
+    for (final key in ['faqs', 'data', 'docs', 'results', 'items']) {
+      if (!response.containsKey(key)) continue;
+      final value = response[key];
+      if (value is List) return value;
+      if (value is Map) {
+        final nested = _extractFaqs(value);
+        if (nested != null) return nested;
+      }
+    }
+    return null;
   }
 }

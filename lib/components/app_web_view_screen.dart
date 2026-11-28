@@ -69,7 +69,7 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
         onRefresh: () async {
           _hasError = false;
           _isLoading = true;
-          setState(() {});
+          if (mounted) setState(() {});
           if (_webViewController != null) {
             _webViewController!.reload();
           }
@@ -255,7 +255,11 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
               onPressed: () async {
                 final uri = Uri.tryParse(widget.url);
                 if (uri != null) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  try {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  } catch (e) {
+                    debugPrint('Could not open page in browser: $e');
+                  }
                 }
               },
             ),
@@ -353,6 +357,7 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
                                   _isLoading = true;
                                   _progress = 0;
                                 });
+                                _initWebFallbackTimer();
                                 _webViewController?.reload();
                               },
                               icon: const Icon(Icons.refresh_rounded),
@@ -408,14 +413,19 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
         _webViewController = controller;
       },
       onLoadStart: (controller, url) {
+        if (!mounted) return;
         setState(() {
           _hasError = false;
+          _isLoading = true;
+          _progress = 0;
         });
+        _initWebFallbackTimer();
         if (!kIsWeb) {
           _applyThemeStyling(isDark);
         }
       },
       onProgressChanged: (controller, progress) {
+        if (!mounted) return;
         setState(() {
           _progress = progress / 100.0;
           if (progress >= 70) {
@@ -433,6 +443,7 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
       onLoadStop: (controller, url) async {
         _webTimeoutTimer?.cancel();
         _pullToRefreshController?.endRefreshing();
+        if (!mounted) return;
         if (kIsWeb) {
           setWebThemeMode(isDark);
         } else {
@@ -448,7 +459,7 @@ class _AppWebViewScreenState extends State<AppWebViewScreen> {
       onReceivedError: (controller, request, error) {
         _webTimeoutTimer?.cancel();
         _pullToRefreshController?.endRefreshing();
-        if (request.isForMainFrame ?? true) {
+        if (mounted && (request.isForMainFrame ?? true)) {
           setState(() {
             _hasError = true;
             _isLoading = false;

@@ -4,12 +4,14 @@ import 'package:foduu_ecommerce/app/modules/support_ticket_details/bindings/supp
 import 'package:foduu_ecommerce/app/modules/support_ticket_details/views/support_ticket_details_view.dart';
 import 'package:foduu_ecommerce/app/modules/reviews/bindings/my_reviews_binding.dart';
 import 'package:foduu_ecommerce/app/modules/reviews/views/my_reviews_view.dart';
+import 'package:foduu_ecommerce/app/modules/Profie/profile/views/change_password_view.dart';
 import 'package:foduu_ecommerce/app/modules/blog/binding.dart/blog_binding.dart';
 import 'package:foduu_ecommerce/app/modules/blog/views/blog_view.dart';
 import 'package:foduu_ecommerce/app/modules/blog/views/blog_details_view.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/contact/view/contact_us_view.dart';
 import 'package:foduu_ecommerce/app/modules/category_search/bindings/category_search_binding.dart';
 import 'package:foduu_ecommerce/app/modules/category_search/views/category_search_view.dart';
+import 'package:foduu_ecommerce/app/modules/contact/views/contact_view.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/binding/order_binding.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/order_products/binding/order_products_binding.dart';
 import 'package:foduu_ecommerce/app/modules/Profie/orders/order_products/view/order_view.dart';
@@ -20,6 +22,8 @@ import 'package:foduu_ecommerce/app/modules/Profie/privacy_policy/view/privacy_p
 import 'package:foduu_ecommerce/app/modules/Profie/terms&condition/view/terms_conditions_view.dart';
 import 'package:foduu_ecommerce/app/modules/add_profile/bindings/add_profile_binding.dart';
 import 'package:foduu_ecommerce/app/modules/add_profile/views/add_profile_view.dart';
+import 'package:foduu_ecommerce/app/modules/aboutus/bindings/aboutus_binding.dart';
+import 'package:foduu_ecommerce/app/modules/aboutus/views/aboutus_view.dart';
 import 'package:foduu_ecommerce/app/modules/address/bindings/address_form_binding.dart';
 import 'package:foduu_ecommerce/app/modules/address/bindings/address_list_binding.dart';
 import 'package:foduu_ecommerce/app/modules/address/views/address_form_view.dart';
@@ -319,6 +323,15 @@ class AppPages {
       binding: HelpandsupportBinding(),
     ),
     GetPage(
+      name: _Paths.ABOUTUS,
+      page: () => const AboutusView(),
+      binding: AboutusBinding(),
+    ),
+    GetPage(
+      name: _Paths.CONTACT,
+      page: () => const ContactView(),
+    ),
+    GetPage(
       name: _Paths.TERMSANDCONDITION,
       page: () => const TermsandconditionView(),
       binding: TermsandconditionBinding(),
@@ -361,6 +374,10 @@ class AppPages {
       name: _Paths.MY_REVIEWS,
       page: () => const MyReviewsView(),
       binding: MyReviewsBinding(),
+    ),
+    GetPage(
+      name: _Paths.CHANGE_PASSWORD,
+      page: () => const ChangePasswordView(),
     ),
     GetPage(
       name: _Paths.BLOG,
